@@ -1,6 +1,6 @@
 const { Client } = require('./src')
 
-const client = new Client();
+const client = new Client({puppeteer: {headless: false}});
 
 client.initialize();
 
@@ -14,6 +14,13 @@ client.on('authenticated', () => {
 
 client.on('ready', () => {
     console.log('READY');
-    client.destroy();
 });
+
+client.on('message', (msg) => {
+    console.log('MESSAGE RECEIVED', msg);
+
+    if (!msg.id.fromMe && msg.body == 'ping') {
+        client.sendMessage(msg.from, 'pong');
+    }
+})
 

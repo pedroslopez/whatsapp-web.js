@@ -48,3 +48,20 @@ exports.ExposeStore = () => {
         init();
     }, 5000);
 }
+
+exports.MarkAllRead = () => {
+    let Chats = Store.Chat.models;
+
+    for (chatIndex in Chats) {
+        if (isNaN(chatIndex)) {
+            continue;
+        }
+
+        let chat = Chats[chatIndex];
+
+        if (chat.unreadCount > 0) {
+            chat.markSeen();
+            Store.Wap.sendConversationSeen(chat.id, chat.getLastMsgKeyForAction(), chat.unreadCount - chat.pendingSeenCount);
+        }
+    }
+}

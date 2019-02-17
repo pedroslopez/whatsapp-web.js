@@ -4,7 +4,7 @@ const EventEmitter = require('events');
 const puppeteer = require('puppeteer');
 const Util = require('../util/Util');
 const { WhatsWebURL, UserAgent, DefaultOptions, Events } = require('../util/Constants');
-const { ExposeStore } = require('../util/Injected');
+const { ExposeStore, MarkAllRead } = require('../util/Injected');
 
 /**
  * Starting point for interacting with the WhatsApp Web API
@@ -40,6 +40,17 @@ class Client extends EventEmitter {
         // Check Store Injection
         await page.waitForFunction('window.Store != undefined');
 
+        await page.exposeFunction('onAddMessageEvent', (msg) => {
+            this.emit('message', msg);
+        });
+
+        await page.evaluate(() => {
+            Store.Msg.on('add', onAddMessageEvent);
+        })
+
+        // // Mark all chats as read
+        // await page.evaluate(MarkAllRead);
+
         this.pupBrowser = browser;
         this.pupPage = page;
 
@@ -49,6 +60,14 @@ class Client extends EventEmitter {
     async destroy() {
         await this.pupBrowser.close();
     }
+
+    async sendMessage(chatId, message) {
+        await this.pupPage.evaluate((chatId, message) => {
+            Store.Chat.get(chatId).sendMessage(message);
+        }, chatId, message)
+    }
+
+     
 }
 
 module.exports = Client;
