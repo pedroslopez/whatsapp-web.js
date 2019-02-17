@@ -1,0 +1,30 @@
+{
+  "name": "whatsapp-web.js",
+  "version": "1.0.0",
+  "description": "Library for interacting with the WhatsApp Web API ",
+  "main": "./src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pedroslopez/whatsapp-web.js.git"
+  },
+  "keywords": [
+    "whatsapp",
+    "whatsapp-web",
+    "api",
+    "bot",
+    "client",
+    "node"
+  ],
+  "author": "Pedro Lopez",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/pedroslopez/whatsapp-web.js/issues"
+  },
+  "homepage": "https://github.com/pedroslopez/whatsapp-web.js#readme",
+  "dependencies": {
+    "puppeteer": "^1.12.2"
+  }
+}

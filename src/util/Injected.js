@@ -1,0 +1,50 @@
+'use strict';
+
+/**
+ * Exposes the internal Store to the WhatsApp Web client
+ */
+exports.ExposeStore = () => {
+    setTimeout(function () {
+        function getAllModules() {
+            return new Promise((resolve) => {
+                const id = _.uniqueId("fakeModule_");
+                window["webpackJsonp"](
+                    [],
+                    {
+                        [id]: function (module, exports, __webpack_require__) {
+                            resolve(__webpack_require__.c);
+                        }
+                    },
+                    [id]
+                );
+            });
+        }
+
+        var modules = getAllModules()._value;
+
+        for (var key in modules) {
+            if (modules[key].exports) {
+                if (modules[key].exports.default) {
+                    if (modules[key].exports.default.Wap) {
+                        store_id = modules[key].id.replace(/"/g, '"');
+                    }
+                }
+            }
+        }
+
+    }, 2000);
+
+    function _requireById(id) {
+        return webpackJsonp([], null, [id]);
+    }
+
+    var store_id = 0;
+
+    function init() {
+        window.Store = _requireById(store_id).default;
+    }
+
+    setTimeout(function () {
+        init();
+    }, 5000);
+}
