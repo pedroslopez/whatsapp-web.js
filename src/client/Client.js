@@ -30,7 +30,8 @@ class Client extends EventEmitter {
         await page.goto(WhatsWebURL);
         await page.evaluate(ExposeStore);
 
-        await page.waitForSelector('._1jjYO');  // Wait for QR Code
+        // Wait for QR Code
+        await page.waitForSelector('._1jjYO');
         const qr = await page.$eval('._2EZ_m', node => node.getAttribute('data-ref'));
         
         this.emit(Events.QR_RECEIVED, qr);
@@ -48,6 +49,7 @@ class Client extends EventEmitter {
             await page.evaluate(LoadExtraProps, model.WAppModel, model.extraFields);
         }
 
+        // Register events
         await page.exposeFunction('onAddMessageEvent', msg => {
             if (msg.id.fromMe || !msg.isNewMsg) return;
             this.emit(Events.MESSAGE_CREATE, new Message(this, msg));
@@ -79,6 +81,14 @@ class Client extends EventEmitter {
         await this.pupPage.evaluate((chatId, message) => {
             Store.Chat.get(chatId).sendMessage(message);
         }, chatId, message)
+    }
+
+    async getChats() {
+        let chats = await this.pupPage.evaluate(() => {
+            return Store.Chat.serialize()
+        });
+
+        return chats.map(chatData => new Chat(this, chatData));
     }
 
     async getChatById(chatId) {

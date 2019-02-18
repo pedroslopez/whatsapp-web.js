@@ -17,7 +17,7 @@ class Message extends Base {
         this.id = data.id;
         this.body = data.body;
         this.type = data.type;
-        this.timestame = data.t;
+        this.timestamp = data.t;
         this.from = data.from;
         this.to = data.to;
         this.author = data.author;
