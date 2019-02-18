@@ -25,8 +25,37 @@ class Message extends Base {
         this.broadcast = data.broadcast;
     }
 
+    /**
+     * Returns the Chat this message was sent in
+     */
     getChat() {
         return this.client.getChatById(this.from);
+    }
+
+    /**
+     * Sends a message as a reply. If chatId is specified, it will be sent 
+     * through the specified Chat. If not, it will send the message 
+     * in the same Chat as the original message was sent.
+     * @param {string} message 
+     * @param {?string} chatId 
+     */
+    async reply(message, chatId) {
+        if (!chatId) {
+            chatId = this.from;
+        }
+        
+        return await this.client.pupPage.evaluate((chatId, quotedMessageId, message) => {
+            let quotedMessage = Store.Msg.get(quotedMessageId);
+            if(quotedMessage.canReply()) {
+                const chat = Store.Chat.get(chatId);
+                chat.composeQuotedMsg = quotedMessage;
+                chat.sendMessage(message, {quotedMsg: quotedMessage});
+                chat.composeQuotedMsg = null;
+            } else {
+                throw new Error('This message cannot be replied to.');
+            }
+            
+        }, chatId, this.id._serialized, message);
     }
 
     static get WAppModel() {
