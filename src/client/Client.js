@@ -49,7 +49,7 @@ class Client extends EventEmitter {
         }
 
         await page.exposeFunction('onAddMessageEvent', msg => {
-            if (msg.id.fromMe) return;
+            if (msg.id.fromMe || !msg.isNewMsg) return;
             this.emit(Events.MESSAGE_CREATE, new Message(this, msg));
         });
 

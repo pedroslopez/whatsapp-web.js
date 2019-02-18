@@ -61,6 +61,12 @@ class Message extends Base {
     static get WAppModel() {
         return 'Msg';
     }
+
+    static get extraFields() {
+        return [
+            'isNewMsg'
+        ];
+    }
 }
 
 module.exports = Message;
