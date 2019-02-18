@@ -53,7 +53,6 @@ exports.ExposeStore = () => {
  * Adds extra props to the serialization of a model
  */
 exports.LoadExtraProps = (model, props) => {
-    console.log(model, props);
     Store[model].models[0].__props = Store[model].models[0].__props.concat(props);
 }
 

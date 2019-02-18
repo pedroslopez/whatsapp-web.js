@@ -20,7 +20,8 @@ exports.Events = {
     AUTHENTICATED: 'authenticated',
     READY: 'ready',
     MESSAGE_CREATE: 'message',
-    QR_RECEIVED: 'qr'
+    QR_RECEIVED: 'qr',
+    DISCONNECTED: 'disconnected'
 }
 
 exports.MessageTypes = {

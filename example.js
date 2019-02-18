@@ -27,5 +27,9 @@ client.on('message', (msg) => {
         // Send a new message to the same chat
         client.sendMessage(msg.from, 'pong');
     }
+});
+
+client.on('disconnected', () => {
+    console.log('Client was logged out');
 })
 

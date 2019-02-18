@@ -48,14 +48,21 @@ class Client extends EventEmitter {
             await page.evaluate(LoadExtraProps, model.WAppModel, model.extraFields);
         }
 
-        await page.exposeFunction('onAddMessageEvent', (msg) => {
+        await page.exposeFunction('onAddMessageEvent', msg => {
             if (msg.id.fromMe) return;
-
-            this.emit('message', new Message(this, msg));
+            this.emit(Events.MESSAGE_CREATE, new Message(this, msg));
         });
+
+        await page.exposeFunction('onConnectionChangedEvent', (conn, connected) => {
+            if (!connected) {
+                this.emit(Events.DISCONNECTED);
+                this.destroy();
+            }
+        })
 
         await page.evaluate(() => {
             Store.Msg.on('add', onAddMessageEvent);
+            Store.Conn.on('change:connected', onConnectionChangedEvent);
         })
 
         this.pupBrowser = browser;
@@ -78,7 +85,7 @@ class Client extends EventEmitter {
         let chat = await this.pupPage.evaluate(chatId => {
             return Store.Chat.get(chatId).serialize();
         }, chatId);
-        
+
         return new Chat(this, chat);
     }
 
