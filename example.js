@@ -19,7 +19,7 @@ client.on('ready', () => {
 client.on('message', (msg) => {
     console.log('MESSAGE RECEIVED', msg);
 
-    if (!msg.id.fromMe && msg.body == 'ping') {
+    if (msg.body == 'ping') {
         client.sendMessage(msg.from, 'pong');
     }
 })

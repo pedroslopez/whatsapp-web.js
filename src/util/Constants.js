@@ -22,3 +22,19 @@ exports.Events = {
     MESSAGE_CREATE: 'message',
     QR_RECEIVED: 'qr'
 }
+
+exports.MessageTypes = {
+    TEXT: 'chat',
+    AUDIO: 'audio',
+    VOICE: 'ptt',
+    IMAGE: 'image',
+    VIDEO: 'video',
+    DOCUMENT: 'document',
+    STICKER: 'sticker'
+}
+
+exports.ChatTypes = {
+    SOLO: 'solo',
+    GROUP: 'group',
+    UNKNOWN: 'unknown'
+}

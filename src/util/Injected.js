@@ -4,7 +4,7 @@
  * Exposes the internal Store to the WhatsApp Web client
  */
 exports.ExposeStore = () => {
-    setTimeout(function () {
+    setTimeout(function() {
         function getAllModules() {
             return new Promise((resolve) => {
                 const id = _.uniqueId("fakeModule_");
@@ -38,15 +38,23 @@ exports.ExposeStore = () => {
         return webpackJsonp([], null, [id]);
     }
 
-    var store_id = 0;
+    let store_id = 0;
 
     function init() {
         window.Store = _requireById(store_id).default;
     }
 
-    setTimeout(function () {
+    setTimeout(function() {
         init();
     }, 5000);
+}
+
+/**
+ * Adds extra props to the serialization of a model
+ */
+exports.LoadExtraProps = (model, props) => {
+    console.log(model, props);
+    Store[model].models[0].__props = Store[model].models[0].__props.concat(props);
 }
 
 exports.MarkAllRead = () => {

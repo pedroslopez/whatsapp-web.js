@@ -4,7 +4,9 @@ const EventEmitter = require('events');
 const puppeteer = require('puppeteer');
 const Util = require('../util/Util');
 const { WhatsWebURL, UserAgent, DefaultOptions, Events } = require('../util/Constants');
-const { ExposeStore, MarkAllRead } = require('../util/Injected');
+const { ExposeStore, LoadExtraProps } = require('../util/Injected');
+const Chat = require('../models/Chat');
+const Message = require('../models/Message')
 
 /**
  * Starting point for interacting with the WhatsApp Web API
@@ -39,17 +41,22 @@ class Client extends EventEmitter {
 
         // Check Store Injection
         await page.waitForFunction('window.Store != undefined');
+        
+        // Load extra serialized props
+        const models = [Chat, Message];
+        for (let model of models) {
+            await page.evaluate(LoadExtraProps, model.WAppModel, model.extraFields);
+        }
 
         await page.exposeFunction('onAddMessageEvent', (msg) => {
-            this.emit('message', msg);
+            if (msg.id.fromMe) return;
+
+            this.emit('message', new Message(this, msg));
         });
 
         await page.evaluate(() => {
             Store.Msg.on('add', onAddMessageEvent);
         })
-
-        // // Mark all chats as read
-        // await page.evaluate(MarkAllRead);
 
         this.pupBrowser = browser;
         this.pupPage = page;
@@ -65,6 +72,14 @@ class Client extends EventEmitter {
         await this.pupPage.evaluate((chatId, message) => {
             Store.Chat.get(chatId).sendMessage(message);
         }, chatId, message)
+    }
+
+    async getChatById(chatId) {
+        let chat = await this.pupPage.evaluate(chatId => {
+            return Store.Chat.get(chatId).serialize();
+        }, chatId);
+        
+        return new Chat(this, chat);
     }
 
      
