@@ -23,6 +23,8 @@ class Message extends Base {
         this.author = data.author;
         this.isForwarded = data.isForwarded;
         this.broadcast = data.broadcast;
+
+        return super._patch(data);
     }
 
     /**

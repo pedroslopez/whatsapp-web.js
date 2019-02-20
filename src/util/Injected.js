@@ -56,6 +56,27 @@ exports.LoadExtraProps = (model, props) => {
     Store[model].models[0].__props = Store[model].models[0].__props.concat(props);
 }
 
+exports.LoadCustomSerializers = () => {
+    window.WWebJS = {};
+
+    window.WWebJS.getChatModel = chat => {
+        let res = chat.serialize();
+        res.isGroup = chat.isGroup;
+        res.formattedTitle = chat.formattedTitle;
+
+        if(chat.groupMetadata) {
+            res.groupMetadata = chat.groupMetadata.serialize();
+        }
+
+        return res;
+    }
+
+    window.WWebJS.getChat = chatId => {
+        const chat = Store.Chat.get(chatId);
+        return WWebJS.getChatModel(chat);
+    }
+}
+
 exports.MarkAllRead = () => {
     let Chats = Store.Chat.models;
 

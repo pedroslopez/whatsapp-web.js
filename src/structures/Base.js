@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Represents a data model
+ * Represents a WhatsApp data structure
  */
 class Base {
     constructor(client) {

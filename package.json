@@ -2,7 +2,7 @@
   "name": "whatsapp-web.js",
   "version": "0.0.1",
   "description": "Library for interacting with the WhatsApp Web API ",
-  "main": "./src/index.js",
+  "main": "./index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

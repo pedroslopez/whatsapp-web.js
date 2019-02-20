@@ -2,11 +2,12 @@
 
 const EventEmitter = require('events');
 const puppeteer = require('puppeteer');
-const Util = require('../util/Util');
-const { WhatsWebURL, UserAgent, DefaultOptions, Events } = require('../util/Constants');
-const { ExposeStore, LoadExtraProps } = require('../util/Injected');
-const Chat = require('../models/Chat');
-const Message = require('../models/Message')
+const Util = require('./util/Util');
+const { WhatsWebURL, UserAgent, DefaultOptions, Events } = require('./util/Constants');
+const { ExposeStore, LoadExtraProps, LoadCustomSerializers } = require('./util/Injected');
+const ChatFactory = require('./factories/ChatFactory');
+const Chat = require('./structures/Chat');
+const Message = require('./structures/Message')
 
 /**
  * Starting point for interacting with the WhatsApp Web API
@@ -22,6 +23,9 @@ class Client extends EventEmitter {
         this.pupPage = null;
     }
 
+    /**
+     * Sets up events and requirements, kicks off authentication request
+     */
     async initialize() {
         const browser = await puppeteer.launch(this.options.puppeteer);
         const page = await browser.newPage();
@@ -43,11 +47,13 @@ class Client extends EventEmitter {
         // Check Store Injection
         await page.waitForFunction('window.Store != undefined');
         
-        // Load extra serialized props
-        const models = [Chat, Message];
+        //Load extra serialized props
+        const models = [Message];
         for (let model of models) {
             await page.evaluate(LoadExtraProps, model.WAppModel, model.extraFields);
         }
+
+        await page.evaluate(LoadCustomSerializers);
 
         // Register events
         await page.exposeFunction('onAddMessageEvent', msg => {
@@ -77,26 +83,39 @@ class Client extends EventEmitter {
         await this.pupBrowser.close();
     }
 
+    /**
+     * Send a message to a specific chatId
+     * @param {string} chatId
+     * @param {string} message 
+     */
     async sendMessage(chatId, message) {
         await this.pupPage.evaluate((chatId, message) => {
             Store.Chat.get(chatId).sendMessage(message);
         }, chatId, message)
     }
 
+    /**
+     * Get all current chat instances
+     */
     async getChats() {
-        let chats = await this.pupPage.evaluate(() => {
-            return Store.Chat.serialize()
-        });
+        // let chats = await this.pupPage.evaluate(() => {
+        //     return Store.Chat.serialize()
+        // });
 
-        return chats.map(chatData => new Chat(this, chatData));
+        // return chats.map(chatData => ChatFactory.create(this, chatData));
+        throw new Error('NOT IMPLEMENTED')
     }
 
+    /**
+     * Get chat instance by ID
+     * @param {string} chatId 
+     */
     async getChatById(chatId) {
         let chat = await this.pupPage.evaluate(chatId => {
-            return Store.Chat.get(chatId).serialize();
+            return WWebJS.getChat(chatId);
         }, chatId);
 
-        return new Chat(this, chat);
+        return ChatFactory.create(this, chat);
     }
 
      
