@@ -9,8 +9,6 @@ const ChatFactory = require('./factories/ChatFactory');
 const Chat = require('./structures/Chat');
 const Message = require('./structures/Message')
 
-const fs = require('fs');
-
 /**
  * Starting point for interacting with the WhatsApp Web API
  * @extends {EventEmitter}
