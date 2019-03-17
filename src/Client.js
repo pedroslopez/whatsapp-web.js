@@ -9,6 +9,8 @@ const ChatFactory = require('./factories/ChatFactory');
 const Chat = require('./structures/Chat');
 const Message = require('./structures/Message')
 
+const fs = require('fs');
+
 /**
  * Starting point for interacting with the WhatsApp Web API
  * @extends {EventEmitter}
@@ -31,18 +33,59 @@ class Client extends EventEmitter {
         const page = await browser.newPage();
         page.setUserAgent(UserAgent);
 
-        await page.goto(WhatsWebURL);
-        await page.evaluate(ExposeStore);
-
-        // Wait for QR Code
-        await page.waitForSelector('._1jjYO');
-        const qr = await page.$eval('._2EZ_m', node => node.getAttribute('data-ref'));
+        if(this.options.session) {
+            await page.evaluateOnNewDocument (
+                session => {
+                    localStorage.clear();
+                    localStorage.setItem("WABrowserId", session.WABrowserId);
+                    localStorage.setItem("WASecretBundle", session.WASecretBundle);
+                    localStorage.setItem("WAToken1", session.WAToken1);
+                    localStorage.setItem("WAToken2", session.WAToken2);
+            }, this.options.session);
+        }
         
-        this.emit(Events.QR_RECEIVED, qr);
+        await page.goto(WhatsWebURL);
 
-        // Wait for Auth
-        await page.waitForSelector('._2Uo0Z', {timeout: 0});
-        this.emit(Events.AUTHENTICATED);
+        if(this.options.session) {
+            // Check if session restore was successfull 
+            try {
+                await page.waitForSelector('._2Uo0Z', {timeout: 5000});
+            } catch(err) {
+                if(err.name === 'TimeoutError') {
+                    this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in. Are the session details valid?');
+                    browser.close();
+
+                    return;
+                } 
+
+                throw err;
+            }
+           
+       } else {
+            // Wait for QR Code
+            await page.waitForSelector('._1jjYO');
+            const qr = await page.$eval('._2EZ_m', node => node.getAttribute('data-ref'));
+            this.emit(Events.QR_RECEIVED, qr);
+
+            // Wait for code scan
+            await page.waitForSelector('._2Uo0Z', {timeout: 0});
+       }
+       
+        await page.evaluate(ExposeStore);
+        
+        // Get session tokens
+        const localStorage = JSON.parse(await page.evaluate(() => {
+			return JSON.stringify(window.localStorage);
+        }));
+                
+        const session = {
+            WABrowserId: localStorage.WABrowserId,
+            WASecretBundle: localStorage.WASecretBundle,
+            WAToken1: localStorage.WAToken1,
+            WAToken2: localStorage.WAToken2
+        }
+
+        this.emit(Events.AUTHENTICATED, session);
 
         // Check Store Injection
         await page.waitForFunction('window.Store != undefined');
@@ -118,7 +161,6 @@ class Client extends EventEmitter {
         return ChatFactory.create(this, chat);
     }
 
-     
 }
 
 module.exports = Client;

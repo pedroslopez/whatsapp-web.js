@@ -1,16 +1,24 @@
 const { Client } = require('./index')
 
 const client = new Client({puppeteer: {headless: false}});
+// You can use an existing session and avoid scanning a QR code by adding a "session" object to the client options.
+// This object must include WABrowserId, WASecretBundle, WAToken1 and WAToken2.
 
 client.initialize();
 
 client.on('qr', (qr) => {
+    // NOTE: This event will not be fired if a session is specified.
     console.log('QR RECEIVED', qr);
 });
 
-client.on('authenticated', () => {
-    console.log('AUTHENTICATED');
+client.on('authenticated', (session) => {
+    console.log('AUTHENTICATED', session);
 });
+
+client.on('auth_failure', msg => {
+    // Fired if session restore was unsuccessfull
+    console.error('AUTHENTICATION FAILURE', msg);
+})
 
 client.on('ready', () => {
     console.log('READY');

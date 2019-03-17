@@ -7,7 +7,8 @@ exports.UserAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit
 exports.DefaultOptions = {
     puppeteer: {
         headless: true
-    }
+    },
+    session: false
 }
 
 exports.Status = {
@@ -18,6 +19,7 @@ exports.Status = {
 
 exports.Events = {
     AUTHENTICATED: 'authenticated',
+    AUTHENTICATION_FAILURE: 'auth_failure',
     READY: 'ready',
     MESSAGE_CREATE: 'message',
     QR_RECEIVED: 'qr',
