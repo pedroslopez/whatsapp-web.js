@@ -138,7 +138,7 @@ class Client extends EventEmitter {
      */
     async sendMessage(chatId, message) {
         await this.pupPage.evaluate((chatId, message) => {
-            Store.Chat.get(chatId).sendMessage(message);
+            Store.SendMessage(Store.Chat.get(chatId), message);
         }, chatId, message)
     }
 

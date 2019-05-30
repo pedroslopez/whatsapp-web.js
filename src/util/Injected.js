@@ -161,6 +161,7 @@ exports.ExposeStore = () => {
     }
 
     window.Store = window.mR.findModule("Conn")[0].default;
+    window.Store.SendMessage = window.mR.findModule("sendTextMsgToChat")[0].sendTextMsgToChat;
 }
 
 /**
