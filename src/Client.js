@@ -44,10 +44,12 @@ class Client extends EventEmitter {
         
         await page.goto(WhatsWebURL);
 
+        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '._1wSzK';
+
         if(this.options.session) {
             // Check if session restore was successfull 
             try {
-                await page.waitForSelector('._2Uo0Z', {timeout: 5000});
+                await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, {timeout: 5000});
             } catch(err) {
                 if(err.name === 'TimeoutError') {
                     this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in. Are the session details valid?');
@@ -61,12 +63,17 @@ class Client extends EventEmitter {
            
        } else {
             // Wait for QR Code
-            await page.waitForSelector('._1jjYO');
-            const qr = await page.$eval('._2EZ_m', node => node.getAttribute('data-ref'));
+
+            const QR_CONTAINER_SELECTOR = '._2d3Jz';
+            const QR_VALUE_SELECTOR = '._1pw2F';
+
+            await page.waitForSelector(QR_CONTAINER_SELECTOR);
+
+            const qr = await page.$eval(QR_VALUE_SELECTOR, node => node.getAttribute('data-ref'));
             this.emit(Events.QR_RECEIVED, qr);
 
             // Wait for code scan
-            await page.waitForSelector('._2Uo0Z', {timeout: 0});
+            await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, {timeout: 0});
        }
        
         await page.evaluate(ExposeStore);
