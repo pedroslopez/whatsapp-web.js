@@ -51,7 +51,7 @@ class Message extends Base {
             if(quotedMessage.canReply()) {
                 const chat = Store.Chat.get(chatId);
                 chat.composeQuotedMsg = quotedMessage;
-                chat.sendMessage(message, {quotedMsg: quotedMessage});
+                window.Store.SendMessage(chat, message, {quotedMsg: quotedMessage});
                 chat.composeQuotedMsg = null;
             } else {
                 throw new Error('This message cannot be replied to.');
