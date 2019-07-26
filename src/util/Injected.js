@@ -176,6 +176,9 @@ exports.LoadCustomSerializers = () => {
 
     window.WWebJS.getChatModel = chat => {
         let res = chat.serialize();
+        console.log(chat);
+        console.log(chat.presence);
+
         res.kind = chat.kind;
         res.isGroup = chat.isGroup;
         res.formattedTitle = chat.formattedTitle;
@@ -184,10 +187,8 @@ exports.LoadCustomSerializers = () => {
             res.groupMetadata = chat.groupMetadata.serialize();
         }
 
-        if(chat.presence) {
-            res.presence = chat.presence
-        } else {
-            res.presence = null
+        if (!res.isGroup) {
+            res.isOnline = chat.presence.__x_isOnline;
         }
 
         return res;
