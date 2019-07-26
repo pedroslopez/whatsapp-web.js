@@ -176,6 +176,7 @@ exports.LoadCustomSerializers = () => {
 
     window.WWebJS.getChatModel = chat => {
         let res = chat.serialize();
+        res.kind = chat.kind;
         res.isGroup = chat.isGroup;
         res.formattedTitle = chat.formattedTitle;
 
@@ -183,14 +184,20 @@ exports.LoadCustomSerializers = () => {
             res.groupMetadata = chat.groupMetadata.serialize();
         }
 
+        if(chat.presence) {
+            res.presence = chat.presence
+        } else {
+            res.presence = null
+        }
+
         return res;
-    }
+    };
 
     window.WWebJS.getChat = chatId => {
         const chat = Store.Chat.get(chatId);
         return WWebJS.getChatModel(chat);
     }
-}
+};
 
 exports.MarkAllRead = () => {
     let Chats = Store.Chat.models;

@@ -17,6 +17,8 @@ class Chat extends Base {
         this.id = data.id;
 
         this.name = data.formattedTitle;
+        this.presence = data.presence;
+        this.kind = data.kind;
         this.isGroup = data.isGroup;
         this.isReadOnly = data.isReadOnly;
         this.unreadCount = data.unreadCount;

@@ -7,7 +7,7 @@ const { WhatsWebURL, UserAgent, DefaultOptions, Events } = require('./util/Const
 const { ExposeStore, LoadExtraProps, LoadCustomSerializers } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const Chat = require('./structures/Chat');
-const Message = require('./structures/Message')
+const Message = require('./structures/Message');
 
 /**
  * Starting point for interacting with the WhatsApp Web API
@@ -105,7 +105,7 @@ class Client extends EventEmitter {
 
         // Register events
         await page.exposeFunction('onAddMessageEvent', msg => {
-            if (msg.id.fromMe || !msg.isNewMsg) return;
+            if (!msg.isNewMsg) return;
             this.emit(Events.MESSAGE_CREATE, new Message(this, msg));
         });
 
@@ -137,8 +137,8 @@ class Client extends EventEmitter {
      * @param {string} message 
      */
     async sendMessage(chatId, message) {
-        await this.pupPage.evaluate((chatId, message) => {
-            Store.SendMessage(Store.Chat.get(chatId), message);
+        return await this.pupPage.evaluate((chatId, message) => {
+            return Store.SendMessage(Store.Chat.get(chatId), message);
         }, chatId, message)
     }
 
