@@ -176,8 +176,6 @@ exports.LoadCustomSerializers = () => {
 
     window.WWebJS.getChatModel = chat => {
         let res = chat.serialize();
-        console.log(chat);
-        console.log(chat.presence);
 
         res.kind = chat.kind;
         res.isGroup = chat.isGroup;
