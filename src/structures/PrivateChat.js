@@ -9,7 +9,6 @@ const Chat = require('./Chat');
 class PrivateChat extends Chat {
 	_patch(data) {
 		this.isOnline = data.isOnline;
-
 		return super._patch(data);
 	}
 }
