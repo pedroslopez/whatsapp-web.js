@@ -154,7 +154,7 @@ class Client extends EventEmitter {
 			msg.mentionedJidList = [];
 			for (let i = 0; i < msg.mentions.length; i++) {
 				let user = await Store.Contact.serialize().find(x => x.id.user === msg.mentions[i].split("@")[0]);
-				if (user && msg.body.includes("@" + msg.mentions[i].split("@")[0] + " ")) {
+				if (user && msg.body.includes("@" + msg.mentions[i].split("@")[0])) {
 					msg.mentionedJidList.push(user.id);
 				}
 			}
