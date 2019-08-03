@@ -16,6 +16,7 @@ class Message extends Base {
     _patch(data) {
         this.id = data.id;
         this.body = data.body;
+        this.mentions = data.mentionedJidList;
         this.type = data.type;
         this.timestamp = data.t;
         this.from = data.from;
