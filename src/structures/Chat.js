@@ -15,9 +15,7 @@ class Chat extends Base {
 
     _patch(data) {
         this.id = data.id;
-
         this.name = data.formattedTitle;
-        this.isOnline = data.isOnline;
         this.kind = data.kind;
         this.isGroup = data.isGroup;
         this.isReadOnly = data.isReadOnly;

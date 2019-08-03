@@ -185,9 +185,9 @@ exports.LoadCustomSerializers = () => {
             res.groupMetadata = chat.groupMetadata.serialize();
         }
 
-        if (!res.isGroup) {
-            res.isOnline = chat.presence.__x_isOnline;
-        }
+
+        res.isOnline = chat.presence.__x_isOnline;
+
 
         return res;
     };
