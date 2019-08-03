@@ -105,7 +105,9 @@ class Client extends EventEmitter {
 
 		// Register events
 		await page.exposeFunction('onAddMessageEvent', msg => {
+
 			if (!msg.isNewMsg) return;
+			console.log(msg);
 			this.emit(Events.MESSAGE_CREATE, new Message(this, msg));
 		});
 
@@ -137,14 +139,35 @@ class Client extends EventEmitter {
 	 * @param {string} message
 	 */
 	async sendMessage(chatId, message) {
-		let last_message = await this.pupPage.evaluate(async (chatId, message) => {
-			await Store.SendMessage(Store.Chat.get(chatId), message);
+		let msg = {};
+		if (message && typeof message === 'object' && message.constructor === Object) {
+			msg = message;
+			msg.mentions = [];
+			for (let i = 0; i < message.mentions.length; i++) {
+				let user = await Store.Contact.serialize().find(x => x.id.user === message.mentions[i]);
+				if (user && message.body.includes("@" + message.mentions[i] + " ")) {
+					msg.mentions.push(user.id)
+				}
+			}
+		} else {
+			msg = {
+				linkPreview: null,
+				mentions: [],
+				quotedMsg: null,
+				quotedMsgAdminGroupJid: null,
+				body: message
+			}
+		}
+		let last_message = await this.pupPage.evaluate(async (chatId, msg) => {
+			await Store.SendMessage(Store.Chat.get(chatId), msg.body, {linkPreview : msg.linkPreview, mentionedJidList : msg.mentions, quotedMsg : msg.quotedMsg, quotedMsgAdminGroupJid : msg.quotedMsgAdminGroupJid});
 			return Store.Chat.get(chatId).msgs._last.serialize()
-		}, chatId, message);
+
+		}, chatId, msg);
 		last_message = new Message(this, last_message);
-		if (last_message.body === message) {
+		if (last_message.body === msg.body) {
 			return last_message
 		}
+
 	}
 
 	/**
