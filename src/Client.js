@@ -2,12 +2,14 @@
 
 const EventEmitter = require('events');
 const puppeteer = require('puppeteer');
+const moduleRaid = require('moduleraid/moduleraid');
+
 const Util = require('./util/Util');
 const { WhatsWebURL, UserAgent, DefaultOptions, Events } = require('./util/Constants');
 const { ExposeStore, LoadExtraProps, LoadCustomSerializers } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const Chat = require('./structures/Chat');
-const Message = require('./structures/Message')
+const Message = require('./structures/Message');
 
 /**
  * Starting point for interacting with the WhatsApp Web API
@@ -76,7 +78,7 @@ class Client extends EventEmitter {
             await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, {timeout: 0});
        }
        
-        await page.evaluate(ExposeStore);
+        await page.evaluate(ExposeStore, moduleRaid.toString());
         
         // Get session tokens
         const localStorage = JSON.parse(await page.evaluate(() => {

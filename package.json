@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/pedroslopez/whatsapp-web.js#readme",
   "dependencies": {
+    "moduleraid": "git+https://github.com/pixeldesu/moduleRaid.git",
     "puppeteer": "^1.12.2"
   }
 }
