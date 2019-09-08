@@ -86,7 +86,7 @@ class GroupChat extends Chat {
      */
     async setSubject(subject) {
         let res = await this.client.pupPage.evaluate((chatId, subject) => {
-            return Store.Chat.get(chatId).setSubject(subject);
+            return Store.Wap.changeSubject(chatId, subject);
         }, this.id._serialized, subject);
 
         if(res.status == 200) {
@@ -100,7 +100,8 @@ class GroupChat extends Chat {
      */
     async setDescription(description) {
         let res = await this.client.pupPage.evaluate((chatId, description) => {
-            return Store.Chat.get(chatId).setGroupDesc(description);
+            let descId = Store.GroupMetadata.get(chatId).descId;
+            return Store.Wap.setGroupDescription(chatId, description, Store.genId(), descId);
         }, this.id._serialized, description);
 
         if (res.status == 200) {
