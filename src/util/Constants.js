@@ -21,7 +21,8 @@ exports.Events = {
     AUTHENTICATED: 'authenticated',
     AUTHENTICATION_FAILURE: 'auth_failure',
     READY: 'ready',
-    MESSAGE_CREATE: 'message',
+    MESSAGE_RECEIVED: 'message',
+    MESSAGE_CREATE: 'message_create',
     QR_RECEIVED: 'qr',
     DISCONNECTED: 'disconnected'
 }

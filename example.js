@@ -84,6 +84,13 @@ client.on('message', async msg => {
     }
 });
 
+client.on('message_create', (msg) => {
+    // Fired on all message creations, including your own
+    if(msg.fromMe) {
+        // do stuff here
+    }
+})
+
 client.on('disconnected', () => {
     console.log('Client was logged out');
 })

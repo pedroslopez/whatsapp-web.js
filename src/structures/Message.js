@@ -23,6 +23,7 @@ class Message extends Base {
         this.author = data.author;
         this.isForwarded = data.isForwarded;
         this.broadcast = data.broadcast;
+        this.fromMe = data.id.fromMe;
 
         return super._patch(data);
     }

@@ -107,8 +107,11 @@ class Client extends EventEmitter {
 
         // Register events
         await page.exposeFunction('onAddMessageEvent', msg => {
+            const message = new Message(this, msg);
+            this.emit(Events.MESSAGE_CREATE, message);
+
             if (msg.id.fromMe || !msg.isNewMsg) return;
-            this.emit(Events.MESSAGE_CREATE, new Message(this, msg));
+            this.emit(Events.MESSAGE_RECEIVED, message);
         });
 
         await page.exposeFunction('onConnectionChangedEvent', (conn, connected) => {
