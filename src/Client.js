@@ -6,7 +6,7 @@ const moduleRaid = require('moduleraid/moduleraid');
 
 const Util = require('./util/Util');
 const { WhatsWebURL, UserAgent, DefaultOptions, Events } = require('./util/Constants');
-const { ExposeStore, LoadExtraProps, LoadCustomSerializers } = require('./util/Injected');
+const { ExposeStore, LoadCustomSerializers } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const Chat = require('./structures/Chat');
 const Message = require('./structures/Message');
@@ -65,7 +65,6 @@ class Client extends EventEmitter {
            
        } else {
             // Wait for QR Code
-
             const QR_CONTAINER_SELECTOR = '._2d3Jz';
             const QR_VALUE_SELECTOR = '._1pw2F';
 
@@ -97,20 +96,17 @@ class Client extends EventEmitter {
         // Check Store Injection
         await page.waitForFunction('window.Store != undefined');
         
-        //Load extra serialized props
-        const models = [Message];
-        for (let model of models) {
-            await page.evaluate(LoadExtraProps, model.WAppModel, model.extraFields);
-        }
-
+        //Load custom serializers
         await page.evaluate(LoadCustomSerializers);
 
         // Register events
         await page.exposeFunction('onAddMessageEvent', msg => {
+            if (!msg.isNewMsg) return;
+            
             const message = new Message(this, msg);
             this.emit(Events.MESSAGE_CREATE, message);
 
-            if (msg.id.fromMe || !msg.isNewMsg) return;
+            if (msg.id.fromMe) return;
             this.emit(Events.MESSAGE_RECEIVED, message);
         });
 

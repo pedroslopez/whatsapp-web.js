@@ -60,16 +60,6 @@ class Message extends Base {
             
         }, chatId, this.id._serialized, message);
     }
-
-    static get WAppModel() {
-        return 'Msg';
-    }
-
-    static get extraFields() {
-        return [
-            'isNewMsg'
-        ];
-    }
 }
 
 module.exports = Message;

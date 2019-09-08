@@ -11,13 +11,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.SendMessage = window.mR.findModule("sendTextMsgToChat")[0].sendTextMsgToChat;
 }
 
-/**
- * Adds extra props to the serialization of a model
- */
-exports.LoadExtraProps = (model, props) => {
-    Store[model].models[0].__props = Store[model].models[0].__props.concat(props);
-}
-
 exports.LoadCustomSerializers = () => {
     window.WWebJS = {};
 
