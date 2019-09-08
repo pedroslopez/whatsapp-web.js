@@ -78,6 +78,9 @@ client.on('message', async msg => {
         } else {
             msg.reply('This command can only be used in a group!');
         }
+    } else if(msg.body == '!chats') {
+        const chats = await client.getChats();
+        client.sendMessage(msg.from, `The bot has ${chats.length} chats open.`);
     }
 });
 

@@ -37,6 +37,11 @@ exports.LoadCustomSerializers = () => {
         const chat = Store.Chat.get(chatId);
         return WWebJS.getChatModel(chat);
     }
+
+    window.WWebJS.getChats = () => {
+        const chats = Store.Chat.models;
+        return chats.map(chat => WWebJS.getChatModel(chat));
+    }
 }
 
 exports.MarkAllRead = () => {

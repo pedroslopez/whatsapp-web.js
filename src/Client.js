@@ -148,12 +148,11 @@ class Client extends EventEmitter {
      * Get all current chat instances
      */
     async getChats() {
-        // let chats = await this.pupPage.evaluate(() => {
-        //     return Store.Chat.serialize()
-        // });
+        let chats = await this.pupPage.evaluate(() => {
+            return WWebJS.getChats();
+        });
 
-        // return chats.map(chatData => ChatFactory.create(this, chatData));
-        throw new Error('NOT IMPLEMENTED')
+        return chats.map(chat => ChatFactory.create(this, chat));
     }
 
     /**
