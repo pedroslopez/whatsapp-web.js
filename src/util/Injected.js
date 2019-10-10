@@ -6,7 +6,8 @@
 exports.ExposeStore = (moduleRaidStr) => {
     eval("var moduleRaid = " + moduleRaidStr);
     window.mR = moduleRaid();
-    window.Store = window.mR.findModule("Conn")[0].default;
+    window.Store = window.mR.findModule("Chat")[1].default;
+
     window.Store.genId = window.mR.findModule((module) => module.default && typeof module.default === 'function' && module.default.toString().match(/crypto/))[0].default;
     window.Store.SendMessage = window.mR.findModule("sendTextMsgToChat")[0].sendTextMsgToChat;
 }
@@ -19,7 +20,7 @@ exports.LoadCustomSerializers = () => {
         res.isGroup = chat.isGroup;
         res.formattedTitle = chat.formattedTitle;
 
-        if(chat.groupMetadata) {
+        if (chat.groupMetadata) {
             res.groupMetadata = chat.groupMetadata.serialize();
         }
 
