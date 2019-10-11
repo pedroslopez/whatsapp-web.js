@@ -33,37 +33,37 @@ class Client extends EventEmitter {
         const page = await browser.newPage();
         page.setUserAgent(UserAgent);
 
-        if(this.options.session) {
-            await page.evaluateOnNewDocument (
+        if (this.options.session) {
+            await page.evaluateOnNewDocument(
                 session => {
                     localStorage.clear();
                     localStorage.setItem("WABrowserId", session.WABrowserId);
                     localStorage.setItem("WASecretBundle", session.WASecretBundle);
                     localStorage.setItem("WAToken1", session.WAToken1);
                     localStorage.setItem("WAToken2", session.WAToken2);
-            }, this.options.session);
+                }, this.options.session);
         }
-        
+
         await page.goto(WhatsWebURL);
 
         const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '._1wSzK';
 
-        if(this.options.session) {
+        if (this.options.session) {
             // Check if session restore was successfull 
             try {
-                await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, {timeout: 5000});
-            } catch(err) {
-                if(err.name === 'TimeoutError') {
+                await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 5000 });
+            } catch (err) {
+                if (err.name === 'TimeoutError') {
                     this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in. Are the session details valid?');
                     browser.close();
 
                     return;
-                } 
+                }
 
                 throw err;
             }
-           
-       } else {
+
+        } else {
             // Wait for QR Code
             const QR_CONTAINER_SELECTOR = '._2d3Jz';
             const QR_VALUE_SELECTOR = '._1pw2F';
@@ -74,16 +74,16 @@ class Client extends EventEmitter {
             this.emit(Events.QR_RECEIVED, qr);
 
             // Wait for code scan
-            await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, {timeout: 0});
-       }
-       
+            await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 0 });
+        }
+
         await page.evaluate(ExposeStore, moduleRaid.toString());
-        
+
         // Get session tokens
         const localStorage = JSON.parse(await page.evaluate(() => {
-			return JSON.stringify(window.localStorage);
+            return JSON.stringify(window.localStorage);
         }));
-                
+
         const session = {
             WABrowserId: localStorage.WABrowserId,
             WASecretBundle: localStorage.WASecretBundle,
@@ -95,14 +95,14 @@ class Client extends EventEmitter {
 
         // Check Store Injection
         await page.waitForFunction('window.Store != undefined');
-        
+
         //Load custom serializers
         await page.evaluate(LoadCustomSerializers);
 
         // Register events
         await page.exposeFunction('onAddMessageEvent', msg => {
             if (!msg.isNewMsg) return;
-            
+
             const message = new Message(this, msg);
             this.emit(Events.MESSAGE_CREATE, message);
 
@@ -120,7 +120,7 @@ class Client extends EventEmitter {
         await page.evaluate(() => {
             Store.Msg.on('add', onAddMessageEvent);
             Store.Conn.on('change:connected', onConnectionChangedEvent);
-        })
+        }).catch(err => console.log(err.message));
 
         this.pupBrowser = browser;
         this.pupPage = page;
