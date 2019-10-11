@@ -5,7 +5,7 @@ const puppeteer = require('puppeteer');
 const moduleRaid = require('moduleraid/moduleraid');
 
 const Util = require('./util/Util');
-const { WhatsWebURL, UserAgent, DefaultOptions, Events } = require('./util/Constants');
+const { WhatsWebURL, UserAgent, DefaultOptions, Events, WAState } = require('./util/Constants');
 const { ExposeStore, LoadCustomSerializers } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const Chat = require('./structures/Chat');
@@ -110,8 +110,9 @@ class Client extends EventEmitter {
             this.emit(Events.MESSAGE_RECEIVED, message);
         });
 
-        await page.exposeFunction('onConnectionChangedEvent', (conn, connected) => {
-            if (!connected) {
+        await page.exposeFunction('onAppStateChangedEvent', (AppState, state) => {
+            const ACCEPTED_STATES = [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING];
+            if (!ACCEPTED_STATES.includes(state)) {
                 this.emit(Events.DISCONNECTED);
                 this.destroy();
             }
@@ -119,7 +120,7 @@ class Client extends EventEmitter {
 
         await page.evaluate(() => {
             Store.Msg.on('add', onAddMessageEvent);
-            Store.Conn.on('change:connected', onConnectionChangedEvent);
+            Store.AppState.on('change:state', onAppStateChangedEvent);
         }).catch(err => console.log(err.message));
 
         this.pupBrowser = browser;
