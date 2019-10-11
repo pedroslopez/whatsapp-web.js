@@ -8,7 +8,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.mR = moduleRaid();
     window.Store = window.mR.findModule("Chat")[1].default;
     window.Store.AppState = window.mR.findModule("STREAM")[0].default;
-
+    window.Store.Conn = window.mR.findModule((mod) => mod.default && mod.default.me)[0].default;
     window.Store.genId = window.mR.findModule((module) => module.default && typeof module.default === 'function' && module.default.toString().match(/crypto/))[0].default;
     window.Store.SendMessage = window.mR.findModule("sendTextMsgToChat")[0].sendTextMsgToChat;
 }
