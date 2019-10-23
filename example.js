@@ -22,7 +22,7 @@ client.on('auth_failure', msg => {
 
 client.on('ready', () => {
     console.log('READY');
-})
+});
 
 client.on('message', async msg => {
     console.log('MESSAGE RECEIVED', msg);
@@ -82,7 +82,7 @@ client.on('message', async msg => {
         const chats = await client.getChats();
         client.sendMessage(msg.from, `The bot has ${chats.length} chats open.`);
     }
-});
+})
 
 client.on('message_create', (msg) => {
     // Fired on all message creations, including your own
