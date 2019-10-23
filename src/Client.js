@@ -89,7 +89,7 @@ class Client extends EventEmitter {
             WASecretBundle: localStorage.WASecretBundle,
             WAToken1: localStorage.WAToken1,
             WAToken2: localStorage.WAToken2
-        }
+        };
 
         this.emit(Events.AUTHENTICATED, session);
 
@@ -110,16 +110,43 @@ class Client extends EventEmitter {
             this.emit(Events.MESSAGE_RECEIVED, message);
         });
 
+        let last_message;
+
+        await page.exposeFunction('onChangeMessageEvent', (msg) => {
+
+            if (last_message && msg.type === "revoked" && msg.id.id === last_message.id.id) {
+                const message = new Message(this, msg);
+                const revoked_msg = new Message(this, last_message);
+                this.emit(Events.MESSAGE_REVOKED_EVERYONE, revoked_msg, message);
+            } else {
+                if (msg.type !== "revoked") {
+                    last_message = msg;
+                }
+            }
+
+        });
+
+        await page.exposeFunction('onRemoveMessageEvent', (msg) => {
+
+            if (!msg.isNewMsg) return;
+
+            const message = new Message(this, msg);
+            this.emit(Events.MESSAGE_REVOKED_ME, message);
+
+        });
+
         await page.exposeFunction('onAppStateChangedEvent', (AppState, state) => {
             const ACCEPTED_STATES = [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING];
             if (!ACCEPTED_STATES.includes(state)) {
                 this.emit(Events.DISCONNECTED);
                 this.destroy();
             }
-        })
+        });
 
         await page.evaluate(() => {
             Store.Msg.on('add', onAddMessageEvent);
+            Store.Msg.on('change', onChangeMessageEvent);
+            Store.Msg.on('remove', onRemoveMessageEvent);
             Store.AppState.on('change:state', onAppStateChangedEvent);
         }).catch(err => console.log(err.message));
 

@@ -1,4 +1,4 @@
-const { Client } = require('./index')
+const { Client } = require('./index');
 
 const client = new Client({puppeteer: {headless: false}});
 // You can use an existing session and avoid scanning a QR code by adding a "session" object to the client options.
@@ -18,7 +18,7 @@ client.on('authenticated', (session) => {
 client.on('auth_failure', msg => {
     // Fired if session restore was unsuccessfull
     console.error('AUTHENTICATION FAILURE', msg);
-})
+});
 
 client.on('ready', () => {
     console.log('READY');
@@ -89,9 +89,20 @@ client.on('message_create', (msg) => {
     if(msg.fromMe) {
         // do stuff here
     }
-})
+});
+
+client.on('message_revoke_everyone', async (before, after) => {
+    // Fired whenever a message is deleted by anyone (including you)
+    console.log(before.body); // message before it was deleted.
+    console.log(after.type); // message after it was deleted.
+});
+
+client.on('message_revoke_me', async (msg) => {
+    // Fired whenever a message is only deleted in your own view.
+    console.log(msg); // message before it was deleted.
+});
 
 client.on('disconnected', () => {
     console.log('Client was logged out');
-})
+});
 
