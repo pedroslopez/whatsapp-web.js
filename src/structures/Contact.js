@@ -35,7 +35,7 @@ class Contact extends Base {
      */
     async getProfileImageUrl() {
         return await this.client.pupPage.evaluate(contactId => {
-            return Store.ProfilePicThumb().get(contactId).serialize()
+            return Store.ProfilePicThumb.get(contactId).serialize()
         }, this.id._serialized);
     }
 }
