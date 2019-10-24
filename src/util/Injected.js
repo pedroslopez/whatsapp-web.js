@@ -28,6 +28,17 @@ exports.LoadCustomSerializers = () => {
         return res;
     }
 
+    window.WWebJS.getContactModel = contact => {
+        let res = contact.serialize();
+        res.isBusiness = contact.isBusiness;
+
+        if (contact.businessProfile) {
+            res.businessProfile = contact.businessProfile.serialize();
+        }
+
+        return res;
+    }
+
     window.WWebJS.getChat = chatId => {
         const chat = Store.Chat.get(chatId);
         return WWebJS.getChatModel(chat);
@@ -36,6 +47,16 @@ exports.LoadCustomSerializers = () => {
     window.WWebJS.getChats = () => {
         const chats = Store.Chat.models;
         return chats.map(chat => WWebJS.getChatModel(chat));
+    }
+
+    window.WWebJS.getContact = contactId => {
+        const contact = Store.Chat.get(contactId);
+        return WWebJS.getContactModel(contact);
+    }
+
+    window.WWebJS.getContacts = () => {
+        const contacts = Store.Contact.models;
+        return contacts.map(contact => WWebJS.getContactModel(contact));
     }
 }
 

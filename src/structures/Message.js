@@ -1,5 +1,6 @@
 'use strict';
 
+const Contact = require('./Contact');
 const Base = require('./Base');
 
 /**
@@ -14,18 +15,25 @@ class Message extends Base {
     }
 
     _patch(data) {
-        this.id = data.id;
-        this.body = data.body;
-        this.type = data.type;
-        this.timestamp = data.t;
-        this.from = data.from;
-        this.to = data.to;
-        this.author = data.author;
-        this.isForwarded = data.isForwarded;
-        this.broadcast = data.broadcast;
-        this.fromMe = data.id.fromMe;
+	    this.id = data.id;
+	    this.body = data.body;
+	    this.type = data.type;
+	    this.timestamp = data.t;
+	    this.from = data.from;
+	    this.to = data.to;
+	    this.author = data.author;
+	    this.isForwarded = data.isForwarded;
+	    this.broadcast = data.broadcast;
+	    this.fromMe = data.id.fromMe;
+	    this.mentions = [];
 
-        return super._patch(data);
+	    for (let i = 0; i < data.mentionedJidList.length; i++) {
+		    //let contact = this.getContact(data.mentionedJidList[i]);
+		    let contact = data.mentionedJidList[i];
+		    this.mentions.push(contact)
+	    }
+
+	    return super._patch(data);
     }
 
     /**
@@ -33,6 +41,18 @@ class Message extends Base {
      */
     getChat() {
         return this.client.getChatById(this.from);
+    }
+
+    /**
+     * Returns the Contact this message was sent from
+     */
+    getContact() {
+
+    	let input = this.author;
+    	if (this.author) {
+	        input = this.from;
+	    }
+        return this.client.getContactById(input);
     }
 
     /**
