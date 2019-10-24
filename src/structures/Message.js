@@ -24,7 +24,6 @@ class Message extends Base {
         this.isForwarded = data.isForwarded;
         this.broadcast = data.broadcast;
         this.fromMe = data.id.fromMe;
-        this.mentions = data.mentionedJidList;
 
         return super._patch(data);
     }
@@ -34,14 +33,6 @@ class Message extends Base {
      */
     getChat() {
         return this.client.getChatById(this.from);
-    }
-
-    /**
-     * Returns the Contact this message was sent from
-     */
-    getContact() {
-        let input = this.author || this.from;
-        return this.client.getContactById(input);
     }
 
     /**

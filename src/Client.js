@@ -166,36 +166,9 @@ class Client extends EventEmitter {
      * @param {string} message 
      */
     async sendMessage(chatId, message) {
-        let msg = {};
-        if (message && typeof message === 'object' && message.constructor === Object) {
-            msg = message;
-        } else {
-            msg = {
-                linkPreview: null,
-                mentions: [],
-                quotedMsg: null,
-                quotedMsgAdminGroupJid: null,
-                body: message
-            }
-        }
-        let last_message = await this.pupPage.evaluate(async (chatId, msg) => {
-            msg.mentionedJidList = [];
-            for (let i = 0; i < msg.mentions.length; i++) {
-                let user = await Store.Contact.serialize().find(x => x.id.user === msg.mentions[i].split("@")[0]);
-                if (user && msg.body.includes("@" + msg.mentions[i].split("@")[0])) {
-                    msg.mentionedJidList.push(user.id);
-                }
-            }
-            await Store.SendMessage(Store.Chat.get(chatId), msg.body, {linkPreview : msg.linkPreview, mentionedJidList : msg.mentionedJidList, quotedMsg : msg.quotedMsg, quotedMsgAdminGroupJid : msg.quotedMsgAdminGroupJid});
-            return Store.Chat.get(chatId).msgs._last.serialize()
-        }, chatId, msg);
-        if (last_message.body === msg.body) {
-            last_message = new Message(this, last_message);
-        } else {
-            last_message = msg
-        }
-        return last_message
-
+        await this.pupPage.evaluate((chatId, message) => {
+            Store.SendMessage(Store.Chat.get(chatId), message);
+        }, chatId, message)
     }
 
     /**
