@@ -50,7 +50,7 @@ exports.LoadCustomSerializers = () => {
     }
 
     window.WWebJS.getContact = contactId => {
-        const contact = Store.Chat.get(contactId);
+        const contact = Store.Contact.get(contactId);
         return WWebJS.getContactModel(contact);
     }
 
