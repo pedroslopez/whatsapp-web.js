@@ -10,6 +10,7 @@ const { ExposeStore, LoadCustomSerializers } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const Chat = require('./structures/Chat');
 const Message = require('./structures/Message');
+const GetMedia = require('./util/GetMedia')
 
 /**
  * Starting point for interacting with the WhatsApp Web API
@@ -100,8 +101,10 @@ class Client extends EventEmitter {
         await page.evaluate(LoadCustomSerializers);
 
         // Register events
-        await page.exposeFunction('onAddMessageEvent', msg => {
+        await page.exposeFunction('onAddMessageEvent', async msg => {
             if (!msg.isNewMsg) return;
+            
+            msg.body = await GetMedia(msg, page);
 
             const message = new Message(this, msg);
             this.emit(Events.MESSAGE_CREATE, message);
