@@ -16,7 +16,8 @@ class Message extends Base {
 
     _patch(data) {
 	    this.id = data.id;
-	    this.body = data.body;
+	    this.hasMedia = data.clientUrl ? true : false;
+	    this.body = this.hasMedia ? data.caption || '' : data.body || '';
 	    this.type = data.type;
 	    this.timestamp = data.t;
 	    this.from = data.from;
