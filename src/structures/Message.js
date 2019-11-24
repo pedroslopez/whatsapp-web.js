@@ -26,6 +26,7 @@ class Message extends Base {
 	    this.isForwarded = data.isForwarded;
 	    this.broadcast = data.broadcast;
 	    this.fromMe = data.id.fromMe;
+
 	    this.mentions = [];
 
 	    if (data.mentionedJidList) {
