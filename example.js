@@ -81,6 +81,14 @@ client.on('message', async msg => {
     } else if(msg.body == '!chats') {
         const chats = await client.getChats();
         client.sendMessage(msg.from, `The bot has ${chats.length} chats open.`);
+    } else if(msg.body == '!mediainfo' && msg.hasMedia) {
+        const attachmentData = await msg.downloadMedia();
+        msg.reply(`
+            *Media info*
+            MimeType: ${attachmentData.mimetype}
+            Filename: ${attachmentData.filename}
+            Data (length): ${attachmentData.data.length}
+        `);
     }
 });
 
