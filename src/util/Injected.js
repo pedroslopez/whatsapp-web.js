@@ -58,6 +58,45 @@ exports.LoadCustomSerializers = () => {
         const contacts = Store.Contact.models;
         return contacts.map(contact => WWebJS.getContactModel(contact));
     }
+
+    window.WWebJS.downloadBuffer = (url) => {
+        return new Promise(function(resolve, reject) {
+            let xhr = new XMLHttpRequest();
+            xhr.open("GET", url);
+            xhr.responseType = 'arraybuffer';
+            xhr.onload = function () {
+                if (xhr.status == 200) {
+                    resolve(xhr.response);
+                } else {
+                    reject({
+                        status: this.status,
+                        statusText: xhr.statusText
+                    });
+                }
+            };
+            xhr.onerror = function () {
+                reject({
+                    status: this.status,
+                    statusText: xhr.statusText
+                });
+            };
+            xhr.send(null);
+        });
+    }
+
+    window.WWebJS.readBlobAsync = (blob) => {
+        return new Promise((resolve, reject) => {
+            let reader = new FileReader();
+
+            reader.onload = () => {
+                resolve(reader.result);
+            };
+
+            reader.onerror = reject;
+
+            reader.readAsDataURL(blob);
+        })
+    }
 }
 
 exports.MarkAllRead = () => {
