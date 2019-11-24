@@ -27,10 +27,12 @@ class Message extends Base {
 	    this.fromMe = data.id.fromMe;
 	    this.mentions = [];
 
-	    for (let i = 0; i < data.mentionedJidList.length; i++) {
-		    //let contact = this.getContact(data.mentionedJidList[i]);
-		    let contact = data.mentionedJidList[i];
-		    this.mentions.push(contact)
+	    if (data.mentionedJidList) {
+		    for (let i = 0; i < data.mentionedJidList.length; i++) {
+			    //let contact = this.getContact(data.mentionedJidList[i]);
+			    let contact = data.mentionedJidList[i];
+			    this.mentions.push(contact)
+		    }
 	    }
 
 	    return super._patch(data);
