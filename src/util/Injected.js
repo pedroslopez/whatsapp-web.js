@@ -91,7 +91,7 @@ exports.LoadCustomSerializers = () => {
           reader.onload = () => {
             resolve(reader.result);
           };
-      
+
           reader.onerror = reject;
 
           reader.readAsDataURL(blob);
