@@ -15,29 +15,29 @@ class Message extends Base {
     }
 
     _patch(data) {
-	    this.id = data.id;
-	    this.hasMedia = data.clientUrl ? true : false;
-	    this.body = this.hasMedia ? data.caption || '' : data.body || '';
-	    this.type = data.type;
-	    this.timestamp = data.t;
-	    this.from = data.from;
-	    this.to = data.to;
-	    this.author = data.author;
-	    this.isForwarded = data.isForwarded;
-	    this.broadcast = data.broadcast;
-	    this.fromMe = data.id.fromMe;
+        this.id = data.id;
+        this.hasMedia = data.clientUrl ? true : false;
+        this.body = this.hasMedia ? data.caption || '' : data.body || '';
+        this.type = data.type;
+        this.timestamp = data.t;
+        this.from = data.from;
+        this.to = data.to;
+        this.author = data.author;
+        this.isForwarded = data.isForwarded;
+        this.broadcast = data.broadcast;
+        this.fromMe = data.id.fromMe;
 
-	    this.mentions = [];
+        this.mentions = [];
 
-	    if (data.mentionedJidList) {
-		    for (let i = 0; i < data.mentionedJidList.length; i++) {
-			    //let contact = this.getContact(data.mentionedJidList[i]);
-			    let contact = data.mentionedJidList[i];
-			    this.mentions.push(contact)
-		    }
-	    }
+        if (data.mentionedJidList) {
+            for (let i = 0; i < data.mentionedJidList.length; i++) {
+                //let contact = this.getContact(data.mentionedJidList[i]);
+                let contact = data.mentionedJidList[i];
+                this.mentions.push(contact)
+            }
+        }
 
-	    return super._patch(data);
+        return super._patch(data);
     }
 
     /**
@@ -52,10 +52,10 @@ class Message extends Base {
      */
     getContact() {
 
-    	let input = this.author;
-    	if (this.author) {
-	        input = this.from;
-	    }
+        let input = this.author;
+        if (this.author) {
+            input = this.from;
+        }
         return this.client.getContactById(input);
     }
 
