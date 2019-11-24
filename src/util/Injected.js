@@ -89,9 +89,9 @@ exports.LoadCustomSerializers = () => {
           let reader = new FileReader();
 
           reader.onload = () => {
-              resolve(reader.result);
+            resolve(reader.result);
           };
-
+      
           reader.onerror = reject;
 
           reader.readAsDataURL(blob);
