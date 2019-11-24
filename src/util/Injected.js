@@ -86,15 +86,15 @@ exports.LoadCustomSerializers = () => {
 
     window.WWebJS.readBlobAsync = (blob) => {
         return new Promise((resolve, reject) => {
-            let reader = new FileReader();
+          let reader = new FileReader();
 
-            reader.onload = () => {
-                resolve(reader.result);
-            };
+          reader.onload = () => {
+              resolve(reader.result);
+          };
 
-            reader.onerror = reject;
+          reader.onerror = reject;
 
-            reader.readAsDataURL(blob);
+          reader.readAsDataURL(blob);
         })
     }
 }
