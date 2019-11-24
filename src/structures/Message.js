@@ -15,7 +15,8 @@ class Message extends Base {
 
     _patch(data) {
         this.id = data.id;
-        this.body = data.body;
+        this.hasMedia = data.clientUrl ? true : false;
+        this.body = this.hasMedia ? data.caption || '' : data.body || '';
         this.type = data.type;
         this.timestamp = data.t;
         this.from = data.from;
@@ -59,6 +60,26 @@ class Message extends Base {
             }
             
         }, chatId, this.id._serialized, message);
+    }
+
+    async downloadMedia() {
+        if (!this.hasMedia) {
+            return undefined;
+        }
+
+        return await this.client.pupPage.evaluate(async (msgId) => {
+            const msg = Store.Msg.get(msgId);
+            const buffer = await WWebJS.downloadBuffer(msg.clientUrl);
+            const decrypted = await Store.CryptoLib.decryptE2EMedia(msg.type, buffer, msg.mediaKey, msg.mimetype);
+            const data = await WWebJS.readBlobAsync(decrypted._blob);
+            
+            return {
+                data,
+                mimetype: msg.mimetype,
+                filename: msg.filename
+            }
+
+        }, this.id._serialized);
     }
 }
 

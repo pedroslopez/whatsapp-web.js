@@ -6,7 +6,7 @@ const moduleRaid = require('moduleraid/moduleraid');
 
 const Util = require('./util/Util');
 const { WhatsWebURL, UserAgent, DefaultOptions, Events, WAState } = require('./util/Constants');
-const { ExposeStore, LoadCustomSerializers } = require('./util/Injected');
+const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const Chat = require('./structures/Chat');
 const Message = require('./structures/Message');
@@ -96,8 +96,8 @@ class Client extends EventEmitter {
         // Check Store Injection
         await page.waitForFunction('window.Store != undefined');
 
-        //Load custom serializers
-        await page.evaluate(LoadCustomSerializers);
+        //Load util functions (serializers, helper functions)
+        await page.evaluate(LoadUtils);
 
         // Register events
         await page.exposeFunction('onAddMessageEvent', msg => {
