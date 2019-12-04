@@ -3,12 +3,12 @@
 const EventEmitter = require('events');
 const puppeteer = require('puppeteer');
 const moduleRaid = require('moduleraid/moduleraid');
+const jsQR = require('jsqr');
 
 const Util = require('./util/Util');
 const { WhatsWebURL, UserAgent, DefaultOptions, Events, WAState } = require('./util/Constants');
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
-const Chat = require('./structures/Chat');
 const Message = require('./structures/Message');
 
 /**
@@ -65,12 +65,11 @@ class Client extends EventEmitter {
 
         } else {
             // Wait for QR Code
-            const QR_CONTAINER_SELECTOR = '._2d3Jz';
-            const QR_VALUE_SELECTOR = '._1pw2F';
-
-            await page.waitForSelector(QR_CONTAINER_SELECTOR);
-
-            const qr = await page.$eval(QR_VALUE_SELECTOR, node => node.getAttribute('data-ref'));
+            const QR_CANVAS_SELECTOR = 'canvas';
+            await page.waitForSelector(QR_CANVAS_SELECTOR);
+            const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0,0,264,264).data));
+            const qr = jsQR(qrImgData, 264, 264).data;
+            
             this.emit(Events.QR_RECEIVED, qr);
 
             // Wait for code scan
