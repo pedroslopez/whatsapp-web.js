@@ -11,6 +11,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.CryptoLib = window.mR.findModule("decryptE2EMedia")[0];
     window.Store.genId = window.mR.findModule((module) => module.default && typeof module.default === 'function' && module.default.toString().match(/crypto/))[0].default;
     window.Store.SendMessage = window.mR.findModule("sendTextMsgToChat")[0].sendTextMsgToChat;
+    window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default
 }
 
 exports.LoadUtils = () => {
