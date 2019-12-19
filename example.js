@@ -35,10 +35,19 @@ client.on('message', async msg => {
         // Send a new message to the same chat
         client.sendMessage(msg.from, 'pong');
 
+    } else if (msg.body.startsWith('!sendto ')) {
+        // Direct send a new message to specific id
+        let number = msg.body.split(' ')[1]
+        let messageIndex = msg.body.indexOf(number) + number.length
+        let message = msg.body.slice(messageIndex, msg.body.length)
+        number = number.includes('@c.us') ? number : `${number}@c.us`
+
+        client.sendMessageToId(number, message)
+        
     } else if (msg.body.startsWith('!subject ')) {
         // Change the group subject
         let chat = await msg.getChat();
-        if(chat.isGroup) {
+        if (chat.isGroup) {
             let newSubject = msg.body.slice(9);
             chat.setSubject(newSubject);
         } else {
@@ -50,7 +59,7 @@ client.on('message', async msg => {
     } else if (msg.body.startsWith('!desc ')) {
         // Change the group description
         let chat = await msg.getChat();
-        if(chat.isGroup) {
+        if (chat.isGroup) {
             let newDescription = msg.body.slice(6);
             chat.setDescription(newDescription);
         } else {
@@ -59,14 +68,14 @@ client.on('message', async msg => {
     } else if (msg.body == '!leave') {
         // Leave the group
         let chat = await msg.getChat();
-        if(chat.isGroup) {
+        if (chat.isGroup) {
             chat.leave();
         } else {
             msg.reply('This command can only be used in a group!');
         }
-    } else if(msg.body == '!groupinfo') {
+    } else if (msg.body == '!groupinfo') {
         let chat = await msg.getChat();
-        if(chat.isGroup) {
+        if (chat.isGroup) {
             msg.reply(`
                 *Group Details*
                 Name: ${chat.name}
@@ -78,10 +87,10 @@ client.on('message', async msg => {
         } else {
             msg.reply('This command can only be used in a group!');
         }
-    } else if(msg.body == '!chats') {
+    } else if (msg.body == '!chats') {
         const chats = await client.getChats();
         client.sendMessage(msg.from, `The bot has ${chats.length} chats open.`);
-    } else if(msg.body == '!mediainfo' && msg.hasMedia) {
+    } else if (msg.body == '!mediainfo' && msg.hasMedia) {
         const attachmentData = await msg.downloadMedia();
         msg.reply(`
             *Media info*
@@ -94,7 +103,7 @@ client.on('message', async msg => {
 
 client.on('message_create', (msg) => {
     // Fired on all message creations, including your own
-    if(msg.fromMe) {
+    if (msg.fromMe) {
         // do stuff here
     }
 })
