@@ -69,7 +69,7 @@ class Client extends EventEmitter {
             await page.waitForSelector(QR_CANVAS_SELECTOR);
             const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0,0,264,264).data));
             const qr = jsQR(qrImgData, 264, 264).data;
-            
+
             this.emit(Events.QR_RECEIVED, qr);
 
             // Wait for code scan
@@ -141,6 +141,29 @@ class Client extends EventEmitter {
         await this.pupPage.evaluate((chatId, message) => {
             Store.SendMessage(Store.Chat.get(chatId), message);
         }, chatId, message)
+    }
+
+    /**
+     * Direct send a message to a specific id 
+     * @param {string} chatId
+     * @param {string} message 
+     */
+    async sendMessageToId(id, message) {
+        await this.pupPage.evaluate((id, message) => {
+            const chat = Store.Chat.get(id);
+            if (!chat) {
+                let chatObj = Store.Chat.models[0];
+                let originalChatObjId = chatObj.id
+                chatObj.id = typeof originalChatObjId === 'string' ? id : new Store.UserConstructor(id, { intentionallyUsePrivateConstructor: true })
+
+                Store.SendMessage(chatObj, message)
+
+                chatObj.id = originalChatObjId
+                return
+            }
+
+            Store.SendMessage(chat, message);
+        }, id, message)
     }
 
     /**
