@@ -42,8 +42,6 @@ class Client extends EventEmitter {
                     localStorage.setItem("WAToken1", session.WAToken1);
                     localStorage.setItem("WAToken2", session.WAToken2);
                 }, this.options.session);
-         
-            
         }
 
         await page.goto(WhatsWebURL);
