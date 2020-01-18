@@ -51,7 +51,7 @@ class Client extends EventEmitter {
         if (this.options.session) {
             // Check if session restore was successfull 
             try {
-                await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 5000 });
+                await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 15000 });
             } catch (err) {
                 if (err.name === 'TimeoutError') {
                     this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in. Are the session details valid?');
