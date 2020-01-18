@@ -46,7 +46,7 @@ class Client extends EventEmitter {
 
         await page.goto(WhatsWebURL);
 
-        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '._1wSzK';
+        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '.HGVhc';
 
         if (this.options.session) {
             // Check if session restore was successfull 
