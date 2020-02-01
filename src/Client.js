@@ -138,9 +138,12 @@ class Client extends EventEmitter {
      * @param {string} message 
      */
     async sendMessage(chatId, message) {
-        await this.pupPage.evaluate((chatId, message) => {
-            Store.SendMessage(Store.Chat.get(chatId), message);
-        }, chatId, message)
+        const newMessage = await this.pupPage.evaluate(async (chatId, message) => {
+            const msg = await WWebJS.sendMessage(Store.Chat.get(chatId), message);
+            return msg.serialize();
+        }, chatId, message);
+
+        return new Message(this, newMessage);
     }
 
     /**

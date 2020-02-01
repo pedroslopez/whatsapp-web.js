@@ -48,18 +48,18 @@ class Message extends Base {
             chatId = this.from;
         }
         
-        return await this.client.pupPage.evaluate((chatId, quotedMessageId, message) => {
+        const newMessage = await this.client.pupPage.evaluate(async (chatId, quotedMessageId, message) => {
             let quotedMessage = Store.Msg.get(quotedMessageId);
             if(quotedMessage.canReply()) {
                 const chat = Store.Chat.get(chatId);
-                chat.composeQuotedMsg = quotedMessage;
-                window.Store.SendMessage(chat, message, {quotedMsg: quotedMessage});
-                chat.composeQuotedMsg = null;
+                const newMessage = await WWebJS.sendMessage(chat, message, quotedMessage.msgContextInfo(chat));
+                return newMessage.serialize();
             } else {
                 throw new Error('This message cannot be replied to.');
             }
-            
         }, chatId, this.id._serialized, message);
+
+        return new Message(this.client, newMessage);
     }
 
     async downloadMedia() {

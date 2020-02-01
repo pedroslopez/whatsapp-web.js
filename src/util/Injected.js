@@ -8,13 +8,40 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.mR = moduleRaid();
     window.Store = window.mR.findModule("Chat")[1].default;
     window.Store.AppState = window.mR.findModule("STREAM")[0].default;
+    window.Store.Conn = window.mR.findModule("Conn")[0].default;
     window.Store.CryptoLib = window.mR.findModule("decryptE2EMedia")[0];
     window.Store.genId = window.mR.findModule((module) => module.default && typeof module.default === 'function' && module.default.toString().match(/crypto/))[0].default;
-    window.Store.SendMessage = window.mR.findModule("sendTextMsgToChat")[0].sendTextMsgToChat;
+    window.Store.SendMessage = window.mR.findModule("addAndSendMsgToChat")[0];
+    window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
 }
 
 exports.LoadUtils = () => {
     window.WWebJS = {};
+
+    window.WWebJS.sendMessage = async (chat, content, options) => {       
+        const newMsgId = new Store.MsgKey({
+            from: Store.Conn.me,
+            to: chat.id,
+            id: Store.genId(),
+        });
+
+        const message = {
+            id: newMsgId,
+            ack: 0,
+            body: content,
+            from: Store.Conn.me,
+            to: chat.id,
+            local: true,
+            self: 'out',
+            t: parseInt(new Date().getTime() / 1000),
+            isNewMsg: true,
+            type: 'chat',
+            ...options
+        }
+
+        await Store.SendMessage.addAndSendMsgToChat(chat, message);
+        return Store.Msg.get(newMsgId._serialized);
+    }
 
     window.WWebJS.getChatModel = chat => {
         let res = chat.serialize();
