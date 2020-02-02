@@ -10,6 +10,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.AppState = window.mR.findModule("STREAM")[0].default;
     window.Store.Conn = window.mR.findModule("Conn")[0].default;
     window.Store.CryptoLib = window.mR.findModule("decryptE2EMedia")[0];
+    window.Store.Wap = window.mR.findModule("Wap")[0].default;
     window.Store.genId = window.mR.findModule((module) => module.default && typeof module.default === 'function' && module.default.toString().match(/crypto/))[0].default;
     window.Store.SendMessage = window.mR.findModule("addAndSendMsgToChat")[0];
     window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
