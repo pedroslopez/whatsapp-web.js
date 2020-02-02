@@ -23,6 +23,8 @@ exports.Events = {
     READY: 'ready',
     MESSAGE_RECEIVED: 'message',
     MESSAGE_CREATE: 'message_create',
+    MESSAGE_REVOKED_EVERYONE: 'message_revoke_everyone',
+    MESSAGE_REVOKED_ME: 'message_revoke_me',
     QR_RECEIVED: 'qr',
     DISCONNECTED: 'disconnected'
 };
