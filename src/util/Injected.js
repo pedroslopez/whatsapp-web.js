@@ -68,6 +68,27 @@ exports.LoadUtils = () => {
         return chats.map(chat => window.WWebJS.getChatModel(chat));
     };
 
+    window.WWebJS.getContactModel = contact => {
+        let res = contact.serialize();
+        res.isBusiness = contact.isBusiness;
+
+        if (contact.businessProfile) {
+            res.businessProfile = contact.businessProfile.serialize();
+        }
+
+        return res;
+    };
+    
+    window.WWebJS.getContact = contactId => {
+        const contact = window.Store.Contact.get(contactId);
+        return window.WWebJS.getContactModel(contact);
+    };
+
+    window.WWebJS.getContacts = () => {
+        const contacts = window.Store.Contact.models;
+        return contacts.map(contact => window.WWebJS.getContactModel(contact));
+    };
+
     window.WWebJS.downloadBuffer = (url) => {
         return new Promise(function(resolve, reject) {
             let xhr = new XMLHttpRequest();

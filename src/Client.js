@@ -9,6 +9,7 @@ const Util = require('./util/Util');
 const { WhatsWebURL, UserAgent, DefaultOptions, Events, WAState } = require('./util/Constants');
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
+const ContactFactory = require('./factories/ContactFactory');
 const ClientInfo = require('./structures/ClientInfo');
 const Message = require('./structures/Message');
 
@@ -208,6 +209,29 @@ class Client extends EventEmitter {
         }, chatId);
 
         return ChatFactory.create(this, chat);
+    }
+
+    /**
+     * Get all current contact instances
+     */
+    async getContacts() {
+        let contacts = await this.pupPage.evaluate(() => {
+            return window.WWebJS.getContacts();
+        });
+
+        return contacts.map(contact => ContactFactory.create(this, contact));
+    }
+
+    /**
+     * Get contact instance by ID
+     * @param {string} contactId
+     */
+    async getContactById(contactId) {
+        let contact = await this.pupPage.evaluate(contactId => {
+            return window.WWebJS.getContact(contactId);
+        }, contactId);
+
+        return ContactFactory.create(this, contact);
     }
 
     /**

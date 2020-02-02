@@ -42,6 +42,13 @@ class Message extends Base {
     }
 
     /**
+     * Returns the Contact this message was sent from
+     */
+    getContact() {
+        return this.client.getContactById(this._getChatId());
+    }
+
+    /**
      * Returns the quoted message, if any
      */
     async getQuotedMessage() {
