@@ -150,8 +150,8 @@ class Client extends EventEmitter {
 
         await page.evaluate(() => {
             window.Store.Msg.on('add', window.onAddMessageEvent);
-            window.Store.Msg.on('change', onChangeMessageEvent);
-            window.Store.Msg.on('remove', onRemoveMessageEvent);
+            window.Store.Msg.on('change', window.onChangeMessageEvent);
+            window.Store.Msg.on('remove', window.onRemoveMessageEvent);
             window.Store.AppState.on('change:state', window.onAppStateChangedEvent);
         });
 

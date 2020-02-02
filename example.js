@@ -135,7 +135,7 @@ client.on('message_revoke_everyone', async (before, after) => {
 
 client.on('message_revoke_me', async (msg) => {
     // Fired whenever a message is only deleted in your own view.
-    console.log(msg); // message before it was deleted.
+    console.log(msg.body); // message before it was deleted.
 });
 
 client.on('disconnected', () => {
