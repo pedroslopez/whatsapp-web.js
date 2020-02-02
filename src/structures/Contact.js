@@ -16,7 +16,7 @@ class Contact extends Base {
     _patch(data) {
         this.id = data.id;
         this.isBusiness = data.isBusiness;
-        this.isEnterprise = data.isBusiness;
+        this.isEnterprise = data.isEnterprise;
         this.labels = data.labels;
         this.name = data.name;
         this.pushname = data.pushname;
