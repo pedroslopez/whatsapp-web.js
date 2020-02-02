@@ -13,6 +13,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.genId = window.mR.findModule((module) => module.default && typeof module.default === 'function' && module.default.toString().match(/crypto/))[0].default;
     window.Store.SendMessage = window.mR.findModule("addAndSendMsgToChat")[0];
     window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
+    window.Store.Invite = window.mR.findModule("sendJoinGroupViaInvite")[0];
 }
 
 exports.LoadUtils = () => {

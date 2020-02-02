@@ -64,6 +64,15 @@ client.on('message', async msg => {
         } else {
             msg.reply('This command can only be used in a group!');
         }
+    } else if(msg.body.startsWith('!join ')) {
+        const inviteCode = msg.body.split(' ')[1];
+
+        try {
+            const chat = await client.acceptInvite(inviteCode);
+            msg.reply(`Joined *${chat.name}*!`);
+        } catch(e) {
+            msg.reply('That invite code seems to be invalid.');
+        } 
     } else if(msg.body == '!groupinfo') {
         let chat = await msg.getChat();
         if(chat.isGroup) {
