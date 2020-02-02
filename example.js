@@ -127,6 +127,17 @@ client.on('message_create', (msg) => {
     }
 });
 
+client.on('message_revoke_everyone', async (before, after) => {
+    // Fired whenever a message is deleted by anyone (including you)
+    console.log(before.body); // message before it was deleted.
+    console.log(after.type); // message after it was deleted.
+});
+
+client.on('message_revoke_me', async (msg) => {
+    // Fired whenever a message is only deleted in your own view.
+    console.log(msg); // message before it was deleted.
+});
+
 client.on('disconnected', () => {
     console.log('Client was logged out');
 });

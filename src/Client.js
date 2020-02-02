@@ -115,6 +115,31 @@ class Client extends EventEmitter {
             this.emit(Events.MESSAGE_RECEIVED, message);
         });
 
+        let last_message;
+
+        await page.exposeFunction('onChangeMessageEvent', (msg) => {
+
+            if (last_message && msg.type === "revoked" && msg.id.id === last_message.id.id) {
+                const message = new Message(this, msg);
+                const revoked_msg = new Message(this, last_message);
+                this.emit(Events.MESSAGE_REVOKED_EVERYONE, revoked_msg, message);
+            } else {
+                if (msg.type !== "revoked") {
+                    last_message = msg;
+                }
+            }
+
+        });
+
+        await page.exposeFunction('onRemoveMessageEvent', (msg) => {
+
+            if (!msg.isNewMsg) return;
+
+            const message = new Message(this, msg);
+            this.emit(Events.MESSAGE_REVOKED_ME, message);
+
+        });
+
         await page.exposeFunction('onAppStateChangedEvent', (AppState, state) => {
             const ACCEPTED_STATES = [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING];
             if (!ACCEPTED_STATES.includes(state)) {
@@ -125,6 +150,8 @@ class Client extends EventEmitter {
 
         await page.evaluate(() => {
             window.Store.Msg.on('add', window.onAddMessageEvent);
+            window.Store.Msg.on('change', onChangeMessageEvent);
+            window.Store.Msg.on('remove', onRemoveMessageEvent);
             window.Store.AppState.on('change:state', window.onAppStateChangedEvent);
         });
 
