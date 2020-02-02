@@ -9,6 +9,7 @@ const Util = require('./util/Util');
 const { WhatsWebURL, UserAgent, DefaultOptions, Events, WAState } = require('./util/Constants');
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
+const ClientInfo = require('./structures/ClientInfo');
 const Message = require('./structures/Message');
 
 /**
@@ -98,6 +99,11 @@ class Client extends EventEmitter {
         //Load util functions (serializers, helper functions)
         await page.evaluate(LoadUtils);
 
+        // Expose client info
+        this.info = new ClientInfo(this, await page.evaluate(() => {
+            return Store.Conn.serialize();
+        }));
+
         // Register events
         await page.exposeFunction('onAddMessageEvent', msg => {
             if (!msg.isNewMsg) return;
@@ -115,12 +121,12 @@ class Client extends EventEmitter {
                 this.emit(Events.DISCONNECTED);
                 this.destroy();
             }
-        })
+        });
 
         await page.evaluate(() => {
             Store.Msg.on('add', onAddMessageEvent);
             Store.AppState.on('change:state', onAppStateChangedEvent);
-        }).catch(err => console.log(err.message));
+        });
 
         this.pupBrowser = browser;
         this.pupPage = page;
