@@ -46,7 +46,7 @@ class GroupChat extends Chat {
      */
     async addParticipants(participantIds) {
         return await this.client.pupPage.evaluate((chatId, participantIds) => {
-            return Store.Wap.addParticipants(chatId, participantIds);
+            return window.Store.Wap.addParticipants(chatId, participantIds);
         }, this.id._serialized, participantIds);
     }
 
@@ -56,7 +56,7 @@ class GroupChat extends Chat {
      */
     async removeParticipants(participantIds) {
         return await this.client.pupPage.evaluate((chatId, participantIds) => {
-            return Store.Wap.removeParticipants(chatId, participantIds);
+            return window.Store.Wap.removeParticipants(chatId, participantIds);
         }, this.id._serialized, participantIds);
     }
 
@@ -66,7 +66,7 @@ class GroupChat extends Chat {
      */
     async promoteParticipants(participantIds) {
         return await this.client.pupPage.evaluate((chatId, participantIds) => {
-            return Store.Wap.promoteParticipants(chatId, participantIds);
+            return window.Store.Wap.promoteParticipants(chatId, participantIds);
         }, this.id._serialized, participantIds);
     }
 
@@ -76,7 +76,7 @@ class GroupChat extends Chat {
      */
     async demoteParticipants(participantIds) {
         return await this.client.pupPage.evaluate((chatId, participantIds) => {
-            return Store.Wap.demoteParticipants(chatId, participantIds);
+            return window.Store.Wap.demoteParticipants(chatId, participantIds);
         }, this.id._serialized, participantIds);
     }
 
@@ -86,7 +86,7 @@ class GroupChat extends Chat {
      */
     async setSubject(subject) {
         let res = await this.client.pupPage.evaluate((chatId, subject) => {
-            return Store.Wap.changeSubject(chatId, subject);
+            return window.Store.Wap.changeSubject(chatId, subject);
         }, this.id._serialized, subject);
 
         if(res.status == 200) {
@@ -100,8 +100,8 @@ class GroupChat extends Chat {
      */
     async setDescription(description) {
         let res = await this.client.pupPage.evaluate((chatId, description) => {
-            let descId = Store.GroupMetadata.get(chatId).descId;
-            return Store.Wap.setGroupDescription(chatId, description, Store.genId(), descId);
+            let descId = window.Store.GroupMetadata.get(chatId).descId;
+            return window.Store.Wap.setGroupDescription(chatId, description, window.Store.genId(), descId);
         }, this.id._serialized, description);
 
         if (res.status == 200) {
@@ -114,14 +114,14 @@ class GroupChat extends Chat {
      */
     async getInviteCode() {
         let res = await this.client.pupPage.evaluate(chatId => {
-            return Store.Wap.groupInviteCode(chatId);
+            return window.Store.Wap.groupInviteCode(chatId);
         }, this.id._serialized);
 
         if (res.status == 200) {
             return res.code;
         } 
 
-        throw new Error('Not authorized')
+        throw new Error('Not authorized');
     }
     
     /**
@@ -129,8 +129,8 @@ class GroupChat extends Chat {
      */
     async revokeInvite() {
         return await this.client.pupPage.evaluate(chatId => {
-            return Store.Wap.revokeGroupInvite(chatId);
-        }, chatId);
+            return window.Store.Wap.revokeGroupInvite(chatId);
+        }, this.id._serialized);
     }
 
     /**
@@ -139,7 +139,7 @@ class GroupChat extends Chat {
      */
     static async getInviteInfo(inviteCode) {
         return await this.client.pupPage.evaluate(inviteCode => {
-            return Store.Wap.groupInviteInfo(inviteCode);
+            return window.Store.Wap.groupInviteInfo(inviteCode);
         }, inviteCode);
     }
 
@@ -149,7 +149,7 @@ class GroupChat extends Chat {
      */
     static async join(inviteCode) {
         return await this.client.pupPage.evaluate(inviteCode => {
-            return Store.Wap.acceptGroupInvite(inviteCode);
+            return window.Store.Wap.acceptGroupInvite(inviteCode);
         }, inviteCode);
     }
 
@@ -158,7 +158,7 @@ class GroupChat extends Chat {
      */
     async leave() {
         return await this.client.pupPage.evaluate(chatId => {
-            return Store.Wap.leaveGroup(chatId);
+            return window.Store.Wap.leaveGroup(chatId);
         }, this.id._serialized);
     }
 

@@ -4,34 +4,35 @@
  * Exposes the internal Store to the WhatsApp Web client
  */
 exports.ExposeStore = (moduleRaidStr) => {
-    eval("var moduleRaid = " + moduleRaidStr);
+    eval('var moduleRaid = ' + moduleRaidStr);
+    // eslint-disable-next-line no-undef
     window.mR = moduleRaid();
-    window.Store = window.mR.findModule("Chat")[1].default;
-    window.Store.AppState = window.mR.findModule("STREAM")[0].default;
-    window.Store.Conn = window.mR.findModule("Conn")[0].default;
-    window.Store.CryptoLib = window.mR.findModule("decryptE2EMedia")[0];
-    window.Store.Wap = window.mR.findModule("Wap")[0].default;
+    window.Store = window.mR.findModule('Chat')[1].default;
+    window.Store.AppState = window.mR.findModule('STREAM')[0].default;
+    window.Store.Conn = window.mR.findModule('Conn')[0].default;
+    window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
+    window.Store.Wap = window.mR.findModule('Wap')[0].default;
     window.Store.genId = window.mR.findModule((module) => module.default && typeof module.default === 'function' && module.default.toString().match(/crypto/))[0].default;
-    window.Store.SendMessage = window.mR.findModule("addAndSendMsgToChat")[0];
+    window.Store.SendMessage = window.mR.findModule('addAndSendMsgToChat')[0];
     window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
-    window.Store.Invite = window.mR.findModule("sendJoinGroupViaInvite")[0];
-}
+    window.Store.Invite = window.mR.findModule('sendJoinGroupViaInvite')[0];
+};
 
 exports.LoadUtils = () => {
     window.WWebJS = {};
 
     window.WWebJS.sendMessage = async (chat, content, options) => {       
-        const newMsgId = new Store.MsgKey({
-            from: Store.Conn.me,
+        const newMsgId = new window.Store.MsgKey({
+            from: window.Store.Conn.me,
             to: chat.id,
-            id: Store.genId(),
+            id: window.Store.genId(),
         });
 
         const message = {
             id: newMsgId,
             ack: 0,
             body: content,
-            from: Store.Conn.me,
+            from: window.Store.Conn.me,
             to: chat.id,
             local: true,
             self: 'out',
@@ -39,11 +40,11 @@ exports.LoadUtils = () => {
             isNewMsg: true,
             type: 'chat',
             ...options
-        }
+        };
 
-        await Store.SendMessage.addAndSendMsgToChat(chat, message);
-        return Store.Msg.get(newMsgId._serialized);
-    }
+        await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
+        return window.Store.Msg.get(newMsgId._serialized);
+    };
 
     window.WWebJS.getChatModel = chat => {
         let res = chat.serialize();
@@ -55,22 +56,22 @@ exports.LoadUtils = () => {
         }
 
         return res;
-    }
+    };
 
     window.WWebJS.getChat = chatId => {
-        const chat = Store.Chat.get(chatId);
-        return WWebJS.getChatModel(chat);
-    }
+        const chat = window.Store.Chat.get(chatId);
+        return window.WWebJS.getChatModel(chat);
+    };
 
     window.WWebJS.getChats = () => {
-        const chats = Store.Chat.models;
-        return chats.map(chat => WWebJS.getChatModel(chat));
-    }
+        const chats = window.Store.Chat.models;
+        return chats.map(chat => window.WWebJS.getChatModel(chat));
+    };
 
     window.WWebJS.downloadBuffer = (url) => {
         return new Promise(function(resolve, reject) {
             let xhr = new XMLHttpRequest();
-            xhr.open("GET", url);
+            xhr.open('GET', url);
             xhr.responseType = 'arraybuffer';
             xhr.onload = function () {
                 if (xhr.status == 200) {
@@ -90,27 +91,27 @@ exports.LoadUtils = () => {
             };
             xhr.send(null);
         });
-    }
+    };
 
     window.WWebJS.readBlobAsync = (blob) => {
         return new Promise((resolve, reject) => {
-          let reader = new FileReader();
+            let reader = new FileReader();
       
-          reader.onload = () => {
-            resolve(reader.result);
-          };
+            reader.onload = () => {
+                resolve(reader.result);
+            };
       
-          reader.onerror = reject;
+            reader.onerror = reject;
       
-          reader.readAsDataURL(blob);
-        })
-    }
-}
+            reader.readAsDataURL(blob);
+        });
+    };
+};
 
 exports.MarkAllRead = () => {
-    let Chats = Store.Chat.models;
+    let Chats = window.Store.Chat.models;
 
-    for (chatIndex in Chats) {
+    for (let chatIndex in Chats) {
         if (isNaN(chatIndex)) {
             continue;
         }
@@ -119,7 +120,7 @@ exports.MarkAllRead = () => {
 
         if (chat.unreadCount > 0) {
             chat.markSeen();
-            Store.Wap.sendConversationSeen(chat.id, chat.getLastMsgKeyForAction(), chat.unreadCount - chat.pendingSeenCount);
+            window.Store.Wap.sendConversationSeen(chat.id, chat.getLastMsgKeyForAction(), chat.unreadCount - chat.pendingSeenCount);
         }
     }
-}
+};

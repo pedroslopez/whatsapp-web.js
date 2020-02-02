@@ -38,10 +38,10 @@ class Client extends EventEmitter {
             await page.evaluateOnNewDocument(
                 session => {
                     localStorage.clear();
-                    localStorage.setItem("WABrowserId", session.WABrowserId);
-                    localStorage.setItem("WASecretBundle", session.WASecretBundle);
-                    localStorage.setItem("WAToken1", session.WAToken1);
-                    localStorage.setItem("WAToken2", session.WAToken2);
+                    localStorage.setItem('WABrowserId', session.WABrowserId);
+                    localStorage.setItem('WASecretBundle', session.WASecretBundle);
+                    localStorage.setItem('WAToken1', session.WAToken1);
+                    localStorage.setItem('WAToken2', session.WAToken2);
                 }, this.options.session);
         }
 
@@ -89,11 +89,11 @@ class Client extends EventEmitter {
             WASecretBundle: localStorage.WASecretBundle,
             WAToken1: localStorage.WAToken1,
             WAToken2: localStorage.WAToken2
-        }
+        };
 
         this.emit(Events.AUTHENTICATED, session);
 
-        // Check Store Injection
+        // Check window.Store Injection
         await page.waitForFunction('window.Store != undefined');
 
         //Load util functions (serializers, helper functions)
@@ -101,7 +101,7 @@ class Client extends EventEmitter {
 
         // Expose client info
         this.info = new ClientInfo(this, await page.evaluate(() => {
-            return Store.Conn.serialize();
+            return window.Store.Conn.serialize();
         }));
 
         // Register events
@@ -124,8 +124,8 @@ class Client extends EventEmitter {
         });
 
         await page.evaluate(() => {
-            Store.Msg.on('add', onAddMessageEvent);
-            Store.AppState.on('change:state', onAppStateChangedEvent);
+            window.Store.Msg.on('add', window.onAddMessageEvent);
+            window.Store.AppState.on('change:state', window.onAppStateChangedEvent);
         });
 
         this.pupBrowser = browser;
@@ -145,7 +145,7 @@ class Client extends EventEmitter {
      */
     async sendMessage(chatId, message) {
         const newMessage = await this.pupPage.evaluate(async (chatId, message) => {
-            const msg = await WWebJS.sendMessage(Store.Chat.get(chatId), message);
+            const msg = await window.WWebJS.sendMessage(window.Store.Chat.get(chatId), message);
             return msg.serialize();
         }, chatId, message);
 
@@ -157,7 +157,7 @@ class Client extends EventEmitter {
      */
     async getChats() {
         let chats = await this.pupPage.evaluate(() => {
-            return WWebJS.getChats();
+            return window.WWebJS.getChats();
         });
 
         return chats.map(chat => ChatFactory.create(this, chat));
@@ -169,7 +169,7 @@ class Client extends EventEmitter {
      */
     async getChatById(chatId) {
         let chat = await this.pupPage.evaluate(chatId => {
-            return WWebJS.getChat(chatId);
+            return window.WWebJS.getChat(chatId);
         }, chatId);
 
         return ChatFactory.create(this, chat);
@@ -181,8 +181,8 @@ class Client extends EventEmitter {
      */
     async acceptInvite(inviteCode) {
         const chat = await this.pupPage.evaluate(async inviteCode => {
-            const chatId = await Store.Invite.sendJoinGroupViaInvite(inviteCode);
-            return WWebJS.getChat(chatId._serialized);
+            const chatId = await window.Store.Invite.sendJoinGroupViaInvite(inviteCode);
+            return window.WWebJS.getChat(chatId._serialized);
         }, inviteCode);
 
         return ChatFactory.create(this.client, chat);
