@@ -119,12 +119,12 @@ class Client extends EventEmitter {
 
         await page.exposeFunction('onChangeMessageEvent', (msg) => {
 
-            if (last_message && msg.type === "revoked" && msg.id.id === last_message.id.id) {
+            if (last_message && msg.type === 'revoked' && msg.id.id === last_message.id.id) {
                 const message = new Message(this, msg);
                 const revoked_msg = new Message(this, last_message);
                 this.emit(Events.MESSAGE_REVOKED_EVERYONE, revoked_msg, message);
             } else {
-                if (msg.type !== "revoked") {
+                if (msg.type !== 'revoked') {
                     last_message = msg;
                 }
             }
