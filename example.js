@@ -113,7 +113,7 @@ client.on('message', async msg => {
         quotedMsg.reply(`
             ID: ${quotedMsg.id._serialized}
             Type: ${quotedMsg.type}
-            Author: ${(quotedMsg.author || quotedMsg.from)._serialized}
+            Author: ${quotedMsg.author || quotedMsg.from}
             Timestamp: ${quotedMsg.timestamp}
             Has Media? ${quotedMsg.hasMedia}
         `);
