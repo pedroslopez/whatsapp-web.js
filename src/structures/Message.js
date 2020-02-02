@@ -19,21 +19,40 @@ class Message extends Base {
         this.body = this.hasMedia ? data.caption || '' : data.body || '';
         this.type = data.type;
         this.timestamp = data.t;
-        this.from = data.from;
-        this.to = data.to;
-        this.author = data.author;
+        this.from = typeof (data.from) === "object" ? data.from._serialized : data.from;
+        this.to = typeof (data.to) === "object" ? data.to._serialized : data.to;
+        this.author = typeof (data.author) === "object" ? data.author._serialized : data.author;
         this.isForwarded = data.isForwarded;
         this.broadcast = data.broadcast;
         this.fromMe = data.id.fromMe;
+        this.hasQuotedMsg = data.quotedMsg ? true : false;
 
         return super._patch(data);
+    }
+
+    _getChatId() {
+        return this.fromMe ? this.to : this.from;
     }
 
     /**
      * Returns the Chat this message was sent in
      */
     getChat() {
-        return this.client.getChatById(this.from);
+        return this.client.getChatById(this._getChatId());
+    }
+
+    /**
+     * Returns the quoted message, if any
+     */
+    async getQuotedMessage() {
+        if (!this.hasQuotedMsg) return undefined;
+
+        const quotedMsg = await this.client.pupPage.evaluate((msgId) => {
+            let msg = Store.Msg.get(msgId);
+            return msg.quotedMsgObj().serialize();
+        }, this.id._serialized);
+
+        return new Message(this.client, quotedMsg);
     }
 
     /**
@@ -45,7 +64,7 @@ class Message extends Base {
      */
     async reply(message, chatId) {
         if (!chatId) {
-            chatId = this.from;
+            chatId = this._getChatId();
         }
         
         const newMessage = await this.client.pupPage.evaluate(async (chatId, quotedMessageId, message) => {
