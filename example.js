@@ -129,8 +129,10 @@ client.on('message_create', (msg) => {
 
 client.on('message_revoke_everyone', async (after, before) => {
     // Fired whenever a message is deleted by anyone (including you)
-    console.log(after.type); // message after it was deleted.
-    console.log(before.body); // message before it was deleted.
+    console.log(after); // message after it was deleted.
+    if (before) {
+        console.log(before); // message before it was deleted.
+    }
 });
 
 client.on('message_revoke_me', async (msg) => {
