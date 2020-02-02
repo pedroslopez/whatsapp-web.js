@@ -10,7 +10,6 @@ const { WhatsWebURL, UserAgent, DefaultOptions, Events, WAState } = require('./u
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
-const Contact = require('./structures/Contact');
 const ClientInfo = require('./structures/ClientInfo');
 const Message = require('./structures/Message');
 
