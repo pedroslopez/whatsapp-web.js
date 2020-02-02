@@ -30,14 +30,6 @@ class Contact extends Base {
         return super._patch(data);
     }
     
-    /**
-     * Gets the Profile Image of the User
-     */
-    async getProfileImageUrl() {
-        return this.client.pupPage.evaluate(contactId => {
-            return window.Store.ProfilePicThumb.get(contactId).serialize();
-        }, this.id._serialized);
-    }
 }
 
 module.exports = Contact;
