@@ -25,7 +25,11 @@ class Chat extends Base {
         return super._patch(data);
     }
 
-    sendMessage(message) {
+    /**
+     * Sends a message to this chat.
+     * @param {string} message
+     */
+    async sendMessage(message) {
         return this.client.sendMessage(this.id._serialized, message);
     }
 }

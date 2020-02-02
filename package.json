@@ -1,6 +1,6 @@
 {
   "name": "whatsapp-web.js",
-  "version": "0.2.0",
+  "version": "0.3.2",
   "description": "Library for interacting with the WhatsApp Web API ",
   "main": "./index.js",
   "scripts": {
@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/pedroslopez/whatsapp-web.js#readme",
   "dependencies": {
+    "jsqr": "^1.2.0",
     "moduleraid": "git+https://github.com/pixeldesu/moduleRaid.git",
     "puppeteer": "^1.20.0"
   }

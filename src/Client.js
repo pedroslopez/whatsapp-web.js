@@ -3,10 +3,11 @@
 const EventEmitter = require('events');
 const puppeteer = require('puppeteer');
 const moduleRaid = require('moduleraid/moduleraid');
+const jsQR = require('jsqr');
 
 const Util = require('./util/Util');
 const { WhatsWebURL, UserAgent, DefaultOptions, Events, WAState } = require('./util/Constants');
-const { ExposeStore, LoadCustomSerializers } = require('./util/Injected');
+const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ClientInfo = require('./structures/ClientInfo');
 const Message = require('./structures/Message');
@@ -46,12 +47,12 @@ class Client extends EventEmitter {
 
         await page.goto(WhatsWebURL);
 
-        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '._1wSzK';
+        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image="true"]';
 
         if (this.options.session) {
             // Check if session restore was successfull 
             try {
-                await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 5000 });
+                await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 15000 });
             } catch (err) {
                 if (err.name === 'TimeoutError') {
                     this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in. Are the session details valid?');
@@ -65,12 +66,11 @@ class Client extends EventEmitter {
 
         } else {
             // Wait for QR Code
-            const QR_CONTAINER_SELECTOR = '._2d3Jz';
-            const QR_VALUE_SELECTOR = '._1pw2F';
-
-            await page.waitForSelector(QR_CONTAINER_SELECTOR);
-
-            const qr = await page.$eval(QR_VALUE_SELECTOR, node => node.getAttribute('data-ref'));
+            const QR_CANVAS_SELECTOR = 'canvas';
+            await page.waitForSelector(QR_CANVAS_SELECTOR);
+            const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0,0,264,264).data));
+            const qr = jsQR(qrImgData, 264, 264).data;
+            
             this.emit(Events.QR_RECEIVED, qr);
 
             // Wait for code scan
@@ -96,8 +96,8 @@ class Client extends EventEmitter {
         // Check Store Injection
         await page.waitForFunction('window.Store != undefined');
 
-        //Load custom serializers
-        await page.evaluate(LoadCustomSerializers);
+        //Load util functions (serializers, helper functions)
+        await page.evaluate(LoadUtils);
 
         // Expose client info
         this.info = new ClientInfo(this, await page.evaluate(() => {
@@ -144,9 +144,12 @@ class Client extends EventEmitter {
      * @param {string} message 
      */
     async sendMessage(chatId, message) {
-        await this.pupPage.evaluate((chatId, message) => {
-            Store.SendMessage(Store.Chat.get(chatId), message);
-        }, chatId, message)
+        const newMessage = await this.pupPage.evaluate(async (chatId, message) => {
+            const msg = await WWebJS.sendMessage(Store.Chat.get(chatId), message);
+            return msg.serialize();
+        }, chatId, message);
+
+        return new Message(this, newMessage);
     }
 
     /**
