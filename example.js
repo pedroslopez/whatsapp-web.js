@@ -89,6 +89,7 @@ client.on('message', async msg => {
             My number: ${info.me.user}
             Platform: ${info.platform}
             WhatsApp version: ${info.phone.wa_version}
+        `);
     } else if(msg.body == '!mediainfo' && msg.hasMedia) {
         const attachmentData = await msg.downloadMedia();
         msg.reply(`
