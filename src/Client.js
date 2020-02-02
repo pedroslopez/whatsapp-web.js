@@ -115,6 +115,38 @@ class Client extends EventEmitter {
             this.emit(Events.MESSAGE_RECEIVED, message);
         });
 
+        let last_message;
+
+        await page.exposeFunction('onChangeMessageTypeEvent', (msg) => {
+
+            if (msg.type === 'revoked') {
+                const message = new Message(this, msg);
+                let revoked_msg;
+                if(last_message && msg.id.id === last_message.id.id) {
+                    revoked_msg = new Message(this, last_message);
+                }
+                this.emit(Events.MESSAGE_REVOKED_EVERYONE, message, revoked_msg);
+            }
+            
+        });
+
+        await page.exposeFunction('onChangeMessageEvent', (msg) => {
+            
+            if (msg.type !== 'revoked') {
+                last_message = msg;
+            }
+
+        });
+
+        await page.exposeFunction('onRemoveMessageEvent', (msg) => {
+
+            if (!msg.isNewMsg) return;
+
+            const message = new Message(this, msg);
+            this.emit(Events.MESSAGE_REVOKED_ME, message);
+
+        });
+
         await page.exposeFunction('onAppStateChangedEvent', (AppState, state) => {
             const ACCEPTED_STATES = [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING];
             if (!ACCEPTED_STATES.includes(state)) {
@@ -125,6 +157,9 @@ class Client extends EventEmitter {
 
         await page.evaluate(() => {
             window.Store.Msg.on('add', window.onAddMessageEvent);
+            window.Store.Msg.on('change', window.onChangeMessageEvent);
+            window.Store.Msg.on('change:type', window.onChangeMessageTypeEvent);
+            window.Store.Msg.on('remove', window.onRemoveMessageEvent);
             window.Store.AppState.on('change:state', window.onAppStateChangedEvent);
         });
 
