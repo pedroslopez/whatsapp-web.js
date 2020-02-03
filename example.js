@@ -66,10 +66,9 @@ client.on('message', async msg => {
         }
     } else if(msg.body.startsWith('!join ')) {
         const inviteCode = msg.body.split(' ')[1];
-
         try {
-            const chat = await client.acceptInvite(inviteCode);
-            msg.reply(`Joined *${chat.name}*!`);
+            await client.acceptInvite(inviteCode);
+            msg.reply('Joined the group!');
         } catch(e) {
             msg.reply('That invite code seems to be invalid.');
         } 

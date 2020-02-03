@@ -239,12 +239,11 @@ class Client extends EventEmitter {
      * @param {string} inviteCode
      */
     async acceptInvite(inviteCode) {
-        const chat = await this.pupPage.evaluate(async inviteCode => {
-            const chatId = await window.Store.Invite.sendJoinGroupViaInvite(inviteCode);
-            return window.WWebJS.getChat(chatId._serialized);
+        const chatId = await this.pupPage.evaluate(async inviteCode => {
+            return await window.Store.Invite.sendJoinGroupViaInvite(inviteCode);
         }, inviteCode);
 
-        return ChatFactory.create(this.client, chat);
+        return chatId._serialized;
     }
 
 }
