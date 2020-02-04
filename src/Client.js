@@ -12,6 +12,7 @@ const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
 const ClientInfo = require('./structures/ClientInfo');
 const Message = require('./structures/Message');
+const MessageMedia = require('./structures/MessageMedia');
 
 /**
  * Starting point for interacting with the WhatsApp Web API
@@ -177,13 +178,27 @@ class Client extends EventEmitter {
     /**
      * Send a message to a specific chatId
      * @param {string} chatId
-     * @param {string} message 
+     * @param {string|MessageMedia} content
+     * @param {object} options 
      */
-    async sendMessage(chatId, message) {
-        const newMessage = await this.pupPage.evaluate(async (chatId, message) => {
-            const msg = await window.WWebJS.sendMessage(window.Store.Chat.get(chatId), message);
+    async sendMessage(chatId, content, options={}) {
+        let internalOptions = {
+            caption: options.caption,
+            quotedMessageId: options.quotedMessageId
+        };
+
+        if(content instanceof MessageMedia) {
+            internalOptions.attachment = content;
+            content = '';
+        } else if(options.media instanceof MessageMedia) {
+            internalOptions.media = options.media;
+            internalOptions.caption = content;
+        }
+
+        const newMessage = await this.pupPage.evaluate(async (chatId, message, options) => {
+            const msg = await window.WWebJS.sendMessage(window.Store.Chat.get(chatId), message, options);
             return msg.serialize();
-        }, chatId, message);
+        }, chatId, content, internalOptions);
 
         return new Message(this, newMessage);
     }

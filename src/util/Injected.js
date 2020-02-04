@@ -16,12 +16,32 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.SendMessage = window.mR.findModule('addAndSendMsgToChat')[0];
     window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
     window.Store.Invite = window.mR.findModule('sendJoinGroupViaInvite')[0];
+    window.Store.OpaqueData = window.mR.findModule('getOrCreateOpaqueDataForPath')[0];
+    window.Store.MediaPrep = window.mR.findModule('MediaPrep')[0];
+    window.Store.MediaObject = window.mR.findModule('getOrCreateMediaObject')[0];
+    window.Store.MediaUpload = window.mR.findModule('uploadMedia')[0];
+    window.Store.MediaTypes = window.mR.findModule('msgToMediaType')[0];
 };
 
 exports.LoadUtils = () => {
     window.WWebJS = {};
 
     window.WWebJS.sendMessage = async (chat, content, options) => {       
+        let attOptions = {};
+        if (options.attachment) {
+            attOptions = await window.WWebJS.processMediaData(options.attachment);
+            delete options.attachment;
+        }
+
+        let quotedMsgOptions = {};
+        if (options.quotedMessageId) {
+            let quotedMessage = window.Store.Msg.get(options.quotedMessageId);
+            if(quotedMessage.canReply()) {
+                quotedMsgOptions = quotedMessage.msgContextInfo(chat);
+            }
+            delete options.quotedMessageId;
+        }
+        
         const newMsgId = new window.Store.MsgKey({
             from: window.Store.Conn.me,
             to: chat.id,
@@ -29,6 +49,7 @@ exports.LoadUtils = () => {
         });
 
         const message = {
+            ...options,
             id: newMsgId,
             ack: 0,
             body: content,
@@ -39,11 +60,44 @@ exports.LoadUtils = () => {
             t: parseInt(new Date().getTime() / 1000),
             isNewMsg: true,
             type: 'chat',
-            ...options
+            ...attOptions,
+            ...quotedMsgOptions
         };
 
         await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
         return window.Store.Msg.get(newMsgId._serialized);
+    };
+
+    window.WWebJS.processMediaData = async (mediaInfo) => {
+        const file = window.WWebJS.mediaInfoToFile(mediaInfo);
+        const mData = await window.Store.OpaqueData.default.createFromData(file, file.type);
+        const mediaPrep = window.Store.MediaPrep.prepRawMedia(mData, {});
+        const mediaData = await mediaPrep.waitForPrep();
+        const mediaObject = window.Store.MediaObject.getOrCreateMediaObject(mediaData.filehash);
+
+        const mediaType = window.Store.MediaTypes.msgToMediaType({
+            type: mediaData.type,
+            isGif: mediaData.isGif
+        });
+
+        const uploadedMedia = await window.Store.MediaUpload.uploadMedia(mediaData.mimetype, mediaObject, mediaType);
+        if (!uploadedMedia) {
+            throw new Error('upload failed: media entry was not created');
+        }
+
+        mediaData.set({
+            clientUrl: uploadedMedia.mmsUrl,
+            directPath: uploadedMedia.directPath,
+            mediaKey: uploadedMedia.mediaKey,
+            mediaKeyTimestamp: uploadedMedia.mediaKeyTimestamp,
+            filehash: mediaObject.filehash,
+            uploadhash: uploadedMedia.uploadHash,
+            size: mediaObject.size,
+            streamingSidecar: uploadedMedia.sidecar,
+            firstFrameSidecar: uploadedMedia.firstFrameSidecar
+        });
+
+        return mediaData;
     };
 
     window.WWebJS.getChatModel = chat => {
@@ -87,6 +141,22 @@ exports.LoadUtils = () => {
     window.WWebJS.getContacts = () => {
         const contacts = window.Store.Contact.models;
         return contacts.map(contact => window.WWebJS.getContactModel(contact));
+    };
+
+    window.WWebJS.mediaInfoToFile = ({data, mimetype, filename}) => {
+        const binaryData = atob(data);
+        
+        const buffer = new ArrayBuffer(binaryData.length);
+        const view = new Uint8Array(buffer);
+        for(let i=0; i < binaryData.length; i++) {
+            view[i] = binaryData.charCodeAt(i);
+        }
+
+        const blob = new Blob([buffer], {type: mimetype});
+        return new File([blob], filename, {
+            type: mimetype,
+            lastModified: Date.now()
+        });
     };
 
     window.WWebJS.downloadBuffer = (url) => {

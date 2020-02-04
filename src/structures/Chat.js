@@ -26,11 +26,12 @@ class Chat extends Base {
     }
 
     /**
-     * Sends a message to this chat.
-     * @param {string} message
+     * Send a message to this chat
+     * @param {string|MessageMedia} content
+     * @param {object} options 
      */
-    async sendMessage(message) {
-        return this.client.sendMessage(this.id._serialized, message);
+    async sendMessage(content, options) {
+        return this.client.sendMessage(this.id._serialized, content, options);
     }
 }
 

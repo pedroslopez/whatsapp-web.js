@@ -1,6 +1,7 @@
 'use strict';
 
 const Base = require('./Base');
+const MessageMedia = require('./MessageMedia');
 
 /**
  * Represents a Message on WhatsApp
@@ -36,6 +37,7 @@ class Message extends Base {
 
     /**
      * Returns the Chat this message was sent in
+     * @returns {Chat}
      */
     getChat() {
         return this.client.getChatById(this._getChatId());
@@ -43,6 +45,7 @@ class Message extends Base {
 
     /**
      * Returns the Contact this message was sent from
+     * @returns {Contact}
      */
     getContact() {
         return this.client.getContactById(this._getChatId());
@@ -50,6 +53,7 @@ class Message extends Base {
 
     /**
      * Returns the quoted message, if any
+     * @returns {Message}
      */
     async getQuotedMessage() {
         if (!this.hasQuotedMsg) return undefined;
@@ -66,46 +70,49 @@ class Message extends Base {
      * Sends a message as a reply. If chatId is specified, it will be sent 
      * through the specified Chat. If not, it will send the message 
      * in the same Chat as the original message was sent.
-     * @param {string} message 
+     * 
+     * @param {string|MessageMedia} content 
      * @param {?string} chatId 
+     * @param {object} options
+     * @returns {Message}
      */
-    async reply(message, chatId) {
+    async reply(content, chatId, options={}) {
         if (!chatId) {
             chatId = this._getChatId();
         }
-        
-        const newMessage = await this.client.pupPage.evaluate(async (chatId, quotedMessageId, message) => {
-            let quotedMessage = window.Store.Msg.get(quotedMessageId);
-            if(quotedMessage.canReply()) {
-                const chat = window.Store.Chat.get(chatId);
-                const newMessage = await window.WWebJS.sendMessage(chat, message, quotedMessage.msgContextInfo(chat));
-                return newMessage.serialize();
-            } else {
-                throw new Error('This message cannot be replied to.');
-            }
-        }, chatId, this.id._serialized, message);
 
-        return new Message(this.client, newMessage);
+        options = {
+            ...options,
+            quotedMessageId: this.id._serialized
+        };
+
+        return this.client.sendMessage(chatId, content, options);
     }
 
+    /**
+     * Downloads and returns the attatched message media
+     * @returns {MessageMedia}
+     */
     async downloadMedia() {
         if (!this.hasMedia) {
             return undefined;
         }
 
-        return await this.client.pupPage.evaluate(async (msgId) => {
+        const {data, mimetype, filename} = await this.client.pupPage.evaluate(async (msgId) => {
             const msg = window.Store.Msg.get(msgId);
             const buffer = await window.WWebJS.downloadBuffer(msg.clientUrl);
             const decrypted = await window.Store.CryptoLib.decryptE2EMedia(msg.type, buffer, msg.mediaKey, msg.mimetype);
             const data = await window.WWebJS.readBlobAsync(decrypted._blob);
             
             return {
-                data,
+                data: data.split(',')[1],
                 mimetype: msg.mimetype,
                 filename: msg.filename
             };
 
         }, this.id._serialized);
+
+        return new MessageMedia(mimetype, data, filename);
     }
 }
 
