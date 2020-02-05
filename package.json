@@ -4,7 +4,8 @@
   "description": "Library for interacting with the WhatsApp Web API ",
   "main": "./index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "generate-docs": "node_modules/.bin/jsdoc --configure .jsdoc.json --verbose"
   },
   "repository": {
     "type": "git",
@@ -30,6 +31,8 @@
     "puppeteer": "^2.1.0"
   },
   "devDependencies": {
-    "eslint": "^6.8.0"
+    "eslint": "^6.8.0",
+    "jsdoc": "^3.6.3",
+    "jsdoc-baseline": "^0.1.5"
   }
 }

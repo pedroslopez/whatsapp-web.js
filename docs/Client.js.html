@@ -1,0 +1,386 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.6.3">
+  <meta charset="utf-8">
+  <title>whatsapp-web.js 0.3.2 &raquo; Source: Client.js</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 0.<wbr>3.<wbr>2</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-banner" role="banner">
+        </div>
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1>Source: Client.js</h1>
+          </header>
+          <article>
+            <pre class="prettyprint linenums"><code>&#x27;use strict&#x27;;
+
+const EventEmitter &#x3D; require(&#x27;events&#x27;);
+const puppeteer &#x3D; require(&#x27;puppeteer&#x27;);
+const moduleRaid &#x3D; require(&#x27;moduleraid/moduleraid&#x27;);
+const jsQR &#x3D; require(&#x27;jsqr&#x27;);
+
+const Util &#x3D; require(&#x27;./util/Util&#x27;);
+const { WhatsWebURL, UserAgent, DefaultOptions, Events, WAState } &#x3D; require(&#x27;./util/Constants&#x27;);
+const { ExposeStore, LoadUtils } &#x3D; require(&#x27;./util/Injected&#x27;);
+const ChatFactory &#x3D; require(&#x27;./factories/ChatFactory&#x27;);
+const ContactFactory &#x3D; require(&#x27;./factories/ContactFactory&#x27;);
+const ClientInfo &#x3D; require(&#x27;./structures/ClientInfo&#x27;);
+const Message &#x3D; require(&#x27;./structures/Message&#x27;);
+const MessageMedia &#x3D; require(&#x27;./structures/MessageMedia&#x27;);
+
+/**
+ * Starting point for interacting with the WhatsApp Web API
+ * @extends {EventEmitter}
+ * @fires Client#qr
+ * @fires Client#authenticated
+ * @fires Client#auth_failure
+ * @fires Client#ready
+ * @fires Client#message
+ * @fires Client#message_create
+ * @fires Client#message_revoke_me
+ * @fires Client#message_revoke_everyone
+ * @fires Client#disconnected
+ */
+class Client extends EventEmitter {
+    constructor(options &#x3D; {}) {
+        super();
+
+        this.options &#x3D; Util.mergeDefault(DefaultOptions, options);
+
+        this.pupBrowser &#x3D; null;
+        this.pupPage &#x3D; null;
+    }
+
+    /**
+     * Sets up events and requirements, kicks off authentication request
+     */
+    async initialize() {
+        const browser &#x3D; await puppeteer.launch(this.options.puppeteer);
+        const page &#x3D; await browser.newPage();
+        page.setUserAgent(UserAgent);
+
+        if (this.options.session) {
+            await page.evaluateOnNewDocument(
+                session &#x3D;&gt; {
+                    localStorage.clear();
+                    localStorage.setItem(&#x27;WABrowserId&#x27;, session.WABrowserId);
+                    localStorage.setItem(&#x27;WASecretBundle&#x27;, session.WASecretBundle);
+                    localStorage.setItem(&#x27;WAToken1&#x27;, session.WAToken1);
+                    localStorage.setItem(&#x27;WAToken2&#x27;, session.WAToken2);
+                }, this.options.session);
+        }
+
+        await page.goto(WhatsWebURL);
+
+        const KEEP_PHONE_CONNECTED_IMG_SELECTOR &#x3D; &#x27;[data-asset-intro-image&#x3D;&quot;true&quot;]&#x27;;
+
+        if (this.options.session) {
+            // Check if session restore was successfull 
+            try {
+                await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 15000 });
+            } catch (err) {
+                if (err.name &#x3D;&#x3D;&#x3D; &#x27;TimeoutError&#x27;) {
+                    /**
+                     * Emitted when there has been an error while trying to restore an existing session
+                     * @event Client#auth_failure
+                     * @param {string} message
+                     */
+                    this.emit(Events.AUTHENTICATION_FAILURE, &#x27;Unable to log in. Are the session details valid?&#x27;);
+                    browser.close();
+
+                    return;
+                }
+
+                throw err;
+            }
+
+        } else {
+            // Wait for QR Code
+            const QR_CANVAS_SELECTOR &#x3D; &#x27;canvas&#x27;;
+            await page.waitForSelector(QR_CANVAS_SELECTOR);
+            const qrImgData &#x3D; await page.$eval(QR_CANVAS_SELECTOR, canvas &#x3D;&gt; [].slice.call(canvas.getContext(&#x27;2d&#x27;).getImageData(0,0,264,264).data));
+            const qr &#x3D; jsQR(qrImgData, 264, 264).data;
+            
+            /**
+             * Emitted when the QR code is received
+             * @event Client#qr
+             * @param {string} qr QR Code
+             */
+            this.emit(Events.QR_RECEIVED, qr);
+
+            // Wait for code scan
+            await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 0 });
+        }
+
+        await page.evaluate(ExposeStore, moduleRaid.toString());
+
+        // Get session tokens
+        const localStorage &#x3D; JSON.parse(await page.evaluate(() &#x3D;&gt; {
+            return JSON.stringify(window.localStorage);
+        }));
+
+        const session &#x3D; {
+            WABrowserId: localStorage.WABrowserId,
+            WASecretBundle: localStorage.WASecretBundle,
+            WAToken1: localStorage.WAToken1,
+            WAToken2: localStorage.WAToken2
+        };
+
+        /**
+         * Emitted when authentication is successful
+         * @event Client#authenticated
+         * @param {object} session Object containing session information. Can be used to restore the session.
+         */
+        this.emit(Events.AUTHENTICATED, session);
+
+        // Check window.Store Injection
+        await page.waitForFunction(&#x27;window.Store !&#x3D; undefined&#x27;);
+
+        //Load util functions (serializers, helper functions)
+        await page.evaluate(LoadUtils);
+
+        // Expose client info
+        this.info &#x3D; new ClientInfo(this, await page.evaluate(() &#x3D;&gt; {
+            return window.Store.Conn.serialize();
+        }));
+
+        // Register events
+        await page.exposeFunction(&#x27;onAddMessageEvent&#x27;, msg &#x3D;&gt; {
+            if (!msg.isNewMsg) return;
+
+            const message &#x3D; new Message(this, msg);
+
+            /**
+             * Emitted when a new message is created, which may include the current user&#x27;s own messages.
+             * @event Client#message_create
+             * @param {Message} message The message that was created
+             */
+            this.emit(Events.MESSAGE_CREATE, message);
+
+            if (msg.id.fromMe) return;
+
+            /**
+             * Emitted when a new message is received.
+             * @event Client#message
+             * @param {Message} message The message that was received
+             */
+            this.emit(Events.MESSAGE_RECEIVED, message);
+        });
+
+        let last_message;
+
+        await page.exposeFunction(&#x27;onChangeMessageTypeEvent&#x27;, (msg) &#x3D;&gt; {
+
+            if (msg.type &#x3D;&#x3D;&#x3D; &#x27;revoked&#x27;) {
+                const message &#x3D; new Message(this, msg);
+                let revoked_msg;
+                if(last_message &amp;amp;&amp;amp; msg.id.id &#x3D;&#x3D;&#x3D; last_message.id.id) {
+                    revoked_msg &#x3D; new Message(this, last_message);
+                }
+
+                /**
+                 * Emitted when a message is deleted for everyone in the chat.
+                 * @event Client#message_revoke_everyone
+                 * @param {Message} message The message that was revoked, in its current state. It will not contain the original message&#x27;s data.
+                 * @param {?Message} revoked_msg The message that was revoked, before it was revoked. It will contain the message&#x27;s original data. 
+                 * Note that due to the way this data is captured, it may be possible that this param will be undefined.
+                 */
+                this.emit(Events.MESSAGE_REVOKED_EVERYONE, message, revoked_msg);
+            }
+            
+        });
+
+        await page.exposeFunction(&#x27;onChangeMessageEvent&#x27;, (msg) &#x3D;&gt; {
+            
+            if (msg.type !&#x3D;&#x3D; &#x27;revoked&#x27;) {
+                last_message &#x3D; msg;
+            }
+
+        });
+
+        await page.exposeFunction(&#x27;onRemoveMessageEvent&#x27;, (msg) &#x3D;&gt; {
+
+            if (!msg.isNewMsg) return;
+
+            const message &#x3D; new Message(this, msg);
+
+            /**
+             * Emitted when a message is deleted by the current user.
+             * @event Client#message_revoke_me
+             * @param {Message} message The message that was revoked
+             */
+            this.emit(Events.MESSAGE_REVOKED_ME, message);
+
+        });
+
+        await page.exposeFunction(&#x27;onAppStateChangedEvent&#x27;, (AppState, state) &#x3D;&gt; {
+            const ACCEPTED_STATES &#x3D; [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING];
+            if (!ACCEPTED_STATES.includes(state)) {
+                /**
+                 * Emitted when the client has been disconnected
+                 * @event Client#disconnected
+                 */
+                this.emit(Events.DISCONNECTED);
+                this.destroy();
+            }
+        });
+
+        await page.evaluate(() &#x3D;&gt; {
+            window.Store.Msg.on(&#x27;add&#x27;, window.onAddMessageEvent);
+            window.Store.Msg.on(&#x27;change&#x27;, window.onChangeMessageEvent);
+            window.Store.Msg.on(&#x27;change:type&#x27;, window.onChangeMessageTypeEvent);
+            window.Store.Msg.on(&#x27;remove&#x27;, window.onRemoveMessageEvent);
+            window.Store.AppState.on(&#x27;change:state&#x27;, window.onAppStateChangedEvent);
+        });
+
+        this.pupBrowser &#x3D; browser;
+        this.pupPage &#x3D; page;
+
+        /**
+         * Emitted when the client has initialized and is ready to receive messages.
+         * @event Client#ready
+         */
+        this.emit(Events.READY);
+    }
+
+    /**
+     * Closes the client
+     */
+    async destroy() {
+        await this.pupBrowser.close();
+    }
+
+    /**
+     * Send a message to a specific chatId
+     * @param {string} chatId
+     * @param {string|MessageMedia} content
+     * @param {object} options 
+     * @returns {Promise&amp;lt;Message&gt;} Message that was just sent
+     */
+    async sendMessage(chatId, content, options&#x3D;{}) {
+        let internalOptions &#x3D; {
+            caption: options.caption,
+            quotedMessageId: options.quotedMessageId
+        };
+
+        if(content instanceof MessageMedia) {
+            internalOptions.attachment &#x3D; content;
+            content &#x3D; &#x27;&#x27;;
+        } else if(options.media instanceof MessageMedia) {
+            internalOptions.media &#x3D; options.media;
+            internalOptions.caption &#x3D; content;
+        }
+
+        const newMessage &#x3D; await this.pupPage.evaluate(async (chatId, message, options) &#x3D;&gt; {
+            const msg &#x3D; await window.WWebJS.sendMessage(window.Store.Chat.get(chatId), message, options);
+            return msg.serialize();
+        }, chatId, content, internalOptions);
+
+        return new Message(this, newMessage);
+    }
+
+    /**
+     * Get all current chat instances
+     * @returns {Promise&amp;lt;Array&amp;lt;Chat&gt;&gt;}
+     */
+    async getChats() {
+        let chats &#x3D; await this.pupPage.evaluate(() &#x3D;&gt; {
+            return window.WWebJS.getChats();
+        });
+
+        return chats.map(chat &#x3D;&gt; ChatFactory.create(this, chat));
+    }
+
+    /**
+     * Get chat instance by ID
+     * @param {string} chatId 
+     * @returns {Promise&amp;lt;Chat&gt;}
+     */
+    async getChatById(chatId) {
+        let chat &#x3D; await this.pupPage.evaluate(chatId &#x3D;&gt; {
+            return window.WWebJS.getChat(chatId);
+        }, chatId);
+
+        return ChatFactory.create(this, chat);
+    }
+
+    /**
+     * Get all current contact instances
+     * @returns {Promise&amp;lt;Array&amp;lt;Contact&gt;&gt;}
+     */
+    async getContacts() {
+        let contacts &#x3D; await this.pupPage.evaluate(() &#x3D;&gt; {
+            return window.WWebJS.getContacts();
+        });
+
+        return contacts.map(contact &#x3D;&gt; ContactFactory.create(this, contact));
+    }
+
+    /**
+     * Get contact instance by ID
+     * @param {string} contactId
+     * @returns {Promise&amp;lt;Contact&gt;}
+     */
+    async getContactById(contactId) {
+        let contact &#x3D; await this.pupPage.evaluate(contactId &#x3D;&gt; {
+            return window.WWebJS.getContact(contactId);
+        }, contactId);
+
+        return ContactFactory.create(this, contact);
+    }
+
+    /**
+     * Accepts an invitation to join a group
+     * @param {string} inviteCode Invitation code
+     */
+    async acceptInvite(inviteCode) {
+        const chatId &#x3D; await this.pupPage.evaluate(async inviteCode &#x3D;&gt; {
+            return await window.Store.Invite.sendJoinGroupViaInvite(inviteCode);
+        }, inviteCode);
+
+        return chatId._serialized;
+    }
+
+}
+
+module.exports &#x3D; Client;
+</code></pre>
+          </article>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on February 5, 2020.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

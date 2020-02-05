@@ -1,0 +1,320 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.6.3">
+  <meta charset="utf-8">
+  <title>whatsapp-web.js 0.3.2 &raquo; Class: Message</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 0.<wbr>3.<wbr>2</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
+            <h1><small></small><span class="symbol-name">Message</span></h1>
+            <p class="source-link">Source: <a href="structures_Message.js.html#source-line-11">structures/<wbr>Message.<wbr>js:11</a></p>
+            <div class="symbol-classdesc">
+              <p>Represents a Message on WhatsApp</p>
+            </div>
+            <dl class="dl-compact">
+            </dl>
+          </header>
+          <section id="summary">
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Properties</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Message.html#author">author</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Message.html#body">body</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Message.html#broadcast">broadcast</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Message.html#from">from</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Message.html#fromMe">fromMe</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Message.html#hasMedia">hasMedia</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Message.html#hasQuotedMsg">hasQuotedMsg</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Message.html#id">id</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Message.html#isForwarded">isForwarded</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Message.html#timestamp">timestamp</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Message.html#to">to</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Message.html#type">type</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Methods</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Message.html#downloadMedia">downloadMedia()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Message.html#getChat">getChat()</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Message.html#getContact">getContact()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Message.html#getQuotedMessage">getQuotedMessage()</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Message.html#reply">reply(content, chatId, options)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section>
+            <h2 id="Message">new&nbsp;<span class="symbol-name">Message</span><span class="signature"><span class="signature-params">()</span></span></h2>
+            <dl class="dl-compact">
+              <dt>Extends</dt>
+              <dd><a href="Base.html">Base</a></dd>
+            </dl>
+          </section>
+          <section>
+            <h2>Properties</h2>
+            <section>
+              <h3 id="author"><span class="symbol-name">author</span><small class="property-type">
+                  &nbsp;string</small></h3>
+              <p>If the message was sent to a group, this field will contain the user that sent the message.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="body"><span class="symbol-name">body</span><small class="property-type">
+                  &nbsp;string</small></h3>
+              <p>Message content</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="broadcast"><span class="symbol-name">broadcast</span><small class="property-type">
+                  &nbsp;boolean</small></h3>
+              <p>Indicates if the message was a broadcast</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="from"><span class="symbol-name">from</span><small class="property-type">
+                  &nbsp;string</small></h3>
+              <p>ID for the Chat that this message was sent to, except if the message was sent by the current user.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="fromMe"><span class="symbol-name">fromMe</span><small class="property-type">
+                  &nbsp;boolean</small></h3>
+              <p>Indicates if the message was sent by the current user</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="hasMedia"><span class="symbol-name">hasMedia</span><small class="property-type">
+                  &nbsp;boolean</small></h3>
+              <p>Indicates if the message has media available for download</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="hasQuotedMsg"><span class="symbol-name">hasQuotedMsg</span><small class="property-type">
+                  &nbsp;boolean</small></h3>
+              <p>Indicates if the message was sent as a reply to another message.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="id"><span class="symbol-name">id</span><small class="property-type">
+                  &nbsp;object</small></h3>
+              <p>ID that represents the message</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="isForwarded"><span class="symbol-name">isForwarded</span><small class="property-type">
+                  &nbsp;boolean</small></h3>
+              <p>Indicates if the message was forwarded</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="timestamp"><span class="symbol-name">timestamp</span><small class="property-type">
+                  &nbsp;number</small></h3>
+              <p>Unix timestamp for when the message was created</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="to"><span class="symbol-name">to</span><small class="property-type">
+                  &nbsp;string</small></h3>
+              <p>ID for who this message is for.</p>
+              <p>If the message is sent by the current user, it will be the Chat to which the message is being sent.
+                If the message is sent by another user, it will be the ID for the current user.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="type"><span class="symbol-name">type</span><small class="property-type">
+                  &nbsp;<a href="global.html#MessageTypes">MessageTypes</a></small></h3>
+              <p>Message type</p>
+              <dl class="dl-compact">
+              </dl>
+            </section>
+            <h2>Methods</h2>
+            <section>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="downloadMedia"><span class="symbol-name">downloadMedia</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="MessageMedia.html">MessageMedia</a></span></span></h3>
+              <p>Downloads and returns the attatched message media</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing <a href="MessageMedia.html">MessageMedia</a></code> </p>
+                </dd>
+              </dl>
+              <h3 id="getChat"><span class="symbol-name">getChat</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="Chat.html">Chat</a></span></span></h3>
+              <p>Returns the Chat this message was sent in</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing <a href="Chat.html">Chat</a></code> </p>
+                </dd>
+              </dl>
+              <h3 id="getContact"><span class="symbol-name">getContact</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="Contact.html">Contact</a></span></span></h3>
+              <p>Returns the Contact this message was sent from</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing <a href="Contact.html">Contact</a></code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getQuotedMessage"><span class="symbol-name">getQuotedMessage</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="Message.html">Message</a></span></span></h3>
+              <p>Returns the quoted message, if any</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing <a href="Message.html">Message</a></code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="reply"><span class="symbol-name">reply</span><span class="signature"><span class="signature-params">(content, chatId, options)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="Message.html">Message</a></span></span></h3>
+              <p>Sends a message as a reply to this message. If chatId is specified, it will be sent
+                through the specified Chat. If not, it will send the message
+                in the same Chat as the original message was sent.</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>content</p>
+                      </td>
+                      <td>
+                        <p>(string or <a href="MessageMedia.html">MessageMedia</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>chatId</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Value can be null.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>options</p>
+                      </td>
+                      <td>
+                        <p>object</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing <a href="Message.html">Message</a></code> </p>
+                </dd>
+              </dl>
+            </section>
+          </section>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on February 5, 2020.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

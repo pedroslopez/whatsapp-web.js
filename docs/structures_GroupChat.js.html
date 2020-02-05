@@ -1,0 +1,224 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.6.3">
+  <meta charset="utf-8">
+  <title>whatsapp-web.js 0.3.2 &raquo; Source: structures/GroupChat.js</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 0.<wbr>3.<wbr>2</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-banner" role="banner">
+        </div>
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1>Source: structures/GroupChat.js</h1>
+          </header>
+          <article>
+            <pre class="prettyprint linenums"><code>&#x27;use strict&#x27;;
+
+const Chat &#x3D; require(&#x27;./Chat&#x27;);
+
+/**
+ * Represents a Group Chat on WhatsApp
+ * @extends {Chat}
+ */
+class GroupChat extends Chat {
+    _patch(data) {
+        this.groupMetadata &#x3D; data.groupMetadata;
+
+        return super._patch(data);
+    }
+
+    /**
+     * Gets the group owner
+     */
+    get owner() {
+        return this.groupMetadata.owner;
+    }
+    
+    /**
+     * Gets the date at which the group was created
+     * @type {date}
+     */
+    get createdAt() {
+        return new Date(this.groupMetadata.creation * 1000);
+    }
+
+    /** 
+     * Gets the group description
+     * @type {string}
+     */
+    get description() {
+        return this.groupMetadata.desc;
+    }
+    /**
+     * Gets the group participants
+     * @type {array}
+     */
+    get participants() {
+        return this.groupMetadata.participants;
+    }
+
+    /**
+     * Adds a list of participants by ID to the group
+     * @param {Array&amp;lt;string&gt;} participantIds 
+     */
+    async addParticipants(participantIds) {
+        return await this.client.pupPage.evaluate((chatId, participantIds) &#x3D;&gt; {
+            return window.Store.Wap.addParticipants(chatId, participantIds);
+        }, this.id._serialized, participantIds);
+    }
+
+    /**
+     * Removes a list of participants by ID to the group
+     * @param {Array&amp;lt;string&gt;} participantIds 
+     */
+    async removeParticipants(participantIds) {
+        return await this.client.pupPage.evaluate((chatId, participantIds) &#x3D;&gt; {
+            return window.Store.Wap.removeParticipants(chatId, participantIds);
+        }, this.id._serialized, participantIds);
+    }
+
+    /**
+     * Promotes participants by IDs to admins
+     * @param {Array&amp;lt;string&gt;} participantIds 
+     */
+    async promoteParticipants(participantIds) {
+        return await this.client.pupPage.evaluate((chatId, participantIds) &#x3D;&gt; {
+            return window.Store.Wap.promoteParticipants(chatId, participantIds);
+        }, this.id._serialized, participantIds);
+    }
+
+    /**
+     * Demotes participants by IDs to regular users
+     * @param {Array&amp;lt;string&gt;} participantIds 
+     */
+    async demoteParticipants(participantIds) {
+        return await this.client.pupPage.evaluate((chatId, participantIds) &#x3D;&gt; {
+            return window.Store.Wap.demoteParticipants(chatId, participantIds);
+        }, this.id._serialized, participantIds);
+    }
+
+    /**
+     * Updates the group subject
+     * @param {string} subject 
+     */
+    async setSubject(subject) {
+        let res &#x3D; await this.client.pupPage.evaluate((chatId, subject) &#x3D;&gt; {
+            return window.Store.Wap.changeSubject(chatId, subject);
+        }, this.id._serialized, subject);
+
+        if(res.status &#x3D;&#x3D; 200) {
+            this.name &#x3D; subject;
+        }
+    }
+
+    /**
+     * Updates the group description
+     * @param {string} description 
+     */
+    async setDescription(description) {
+        let res &#x3D; await this.client.pupPage.evaluate((chatId, description) &#x3D;&gt; {
+            let descId &#x3D; window.Store.GroupMetadata.get(chatId).descId;
+            return window.Store.Wap.setGroupDescription(chatId, description, window.Store.genId(), descId);
+        }, this.id._serialized, description);
+
+        if (res.status &#x3D;&#x3D; 200) {
+            this.groupMetadata.desc &#x3D; description;
+        }
+    }
+
+    /**
+     * Gets the invite code for a specific group
+     */
+    async getInviteCode() {
+        let res &#x3D; await this.client.pupPage.evaluate(chatId &#x3D;&gt; {
+            return window.Store.Wap.groupInviteCode(chatId);
+        }, this.id._serialized);
+
+        if (res.status &#x3D;&#x3D; 200) {
+            return res.code;
+        } 
+
+        throw new Error(&#x27;Not authorized&#x27;);
+    }
+    
+    /**
+     * Invalidates the current group invite code and generates a new one
+     */
+    async revokeInvite() {
+        return await this.client.pupPage.evaluate(chatId &#x3D;&gt; {
+            return window.Store.Wap.revokeGroupInvite(chatId);
+        }, this.id._serialized);
+    }
+
+    /**
+     * Returns an object with information about the invite code&#x27;s group
+     * @param {string} inviteCode 
+     * @returns {Promise&amp;lt;object&gt;} Invite information
+     */
+    static async getInviteInfo(inviteCode) {
+        return await this.client.pupPage.evaluate(inviteCode &#x3D;&gt; {
+            return window.Store.Wap.groupInviteInfo(inviteCode);
+        }, inviteCode);
+    }
+
+    /**
+     * Joins a group with an invite code
+     * @param {string} inviteCode 
+     */
+    static async join(inviteCode) {
+        return await this.client.pupPage.evaluate(inviteCode &#x3D;&gt; {
+            return window.Store.Wap.acceptGroupInvite(inviteCode);
+        }, inviteCode);
+    }
+
+    /**
+     * Makes the bot leave the group
+     */
+    async leave() {
+        return await this.client.pupPage.evaluate(chatId &#x3D;&gt; {
+            return window.Store.Wap.leaveGroup(chatId);
+        }, this.id._serialized);
+    }
+
+}
+
+module.exports &#x3D; GroupChat;</code></pre>
+          </article>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on February 5, 2020.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>
