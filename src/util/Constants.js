@@ -11,12 +11,22 @@ exports.DefaultOptions = {
     session: false
 };
 
+/**
+ * Client status
+ * @readonly
+ * @enum {number}
+ */
 exports.Status = {
     INITIALIZING: 0,
     AUTHENTICATING: 1,
     READY: 3
 };
 
+/**
+ * Events that can be emitted by the client
+ * @readonly
+ * @enum {string}
+ */
 exports.Events = {
     AUTHENTICATED: 'authenticated',
     AUTHENTICATION_FAILURE: 'auth_failure',
@@ -29,6 +39,11 @@ exports.Events = {
     DISCONNECTED: 'disconnected'
 };
 
+/**
+ * Message types
+ * @readonly
+ * @enum {string}
+ */
 exports.MessageTypes = {
     TEXT: 'chat',
     AUDIO: 'audio',
@@ -39,12 +54,22 @@ exports.MessageTypes = {
     STICKER: 'sticker'
 };
 
+/**
+ * Chat types
+ * @readonly
+ * @enum {string}
+ */
 exports.ChatTypes = {
     SOLO: 'solo',
     GROUP: 'group',
     UNKNOWN: 'unknown'
 };
 
+/**
+ * WhatsApp state
+ * @readonly
+ * @enum {string}
+ */
 exports.WAState = {
     CONFLICT: 'CONFLICT',
     CONNECTED: 'CONNECTED',

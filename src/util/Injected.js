@@ -1,8 +1,6 @@
 'use strict';
 
-/**
- * Exposes the internal Store to the WhatsApp Web client
- */
+// Exposes the internal Store to the WhatsApp Web client
 exports.ExposeStore = (moduleRaidStr) => {
     eval('var moduleRaid = ' + moduleRaidStr);
     // eslint-disable-next-line no-undef
