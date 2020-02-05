@@ -22,6 +22,7 @@ class GroupChat extends Chat {
     
     /**
      * Gets the date at which the group was created
+     * @type {date}
      */
     get createdAt() {
         return new Date(this.groupMetadata.creation * 1000);
@@ -29,12 +30,14 @@ class GroupChat extends Chat {
 
     /** 
      * Gets the group description
+     * @type {string}
      */
     get description() {
         return this.groupMetadata.desc;
     }
     /**
      * Gets the group participants
+     * @type {array}
      */
     get participants() {
         return this.groupMetadata.participants;
@@ -42,7 +45,7 @@ class GroupChat extends Chat {
 
     /**
      * Adds a list of participants by ID to the group
-     * @param {Array[string]} participantIds 
+     * @param {Array<string>} participantIds 
      */
     async addParticipants(participantIds) {
         return await this.client.pupPage.evaluate((chatId, participantIds) => {
@@ -52,7 +55,7 @@ class GroupChat extends Chat {
 
     /**
      * Removes a list of participants by ID to the group
-     * @param {Array[string]} participantIds 
+     * @param {Array<string>} participantIds 
      */
     async removeParticipants(participantIds) {
         return await this.client.pupPage.evaluate((chatId, participantIds) => {
@@ -62,7 +65,7 @@ class GroupChat extends Chat {
 
     /**
      * Promotes participants by IDs to admins
-     * @param {Array[string]} participantIds 
+     * @param {Array<string>} participantIds 
      */
     async promoteParticipants(participantIds) {
         return await this.client.pupPage.evaluate((chatId, participantIds) => {
@@ -72,7 +75,7 @@ class GroupChat extends Chat {
 
     /**
      * Demotes participants by IDs to regular users
-     * @param {Array[string]} participantIds 
+     * @param {Array<string>} participantIds 
      */
     async demoteParticipants(participantIds) {
         return await this.client.pupPage.evaluate((chatId, participantIds) => {
@@ -136,6 +139,7 @@ class GroupChat extends Chat {
     /**
      * Returns an object with information about the invite code's group
      * @param {string} inviteCode 
+     * @returns {Promise<object>} Invite information
      */
     static async getInviteInfo(inviteCode) {
         return await this.client.pupPage.evaluate(inviteCode => {

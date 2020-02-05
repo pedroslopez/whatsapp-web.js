@@ -66,10 +66,9 @@ client.on('message', async msg => {
         }
     } else if(msg.body.startsWith('!join ')) {
         const inviteCode = msg.body.split(' ')[1];
-
         try {
-            const chat = await client.acceptInvite(inviteCode);
-            msg.reply(`Joined *${chat.name}*!`);
+            await client.acceptInvite(inviteCode);
+            msg.reply('Joined the group!');
         } catch(e) {
             msg.reply('That invite code seems to be invalid.');
         } 
@@ -117,6 +116,13 @@ client.on('message', async msg => {
             Timestamp: ${quotedMsg.timestamp}
             Has Media? ${quotedMsg.hasMedia}
         `);
+    } else if(msg.body == '!resendmedia' && msg.hasQuotedMsg) {
+        const quotedMsg = await msg.getQuotedMessage();
+        if(quotedMsg.hasMedia) {
+            const attachmentData = await quotedMsg.downloadMedia();
+            client.sendMessage(msg.from, attachmentData, {caption: 'Here\'s your requested media.'});
+        }
+        
     }
 });
 
@@ -125,6 +131,19 @@ client.on('message_create', (msg) => {
     if(msg.fromMe) {
         // do stuff here
     }
+});
+
+client.on('message_revoke_everyone', async (after, before) => {
+    // Fired whenever a message is deleted by anyone (including you)
+    console.log(after); // message after it was deleted.
+    if (before) {
+        console.log(before); // message before it was deleted.
+    }
+});
+
+client.on('message_revoke_me', async (msg) => {
+    // Fired whenever a message is only deleted in your own view.
+    console.log(msg.body); // message before it was deleted.
 });
 
 client.on('disconnected', () => {

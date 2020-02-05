@@ -9,12 +9,23 @@ const Util = require('./util/Util');
 const { WhatsWebURL, UserAgent, DefaultOptions, Events, WAState } = require('./util/Constants');
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
+const ContactFactory = require('./factories/ContactFactory');
 const ClientInfo = require('./structures/ClientInfo');
 const Message = require('./structures/Message');
+const MessageMedia = require('./structures/MessageMedia');
 
 /**
  * Starting point for interacting with the WhatsApp Web API
  * @extends {EventEmitter}
+ * @fires Client#qr
+ * @fires Client#authenticated
+ * @fires Client#auth_failure
+ * @fires Client#ready
+ * @fires Client#message
+ * @fires Client#message_create
+ * @fires Client#message_revoke_me
+ * @fires Client#message_revoke_everyone
+ * @fires Client#disconnected
  */
 class Client extends EventEmitter {
     constructor(options = {}) {
@@ -55,6 +66,11 @@ class Client extends EventEmitter {
                 await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 15000 });
             } catch (err) {
                 if (err.name === 'TimeoutError') {
+                    /**
+                     * Emitted when there has been an error while trying to restore an existing session
+                     * @event Client#auth_failure
+                     * @param {string} message
+                     */
                     this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in. Are the session details valid?');
                     browser.close();
 
@@ -71,6 +87,11 @@ class Client extends EventEmitter {
             const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0,0,264,264).data));
             const qr = jsQR(qrImgData, 264, 264).data;
             
+            /**
+             * Emitted when the QR code is received
+             * @event Client#qr
+             * @param {string} qr QR Code
+             */
             this.emit(Events.QR_RECEIVED, qr);
 
             // Wait for code scan
@@ -91,6 +112,11 @@ class Client extends EventEmitter {
             WAToken2: localStorage.WAToken2
         };
 
+        /**
+         * Emitted when authentication is successful
+         * @event Client#authenticated
+         * @param {object} session Object containing session information. Can be used to restore the session.
+         */
         this.emit(Events.AUTHENTICATED, session);
 
         // Check window.Store Injection
@@ -109,15 +135,77 @@ class Client extends EventEmitter {
             if (!msg.isNewMsg) return;
 
             const message = new Message(this, msg);
+
+            /**
+             * Emitted when a new message is created, which may include the current user's own messages.
+             * @event Client#message_create
+             * @param {Message} message The message that was created
+             */
             this.emit(Events.MESSAGE_CREATE, message);
 
             if (msg.id.fromMe) return;
+
+            /**
+             * Emitted when a new message is received.
+             * @event Client#message
+             * @param {Message} message The message that was received
+             */
             this.emit(Events.MESSAGE_RECEIVED, message);
+        });
+
+        let last_message;
+
+        await page.exposeFunction('onChangeMessageTypeEvent', (msg) => {
+
+            if (msg.type === 'revoked') {
+                const message = new Message(this, msg);
+                let revoked_msg;
+                if(last_message && msg.id.id === last_message.id.id) {
+                    revoked_msg = new Message(this, last_message);
+                }
+
+                /**
+                 * Emitted when a message is deleted for everyone in the chat.
+                 * @event Client#message_revoke_everyone
+                 * @param {Message} message The message that was revoked, in its current state. It will not contain the original message's data.
+                 * @param {?Message} revoked_msg The message that was revoked, before it was revoked. It will contain the message's original data. 
+                 * Note that due to the way this data is captured, it may be possible that this param will be undefined.
+                 */
+                this.emit(Events.MESSAGE_REVOKED_EVERYONE, message, revoked_msg);
+            }
+            
+        });
+
+        await page.exposeFunction('onChangeMessageEvent', (msg) => {
+            
+            if (msg.type !== 'revoked') {
+                last_message = msg;
+            }
+
+        });
+
+        await page.exposeFunction('onRemoveMessageEvent', (msg) => {
+
+            if (!msg.isNewMsg) return;
+
+            const message = new Message(this, msg);
+
+            /**
+             * Emitted when a message is deleted by the current user.
+             * @event Client#message_revoke_me
+             * @param {Message} message The message that was revoked
+             */
+            this.emit(Events.MESSAGE_REVOKED_ME, message);
+
         });
 
         await page.exposeFunction('onAppStateChangedEvent', (AppState, state) => {
             const ACCEPTED_STATES = [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING];
             if (!ACCEPTED_STATES.includes(state)) {
+                /**
+                 * Emitted when the client has been disconnected
+                 * @event Client#disconnected
+                 */
                 this.emit(Events.DISCONNECTED);
                 this.destroy();
             }
@@ -125,15 +213,25 @@ class Client extends EventEmitter {
 
         await page.evaluate(() => {
             window.Store.Msg.on('add', window.onAddMessageEvent);
+            window.Store.Msg.on('change', window.onChangeMessageEvent);
+            window.Store.Msg.on('change:type', window.onChangeMessageTypeEvent);
+            window.Store.Msg.on('remove', window.onRemoveMessageEvent);
             window.Store.AppState.on('change:state', window.onAppStateChangedEvent);
         });
 
         this.pupBrowser = browser;
         this.pupPage = page;
 
+        /**
+         * Emitted when the client has initialized and is ready to receive messages.
+         * @event Client#ready
+         */
         this.emit(Events.READY);
     }
 
+    /**
+     * Closes the client
+     */
     async destroy() {
         await this.pupBrowser.close();
     }
@@ -141,19 +239,35 @@ class Client extends EventEmitter {
     /**
      * Send a message to a specific chatId
      * @param {string} chatId
-     * @param {string} message 
+     * @param {string|MessageMedia} content
+     * @param {object} options 
+     * @returns {Promise<Message>} Message that was just sent
      */
-    async sendMessage(chatId, message) {
-        const newMessage = await this.pupPage.evaluate(async (chatId, message) => {
-            const msg = await window.WWebJS.sendMessage(window.Store.Chat.get(chatId), message);
+    async sendMessage(chatId, content, options={}) {
+        let internalOptions = {
+            caption: options.caption,
+            quotedMessageId: options.quotedMessageId
+        };
+
+        if(content instanceof MessageMedia) {
+            internalOptions.attachment = content;
+            content = '';
+        } else if(options.media instanceof MessageMedia) {
+            internalOptions.media = options.media;
+            internalOptions.caption = content;
+        }
+
+        const newMessage = await this.pupPage.evaluate(async (chatId, message, options) => {
+            const msg = await window.WWebJS.sendMessage(window.Store.Chat.get(chatId), message, options);
             return msg.serialize();
-        }, chatId, message);
+        }, chatId, content, internalOptions);
 
         return new Message(this, newMessage);
     }
 
     /**
      * Get all current chat instances
+     * @returns {Promise<Array<Chat>>}
      */
     async getChats() {
         let chats = await this.pupPage.evaluate(() => {
@@ -166,6 +280,7 @@ class Client extends EventEmitter {
     /**
      * Get chat instance by ID
      * @param {string} chatId 
+     * @returns {Promise<Chat>}
      */
     async getChatById(chatId) {
         let chat = await this.pupPage.evaluate(chatId => {
@@ -176,16 +291,40 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Accepts an invite by code
-     * @param {string} inviteCode
+     * Get all current contact instances
+     * @returns {Promise<Array<Contact>>}
+     */
+    async getContacts() {
+        let contacts = await this.pupPage.evaluate(() => {
+            return window.WWebJS.getContacts();
+        });
+
+        return contacts.map(contact => ContactFactory.create(this, contact));
+    }
+
+    /**
+     * Get contact instance by ID
+     * @param {string} contactId
+     * @returns {Promise<Contact>}
+     */
+    async getContactById(contactId) {
+        let contact = await this.pupPage.evaluate(contactId => {
+            return window.WWebJS.getContact(contactId);
+        }, contactId);
+
+        return ContactFactory.create(this, contact);
+    }
+
+    /**
+     * Accepts an invitation to join a group
+     * @param {string} inviteCode Invitation code
      */
     async acceptInvite(inviteCode) {
-        const chat = await this.pupPage.evaluate(async inviteCode => {
-            const chatId = await window.Store.Invite.sendJoinGroupViaInvite(inviteCode);
-            return window.WWebJS.getChat(chatId._serialized);
+        const chatId = await this.pupPage.evaluate(async inviteCode => {
+            return await window.Store.Invite.sendJoinGroupViaInvite(inviteCode);
         }, inviteCode);
 
-        return ChatFactory.create(this.client, chat);
+        return chatId._serialized;
     }
 
 }

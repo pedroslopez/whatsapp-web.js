@@ -14,23 +14,53 @@ class Chat extends Base {
     }
 
     _patch(data) {
+        /**
+         * ID that represents the chat
+         * @type {object}
+         */
         this.id = data.id;
 
+        /**
+         * Title of the chat
+         * @type {string}
+         */
         this.name = data.formattedTitle;
+
+        /**
+         * Indicates if the Chat is a Group Chat
+         * @type {boolean}
+         */
         this.isGroup = data.isGroup;
+
+        /**
+         * Indicates if the Chat is readonly
+         * @type {boolean}
+         */
         this.isReadOnly = data.isReadOnly;
+
+        /**
+         * Amount of messages unread
+         * @type {number}
+         */
         this.unreadCount = data.unreadCount;
+
+        /**
+         * Unix timestamp for when the chat was created
+         * @type {number}
+         */
         this.timestamp = data.t;
 
         return super._patch(data);
     }
 
     /**
-     * Sends a message to this chat.
-     * @param {string} message
+     * Send a message to this chat
+     * @param {string|MessageMedia} content
+     * @param {object} options 
+     * @returns {Promise<Message>} Message that was just sent
      */
-    async sendMessage(message) {
-        return this.client.sendMessage(this.id._serialized, message);
+    async sendMessage(content, options) {
+        return this.client.sendMessage(this.id._serialized, content, options);
     }
 }
 
