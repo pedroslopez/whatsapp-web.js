@@ -1,5 +1,6 @@
 'use strict';
 
+const Contact = require('./Contact');
 const Base = require('./Base');
 const MessageMedia = require('./MessageMedia');
 
@@ -90,6 +91,16 @@ class Message extends Base {
          */
         this.hasQuotedMsg = data.quotedMsg ? true : false;
 
+        /**
+         * Indicates if the message body contained any mentions.
+         * @type {[id]}
+         */
+        this.mentions = [];
+
+        if (data.mentionedJidList) {
+            this.mentions = data.mentionedJidList
+        }
+
         return super._patch(data);
     }
 
@@ -111,6 +122,19 @@ class Message extends Base {
      */
     getContact() {
         return this.client.getContactById(this._getChatId());
+    }
+
+    /**
+     * Returns the Contacts mentioned in this message
+     * @returns {[Promise<Contact>]}
+     */
+    async getMentions() {
+        let mentions = [];
+        for (let i = 0; i < this.mentions.length; i++) {
+            let contact = await this.client.getContactById(this.mentions[i]);
+            mentions.push(contact)
+        }
+        return mentions;
     }
 
     /**
