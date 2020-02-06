@@ -94,10 +94,10 @@ class Message extends Base {
          * Indicates the mentions in the message body.
          * @type {Array<string>}
          */
-        this.mentions = [];
+        this.mentionedIds = [];
 
         if (data.mentionedJidList) {
-            this.mentions = data.mentionedJidList;
+            this.mentionedIds = data.mentionedJidList;
         }
 
         return super._patch(data);
@@ -128,12 +128,7 @@ class Message extends Base {
      * @returns {Promise<Array<Contact>>}
      */
     async getMentions() {
-        let mentions = [];
-        for (let i = 0; i < this.mentions.length; i++) {
-            let contact = await this.client.getContactById(this.mentions[i]);
-            mentions.push(contact);
-        }
-        return mentions;
+        return await Promise.all(this.mentionedIds.map(async m => await this.client.getContactById(m)));
     }
 
     /**
