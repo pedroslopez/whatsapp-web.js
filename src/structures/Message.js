@@ -90,6 +90,16 @@ class Message extends Base {
          */
         this.hasQuotedMsg = data.quotedMsg ? true : false;
 
+        /**
+         * Indicates the mentions in the message body.
+         * @type {Array<string>}
+         */
+        this.mentionedIds = [];
+
+        if (data.mentionedJidList) {
+            this.mentionedIds = data.mentionedJidList;
+        }
+
         return super._patch(data);
     }
 
@@ -111,6 +121,14 @@ class Message extends Base {
      */
     getContact() {
         return this.client.getContactById(this._getChatId());
+    }
+
+    /**
+     * Returns the Contacts mentioned in this message
+     * @returns {Promise<Array<Contact>>}
+     */
+    async getMentions() {
+        return await Promise.all(this.mentionedIds.map(async m => await this.client.getContactById(m)));
     }
 
     /**
