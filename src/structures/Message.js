@@ -125,7 +125,7 @@ class Message extends Base {
 
     /**
      * Returns the Contacts mentioned in this message
-     * @returns {[Promise<Contact>]}
+     * @returns {Promise<Array<Contact>>}
      */
     async getMentions() {
         let mentions = [];
