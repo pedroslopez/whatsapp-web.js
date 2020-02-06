@@ -92,7 +92,7 @@ class Message extends Base {
 
         /**
          * Indicates the mentions in the message body.
-         * @type {[id]}
+         * @type {Array<string>}
          */
         this.mentions = [];
 
