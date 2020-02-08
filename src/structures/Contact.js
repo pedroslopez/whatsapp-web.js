@@ -91,6 +91,18 @@ class Contact extends Base {
 
         return super._patch(data);
     }
+
+    /**
+     * Returns the contact's profile picture URL, if privacy settings allow it
+     * @returns {Promise<string>}
+     */
+    async getProfilePicUrl() {
+        const profilePic = await this.client.pupPage.evaluate((contactId) => {
+            return window.Store.Wap.profilePicFind(contactId);
+        }, this.id._serialized);
+
+        return profilePic ? profilePic.eurl : undefined;
+    }
     
 }
 

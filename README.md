@@ -61,6 +61,7 @@ Take a look at [example.js](https://github.com/pedroslopez/whatsapp-web.js/blob/
 | Promote/demote group participants | ✅ |
 | Mention users | _pending_ |
 | Get contact info | ✅ |
+| Get profile pictures | ✅ |
 
 Something missing? Make an issue and let us know!
 
