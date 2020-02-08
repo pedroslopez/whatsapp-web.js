@@ -140,6 +140,12 @@ exports.LoadUtils = () => {
             res.businessProfile = contact.businessProfile.serialize();
         }
 
+        res.isMe = contact.isMe;
+        res.isUser = contact.isUser;
+        res.isGroup = contact.isGroup;
+        res.isWAContact = contact.isWAContact;
+        res.isMyContact = contact.isMyContact;
+
         return res;
     };
     

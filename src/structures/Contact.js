@@ -59,6 +59,36 @@ class Contact extends Base {
         this.verifiedLevel = data.verifiedLevel;
         this.verifiedName = data.verifiedName;
 
+        /**
+         * Indicates if the contact is the current user's contact
+         * @type {boolean}
+         */
+        this.isMe = data.isMe;
+
+        /**
+         * Indicates if the contact is a user contact
+         * @type {boolean}
+         */
+        this.isUser = data.isUser;
+
+        /**
+         * Indicates if the contact is a group contact
+         * @type {boolean}
+         */
+        this.isGroup = data.isGroup;
+
+        /**
+         * Indicates if the number is registered on WhatsApp
+         * @type {boolean}
+         */
+        this.isWAContact = data.isWAContact;
+
+        /**
+         * Indicates if the number is saved in the current phone's contacts
+         * @type {boolean}
+         */
+        this.isMyContact = data.isMyContact;
+
         return super._patch(data);
     }
     
