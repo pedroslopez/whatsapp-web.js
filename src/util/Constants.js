@@ -51,7 +51,9 @@ exports.MessageTypes = {
     IMAGE: 'image',
     VIDEO: 'video',
     DOCUMENT: 'document',
-    STICKER: 'sticker'
+    STICKER: 'sticker',
+    LOCATION: 'location',
+    REDACTED: 'redacted'
 };
 
 /**

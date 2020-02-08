@@ -59,6 +59,7 @@ Take a look at [example.js](https://github.com/pedroslopez/whatsapp-web.js/blob/
 | Promote/demote group participants | ✅ |
 | Mention users | _pending_ |
 | Get contact info | ✅ |
+| Send/receive Location | ✅ |
 
 Something missing? Make an issue and let us know!
 

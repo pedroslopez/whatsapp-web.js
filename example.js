@@ -123,6 +123,8 @@ client.on('message', async msg => {
             client.sendMessage(msg.from, attachmentData, {caption: 'Here\'s your requested media.'});
         }
         
+    } else if(msg.location) {
+        msg.reply(msg.location);
     }
 });
 

@@ -13,6 +13,7 @@ const ContactFactory = require('./factories/ContactFactory');
 const ClientInfo = require('./structures/ClientInfo');
 const Message = require('./structures/Message');
 const MessageMedia = require('./structures/MessageMedia');
+const Location = require('./structures/Location');
 
 /**
  * Starting point for interacting with the WhatsApp Web API
@@ -255,6 +256,9 @@ class Client extends EventEmitter {
         } else if(options.media instanceof MessageMedia) {
             internalOptions.media = options.media;
             internalOptions.caption = content;
+        } else if(content instanceof Location) {
+            internalOptions.location = content;
+            content = '';
         }
 
         const newMessage = await this.pupPage.evaluate(async (chatId, message, options) => {

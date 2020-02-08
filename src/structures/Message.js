@@ -2,6 +2,8 @@
 
 const Base = require('./Base');
 const MessageMedia = require('./MessageMedia');
+const Location = require('./Location');
+const { MessageTypes } = require('../util/Constants');
 
 /**
  * Represents a Message on WhatsApp
@@ -89,6 +91,12 @@ class Message extends Base {
          * @type {boolean}
          */
         this.hasQuotedMsg = data.quotedMsg ? true : false;
+
+        /**
+         * Location information contained in the message, if the message is type "location"
+         * @type {Location}
+         */
+        this.location = data.type === MessageTypes.LOCATION ? new Location(data.lat, data.lng, data.loc) : undefined;
 
         /**
          * Indicates the mentions in the message body.
