@@ -331,6 +331,16 @@ class Client extends EventEmitter {
         return chatId._serialized;
     }
 
+    /**
+     * Sets the current user's status message
+     * @param {string} status New status message
+     */
+    async setStatus(status) {
+        await this.pupPage.evaluate(async status => {
+            return await window.Store.Wap.sendSetStatus(status);
+        }, status);
+    }
+
 }
 
 module.exports = Client;

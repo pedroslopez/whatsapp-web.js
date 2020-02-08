@@ -62,6 +62,7 @@ Take a look at [example.js](https://github.com/pedroslopez/whatsapp-web.js/blob/
 | Mention users | _pending_ |
 | Get contact info | ✅ |
 | Get profile pictures | ✅ |
+| Set user status message | ✅ |
 
 Something missing? Make an issue and let us know!
 

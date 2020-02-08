@@ -127,6 +127,10 @@ client.on('message', async msg => {
         msg.reply(new Location(37.422, -122.084, 'Googleplex\nGoogle Headquarters'));
     } else if(msg.location) {
         msg.reply(msg.location);
+    } else if(msg.body.startsWith('!status ')) {
+        const newStatus = msg.body.split(' ')[1];
+        await client.setStatus(newStatus);
+        msg.reply(`Status was updated to *${newStatus}*`);
     }
 });
 
