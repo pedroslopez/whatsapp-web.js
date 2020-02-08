@@ -40,6 +40,8 @@ exports.LoadUtils = () => {
             delete options.quotedMessageId;
         }
 
+        options.mentionedJidList = options.mentionedJidList.map(cId=> window.Store.Contact.get(cId).id);
+
         let locationOptions = {};
         if (options.location) {
             locationOptions = {
@@ -145,6 +147,7 @@ exports.LoadUtils = () => {
         res.isGroup = contact.isGroup;
         res.isWAContact = contact.isWAContact;
         res.isMyContact = contact.isMyContact;
+        res.userid = contact.userid;
 
         return res;
     };

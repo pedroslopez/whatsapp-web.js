@@ -21,6 +21,12 @@ class Contact extends Base {
         this.id = data.id;
 
         /**
+         * Contact's phone number
+         * @type {string}
+         */
+        this.number = data.userid;
+
+        /**
          * Indicates if the contact is a business contact
          * @type {boolean}
          */

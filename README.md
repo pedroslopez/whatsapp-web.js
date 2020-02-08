@@ -59,7 +59,7 @@ Take a look at [example.js](https://github.com/pedroslopez/whatsapp-web.js/blob/
 | Add group participants  | ✅  |
 | Kick group participants  | ✅  |
 | Promote/demote group participants | ✅ |
-| Mention users | _pending_ |
+| Mention users | ✅ |
 | Get contact info | ✅ |
 | Get profile pictures | ✅ |
 | Set user status message | ✅ |

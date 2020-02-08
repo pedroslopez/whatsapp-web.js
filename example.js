@@ -131,6 +131,12 @@ client.on('message', async msg => {
         const newStatus = msg.body.split(' ')[1];
         await client.setStatus(newStatus);
         msg.reply(`Status was updated to *${newStatus}*`);
+    } else if (msg.body == '!mention') {
+        const contact = await msg.getContact();
+        const chat = await msg.getChat();
+        chat.sendMessage(`Hi @${contact.number}!`, {
+            mentions: [contact]
+        });
     }
 });
 

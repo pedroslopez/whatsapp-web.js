@@ -247,7 +247,8 @@ class Client extends EventEmitter {
     async sendMessage(chatId, content, options={}) {
         let internalOptions = {
             caption: options.caption,
-            quotedMessageId: options.quotedMessageId
+            quotedMessageId: options.quotedMessageId,
+            mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact => contact.id._serialized) : [] 
         };
 
         if(content instanceof MessageMedia) {
