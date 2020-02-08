@@ -128,7 +128,7 @@ class Message extends Base {
      * @returns {Promise<Contact>}
      */
     getContact() {
-        return this.client.getContactById(this._getChatId());
+        return this.client.getContactById(this.author || this.from);
     }
 
     /**
