@@ -7,7 +7,7 @@ class Location {
     /**
      * @param {number} latitude
      * @param {number} longitude
-     * @param {?string} descriptionon 
+     * @param {?string} description
      */
     constructor(latitude, longitude, description) {
         /**

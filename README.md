@@ -50,16 +50,17 @@ Take a look at [example.js](https://github.com/pedroslopez/whatsapp-web.js/blob/
 | Send stickers | _pending_ |
 | Receive media (images/audio/video/documents)  | ✅  |
 | Send contact cards | _pending_ |
-| Send location | _pending_ |
+| Send location | ✅ |
+| Receive location | ✅ | 
 | Message replies | ✅ |
-| Join groups by invite  | ✅  |
+| Join groups by invite  | ✅ |
+| Get invite for group  | ✅ |
 | Modify group info (subject, description)  | ✅  |
 | Add group participants  | ✅  |
 | Kick group participants  | ✅  |
 | Promote/demote group participants | ✅ |
 | Mention users | _pending_ |
 | Get contact info | ✅ |
-| Send/receive Location | ✅ |
 
 Something missing? Make an issue and let us know!
 
