@@ -1,6 +1,13 @@
+const fs = require('fs');
 const { Client } = require('./index');
 
-const client = new Client({puppeteer: {headless: false}});
+const SESSION_FILE_PATH = './session.json';
+let sessionCfg;
+if (fs.existsSync(SESSION_FILE_PATH)) {
+    sessionCfg = require(SESSION_FILE_PATH);
+}
+
+const client = new Client({puppeteer: {headless: false}, session: sessionCfg});
 // You can use an existing session and avoid scanning a QR code by adding a "session" object to the client options.
 // This object must include WABrowserId, WASecretBundle, WAToken1 and WAToken2.
 
@@ -13,6 +20,14 @@ client.on('qr', (qr) => {
 
 client.on('authenticated', (session) => {
     console.log('AUTHENTICATED', session);
+
+    if (!fs.existsSync(SESSION_FILE_PATH)) {
+        fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), function(err) {
+            if (err) {
+                console.error(err);
+            }
+        });
+    }
 });
 
 client.on('auth_failure', msg => {
