@@ -19,6 +19,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.MediaObject = window.mR.findModule('getOrCreateMediaObject')[0];
     window.Store.MediaUpload = window.mR.findModule('uploadMedia')[0];
     window.Store.MediaTypes = window.mR.findModule('msgToMediaType')[0];
+    window.Store.VCard = window.mR.findModule('fromContactModel')[0];
 };
 
 exports.LoadUtils = () => {
@@ -52,6 +53,26 @@ exports.LoadUtils = () => {
             };
             delete options.location;
         }
+
+        let vcardOptions = {};
+        if (options.contactCard) {
+            let contact = window.Store.Contact.get(options.contactCard);
+            vcardOptions = {
+                body: window.Store.VCard.fromContactModel(contact).vcard,
+                type: 'vcard',
+                subtype: contact.formattedName
+            };
+            delete options.contactCard;
+        } else if(options.contactCardList) {
+            let contacts = options.contactCardList.map(c => window.Store.Contact.get(c));
+            let vcards = contacts.map(c => window.Store.VCard.fromContactModel(c));
+            vcardOptions = {
+                type: 'multi_vcard',
+                vcardList: vcards,
+                body: undefined
+            };
+            delete options.contactCardList;
+        }
         
         const newMsgId = new window.Store.MsgKey({
             from: window.Store.Conn.me,
@@ -73,7 +94,8 @@ exports.LoadUtils = () => {
             type: 'chat',
             ...locationOptions,
             ...attOptions,
-            ...quotedMsgOptions
+            ...quotedMsgOptions,
+            ...vcardOptions
         };
 
         await window.Store.SendMessage.addAndSendMsgToChat(chat, message);

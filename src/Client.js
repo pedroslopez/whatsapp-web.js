@@ -14,6 +14,7 @@ const ClientInfo = require('./structures/ClientInfo');
 const Message = require('./structures/Message');
 const MessageMedia = require('./structures/MessageMedia');
 const Location = require('./structures/Location');
+const Contact = require('./structures/Contact');
 
 /**
  * Starting point for interacting with the WhatsApp Web API
@@ -259,6 +260,12 @@ class Client extends EventEmitter {
             internalOptions.caption = content;
         } else if(content instanceof Location) {
             internalOptions.location = content;
+            content = '';
+        } else if(content instanceof Contact) {
+            internalOptions.contactCard = content.id._serialized;
+            content = '';
+        } else if(Array.isArray(content) && content.length > 0 && content[0] instanceof Contact) {
+            internalOptions.contactCardList = content.map(contact => contact.id._serialized);
             content = '';
         }
 
