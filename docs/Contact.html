@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.3">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 0.3.2-post &raquo; Class: Contact</title>
+  <title>whatsapp-web.js 1.0.0 &raquo; Class: Contact</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 0.<wbr>3.<wbr>2-post</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>0.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -45,20 +45,38 @@
                     <dt><a href="Contact.html#isBusiness">isBusiness</a></dt>
                     <dd>
                     </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
                     <dt><a href="Contact.html#isEnterprise">isEnterprise</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Contact.html#name">name</a></dt>
+                    <dt><a href="Contact.html#isGroup">isGroup</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Contact.html#isMe">isMe</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Contact.html#isMyContact">isMyContact</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Contact.html#isUser">isUser</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Contact.html#isWAContact">isWAContact</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Contact.html#name">name</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Contact.html#number">number</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Contact.html#pushname">pushname</a></dt>
                     <dd>
                     </dd>
@@ -66,6 +84,22 @@
                     <dd>
                     </dd>
                   </dl>
+                </div>
+              </div>
+            </div>
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Method</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Contact.html#getProfilePicUrl">getProfilePicUrl()</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                </div>
+                <div class="summary-column">
                 </div>
               </div>
             </div>
@@ -95,9 +129,39 @@
               <p>Indicates if the contact is an enterprise contact</p>
               <dl class="dl-compact">
               </dl>
+              <h3 id="isGroup"><span class="symbol-name">isGroup</span><small class="property-type">
+                  &nbsp;boolean</small></h3>
+              <p>Indicates if the contact is a group contact</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="isMe"><span class="symbol-name">isMe</span><small class="property-type">
+                  &nbsp;boolean</small></h3>
+              <p>Indicates if the contact is the current user's contact</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="isMyContact"><span class="symbol-name">isMyContact</span><small class="property-type">
+                  &nbsp;boolean</small></h3>
+              <p>Indicates if the number is saved in the current phone's contacts</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="isUser"><span class="symbol-name">isUser</span><small class="property-type">
+                  &nbsp;boolean</small></h3>
+              <p>Indicates if the contact is a user contact</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="isWAContact"><span class="symbol-name">isWAContact</span><small class="property-type">
+                  &nbsp;boolean</small></h3>
+              <p>Indicates if the number is registered on WhatsApp</p>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="name"><span class="symbol-name">name</span><small class="property-type">
                   &nbsp;nullable string</small></h3>
               <p>The contact's name, as saved by the current user</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="number"><span class="symbol-name">number</span><small class="property-type">
+                  &nbsp;string</small></h3>
+              <p>Contact's phone number</p>
               <dl class="dl-compact">
               </dl>
               <h3 id="pushname"><span class="symbol-name">pushname</span><small class="property-type">
@@ -111,6 +175,18 @@
               <dl class="dl-compact">
               </dl>
             </section>
+            <h2>Method</h2>
+            <section>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getProfilePicUrl"><span class="symbol-name">getProfilePicUrl</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing string</span></span></h3>
+              <p>Returns the contact's profile picture URL, if privacy settings allow it</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing string</code> </p>
+                </dd>
+              </dl>
+            </section>
           </section>
         </div>
       </div>
@@ -120,7 +196,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on February 5, 2020.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on February 9, 2020.
       </p>
     </div>
   </footer>

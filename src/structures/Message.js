@@ -159,7 +159,7 @@ class Message extends Base {
      * through the specified Chat. If not, it will send the message 
      * in the same Chat as the original message was sent.
      * 
-     * @param {string|MessageMedia} content 
+     * @param {string|MessageMedia|Location} content 
      * @param {?string} chatId 
      * @param {object} options
      * @returns {Promise<Message>}
