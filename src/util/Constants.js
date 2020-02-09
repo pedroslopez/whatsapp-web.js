@@ -53,7 +53,10 @@ exports.MessageTypes = {
     DOCUMENT: 'document',
     STICKER: 'sticker',
     LOCATION: 'location',
-    REDACTED: 'redacted'
+    CONTACT_CARD: 'vcard',
+    CONTACT_CARD_MULTI: 'multi_vcard',
+    REVOKED: 'revoked',
+    UNKNOWN: 'unknown'
 };
 
 /**
