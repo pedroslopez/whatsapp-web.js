@@ -1,6 +1,6 @@
 {
   "name": "whatsapp-web.js",
-  "version": "0.3.2-post",
+  "version": "1.0.0-post",
   "description": "Library for interacting with the WhatsApp Web API ",
   "main": "./index.js",
   "scripts": {
@@ -28,7 +28,7 @@
   "dependencies": {
     "jsqr": "^1.2.0",
     "moduleraid": "git+https://github.com/pixeldesu/moduleRaid.git",
-    "puppeteer": "^2.1.0"
+    "puppeteer": "^2.1.1"
   },
   "devDependencies": {
     "eslint": "^6.8.0",

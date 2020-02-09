@@ -55,7 +55,7 @@ class Chat extends Base {
 
     /**
      * Send a message to this chat
-     * @param {string|MessageMedia} content
+     * @param {string|MessageMedia|Location} content
      * @param {object} options 
      * @returns {Promise<Message>} Message that was just sent
      */

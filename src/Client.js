@@ -13,6 +13,7 @@ const ContactFactory = require('./factories/ContactFactory');
 const ClientInfo = require('./structures/ClientInfo');
 const Message = require('./structures/Message');
 const MessageMedia = require('./structures/MessageMedia');
+const Location = require('./structures/Location');
 
 /**
  * Starting point for interacting with the WhatsApp Web API
@@ -205,8 +206,9 @@ class Client extends EventEmitter {
                 /**
                  * Emitted when the client has been disconnected
                  * @event Client#disconnected
+                 * @param {WAState} reason state that caused the disconnect
                  */
-                this.emit(Events.DISCONNECTED);
+                this.emit(Events.DISCONNECTED, state);
                 this.destroy();
             }
         });
@@ -239,22 +241,26 @@ class Client extends EventEmitter {
     /**
      * Send a message to a specific chatId
      * @param {string} chatId
-     * @param {string|MessageMedia} content
+     * @param {string|MessageMedia|Location} content
      * @param {object} options 
      * @returns {Promise<Message>} Message that was just sent
      */
     async sendMessage(chatId, content, options={}) {
         let internalOptions = {
             caption: options.caption,
-            quotedMessageId: options.quotedMessageId
+            quotedMessageId: options.quotedMessageId,
+            mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact => contact.id._serialized) : [] 
         };
 
         if(content instanceof MessageMedia) {
             internalOptions.attachment = content;
             content = '';
         } else if(options.media instanceof MessageMedia) {
-            internalOptions.media = options.media;
+            internalOptions.attachment = options.media;
             internalOptions.caption = content;
+        } else if(content instanceof Location) {
+            internalOptions.location = content;
+            content = '';
         }
 
         const newMessage = await this.pupPage.evaluate(async (chatId, message, options) => {
@@ -325,6 +331,16 @@ class Client extends EventEmitter {
         }, inviteCode);
 
         return chatId._serialized;
+    }
+
+    /**
+     * Sets the current user's status message
+     * @param {string} status New status message
+     */
+    async setStatus(status) {
+        await this.pupPage.evaluate(async status => {
+            return await window.Store.Wap.sendSetStatus(status);
+        }, status);
     }
 
 }

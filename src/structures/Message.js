@@ -2,6 +2,8 @@
 
 const Base = require('./Base');
 const MessageMedia = require('./MessageMedia');
+const Location = require('./Location');
+const { MessageTypes } = require('../util/Constants');
 
 /**
  * Represents a Message on WhatsApp
@@ -90,6 +92,22 @@ class Message extends Base {
          */
         this.hasQuotedMsg = data.quotedMsg ? true : false;
 
+        /**
+         * Location information contained in the message, if the message is type "location"
+         * @type {Location}
+         */
+        this.location = data.type === MessageTypes.LOCATION ? new Location(data.lat, data.lng, data.loc) : undefined;
+
+        /**
+         * Indicates the mentions in the message body.
+         * @type {Array<string>}
+         */
+        this.mentionedIds = [];
+
+        if (data.mentionedJidList) {
+            this.mentionedIds = data.mentionedJidList;
+        }
+
         return super._patch(data);
     }
 
@@ -110,7 +128,15 @@ class Message extends Base {
      * @returns {Promise<Contact>}
      */
     getContact() {
-        return this.client.getContactById(this._getChatId());
+        return this.client.getContactById(this.author || this.from);
+    }
+
+    /**
+     * Returns the Contacts mentioned in this message
+     * @returns {Promise<Array<Contact>>}
+     */
+    async getMentions() {
+        return await Promise.all(this.mentionedIds.map(async m => await this.client.getContactById(m)));
     }
 
     /**
@@ -133,7 +159,7 @@ class Message extends Base {
      * through the specified Chat. If not, it will send the message 
      * in the same Chat as the original message was sent.
      * 
-     * @param {string|MessageMedia} content 
+     * @param {string|MessageMedia|Location} content 
      * @param {?string} chatId 
      * @param {object} options
      * @returns {Promise<Message>}

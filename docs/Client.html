@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.3">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 0.3.2-post &raquo; Class: Client</title>
+  <title>whatsapp-web.js 1.0.0 &raquo; Class: Client</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 0.<wbr>3.<wbr>2-post</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>0.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -26,7 +26,7 @@
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
             <h1><small></small><span class="symbol-name">Client</span></h1>
-            <p class="source-link">Source: <a href="Client.js.html#source-line-31">Client.<wbr>js:31</a></p>
+            <p class="source-link">Source: <a href="Client.js.html#source-line-32">Client.<wbr>js:32</a></p>
             <div class="symbol-classdesc">
               <p>Starting point for interacting with the WhatsApp Web API</p>
             </div>
@@ -69,6 +69,9 @@
                     <dd>
                     </dd>
                     <dt><a href="Client.html#sendMessage">sendMessage(chatId, content, options)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#setStatus">setStatus(status)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -309,7 +312,7 @@
                         <p>content</p>
                       </td>
                       <td>
-                        <p>(string or <a href="MessageMedia.html">MessageMedia</a>)</p>
+                        <p>(string, <a href="MessageMedia.html">MessageMedia</a>, or <a href="Location.html">Location</a>)</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
@@ -339,6 +342,40 @@
                   <p><code>Promise containing <a href="Message.html">Message</a></code> <p>Message that was just sent</p>
                   </p>
                 </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="setStatus"><span class="symbol-name">setStatus</span><span class="signature"><span class="signature-params">(status)</span></span></h3>
+              <p>Sets the current user's status message</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>status</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>New status message</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
               </dl>
             </section>
             <h2>Events</h2>
@@ -410,6 +447,35 @@
               </dl>
               <h3 id="event:disconnected"><span class="symbol-name">disconnected</span></h3>
               <p>Emitted when the client has been disconnected</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>reason</p>
+                      </td>
+                      <td>
+                        <p><a href="global.html#WAState">WAState</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>state that caused the disconnect</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
               <dl class="dl-compact">
               </dl>
               <h3 id="event:message"><span class="symbol-name">message</span></h3>
@@ -607,7 +673,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on February 5, 2020.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on February 9, 2020.
       </p>
     </div>
   </footer>

@@ -21,6 +21,12 @@ class Contact extends Base {
         this.id = data.id;
 
         /**
+         * Contact's phone number
+         * @type {string}
+         */
+        this.number = data.userid;
+
+        /**
          * Indicates if the contact is a business contact
          * @type {boolean}
          */
@@ -59,7 +65,49 @@ class Contact extends Base {
         this.verifiedLevel = data.verifiedLevel;
         this.verifiedName = data.verifiedName;
 
+        /**
+         * Indicates if the contact is the current user's contact
+         * @type {boolean}
+         */
+        this.isMe = data.isMe;
+
+        /**
+         * Indicates if the contact is a user contact
+         * @type {boolean}
+         */
+        this.isUser = data.isUser;
+
+        /**
+         * Indicates if the contact is a group contact
+         * @type {boolean}
+         */
+        this.isGroup = data.isGroup;
+
+        /**
+         * Indicates if the number is registered on WhatsApp
+         * @type {boolean}
+         */
+        this.isWAContact = data.isWAContact;
+
+        /**
+         * Indicates if the number is saved in the current phone's contacts
+         * @type {boolean}
+         */
+        this.isMyContact = data.isMyContact;
+
         return super._patch(data);
+    }
+
+    /**
+     * Returns the contact's profile picture URL, if privacy settings allow it
+     * @returns {Promise<string>}
+     */
+    async getProfilePicUrl() {
+        const profilePic = await this.client.pupPage.evaluate((contactId) => {
+            return window.Store.Wap.profilePicFind(contactId);
+        }, this.id._serialized);
+
+        return profilePic ? profilePic.eurl : undefined;
     }
     
 }

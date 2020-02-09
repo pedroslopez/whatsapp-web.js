@@ -24,7 +24,7 @@ exports.ExposeStore = (moduleRaidStr) => {
 exports.LoadUtils = () => {
     window.WWebJS = {};
 
-    window.WWebJS.sendMessage = async (chat, content, options) => {       
+    window.WWebJS.sendMessage = async (chat, content, options={}) => {       
         let attOptions = {};
         if (options.attachment) {
             attOptions = await window.WWebJS.processMediaData(options.attachment);
@@ -38,6 +38,19 @@ exports.LoadUtils = () => {
                 quotedMsgOptions = quotedMessage.msgContextInfo(chat);
             }
             delete options.quotedMessageId;
+        }
+
+        options.mentionedJidList = options.mentionedJidList.map(cId=> window.Store.Contact.get(cId).id);
+
+        let locationOptions = {};
+        if (options.location) {
+            locationOptions = {
+                type: 'location',
+                loc: options.location.description, 
+                lat: options.location.latitude, 
+                lng: options.location.longitude
+            };
+            delete options.location;
         }
         
         const newMsgId = new window.Store.MsgKey({
@@ -58,6 +71,7 @@ exports.LoadUtils = () => {
             t: parseInt(new Date().getTime() / 1000),
             isNewMsg: true,
             type: 'chat',
+            ...locationOptions,
             ...attOptions,
             ...quotedMsgOptions
         };
@@ -127,6 +141,13 @@ exports.LoadUtils = () => {
         if (contact.businessProfile) {
             res.businessProfile = contact.businessProfile.serialize();
         }
+
+        res.isMe = contact.isMe;
+        res.isUser = contact.isUser;
+        res.isGroup = contact.isGroup;
+        res.isWAContact = contact.isWAContact;
+        res.isMyContact = contact.isMyContact;
+        res.userid = contact.userid;
 
         return res;
     };
