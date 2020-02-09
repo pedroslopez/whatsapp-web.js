@@ -160,7 +160,7 @@ client.on('message_revoke_me', async (msg) => {
     console.log(msg.body); // message before it was deleted.
 });
 
-client.on('disconnected', () => {
-    console.log('Client was logged out');
+client.on('disconnected', (reason) => {
+    console.log('Client was logged out', reason);
 });
 
