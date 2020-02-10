@@ -40,7 +40,9 @@ exports.LoadUtils = () => {
             delete options.quotedMessageId;
         }
 
-        options.mentionedJidList = options.mentionedJidList.map(cId=> window.Store.Contact.get(cId).id);
+        if (options.mentionedJidList) {
+            options.mentionedJidList = options.mentionedJidList.map(cId=> window.Store.Contact.get(cId).id);
+        }
 
         let locationOptions = {};
         if (options.location) {
@@ -91,6 +93,14 @@ exports.LoadUtils = () => {
             type: mediaData.type,
             isGif: mediaData.isGif
         });
+
+        if(!(mediaData.mediaBlob instanceof window.Store.OpaqueData.default)) {
+            mediaData.mediaBlob = await window.Store.OpaqueData.default.createFromData(mediaData.mediaBlob, mediaData.mediaBlob.type);
+        } 
+
+        mediaData.renderableUrl = mediaData.mediaBlob.url();
+        mediaObject.consolidate(mediaData.toJSON());
+        mediaData.mediaBlob.autorelease();
 
         const uploadedMedia = await window.Store.MediaUpload.uploadMedia(mediaData.mimetype, mediaObject, mediaType);
         if (!uploadedMedia) {

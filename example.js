@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { Client } = require('./index');
+const { Client, Location } = require('./index');
 
 const SESSION_FILE_PATH = './session.json';
 let sessionCfg;

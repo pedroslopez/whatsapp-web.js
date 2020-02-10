@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.3">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.0.0 &raquo; Source: Client.js</title>
+  <title>whatsapp-web.js 1.0.1 &raquo; Source: Client.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>0.<wbr>0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>0.<wbr>1</a>
       </div>
     </div>
   </nav>
@@ -287,7 +287,7 @@ class Client extends EventEmitter {
             internalOptions.attachment &#x3D; content;
             content &#x3D; &#x27;&#x27;;
         } else if(options.media instanceof MessageMedia) {
-            internalOptions.media &#x3D; options.media;
+            internalOptions.attachment &#x3D; options.media;
             internalOptions.caption &#x3D; content;
         } else if(content instanceof Location) {
             internalOptions.location &#x3D; content;
