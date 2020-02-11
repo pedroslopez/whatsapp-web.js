@@ -44,7 +44,7 @@ class Client extends EventEmitter {
      */
     async initialize() {
         const browser = await puppeteer.launch(this.options.puppeteer);
-        const page = await browser.newPage();
+        const page = await browser.targets()[0].page();
         page.setUserAgent(UserAgent);
 
         if (this.options.session) {
