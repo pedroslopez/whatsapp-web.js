@@ -273,8 +273,20 @@ class Client extends EventEmitter {
         }
 
         const newMessage = await this.pupPage.evaluate(async (chatId, message, options) => {
-            const msg = await window.WWebJS.sendMessage(window.Store.Chat.get(chatId), message, options);
-            return msg.serialize();
+
+            const chat = Store.Chat.get(chatId);
+
+            if (!chat) {
+                let chatObj = Store.Chat.models[0];
+                let originalChatObjId = chatObj.id;
+                chatObj.id = typeof originalChatObjId === 'string' ? chatId : new Store.UserConstructor(chatId, {intentionallyUsePrivateConstructor: true});
+                const msg = window.WWebJS.sendMessage(chatObj, message, options);
+                return msg.serialize();
+            } else {
+                const msg = await window.WWebJS.sendMessage(window.Store.Chat.get(chatId), message, options);
+                return msg.serialize();
+            }
+            
         }, chatId, content, internalOptions);
 
         return new Message(this, newMessage);
