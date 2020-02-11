@@ -200,8 +200,8 @@ class Client extends EventEmitter {
 
         });
 
-        await page.exposeFunction('onAppStateChangedEvent', (AppState, state) => {
-            const ACCEPTED_STATES = [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING];
+        await page.exposeFunction('onAppStateChangedEvent', (_AppState, state) => {
+            const ACCEPTED_STATES = [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING, WAState.TIMEOUT];
             if (!ACCEPTED_STATES.includes(state)) {
                 /**
                  * Emitted when the client has been disconnected
