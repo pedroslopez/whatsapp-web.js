@@ -27,6 +27,7 @@ const Location = require('./structures/Location');
  * @fires Client#message_revoke_me
  * @fires Client#message_revoke_everyone
  * @fires Client#disconnected
+ * @fires Client#change_state
  */
 class Client extends EventEmitter {
     constructor(options = {}) {
@@ -201,6 +202,14 @@ class Client extends EventEmitter {
         });
 
         await page.exposeFunction('onAppStateChangedEvent', (_AppState, state) => {
+
+            /**
+             * Emitted when the connection state changes
+             * @event Client#change_state
+             * @param {WAState} state the new connection state
+             */
+            this.emit(Events.STATE_CHANGED, state);
+
             const ACCEPTED_STATES = [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING, WAState.TIMEOUT];
             if (!ACCEPTED_STATES.includes(state)) {
                 /**
