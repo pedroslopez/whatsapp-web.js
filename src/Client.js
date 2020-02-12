@@ -352,6 +352,16 @@ class Client extends EventEmitter {
         }, status);
     }
 
+    /**
+     * Gets the current connection state for the client
+     * @returns {WAState} 
+     */
+    async getState() {
+        return await this.pupPage.evaluate(() => {
+            return window.Store.AppState.state;
+        });
+    }
+
 }
 
 module.exports = Client;
