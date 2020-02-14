@@ -254,31 +254,44 @@ class Client extends EventEmitter {
      * @param {object} options 
      * @returns {Promise<Message>} Message that was just sent
      */
-    async sendMessage(chatId, content, options={}) {
+    async sendMessage(chatId, content, options = {}) {
         let internalOptions = {
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
-            mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact => contact.id._serialized) : [] 
+            mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact => contact.id._serialized) : []
         };
 
-        if(content instanceof MessageMedia) {
+        if (content instanceof MessageMedia) {
             internalOptions.attachment = content;
             content = '';
-        } else if(options.media instanceof MessageMedia) {
+        } else if (options.media instanceof MessageMedia) {
             internalOptions.attachment = options.media;
             internalOptions.caption = content;
-        } else if(content instanceof Location) {
+        } else if (content instanceof Location) {
             internalOptions.location = content;
             content = '';
         }
 
         const newMessage = await this.pupPage.evaluate(async (chatId, message, options) => {
-            const msg = await window.WWebJS.sendMessage(window.Store.Chat.get(chatId), message, options);
+            let chat = Store.Chat.get(chatId);
+            let msg;
+            if (!chat) { // The chat is not available in the previously chatted list
+
+            //todo : Check if the number is a whatsapp enabled. Whatsapp web sends query exists via ws.
+                chat = Store.Chat.models[0]; //get the topmost chat object and assign the new chatId to it
+                let originalChatObjId = chat.id
+                chat.id = typeof originalChatObjId === 'string' ? chatId : new window.Store.UserConstructor(chatId, { intentionallyUsePrivateConstructor: true })
+                msg = await window.WWebJS.sendMessage(chat, message, options);
+                chat.id = originalChatObjId //replace the chat with its original id
+            }
+            else
+                msg = await window.WWebJS.sendMessage(chat, message, options);
             return msg.serialize();
         }, chatId, content, internalOptions);
 
         return new Message(this, newMessage);
     }
+
 
     /**
      * Get all current chat instances

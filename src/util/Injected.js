@@ -19,6 +19,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.MediaObject = window.mR.findModule('getOrCreateMediaObject')[0];
     window.Store.MediaUpload = window.mR.findModule('uploadMedia')[0];
     window.Store.MediaTypes = window.mR.findModule('msgToMediaType')[0];
+    window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default
+
 };
 
 exports.LoadUtils = () => {
