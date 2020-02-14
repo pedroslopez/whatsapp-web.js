@@ -86,9 +86,9 @@ class Client extends EventEmitter {
             // Wait for QR Code
             const QR_CANVAS_SELECTOR = 'canvas';
             await page.waitForSelector(QR_CANVAS_SELECTOR);
-            const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0,0,264,264).data));
+            const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0, 0, 264, 264).data));
             const qr = jsQR(qrImgData, 264, 264).data;
-            
+
             /**
              * Emitted when the QR code is received
              * @event Client#qr
@@ -162,7 +162,7 @@ class Client extends EventEmitter {
             if (msg.type === 'revoked') {
                 const message = new Message(this, msg);
                 let revoked_msg;
-                if(last_message && msg.id.id === last_message.id.id) {
+                if (last_message && msg.id.id === last_message.id.id) {
                     revoked_msg = new Message(this, last_message);
                 }
 
@@ -175,11 +175,11 @@ class Client extends EventEmitter {
                  */
                 this.emit(Events.MESSAGE_REVOKED_EVERYONE, message, revoked_msg);
             }
-            
+
         });
 
         await page.exposeFunction('onChangeMessageEvent', (msg) => {
-            
+
             if (msg.type !== 'revoked') {
                 last_message = msg;
             }
@@ -273,16 +273,16 @@ class Client extends EventEmitter {
         }
 
         const newMessage = await this.pupPage.evaluate(async (chatId, message, options) => {
-            let chat = Store.Chat.get(chatId);
+            let chat = window.Store.Chat.get(chatId);
             let msg;
             if (!chat) { // The chat is not available in the previously chatted list
 
-            //todo : Check if the number is a whatsapp enabled. Whatsapp web sends query exists via ws.
+                //todo : Check if the number is a whatsapp enabled. Whatsapp web sends query exists via ws.
                 chat = Store.Chat.models[0]; //get the topmost chat object and assign the new chatId to it
-                let originalChatObjId = chat.id
-                chat.id = typeof originalChatObjId === 'string' ? chatId : new window.Store.UserConstructor(chatId, { intentionallyUsePrivateConstructor: true })
+                let originalChatObjId = chat.id;
+                chat.id = typeof originalChatObjId === 'string' ? chatId : new window.Store.UserConstructor(chatId, { intentionallyUsePrivateConstructor: true });
                 msg = await window.WWebJS.sendMessage(chat, message, options);
-                chat.id = originalChatObjId //replace the chat with its original id
+                chat.id = originalChatObjId; //replace the chat with its original id
             }
             else
                 msg = await window.WWebJS.sendMessage(chat, message, options);

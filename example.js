@@ -52,12 +52,12 @@ client.on('message', async msg => {
 
     } else if (msg.body.startsWith('!sendto ')) {
         // Direct send a new message to specific id
-        let number = msg.body.split(' ')[1]
-        let messageIndex = msg.body.indexOf(number) + number.length
-        let message = msg.body.slice(messageIndex, msg.body.length)
-        number = number.includes('@c.us') ? number : `${number}@c.us`
+        let number = msg.body.split(' ')[1];
+        let messageIndex = msg.body.indexOf(number) + number.length;
+        let message = msg.body.slice(messageIndex, msg.body.length);
+        number = number.includes('@c.us') ? number : `${number}@c.us`;
 
-        client.sendMessage(number, message)
+        client.sendMessage(number, message);
 
     } else if (msg.body.startsWith('!subject ')) {
         // Change the group subject
