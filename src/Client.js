@@ -278,7 +278,7 @@ class Client extends EventEmitter {
             if (!chat) { // The chat is not available in the previously chatted list
 
                 //todo : Check if the number is a whatsapp enabled. Whatsapp web sends query exists via ws.
-                chat = Store.Chat.models[0]; //get the topmost chat object and assign the new chatId to it
+                chat = window.Store.Chat.models[0]; //get the topmost chat object and assign the new chatId to it
                 let originalChatObjId = chat.id;
                 chat.id = typeof originalChatObjId === 'string' ? chatId : new window.Store.UserConstructor(chatId, { intentionallyUsePrivateConstructor: true });
                 msg = await window.WWebJS.sendMessage(chat, message, options);
