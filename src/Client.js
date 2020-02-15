@@ -277,7 +277,7 @@ class Client extends EventEmitter {
             let msg;
             if (!chat) { // The chat is not available in the previously chatted list
 
-                newChatId = await window.WWebJS.getNumberId(chatId);
+                let newChatId = await window.WWebJS.getNumberId(chatId);
                 if (newChatId) {
                     //get the topmost chat object and assign the new chatId to it . 
                     //This is just a workaround.May cause problem if there are no chats at all. Need to dig in and emulate how whatsapp web does
