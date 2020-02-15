@@ -1,4 +1,3 @@
-/* eslint-disable linebreak-style */
 'use strict';
 
 // Exposes the internal Store to the WhatsApp Web client
@@ -29,7 +28,6 @@ exports.LoadUtils = () => {
     window.WWebJS.getNumberId = async (id) => {
 
         let result = await window.Store.Wap.queryExist(id);
-        console.log(result);
         if (result.jid === undefined)
             throw 404;
         return result.jid;
