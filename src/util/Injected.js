@@ -1,3 +1,4 @@
+/* eslint-disable linebreak-style */
 'use strict';
 
 // Exposes the internal Store to the WhatsApp Web client
@@ -25,7 +26,14 @@ exports.ExposeStore = (moduleRaidStr) => {
 
 exports.LoadUtils = () => {
     window.WWebJS = {};
+    window.WWebJS.getNumberId = async (id) => {
 
+        let result = await window.Store.Wap.queryExist(id);
+        console.log(result);
+        if (result.jid === undefined)
+            throw 404;
+        return result.jid;
+    };
     window.WWebJS.sendMessage = async (chat, content, options = {}) => {
         let attOptions = {};
         if (options.attachment) {
