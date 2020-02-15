@@ -19,12 +19,14 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.MediaObject = window.mR.findModule('getOrCreateMediaObject')[0];
     window.Store.MediaUpload = window.mR.findModule('uploadMedia')[0];
     window.Store.MediaTypes = window.mR.findModule('msgToMediaType')[0];
+    window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default;
+
 };
 
 exports.LoadUtils = () => {
     window.WWebJS = {};
 
-    window.WWebJS.sendMessage = async (chat, content, options={}) => {       
+    window.WWebJS.sendMessage = async (chat, content, options = {}) => {
         let attOptions = {};
         if (options.attachment) {
             attOptions = await window.WWebJS.processMediaData(options.attachment);
@@ -34,27 +36,27 @@ exports.LoadUtils = () => {
         let quotedMsgOptions = {};
         if (options.quotedMessageId) {
             let quotedMessage = window.Store.Msg.get(options.quotedMessageId);
-            if(quotedMessage.canReply()) {
+            if (quotedMessage.canReply()) {
                 quotedMsgOptions = quotedMessage.msgContextInfo(chat);
             }
             delete options.quotedMessageId;
         }
 
         if (options.mentionedJidList) {
-            options.mentionedJidList = options.mentionedJidList.map(cId=> window.Store.Contact.get(cId).id);
+            options.mentionedJidList = options.mentionedJidList.map(cId => window.Store.Contact.get(cId).id);
         }
 
         let locationOptions = {};
         if (options.location) {
             locationOptions = {
                 type: 'location',
-                loc: options.location.description, 
-                lat: options.location.latitude, 
+                loc: options.location.description,
+                lat: options.location.latitude,
                 lng: options.location.longitude
             };
             delete options.location;
         }
-        
+
         const newMsgId = new window.Store.MsgKey({
             from: window.Store.Conn.me,
             to: chat.id,
@@ -94,9 +96,9 @@ exports.LoadUtils = () => {
             isGif: mediaData.isGif
         });
 
-        if(!(mediaData.mediaBlob instanceof window.Store.OpaqueData.default)) {
+        if (!(mediaData.mediaBlob instanceof window.Store.OpaqueData.default)) {
             mediaData.mediaBlob = await window.Store.OpaqueData.default.createFromData(mediaData.mediaBlob, mediaData.mediaBlob.type);
-        } 
+        }
 
         mediaData.renderableUrl = mediaData.mediaBlob.url();
         mediaObject.consolidate(mediaData.toJSON());
@@ -161,7 +163,7 @@ exports.LoadUtils = () => {
 
         return res;
     };
-    
+
     window.WWebJS.getContact = contactId => {
         const contact = window.Store.Contact.get(contactId);
         return window.WWebJS.getContactModel(contact);
@@ -172,16 +174,16 @@ exports.LoadUtils = () => {
         return contacts.map(contact => window.WWebJS.getContactModel(contact));
     };
 
-    window.WWebJS.mediaInfoToFile = ({data, mimetype, filename}) => {
+    window.WWebJS.mediaInfoToFile = ({ data, mimetype, filename }) => {
         const binaryData = atob(data);
-        
+
         const buffer = new ArrayBuffer(binaryData.length);
         const view = new Uint8Array(buffer);
-        for(let i=0; i < binaryData.length; i++) {
+        for (let i = 0; i < binaryData.length; i++) {
             view[i] = binaryData.charCodeAt(i);
         }
 
-        const blob = new Blob([buffer], {type: mimetype});
+        const blob = new Blob([buffer], { type: mimetype });
         return new File([blob], filename, {
             type: mimetype,
             lastModified: Date.now()
@@ -189,7 +191,7 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.downloadBuffer = (url) => {
-        return new Promise(function(resolve, reject) {
+        return new Promise(function (resolve, reject) {
             let xhr = new XMLHttpRequest();
             xhr.open('GET', url);
             xhr.responseType = 'arraybuffer';
@@ -216,13 +218,13 @@ exports.LoadUtils = () => {
     window.WWebJS.readBlobAsync = (blob) => {
         return new Promise((resolve, reject) => {
             let reader = new FileReader();
-      
+
             reader.onload = () => {
                 resolve(reader.result);
             };
-      
+
             reader.onerror = reject;
-      
+
             reader.readAsDataURL(blob);
         });
     };
