@@ -323,6 +323,21 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Get all messages from contact instances
+     * @returns {Promise<Array<Contact>>}
+     */
+    async getMsgsById(chatId) {
+        let msgs = [];
+        let chat = await this.pupPage.evaluate(chatId => {
+            return window.WWebJS.getChat(chatId);
+        }, chatId);
+        await chat.msgs.map((chat) => {
+            if (chat.type === 'chat') msgs.push(chat);
+        });
+        return msgs;
+    }
+
+    /**
      * Get all current contact instances
      * @returns {Promise<Array<Contact>>}
      */
