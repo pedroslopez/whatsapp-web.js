@@ -277,12 +277,16 @@ class Client extends EventEmitter {
             let msg;
             if (!chat) { // The chat is not available in the previously chatted list
 
-                //todo : Check if the number is a whatsapp enabled. Whatsapp web sends query exists via ws.
-                chat = window.Store.Chat.models[0]; //get the topmost chat object and assign the new chatId to it
-                let originalChatObjId = chat.id;
-                chat.id = typeof originalChatObjId === 'string' ? chatId : new window.Store.UserConstructor(chatId, { intentionallyUsePrivateConstructor: true });
-                msg = await window.WWebJS.sendMessage(chat, message, options);
-                chat.id = originalChatObjId; //replace the chat with its original id
+                let newChatId = await window.WWebJS.getNumberId(chatId);
+                if (newChatId) {
+                    //get the topmost chat object and assign the new chatId to it . 
+                    //This is just a workaround.May cause problem if there are no chats at all. Need to dig in and emulate how whatsapp web does
+                    let chat = window.Store.Chat.models[0]; 
+                    let originalChatObjId = chat.id;
+                    chat.id = newChatId;
+                    msg = await window.WWebJS.sendMessage(chat, message, options);
+                    chat.id = originalChatObjId; //replace the chat with its original id
+                }
             }
             else
                 msg = await window.WWebJS.sendMessage(chat, message, options);

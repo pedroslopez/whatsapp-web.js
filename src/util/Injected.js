@@ -25,7 +25,13 @@ exports.ExposeStore = (moduleRaidStr) => {
 
 exports.LoadUtils = () => {
     window.WWebJS = {};
+    window.WWebJS.getNumberId = async (id) => {
 
+        let result = await window.Store.Wap.queryExist(id);
+        if (result.jid === undefined)
+            throw 'The number provided is not a registered whatsapp user';
+        return result.jid;
+    };
     window.WWebJS.sendMessage = async (chat, content, options = {}) => {
         let attOptions = {};
         if (options.attachment) {
