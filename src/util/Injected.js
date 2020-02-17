@@ -29,7 +29,7 @@ exports.LoadUtils = () => {
 
         let result = await window.Store.Wap.queryExist(id);
         if (result.jid === undefined)
-            throw 404;
+            throw 'The number provided is not a registered whatsapp user';
         return result.jid;
     };
     window.WWebJS.sendMessage = async (chat, content, options = {}) => {
