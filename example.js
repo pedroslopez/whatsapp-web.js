@@ -7,7 +7,7 @@ if (fs.existsSync(SESSION_FILE_PATH)) {
     sessionCfg = require(SESSION_FILE_PATH);
 }
 
-const client = new Client({puppeteer: {headless: false}, session: sessionCfg});
+const client = new Client({ puppeteer: { headless: false }, session: sessionCfg });
 // You can use an existing session and avoid scanning a QR code by adding a "session" object to the client options.
 // This object must include WABrowserId, WASecretBundle, WAToken1 and WAToken2.
 
@@ -22,7 +22,7 @@ client.on('authenticated', (session) => {
     console.log('AUTHENTICATED', session);
 
     if (!fs.existsSync(SESSION_FILE_PATH)) {
-        fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), function(err) {
+        fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
             if (err) {
                 console.error(err);
             }
@@ -50,10 +50,19 @@ client.on('message', async msg => {
         // Send a new message to the same chat
         client.sendMessage(msg.from, 'pong');
 
+    } else if (msg.body.startsWith('!sendto ')) {
+        // Direct send a new message to specific id
+        let number = msg.body.split(' ')[1];
+        let messageIndex = msg.body.indexOf(number) + number.length;
+        let message = msg.body.slice(messageIndex, msg.body.length);
+        number = number.includes('@c.us') ? number : `${number}@c.us`;
+
+        client.sendMessage(number, message);
+
     } else if (msg.body.startsWith('!subject ')) {
         // Change the group subject
         let chat = await msg.getChat();
-        if(chat.isGroup) {
+        if (chat.isGroup) {
             let newSubject = msg.body.slice(9);
             chat.setSubject(newSubject);
         } else {
@@ -65,7 +74,7 @@ client.on('message', async msg => {
     } else if (msg.body.startsWith('!desc ')) {
         // Change the group description
         let chat = await msg.getChat();
-        if(chat.isGroup) {
+        if (chat.isGroup) {
             let newDescription = msg.body.slice(6);
             chat.setDescription(newDescription);
         } else {
@@ -74,22 +83,22 @@ client.on('message', async msg => {
     } else if (msg.body == '!leave') {
         // Leave the group
         let chat = await msg.getChat();
-        if(chat.isGroup) {
+        if (chat.isGroup) {
             chat.leave();
         } else {
             msg.reply('This command can only be used in a group!');
         }
-    } else if(msg.body.startsWith('!join ')) {
+    } else if (msg.body.startsWith('!join ')) {
         const inviteCode = msg.body.split(' ')[1];
         try {
             await client.acceptInvite(inviteCode);
             msg.reply('Joined the group!');
-        } catch(e) {
+        } catch (e) {
             msg.reply('That invite code seems to be invalid.');
-        } 
-    } else if(msg.body == '!groupinfo') {
+        }
+    } else if (msg.body == '!groupinfo') {
         let chat = await msg.getChat();
-        if(chat.isGroup) {
+        if (chat.isGroup) {
             msg.reply(`
                 *Group Details*
                 Name: ${chat.name}
@@ -101,10 +110,10 @@ client.on('message', async msg => {
         } else {
             msg.reply('This command can only be used in a group!');
         }
-    } else if(msg.body == '!chats') {
+    } else if (msg.body == '!chats') {
         const chats = await client.getChats();
         client.sendMessage(msg.from, `The bot has ${chats.length} chats open.`);
-    } else if(msg.body == '!info') {
+    } else if (msg.body == '!info') {
         let info = client.info;
         client.sendMessage(msg.from, `
             *Connection info*
@@ -113,7 +122,7 @@ client.on('message', async msg => {
             Platform: ${info.platform}
             WhatsApp version: ${info.phone.wa_version}
         `);
-    } else if(msg.body == '!mediainfo' && msg.hasMedia) {
+    } else if (msg.body == '!mediainfo' && msg.hasMedia) {
         const attachmentData = await msg.downloadMedia();
         msg.reply(`
             *Media info*
@@ -121,7 +130,7 @@ client.on('message', async msg => {
             Filename: ${attachmentData.filename}
             Data (length): ${attachmentData.data.length}
         `);
-    } else if(msg.body == '!quoteinfo' && msg.hasQuotedMsg) {
+    } else if (msg.body == '!quoteinfo' && msg.hasQuotedMsg) {
         const quotedMsg = await msg.getQuotedMessage();
 
         quotedMsg.reply(`
@@ -131,18 +140,18 @@ client.on('message', async msg => {
             Timestamp: ${quotedMsg.timestamp}
             Has Media? ${quotedMsg.hasMedia}
         `);
-    } else if(msg.body == '!resendmedia' && msg.hasQuotedMsg) {
+    } else if (msg.body == '!resendmedia' && msg.hasQuotedMsg) {
         const quotedMsg = await msg.getQuotedMessage();
-        if(quotedMsg.hasMedia) {
+        if (quotedMsg.hasMedia) {
             const attachmentData = await quotedMsg.downloadMedia();
-            client.sendMessage(msg.from, attachmentData, {caption: 'Here\'s your requested media.'});
+            client.sendMessage(msg.from, attachmentData, { caption: 'Here\'s your requested media.' });
         }
-        
-    } else if(msg.body == '!location') {
+
+    } else if (msg.body == '!location') {
         msg.reply(new Location(37.422, -122.084, 'Googleplex\nGoogle Headquarters'));
-    } else if(msg.location) {
+    } else if (msg.location) {
         msg.reply(msg.location);
-    } else if(msg.body.startsWith('!status ')) {
+    } else if (msg.body.startsWith('!status ')) {
         const newStatus = msg.body.split(' ')[1];
         await client.setStatus(newStatus);
         msg.reply(`Status was updated to *${newStatus}*`);
@@ -164,7 +173,7 @@ client.on('message', async msg => {
 
 client.on('message_create', (msg) => {
     // Fired on all message creations, including your own
-    if(msg.fromMe) {
+    if (msg.fromMe) {
         // do stuff here
     }
 });
