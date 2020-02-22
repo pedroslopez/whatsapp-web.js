@@ -37,7 +37,8 @@ exports.Events = {
     MESSAGE_REVOKED_ME: 'message_revoke_me',
     QR_RECEIVED: 'qr',
     DISCONNECTED: 'disconnected',
-    STATE_CHANGED: 'change_state'
+    STATE_CHANGED: 'change_state',
+    ACK_CHANGE: 'messageAck'
 };
 
 /**

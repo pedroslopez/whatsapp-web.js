@@ -29,9 +29,11 @@ client.on('ready', () => {
 });
 
 client.on('message', msg => {
-    if (msg.body == '!ping') {
-        msg.reply('pong');
-    }
+    console.log("MSG: ",msg);
+});
+
+client.on('messageAck', ack => {
+    console.log("ACK: ",ack);
 });
 
 client.initialize();
