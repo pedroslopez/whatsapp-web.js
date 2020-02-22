@@ -46,7 +46,7 @@ Take a look at [example.js](https://github.com/pedroslopez/whatsapp-web.js/blob/
 | Send messages  | ✅  |
 | Receive messages  | ✅  |
 | Send media (images/audio/documents)  | ✅  |
-| Send media (video)  | _pending_  |
+| Send media (video)  | ✅ (requires google chrome)  |
 | Send stickers | _pending_ |
 | Receive media (images/audio/video/documents)  | ✅  |
 | Send contact cards | _pending_ |
