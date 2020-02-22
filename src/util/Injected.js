@@ -18,6 +18,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.MediaPrep = window.mR.findModule('MediaPrep')[0];
     window.Store.MediaObject = window.mR.findModule('getOrCreateMediaObject')[0];
     window.Store.MediaUpload = window.mR.findModule('uploadMedia')[0];
+    window.Store.Cmd = window.mR.findModule('Cmd')[0].default;
     window.Store.MediaTypes = window.mR.findModule('msgToMediaType')[0];
 };
 

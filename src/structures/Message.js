@@ -202,6 +202,22 @@ class Message extends Base {
 
         return new MessageMedia(mimetype, data, filename);
     }
+
+    /**
+     * Deletes a message from the chat
+     * @param {?boolean} everyone If true and the message is sent by the current user, will delete it for everyone in the chat.
+     */
+    async delete(everyone) {
+        await this.client.pupPage.evaluate((msgId, everyone) => {
+            let msg = window.Store.Msg.get(msgId);
+
+            if(everyone && msg.id.fromMe && msg.canRevoke()) {
+                return window.Store.Cmd.sendRevokeMsgs(msg.chat, [msg], true);
+            } 
+            
+            return window.Store.Cmd.sendDeleteMsgs(msg.chat, [msg], true);
+        }, this.id._serialized, everyone);
+    }
 }
 
 module.exports = Message;

@@ -152,6 +152,13 @@ client.on('message', async msg => {
         chat.sendMessage(`Hi @${contact.number}!`, {
             mentions: [contact]
         });
+    } else if (msg.body == '!delete' && msg.hasQuotedMsg) {
+        const quotedMsg = await msg.getQuotedMessage();
+        if(quotedMsg.fromMe) {
+            quotedMsg.delete(true);
+        } else {
+            msg.reply('I can only delete my own messages');
+        }
     }
 });
 
