@@ -83,21 +83,34 @@ class Client extends EventEmitter {
             }
 
         } else {
-            // Wait for QR Code
-            const QR_CANVAS_SELECTOR = 'canvas';
-            await page.waitForSelector(QR_CANVAS_SELECTOR);
-            const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0, 0, 264, 264).data));
-            const qr = jsQR(qrImgData, 264, 264).data;
+            const getQrCode = async () => {
+                // Check if retry button is present
+                var QR_RETRY_SELECTOR = 'div[data-ref] > span > div';
+                var qrRetry = await page.$(QR_RETRY_SELECTOR);
+                if (qrRetry) {
+                    await qrRetry.click();
+                }
 
-            /**
-             * Emitted when the QR code is received
-             * @event Client#qr
-             * @param {string} qr QR Code
-             */
-            this.emit(Events.QR_RECEIVED, qr);
+                // Wait for QR Code
+
+                const QR_CANVAS_SELECTOR = 'canvas';
+                await page.waitForSelector(QR_CANVAS_SELECTOR);
+                const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0, 0, 264, 264).data));
+                const qr = jsQR(qrImgData, 264, 264).data;
+                /**
+                * Emitted when the QR code is received
+                * @event Client#qr
+                * @param {string} qr QR Code
+                */
+                this.emit(Events.QR_RECEIVED, qr);
+            };
+            getQrCode();
+            let retryInterval = setInterval(getQrCode, 20000); // check for qr code every 20 seconds
 
             // Wait for code scan
             await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 0 });
+            clearInterval(retryInterval);
+
         }
 
         await page.evaluate(ExposeStore, moduleRaid.toString());
@@ -281,7 +294,7 @@ class Client extends EventEmitter {
                 if (newChatId) {
                     //get the topmost chat object and assign the new chatId to it . 
                     //This is just a workaround.May cause problem if there are no chats at all. Need to dig in and emulate how whatsapp web does
-                    let chat = window.Store.Chat.models[0]; 
+                    let chat = window.Store.Chat.models[0];
                     let originalChatObjId = chat.id;
                     chat.id = newChatId;
                     msg = await window.WWebJS.sendMessage(chat, message, options);
