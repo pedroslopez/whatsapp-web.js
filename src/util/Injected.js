@@ -10,6 +10,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Conn = window.mR.findModule('Conn')[0].default;
     window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
     window.Store.Wap = window.mR.findModule('Wap')[0].default;
+    window.Store.SendSeen = window.mR.findModule('sendSeen')[0];
     window.Store.genId = window.mR.findModule((module) => module.default && typeof module.default === 'function' && module.default.toString().match(/crypto/))[0].default;
     window.Store.SendMessage = window.mR.findModule('addAndSendMsgToChat')[0];
     window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
@@ -32,6 +33,17 @@ exports.LoadUtils = () => {
         if (result.jid === undefined)
             throw 'The number provided is not a registered whatsapp user';
         return result.jid;
+    };
+    window.WWebJS.sendSeen = async (chatId) => {
+        let chat = window.Store.Chat.get(chatId);
+        if (chat !== undefined) {
+            if (chat.getLastMsgKeyForAction === undefined)
+                chat.getLastMsgKeyForAction = function () { };
+            await window.Store.SendSeen.sendSeen(chat, false);
+            return true;
+        }
+        return false;
+
     };
     window.WWebJS.sendMessage = async (chat, content, options = {}) => {
         let attOptions = {};

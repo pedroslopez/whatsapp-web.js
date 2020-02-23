@@ -246,15 +246,28 @@ class Client extends EventEmitter {
     async destroy() {
         await this.pupBrowser.close();
     }
+    /**
+     * Mark as seen for the Chat
+     *  @param {string} chatId
+     *  @returns {Promise<boolean>} result
+     * 
+     */
+    async sendSeen(chatId) {
+        const result = await this.pupPage.evaluate(async (chatId) => {
+            return window.WWebJS.sendSeen(chatId);
 
+        }, chatId);
+        return result;
+    }
     /**
      * Send a message to a specific chatId
      * @param {string} chatId
      * @param {string|MessageMedia|Location} content
      * @param {object} options 
+     * @param {boolean} sendSeen 
      * @returns {Promise<Message>} Message that was just sent
      */
-    async sendMessage(chatId, content, options = {}) {
+    async sendMessage(chatId, content, options = {}, sendSeen = false) {
         let internalOptions = {
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
@@ -272,7 +285,7 @@ class Client extends EventEmitter {
             content = '';
         }
 
-        const newMessage = await this.pupPage.evaluate(async (chatId, message, options) => {
+        const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
             let chat = window.Store.Chat.get(chatId);
             let msg;
             if (!chat) { // The chat is not available in the previously chatted list
@@ -281,17 +294,24 @@ class Client extends EventEmitter {
                 if (newChatId) {
                     //get the topmost chat object and assign the new chatId to it . 
                     //This is just a workaround.May cause problem if there are no chats at all. Need to dig in and emulate how whatsapp web does
-                    let chat = window.Store.Chat.models[0]; 
+                    let chat = window.Store.Chat.models[0];
+                    if (!chat)
+                        throw 'Chat List empty! Need atleast one open conversation with any of your contact';
                     let originalChatObjId = chat.id;
                     chat.id = newChatId;
+                    if (sendSeen)
+                        window.WWebJS.sendSeen(newChatId);
                     msg = await window.WWebJS.sendMessage(chat, message, options);
                     chat.id = originalChatObjId; //replace the chat with its original id
                 }
             }
-            else
+            else {
+                if (sendSeen)
+                    window.WWebJS.sendSeen(chatId);
                 msg = await window.WWebJS.sendMessage(chat, message, options);
+            }
             return msg.serialize();
-        }, chatId, content, internalOptions);
+        }, chatId, content, internalOptions, sendSeen);
 
         return new Message(this, newMessage);
     }

@@ -57,7 +57,7 @@ client.on('message', async msg => {
         let message = msg.body.slice(messageIndex, msg.body.length);
         number = number.includes('@c.us') ? number : `${number}@c.us`;
 
-        client.sendMessage(number, message);
+        client.sendMessage(number, message, {}, true);
 
     } else if (msg.body.startsWith('!subject ')) {
         // Change the group subject
