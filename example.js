@@ -160,11 +160,13 @@ client.on('message', async msg => {
         chat.sendMessage(`Hi @${contact.number}!`, {
             mentions: [contact]
         });
-    } else if (msg.body === '!archive') {
-        const chat = await msg.getChat();
-        chat.archive();
-    } else if (msg.body === '!unarchive') {
-        client.unarchiveChat(msg.body); // where msg.body is the id of the chat.
+    } else if (msg.body == '!delete' && msg.hasQuotedMsg) {
+        const quotedMsg = await msg.getQuotedMessage();
+        if(quotedMsg.fromMe) {
+            quotedMsg.delete(true);
+        } else {
+            msg.reply('I can only delete my own messages');
+        }
     }
 });
 
