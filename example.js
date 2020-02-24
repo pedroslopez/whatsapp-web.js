@@ -178,6 +178,18 @@ client.on('message_create', (msg) => {
     }
 });
 
+client.on('chat_joined', (msg) => {
+    msg.reply('User joined.');
+});
+
+client.on('chat_left', (msg) => {
+    msg.reply('User left.');
+});
+
+client.on('chat_event', (msg) => {
+    msg.reply('Chat did something.');
+});
+
 client.on('message_revoke_everyone', async (after, before) => {
     // Fired whenever a message is deleted by anyone (including you)
     console.log(after); // message after it was deleted.

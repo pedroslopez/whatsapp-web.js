@@ -108,6 +108,16 @@ class Message extends Base {
             this.mentionedIds = data.mentionedJidList;
         }
 
+        /**
+         * Indicates the affected Users of an Action.
+         * @type {Array<string>}
+         */
+        this.affectedIds = [];
+
+        if (data.recipients) {
+            this.affectedIds = data.recipients;
+        }
+
         return super._patch(data);
     }
 

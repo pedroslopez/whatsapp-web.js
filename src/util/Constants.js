@@ -35,6 +35,9 @@ exports.Events = {
     MESSAGE_CREATE: 'message_create',
     MESSAGE_REVOKED_EVERYONE: 'message_revoke_everyone',
     MESSAGE_REVOKED_ME: 'message_revoke_me',
+    CHAT_JOIN: 'chat_joined',
+    CHAT_LEAVE: 'chat_left',
+    CHAT_EVENT: 'chat_event',
     QR_RECEIVED: 'qr',
     DISCONNECTED: 'disconnected',
     STATE_CHANGED: 'change_state'

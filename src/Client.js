@@ -148,9 +148,18 @@ class Client extends EventEmitter {
         // Register events
         await page.exposeFunction('onAddMessageEvent', msg => {
             if (!msg.isNewMsg) return;
-
             const message = new Message(this, msg);
 
+            if (msg.type === 'gp2') {
+                if (msg.subtype === 'remove') {
+                    this.emit(Events.CHAT_LEAVE, message);
+                } else if (msg.subtype === 'add') {
+                    this.emit(Events.CHAT_JOIN, message);
+                } else {
+                    this.emit(Events.CHAT_EVENT, message);
+                }
+                return;
+            }
             /**
              * Emitted when a new message is created, which may include the current user's own messages.
              * @event Client#message_create
