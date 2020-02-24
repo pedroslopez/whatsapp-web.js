@@ -264,10 +264,9 @@ class Client extends EventEmitter {
      * @param {string} chatId
      * @param {string|MessageMedia|Location} content
      * @param {object} options 
-     * @param {boolean} sendSeen 
      * @returns {Promise<Message>} Message that was just sent
      */
-    async sendMessage(chatId, content, options = {}, sendSeen = false) {
+    async sendMessage(chatId, content, options = {}) {
         let internalOptions = {
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
@@ -285,7 +284,7 @@ class Client extends EventEmitter {
             content = '';
         }
 
-        const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
+        const newMessage = await this.pupPage.evaluate(async (chatId, message, options) => {
             let chat = window.Store.Chat.get(chatId);
             let msg;
             if (!chat) { // The chat is not available in the previously chatted list
@@ -299,19 +298,17 @@ class Client extends EventEmitter {
                         throw 'Chat List empty! Need atleast one open conversation with any of your contact';
                     let originalChatObjId = chat.id;
                     chat.id = newChatId;
-                    if (sendSeen)
-                        window.WWebJS.sendSeen(newChatId);
+
                     msg = await window.WWebJS.sendMessage(chat, message, options);
                     chat.id = originalChatObjId; //replace the chat with its original id
                 }
             }
             else {
-                if (sendSeen)
-                    window.WWebJS.sendSeen(chatId);
+
                 msg = await window.WWebJS.sendMessage(chat, message, options);
             }
             return msg.serialize();
-        }, chatId, content, internalOptions, sendSeen);
+        }, chatId, content, internalOptions);
 
         return new Message(this, newMessage);
     }

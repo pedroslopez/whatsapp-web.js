@@ -10,7 +10,7 @@ class Chat extends Base {
     constructor(client, data) {
         super(client);
 
-        if(data) this._patch(data);
+        if (data) this._patch(data);
     }
 
     _patch(data) {
@@ -61,6 +61,13 @@ class Chat extends Base {
      */
     async sendMessage(content, options) {
         return this.client.sendMessage(this.id._serialized, content, options);
+    }
+    /**
+     * Set the message as seen
+     * @returns {Promise<Boolean>} result
+     */
+    async sendSeen() {
+        return this.client.sendSeen(this.id._serialized);
     }
 }
 
