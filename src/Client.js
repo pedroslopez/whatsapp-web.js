@@ -396,9 +396,10 @@ class Client extends EventEmitter {
      * @returns {boolean}
      */
     async archiveChat(chatId) {
-        return await this.pupPage.evaluate((chatId) => {
-            let chat = window.Store.Chat.get(chatId);
-            return chat.archive = true;
+        return await this.pupPage.evaluate(async chatId => {
+            let chat = await window.Store.Chat.get(chatId);
+            await window.Store.Cmd.archiveChat(chat, true);
+            return chat.archive;
         }, chatId);
     }
 
@@ -407,9 +408,10 @@ class Client extends EventEmitter {
      * @returns {boolean}
      */
     async unarchiveChat(chatId) {
-        return await this.pupPage.evaluate((chatId) => {
-            let chat = window.Store.Chat.get(chatId);
-            return chat.archive = false;
+        return await this.pupPage.evaluate(async chatId => {
+            let chat = await window.Store.Chat.get(chatId);
+            await window.Store.Cmd.archiveChat(chat, false);
+            return chat.archive;
         }, chatId);
     }
 

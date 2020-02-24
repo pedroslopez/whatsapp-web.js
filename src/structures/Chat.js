@@ -72,22 +72,14 @@ class Chat extends Base {
     /**
      * archives this chat
      */
-    archive() {
-        if (this.archived) {
-            return this.archived;
-        }
-        
+    async archive() {
         return this.client.archiveChat(this.id._serialized);
     }
 
     /**
      * un-archives this chat
      */
-    unarchive() {
-        if (!this.archived) {
-            return this.archived;
-        }
-        
+    async unarchive() {
         return this.client.unarchiveChat(this.id._serialized);
     }
     

@@ -167,6 +167,9 @@ client.on('message', async msg => {
         } else {
             msg.reply('I can only delete my own messages');
         }
+    } else if (msg.body === '!archive') {
+        const chat = await msg.getChat();
+        chat.archive();
     }
 });
 
