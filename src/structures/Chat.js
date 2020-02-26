@@ -62,6 +62,26 @@ class Chat extends Base {
     async sendMessage(content, options) {
         return this.client.sendMessage(this.id._serialized, content, options);
     }
+
+    /**
+     * Clears all messages from the chat
+     * @returns {Promise<Boolean>} result
+     */
+    async clearMessages() {
+        return this.client.pupPage.evaluate(chatId => {
+            return window.WWebJS.sendClearChat(chatId);
+        }, this.id._serialized);
+    }
+
+    /**
+     * Deletes the chat
+     * @returns {Promise<Boolean>} result
+     */
+    async delete() {
+        return this.client.pupPage.evaluate(chatId => {
+            return window.WWebJS.sendDeleteChat(chatId);
+        }, this.id._serialized);
+    }
 }
 
 module.exports = Chat;
