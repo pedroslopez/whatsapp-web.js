@@ -146,7 +146,6 @@ client.on('message', async msg => {
             const attachmentData = await quotedMsg.downloadMedia();
             client.sendMessage(msg.from, attachmentData, { caption: 'Here\'s your requested media.' });
         }
-
     } else if (msg.body == '!location') {
         msg.reply(new Location(37.422, -122.084, 'Googleplex\nGoogle Headquarters'));
     } else if (msg.location) {
@@ -168,6 +167,9 @@ client.on('message', async msg => {
         } else {
             msg.reply('I can only delete my own messages');
         }
+    } else if (msg.body === '!archive') {
+        const chat = await msg.getChat();
+        chat.archive();
     }
 });
 

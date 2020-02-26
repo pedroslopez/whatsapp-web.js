@@ -50,6 +50,12 @@ class Chat extends Base {
          */
         this.timestamp = data.t;
 
+        /**
+         * Indicates if the Chat is archived
+         * @type {boolean}
+         */
+        this.archived = data.archive;
+
         return super._patch(data);
     }
 
@@ -62,6 +68,21 @@ class Chat extends Base {
     async sendMessage(content, options) {
         return this.client.sendMessage(this.id._serialized, content, options);
     }
+
+    /**
+     * archives this chat
+     */
+    async archive() {
+        return this.client.archiveChat(this.id._serialized);
+    }
+
+    /**
+     * un-archives this chat
+     */
+    async unarchive() {
+        return this.client.unarchiveChat(this.id._serialized);
+    }
+    
 }
 
 module.exports = Chat;

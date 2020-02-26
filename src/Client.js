@@ -309,7 +309,6 @@ class Client extends EventEmitter {
         return new Message(this, newMessage);
     }
 
-
     /**
      * Get all current chat instances
      * @returns {Promise<Array<Chat>>}
@@ -390,6 +389,30 @@ class Client extends EventEmitter {
         return await this.pupPage.evaluate(() => {
             return window.Store.AppState.state;
         });
+    }
+
+    /**
+     * Enables and returns the archive state of the Chat
+     * @returns {boolean}
+     */
+    async archiveChat(chatId) {
+        return await this.pupPage.evaluate(async chatId => {
+            let chat = await window.Store.Chat.get(chatId);
+            await window.Store.Cmd.archiveChat(chat, true);
+            return chat.archive;
+        }, chatId);
+    }
+
+    /**
+     * Changes and returns the archive state of the Chat
+     * @returns {boolean}
+     */
+    async unarchiveChat(chatId) {
+        return await this.pupPage.evaluate(async chatId => {
+            let chat = await window.Store.Chat.get(chatId);
+            await window.Store.Cmd.archiveChat(chat, false);
+            return chat.archive;
+        }, chatId);
     }
 
 }
