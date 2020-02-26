@@ -272,6 +272,8 @@ class Client extends EventEmitter {
             quotedMessageId: options.quotedMessageId,
             mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact => contact.id._serialized) : []
         };
+        
+        const sendSeen = typeof options.sendSeen === 'undefined' ? true : options.sendSeen;
 
         if (content instanceof MessageMedia) {
             internalOptions.attachment = content;
@@ -284,7 +286,7 @@ class Client extends EventEmitter {
             content = '';
         }
 
-        const newMessage = await this.pupPage.evaluate(async (chatId, message, options) => {
+        const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
             let chat = window.Store.Chat.get(chatId);
             let msg;
             if (!chat) { // The chat is not available in the previously chatted list
@@ -304,8 +306,11 @@ class Client extends EventEmitter {
                 }
             }
             else {
-
-                msg = await window.WWebJS.sendMessage(chat, message, options);
+                if(sendSeen) {
+                    window.WWebJS.sendSeen(chatId);
+                }
+                
+                msg = await window.WWebJS.sendMessage(chat, message, options, sendSeen);
             }
             return msg.serialize();
         }, chatId, content, internalOptions);
