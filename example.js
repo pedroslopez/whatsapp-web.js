@@ -193,6 +193,22 @@ client.on('message_revoke_me', async (msg) => {
     console.log(msg.body); // message before it was deleted.
 });
 
+client.on('message_ack', (msg, ack) => {
+    /*
+        == ACK VALUES ==
+        ACK_ERROR: -1
+        ACK_PENDING: 0
+        ACK_SERVER: 1
+        ACK_DEVICE: 2
+        ACK_READ: 3
+        ACK_PLAYED: 4
+    */
+
+    if(ack == 3) {
+        // The message was read
+    }
+});
+
 client.on('disconnected', (reason) => {
     console.log('Client was logged out', reason);
 });
