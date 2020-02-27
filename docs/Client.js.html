@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.3">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.0.2 &raquo; Source: Client.js</title>
+  <title>whatsapp-web.js 1.1.0 &raquo; Source: Client.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>0.<wbr>2</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>1.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -75,7 +75,7 @@ class Client extends EventEmitter {
      */
     async initialize() {
         const browser &#x3D; await puppeteer.launch(this.options.puppeteer);
-        const page &#x3D; await browser.newPage();
+        const page &#x3D; (await browser.pages())[0];
         page.setUserAgent(UserAgent);
 
         if (this.options.session) {
@@ -114,21 +114,34 @@ class Client extends EventEmitter {
             }
 
         } else {
-            // Wait for QR Code
-            const QR_CANVAS_SELECTOR &#x3D; &#x27;canvas&#x27;;
-            await page.waitForSelector(QR_CANVAS_SELECTOR);
-            const qrImgData &#x3D; await page.$eval(QR_CANVAS_SELECTOR, canvas &#x3D;&gt; [].slice.call(canvas.getContext(&#x27;2d&#x27;).getImageData(0,0,264,264).data));
-            const qr &#x3D; jsQR(qrImgData, 264, 264).data;
-            
-            /**
-             * Emitted when the QR code is received
-             * @event Client#qr
-             * @param {string} qr QR Code
-             */
-            this.emit(Events.QR_RECEIVED, qr);
+            const getQrCode &#x3D; async () &#x3D;&gt; {
+                // Check if retry button is present
+                var QR_RETRY_SELECTOR &#x3D; &#x27;div[data-ref] &gt; span &gt; div&#x27;;
+                var qrRetry &#x3D; await page.$(QR_RETRY_SELECTOR);
+                if (qrRetry) {
+                    await qrRetry.click();
+                }
+
+                // Wait for QR Code
+
+                const QR_CANVAS_SELECTOR &#x3D; &#x27;canvas&#x27;;
+                await page.waitForSelector(QR_CANVAS_SELECTOR);
+                const qrImgData &#x3D; await page.$eval(QR_CANVAS_SELECTOR, canvas &#x3D;&gt; [].slice.call(canvas.getContext(&#x27;2d&#x27;).getImageData(0, 0, 264, 264).data));
+                const qr &#x3D; jsQR(qrImgData, 264, 264).data;
+                /**
+                * Emitted when the QR code is received
+                * @event Client#qr
+                * @param {string} qr QR Code
+                */
+                this.emit(Events.QR_RECEIVED, qr);
+            };
+            getQrCode();
+            let retryInterval &#x3D; setInterval(getQrCode, 20000); // check for qr code every 20 seconds
 
             // Wait for code scan
             await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 0 });
+            clearInterval(retryInterval);
+
         }
 
         await page.evaluate(ExposeStore, moduleRaid.toString());
@@ -193,7 +206,7 @@ class Client extends EventEmitter {
             if (msg.type &#x3D;&#x3D;&#x3D; &#x27;revoked&#x27;) {
                 const message &#x3D; new Message(this, msg);
                 let revoked_msg;
-                if(last_message &amp;amp;&amp;amp; msg.id.id &#x3D;&#x3D;&#x3D; last_message.id.id) {
+                if (last_message &amp;amp;&amp;amp; msg.id.id &#x3D;&#x3D;&#x3D; last_message.id.id) {
                     revoked_msg &#x3D; new Message(this, last_message);
                 }
 
@@ -206,11 +219,11 @@ class Client extends EventEmitter {
                  */
                 this.emit(Events.MESSAGE_REVOKED_EVERYONE, message, revoked_msg);
             }
-            
+
         });
 
         await page.exposeFunction(&#x27;onChangeMessageEvent&#x27;, (msg) &#x3D;&gt; {
-            
+
             if (msg.type !&#x3D;&#x3D; &#x27;revoked&#x27;) {
                 last_message &#x3D; msg;
             }
@@ -229,6 +242,20 @@ class Client extends EventEmitter {
              * @param {Message} message The message that was revoked
              */
             this.emit(Events.MESSAGE_REVOKED_ME, message);
+
+        });
+
+        await page.exposeFunction(&#x27;onMessageAckEvent&#x27;, (msg, ack) &#x3D;&gt; {
+
+            const message &#x3D; new Message(this, msg);
+            
+            /**
+             * Emitted when an ack event occurrs on message type.
+             * @event Client#message_ack
+             * @param {Message} message The message that was affected
+             * @param {MessageAck} ack The new ACK value
+             */
+            this.emit(Events.MESSAGE_ACK, message, ack);
 
         });
 
@@ -257,6 +284,7 @@ class Client extends EventEmitter {
             window.Store.Msg.on(&#x27;add&#x27;, window.onAddMessageEvent);
             window.Store.Msg.on(&#x27;change&#x27;, window.onChangeMessageEvent);
             window.Store.Msg.on(&#x27;change:type&#x27;, window.onChangeMessageTypeEvent);
+            window.Store.Msg.on(&#x27;change:ack&#x27;, window.onMessageAckEvent);
             window.Store.Msg.on(&#x27;remove&#x27;, window.onRemoveMessageEvent);
             window.Store.AppState.on(&#x27;change:state&#x27;, window.onAppStateChangedEvent);
         });
@@ -285,26 +313,42 @@ class Client extends EventEmitter {
      * @param {object} options 
      * @returns {Promise&amp;lt;Message&gt;} Message that was just sent
      */
-    async sendMessage(chatId, content, options&#x3D;{}) {
+    async sendMessage(chatId, content, options &#x3D; {}) {
         let internalOptions &#x3D; {
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
-            mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact &#x3D;&gt; contact.id._serialized) : [] 
+            mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact &#x3D;&gt; contact.id._serialized) : []
         };
 
-        if(content instanceof MessageMedia) {
+        if (content instanceof MessageMedia) {
             internalOptions.attachment &#x3D; content;
             content &#x3D; &#x27;&#x27;;
-        } else if(options.media instanceof MessageMedia) {
+        } else if (options.media instanceof MessageMedia) {
             internalOptions.attachment &#x3D; options.media;
             internalOptions.caption &#x3D; content;
-        } else if(content instanceof Location) {
+        } else if (content instanceof Location) {
             internalOptions.location &#x3D; content;
             content &#x3D; &#x27;&#x27;;
         }
 
         const newMessage &#x3D; await this.pupPage.evaluate(async (chatId, message, options) &#x3D;&gt; {
-            const msg &#x3D; await window.WWebJS.sendMessage(window.Store.Chat.get(chatId), message, options);
+            let chat &#x3D; window.Store.Chat.get(chatId);
+            let msg;
+            if (!chat) { // The chat is not available in the previously chatted list
+
+                let newChatId &#x3D; await window.WWebJS.getNumberId(chatId);
+                if (newChatId) {
+                    //get the topmost chat object and assign the new chatId to it . 
+                    //This is just a workaround.May cause problem if there are no chats at all. Need to dig in and emulate how whatsapp web does
+                    let chat &#x3D; window.Store.Chat.models[0];
+                    let originalChatObjId &#x3D; chat.id;
+                    chat.id &#x3D; newChatId;
+                    msg &#x3D; await window.WWebJS.sendMessage(chat, message, options);
+                    chat.id &#x3D; originalChatObjId; //replace the chat with its original id
+                }
+            }
+            else
+                msg &#x3D; await window.WWebJS.sendMessage(chat, message, options);
             return msg.serialize();
         }, chatId, content, internalOptions);
 
@@ -383,6 +427,40 @@ class Client extends EventEmitter {
         }, status);
     }
 
+    /**
+     * Gets the current connection state for the client
+     * @returns {WAState} 
+     */
+    async getState() {
+        return await this.pupPage.evaluate(() &#x3D;&gt; {
+            return window.Store.AppState.state;
+        });
+    }
+
+    /**
+     * Enables and returns the archive state of the Chat
+     * @returns {boolean}
+     */
+    async archiveChat(chatId) {
+        return await this.pupPage.evaluate(async chatId &#x3D;&gt; {
+            let chat &#x3D; await window.Store.Chat.get(chatId);
+            await window.Store.Cmd.archiveChat(chat, true);
+            return chat.archive;
+        }, chatId);
+    }
+
+    /**
+     * Changes and returns the archive state of the Chat
+     * @returns {boolean}
+     */
+    async unarchiveChat(chatId) {
+        return await this.pupPage.evaluate(async chatId &#x3D;&gt; {
+            let chat &#x3D; await window.Store.Chat.get(chatId);
+            await window.Store.Cmd.archiveChat(chat, false);
+            return chat.archive;
+        }, chatId);
+    }
+
 }
 
 module.exports &#x3D; Client;
@@ -396,7 +474,7 @@ module.exports &#x3D; Client;
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on February 10, 2020.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on February 26, 2020.
       </p>
     </div>
   </footer>
