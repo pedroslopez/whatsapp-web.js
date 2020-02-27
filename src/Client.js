@@ -222,7 +222,7 @@ class Client extends EventEmitter {
              * Emitted when an ack event occurrs on message type.
              * @event Client#message_ack
              * @param {Message} message The message that was affected
-             * @param {number} ack The new ACK value
+             * @param {MessageAck} ack The new ACK value
              */
             this.emit(Events.MESSAGE_ACK, message, ack);
 
