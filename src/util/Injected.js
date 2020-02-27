@@ -10,6 +10,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Conn = window.mR.findModule('Conn')[0].default;
     window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
     window.Store.Wap = window.mR.findModule('Wap')[0].default;
+    window.Store.SendClear = window.mR.findModule('sendClear')[0];
+    window.Store.SendDelete = window.mR.findModule('sendDelete')[0];
     window.Store.genId = window.mR.findModule((module) => module.default && typeof module.default === 'function' && module.default.toString().match(/crypto/))[0].default;
     window.Store.SendMessage = window.mR.findModule('addAndSendMsgToChat')[0];
     window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
@@ -18,6 +20,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.MediaPrep = window.mR.findModule('MediaPrep')[0];
     window.Store.MediaObject = window.mR.findModule('getOrCreateMediaObject')[0];
     window.Store.MediaUpload = window.mR.findModule('uploadMedia')[0];
+    window.Store.Cmd = window.mR.findModule('Cmd')[0].default;
     window.Store.MediaTypes = window.mR.findModule('msgToMediaType')[0];
     window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default;
 
@@ -233,6 +236,24 @@ exports.LoadUtils = () => {
 
             reader.readAsDataURL(blob);
         });
+    };
+
+    window.WWebJS.sendClearChat = async (chatId) => {
+        let chat = window.Store.Chat.get(chatId);
+        if (chat !== undefined) {
+            await window.Store.SendClear.sendClear(chat, false);
+            return true;
+        }
+        return false;
+    };
+
+    window.WWebJS.sendDeleteChat = async (chatId) => {
+        let chat = window.Store.Chat.get(chatId);
+        if (chat !== undefined) {
+            await window.Store.SendDelete.sendDelete(chat);
+            return true;
+        }
+        return false;
     };
 };
 
