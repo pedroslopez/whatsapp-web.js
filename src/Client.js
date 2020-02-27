@@ -214,6 +214,20 @@ class Client extends EventEmitter {
 
         });
 
+        await page.exposeFunction('onMessageAckEvent', (msg, ack) => {
+
+            const message = new Message(this, msg);
+            
+            /**
+             * Emitted when an ack event occurrs on message type.
+             * @event Client#message_ack
+             * @param {Message} message The message that was affected
+             * @param {number} ack The new ACK value
+             */
+            this.emit(Events.MESSAGE_ACK, message, ack);
+
+        });
+
         await page.exposeFunction('onAppStateChangedEvent', (_AppState, state) => {
 
             /**
@@ -239,6 +253,7 @@ class Client extends EventEmitter {
             window.Store.Msg.on('add', window.onAddMessageEvent);
             window.Store.Msg.on('change', window.onChangeMessageEvent);
             window.Store.Msg.on('change:type', window.onChangeMessageTypeEvent);
+            window.Store.Msg.on('change:ack', window.onMessageAckEvent);
             window.Store.Msg.on('remove', window.onRemoveMessageEvent);
             window.Store.AppState.on('change:state', window.onAppStateChangedEvent);
         });
