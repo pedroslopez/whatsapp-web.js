@@ -433,10 +433,10 @@ class Client extends EventEmitter {
     /**
      * Force reset of connection state for the client
     */
-   async resetState(){
-    await this.pupPage.evaluate(() => {
-        window.Store.AppState.phoneWatchdog.shiftTimer.forceRunNow();
-    });
+    async resetState(){
+        await this.pupPage.evaluate(() => {
+            window.Store.AppState.phoneWatchdog.shiftTimer.forceRunNow();
+        });
 }
 
 }
