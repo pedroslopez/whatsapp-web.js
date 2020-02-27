@@ -201,9 +201,9 @@ class Client extends EventEmitter {
 
         });
 
-        await page.exposeFunction('onMessageAck', (message, ack) => {
+        await page.exposeFunction('onMessageAck', (msg, ack) => {
 
-            const message = new Message(this, message);
+            const message = new Message(this, msg);
             
             /**
              * Emitted when an ack event occurrs on message type.
