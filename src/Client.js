@@ -437,7 +437,7 @@ class Client extends EventEmitter {
         await this.pupPage.evaluate(() => {
             window.Store.AppState.phoneWatchdog.shiftTimer.forceRunNow();
         });
-}
+    }
 
 }
 
