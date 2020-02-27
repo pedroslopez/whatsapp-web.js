@@ -97,7 +97,7 @@ exports.WAState = {
  * @readonly
  * @enum {number}
  */
-exports.MESSAGE_ACK = {
+exports.MessageAck = {
     ACK_ERROR: -1,
     ACK_PENDING: 0,
     ACK_SERVER: 1,
