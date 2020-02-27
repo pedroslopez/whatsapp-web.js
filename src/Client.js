@@ -201,7 +201,7 @@ class Client extends EventEmitter {
 
         });
 
-        await page.exposeFunction('onMessageAck', (msg, ack) => {
+        await page.exposeFunction('onMessageAckEvent', (msg, ack) => {
 
             const message = new Message(this, msg);
             
@@ -240,7 +240,7 @@ class Client extends EventEmitter {
             window.Store.Msg.on('add', window.onAddMessageEvent);
             window.Store.Msg.on('change', window.onChangeMessageEvent);
             window.Store.Msg.on('change:type', window.onChangeMessageTypeEvent);
-            window.Store.Msg.on('change:ack', window.onMessageAck);
+            window.Store.Msg.on('change:ack', window.onMessageAckEvent);
             window.Store.Msg.on('remove', window.onRemoveMessageEvent);
             window.Store.AppState.on('change:state', window.onAppStateChangedEvent);
         });
