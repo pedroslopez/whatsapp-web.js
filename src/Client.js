@@ -430,6 +430,15 @@ class Client extends EventEmitter {
         }, chatId);
     }
 
+    /**
+     * Force reset of connection state for the client
+    */
+    async resetState(){
+        await this.pupPage.evaluate(() => {
+            window.Store.AppState.phoneWatchdog.shiftTimer.forceRunNow();
+        });
+    }
+
 }
 
 module.exports = Client;
