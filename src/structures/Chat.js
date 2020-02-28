@@ -102,6 +102,16 @@ class Chat extends Base {
     async unarchive() {
         return this.client.unarchiveChat(this.id._serialized);
     }
+
+    /**
+     * typing in chat
+     */
+    async typing() {
+        return this.client.pupPage.evaluate(chatId => {
+            window.WWebJS.typing(chatId);
+            return true;
+        }, this.id._serialized);        
+    }
     
 }
 
