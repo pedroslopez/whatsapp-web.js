@@ -170,7 +170,16 @@ client.on('message', async msg => {
         chat.archive();
     } else if (msg.body === '!typing') {
         const chat = await msg.getChat();
-        chat.typing();        
+        // simulates typing in the chat
+        chat.sendStateTyping();        
+    } else if (msg.body === '!recording') {
+        const chat = await msg.getChat();
+        // simulates recording audio in the chat
+        chat.sendStateRecording();        
+    } else if (msg.body === '!clearstate') {
+        const chat = await msg.getChat();
+        // stops typing or recording in the chat
+        chat.clearState();        
     }
 });
 

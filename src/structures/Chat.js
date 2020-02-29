@@ -104,15 +104,34 @@ class Chat extends Base {
     }
    
     /**
-     * Start typing in chat. This will last for 25 seconds.
+     * Simulate typing in chat. This will last for 25 seconds.
      */
-    async sendTyping() {
+    async sendStateTyping() {
         return this.client.pupPage.evaluate(chatId => {
-            window.WWebJS.typing(chatId);
+            window.WWebJS.sendChatstate('typing', chatId);
             return true;
         }, this.id._serialized);        
     }
     
+    /**
+     * Simulate recording audio in chat. This will last for 25 seconds.
+     */
+    async sendStateRecording() {
+        return this.client.pupPage.evaluate(chatId => {
+            window.WWebJS.sendChatstate('recording', chatId);
+            return true;
+        }, this.id._serialized);        
+    }
+
+    /**
+     * Stops typing or recording in chat immediately.
+     */
+    async clearState() {
+        return this.client.pupPage.evaluate(chatId => {
+            window.WWebJS.sendChatstate('stop', chatId);
+            return true;
+        }, this.id._serialized);        
+    }
 }
 
 module.exports = Chat;
