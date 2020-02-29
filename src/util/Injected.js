@@ -255,6 +255,12 @@ exports.LoadUtils = () => {
         }
         return false;
     };
+
+    window.WWebJS.typing = async (chatId) => {
+        await window.Store.Wap.sendChatstateComposing(chatId);
+        return true;
+    };    
+    
 };
 
 exports.MarkAllRead = () => {

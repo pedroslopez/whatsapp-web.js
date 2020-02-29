@@ -168,6 +168,9 @@ client.on('message', async msg => {
     } else if (msg.body === '!archive') {
         const chat = await msg.getChat();
         chat.archive();
+    } else if (msg.body === '!typing') {
+        const chat = await msg.getChat();
+        chat.typing();        
     }
 });
 

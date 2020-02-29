@@ -102,6 +102,16 @@ class Chat extends Base {
     async unarchive() {
         return this.client.unarchiveChat(this.id._serialized);
     }
+   
+    /**
+     * Start typing in chat. This will last for 25 seconds.
+     */
+    async sendTyping() {
+        return this.client.pupPage.evaluate(chatId => {
+            window.WWebJS.typing(chatId);
+            return true;
+        }, this.id._serialized);        
+    }
     
 }
 
