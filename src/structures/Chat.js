@@ -104,9 +104,9 @@ class Chat extends Base {
     }
    
     /**
-     * typing in chat
+     * Start typing in chat. This will last for 25 seconds.
      */
-    async typing() {
+    async sendTyping() {
         return this.client.pupPage.evaluate(chatId => {
             window.WWebJS.typing(chatId);
             return true;
