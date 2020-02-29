@@ -1,6 +1,7 @@
 'use strict';
 
 const Base = require('./Base');
+const Message = require('./Message');
 
 /**
  * Represents a Chat on WhatsApp
@@ -102,6 +103,36 @@ class Chat extends Base {
     async unarchive() {
         return this.client.unarchiveChat(this.id._serialized);
     }
+
+    /**
+     * Loads chat messages, sorted from earliest to latest.
+     * @param {Object} searchOptions Options for searching messages. Right now only limit is supported.
+     * @param {Number} [searchOptions.limit=50] The amount of messages to return. Note that the actual number of returned messages may be smaller if there aren't enough messages in the conversation. Set this to Infinity to load all messages.
+     * @returns {Promise<Array<Message>>}
+     */
+    async fetchMessages(searchOptions) {
+        if(!searchOptions || !searchOptions.limit) {
+            searchOptions = {limit: 50};
+        }
+        let messages = await this.client.pupPage.evaluate(async (chatId, limit) => {
+            const msgFilter = m => !m.isNotification; // dont include notification messages
+            
+            const chat = window.Store.Chat.get(chatId);
+            let msgs = chat.msgs.models.filter(msgFilter);
+            
+            while(msgs.length < limit) {
+                const loadedMessages = await chat.loadEarlierMsgs();
+                if(!loadedMessages) break;
+                msgs = [...msgs, ...loadedMessages.filter(msgFilter)];
+            }
+
+            return msgs.splice(0, limit).map(m => m.serialize());
+
+        }, this.id._serialized, searchOptions.limit);
+
+        messages.sort((a, b) => (a.t > b.t) ? 1 : -1);
+        return messages.map(m => new Message(this.client, m));
+    }
    
     /**
      * Simulate typing in chat. This will last for 25 seconds.
@@ -110,7 +141,7 @@ class Chat extends Base {
         return this.client.pupPage.evaluate(chatId => {
             window.WWebJS.sendChatstate('typing', chatId);
             return true;
-        }, this.id._serialized);        
+        }, this.id._serialized);
     }
     
     /**
@@ -120,7 +151,7 @@ class Chat extends Base {
         return this.client.pupPage.evaluate(chatId => {
             window.WWebJS.sendChatstate('recording', chatId);
             return true;
-        }, this.id._serialized);        
+        }, this.id._serialized);
     }
 
     /**
@@ -130,7 +161,7 @@ class Chat extends Base {
         return this.client.pupPage.evaluate(chatId => {
             window.WWebJS.sendChatstate('stop', chatId);
             return true;
-        }, this.id._serialized);        
+        }, this.id._serialized);
     }
 }
 
