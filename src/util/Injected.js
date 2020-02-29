@@ -10,8 +10,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Conn = window.mR.findModule('Conn')[0].default;
     window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
     window.Store.Wap = window.mR.findModule('Wap')[0].default;
-    //window.Store.WapQuery = window.mR.findModule('WapQuery').default;
-    window.Store.WapQuery = webpackJsonp([], null, ['begfaahgdb']).default;
     window.Store.SendClear = window.mR.findModule('sendClear')[0];
     window.Store.SendDelete = window.mR.findModule('sendDelete')[0];
     window.Store.genId = window.mR.findModule((module) => module.default && typeof module.default === 'function' && module.default.toString().match(/crypto/))[0].default;
@@ -259,7 +257,7 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.typing = async (chatId) => {
-        await window.Store.WapQuery.sendChatstateComposing(chatId);
+        await window.Store.Wap.sendChatstateComposing(chatId);
         return true;
     };    
     
