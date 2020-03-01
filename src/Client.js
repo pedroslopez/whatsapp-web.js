@@ -19,9 +19,13 @@ const { ClientInfo, Message, MessageMedia, Location, GroupNotification } = requi
  * @fires Client#auth_failure
  * @fires Client#ready
  * @fires Client#message
+ * @fires Client#message_ack
  * @fires Client#message_create
  * @fires Client#message_revoke_me
  * @fires Client#message_revoke_everyone
+ * @fires Client#group_join
+ * @fires Client#group_leave
+ * @fires Client#group_update
  * @fires Client#disconnected
  * @fires Client#change_state
  */
@@ -148,10 +152,25 @@ class Client extends EventEmitter {
             if (msg.type === 'gp2') {
                 const notification = new GroupNotification(this, msg);
                 if (msg.subtype === 'add' || msg.subtype === 'invite') {
+                    /**
+                     * Emitted when a user joins the chat via invite link or is added by an admin.
+                     * @event Client#group_join
+                     * @param {GroupNotification} notification GroupNotification with more information about the action
+                     */
                     this.emit(Events.GROUP_JOIN, notification);
                 } else if (msg.subtype === 'remove' || msg.subtype === 'leave') {
+                    /**
+                     * Emitted when a user leaves the chat or is removed by an admin.
+                     * @event Client#group_leave
+                     * @param {GroupNotification} notification GroupNotification with more information about the action
+                     */
                     this.emit(Events.GROUP_LEAVE, notification);
                 } else {
+                    /**
+                     * Emitted when group settings are updated, such as subject, description or picture.
+                     * @event Client#group_update
+                     * @param {GroupNotification} notification GroupNotification with more information about the action
+                     */
                     this.emit(Events.GROUP_UPDATE, notification);
                 }
                 return;
