@@ -219,6 +219,23 @@ client.on('message_ack', (msg, ack) => {
     }
 });
 
+client.on('group_join', (notification) => {
+    // User has joined or been added to the group.
+    console.log('join', notification);
+    notification.reply('User joined.');
+});
+
+client.on('group_leave', (notification) => {
+    // User has left or been kicked from the group.
+    console.log('leave', notification);
+    notification.reply('User left.');
+});
+
+client.on('group_update', (notification) => {
+    // Group picture, subject or description has been updated.
+    console.log('update', notification);
+});
+
 client.on('disconnected', (reason) => {
     console.log('Client was logged out', reason);
 });
