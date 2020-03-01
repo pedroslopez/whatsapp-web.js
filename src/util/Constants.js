@@ -65,6 +65,23 @@ exports.MessageTypes = {
 };
 
 /**
+ * Group notification types
+ * @readonly
+ * @enum {string}
+ */
+exports.GroupNotificationTypes = {
+    ADD: 'add',
+    INVITE: 'invite',
+    REMOVE: 'remove',
+    LEAVE: 'leave',
+    SUBJECT: 'subject',
+    DESCRIPTION: 'description',
+    PICTURE: 'picture',
+    ANNOUNCE: 'announce',
+    RESTRICT: 'restrict',
+};
+
+/**
  * Chat types
  * @readonly
  * @enum {string}
