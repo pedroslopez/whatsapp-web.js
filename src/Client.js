@@ -12,6 +12,7 @@ const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
 const ClientInfo = require('./structures/ClientInfo');
 const Message = require('./structures/Message');
+const GroupNotification = require('./structures/GroupNotification');
 const MessageMedia = require('./structures/MessageMedia');
 const Location = require('./structures/Location');
 
@@ -149,6 +150,18 @@ class Client extends EventEmitter {
         await page.exposeFunction('onAddMessageEvent', msg => {
             if (!msg.isNewMsg) return;
 
+            if (msg.type === 'gp2') {
+                const notification = new GroupNotification(this, msg);
+                if (msg.subtype === 'add' || msg.subtype === 'invite') {
+                    this.emit(Events.GROUP_JOIN, notification);
+                } else if (msg.subtype === 'remove' || msg.subtype === 'leave') {
+                    this.emit(Events.GROUP_LEAVE, notification);
+                } else {
+                    this.emit(Events.GROUP_UPDATE, notification);
+                }
+                return;
+            }
+            
             const message = new Message(this, msg);
 
             /**
