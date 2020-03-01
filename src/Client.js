@@ -10,11 +10,7 @@ const { WhatsWebURL, UserAgent, DefaultOptions, Events, WAState } = require('./u
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
-const ClientInfo = require('./structures/ClientInfo');
-const Message = require('./structures/Message');
-const MessageMedia = require('./structures/MessageMedia');
-const Location = require('./structures/Location');
-
+const { ClientInfo, Message, MessageMedia, Location, GroupNotification } = require('./structures');
 /**
  * Starting point for interacting with the WhatsApp Web API
  * @extends {EventEmitter}
@@ -83,21 +79,34 @@ class Client extends EventEmitter {
             }
 
         } else {
-            // Wait for QR Code
-            const QR_CANVAS_SELECTOR = 'canvas';
-            await page.waitForSelector(QR_CANVAS_SELECTOR);
-            const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0, 0, 264, 264).data));
-            const qr = jsQR(qrImgData, 264, 264).data;
+            const getQrCode = async () => {
+                // Check if retry button is present
+                var QR_RETRY_SELECTOR = 'div[data-ref] > span > div';
+                var qrRetry = await page.$(QR_RETRY_SELECTOR);
+                if (qrRetry) {
+                    await qrRetry.click();
+                }
 
-            /**
-             * Emitted when the QR code is received
-             * @event Client#qr
-             * @param {string} qr QR Code
-             */
-            this.emit(Events.QR_RECEIVED, qr);
+                // Wait for QR Code
+
+                const QR_CANVAS_SELECTOR = 'canvas';
+                await page.waitForSelector(QR_CANVAS_SELECTOR);
+                const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0, 0, 264, 264).data));
+                const qr = jsQR(qrImgData, 264, 264).data;
+                /**
+                * Emitted when the QR code is received
+                * @event Client#qr
+                * @param {string} qr QR Code
+                */
+                this.emit(Events.QR_RECEIVED, qr);
+            };
+            getQrCode();
+            let retryInterval = setInterval(getQrCode, 20000); // check for qr code every 20 seconds
 
             // Wait for code scan
             await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 0 });
+            clearInterval(retryInterval);
+
         }
 
         await page.evaluate(ExposeStore, moduleRaid.toString());
@@ -136,6 +145,18 @@ class Client extends EventEmitter {
         await page.exposeFunction('onAddMessageEvent', msg => {
             if (!msg.isNewMsg) return;
 
+            if (msg.type === 'gp2') {
+                const notification = new GroupNotification(this, msg);
+                if (msg.subtype === 'add' || msg.subtype === 'invite') {
+                    this.emit(Events.GROUP_JOIN, notification);
+                } else if (msg.subtype === 'remove' || msg.subtype === 'leave') {
+                    this.emit(Events.GROUP_LEAVE, notification);
+                } else {
+                    this.emit(Events.GROUP_UPDATE, notification);
+                }
+                return;
+            }
+            
             const message = new Message(this, msg);
 
             /**
@@ -201,6 +222,20 @@ class Client extends EventEmitter {
 
         });
 
+        await page.exposeFunction('onMessageAckEvent', (msg, ack) => {
+
+            const message = new Message(this, msg);
+            
+            /**
+             * Emitted when an ack event occurrs on message type.
+             * @event Client#message_ack
+             * @param {Message} message The message that was affected
+             * @param {MessageAck} ack The new ACK value
+             */
+            this.emit(Events.MESSAGE_ACK, message, ack);
+
+        });
+
         await page.exposeFunction('onAppStateChangedEvent', (_AppState, state) => {
 
             /**
@@ -226,6 +261,7 @@ class Client extends EventEmitter {
             window.Store.Msg.on('add', window.onAddMessageEvent);
             window.Store.Msg.on('change', window.onChangeMessageEvent);
             window.Store.Msg.on('change:type', window.onChangeMessageTypeEvent);
+            window.Store.Msg.on('change:ack', window.onMessageAckEvent);
             window.Store.Msg.on('remove', window.onRemoveMessageEvent);
             window.Store.AppState.on('change:state', window.onAppStateChangedEvent);
         });
@@ -297,7 +333,8 @@ class Client extends EventEmitter {
                     //This is just a workaround.May cause problem if there are no chats at all. Need to dig in and emulate how whatsapp web does
                     let chat = window.Store.Chat.models[0];
                     if (!chat)
-                        throw 'Chat List empty! Need atleast one open conversation with any of your contact';
+                        throw 'Chat List empty! Need at least one open conversation with any of your contact';
+
                     let originalChatObjId = chat.id;
                     chat.id = newChatId;
 
@@ -317,7 +354,6 @@ class Client extends EventEmitter {
 
         return new Message(this, newMessage);
     }
-
 
     /**
      * Get all current chat instances
@@ -398,6 +434,39 @@ class Client extends EventEmitter {
     async getState() {
         return await this.pupPage.evaluate(() => {
             return window.Store.AppState.state;
+        });
+    }
+
+    /**
+     * Enables and returns the archive state of the Chat
+     * @returns {boolean}
+     */
+    async archiveChat(chatId) {
+        return await this.pupPage.evaluate(async chatId => {
+            let chat = await window.Store.Chat.get(chatId);
+            await window.Store.Cmd.archiveChat(chat, true);
+            return chat.archive;
+        }, chatId);
+    }
+
+    /**
+     * Changes and returns the archive state of the Chat
+     * @returns {boolean}
+     */
+    async unarchiveChat(chatId) {
+        return await this.pupPage.evaluate(async chatId => {
+            let chat = await window.Store.Chat.get(chatId);
+            await window.Store.Cmd.archiveChat(chat, false);
+            return chat.archive;
+        }, chatId);
+    }
+
+    /**
+     * Force reset of connection state for the client
+    */
+    async resetState(){
+        await this.pupPage.evaluate(() => {
+            window.Store.AppState.phoneWatchdog.shiftTimer.forceRunNow();
         });
     }
 

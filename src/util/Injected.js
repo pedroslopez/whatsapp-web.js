@@ -11,6 +11,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
     window.Store.Wap = window.mR.findModule('Wap')[0].default;
     window.Store.SendSeen = window.mR.findModule('sendSeen')[0];
+    window.Store.SendClear = window.mR.findModule('sendClear')[0];
+    window.Store.SendDelete = window.mR.findModule('sendDelete')[0];
     window.Store.genId = window.mR.findModule((module) => module.default && typeof module.default === 'function' && module.default.toString().match(/crypto/))[0].default;
     window.Store.SendMessage = window.mR.findModule('addAndSendMsgToChat')[0];
     window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
@@ -245,6 +247,43 @@ exports.LoadUtils = () => {
             reader.readAsDataURL(blob);
         });
     };
+
+    window.WWebJS.sendClearChat = async (chatId) => {
+        let chat = window.Store.Chat.get(chatId);
+        if (chat !== undefined) {
+            await window.Store.SendClear.sendClear(chat, false);
+            return true;
+        }
+        return false;
+    };
+
+    window.WWebJS.sendDeleteChat = async (chatId) => {
+        let chat = window.Store.Chat.get(chatId);
+        if (chat !== undefined) {
+            await window.Store.SendDelete.sendDelete(chat);
+            return true;
+        }
+        return false;
+    };
+
+    window.WWebJS.sendChatstate = async (state, chatId) => {
+        switch(state) {
+        case 'typing':
+            await window.Store.Wap.sendChatstateComposing(chatId);
+            break;
+        case 'recording':
+            await window.Store.Wap.sendChatstateRecording(chatId);
+            break;
+        case 'stop':
+            await window.Store.Wap.sendChatstatePaused(chatId);
+            break;
+        default:
+            throw 'Invalid chatstate';
+        }
+        
+        return true;
+    };    
+    
 };
 
 exports.MarkAllRead = () => {

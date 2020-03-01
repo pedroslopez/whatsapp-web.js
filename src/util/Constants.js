@@ -35,9 +35,13 @@ exports.Events = {
     MESSAGE_CREATE: 'message_create',
     MESSAGE_REVOKED_EVERYONE: 'message_revoke_everyone',
     MESSAGE_REVOKED_ME: 'message_revoke_me',
+    MESSAGE_ACK: 'message_ack',
+    GROUP_JOIN: 'group_join',
+    GROUP_LEAVE: 'group_leave',
+    GROUP_UPDATE: 'group_update',
     QR_RECEIVED: 'qr',
     DISCONNECTED: 'disconnected',
-    STATE_CHANGED: 'change_state'
+    STATE_CHANGED: 'change_state',
 };
 
 /**
@@ -58,6 +62,23 @@ exports.MessageTypes = {
     CONTACT_CARD_MULTI: 'multi_vcard',
     REVOKED: 'revoked',
     UNKNOWN: 'unknown'
+};
+
+/**
+ * Group notification types
+ * @readonly
+ * @enum {string}
+ */
+exports.GroupNotificationTypes = {
+    ADD: 'add',
+    INVITE: 'invite',
+    REMOVE: 'remove',
+    LEAVE: 'leave',
+    SUBJECT: 'subject',
+    DESCRIPTION: 'description',
+    PICTURE: 'picture',
+    ANNOUNCE: 'announce',
+    RESTRICT: 'restrict',
 };
 
 /**
@@ -89,4 +110,18 @@ exports.WAState = {
     UNLAUNCHED: 'UNLAUNCHED',
     UNPAIRED: 'UNPAIRED',
     UNPAIRED_IDLE: 'UNPAIRED_IDLE'
+};
+
+/**
+ * Message ACK
+ * @readonly
+ * @enum {number}
+ */
+exports.MessageAck = {
+    ACK_ERROR: -1,
+    ACK_PENDING: 0,
+    ACK_SERVER: 1,
+    ACK_DEVICE: 2,
+    ACK_READ: 3,
+    ACK_PLAYED: 4,
 };
