@@ -35,9 +35,10 @@ exports.Events = {
     MESSAGE_CREATE: 'message_create',
     MESSAGE_REVOKED_EVERYONE: 'message_revoke_everyone',
     MESSAGE_REVOKED_ME: 'message_revoke_me',
+    MESSAGE_ACK: 'message_ack',
     QR_RECEIVED: 'qr',
     DISCONNECTED: 'disconnected',
-    STATE_CHANGED: 'change_state'
+    STATE_CHANGED: 'change_state',
 };
 
 /**
@@ -89,4 +90,18 @@ exports.WAState = {
     UNLAUNCHED: 'UNLAUNCHED',
     UNPAIRED: 'UNPAIRED',
     UNPAIRED_IDLE: 'UNPAIRED_IDLE'
+};
+
+/**
+ * Message ACK
+ * @readonly
+ * @enum {number}
+ */
+exports.MessageAck = {
+    ACK_ERROR: -1,
+    ACK_PENDING: 0,
+    ACK_SERVER: 1,
+    ACK_DEVICE: 2,
+    ACK_READ: 3,
+    ACK_PLAYED: 4,
 };

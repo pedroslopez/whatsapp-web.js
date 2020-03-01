@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.3">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.0.2 &raquo; Class: GroupChat</title>
+  <title>whatsapp-web.js 1.1.0 &raquo; Class: GroupChat</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>0.<wbr>2</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>1.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -39,6 +39,9 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="GroupChat.html#archived">archived</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="GroupChat.html#createdAt">createdAt</a></dt>
                     <dd>
                     </dd>
@@ -48,13 +51,13 @@
                     <dt><a href="GroupChat.html#id">id</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="GroupChat.html#isGroup">isGroup</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="GroupChat.html#isGroup">isGroup</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="GroupChat.html#isReadOnly">isReadOnly</a></dt>
                     <dd>
                     </dd>
@@ -64,13 +67,13 @@
                     <dt><a href="GroupChat.html#owner">owner</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="GroupChat.html#participants">participants</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="GroupChat.html#participants">participants</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="GroupChat.html#timestamp">timestamp</a></dt>
                     <dd>
                     </dd>
@@ -95,13 +98,22 @@
                     <dt><a href="GroupChat.html#addParticipants">addParticipants(participantIds)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="GroupChat.html#demoteParticipants">demoteParticipants(participantIds)</a></dt>
+                    <dt><a href="GroupChat.html#archive">archive()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="GroupChat.html#clearMessages">clearMessages()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="GroupChat.html#delete">delete()</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="GroupChat.html#demoteParticipants">demoteParticipants(participantIds)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="GroupChat.html#getInviteCode">getInviteCode()</a></dt>
                     <dd>
                     </dd>
@@ -114,13 +126,13 @@
                     <dt><a href="GroupChat.html#removeParticipants">removeParticipants(participantIds)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="GroupChat.html#revokeInvite">revokeInvite()</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="GroupChat.html#revokeInvite">revokeInvite()</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="GroupChat.html#sendMessage">sendMessage(content, options)</a></dt>
                     <dd>
                     </dd>
@@ -128,6 +140,9 @@
                     <dd>
                     </dd>
                     <dt><a href="GroupChat.html#setSubject">setSubject(subject)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="GroupChat.html#unarchive">unarchive()</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -145,6 +160,13 @@
           <section>
             <h2>Properties</h2>
             <section>
+              <h3 id="archived"><span class="symbol-name">archived</span><small class="property-type">
+                  &nbsp;unknown</small></h3>
+              <p>Indicates if the Chat is archived</p>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#archived">Chat#archived</a></dd>
+              </dl>
               <h3 id="createdAt"><span class="symbol-name">createdAt</span><small class="property-type">
                   &nbsp;date</small></h3>
               <p>Gets the date at which the group was created</p>
@@ -312,6 +334,35 @@
                 </table>
               </section>
               <dl class="dl-compact">
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="archive"><span class="symbol-name">archive</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Archives this chat</p>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#archive">Chat#archive</a></dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="clearMessages"><span class="symbol-name">clearMessages</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Boolean</span></span></h3>
+              <p>Clears all messages from the chat</p>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#clearMessages">Chat#clearMessages</a></dd>
+                <dt>Returns</dt>
+                <dd>
+                  <p>result</p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="delete"><span class="symbol-name">delete</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Boolean</span></span></h3>
+              <p>Deletes the chat</p>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#delete">Chat#delete</a></dd>
+                <dt>Returns</dt>
+                <dd>
+                  <p>result</p>
+                </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="demoteParticipants"><span class="symbol-name">demoteParticipants</span><span class="signature"><span class="signature-params">(participantIds)</span></span></h3>
@@ -545,6 +596,13 @@
               </section>
               <dl class="dl-compact">
               </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="unarchive"><span class="symbol-name">unarchive</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>un-archives this chat</p>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#unarchive">Chat#unarchive</a></dd>
+              </dl>
             </section>
           </section>
         </div>
@@ -555,7 +613,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on February 10, 2020.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on February 26, 2020.
       </p>
     </div>
   </footer>

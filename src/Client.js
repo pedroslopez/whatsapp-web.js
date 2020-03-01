@@ -214,6 +214,20 @@ class Client extends EventEmitter {
 
         });
 
+        await page.exposeFunction('onMessageAckEvent', (msg, ack) => {
+
+            const message = new Message(this, msg);
+            
+            /**
+             * Emitted when an ack event occurrs on message type.
+             * @event Client#message_ack
+             * @param {Message} message The message that was affected
+             * @param {MessageAck} ack The new ACK value
+             */
+            this.emit(Events.MESSAGE_ACK, message, ack);
+
+        });
+
         await page.exposeFunction('onAppStateChangedEvent', (_AppState, state) => {
 
             /**
@@ -239,6 +253,7 @@ class Client extends EventEmitter {
             window.Store.Msg.on('add', window.onAddMessageEvent);
             window.Store.Msg.on('change', window.onChangeMessageEvent);
             window.Store.Msg.on('change:type', window.onChangeMessageTypeEvent);
+            window.Store.Msg.on('change:ack', window.onMessageAckEvent);
             window.Store.Msg.on('remove', window.onRemoveMessageEvent);
             window.Store.AppState.on('change:state', window.onAppStateChangedEvent);
         });
@@ -308,7 +323,6 @@ class Client extends EventEmitter {
 
         return new Message(this, newMessage);
     }
-
 
     /**
      * Get all current chat instances
@@ -389,6 +403,39 @@ class Client extends EventEmitter {
     async getState() {
         return await this.pupPage.evaluate(() => {
             return window.Store.AppState.state;
+        });
+    }
+
+    /**
+     * Enables and returns the archive state of the Chat
+     * @returns {boolean}
+     */
+    async archiveChat(chatId) {
+        return await this.pupPage.evaluate(async chatId => {
+            let chat = await window.Store.Chat.get(chatId);
+            await window.Store.Cmd.archiveChat(chat, true);
+            return chat.archive;
+        }, chatId);
+    }
+
+    /**
+     * Changes and returns the archive state of the Chat
+     * @returns {boolean}
+     */
+    async unarchiveChat(chatId) {
+        return await this.pupPage.evaluate(async chatId => {
+            let chat = await window.Store.Chat.get(chatId);
+            await window.Store.Cmd.archiveChat(chat, false);
+            return chat.archive;
+        }, chatId);
+    }
+
+    /**
+     * Force reset of connection state for the client
+    */
+    async resetState(){
+        await this.pupPage.evaluate(() => {
+            window.Store.AppState.phoneWatchdog.shiftTimer.forceRunNow();
         });
     }
 

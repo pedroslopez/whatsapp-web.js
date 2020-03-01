@@ -20,14 +20,12 @@ client.on('qr', (qr) => {
 
 client.on('authenticated', (session) => {
     console.log('AUTHENTICATED', session);
-
-    if (!fs.existsSync(SESSION_FILE_PATH)) {
-        fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
-            if (err) {
-                console.error(err);
-            }
-        });
-    }
+    sessionCfg=session;
+    fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
+        if (err) {
+            console.error(err);
+        }
+    });
 });
 
 client.on('auth_failure', msg => {
@@ -146,7 +144,6 @@ client.on('message', async msg => {
             const attachmentData = await quotedMsg.downloadMedia();
             client.sendMessage(msg.from, attachmentData, { caption: 'Here\'s your requested media.' });
         }
-
     } else if (msg.body == '!location') {
         msg.reply(new Location(37.422, -122.084, 'Googleplex\nGoogle Headquarters'));
     } else if (msg.location) {
@@ -168,6 +165,21 @@ client.on('message', async msg => {
         } else {
             msg.reply('I can only delete my own messages');
         }
+    } else if (msg.body === '!archive') {
+        const chat = await msg.getChat();
+        chat.archive();
+    } else if (msg.body === '!typing') {
+        const chat = await msg.getChat();
+        // simulates typing in the chat
+        chat.sendStateTyping();        
+    } else if (msg.body === '!recording') {
+        const chat = await msg.getChat();
+        // simulates recording audio in the chat
+        chat.sendStateRecording();        
+    } else if (msg.body === '!clearstate') {
+        const chat = await msg.getChat();
+        // stops typing or recording in the chat
+        chat.clearState();        
     }
 });
 
@@ -189,6 +201,22 @@ client.on('message_revoke_everyone', async (after, before) => {
 client.on('message_revoke_me', async (msg) => {
     // Fired whenever a message is only deleted in your own view.
     console.log(msg.body); // message before it was deleted.
+});
+
+client.on('message_ack', (msg, ack) => {
+    /*
+        == ACK VALUES ==
+        ACK_ERROR: -1
+        ACK_PENDING: 0
+        ACK_SERVER: 1
+        ACK_DEVICE: 2
+        ACK_READ: 3
+        ACK_PLAYED: 4
+    */
+
+    if(ack == 3) {
+        // The message was read
+    }
 });
 
 client.on('disconnected', (reason) => {
