@@ -10,10 +10,7 @@ const { WhatsWebURL, UserAgent, DefaultOptions, Events, WAState } = require('./u
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
-const ClientInfo = require('./structures/ClientInfo');
-const Message = require('./structures/Message');
-const MessageMedia = require('./structures/MessageMedia');
-const Location = require('./structures/Location');
+const { ClientInfo, Message, MessageMedia, Location } = require('./structures');
 
 /**
  * Starting point for interacting with the WhatsApp Web API
