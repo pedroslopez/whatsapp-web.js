@@ -54,7 +54,8 @@ client.on('message', async msg => {
         let messageIndex = msg.body.indexOf(number) + number.length;
         let message = msg.body.slice(messageIndex, msg.body.length);
         number = number.includes('@c.us') ? number : `${number}@c.us`;
-
+        let chat = await msg.getChat();
+        chat.sendSeen();
         client.sendMessage(number, message);
 
     } else if (msg.body.startsWith('!subject ')) {
@@ -160,7 +161,7 @@ client.on('message', async msg => {
         });
     } else if (msg.body == '!delete' && msg.hasQuotedMsg) {
         const quotedMsg = await msg.getQuotedMessage();
-        if(quotedMsg.fromMe) {
+        if (quotedMsg.fromMe) {
             quotedMsg.delete(true);
         } else {
             msg.reply('I can only delete my own messages');
