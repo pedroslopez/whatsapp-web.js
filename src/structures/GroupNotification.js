@@ -21,22 +21,16 @@ class GroupNotification extends Base {
         this.id = data.id;
 
         /**
-         * GroupNotification content
+         * Extra content
          * @type {string}
          */
-        this.body = this.hasMedia ? data.caption || '' : data.body || '';
+        this.body = data.body || '';
 
         /** 
          * GroupNotification type
          * @type {GroupNotificationTypes}
          */
-        this.type = data.type;
-
-        /**
-         * GroupNotification Subtype
-         * @type {GroupNotificationSubtypes}
-         */
-        this.subtype = data.subtype;
+        this.type = data.subtype;
         
         /**
          * Unix timestamp for when the groupNotification was created
@@ -45,34 +39,20 @@ class GroupNotification extends Base {
         this.timestamp = data.t;
 
         /**
-         * ID for the Chat that this groupNotification was sent to, except if the groupNotification was sent by the current user.
-         * @type {string}
-         */
-        this.from = typeof (data.from) === 'object' ? data.from._serialized : data.from;
-
-        /**
-         * ID for who this groupNotification is for.
+         * ID for the Chat that this groupNotification was sent for.
          * 
-         * If the groupNotification is sent by the current user, it will be the Chat to which the groupNotification is being sent.
-         * If the groupNotification is sent by another user, it will be the ID for the current user. 
          * @type {string}
          */
-        this.to = typeof (data.to) === 'object' ? data.to._serialized : data.to;
+        this.chatId = typeof (data.to) === 'object' ? data.to._serialized : data.to;
 
         /**
-         * If the groupNotification was sent to a group, this field will contain the user that sent the groupNotification.
+         * ContactId for the user that produced the GroupNotification.
          * @type {string}
          */
         this.author = typeof (data.author) === 'object' ? data.author._serialized : data.author;
-
-        /** 
-         * Indicates if the groupNotification was sent by the current user
-         * @type {boolean}
-         */
-        this.fromMe = data.id.fromMe;
         
         /**
-         * Indicates the Recipients of a GroupNotification.
+         * Contact IDs for the users that were affected by this GroupNotification.
          * @type {Array<string>}
          */
         this.recipientIds = [];
@@ -84,28 +64,24 @@ class GroupNotification extends Base {
         return super._patch(data);
     }
 
-    _getChatId() {
-        return this.fromMe ? this.to : this.from;
-    }
-
     /**
      * Returns the Chat this groupNotification was sent in
      * @returns {Promise<Chat>}
      */
     getChat() {
-        return this.client.getChatById(this._getChatId());
+        return this.client.getChatById(this.chatId);
     }
 
     /**
-     * Returns the Contact this groupNotification was sent from
+     * Returns the Contact this GroupNotification was produced by
      * @returns {Promise<Contact>}
      */
     getContact() {
-        return this.client.getContactById(this.author || this.from);
+        return this.client.getContactById(this.author);
     }
 
     /**
-     * Returns the Contacts mentioned in this groupNotification
+     * Returns the Contacts affected by this GroupNotification.
      * @returns {Promise<Array<Contact>>}
      */
     async getRecipients() {
@@ -113,25 +89,14 @@ class GroupNotification extends Base {
     }
 
     /**
-     * Sends a message as a reply to this groupNotification. If chatId is specified, it will be sent 
-     * through the specified Chat. If not, it will send the groupNotification 
-     * in the same Chat as the original groupNotification was sent.
+     * Sends a message to the same chat this GroupNotification was produced in.
      * 
      * @param {string|MessageMedia|Location} content 
-     * @param {?string} chatId 
      * @param {object} options
      * @returns {Promise<Message>}
      */
-    async reply(content, chatId, options={}) {
-        if (!chatId) {
-            chatId = this._getChatId();
-        }
-
-        options = {
-            ...options,
-        };
-
-        return this.client.sendMessage(chatId, content, options);
+    async reply(content, options={}) {
+        return this.client.sendMessage(this._getChatId(), content, options);
     }
     
 }
