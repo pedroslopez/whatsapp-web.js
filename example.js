@@ -219,6 +219,18 @@ client.on('message_ack', (msg, ack) => {
     }
 });
 
+client.on('group_join', (notification) => {
+    notification.reply('User joined.');
+});
+
+client.on('group_leave', (notification) => {
+    notification.reply('User left.');
+});
+
+client.on('group_update', (notification) => {
+    notification.reply('Chat did something.');
+});
+
 client.on('disconnected', (reason) => {
     console.log('Client was logged out', reason);
 });
