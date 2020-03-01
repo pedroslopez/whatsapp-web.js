@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.3">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.1.0 &raquo; Class: GroupChat</title>
+  <title>whatsapp-web.js 1.2.0 &raquo; Class: GroupChat</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>1.<wbr>0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>2.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -104,6 +104,9 @@
                     <dt><a href="GroupChat.html#clearMessages">clearMessages()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="GroupChat.html#clearState">clearState()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="GroupChat.html#delete">delete()</a></dt>
                     <dd>
                     </dd>
@@ -112,6 +115,9 @@
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
                     <dt><a href="GroupChat.html#demoteParticipants">demoteParticipants(participantIds)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="GroupChat.html#fetchMessages">fetchMessages(searchOptions)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="GroupChat.html#getInviteCode">getInviteCode()</a></dt>
@@ -134,6 +140,15 @@
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
                     <dt><a href="GroupChat.html#sendMessage">sendMessage(content, options)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="GroupChat.html#sendSeen">sendSeen()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="GroupChat.html#sendStateRecording">sendStateRecording()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="GroupChat.html#sendStateTyping">sendStateTyping()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="GroupChat.html#setDescription">setDescription(description)</a></dt>
@@ -354,6 +369,13 @@
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="clearState"><span class="symbol-name">clearState</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Stops typing or recording in chat immediately.</p>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#clearState">Chat#clearState</a></dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="delete"><span class="symbol-name">delete</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Boolean</span></span></h3>
               <p>Deletes the chat</p>
               <dl class="dl-compact">
@@ -396,6 +418,72 @@
                 </table>
               </section>
               <dl class="dl-compact">
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="fetchMessages"><span class="symbol-name">fetchMessages</span><span class="signature"><span class="signature-params">(searchOptions)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of <a href="Message.html">Message</a></span></span></h3>
+              <p>Loads chat messages, sorted from earliest to latest.</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>searchOptions</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Options for searching messages. Right now only limit is supported.</p>
+                        <p>Values in <code>searchOptions</code> have the following properties:</p>
+                        <table class="jsdoc-details-table">
+                          <thead>
+                            <tr>
+                              <th>Name</th>
+                              <th>Type</th>
+                              <th>Optional</th>
+                              <th>Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>
+                                <p>limit</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                                <p>Yes</p>
+                              </td>
+                              <td>
+                                <p>The amount of messages to return. Note that the actual number of returned messages may be smaller if there aren't enough messages in the conversation. Set this to Infinity to load all messages.</p>
+                                <p>Defaults to <code>50</code>.</p>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#fetchMessages">Chat#fetchMessages</a></dd>
+                <dt>Returns</dt>
+                <dd></dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="getInviteCode"><span class="symbol-name">getInviteCode</span><span class="signature"><span class="signature-params">()</span></span></h3>
@@ -531,6 +619,31 @@
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="sendSeen"><span class="symbol-name">sendSeen</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Boolean</span></span></h3>
+              <p>Set the message as seen</p>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#sendSeen">Chat#sendSeen</a></dd>
+                <dt>Returns</dt>
+                <dd>
+                  <p>result</p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="sendStateRecording"><span class="symbol-name">sendStateRecording</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Simulate recording audio in chat. This will last for 25 seconds.</p>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#sendStateRecording">Chat#sendStateRecording</a></dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="sendStateTyping"><span class="symbol-name">sendStateTyping</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Simulate typing in chat. This will last for 25 seconds.</p>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#sendStateTyping">Chat#sendStateTyping</a></dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="setDescription"><span class="symbol-name">setDescription</span><span class="signature"><span class="signature-params">(description)</span></span></h3>
               <p>Updates the group description</p>
               <section>
@@ -613,7 +726,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on February 26, 2020.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on March 1, 2020.
       </p>
     </div>
   </footer>

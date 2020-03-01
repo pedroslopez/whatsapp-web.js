@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.3">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.1.0 &raquo; Class: Client</title>
+  <title>whatsapp-web.js 1.2.0 &raquo; Class: Client</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>1.<wbr>0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>2.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -51,13 +51,13 @@
                     <dt><a href="Client.html#getChatById">getChatById(chatId)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Client.html#getChats">getChats()</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Client.html#getChats">getChats()</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="Client.html#getContactById">getContactById(contactId)</a></dt>
                     <dd>
                     </dd>
@@ -67,14 +67,20 @@
                     <dt><a href="Client.html#getState">getState()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Client.html#initialize">initialize()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#resetState">resetState()</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Client.html#initialize">initialize()</a></dt>
+                    <dt><a href="Client.html#sendMessage">sendMessage(chatId, content, options)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Client.html#sendMessage">sendMessage(chatId, content, options)</a></dt>
+                    <dt><a href="Client.html#sendSeen">sendSeen(chatId)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Client.html#setStatus">setStatus(status)</a></dt>
@@ -104,10 +110,19 @@
                     <dt><a href="Client.html#event:disconnected">disconnected</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Client.html#event:group_join">group_join</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Client.html#event:group_leave">group_leave</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#event:group_update">group_update</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#event:message">message</a></dt>
                     <dd>
                     </dd>
@@ -117,13 +132,13 @@
                     <dt><a href="Client.html#event:message_create">message_create</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Client.html#event:message_revoke_everyone">message_revoke_everyone</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Client.html#event:message_revoke_everyone">message_revoke_everyone</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#event:message_revoke_me">message_revoke_me</a></dt>
                     <dd>
                     </dd>
@@ -149,9 +164,13 @@
               <dd><a href="Client.html#event:auth_failure">Client#event:auth_failure</a></dd>
               <dd><a href="Client.html#event:ready">Client#event:ready</a></dd>
               <dd><a href="Client.html#event:message">Client#event:message</a></dd>
+              <dd><a href="Client.html#event:message_ack">Client#event:message_ack</a></dd>
               <dd><a href="Client.html#event:message_create">Client#event:message_create</a></dd>
               <dd><a href="Client.html#event:message_revoke_me">Client#event:message_revoke_me</a></dd>
               <dd><a href="Client.html#event:message_revoke_everyone">Client#event:message_revoke_everyone</a></dd>
+              <dd><a href="Client.html#event:group_join">Client#event:group_join</a></dd>
+              <dd><a href="Client.html#event:group_leave">Client#event:group_leave</a></dd>
+              <dd><a href="Client.html#event:group_update">Client#event:group_update</a></dd>
               <dd><a href="Client.html#event:disconnected">Client#event:disconnected</a></dd>
               <dd><a href="Client.html#event:change_state">Client#event:change_state</a></dd>
             </dl>
@@ -314,6 +333,11 @@
               <dl class="dl-compact">
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="resetState"><span class="symbol-name">resetState</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Force reset of connection state for the client</p>
+              <dl class="dl-compact">
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="sendMessage"><span class="symbol-name">sendMessage</span><span class="signature"><span class="signature-params">(chatId, content, options)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="Message.html">Message</a></span></span></h3>
               <p>Send a message to a specific chatId</p>
               <section>
@@ -374,6 +398,44 @@
                 <dt>Returns</dt>
                 <dd>
                   <p><code>Promise containing <a href="Message.html">Message</a></code> <p>Message that was just sent</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="sendSeen"><span class="symbol-name">sendSeen</span><span class="signature"><span class="signature-params">(chatId)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Mark as seen for the Chat</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>chatId</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code> <p>result</p>
                   </p>
                 </dd>
               </dl>
@@ -547,6 +609,105 @@
                       </td>
                       <td>
                         <p>state that caused the disconnect</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="event:group_join"><span class="symbol-name">group_join</span></h3>
+              <p>Emitted when a user joins the chat via invite link or is added by an admin.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>notification</p>
+                      </td>
+                      <td>
+                        <p><a href="GroupNotification.html">GroupNotification</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>GroupNotification with more information about the action</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="event:group_leave"><span class="symbol-name">group_leave</span></h3>
+              <p>Emitted when a user leaves the chat or is removed by an admin.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>notification</p>
+                      </td>
+                      <td>
+                        <p><a href="GroupNotification.html">GroupNotification</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>GroupNotification with more information about the action</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="event:group_update"><span class="symbol-name">group_update</span></h3>
+              <p>Emitted when group settings are updated, such as subject, description or picture.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>notification</p>
+                      </td>
+                      <td>
+                        <p><a href="GroupNotification.html">GroupNotification</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>GroupNotification with more information about the action</p>
                       </td>
                     </tr>
                   </tbody>
@@ -796,7 +957,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on February 26, 2020.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on March 1, 2020.
       </p>
     </div>
   </footer>

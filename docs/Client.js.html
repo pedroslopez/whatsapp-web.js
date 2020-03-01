@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.3">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.1.0 &raquo; Source: Client.js</title>
+  <title>whatsapp-web.js 1.2.0 &raquo; Source: Client.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>1.<wbr>0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>2.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -41,11 +41,7 @@ const { WhatsWebURL, UserAgent, DefaultOptions, Events, WAState } &#x3D; require
 const { ExposeStore, LoadUtils } &#x3D; require(&#x27;./util/Injected&#x27;);
 const ChatFactory &#x3D; require(&#x27;./factories/ChatFactory&#x27;);
 const ContactFactory &#x3D; require(&#x27;./factories/ContactFactory&#x27;);
-const ClientInfo &#x3D; require(&#x27;./structures/ClientInfo&#x27;);
-const Message &#x3D; require(&#x27;./structures/Message&#x27;);
-const MessageMedia &#x3D; require(&#x27;./structures/MessageMedia&#x27;);
-const Location &#x3D; require(&#x27;./structures/Location&#x27;);
-
+const { ClientInfo, Message, MessageMedia, Location, GroupNotification } &#x3D; require(&#x27;./structures&#x27;);
 /**
  * Starting point for interacting with the WhatsApp Web API
  * @extends {EventEmitter}
@@ -54,9 +50,13 @@ const Location &#x3D; require(&#x27;./structures/Location&#x27;);
  * @fires Client#auth_failure
  * @fires Client#ready
  * @fires Client#message
+ * @fires Client#message_ack
  * @fires Client#message_create
  * @fires Client#message_revoke_me
  * @fires Client#message_revoke_everyone
+ * @fires Client#group_join
+ * @fires Client#group_leave
+ * @fires Client#group_update
  * @fires Client#disconnected
  * @fires Client#change_state
  */
@@ -180,6 +180,33 @@ class Client extends EventEmitter {
         await page.exposeFunction(&#x27;onAddMessageEvent&#x27;, msg &#x3D;&gt; {
             if (!msg.isNewMsg) return;
 
+            if (msg.type &#x3D;&#x3D;&#x3D; &#x27;gp2&#x27;) {
+                const notification &#x3D; new GroupNotification(this, msg);
+                if (msg.subtype &#x3D;&#x3D;&#x3D; &#x27;add&#x27; || msg.subtype &#x3D;&#x3D;&#x3D; &#x27;invite&#x27;) {
+                    /**
+                     * Emitted when a user joins the chat via invite link or is added by an admin.
+                     * @event Client#group_join
+                     * @param {GroupNotification} notification GroupNotification with more information about the action
+                     */
+                    this.emit(Events.GROUP_JOIN, notification);
+                } else if (msg.subtype &#x3D;&#x3D;&#x3D; &#x27;remove&#x27; || msg.subtype &#x3D;&#x3D;&#x3D; &#x27;leave&#x27;) {
+                    /**
+                     * Emitted when a user leaves the chat or is removed by an admin.
+                     * @event Client#group_leave
+                     * @param {GroupNotification} notification GroupNotification with more information about the action
+                     */
+                    this.emit(Events.GROUP_LEAVE, notification);
+                } else {
+                    /**
+                     * Emitted when group settings are updated, such as subject, description or picture.
+                     * @event Client#group_update
+                     * @param {GroupNotification} notification GroupNotification with more information about the action
+                     */
+                    this.emit(Events.GROUP_UPDATE, notification);
+                }
+                return;
+            }
+            
             const message &#x3D; new Message(this, msg);
 
             /**
@@ -305,7 +332,19 @@ class Client extends EventEmitter {
     async destroy() {
         await this.pupBrowser.close();
     }
+    /**
+     * Mark as seen for the Chat
+     *  @param {string} chatId
+     *  @returns {Promise&amp;lt;boolean&gt;} result
+     * 
+     */
+    async sendSeen(chatId) {
+        const result &#x3D; await this.pupPage.evaluate(async (chatId) &#x3D;&gt; {
+            return window.WWebJS.sendSeen(chatId);
 
+        }, chatId);
+        return result;
+    }
     /**
      * Send a message to a specific chatId
      * @param {string} chatId
@@ -319,6 +358,8 @@ class Client extends EventEmitter {
             quotedMessageId: options.quotedMessageId,
             mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact &#x3D;&gt; contact.id._serialized) : []
         };
+        
+        const sendSeen &#x3D; typeof options.sendSeen &#x3D;&#x3D;&#x3D; &#x27;undefined&#x27; ? true : options.sendSeen;
 
         if (content instanceof MessageMedia) {
             internalOptions.attachment &#x3D; content;
@@ -331,7 +372,7 @@ class Client extends EventEmitter {
             content &#x3D; &#x27;&#x27;;
         }
 
-        const newMessage &#x3D; await this.pupPage.evaluate(async (chatId, message, options) &#x3D;&gt; {
+        const newMessage &#x3D; await this.pupPage.evaluate(async (chatId, message, options, sendSeen) &#x3D;&gt; {
             let chat &#x3D; window.Store.Chat.get(chatId);
             let msg;
             if (!chat) { // The chat is not available in the previously chatted list
@@ -341,16 +382,25 @@ class Client extends EventEmitter {
                     //get the topmost chat object and assign the new chatId to it . 
                     //This is just a workaround.May cause problem if there are no chats at all. Need to dig in and emulate how whatsapp web does
                     let chat &#x3D; window.Store.Chat.models[0];
+                    if (!chat)
+                        throw &#x27;Chat List empty! Need at least one open conversation with any of your contact&#x27;;
+
                     let originalChatObjId &#x3D; chat.id;
                     chat.id &#x3D; newChatId;
+
                     msg &#x3D; await window.WWebJS.sendMessage(chat, message, options);
                     chat.id &#x3D; originalChatObjId; //replace the chat with its original id
                 }
             }
-            else
-                msg &#x3D; await window.WWebJS.sendMessage(chat, message, options);
+            else {
+                if(sendSeen) {
+                    window.WWebJS.sendSeen(chatId);
+                }
+                
+                msg &#x3D; await window.WWebJS.sendMessage(chat, message, options, sendSeen);
+            }
             return msg.serialize();
-        }, chatId, content, internalOptions);
+        }, chatId, content, internalOptions, sendSeen);
 
         return new Message(this, newMessage);
     }
@@ -461,6 +511,15 @@ class Client extends EventEmitter {
         }, chatId);
     }
 
+    /**
+     * Force reset of connection state for the client
+    */
+    async resetState(){
+        await this.pupPage.evaluate(() &#x3D;&gt; {
+            window.Store.AppState.phoneWatchdog.shiftTimer.forceRunNow();
+        });
+    }
+
 }
 
 module.exports &#x3D; Client;
@@ -474,7 +533,7 @@ module.exports &#x3D; Client;
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on February 26, 2020.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on March 1, 2020.
       </p>
     </div>
   </footer>
