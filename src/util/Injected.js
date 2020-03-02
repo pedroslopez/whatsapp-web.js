@@ -300,7 +300,6 @@ exports.LoadUtils = () => {
                     return false;
                 } else {
                     let stick = window.Store.StickerPack._models[0].stickers._models[0];
-                    console.log(stick);
                     stick.__x_clientUrl = sticker.url;
                     stick.__x_filehash = sticker.filehash;
                     stick.__x_id = sticker.filehash;
