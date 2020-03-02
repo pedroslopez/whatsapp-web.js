@@ -307,7 +307,7 @@ exports.LoadUtils = () => {
                     stick.__x_uploadhash = sticker.uploadhash;
                     stick.__x_mediaKey = sticker.mediaKey;
                     stick.__x_initialized = false;
-                    stick.__x_mediaData.mediaStage = "INIT";
+                    stick.__x_mediaData.mediaStage = 'INIT';
                     stick.__x__mediaObject = undefined;
                     await stick.initialize();
                     await stick.sendToChat(chat);
