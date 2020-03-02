@@ -287,19 +287,19 @@ exports.LoadUtils = () => {
     window.WWebJS.sendSticker = async (sticker, chatId) => {
         let chat = window.Store.Chat.get(chatId);
         if (chat !== undefined) {        
-            let prIdx = Store.StickerPack.pageWithIndex(0);
-            await Store.StickerPack.fetchAt(0);        
-            if (Store.StickerPack._models.length == 0) {
+            let prIdx = window.Store.StickerPack.pageWithIndex(0);
+            await window.Store.StickerPack.fetchAt(0);        
+            if (window.Store.StickerPack._models.length == 0) {
                 console.log('Could not fetch any sticker packs.');
                 return false;
             } else {
-                await Store.StickerPack._pageFetchPromises[prIdx];
-                await Store.StickerPack._models[0].stickers.fetch();
-                if (Store.StickerPack._models[0].stickers._models.length == 0) {
+                await window.Store.StickerPack._pageFetchPromises[prIdx];
+                await window.Store.StickerPack._models[0].stickers.fetch();
+                if (window.Store.StickerPack._models[0].stickers._models.length == 0) {
                     console.log('Could not fetch any stickers in the first pack.');
                     return false;
                 } else {
-                    let stick = Store.StickerPack._models[0].stickers._models[0];
+                    let stick = window.Store.StickerPack._models[0].stickers._models[0];
                     console.log(stick);
                     stick.__x_clientUrl = sticker.url;
                     stick.__x_filehash = sticker.filehash;
