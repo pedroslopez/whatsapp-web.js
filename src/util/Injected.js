@@ -24,7 +24,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Cmd = window.mR.findModule('Cmd')[0].default;
     window.Store.MediaTypes = window.mR.findModule('msgToMediaType')[0];
     window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default;
-
+    window.Store.Sticker = window.mR.findModule('Sticker')[0].default.Sticker;
 };
 
 exports.LoadUtils = () => {
@@ -282,8 +282,42 @@ exports.LoadUtils = () => {
         }
         
         return true;
-    };    
+    };
     
+    window.WWebJS.sendSticker = async (sticker, chatId) => {
+        let chat = window.Store.Chat.get(chatId);
+        if (chat !== undefined) {        
+            let prIdx = Store.StickerPack.pageWithIndex(0);
+            await Store.StickerPack.fetchAt(0);        
+            if (Store.StickerPack._models.length == 0) {
+                console.log('Could not fetch any sticker packs.');
+                return false;
+            } else {
+                await Store.StickerPack._pageFetchPromises[prIdx];
+                await Store.StickerPack._models[0].stickers.fetch();
+                if (Store.StickerPack._models[0].stickers._models.length == 0) {
+                    console.log('Could not fetch any stickers in the first pack.');
+                    return false;
+                } else {
+                    let stick = Store.StickerPack._models[0].stickers._models[0];
+                    console.log(stick);
+                    stick.__x_clientUrl = sticker.url;
+                    stick.__x_filehash = sticker.filehash;
+                    stick.__x_id = sticker.filehash;
+                    stick.__x_uploadhash = sticker.uploadhash;
+                    stick.__x_mediaKey = sticker.mediaKey;
+                    stick.__x_initialized = false;
+                    stick.__x_mediaData.mediaStage = "INIT";
+                    stick.__x__mediaObject = undefined;
+                    await stick.initialize();
+                    await stick.sendToChat(chat);
+                    return true;
+                }
+            }	
+        }
+        return false;
+    };
+
 };
 
 exports.MarkAllRead = () => {
