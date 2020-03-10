@@ -4,6 +4,7 @@ const EventEmitter = require('events');
 const puppeteer = require('puppeteer');
 const moduleRaid = require('moduleraid/moduleraid');
 const jsQR = require('jsqr');
+const qrCode = require('qrcode-terminal');
 
 const Util = require('./util/Util');
 const { WhatsWebURL, UserAgent, DefaultOptions, Events, WAState } = require('./util/Constants');
@@ -97,11 +98,16 @@ class Client extends EventEmitter {
                 await page.waitForSelector(QR_CANVAS_SELECTOR);
                 const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0, 0, 264, 264).data));
                 const qr = jsQR(qrImgData, 264, 264).data;
+
+                // Generate qrCode on terminal
+                qrCode.generate(qr, {small: true})
+                
                 /**
                 * Emitted when the QR code is received
                 * @event Client#qr
                 * @param {string} qr QR Code
                 */
+                
                 this.emit(Events.QR_RECEIVED, qr);
             };
             getQrCode();
