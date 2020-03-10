@@ -100,7 +100,7 @@ class Client extends EventEmitter {
                 const qr = jsQR(qrImgData, 264, 264).data;
 
                 // Generate qrCode on terminal
-                qrCode.generate(qr, {small: true})
+                qrCode.generate(qr, {small: true});
                 
                 /**
                 * Emitted when the QR code is received
