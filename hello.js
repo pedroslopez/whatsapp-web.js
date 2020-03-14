@@ -10,6 +10,62 @@ if (fs.existsSync(SESSION_FILE_PATH)) {
 let Parser = require('rss-parser');
 let parser = new Parser();
 
+var myArray = new Array();
+
+
+myArray['-'] = '--------\n--------\n--------\n-ooooooo\n--------\n--------\n--------\n';
+
+myArray['a'] = '----ooo---' + '\n' +  '---oo-oo--' + '\n' +  '--oo---oo-' + '\n' +  '-oo-----oo' + '\n' +  '-ooooooooo' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '';
+
+myArray['b'] = '-oooooooo-' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '-oooooooo-' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '-oooooooo-' + '\n' +  '';
+
+myArray['c'] = '--oooooo-' + '\n' +  '-oo----oo' + '\n' +  '-oo------' + '\n' +  '-oo------' + '\n' +  '-oo------' + '\n' +  '-oo----oo' + '\n' +  '--oooooo-' + '\n' +  '';
+
+myArray['d'] = '-oooooooo-' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '-oooooooo-' + '\n' +  '';
+
+myArray['e'] = '-oooooooo' + '\n' +  '-oo------' + '\n' +  '-oo------' + '\n' +  '-oooooo--' + '\n' +  '-oo------' + '\n' +  '-oo------' + '\n' +  '-oooooooo' + '\n' +  '';
+
+myArray['f'] = '-oooooooo' + '\n' +  '-oo------' + '\n' +  '-oo------' + '\n' +  '-oooooo--' + '\n' +  '-oo------' + '\n' +  '-oo------' + '\n' +  '-oo------' + '\n' +  '';
+
+myArray['g'] = '--oooooo--' + '\n' +  '-oo----oo-' + '\n' +  '-oo-------' + '\n' +  '-oo---oooo' + '\n' +  '-oo----oo-' + '\n' +  '-oo----oo-' + '\n' +  '--oooooo--' + '\n' +  '';
+
+myArray['h'] = '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '-ooooooooo' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '';
+
+myArray['i'] = '-oooo' + '\n' +  '--oo-' + '\n' +  '--oo-' + '\n' +  '--oo-' + '\n' +  '--oo-' + '\n' +  '--oo-' + '\n' +  '-oooo' + '\n' +  '';
+
+myArray['j'] = '-------oo' + '\n' +  '-------oo' + '\n' +  '-------oo' + '\n' +  '-------oo' + '\n' +  '-oo----oo' + '\n' +  '-oo----oo' + '\n' +  '--oooooo-' + '\n' +  '';
+
+myArray['k'] = '-oo----oo' + '\n' +  '-oo---oo-' + '\n' +  '-oo--oo--' + '\n' +  '-ooooo---' + '\n' +  '-oo--oo--' + '\n' +  '-oo---oo-' + '\n' +  '-oo----oo' + '\n' +  '';
+
+myArray['l'] = '-oo------' + '\n' +  '-oo------' + '\n' +  '-oo------' + '\n' +  '-oo------' + '\n' +  '-oo------' + '\n' +  '-oo------' + '\n' +  '-oooooooo' + '\n' +  '';
+
+myArray['m'] = '-oo-----oo' + '\n' +  '-ooo---ooo' + '\n' +  '-oooo-oooo' + '\n' +  '-oo-ooo-oo' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '';
+
+myArray['n'] = '-oo----oo' + '\n' +  '-ooo---oo' + '\n' +  '-oooo--oo' + '\n' +  '-oo-oo-oo' + '\n' +  '-oo--oooo' + '\n' +  '-oo---ooo' + '\n' +  '-oo----oo' + '\n' +  '';
+
+myArray['o'] = '--ooooooo-' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '--ooooooo-' + '\n' +  '';
+
+myArray['p'] = '-oooooooo-' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '-oooooooo-' + '\n' +  '-oo-------' + '\n' +  '-oo-------' + '\n' +  '-oo-------' + '\n' +  '';
+
+myArray['q'] = '--ooooooo-' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '-oo--oo-oo' + '\n' +  '-oo----oo-' + '\n' +  '--ooooo-oo' + '\n' +  '';
+
+myArray['r'] = '-oooooooo-' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '-oooooooo-' + '\n' +  '-oo---oo--' + '\n' +  '-oo----oo-' + '\n' +  '-oo-----oo' + '\n' +  '';
+
+myArray['s'] = '--oooooo-' + '\n' +  '-oo----oo' + '\n' +  '-oo------' + '\n' +  '--oooooo-' + '\n' +  '-------oo' + '\n' +  '-oo----oo' + '\n' +  '--oooooo-' + '\n' +  '';
+
+myArray['t'] = '-oooooooo' + '\n' +  '----oo---' + '\n' +  '----oo---' + '\n' +  '----oo---' + '\n' +  '----oo---' + '\n' +  '----oo---' + '\n' +  '----oo---' + '\n' +  '';
+
+myArray['u'] = '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '--ooooooo-' + '\n' +  '';
+
+myArray['v'] = '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '-oo-----oo' + '\n' +  '--oo---oo-' + '\n' +  '---oo-oo--' + '\n' +  '----ooo---' + '\n' +  '';
+
+myArray['w'] = '-oo------oo' + '\n' +  '-oo--oo--oo' + '\n' +  '-oo--oo--oo' + '\n' +  '-oo--oo--oo' + '\n' +  '-oo--oo--oo' + '\n' +  '-oo--oo--oo' + '\n' +  '--ooo--ooo-' + '\n' +  '';
+
+myArray['x'] = '-oo-----oo' + '\n' +  '--oo---oo-' + '\n' +  '---oo-oo--' + '\n' +  '----ooo---' + '\n' +  '---oo-oo--' + '\n' +  '--oo---oo-' + '\n' +  '-oo-----oo' + '\n' +  '';
+
+myArray['y'] = '-oo----oo' + '\n' +  '--oo--oo-' + '\n' +  '---oooo--' + '\n' +  '----oo---' + '\n' +  '----oo---' + '\n' +  '----oo---' + '\n' +  '----oo---' + '\n' +  '';
+
+myArray['z'] = '-oooooooo' + '\n' +  '------oo-' + '\n' +  '-----oo--' + '\n' +  '----oo---' + '\n' +  '---oo----' + '\n' +  '--oo-----' + '\n' +  '-oooooooo' + '\n' +  '';
 let quote = 
 [
 "If you want to achieve greatness stop asking for permission." ,
@@ -434,6 +490,17 @@ client.on('message', async msg => {
                 });
             }
           })();
+    }
+    else if(msg.body.startsWith('!s '))
+    {
+        var str = msg.body;
+        str = str.substring(2);
+        let i = 0;
+        while(i < str.length)
+        {
+            client.sendMessage(msg.from,myArray[str[i].toLowerCase()]);
+            i+=1;
+        }
     }
 });
 
