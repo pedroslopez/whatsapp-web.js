@@ -297,102 +297,142 @@ client.on('message', async msg => {
         const chat = await msg.getChat();
         // stops typing or recording in the chat
         chat.clearState();        
-    } else if(msg.body === '!n')
+    } else if(msg.body.startsWith('!n '))
     {
         (async () => {
-            let feed = await parser.parseURL('https://www.reddit.com/.rss');
-            let feedTop = await parser.parseURL('https://gulfnews.com/rss/?generatorName=mrss&uuid=5bd9758c-9198-40ac-8d81-1e38745d5485');
-            let feedUAE = await parser.parseURL('https://gulfnews.com/rss/?generatorName=mrss&categories=UAE,Education,Crime,Government,Health,Weather,Transport,Science,Environment');
-            let feedBusiness = await parser.parseURL('https://gulfnews.com/rss/?generatorName=mrss&categories=Business,Banking,Aviation,Property,Energy,Analysis,Tourism,Markets,Retail,Personal-Finance,Podcast');
-            let feedSport = await parser.parseURL('https://gulfnews.com/rss/?generatorName=mrss&categories=Sport,UAE-Sport,Horse-Racing,Cricket,IPL,ICC,Football,Motorsport,Tennis,Golf,Rugby');
-            let feedVideo = await parser.parseURL('https://gulfnews.com/rss/?generatorName=mrss&categories=Videos,Best-Of-Bollywood,news-video');
-            let feedEntertainment = await parser.parseURL('https://gulfnews.com/rss/?generatorName=mrss&categories=Entertainment,HollyWood,BollyWood,Pakistani-Cinema,Pinoy-Celebs,South-Indian,Arab-Celebs,Music,TV,Books,Theatre,Arts-Culture');
-            let feedOpinion = await parser.parseURL('https://gulfnews.com/rss/?generatorName=mrss&categories=Opinion,Editorials,Op-Eds');
-            let feedWorld = await parser.parseURL('https://gulfnews.com/rss/?generatorName=mrss&categories=World,Europe,Asia,India,Pakistan,Philipines,Oceania,Americas,Africa');
-            let feedGoingOut = await parser.parseURL('https://gulfnews.com/rss/?generatorName=mrss&categories=Going-out,Bars-Clubs,Movie-Reviews,Movie-Trailers,Restaurants,Events,Society');
-            let feedTravel = await parser.parseURL('https://gulfnews.com/rss/?generatorName=mrss&categories=Travel,Advice,Destinations,Hotels');
-            let feedTech = await parser.parseURL('https://gulfnews.com/rss/?generatorName=mrss&categories=Technology,Consumer-Electronics,Gaming,Trends,Fin-Tech,Companies,Media');
-            let feedHowTo = await parser.parseURL('https://gulfnews.com/rss/?generatorName=mrss&categories=How-To,Employment,Housing,Passports-Visa,Your-Money,Legal');
-            const keyword = msg.body.split(' ')[1];
-            console.log(feed.title);
-            feed.items.forEach(item => {
-                if(item.title.includes(keyword,0))
-                {
-                    msg.reply(item.title + ':' + item.link);
-                }
-            });
-            feedTop.items.forEach(item => {
-                if(item.title.includes(keyword,0))
-                {
-                    msg.reply(item.title + ':' + item.link);
-                }
-            });
-            feedUAE.items.forEach(item => {
-                if(item.title.includes(keyword,0))
-                {
-                    msg.reply(item.title + ':' + item.link);
-                }
-            });
-            feedBusiness.items.forEach(item => {
-                if(item.title.includes(keyword,0))
-                {
-                    msg.reply(item.title + ':' + item.link);
-                }
-            });
-            feedSport.items.forEach(item => {
-                if(item.title.includes(keyword,0))
-                {
-                    msg.reply(item.title + ':' + item.link);
-                }
-            });
-            feedVideo.items.forEach(item => {
-                if(item.title.includes(keyword,0))
-                {
-                    msg.reply(item.title + ':' + item.link);
-                }
-            });
-            feedEntertainment.items.forEach(item => {
-                if(item.title.includes(keyword,0))
-                {
-                    msg.reply(item.title + ':' + item.link);
-                }
-            });
-            feedOpinion.items.forEach(item => {
-                if(item.title.includes(keyword,0))
-                {
-                    msg.reply(item.title + ':' + item.link);
-                }
-            });
-            feedWorld.items.forEach(item => {
-                if(item.title.includes(keyword,0))
-                {
-                    msg.reply(item.title + ':' + item.link);
-                }
-            });
-            feedGoingOut.items.forEach(item => {
-                if(item.title.includes(keyword,0))
-                {
-                    msg.reply(item.title + ':' + item.link);
-                }
-            });
-            feedTravel.items.forEach(item => {
-                if(item.title.includes(keyword,0))
-                {
-                    msg.reply(item.title + ':' + item.link);
-                }
-            });
-            feedTech.items.forEach(item => {
-                if(item.title.includes(keyword,0))
-                {
-                    msg.reply(item.title + ':' + item.link);
-                }
-            });
-            feedHowTo.items.forEach(item => {
-                if(item.title.includes(keyword,0))
-                {
-                    msg.reply(item.title + ':' + item.link);
-                }
-            });
+            const type = msg.body.split(' ')[1];
+            const keyword = msg.body.split(' ')[2];
+            //console.log(feed.title);
+            if(type.toLowerCase() == 'reddit')
+            {
+                let feed = await parser.parseURL('https://www.reddit.com/.rss');
+                feed.items.forEach(item => {
+                    if(item.title.toLowerCase().includes(keyword.toLowerCase(),0))
+                    {
+                        msg.reply(item.title + ':' + item.link);
+                    }
+                });
+            }
+            else if(type.toLowerCase() == 'top')
+            {
+                let feedTop = await parser.parseURL('https://gulfnews.com/rss/?generatorName=mrss&uuid=5bd9758c-9198-40ac-8d81-1e38745d5485');
+                feedTop.items.forEach(item => {
+                    if(item.title.toLowerCase().includes(keyword.toLowerCase(),0))
+                    {
+                        msg.reply(item.title + ':' + item.link);
+                    }
+                });
+            }
+            else if(type.toLowerCase() == 'uae')
+            {
+                let feedUAE = await parser.parseURL('https://gulfnews.com/rss/?generatorName=mrss&categories=UAE,Education,Crime,Government,Health,Weather,Transport,Science,Environment');
+                feedUAE.items.forEach(item => {
+                    if(item.title.toLowerCase().includes(keyword.toLowerCase(),0))
+                    {
+                        msg.reply(item.title + ':' + item.link);
+                    }
+                });
+            }
+            else if(type.toLowerCase() == 'business')
+            {
+                let feedBusiness = await parser.parseURL('https://gulfnews.com/rss/?generatorName=mrss&categories=Business,Banking,Aviation,Property,Energy,Analysis,Tourism,Markets,Retail,Personal-Finance,Podcast');
+                feedBusiness.items.forEach(item => {
+                    if(item.title.toLowerCase().includes(keyword.toLowerCase(),0))
+                    {
+                        msg.reply(item.title + ':' + item.link);
+                    }
+                });
+            }
+            else if(type.toLowerCase() == 'sport')
+            {
+                let feedSport = await parser.parseURL('https://gulfnews.com/rss/?generatorName=mrss&categories=Sport,UAE-Sport,Horse-Racing,Cricket,IPL,ICC,Football,Motorsport,Tennis,Golf,Rugby');
+                feedSport.items.forEach(item => {
+                    if(item.title.toLowerCase().includes(keyword.toLowerCase(),0))
+                    {
+                        msg.reply(item.title + ':' + item.link);
+                    }
+                });
+            }
+            else if(type.toLowerCase() == 'video')
+            {
+                let feedVideo = await parser.parseURL('https://gulfnews.com/rss/?generatorName=mrss&categories=Videos,Best-Of-Bollywood,news-video');
+                feedVideo.items.forEach(item => {
+                    if(item.title.toLowerCase().includes(keyword.toLowerCase(),0))
+                    {
+                        msg.reply(item.title + ':' + item.link);
+                    }
+                });
+            }
+            else if(type.toLowerCase() == 'entertainment')
+            {
+                let feedEntertainment = await parser.parseURL('https://gulfnews.com/rss/?generatorName=mrss&categories=Entertainment,HollyWood,BollyWood,Pakistani-Cinema,Pinoy-Celebs,South-Indian,Arab-Celebs,Music,TV,Books,Theatre,Arts-Culture');
+                feedEntertainment.items.forEach(item => {
+                    if(item.title.toLowerCase().includes(keyword.toLowerCase(),0))
+                    {
+                        msg.reply(item.title + ':' + item.link);
+                    }
+                });
+            }
+            else if(type.toLowerCase() == 'opinion')
+            {
+                let feedOpinion = await parser.parseURL('https://gulfnews.com/rss/?generatorName=mrss&categories=Opinion,Editorials,Op-Eds');
+                feedOpinion.items.forEach(item => {
+                    if(item.title.toLowerCase().includes(keyword.toLowerCase(),0))
+                    {
+                        msg.reply(item.title + ':' + item.link);
+                    }
+                });
+            }
+            else if(type.toLowerCase() == 'world')
+            {
+                let feedWorld = await parser.parseURL('https://gulfnews.com/rss/?generatorName=mrss&categories=World,Europe,Asia,India,Pakistan,Philipines,Oceania,Americas,Africa');
+                feedWorld.items.forEach(item => {
+                    if(item.title.toLowerCase().includes(keyword.toLowerCase(),0))
+                    {
+                        msg.reply(item.title + ':' + item.link);
+                    }
+                });
+            }
+            else if(type.toLowerCase() == 'goingout')
+            {
+                let feedGoingOut = await parser.parseURL('https://gulfnews.com/rss/?generatorName=mrss&categories=Going-out,Bars-Clubs,Movie-Reviews,Movie-Trailers,Restaurants,Events,Society');
+                feedGoingOut.items.forEach(item => {
+                    if(item.title.toLowerCase().includes(keyword.toLowerCase(),0))
+                    {
+                        msg.reply(item.title + ':' + item.link);
+                    }
+                });
+            }
+            else if(type.toLowerCase() == 'travel')
+            {
+                let feedTravel = await parser.parseURL('https://gulfnews.com/rss/?generatorName=mrss&categories=Travel,Advice,Destinations,Hotels');
+                feedTravel.items.forEach(item => {
+                    if(item.title.toLowerCase().includes(keyword.toLowerCase(),0))
+                    {
+                        msg.reply(item.title + ':' + item.link);
+                    }
+                });
+            }
+            else if(type.toLowerCase() == 'tech')
+            {
+                let feedTech = await parser.parseURL('https://gulfnews.com/rss/?generatorName=mrss&categories=Technology,Consumer-Electronics,Gaming,Trends,Fin-Tech,Companies,Media');
+                feedTech.items.forEach(item => {
+                    if(item.title.toLowerCase().includes(keyword.toLowerCase(),0))
+                    {
+                        msg.reply(item.title + ':' + item.link);
+                    }
+                });
+            }
+            else if(type.toLowerCase() == 'how to')
+            {
+                let feedHowTo = await parser.parseURL('https://gulfnews.com/rss/?generatorName=mrss&categories=How-To,Employment,Housing,Passports-Visa,Your-Money,Legal');
+                feedHowTo.items.forEach(item => {
+                    if(item.title.toLowerCase().includes(keyword.toLowerCase(),0))
+                    {
+                        msg.reply(item.title + ':' + item.link);
+                    }
+                });
+            }
           })();
     }
 });
