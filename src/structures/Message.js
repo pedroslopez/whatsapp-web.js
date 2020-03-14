@@ -188,6 +188,11 @@ class Message extends Base {
 
         const {data, mimetype, filename} = await this.client.pupPage.evaluate(async (msgId) => {
             const msg = window.Store.Msg.get(msgId);
+            
+            if(msg.mediaData.mediaStage != 'RESOLVED') {
+                await msg.downloadMedia(true, 1);
+            }
+
             const buffer = await window.WWebJS.downloadBuffer(msg.clientUrl);
             const decrypted = await window.Store.CryptoLib.decryptE2EMedia(msg.type, buffer, msg.mediaKey, msg.mimetype);
             const data = await window.WWebJS.readBlobAsync(decrypted._blob);
