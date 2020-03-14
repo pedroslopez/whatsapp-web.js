@@ -255,7 +255,7 @@ class Client extends EventEmitter {
 
         });
 
-        await page.exposeFunction('onAppStateChangedEvent', (_AppState, state) => {
+        await page.exposeFunction('onAppStateChangedEvent', (state) => {
 
             /**
              * Emitted when the connection state changes
@@ -277,12 +277,12 @@ class Client extends EventEmitter {
         });
 
         await page.evaluate(() => {
-            window.Store.Msg.on('add', (msg) => { if(msg.isNewMsg) window.onAddMessageEvent(msg);});
-            window.Store.Msg.on('change', window.onChangeMessageEvent);
-            window.Store.Msg.on('change:type', window.onChangeMessageTypeEvent);
-            window.Store.Msg.on('change:ack', window.onMessageAckEvent);
-            window.Store.Msg.on('remove', window.onRemoveMessageEvent);
-            window.Store.AppState.on('change:state', window.onAppStateChangedEvent);
+            window.Store.Msg.on('add', (msg) => { if(msg.isNewMsg) window.onAddMessageEvent(msg); });
+            window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(msg); });
+            window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(msg); });
+            window.Store.Msg.on('change:ack', (msg, ack) => { window.onMessageAckEvent(msg, ack); });
+            window.Store.Msg.on('remove', (msg) => { if(msg.isNewMsg) window.onRemoveMessageEvent(msg); });
+            window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
         });
 
         this.pupBrowser = browser;
