@@ -190,7 +190,13 @@ class Message extends Base {
             const msg = window.Store.Msg.get(msgId);
             
             if(msg.mediaData.mediaStage != 'RESOLVED') {
+                // try to resolve media
                 await msg.downloadMedia(true, 1);
+            }
+            
+            if(msg.mediaData.mediaStage != 'RESOLVED') {
+                // media could not be downloaded
+                return undefined;
             }
 
             const buffer = await window.WWebJS.downloadBuffer(msg.clientUrl);
