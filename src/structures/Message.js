@@ -186,7 +186,7 @@ class Message extends Base {
             return undefined;
         }
 
-        const {data, mimetype, filename} = await this.client.pupPage.evaluate(async (msgId) => {
+        const result = await this.client.pupPage.evaluate(async (msgId) => {
             const msg = window.Store.Msg.get(msgId);
             
             if(msg.mediaData.mediaStage != 'RESOLVED') {
@@ -211,7 +211,8 @@ class Message extends Base {
 
         }, this.id._serialized);
 
-        return new MessageMedia(mimetype, data, filename);
+        if(!result) return undefined;
+        return new MessageMedia(result.mimetype, result.data, result.filename);
     }
 
     /**
