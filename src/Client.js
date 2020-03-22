@@ -75,7 +75,11 @@ class Client extends EventEmitter {
                      */
                     this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in. Are the session details valid?');
                     browser.close();
-
+                    if (this.options.restartOnAuthFail) {
+                        // session restore failed so try again but without session to force new authentication
+                        this.options.session = null;
+                        this.initialize(this.options);
+                    }
                     return;
                 }
 
