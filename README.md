@@ -1,4 +1,4 @@
-[![npm](https://img.shields.io/npm/v/whatsapp-web.js.svg)](https://www.npmjs.com/package/whatsapp-web.js) [![Depfu](https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg)](https://depfu.com/github/pedroslopez/whatsapp-web.js?project_id=9765) ![WhatsApp_Web 0.4.1296](https://img.shields.io/badge/WhatsApp_Web-0.4.1296-brightgreen.svg)
+[![npm](https://img.shields.io/npm/v/whatsapp-web.js.svg)](https://www.npmjs.com/package/whatsapp-web.js) [![Depfu](https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg)](https://depfu.com/github/pedroslopez/whatsapp-web.js?project_id=9765) ![WhatsApp_Web 0.4.1307](https://img.shields.io/badge/WhatsApp_Web-0.4.1307-brightgreen.svg)
 
 # whatsapp-web.js
 A WhatsApp API client that connects through the WhatsApp Web browser app
