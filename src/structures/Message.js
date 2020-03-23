@@ -24,6 +24,12 @@ class Message extends Base {
         this.id = data.id;
 
         /**
+         * ACK status for the message
+         * @type {MessageAck}
+         */
+        this.ack = data.ack;
+
+        /**
          * Indicates if the message has media available for download
          * @type {boolean}
          */
