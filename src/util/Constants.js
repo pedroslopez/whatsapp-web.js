@@ -36,6 +36,7 @@ exports.Events = {
     MESSAGE_REVOKED_EVERYONE: 'message_revoke_everyone',
     MESSAGE_REVOKED_ME: 'message_revoke_me',
     MESSAGE_ACK: 'message_ack',
+    MEDIA_UPLOADED: 'media_uploaded',
     GROUP_JOIN: 'group_join',
     GROUP_LEAVE: 'group_leave',
     GROUP_UPDATE: 'group_update',

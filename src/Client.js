@@ -23,6 +23,7 @@ const { ClientInfo, Message, MessageMedia, Location, GroupNotification } = requi
  * @fires Client#message_create
  * @fires Client#message_revoke_me
  * @fires Client#message_revoke_everyone
+ * @fires Client#media_uploaded
  * @fires Client#group_join
  * @fires Client#group_leave
  * @fires Client#group_update
@@ -259,6 +260,18 @@ class Client extends EventEmitter {
 
         });
 
+        await page.exposeFunction('onMessageMediaUploadedEvent', (msg) => {
+
+            const message = new Message(this, msg);
+            
+            /**
+             * Emitted when media has been uploaded for a message sent by the client.
+             * @event Client#media_uploaded
+             * @param {Message} message The message with media that was uploaded
+             */
+            this.emit(Events.MEDIA_UPLOADED, message);
+        });
+
         await page.exposeFunction('onAppStateChangedEvent', (state) => {
 
             /**
@@ -285,6 +298,7 @@ class Client extends EventEmitter {
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(msg); });
             window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(msg); });
             window.Store.Msg.on('change:ack', (msg, ack) => { window.onMessageAckEvent(msg, ack); });
+            window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => { if(msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(msg); });
             window.Store.Msg.on('remove', (msg) => { if(msg.isNewMsg) window.onRemoveMessageEvent(msg); });
             window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
         });
