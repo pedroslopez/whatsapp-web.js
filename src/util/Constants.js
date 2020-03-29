@@ -6,7 +6,8 @@ exports.UserAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit
 
 exports.DefaultOptions = {
     puppeteer: {
-        headless: true
+        headless: true,
+        args: ['--app=' + exports.WhatsWebURL]
     },
     session: false
 };
