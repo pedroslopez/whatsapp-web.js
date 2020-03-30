@@ -507,6 +507,17 @@ class Client extends EventEmitter {
         });
     }
 
+    /**
+     * Check if a given ID is registered in whatsapp
+     * @returns {Promise<Boolean>}
+     */
+    async isRegisteredUser(id) {
+        return await this.pupPage.evaluate(async (id) => {
+            let result = await window.Store.Wap.queryExist(id);
+            return result.jid !== undefined;
+        }, id);
+    }
+
 }
 
 module.exports = Client;
