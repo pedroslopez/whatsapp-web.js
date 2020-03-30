@@ -2,7 +2,7 @@
 
 const EventEmitter = require('events');
 const puppeteer = require('puppeteer');
-const moduleRaid = require('moduleraid/moduleraid');
+const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
 const jsQR = require('jsqr');
 
 const Util = require('./util/Util');
@@ -10,11 +10,7 @@ const { WhatsWebURL, UserAgent, DefaultOptions, Events, WAState } = require('./u
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
-const ClientInfo = require('./structures/ClientInfo');
-const Message = require('./structures/Message');
-const MessageMedia = require('./structures/MessageMedia');
-const Location = require('./structures/Location');
-
+const { ClientInfo, Message, MessageMedia, Location, GroupNotification } = require('./structures');
 /**
  * Starting point for interacting with the WhatsApp Web API
  * @extends {EventEmitter}
@@ -23,9 +19,14 @@ const Location = require('./structures/Location');
  * @fires Client#auth_failure
  * @fires Client#ready
  * @fires Client#message
+ * @fires Client#message_ack
  * @fires Client#message_create
  * @fires Client#message_revoke_me
  * @fires Client#message_revoke_everyone
+ * @fires Client#media_uploaded
+ * @fires Client#group_join
+ * @fires Client#group_leave
+ * @fires Client#group_update
  * @fires Client#disconnected
  * @fires Client#change_state
  */
@@ -75,7 +76,11 @@ class Client extends EventEmitter {
                      */
                     this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in. Are the session details valid?');
                     browser.close();
-
+                    if (this.options.restartOnAuthFail) {
+                        // session restore failed so try again but without session to force new authentication
+                        this.options.session = null;
+                        this.initialize();
+                    }
                     return;
                 }
 
@@ -149,6 +154,33 @@ class Client extends EventEmitter {
         await page.exposeFunction('onAddMessageEvent', msg => {
             if (!msg.isNewMsg) return;
 
+            if (msg.type === 'gp2') {
+                const notification = new GroupNotification(this, msg);
+                if (msg.subtype === 'add' || msg.subtype === 'invite') {
+                    /**
+                     * Emitted when a user joins the chat via invite link or is added by an admin.
+                     * @event Client#group_join
+                     * @param {GroupNotification} notification GroupNotification with more information about the action
+                     */
+                    this.emit(Events.GROUP_JOIN, notification);
+                } else if (msg.subtype === 'remove' || msg.subtype === 'leave') {
+                    /**
+                     * Emitted when a user leaves the chat or is removed by an admin.
+                     * @event Client#group_leave
+                     * @param {GroupNotification} notification GroupNotification with more information about the action
+                     */
+                    this.emit(Events.GROUP_LEAVE, notification);
+                } else {
+                    /**
+                     * Emitted when group settings are updated, such as subject, description or picture.
+                     * @event Client#group_update
+                     * @param {GroupNotification} notification GroupNotification with more information about the action
+                     */
+                    this.emit(Events.GROUP_UPDATE, notification);
+                }
+                return;
+            }
+            
             const message = new Message(this, msg);
 
             /**
@@ -228,7 +260,19 @@ class Client extends EventEmitter {
 
         });
 
-        await page.exposeFunction('onAppStateChangedEvent', (_AppState, state) => {
+        await page.exposeFunction('onMessageMediaUploadedEvent', (msg) => {
+
+            const message = new Message(this, msg);
+            
+            /**
+             * Emitted when media has been uploaded for a message sent by the client.
+             * @event Client#media_uploaded
+             * @param {Message} message The message with media that was uploaded
+             */
+            this.emit(Events.MEDIA_UPLOADED, message);
+        });
+
+        await page.exposeFunction('onAppStateChangedEvent', (state) => {
 
             /**
              * Emitted when the connection state changes
@@ -250,12 +294,13 @@ class Client extends EventEmitter {
         });
 
         await page.evaluate(() => {
-            window.Store.Msg.on('add', window.onAddMessageEvent);
-            window.Store.Msg.on('change', window.onChangeMessageEvent);
-            window.Store.Msg.on('change:type', window.onChangeMessageTypeEvent);
-            window.Store.Msg.on('change:ack', window.onMessageAckEvent);
-            window.Store.Msg.on('remove', window.onRemoveMessageEvent);
-            window.Store.AppState.on('change:state', window.onAppStateChangedEvent);
+            window.Store.Msg.on('add', (msg) => { if(msg.isNewMsg) window.onAddMessageEvent(msg); });
+            window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(msg); });
+            window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(msg); });
+            window.Store.Msg.on('change:ack', (msg, ack) => { window.onMessageAckEvent(msg, ack); });
+            window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => { if(msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(msg); });
+            window.Store.Msg.on('remove', (msg) => { if(msg.isNewMsg) window.onRemoveMessageEvent(msg); });
+            window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
         });
 
         this.pupBrowser = browser;
@@ -274,7 +319,19 @@ class Client extends EventEmitter {
     async destroy() {
         await this.pupBrowser.close();
     }
+    /**
+     * Mark as seen for the Chat
+     *  @param {string} chatId
+     *  @returns {Promise<boolean>} result
+     * 
+     */
+    async sendSeen(chatId) {
+        const result = await this.pupPage.evaluate(async (chatId) => {
+            return window.WWebJS.sendSeen(chatId);
 
+        }, chatId);
+        return result;
+    }
     /**
      * Send a message to a specific chatId
      * @param {string} chatId
@@ -288,6 +345,8 @@ class Client extends EventEmitter {
             quotedMessageId: options.quotedMessageId,
             mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact => contact.id._serialized) : []
         };
+        
+        const sendSeen = typeof options.sendSeen === 'undefined' ? true : options.sendSeen;
 
         if (content instanceof MessageMedia) {
             internalOptions.attachment = content;
@@ -300,7 +359,7 @@ class Client extends EventEmitter {
             content = '';
         }
 
-        const newMessage = await this.pupPage.evaluate(async (chatId, message, options) => {
+        const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
             let chat = window.Store.Chat.get(chatId);
             let msg;
             if (!chat) { // The chat is not available in the previously chatted list
@@ -310,16 +369,25 @@ class Client extends EventEmitter {
                     //get the topmost chat object and assign the new chatId to it . 
                     //This is just a workaround.May cause problem if there are no chats at all. Need to dig in and emulate how whatsapp web does
                     let chat = window.Store.Chat.models[0];
+                    if (!chat)
+                        throw 'Chat List empty! Need at least one open conversation with any of your contact';
+
                     let originalChatObjId = chat.id;
                     chat.id = newChatId;
+
                     msg = await window.WWebJS.sendMessage(chat, message, options);
                     chat.id = originalChatObjId; //replace the chat with its original id
                 }
             }
-            else
-                msg = await window.WWebJS.sendMessage(chat, message, options);
+            else {
+                if(sendSeen) {
+                    window.WWebJS.sendSeen(chatId);
+                }
+                
+                msg = await window.WWebJS.sendMessage(chat, message, options, sendSeen);
+            }
             return msg.serialize();
-        }, chatId, content, internalOptions);
+        }, chatId, content, internalOptions, sendSeen);
 
         return new Message(this, newMessage);
     }
@@ -437,6 +505,17 @@ class Client extends EventEmitter {
         await this.pupPage.evaluate(() => {
             window.Store.AppState.phoneWatchdog.shiftTimer.forceRunNow();
         });
+    }
+
+    /**
+     * Check if a given ID is registered in whatsapp
+     * @returns {Promise<Boolean>}
+     */
+    async isRegisteredUser(id) {
+        return await this.pupPage.evaluate(async (id) => {
+            let result = await window.Store.Wap.queryExist(id);
+            return result.jid !== undefined;
+        }, id);
     }
 
 }

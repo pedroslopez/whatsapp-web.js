@@ -54,7 +54,8 @@ client.on('message', async msg => {
         let messageIndex = msg.body.indexOf(number) + number.length;
         let message = msg.body.slice(messageIndex, msg.body.length);
         number = number.includes('@c.us') ? number : `${number}@c.us`;
-
+        let chat = await msg.getChat();
+        chat.sendSeen();
         client.sendMessage(number, message);
 
     } else if (msg.body.startsWith('!subject ')) {
@@ -160,7 +161,7 @@ client.on('message', async msg => {
         });
     } else if (msg.body == '!delete' && msg.hasQuotedMsg) {
         const quotedMsg = await msg.getQuotedMessage();
-        if(quotedMsg.fromMe) {
+        if (quotedMsg.fromMe) {
             quotedMsg.delete(true);
         } else {
             msg.reply('I can only delete my own messages');
@@ -217,6 +218,23 @@ client.on('message_ack', (msg, ack) => {
     if(ack == 3) {
         // The message was read
     }
+});
+
+client.on('group_join', (notification) => {
+    // User has joined or been added to the group.
+    console.log('join', notification);
+    notification.reply('User joined.');
+});
+
+client.on('group_leave', (notification) => {
+    // User has left or been kicked from the group.
+    console.log('leave', notification);
+    notification.reply('User left.');
+});
+
+client.on('group_update', (notification) => {
+    // Group picture, subject or description has been updated.
+    console.log('update', notification);
 });
 
 client.on('disconnected', (reason) => {

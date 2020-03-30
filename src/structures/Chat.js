@@ -11,7 +11,7 @@ class Chat extends Base {
     constructor(client, data) {
         super(client);
 
-        if(data) this._patch(data);
+        if (data) this._patch(data);
     }
 
     _patch(data) {
@@ -71,6 +71,14 @@ class Chat extends Base {
     }
 
     /**
+     * Set the message as seen
+     * @returns {Promise<Boolean>} result
+     */
+    async sendSeen() {
+        return this.client.sendSeen(this.id._serialized);
+    }
+
+    /**
      * Clears all messages from the chat
      * @returns {Promise<Boolean>} result
      */
@@ -123,14 +131,14 @@ class Chat extends Base {
             while(msgs.length < limit) {
                 const loadedMessages = await chat.loadEarlierMsgs();
                 if(!loadedMessages) break;
-                msgs = [...msgs, ...loadedMessages.filter(msgFilter)];
+                msgs = [...loadedMessages.filter(msgFilter), ...msgs];
             }
 
-            return msgs.splice(0, limit).map(m => m.serialize());
+            msgs.sort((a, b) => (a.t > b.t) ? 1 : -1);
+            return msgs.splice(msgs.length - limit).map(m => m.serialize());
 
         }, this.id._serialized, searchOptions.limit);
 
-        messages.sort((a, b) => (a.t > b.t) ? 1 : -1);
         return messages.map(m => new Message(this.client, m));
     }
    
