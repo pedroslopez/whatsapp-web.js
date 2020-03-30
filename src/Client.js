@@ -293,6 +293,19 @@ class Client extends EventEmitter {
             }
         });
 
+        await page.exposeFunction('onBatteryStateChangedEvent', (state) => {
+
+            /**
+             * Emitted when the battery state changes
+             * @event Client#change_battery
+             * @param {WAState} state the new battery state
+             */
+            
+            let { battery, phone, plugged, connected, pushname } = state;
+            
+            this.emit(Events.BATTERY_CHANGED, { battery, phone, plugged, connected, pushname });
+        });
+
         await page.evaluate(() => {
             window.Store.Msg.on('add', (msg) => { if(msg.isNewMsg) window.onAddMessageEvent(msg); });
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(msg); });
@@ -301,6 +314,7 @@ class Client extends EventEmitter {
             window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => { if(msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(msg); });
             window.Store.Msg.on('remove', (msg) => { if(msg.isNewMsg) window.onRemoveMessageEvent(msg); });
             window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
+            window.Store.Conn.on('change:battery', (state) => { window.onBatteryStateChangedEvent(state); });
         });
 
         this.pupBrowser = browser;

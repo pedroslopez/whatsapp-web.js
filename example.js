@@ -237,6 +237,10 @@ client.on('group_update', (notification) => {
     console.log('update', notification);
 });
 
+client.on('change_battery', (state) => {
+    console.log(state);
+});
+
 client.on('disconnected', (reason) => {
     console.log('Client was logged out', reason);
 });
