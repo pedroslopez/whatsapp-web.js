@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.3">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.2.5 &raquo; Class: Client</title>
+  <title>whatsapp-web.js 1.3.0 &raquo; Class: Client</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>2.<wbr>5</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>3.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -26,7 +26,7 @@
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
             <h1><small></small><span class="symbol-name">Client</span></h1>
-            <p class="source-link">Source: <a href="Client.js.html#source-line-33">Client.<wbr>js:33</a></p>
+            <p class="source-link">Source: <a href="Client.js.html#source-line-34">Client.<wbr>js:34</a></p>
             <div class="symbol-classdesc">
               <p>Starting point for interacting with the WhatsApp Web API</p>
             </div>
@@ -70,13 +70,16 @@
                     <dt><a href="Client.html#initialize">initialize()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Client.html#resetState">resetState()</a></dt>
+                    <dt><a href="Client.html#isRegisteredUser">isRegisteredUser()</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Client.html#resetState">resetState()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#sendMessage">sendMessage(chatId, content, options)</a></dt>
                     <dd>
                     </dd>
@@ -123,19 +126,22 @@
                     <dt><a href="Client.html#event:group_update">group_update</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Client.html#event:media_uploaded">media_uploaded</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#event:message">message</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Client.html#event:message_ack">message_ack</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Client.html#event:message_create">message_create</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Client.html#event:message_create">message_create</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#event:message_revoke_everyone">message_revoke_everyone</a></dt>
                     <dd>
                     </dd>
@@ -168,6 +174,7 @@
               <dd><a href="Client.html#event:message_create">Client#event:message_create</a></dd>
               <dd><a href="Client.html#event:message_revoke_me">Client#event:message_revoke_me</a></dd>
               <dd><a href="Client.html#event:message_revoke_everyone">Client#event:message_revoke_everyone</a></dd>
+              <dd><a href="Client.html#event:media_uploaded">Client#event:media_uploaded</a></dd>
               <dd><a href="Client.html#event:group_join">Client#event:group_join</a></dd>
               <dd><a href="Client.html#event:group_leave">Client#event:group_leave</a></dd>
               <dd><a href="Client.html#event:group_update">Client#event:group_update</a></dd>
@@ -331,6 +338,15 @@
               <h3 id="initialize"><span class="symbol-name">initialize</span><span class="signature"><span class="signature-params">()</span></span></h3>
               <p>Sets up events and requirements, kicks off authentication request</p>
               <dl class="dl-compact">
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="isRegisteredUser"><span class="symbol-name">isRegisteredUser</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Boolean</span></span></h3>
+              <p>Check if a given ID is registered in whatsapp</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing Boolean</code> </p>
+                </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="resetState"><span class="symbol-name">resetState</span><span class="signature"><span class="signature-params">()</span></span></h3>
@@ -715,6 +731,39 @@
               </section>
               <dl class="dl-compact">
               </dl>
+              <h3 id="event:media_uploaded"><span class="symbol-name">media_uploaded</span></h3>
+              <p>Emitted when media has been uploaded for a message sent by the client.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>message</p>
+                      </td>
+                      <td>
+                        <p><a href="Message.html">Message</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The message with media that was uploaded</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="event:message"><span class="symbol-name">message</span></h3>
               <p>Emitted when a new message is received.</p>
               <section>
@@ -957,7 +1006,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on March 15, 2020.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on March 29, 2020.
       </p>
     </div>
   </footer>
