@@ -79,7 +79,7 @@ class Client extends EventEmitter {
                     if (this.options.restartOnAuthFail) {
                         // session restore failed so try again but without session to force new authentication
                         this.options.session = null;
-                        this.initialize(this.options);
+                        this.initialize();
                     }
                     return;
                 }
