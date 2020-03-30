@@ -499,6 +499,33 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Changes and returns the mute state of the Chat
+     * @param {string} chatId
+     * @param {Number} timestamp
+     * @returns {boolean}
+     */
+    async muteChat(chatId, timestamp) {
+        return await this.pupPage.evaluate(async chatId => {
+            let chat = await window.Store.Chat.get(chatId);
+            await chat.mute.setMute(timestamp);
+            return chat.mute.isMuted;
+        }, chatId);
+    }
+    
+    /**
+     * Changes and returns the mute state of the Chat
+     * @param {string} chatId
+     * @returns {boolean}
+     */
+    async unmuteChat(chatId) {
+        return await this.pupPage.evaluate(async chatId => {
+            let chat = await window.Store.Chat.get(chatId);
+            await chat.mute.setMute(false);
+            return chat.mute.isMuted;
+        }, chatId);
+    }
+
+    /**
      * Force reset of connection state for the client
     */
     async resetState(){
