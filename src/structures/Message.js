@@ -200,7 +200,7 @@ class Message extends Base {
                 await msg.downloadMedia(true, 1);
             }
             
-            if(msg.mediaData.mediaStage != 'RESOLVED') {
+            if(msg.mediaData.mediaStage.includes('ERROR')) {
                 // media could not be downloaded
                 return undefined;
             }
