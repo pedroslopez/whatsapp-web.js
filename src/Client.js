@@ -66,7 +66,7 @@ class Client extends EventEmitter {
         if (this.options.session) {
             // Check if session restore was successfull 
             try {
-                await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 15000 });
+                await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 45000 });
             } catch (err) {
                 if (err.name === 'TimeoutError') {
                     /**
@@ -99,7 +99,7 @@ class Client extends EventEmitter {
                 // Wait for QR Code
 
                 const QR_CANVAS_SELECTOR = 'canvas';
-                await page.waitForSelector(QR_CANVAS_SELECTOR);
+                await page.waitForSelector(QR_CANVAS_SELECTOR, { timeout: 45000 });
                 const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0, 0, 264, 264).data));
                 const qr = jsQR(qrImgData, 264, 264).data;
                 /**
