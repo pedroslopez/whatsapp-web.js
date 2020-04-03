@@ -10,7 +10,7 @@ const { WhatsWebURL, UserAgent, DefaultOptions, Events, WAState } = require('./u
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
-const { ClientInfo, Message, MessageMedia, Location, GroupNotification } = require('./structures');
+const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification } = require('./structures');
 /**
  * Starting point for interacting with the WhatsApp Web API
  * @extends {EventEmitter}
@@ -516,6 +516,43 @@ class Client extends EventEmitter {
             let result = await window.Store.Wap.queryExist(id);
             return result.jid !== undefined;
         }, id);
+    }
+
+    /**
+     * Create a new group
+     * @param {string} name group title
+     * @param {Array<Contact|string>} participants an array of Contacts or contact IDs to add to the group
+     * @returns {Object} createRes
+     * @returns {string} createRes.gid - ID for the group that was just created
+     * @returns {Object.<string,string>} createRes.missingParticipants - participants that were not added to the group. Keys represent the ID for participant that was not added and its value is a status code that represents the reason why participant could not be added. This is usually 403 if the user's privacy settings don't allow you to add them to groups.
+     */
+    async createGroup(name, participants) {
+        if(!Array.isArray(participants) || participants.length == 0) {
+            throw 'You need to add at least one other participant to the group';
+        }
+
+        if(participants.every(c => c instanceof Contact)) {
+            participants = participants.map(c => c.id._serialized);
+        }
+
+        const createRes = await this.pupPage.evaluate(async (name, participantIds) => {
+            const res = await window.Store.Wap.createGroup(name, participantIds);
+            console.log(res);
+            if(!res.status === 200) {
+                throw 'An error occurred while creating the group!';
+            }
+
+            return res;
+        }, name, participants);
+
+        const missingParticipants = createRes.participants.reduce(((missing, c) => {
+            const id = Object.keys(c)[0];
+            const statusCode = c[id].code;
+            if(statusCode != 200) return Object.assign(missing, {[id]: statusCode});
+            return missing;
+        }), {});
+
+        return { gid: createRes.gid, missingParticipants};
     }
 
 }
