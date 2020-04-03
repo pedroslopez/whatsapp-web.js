@@ -8,7 +8,10 @@ exports.DefaultOptions = {
     puppeteer: {
         headless: true
     },
-    session: false
+    session: false,
+    qrTimeoutMs: 45000,
+    qrRefreshIntervalMs: 20000,
+    authTimeoutMs: 45000,
 };
 
 /**
