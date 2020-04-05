@@ -88,7 +88,7 @@ class Client extends EventEmitter {
             }
 
         } else {
-            const getQrCode = async () => {
+            const getQrCode = async() => {
                 // Check if retry button is present
                 var QR_RETRY_SELECTOR = 'div[data-ref] > span > div';
                 var qrRetry = await page.$(QR_RETRY_SELECTOR);
@@ -103,10 +103,10 @@ class Client extends EventEmitter {
                 const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0, 0, 264, 264).data));
                 const qr = jsQR(qrImgData, 264, 264).data;
                 /**
-                * Emitted when the QR code is received
-                * @event Client#qr
-                * @param {string} qr QR Code
-                */
+                 * Emitted when the QR code is received
+                 * @event Client#qr
+                 * @param {string} qr QR Code
+                 */
                 this.emit(Events.QR_RECEIVED, qr);
             };
             getQrCode();
@@ -180,7 +180,7 @@ class Client extends EventEmitter {
                 }
                 return;
             }
-            
+
             const message = new Message(this, msg);
 
             /**
@@ -249,7 +249,7 @@ class Client extends EventEmitter {
         await page.exposeFunction('onMessageAckEvent', (msg, ack) => {
 
             const message = new Message(this, msg);
-            
+
             /**
              * Emitted when an ack event occurrs on message type.
              * @event Client#message_ack
@@ -263,7 +263,7 @@ class Client extends EventEmitter {
         await page.exposeFunction('onMessageMediaUploadedEvent', (msg) => {
 
             const message = new Message(this, msg);
-            
+
             /**
              * Emitted when media has been uploaded for a message sent by the client.
              * @event Client#media_uploaded
@@ -294,12 +294,12 @@ class Client extends EventEmitter {
         });
 
         await page.evaluate(() => {
-            window.Store.Msg.on('add', (msg) => { if(msg.isNewMsg) window.onAddMessageEvent(msg); });
+            window.Store.Msg.on('add', (msg) => { if (msg.isNewMsg) window.onAddMessageEvent(msg); });
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(msg); });
             window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(msg); });
             window.Store.Msg.on('change:ack', (msg, ack) => { window.onMessageAckEvent(msg, ack); });
-            window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => { if(msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(msg); });
-            window.Store.Msg.on('remove', (msg) => { if(msg.isNewMsg) window.onRemoveMessageEvent(msg); });
+            window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => { if (msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(msg); });
+            window.Store.Msg.on('remove', (msg) => { if (msg.isNewMsg) window.onRemoveMessageEvent(msg); });
             window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
         });
 
@@ -317,35 +317,35 @@ class Client extends EventEmitter {
      * Closes the client
      */
     async destroy() {
-        await this.pupBrowser.close();
-    }
-    /**
-     * Mark as seen for the Chat
-     *  @param {string} chatId
-     *  @returns {Promise<boolean>} result
-     * 
-     */
+            await this.pupBrowser.close();
+        }
+        /**
+         * Mark as seen for the Chat
+         *  @param {string} chatId
+         *  @returns {Promise<boolean>} result
+         * 
+         */
     async sendSeen(chatId) {
-        const result = await this.pupPage.evaluate(async (chatId) => {
-            return window.WWebJS.sendSeen(chatId);
+            const result = await this.pupPage.evaluate(async(chatId) => {
+                return window.WWebJS.sendSeen(chatId);
 
-        }, chatId);
-        return result;
-    }
-    /**
-     * Send a message to a specific chatId
-     * @param {string} chatId
-     * @param {string|MessageMedia|Location} content
-     * @param {object} options 
-     * @returns {Promise<Message>} Message that was just sent
-     */
+            }, chatId);
+            return result;
+        }
+        /**
+         * Send a message to a specific chatId
+         * @param {string} chatId
+         * @param {string|MessageMedia|Location} content
+         * @param {object} options 
+         * @returns {Promise<Message>} Message that was just sent
+         */
     async sendMessage(chatId, content, options = {}) {
         let internalOptions = {
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
             mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact => contact.id._serialized) : []
         };
-        
+
         const sendSeen = typeof options.sendSeen === 'undefined' ? true : options.sendSeen;
 
         if (content instanceof MessageMedia) {
@@ -359,7 +359,7 @@ class Client extends EventEmitter {
             content = '';
         }
 
-        const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
+        const newMessage = await this.pupPage.evaluate(async(chatId, message, options, sendSeen) => {
             let chat = window.Store.Chat.get(chatId);
             let msg;
             if (!chat) { // The chat is not available in the previously chatted list
@@ -378,16 +378,15 @@ class Client extends EventEmitter {
                     msg = await window.WWebJS.sendMessage(chat, message, options);
                     chat.id = originalChatObjId; //replace the chat with its original id
                 }
-            }
-            else {
-                if(sendSeen) {
+            } else {
+                if (sendSeen) {
                     window.WWebJS.sendSeen(chatId);
                 }
-                
+
                 msg = await window.WWebJS.sendMessage(chat, message, options, sendSeen);
             }
             return msg.serialize();
-        }, chatId, content, internalOptions, sendSeen);
+        }, chatId, content, internalOptions, sendSeen).catch(error => { throw error });
 
         return new Message(this, newMessage);
     }
@@ -500,8 +499,8 @@ class Client extends EventEmitter {
 
     /**
      * Force reset of connection state for the client
-    */
-    async resetState(){
+     */
+    async resetState() {
         await this.pupPage.evaluate(() => {
             window.Store.AppState.phoneWatchdog.shiftTimer.forceRunNow();
         });
@@ -512,7 +511,7 @@ class Client extends EventEmitter {
      * @returns {Promise<Boolean>}
      */
     async isRegisteredUser(id) {
-        return await this.pupPage.evaluate(async (id) => {
+        return await this.pupPage.evaluate(async(id) => {
             let result = await window.Store.Wap.queryExist(id);
             return result.jid !== undefined;
         }, id);
@@ -527,18 +526,18 @@ class Client extends EventEmitter {
      * @returns {Object.<string,string>} createRes.missingParticipants - participants that were not added to the group. Keys represent the ID for participant that was not added and its value is a status code that represents the reason why participant could not be added. This is usually 403 if the user's privacy settings don't allow you to add them to groups.
      */
     async createGroup(name, participants) {
-        if(!Array.isArray(participants) || participants.length == 0) {
+        if (!Array.isArray(participants) || participants.length == 0) {
             throw 'You need to add at least one other participant to the group';
         }
 
-        if(participants.every(c => c instanceof Contact)) {
+        if (participants.every(c => c instanceof Contact)) {
             participants = participants.map(c => c.id._serialized);
         }
 
-        const createRes = await this.pupPage.evaluate(async (name, participantIds) => {
+        const createRes = await this.pupPage.evaluate(async(name, participantIds) => {
             const res = await window.Store.Wap.createGroup(name, participantIds);
             console.log(res);
-            if(!res.status === 200) {
+            if (!res.status === 200) {
                 throw 'An error occurred while creating the group!';
             }
 
@@ -548,11 +547,12 @@ class Client extends EventEmitter {
         const missingParticipants = createRes.participants.reduce(((missing, c) => {
             const id = Object.keys(c)[0];
             const statusCode = c[id].code;
-            if(statusCode != 200) return Object.assign(missing, {[id]: statusCode});
+            if (statusCode != 200) return Object.assign(missing, {
+                [id]: statusCode });
             return missing;
         }), {});
 
-        return { gid: createRes.gid, missingParticipants};
+        return { gid: createRes.gid, missingParticipants };
     }
 
 }
