@@ -388,7 +388,7 @@ class Client extends EventEmitter {
                 msg = await window.WWebJS.sendMessage(chat, message, options, sendSeen);
             }
             return msg.serialize();
-        }, chatId, content, internalOptions, sendSeen).catch(error => { throw error });
+        }, chatId, content, internalOptions, sendSeen).catch(error => { throw error; });
 
         return new Message(this, newMessage);
     }
