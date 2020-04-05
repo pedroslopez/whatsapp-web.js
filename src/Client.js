@@ -64,7 +64,7 @@ class Client extends EventEmitter {
         const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image="true"]';
 
         if (this.options.session) {
-            // Check if session restore was successfull 
+            // Check if session restore was successfull
             try {
                 await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: this.options.authTimeoutMs });
             } catch (err) {
@@ -215,7 +215,7 @@ class Client extends EventEmitter {
                  * Emitted when a message is deleted for everyone in the chat.
                  * @event Client#message_revoke_everyone
                  * @param {Message} message The message that was revoked, in its current state. It will not contain the original message's data.
-                 * @param {?Message} revoked_msg The message that was revoked, before it was revoked. It will contain the message's original data. 
+                 * @param {?Message} revoked_msg The message that was revoked, before it was revoked. It will contain the message's original data.
                  * Note that due to the way this data is captured, it may be possible that this param will be undefined.
                  */
                 this.emit(Events.MESSAGE_REVOKED_EVERYONE, message, revoked_msg);
@@ -317,28 +317,30 @@ class Client extends EventEmitter {
      * Closes the client
      */
     async destroy() {
-            await this.pupBrowser.close();
-        }
-        /**
-         * Mark as seen for the Chat
-         *  @param {string} chatId
-         *  @returns {Promise<boolean>} result
-         * 
-         */
-    async sendSeen(chatId) {
-            const result = await this.pupPage.evaluate(async(chatId) => {
-                return window.WWebJS.sendSeen(chatId);
+        await this.pupBrowser.close();
+    }
 
-            }, chatId);
-            return result;
-        }
-        /**
-         * Send a message to a specific chatId
-         * @param {string} chatId
-         * @param {string|MessageMedia|Location} content
-         * @param {object} options 
-         * @returns {Promise<Message>} Message that was just sent
-         */
+    /**
+     * Mark as seen for the Chat
+     *  @param {string} chatId
+     *  @returns {Promise<boolean>} result
+     *
+     */
+    async sendSeen(chatId) {
+        const result = await this.pupPage.evaluate(async(chatId) => {
+            return window.WWebJS.sendSeen(chatId);
+
+        }, chatId);
+        return result;
+    }
+
+    /**
+     * Send a message to a specific chatId
+     * @param {string} chatId
+     * @param {string|MessageMedia|Location} content
+     * @param {object} options
+     * @returns {Promise<Message>} Message that was just sent
+     */
     async sendMessage(chatId, content, options = {}) {
         let internalOptions = {
             caption: options.caption,
@@ -366,7 +368,7 @@ class Client extends EventEmitter {
 
                 let newChatId = await window.WWebJS.getNumberId(chatId);
                 if (newChatId) {
-                    //get the topmost chat object and assign the new chatId to it . 
+                    //get the topmost chat object and assign the new chatId to it .
                     //This is just a workaround.May cause problem if there are no chats at all. Need to dig in and emulate how whatsapp web does
                     let chat = window.Store.Chat.models[0];
                     if (!chat)
@@ -405,7 +407,7 @@ class Client extends EventEmitter {
 
     /**
      * Get chat instance by ID
-     * @param {string} chatId 
+     * @param {string} chatId
      * @returns {Promise<Chat>}
      */
     async getChatById(chatId) {
@@ -465,7 +467,7 @@ class Client extends EventEmitter {
 
     /**
      * Gets the current connection state for the client
-     * @returns {WAState} 
+     * @returns {WAState}
      */
     async getState() {
         return await this.pupPage.evaluate(() => {
@@ -548,7 +550,8 @@ class Client extends EventEmitter {
             const id = Object.keys(c)[0];
             const statusCode = c[id].code;
             if (statusCode != 200) return Object.assign(missing, {
-                [id]: statusCode });
+                [id]: statusCode
+            });
             return missing;
         }), {});
 
