@@ -57,12 +57,6 @@ class Chat extends Base {
          */
         this.archived = data.archive;
 
-        /**
-         * Indicates if the Chat is muted
-         * @type {boolean}
-         */
-        this.isMuted = data.mute.isMuted;
-
         return super._patch(data);
     }
 
@@ -120,10 +114,10 @@ class Chat extends Base {
 
     /**
      * mutes this chat
-     * @param {Number} timestamp
+     * @param {Date} date
      */
-    async mute(timestamp) {
-        return this.client.muteChat(this.id._serialized, timestamp);
+    async mute(date) {
+        return this.client.muteChat(this.id._serialized, date);
     }
     
     /**
