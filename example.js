@@ -237,6 +237,12 @@ client.on('group_update', (notification) => {
     console.log('update', notification);
 });
 
+client.on('change_battery', (batteryInfo) => {
+    // Battery percentage for attached device has changed
+    const { battery, plugged } = batteryInfo;
+    console.log(`Battery: ${battery}% - Charging? ${plugged}`);
+});
+
 client.on('disconnected', (reason) => {
     console.log('Client was logged out', reason);
 });

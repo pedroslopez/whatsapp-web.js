@@ -46,6 +46,7 @@ exports.Events = {
     QR_RECEIVED: 'qr',
     DISCONNECTED: 'disconnected',
     STATE_CHANGED: 'change_state',
+    BATTERY_CHANGED: 'change_battery'
 };
 
 /**
