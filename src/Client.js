@@ -301,9 +301,9 @@ class Client extends EventEmitter {
              * @param {WAState} state the new battery state
              */
             
-            let { battery, phone, plugged, connected, pushname } = state;
+            let { battery, plugged } = state;
             
-            this.emit(Events.BATTERY_CHANGED, { battery, phone, plugged, connected, pushname });
+            this.emit(Events.BATTERY_CHANGED, { battery, plugged });
         });
 
         await page.evaluate(() => {
