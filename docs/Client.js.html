@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.3">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.3.1 &raquo; Source: Client.js</title>
+  <title>whatsapp-web.js 1.4.0 &raquo; Source: Client.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>3.<wbr>1</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>4.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -41,7 +41,7 @@ const { WhatsWebURL, UserAgent, DefaultOptions, Events, WAState } &#x3D; require
 const { ExposeStore, LoadUtils } &#x3D; require(&#x27;./util/Injected&#x27;);
 const ChatFactory &#x3D; require(&#x27;./factories/ChatFactory&#x27;);
 const ContactFactory &#x3D; require(&#x27;./factories/ContactFactory&#x27;);
-const { ClientInfo, Message, MessageMedia, Location, GroupNotification } &#x3D; require(&#x27;./structures&#x27;);
+const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification } &#x3D; require(&#x27;./structures&#x27;);
 /**
  * Starting point for interacting with the WhatsApp Web API
  * @extends {EventEmitter}
@@ -60,6 +60,7 @@ const { ClientInfo, Message, MessageMedia, Location, GroupNotification } &#x3D; 
  * @fires Client#group_update
  * @fires Client#disconnected
  * @fires Client#change_state
+ * @fires Client#change_battery
  */
 class Client extends EventEmitter {
     constructor(options &#x3D; {}) {
@@ -79,6 +80,9 @@ class Client extends EventEmitter {
         const page &#x3D; (await browser.pages())[0];
         page.setUserAgent(UserAgent);
 
+        this.pupBrowser &#x3D; browser;
+        this.pupPage &#x3D; page;
+        
         if (this.options.session) {
             await page.evaluateOnNewDocument(
                 session &#x3D;&gt; {
@@ -97,7 +101,7 @@ class Client extends EventEmitter {
         if (this.options.session) {
             // Check if session restore was successfull 
             try {
-                await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 45000 });
+                await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: this.options.authTimeoutMs });
             } catch (err) {
                 if (err.name &#x3D;&#x3D;&#x3D; &#x27;TimeoutError&#x27;) {
                     /**
@@ -130,7 +134,7 @@ class Client extends EventEmitter {
                 // Wait for QR Code
 
                 const QR_CANVAS_SELECTOR &#x3D; &#x27;canvas&#x27;;
-                await page.waitForSelector(QR_CANVAS_SELECTOR, { timeout: 45000 });
+                await page.waitForSelector(QR_CANVAS_SELECTOR, { timeout: this.options.qrTimeoutMs });
                 const qrImgData &#x3D; await page.$eval(QR_CANVAS_SELECTOR, canvas &#x3D;&gt; [].slice.call(canvas.getContext(&#x27;2d&#x27;).getImageData(0, 0, 264, 264).data));
                 const qr &#x3D; jsQR(qrImgData, 264, 264).data;
                 /**
@@ -141,7 +145,7 @@ class Client extends EventEmitter {
                 this.emit(Events.QR_RECEIVED, qr);
             };
             getQrCode();
-            let retryInterval &#x3D; setInterval(getQrCode, 20000); // check for qr code every 20 seconds
+            let retryInterval &#x3D; setInterval(getQrCode, this.options.qrRefreshIntervalMs);
 
             // Wait for code scan
             await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 0 });
@@ -324,6 +328,20 @@ class Client extends EventEmitter {
             }
         });
 
+        await page.exposeFunction(&#x27;onBatteryStateChangedEvent&#x27;, (state) &#x3D;&gt; {
+
+            const { battery, plugged } &#x3D; state;
+
+            /**
+             * Emitted when the battery percentage for the attached device changes
+             * @event Client#change_battery
+             * @param {object} batteryInfo
+             * @param {number} batteryInfo.battery - The current battery percentage
+             * @param {boolean} batteryInfo.plugged - Indicates if the phone is plugged in (true) or not (false)
+             */
+            this.emit(Events.BATTERY_CHANGED, { battery, plugged });
+        });
+
         await page.evaluate(() &#x3D;&gt; {
             window.Store.Msg.on(&#x27;add&#x27;, (msg) &#x3D;&gt; { if(msg.isNewMsg) window.onAddMessageEvent(msg); });
             window.Store.Msg.on(&#x27;change&#x27;, (msg) &#x3D;&gt; { window.onChangeMessageEvent(msg); });
@@ -332,10 +350,8 @@ class Client extends EventEmitter {
             window.Store.Msg.on(&#x27;change:isUnsentMedia&#x27;, (msg, unsent) &#x3D;&gt; { if(msg.id.fromMe &amp;amp;&amp;amp; !unsent) window.onMessageMediaUploadedEvent(msg); });
             window.Store.Msg.on(&#x27;remove&#x27;, (msg) &#x3D;&gt; { if(msg.isNewMsg) window.onRemoveMessageEvent(msg); });
             window.Store.AppState.on(&#x27;change:state&#x27;, (_AppState, state) &#x3D;&gt; { window.onAppStateChangedEvent(state); });
+            window.Store.Conn.on(&#x27;change:battery&#x27;, (state) &#x3D;&gt; { window.onBatteryStateChangedEvent(state); });
         });
-
-        this.pupBrowser &#x3D; browser;
-        this.pupPage &#x3D; page;
 
         /**
          * Emitted when the client has initialized and is ready to receive messages.
@@ -549,6 +565,43 @@ class Client extends EventEmitter {
         }, id);
     }
 
+    /**
+     * Create a new group
+     * @param {string} name group title
+     * @param {Array&amp;lt;Contact|string&gt;} participants an array of Contacts or contact IDs to add to the group
+     * @returns {Object} createRes
+     * @returns {string} createRes.gid - ID for the group that was just created
+     * @returns {Object.&amp;lt;string,string&gt;} createRes.missingParticipants - participants that were not added to the group. Keys represent the ID for participant that was not added and its value is a status code that represents the reason why participant could not be added. This is usually 403 if the user&#x27;s privacy settings don&#x27;t allow you to add them to groups.
+     */
+    async createGroup(name, participants) {
+        if(!Array.isArray(participants) || participants.length &#x3D;&#x3D; 0) {
+            throw &#x27;You need to add at least one other participant to the group&#x27;;
+        }
+
+        if(participants.every(c &#x3D;&gt; c instanceof Contact)) {
+            participants &#x3D; participants.map(c &#x3D;&gt; c.id._serialized);
+        }
+
+        const createRes &#x3D; await this.pupPage.evaluate(async (name, participantIds) &#x3D;&gt; {
+            const res &#x3D; await window.Store.Wap.createGroup(name, participantIds);
+            console.log(res);
+            if(!res.status &#x3D;&#x3D;&#x3D; 200) {
+                throw &#x27;An error occurred while creating the group!&#x27;;
+            }
+
+            return res;
+        }, name, participants);
+
+        const missingParticipants &#x3D; createRes.participants.reduce(((missing, c) &#x3D;&gt; {
+            const id &#x3D; Object.keys(c)[0];
+            const statusCode &#x3D; c[id].code;
+            if(statusCode !&#x3D; 200) return Object.assign(missing, {[id]: statusCode});
+            return missing;
+        }), {});
+
+        return { gid: createRes.gid, missingParticipants};
+    }
+
 }
 
 module.exports &#x3D; Client;
@@ -562,7 +615,7 @@ module.exports &#x3D; Client;
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on April 2, 2020.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on April 5, 2020.
       </p>
     </div>
   </footer>
