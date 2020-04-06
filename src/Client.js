@@ -49,6 +49,7 @@ class Client extends EventEmitter {
         page.setUserAgent(UserAgent);
 
         this.pupBrowser = browser;
+        this.pupPage = page;
         
         if (this.options.session) {
             await page.evaluateOnNewDocument(
@@ -304,8 +305,6 @@ class Client extends EventEmitter {
             window.Store.Msg.on('remove', (msg) => { if(msg.isNewMsg) window.onRemoveMessageEvent(msg); });
             window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
         });
-
-        this.pupPage = page;
 
         /**
          * Emitted when the client has initialized and is ready to receive messages.
