@@ -29,6 +29,7 @@ const { ClientInfo, Message, MessageMedia, Location, GroupNotification } = requi
  * @fires Client#group_update
  * @fires Client#disconnected
  * @fires Client#change_state
+ * @fires Client#change_battery
  */
 class Client extends EventEmitter {
     constructor(options = {}) {
@@ -295,14 +296,15 @@ class Client extends EventEmitter {
 
         await page.exposeFunction('onBatteryStateChangedEvent', (state) => {
 
+            const { battery, plugged } = state;
+
             /**
-             * Emitted when the battery state changes
+             * Emitted when the battery percentage for the attached device changes
              * @event Client#change_battery
-             * @param {WAState} state the new battery state
+             * @param {object} batteryInfo
+             * @param {number} batteryInfo.battery - The current battery percentage
+             * @param {boolean} batteryInfo.plugged - Indicates if the phone is plugged in (true) or not (false)
              */
-            
-            let { battery, plugged } = state;
-            
             this.emit(Events.BATTERY_CHANGED, { battery, plugged });
         });
 
