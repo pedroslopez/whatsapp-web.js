@@ -18,6 +18,13 @@ class Message extends Base {
 
     _patch(data) {
         /**
+         * MediaKey that represents the sticker 'ID'
+         * @type {string}
+         */
+        this.mediaKey = data.mediaKey;
+
+
+        /**
          * ID that represents the message
          * @type {object}
          */
