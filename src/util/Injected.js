@@ -123,7 +123,7 @@ exports.LoadUtils = () => {
         mediaObject.consolidate(mediaData.toJSON());
         mediaData.mediaBlob.autorelease();
 
-        const uploadedMedia = await window.Store.MediaUpload.uploadMedia(mediaData.mimetype, mediaObject, mediaType);
+        const uploadedMedia = await window.Store.MediaUpload.uploadMedia({ mimetype: mediaData.mimetype, mediaObject, mediaType });
         if (!uploadedMedia) {
             throw new Error('upload failed: media entry was not created');
         }
