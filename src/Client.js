@@ -515,6 +515,15 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Marks the client as online
+     */
+    async sendPresenceAvailable() {
+        return await this.pupPage.evaluate(() => {
+            return window.Store.Wap.sendPresenceAvailable();
+        });
+    }
+
+    /**
      * Enables and returns the archive state of the Chat
      * @returns {boolean}
      */
