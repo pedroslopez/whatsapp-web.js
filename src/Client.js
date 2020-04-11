@@ -335,6 +335,17 @@ class Client extends EventEmitter {
     async destroy() {
         await this.pupBrowser.close();
     }
+
+    /**
+     * Returns the version of WhatsApp Web currently being run
+     * @returns Promise<string>
+     */
+    async getWWebVersion() {
+        return await this.pupPage.evaluate(() => {
+            return window.Debug.VERSION;
+        });
+    }
+
     /**
      * Mark as seen for the Chat
      *  @param {string} chatId
@@ -348,6 +359,7 @@ class Client extends EventEmitter {
         }, chatId);
         return result;
     }
+
     /**
      * Send a message to a specific chatId
      * @param {string} chatId
