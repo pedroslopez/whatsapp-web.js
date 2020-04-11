@@ -18,7 +18,13 @@ class Message extends Base {
 
     _patch(data) {
         /**
-         * MediaKey that represents the sticker 'ID'
+         * ClientUrl is a representation of the download link of the media. Can be used for stickers.
+         * @type {string}
+         */
+        this.clientUrl = data.clientUrl;
+        
+        /**
+         * MediaKey that represents the key to decode the clientUrl
          * @type {string}
          */
         this.mediaKey = data.mediaKey;
