@@ -549,6 +549,7 @@ class Client extends EventEmitter {
 
     /**
      * Returns the contact ID's profile picture URL, if privacy settings allow it
+     * @param {string} contactId the whatsapp user's ID
      * @returns {Promise<string>}
      */
     async getProfilePicUrl(contactId) {
