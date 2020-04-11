@@ -548,6 +548,18 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Returns the contact ID's profile picture URL, if privacy settings allow it
+     * @returns {Promise<string>}
+     */
+    async getProfilePicUrl(contactId) {
+        const profilePic = await this.pupPage.evaluate((contactId) => {
+            return window.Store.Wap.profilePicFind(contactId);
+        }, contactId);
+
+        return profilePic ? profilePic.eurl : undefined;
+    }
+
+    /**
      * Force reset of connection state for the client
     */
     async resetState(){
