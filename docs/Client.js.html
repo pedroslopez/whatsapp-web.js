@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.3">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.4.1 &raquo; Source: Client.js</title>
+  <title>whatsapp-web.js 1.5.0 &raquo; Source: Client.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>4.<wbr>1</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>5.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -317,6 +317,17 @@ class Client extends EventEmitter {
             this.emit(Events.STATE_CHANGED, state);
 
             const ACCEPTED_STATES &#x3D; [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING, WAState.TIMEOUT];
+
+            if(this.options.takeoverOnConflict) {
+                ACCEPTED_STATES.push(WAState.CONFLICT);
+
+                if(state &#x3D;&#x3D;&#x3D; WAState.CONFLICT) {
+                    setTimeout(() &#x3D;&gt; {
+                        this.pupPage.evaluate(() &#x3D;&gt; window.Store.AppState.takeover());
+                    }, this.options.takeoverTimeoutMs);
+                }
+            }
+
             if (!ACCEPTED_STATES.includes(state)) {
                 /**
                  * Emitted when the client has been disconnected
@@ -329,8 +340,9 @@ class Client extends EventEmitter {
         });
 
         await page.exposeFunction(&#x27;onBatteryStateChangedEvent&#x27;, (state) &#x3D;&gt; {
-
             const { battery, plugged } &#x3D; state;
+
+            if(battery &#x3D;&#x3D;&#x3D; undefined) return;
 
             /**
              * Emitted when the battery percentage for the attached device changes
@@ -400,6 +412,7 @@ class Client extends EventEmitter {
      */
     async sendMessage(chatId, content, options &#x3D; {}) {
         let internalOptions &#x3D; {
+            linkPreview: options.linkPreview &#x3D;&#x3D;&#x3D; false ? undefined : true,
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
             mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact &#x3D;&gt; contact.id._serialized) : []
@@ -534,6 +547,15 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Marks the client as online
+     */
+    async sendPresenceAvailable() {
+        return await this.pupPage.evaluate(() &#x3D;&gt; {
+            return window.Store.Wap.sendPresenceAvailable();
+        });
+    }
+
+    /**
      * Enables and returns the archive state of the Chat
      * @returns {boolean}
      */
@@ -555,6 +577,19 @@ class Client extends EventEmitter {
             await window.Store.Cmd.archiveChat(chat, false);
             return chat.archive;
         }, chatId);
+    }
+
+    /**
+     * Returns the contact ID&#x27;s profile picture URL, if privacy settings allow it
+     * @param {string} contactId the whatsapp user&#x27;s ID
+     * @returns {Promise&amp;lt;string&gt;}
+     */
+    async getProfilePicUrl(contactId) {
+        const profilePic &#x3D; await this.pupPage.evaluate((contactId) &#x3D;&gt; {
+            return window.Store.Wap.profilePicFind(contactId);
+        }, contactId);
+
+        return profilePic ? profilePic.eurl : undefined;
     }
 
     /**
