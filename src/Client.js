@@ -286,6 +286,17 @@ class Client extends EventEmitter {
             this.emit(Events.STATE_CHANGED, state);
 
             const ACCEPTED_STATES = [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING, WAState.TIMEOUT];
+
+            if(this.options.takeoverOnConflict) {
+                ACCEPTED_STATES.push(WAState.CONFLICT);
+
+                if(state === WAState.CONFLICT) {
+                    setTimeout(() => {
+                        this.pupPage.evaluate(() => window.Store.AppState.takeover());
+                    }, this.options.takeoverTimeoutMs);
+                }
+            }
+
             if (!ACCEPTED_STATES.includes(state)) {
                 /**
                  * Emitted when the client has been disconnected
@@ -298,8 +309,9 @@ class Client extends EventEmitter {
         });
 
         await page.exposeFunction('onBatteryStateChangedEvent', (state) => {
-
             const { battery, plugged } = state;
+
+            if(battery === undefined) return;
 
             /**
              * Emitted when the battery percentage for the attached device changes
@@ -415,7 +427,7 @@ class Client extends EventEmitter {
                 msg = await window.WWebJS.sendMessage(chat, message, options, sendSeen);
             }
             return msg.serialize();
-        }, chatId, content, internalOptions, sendSeen);
+        }, chatId, content, internalOptions, sendSeen).catch(error => { throw error; });
 
         return new Message(this, newMessage);
     }
