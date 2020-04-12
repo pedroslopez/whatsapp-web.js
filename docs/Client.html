@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.3">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.4.1 &raquo; Class: Client</title>
+  <title>whatsapp-web.js 1.5.0 &raquo; Class: Client</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>4.<wbr>1</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>5.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -57,14 +57,17 @@
                     <dt><a href="Client.html#getChats">getChats()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Client.html#getContactById">getContactById(contactId)</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Client.html#getContactById">getContactById(contactId)</a></dt>
+                    <dt><a href="Client.html#getContacts">getContacts()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Client.html#getContacts">getContacts()</a></dt>
+                    <dt><a href="Client.html#getProfilePicUrl">getProfilePicUrl(contactId)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Client.html#getState">getState()</a></dt>
@@ -79,14 +82,17 @@
                     <dt><a href="Client.html#isRegisteredUser">isRegisteredUser()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Client.html#resetState">resetState()</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Client.html#resetState">resetState()</a></dt>
+                    <dt><a href="Client.html#sendMessage">sendMessage(chatId, content, options)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Client.html#sendMessage">sendMessage(chatId, content, options)</a></dt>
+                    <dt><a href="Client.html#sendPresenceAvailable">sendPresenceAvailable()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Client.html#sendSeen">sendSeen(chatId)</a></dt>
@@ -397,6 +403,44 @@
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getProfilePicUrl"><span class="symbol-name">getProfilePicUrl</span><span class="signature"><span class="signature-params">(contactId)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing string</span></span></h3>
+              <p>Returns the contact ID's profile picture URL, if privacy settings allow it</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>contactId</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>the whatsapp user's ID</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing string</code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="getState"><span class="symbol-name">getState</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="global.html#WAState">WAState</a></span></span></h3>
               <p>Gets the current connection state for the client</p>
               <dl class="dl-compact">
@@ -497,6 +541,11 @@
                   <p><code>Promise containing <a href="Message.html">Message</a></code> <p>Message that was just sent</p>
                   </p>
                 </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="sendPresenceAvailable"><span class="symbol-name">sendPresenceAvailable</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Marks the client as online</p>
+              <dl class="dl-compact">
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="sendSeen"><span class="symbol-name">sendSeen</span><span class="signature"><span class="signature-params">(chatId)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>

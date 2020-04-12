@@ -286,6 +286,17 @@ class Client extends EventEmitter {
             this.emit(Events.STATE_CHANGED, state);
 
             const ACCEPTED_STATES = [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING, WAState.TIMEOUT];
+
+            if(this.options.takeoverOnConflict) {
+                ACCEPTED_STATES.push(WAState.CONFLICT);
+
+                if(state === WAState.CONFLICT) {
+                    setTimeout(() => {
+                        this.pupPage.evaluate(() => window.Store.AppState.takeover());
+                    }, this.options.takeoverTimeoutMs);
+                }
+            }
+
             if (!ACCEPTED_STATES.includes(state)) {
                 /**
                  * Emitted when the client has been disconnected
@@ -298,8 +309,9 @@ class Client extends EventEmitter {
         });
 
         await page.exposeFunction('onBatteryStateChangedEvent', (state) => {
-
             const { battery, plugged } = state;
+
+            if(battery === undefined) return;
 
             /**
              * Emitted when the battery percentage for the attached device changes
@@ -369,6 +381,7 @@ class Client extends EventEmitter {
      */
     async sendMessage(chatId, content, options = {}) {
         let internalOptions = {
+            linkPreview: options.linkPreview === false ? undefined : true,
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
             mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact => contact.id._serialized) : []
@@ -503,6 +516,15 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Marks the client as online
+     */
+    async sendPresenceAvailable() {
+        return await this.pupPage.evaluate(() => {
+            return window.Store.Wap.sendPresenceAvailable();
+        });
+    }
+
+    /**
      * Enables and returns the archive state of the Chat
      * @returns {boolean}
      */
@@ -524,6 +546,19 @@ class Client extends EventEmitter {
             await window.Store.Cmd.archiveChat(chat, false);
             return chat.archive;
         }, chatId);
+    }
+
+    /**
+     * Returns the contact ID's profile picture URL, if privacy settings allow it
+     * @param {string} contactId the whatsapp user's ID
+     * @returns {Promise<string>}
+     */
+    async getProfilePicUrl(contactId) {
+        const profilePic = await this.pupPage.evaluate((contactId) => {
+            return window.Store.Wap.profilePicFind(contactId);
+        }, contactId);
+
+        return profilePic ? profilePic.eurl : undefined;
     }
 
     /**

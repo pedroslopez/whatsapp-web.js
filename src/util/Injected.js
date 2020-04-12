@@ -24,7 +24,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Cmd = window.mR.findModule('Cmd')[0].default;
     window.Store.MediaTypes = window.mR.findModule('msgToMediaType')[0];
     window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default;
-
+    window.Store.Validators = window.mR.findModule('findLinks')[0];
 };
 
 exports.LoadUtils = () => {
@@ -74,6 +74,17 @@ exports.LoadUtils = () => {
                 lng: options.location.longitude
             };
             delete options.location;
+        }
+
+        if (options.linkPreview) {
+            delete options.linkPreview;
+            const link = window.Store.Validators.findLink(content);
+            if (link) {
+                const preview = await window.Store.Wap.queryLinkPreview(link.url);
+                if (!preview.status) {
+                    options = { ...options, ...preview};
+                }
+            }
         }
 
         const newMsgId = new window.Store.MsgKey({
