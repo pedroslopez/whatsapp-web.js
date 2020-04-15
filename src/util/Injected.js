@@ -81,9 +81,9 @@ exports.LoadUtils = () => {
             const link = window.Store.Validators.findLink(content);
             if (link) {
                 const preview = await window.Store.Wap.queryLinkPreview(link.url);
-                if (!preview.status) {
-                    options = { ...options, ...preview};
-                }
+                preview.preview = true;
+                preview.subtype = 'url';
+                options = { ...options, ...preview };
             }
         }
 
