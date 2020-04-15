@@ -82,8 +82,8 @@ exports.LoadUtils = () => {
             if (link) {
                 const preview = await window.Store.Wap.queryLinkPreview(link.url);
                 preview.preview = true;
-                preview.subtype = "url";
-                options = { ...options, ...preview};
+                preview.subtype = 'url';
+                options = { ...options, ...preview };
             }
         }
 
