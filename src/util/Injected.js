@@ -48,7 +48,7 @@ exports.LoadUtils = () => {
     window.WWebJS.sendMessage = async (chat, content, options = {}) => {
         let attOptions = {};
         if (options.attachment) {
-            attOptions = await window.WWebJS.processMediaData(options.attachment);
+            attOptions = await window.WWebJS.processMediaData(options.attachment, options.sendAudioAsVoice);
             delete options.attachment;
         }
 
@@ -114,7 +114,7 @@ exports.LoadUtils = () => {
         return window.Store.Msg.get(newMsgId._serialized);
     };
 
-    window.WWebJS.processMediaData = async (mediaInfo) => {
+    window.WWebJS.processMediaData = async (mediaInfo, forceVoice) => {
         const file = window.WWebJS.mediaInfoToFile(mediaInfo);
         const mData = await window.Store.OpaqueData.default.createFromData(file, file.type);
         const mediaPrep = window.Store.MediaPrep.prepRawMedia(mData, {});
@@ -125,6 +125,10 @@ exports.LoadUtils = () => {
             type: mediaData.type,
             isGif: mediaData.isGif
         });
+
+        if(forceVoice && mediaData.type === 'audio') {
+            mediaData.type = 'ptt';
+        }
 
         if (!(mediaData.mediaBlob instanceof window.Store.OpaqueData.default)) {
             mediaData.mediaBlob = await window.Store.OpaqueData.default.createFromData(mediaData.mediaBlob, mediaData.mediaBlob.type);
