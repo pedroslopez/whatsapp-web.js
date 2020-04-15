@@ -7,7 +7,19 @@ if (fs.existsSync(SESSION_FILE_PATH)) {
     sessionCfg = require(SESSION_FILE_PATH);
 }
 
-const client = new Client({ puppeteer: { headless: false }, session: sessionCfg });
+// const client = new Client({ puppeteer: { headless: false }, session: sessionCfg });
+const widthBrowser = 920;
+const heightBrowser = 820;
+const client = new Client({ 
+    puppeteer: { 
+        headless: false,
+        args: [`--window-size=${widthBrowser},${heightBrowser}`]
+    }, 
+    width: widthBrowser,
+    height: heightBrowser,
+    session: sessionCfg 
+});
+// Width and Height of the browser and page
 // You can use an existing session and avoid scanning a QR code by adding a "session" object to the client options.
 // This object must include WABrowserId, WASecretBundle, WAToken1 and WAToken2.
 
