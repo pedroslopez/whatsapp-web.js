@@ -550,6 +550,30 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Enables and returns the pin state of the Chat
+     * @returns {boolean}
+     */
+    async pinChat(chatId) {
+        return await this.pupPage.evaluate(async chatId => {
+            let chat = await window.Store.Chat.get(chatId);
+            await window.Store.Cmd.pinChat(chat, true);
+            return chat.pin;
+        }, chatId);
+    }
+
+    /**
+     * Changes and returns the pin state of the Chat
+     * @returns {boolean}
+     */
+    async unpinChat(chatId) {
+        return await this.pupPage.evaluate(async chatId => {
+            let chat = await window.Store.Chat.get(chatId);
+            await window.Store.Cmd.pinChat(chat, false);
+            return chat.pin;
+        }, chatId);
+    }
+
+    /**
      * Returns the contact ID's profile picture URL, if privacy settings allow it
      * @param {string} contactId the whatsapp user's ID
      * @returns {Promise<string>}

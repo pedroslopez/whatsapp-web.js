@@ -57,6 +57,12 @@ class Chat extends Base {
          */
         this.archived = data.archive;
 
+        /**
+         * Indicates if the Chat is pinned
+         * @type {boolean}
+         */
+        this.pinned = data.pin;
+
         return super._patch(data);
     }
 
@@ -110,6 +116,20 @@ class Chat extends Base {
      */
     async unarchive() {
         return this.client.unarchiveChat(this.id._serialized);
+    }
+
+    /**
+     * Pins this chat
+     */
+    async pin() {
+        return this.client.pinChat(this.id._serialized);
+    }
+
+    /**
+     * un-pins this chat
+     */
+    async unpin() {
+        return this.client.unpinChat(this.id._serialized);
     }
 
     /**
