@@ -8,7 +8,12 @@ exports.DefaultOptions = {
     puppeteer: {
         headless: true
     },
-    session: false
+    session: false,
+    qrTimeoutMs: 45000,
+    qrRefreshIntervalMs: 20000,
+    authTimeoutMs: 45000,
+    takeoverOnConflict: false,
+    takeoverTimeoutMs: 0
 };
 
 /**
@@ -43,6 +48,7 @@ exports.Events = {
     QR_RECEIVED: 'qr',
     DISCONNECTED: 'disconnected',
     STATE_CHANGED: 'change_state',
+    BATTERY_CHANGED: 'change_battery'
 };
 
 /**

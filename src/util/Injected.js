@@ -24,7 +24,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Cmd = window.mR.findModule('Cmd')[0].default;
     window.Store.MediaTypes = window.mR.findModule('msgToMediaType')[0];
     window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default;
-
+    window.Store.Validators = window.mR.findModule('findLinks')[0];
 };
 
 exports.LoadUtils = () => {
@@ -48,7 +48,7 @@ exports.LoadUtils = () => {
     window.WWebJS.sendMessage = async (chat, content, options = {}) => {
         let attOptions = {};
         if (options.attachment) {
-            attOptions = await window.WWebJS.processMediaData(options.attachment);
+            attOptions = await window.WWebJS.processMediaData(options.attachment, options.sendAudioAsVoice);
             delete options.attachment;
         }
 
@@ -74,6 +74,17 @@ exports.LoadUtils = () => {
                 lng: options.location.longitude
             };
             delete options.location;
+        }
+
+        if (options.linkPreview) {
+            delete options.linkPreview;
+            const link = window.Store.Validators.findLink(content);
+            if (link) {
+                const preview = await window.Store.Wap.queryLinkPreview(link.url);
+                preview.preview = true;
+                preview.subtype = 'url';
+                options = { ...options, ...preview };
+            }
         }
 
         const newMsgId = new window.Store.MsgKey({
@@ -103,7 +114,7 @@ exports.LoadUtils = () => {
         return window.Store.Msg.get(newMsgId._serialized);
     };
 
-    window.WWebJS.processMediaData = async (mediaInfo) => {
+    window.WWebJS.processMediaData = async (mediaInfo, forceVoice) => {
         const file = window.WWebJS.mediaInfoToFile(mediaInfo);
         const mData = await window.Store.OpaqueData.default.createFromData(file, file.type);
         const mediaPrep = window.Store.MediaPrep.prepRawMedia(mData, {});
@@ -115,6 +126,10 @@ exports.LoadUtils = () => {
             isGif: mediaData.isGif
         });
 
+        if(forceVoice && mediaData.type === 'audio') {
+            mediaData.type = 'ptt';
+        }
+
         if (!(mediaData.mediaBlob instanceof window.Store.OpaqueData.default)) {
             mediaData.mediaBlob = await window.Store.OpaqueData.default.createFromData(mediaData.mediaBlob, mediaData.mediaBlob.type);
         }
@@ -123,7 +138,7 @@ exports.LoadUtils = () => {
         mediaObject.consolidate(mediaData.toJSON());
         mediaData.mediaBlob.autorelease();
 
-        const uploadedMedia = await window.Store.MediaUpload.uploadMedia(mediaData.mimetype, mediaObject, mediaType);
+        const uploadedMedia = await window.Store.MediaUpload.uploadMedia({ mimetype: mediaData.mimetype, mediaObject, mediaType });
         if (!uploadedMedia) {
             throw new Error('upload failed: media entry was not created');
         }
