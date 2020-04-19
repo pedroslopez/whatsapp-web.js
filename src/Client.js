@@ -557,7 +557,7 @@ class Client extends EventEmitter {
     async unmuteChat(chatId) {
         return await this.pupPage.evaluate(async chatId => {
             let chat = await window.Store.Chat.get(chatId);
-            await chat.mute.setMute(false);
+            await window.Store.Cmd.muteChat(chat, false);
             return chat.mute.isMuted;
         }, chatId);
     }
