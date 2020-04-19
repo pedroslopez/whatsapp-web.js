@@ -113,6 +113,14 @@ class Chat extends Base {
     }
 
     /**
+     * mutes this chat
+     * @param {Date} date
+     */
+    async mute(date) {
+        return this.client.muteChat(this.id._serialized, date);
+    }
+    
+    /**
      * un-mutes this chat
      */
     async unmute() {
