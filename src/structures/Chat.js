@@ -61,7 +61,7 @@ class Chat extends Base {
          * Indicates if the Chat is pinned
          * @type {boolean}
          */
-        this.pinned = data.pin;
+        this.pinned = !!data.pin;
 
         return super._patch(data);
     }
