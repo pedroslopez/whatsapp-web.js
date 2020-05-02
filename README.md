@@ -1,4 +1,5 @@
-[![npm](https://img.shields.io/npm/v/whatsapp-web.js.svg)](https://www.npmjs.com/package/whatsapp-web.js) [![Depfu](https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg)](https://depfu.com/github/pedroslopez/whatsapp-web.js?project_id=9765) ![WhatsApp_Web 2.2013.7](https://img.shields.io/badge/WhatsApp_Web-2.2013.7-brightgreen.svg) [![Discord Chat](https://img.shields.io/discord/698610475432411196.svg?logo=discord)](https://discord.gg/H7DqQs4)  
+[![npm](https://img.shields.io/npm/v/whatsapp-web.js.svg)](https://www.npmjs.com/package/whatsapp-web.js) [![Depfu](https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg)](https://depfu.com/github/pedroslopez/whatsapp-web.js?project_id=9765) ![WhatsApp_Web 2.2013.7](https://img.shields.io/badge/WhatsApp_Web-2.2013.7-brightgreen.svg) [![Discord Chat](https://img.shields.io/discord/698610475432411196.svg?logo=discord)](https://discord.gg/H7DqQs4) [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fpedroslopez%2Fwhatsapp-web.js.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fpedroslopez%2Fwhatsapp-web.js?ref=badge_shield)
+ 
 
 # whatsapp-web.js
 A WhatsApp API client that connects through the WhatsApp Web browser app
@@ -99,3 +100,6 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fpedroslopez%2Fwhatsapp-web.js.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fpedroslopez%2Fwhatsapp-web.js?ref=badge_large)
