@@ -103,11 +103,7 @@ class Contact extends Base {
      * @returns {Promise<string>}
      */
     async getProfilePicUrl() {
-        const profilePic = await this.client.pupPage.evaluate((contactId) => {
-            return window.Store.Wap.profilePicFind(contactId);
-        }, this.id._serialized);
-
-        return profilePic ? profilePic.eurl : undefined;
+        return await this.client.getProfilePicUrl(this.id._serialized);
     }
     
 }
