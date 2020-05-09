@@ -44,11 +44,14 @@ class Client extends EventEmitter {
     /**
      * Sets up events and requirements, kicks off authentication request
      */
+    
+    
+    
     async initialize() {
         const browser = await puppeteer.launch(this.options.puppeteer);
         const page = (await browser.pages())[0];
         page.setUserAgent(UserAgent);
-
+        
         this.pupBrowser = browser;
         this.pupPage = page;
         
@@ -63,282 +66,301 @@ class Client extends EventEmitter {
                 }, this.options.session);
         }
 
-        await page.goto(WhatsWebURL);
+        page.goto(WhatsWebURL);
+        
+        page.on('load', async () => {
+            console.log("BROWSER LOAD");
+            const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image="true"]';
 
-        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image="true"]';
-
-        if (this.options.session) {
-            // Check if session restore was successfull 
-            try {
-                await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: this.options.authTimeoutMs });
-            } catch (err) {
-                if (err.name === 'TimeoutError') {
-                    /**
-                     * Emitted when there has been an error while trying to restore an existing session
-                     * @event Client#auth_failure
-                     * @param {string} message
-                     */
-                    this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in. Are the session details valid?');
-                    browser.close();
-                    if (this.options.restartOnAuthFail) {
-                        // session restore failed so try again but without session to force new authentication
-                        this.options.session = null;
-                        this.initialize();
+            if (this.options.session) {
+                // Check if session restore was successfull 
+                try {
+                    await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: this.options.authTimeoutMs });
+                } catch (err) {
+                    if (err.name === 'TimeoutError') {
+                        /**
+                         * Emitted when there has been an error while trying to restore an existing session
+                         * @event Client#auth_failure
+                         * @param {string} message
+                         */
+                        this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in. Are the session details valid?');
+                        browser.close();
+                        if (this.options.restartOnAuthFail) {
+                            // session restore failed so try again but without session to force new authentication
+                            this.options.session = null;
+                            this.initialize();
+                        }
+                        return;
                     }
-                    return;
+
+                    throw err;
                 }
 
-                throw err;
+            } else {
+                const getQrCode = async () => {
+                    // Check if retry button is present
+                    var QR_RETRY_SELECTOR = 'div[data-ref] > span > div';
+                    var qrRetry = await page.$(QR_RETRY_SELECTOR);
+                    if (qrRetry) {
+                        await qrRetry.click();
+                    }
+
+                    // Wait for QR Code
+
+                    const QR_CANVAS_SELECTOR = 'canvas';
+                    await page.waitForSelector(QR_CANVAS_SELECTOR, { timeout: this.options.qrTimeoutMs });
+                    const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0, 0, 264, 264).data));
+                    const qr = jsQR(qrImgData, 264, 264).data;
+                    /**
+                     * Emitted when the QR code is received
+                     * @event Client#qr
+                     * @param {string} qr QR Code
+                     */
+                    this.emit(Events.QR_RECEIVED, qr);
+                };
+                getQrCode();
+                let retryInterval = setInterval(getQrCode, this.options.qrRefreshIntervalMs);
+
+                // Wait for code scan
+                await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 0 });
+                clearInterval(retryInterval);
+
             }
 
-        } else {
-            const getQrCode = async () => {
-                // Check if retry button is present
-                var QR_RETRY_SELECTOR = 'div[data-ref] > span > div';
-                var qrRetry = await page.$(QR_RETRY_SELECTOR);
-                if (qrRetry) {
-                    await qrRetry.click();
-                }
+            await page.evaluate(ExposeStore, moduleRaid.toString());
 
-                // Wait for QR Code
+            // Get session tokens
+            const localStorage = JSON.parse(await page.evaluate(() => {
+                return JSON.stringify(window.localStorage);
+            }));
 
-                const QR_CANVAS_SELECTOR = 'canvas';
-                await page.waitForSelector(QR_CANVAS_SELECTOR, { timeout: this.options.qrTimeoutMs });
-                const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0, 0, 264, 264).data));
-                const qr = jsQR(qrImgData, 264, 264).data;
-                /**
-                * Emitted when the QR code is received
-                * @event Client#qr
-                * @param {string} qr QR Code
-                */
-                this.emit(Events.QR_RECEIVED, qr);
+            const session = {
+                WABrowserId: localStorage.WABrowserId,
+                WASecretBundle: localStorage.WASecretBundle,
+                WAToken1: localStorage.WAToken1,
+                WAToken2: localStorage.WAToken2
             };
-            getQrCode();
-            let retryInterval = setInterval(getQrCode, this.options.qrRefreshIntervalMs);
 
-            // Wait for code scan
-            await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 0 });
-            clearInterval(retryInterval);
+            /**
+             * Emitted when authentication is successful
+             * @event Client#authenticated
+             * @param {object} session Object containing session information. Can be used to restore the session.
+             */
+            this.emit(Events.AUTHENTICATED, session);
 
-        }
+            // Check window.Store Injection
+            await page.waitForFunction('window.Store != undefined');
 
-        await page.evaluate(ExposeStore, moduleRaid.toString());
+            //Load util functions (serializers, helper functions)
+            await page.evaluate(LoadUtils);
 
-        // Get session tokens
-        const localStorage = JSON.parse(await page.evaluate(() => {
-            return JSON.stringify(window.localStorage);
-        }));
+            // Expose client info
+            this.info = new ClientInfo(this, await page.evaluate(() => {
+                return window.Store.Conn.serialize();
+            }));
 
-        const session = {
-            WABrowserId: localStorage.WABrowserId,
-            WASecretBundle: localStorage.WASecretBundle,
-            WAToken1: localStorage.WAToken1,
-            WAToken2: localStorage.WAToken2
-        };
+            // Register events
+            if(!page._pageBindings.has("onAddMessageEvent")) {
+                await page.exposeFunction('onAddMessageEvent', msg => {
+                    if (!msg.isNewMsg) return;
 
-        /**
-         * Emitted when authentication is successful
-         * @event Client#authenticated
-         * @param {object} session Object containing session information. Can be used to restore the session.
-         */
-        this.emit(Events.AUTHENTICATED, session);
+                    if (msg.type === 'gp2') {
+                        const notification = new GroupNotification(this, msg);
+                        if (msg.subtype === 'add' || msg.subtype === 'invite') {
+                            /**
+                             * Emitted when a user joins the chat via invite link or is added by an admin.
+                             * @event Client#group_join
+                             * @param {GroupNotification} notification GroupNotification with more information about the action
+                             */
+                            this.emit(Events.GROUP_JOIN, notification);
+                        } else if (msg.subtype === 'remove' || msg.subtype === 'leave') {
+                            /**
+                             * Emitted when a user leaves the chat or is removed by an admin.
+                             * @event Client#group_leave
+                             * @param {GroupNotification} notification GroupNotification with more information about the action
+                             */
+                            this.emit(Events.GROUP_LEAVE, notification);
+                        } else {
+                            /**
+                             * Emitted when group settings are updated, such as subject, description or picture.
+                             * @event Client#group_update
+                             * @param {GroupNotification} notification GroupNotification with more information about the action
+                             */
+                            this.emit(Events.GROUP_UPDATE, notification);
+                        }
+                        return;
+                    }
 
-        // Check window.Store Injection
-        await page.waitForFunction('window.Store != undefined');
+                    const message = new Message(this, msg);
 
-        //Load util functions (serializers, helper functions)
-        await page.evaluate(LoadUtils);
-
-        // Expose client info
-        this.info = new ClientInfo(this, await page.evaluate(() => {
-            return window.Store.Conn.serialize();
-        }));
-
-        // Register events
-        await page.exposeFunction('onAddMessageEvent', msg => {
-            if (!msg.isNewMsg) return;
-
-            if (msg.type === 'gp2') {
-                const notification = new GroupNotification(this, msg);
-                if (msg.subtype === 'add' || msg.subtype === 'invite') {
                     /**
-                     * Emitted when a user joins the chat via invite link or is added by an admin.
-                     * @event Client#group_join
-                     * @param {GroupNotification} notification GroupNotification with more information about the action
+                     * Emitted when a new message is created, which may include the current user's own messages.
+                     * @event Client#message_create
+                     * @param {Message} message The message that was created
                      */
-                    this.emit(Events.GROUP_JOIN, notification);
-                } else if (msg.subtype === 'remove' || msg.subtype === 'leave') {
+                    this.emit(Events.MESSAGE_CREATE, message);
+
+                    if (msg.id.fromMe) return;
+
                     /**
-                     * Emitted when a user leaves the chat or is removed by an admin.
-                     * @event Client#group_leave
-                     * @param {GroupNotification} notification GroupNotification with more information about the action
+                     * Emitted when a new message is received.
+                     * @event Client#message
+                     * @param {Message} message The message that was received
                      */
-                    this.emit(Events.GROUP_LEAVE, notification);
-                } else {
-                    /**
-                     * Emitted when group settings are updated, such as subject, description or picture.
-                     * @event Client#group_update
-                     * @param {GroupNotification} notification GroupNotification with more information about the action
-                     */
-                    this.emit(Events.GROUP_UPDATE, notification);
-                }
-                return;
+                    this.emit(Events.MESSAGE_RECEIVED, message);
+                });   
+            }
+
+            let last_message;
+
+            if(!page._pageBindings.has("onChangeMessageTypeEvent")) {
+                await page.exposeFunction('onChangeMessageTypeEvent', (msg) => {
+
+                    if (msg.type === 'revoked') {
+                        const message = new Message(this, msg);
+                        let revoked_msg;
+                        if (last_message && msg.id.id === last_message.id.id) {
+                            revoked_msg = new Message(this, last_message);
+                        }
+
+                        /**
+                         * Emitted when a message is deleted for everyone in the chat.
+                         * @event Client#message_revoke_everyone
+                         * @param {Message} message The message that was revoked, in its current state. It will not contain the original message's data.
+                         * @param {?Message} revoked_msg The message that was revoked, before it was revoked. It will contain the message's original data.
+                         * Note that due to the way this data is captured, it may be possible that this param will be undefined.
+                         */
+                        this.emit(Events.MESSAGE_REVOKED_EVERYONE, message, revoked_msg);
+                    }
+
+                });
+            }
+
+            if(!page._pageBindings.has("onChangeMessageEvent")) {
+                await page.exposeFunction('onChangeMessageEvent', (msg) => {
+
+                    if (msg.type !== 'revoked') {
+                        last_message = msg;
+                    }
+
+                });
             }
             
-            const message = new Message(this, msg);
+            if(!page._pageBindings.has("onRemoveMessageEvent")) {
+                await page.exposeFunction('onRemoveMessageEvent', (msg) => {
 
-            /**
-             * Emitted when a new message is created, which may include the current user's own messages.
-             * @event Client#message_create
-             * @param {Message} message The message that was created
-             */
-            this.emit(Events.MESSAGE_CREATE, message);
+                    if (!msg.isNewMsg) return;
 
-            if (msg.id.fromMe) return;
+                    const message = new Message(this, msg);
 
-            /**
-             * Emitted when a new message is received.
-             * @event Client#message
-             * @param {Message} message The message that was received
-             */
-            this.emit(Events.MESSAGE_RECEIVED, message);
-        });
+                    /**
+                     * Emitted when a message is deleted by the current user.
+                     * @event Client#message_revoke_me
+                     * @param {Message} message The message that was revoked
+                     */
+                    this.emit(Events.MESSAGE_REVOKED_ME, message);
 
-        let last_message;
-
-        await page.exposeFunction('onChangeMessageTypeEvent', (msg) => {
-
-            if (msg.type === 'revoked') {
-                const message = new Message(this, msg);
-                let revoked_msg;
-                if (last_message && msg.id.id === last_message.id.id) {
-                    revoked_msg = new Message(this, last_message);
-                }
-
-                /**
-                 * Emitted when a message is deleted for everyone in the chat.
-                 * @event Client#message_revoke_everyone
-                 * @param {Message} message The message that was revoked, in its current state. It will not contain the original message's data.
-                 * @param {?Message} revoked_msg The message that was revoked, before it was revoked. It will contain the message's original data. 
-                 * Note that due to the way this data is captured, it may be possible that this param will be undefined.
-                 */
-                this.emit(Events.MESSAGE_REVOKED_EVERYONE, message, revoked_msg);
+                });
             }
-
-        });
-
-        await page.exposeFunction('onChangeMessageEvent', (msg) => {
-
-            if (msg.type !== 'revoked') {
-                last_message = msg;
-            }
-
-        });
-
-        await page.exposeFunction('onRemoveMessageEvent', (msg) => {
-
-            if (!msg.isNewMsg) return;
-
-            const message = new Message(this, msg);
-
-            /**
-             * Emitted when a message is deleted by the current user.
-             * @event Client#message_revoke_me
-             * @param {Message} message The message that was revoked
-             */
-            this.emit(Events.MESSAGE_REVOKED_ME, message);
-
-        });
-
-        await page.exposeFunction('onMessageAckEvent', (msg, ack) => {
-
-            const message = new Message(this, msg);
             
-            /**
-             * Emitted when an ack event occurrs on message type.
-             * @event Client#message_ack
-             * @param {Message} message The message that was affected
-             * @param {MessageAck} ack The new ACK value
-             */
-            this.emit(Events.MESSAGE_ACK, message, ack);
+            if(!page._pageBindings.has("onMessageAckEvent")) {
+                await page.exposeFunction('onMessageAckEvent', (msg, ack) => {
 
-        });
+                    const message = new Message(this, msg);
 
-        await page.exposeFunction('onMessageMediaUploadedEvent', (msg) => {
+                    /**
+                     * Emitted when an ack event occurrs on message type.
+                     * @event Client#message_ack
+                     * @param {Message} message The message that was affected
+                     * @param {MessageAck} ack The new ACK value
+                     */
+                    this.emit(Events.MESSAGE_ACK, message, ack);
 
-            const message = new Message(this, msg);
+                });
+            }
+
+            if(!page._pageBindings.has("onMessageMediaUploadedEvent")) {
+                await page.exposeFunction('onMessageMediaUploadedEvent', (msg) => {
+
+                    const message = new Message(this, msg);
+
+                    /**
+                     * Emitted when media has been uploaded for a message sent by the client.
+                     * @event Client#media_uploaded
+                     * @param {Message} message The message with media that was uploaded
+                     */
+                    this.emit(Events.MEDIA_UPLOADED, message);
+                });
+            }
             
-            /**
-             * Emitted when media has been uploaded for a message sent by the client.
-             * @event Client#media_uploaded
-             * @param {Message} message The message with media that was uploaded
-             */
-            this.emit(Events.MEDIA_UPLOADED, message);
-        });
+            if(!page._pageBindings.has("onAppStateChangedEvent")) {
+                await page.exposeFunction('onAppStateChangedEvent', (state) => {
 
-        await page.exposeFunction('onAppStateChangedEvent', (state) => {
+                    /**
+                     * Emitted when the connection state changes
+                     * @event Client#change_state
+                     * @param {WAState} state the new connection state
+                     */
+                    this.emit(Events.STATE_CHANGED, state);
 
-            /**
-             * Emitted when the connection state changes
-             * @event Client#change_state
-             * @param {WAState} state the new connection state
-             */
-            this.emit(Events.STATE_CHANGED, state);
+                    const ACCEPTED_STATES = [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING, WAState.TIMEOUT];
 
-            const ACCEPTED_STATES = [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING, WAState.TIMEOUT];
+                    if(this.options.takeoverOnConflict) {
+                        ACCEPTED_STATES.push(WAState.CONFLICT);
 
-            if(this.options.takeoverOnConflict) {
-                ACCEPTED_STATES.push(WAState.CONFLICT);
+                        if(state === WAState.CONFLICT) {
+                            setTimeout(() => {
+                                this.pupPage.evaluate(() => window.Store.AppState.takeover());
+                            }, this.options.takeoverTimeoutMs);
+                        }
+                    }
 
-                if(state === WAState.CONFLICT) {
-                    setTimeout(() => {
-                        this.pupPage.evaluate(() => window.Store.AppState.takeover());
-                    }, this.options.takeoverTimeoutMs);
-                }
+                    if (!ACCEPTED_STATES.includes(state)) {
+                        /**
+                         * Emitted when the client has been disconnected
+                         * @event Client#disconnected
+                         * @param {WAState} reason state that caused the disconnect
+                         */
+                        this.emit(Events.DISCONNECTED, state);
+                        this.destroy();
+                    }
+                });
             }
 
-            if (!ACCEPTED_STATES.includes(state)) {
-                /**
-                 * Emitted when the client has been disconnected
-                 * @event Client#disconnected
-                 * @param {WAState} reason state that caused the disconnect
-                 */
-                this.emit(Events.DISCONNECTED, state);
-                this.destroy();
+            if(!page._pageBindings.has("onBatteryStateChangedEvent")) {
+                await page.exposeFunction('onBatteryStateChangedEvent', (state) => {
+                    const { battery, plugged } = state;
+
+                    if(battery === undefined) return;
+
+                    /**
+                     * Emitted when the battery percentage for the attached device changes
+                     * @event Client#change_battery
+                     * @param {object} batteryInfo
+                     * @param {number} batteryInfo.battery - The current battery percentage
+                     * @param {boolean} batteryInfo.plugged - Indicates if the phone is plugged in (true) or not (false)
+                     */
+                    this.emit(Events.BATTERY_CHANGED, { battery, plugged });
+                });   
             }
-        });
 
-        await page.exposeFunction('onBatteryStateChangedEvent', (state) => {
-            const { battery, plugged } = state;
-
-            if(battery === undefined) return;
+            await page.evaluate(() => {
+                window.Store.Msg.on('add', (msg) => { if(msg.isNewMsg) window.onAddMessageEvent(msg); });
+                window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(msg); });
+                window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(msg); });
+                window.Store.Msg.on('change:ack', (msg, ack) => { window.onMessageAckEvent(msg, ack); });
+                window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => { if(msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(msg); });
+                window.Store.Msg.on('remove', (msg) => { if(msg.isNewMsg) window.onRemoveMessageEvent(msg); });
+                window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
+                window.Store.Conn.on('change:battery', (state) => { window.onBatteryStateChangedEvent(state); });
+            });
 
             /**
-             * Emitted when the battery percentage for the attached device changes
-             * @event Client#change_battery
-             * @param {object} batteryInfo
-             * @param {number} batteryInfo.battery - The current battery percentage
-             * @param {boolean} batteryInfo.plugged - Indicates if the phone is plugged in (true) or not (false)
+             * Emitted when the client has initialized and is ready to receive messages.
+             * @event Client#ready
              */
-            this.emit(Events.BATTERY_CHANGED, { battery, plugged });
+            this.emit(Events.READY);
         });
-
-        await page.evaluate(() => {
-            window.Store.Msg.on('add', (msg) => { if(msg.isNewMsg) window.onAddMessageEvent(msg); });
-            window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(msg); });
-            window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(msg); });
-            window.Store.Msg.on('change:ack', (msg, ack) => { window.onMessageAckEvent(msg, ack); });
-            window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => { if(msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(msg); });
-            window.Store.Msg.on('remove', (msg) => { if(msg.isNewMsg) window.onRemoveMessageEvent(msg); });
-            window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
-            window.Store.Conn.on('change:battery', (state) => { window.onBatteryStateChangedEvent(state); });
-        });
-
-        /**
-         * Emitted when the client has initialized and is ready to receive messages.
-         * @event Client#ready
-         */
-        this.emit(Events.READY);
     }
 
     /**
@@ -382,7 +404,6 @@ class Client extends EventEmitter {
     async sendMessage(chatId, content, options = {}) {
         let internalOptions = {
             linkPreview: options.linkPreview === false ? undefined : true,
-            sendAudioAsVoice: options.sendAudioAsVoice,
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
             mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact => contact.id._serialized) : []
