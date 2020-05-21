@@ -64,7 +64,7 @@ class Client extends EventEmitter {
         }
 
         await page.goto(WhatsWebURL, {
-            waitUntil: "load",
+            waitUntil: 'load',
             timeout: 0,
         });
         
