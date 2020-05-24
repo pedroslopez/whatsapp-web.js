@@ -33,7 +33,7 @@ class MessageMedia {
 
     /**
      * Creates a MessageMedia instance from a local file path
-     * @param {string} path 
+     * @param {string} filePath 
      */
     static fromFilePath(filePath) {
         const b64data = fs.readFileSync(filePath, {encoding: 'base64'});
