@@ -63,8 +63,11 @@ class Client extends EventEmitter {
                 }, this.options.session);
         }
 
-        await page.goto(WhatsWebURL);
-
+        await page.goto(WhatsWebURL, {
+            waitUntil: 'load',
+            timeout: 0,
+        });
+        
         const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image="true"]';
 
         if (this.options.session) {
