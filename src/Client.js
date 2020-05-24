@@ -539,7 +539,7 @@ class Client extends EventEmitter {
      * Mutes the Chat until a specified date and returns the new mute state
      * @param {string} chatId ID of the chat that will be muted
      * @param {Date} unmuteDate Date when the chat will be unmuted
-     * @returns {boolean}
+     * @returns {Promise<Boolean>} new mute state
      */
     async muteChat(chatId, unmuteDate) {
         return await this.pupPage.evaluate(async (chatId, timestamp) => {
@@ -551,7 +551,7 @@ class Client extends EventEmitter {
     /**
      * Unmutes the Chat and returns the new mute state
      * @param {string} chatId ID of the chat that will be unmuted
-     * @returns {boolean}
+     * @returns {Promise<Boolean>} new mute state
      */
     async unmuteChat(chatId) {
         return await this.pupPage.evaluate(async chatId => {
