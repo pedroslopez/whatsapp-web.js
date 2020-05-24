@@ -399,6 +399,7 @@ class Client extends EventEmitter {
         } else if (options.media instanceof MessageMedia) {
             internalOptions.attachment = options.media;
             internalOptions.caption = content;
+            content = '';
         } else if (content instanceof Location) {
             internalOptions.location = content;
             content = '';
