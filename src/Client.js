@@ -63,8 +63,11 @@ class Client extends EventEmitter {
                 }, this.options.session);
         }
 
-        await page.goto(WhatsWebURL);
-
+        await page.goto(WhatsWebURL, {
+            waitUntil: 'load',
+            timeout: 0,
+        });
+        
         const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image="true"]';
 
         if (this.options.session) {
@@ -396,38 +399,21 @@ class Client extends EventEmitter {
         } else if (options.media instanceof MessageMedia) {
             internalOptions.attachment = options.media;
             internalOptions.caption = content;
+            content = '';
         } else if (content instanceof Location) {
             internalOptions.location = content;
             content = '';
         }
 
         const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
-            let chat = window.Store.Chat.get(chatId);
-            let msg;
-            if (!chat) { // The chat is not available in the previously chatted list
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = await window.Store.Chat.find(chatWid);
 
-                let newChatId = await window.WWebJS.getNumberId(chatId);
-                if (newChatId) {
-                    //get the topmost chat object and assign the new chatId to it . 
-                    //This is just a workaround.May cause problem if there are no chats at all. Need to dig in and emulate how whatsapp web does
-                    let chat = window.Store.Chat.models[0];
-                    if (!chat)
-                        throw 'Chat List empty! Need at least one open conversation with any of your contact';
-
-                    let originalChatObjId = chat.id;
-                    chat.id = newChatId;
-
-                    msg = await window.WWebJS.sendMessage(chat, message, options);
-                    chat.id = originalChatObjId; //replace the chat with its original id
-                }
+            if(sendSeen) {
+                window.WWebJS.sendSeen(chatId);
             }
-            else {
-                if(sendSeen) {
-                    window.WWebJS.sendSeen(chatId);
-                }
-                
-                msg = await window.WWebJS.sendMessage(chat, message, options, sendSeen);
-            }
+
+            const msg = await window.WWebJS.sendMessage(chat, message, options, sendSeen);
             return msg.serialize();
         }, chatId, content, internalOptions, sendSeen);
 
