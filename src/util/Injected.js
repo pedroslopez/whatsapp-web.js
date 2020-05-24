@@ -50,6 +50,7 @@ exports.LoadUtils = () => {
         let attOptions = {};
         if (options.attachment) {
             attOptions = await window.WWebJS.processMediaData(options.attachment, options.sendAudioAsVoice);
+            content = attOptions.preview;
             delete options.attachment;
         }
 
