@@ -113,15 +113,17 @@ class Chat extends Base {
     }
 
     /**
-     * mutes this chat
-     * @param {Date} date
+     * Mutes this chat until a specified date
+     * @param {Date} unmuteDate Date at which the Chat will be unmuted
+     * @returns {Promise<Boolean>} new mute state
      */
-    async mute(date) {
-        return this.client.muteChat(this.id._serialized, date);
+    async mute(unmuteDate) {
+        return this.client.muteChat(this.id._serialized, unmuteDate);
     }
     
     /**
-     * un-mutes this chat
+     * Unmutes this chat
+     * @returns {Promise<Boolean>} new mute state
      */
     async unmute() {
         return this.client.unmuteChat(this.id._serialized);
