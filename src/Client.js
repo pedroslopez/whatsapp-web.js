@@ -536,6 +536,32 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Mutes the Chat until a specified date and returns the new mute state
+     * @param {string} chatId ID of the chat that will be muted
+     * @param {Date} unmuteDate Date when the chat will be unmuted
+     * @returns {Promise<Boolean>} new mute state
+     */
+    async muteChat(chatId, unmuteDate) {
+        return await this.pupPage.evaluate(async (chatId, timestamp) => {
+            let chat = await window.Store.Chat.get(chatId);
+            await chat.mute.mute(timestamp, !0);
+        }, chatId, unmuteDate.getTime() / 1000);
+    }
+    
+    /**
+     * Unmutes the Chat and returns the new mute state
+     * @param {string} chatId ID of the chat that will be unmuted
+     * @returns {Promise<Boolean>} new mute state
+     */
+    async unmuteChat(chatId) {
+        return await this.pupPage.evaluate(async chatId => {
+            let chat = await window.Store.Chat.get(chatId);
+            await window.Store.Cmd.muteChat(chat, false);
+            return chat.mute.isMuted;
+        }, chatId);
+    }
+    
+    /**
      * Returns the contact ID's profile picture URL, if privacy settings allow it
      * @param {string} contactId the whatsapp user's ID
      * @returns {Promise<string>}

@@ -169,6 +169,12 @@ client.on('message', async msg => {
     } else if (msg.body === '!archive') {
         const chat = await msg.getChat();
         chat.archive();
+    } else if (msg.body === '!mute') {
+        const chat = await msg.getChat();
+        // mute the chat for 20 seconds
+        const unmuteDate = new Date();
+        unmuteDate.setSeconds(unmuteDate.getSeconds() + 20);
+        await chat.mute(unmuteDate);
     } else if (msg.body === '!typing') {
         const chat = await msg.getChat();
         // simulates typing in the chat

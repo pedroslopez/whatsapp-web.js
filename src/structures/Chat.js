@@ -113,6 +113,23 @@ class Chat extends Base {
     }
 
     /**
+     * Mutes this chat until a specified date
+     * @param {Date} unmuteDate Date at which the Chat will be unmuted
+     * @returns {Promise<Boolean>} new mute state
+     */
+    async mute(unmuteDate) {
+        return this.client.muteChat(this.id._serialized, unmuteDate);
+    }
+    
+    /**
+     * Unmutes this chat
+     * @returns {Promise<Boolean>} new mute state
+     */
+    async unmute() {
+        return this.client.unmuteChat(this.id._serialized);
+    }
+
+    /**
      * Loads chat messages, sorted from earliest to latest.
      * @param {Object} searchOptions Options for searching messages. Right now only limit is supported.
      * @param {Number} [searchOptions.limit=50] The amount of messages to return. Note that the actual number of returned messages may be smaller if there aren't enough messages in the conversation. Set this to Infinity to load all messages.
