@@ -2,9 +2,9 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.6.3">
+  <meta name="generator" content="JSDoc 3.6.4">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.5.1 &raquo; Class: Client</title>
+  <title>whatsapp-web.js 1.6.0 &raquo; Class: Client</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>5.<wbr>1</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>6.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -82,13 +82,16 @@
                     <dt><a href="Client.html#isRegisteredUser">isRegisteredUser()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Client.html#resetState">resetState()</a></dt>
+                    <dt><a href="Client.html#muteChat">muteChat(chatId, unmuteDate)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Client.html#resetState">resetState()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#sendMessage">sendMessage(chatId, content, options)</a></dt>
                     <dd>
                     </dd>
@@ -102,6 +105,9 @@
                     <dd>
                     </dd>
                     <dt><a href="Client.html#unarchiveChat">unarchiveChat()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#unmuteChat">unmuteChat(chatId)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -474,6 +480,54 @@
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="muteChat"><span class="symbol-name">muteChat</span><span class="signature"><span class="signature-params">(chatId, unmuteDate)</span></span></h3>
+              <p>Mutes the Chat until a specified date</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>chatId</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>ID of the chat that will be muted</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>unmuteDate</p>
+                      </td>
+                      <td>
+                        <p>Date</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Date when the chat will be unmuted</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="resetState"><span class="symbol-name">resetState</span><span class="signature"><span class="signature-params">()</span></span></h3>
               <p>Force reset of connection state for the client</p>
               <dl class="dl-compact">
@@ -627,6 +681,40 @@
                 <dd>
                   <p><code>boolean</code> </p>
                 </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="unmuteChat"><span class="symbol-name">unmuteChat</span><span class="signature"><span class="signature-params">(chatId)</span></span></h3>
+              <p>Unmutes the Chat</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>chatId</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>ID of the chat that will be unmuted</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
               </dl>
             </section>
             <h2>Events</h2>
@@ -1209,7 +1297,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on April 14, 2020.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.4 on May 24, 2020.
       </p>
     </div>
   </footer>

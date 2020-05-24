@@ -2,9 +2,9 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.6.3">
+  <meta name="generator" content="JSDoc 3.6.4">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.5.1 &raquo; Class: GroupChat</title>
+  <title>whatsapp-web.js 1.6.0 &raquo; Class: GroupChat</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>5.<wbr>1</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>6.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -110,13 +110,13 @@
                     <dt><a href="GroupChat.html#delete">delete()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="GroupChat.html#demoteParticipants">demoteParticipants(participantIds)</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="GroupChat.html#demoteParticipants">demoteParticipants(participantIds)</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="GroupChat.html#fetchMessages">fetchMessages(searchOptions)</a></dt>
                     <dd>
                     </dd>
@@ -124,6 +124,9 @@
                     <dd>
                     </dd>
                     <dt><a href="GroupChat.html#leave">leave()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="GroupChat.html#mute">mute(unmuteDate)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="GroupChat.html#promoteParticipants">promoteParticipants(participantIds)</a></dt>
@@ -135,13 +138,13 @@
                     <dt><a href="GroupChat.html#revokeInvite">revokeInvite()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="GroupChat.html#sendMessage">sendMessage(content, options)</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="GroupChat.html#sendMessage">sendMessage(content, options)</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="GroupChat.html#sendSeen">sendSeen()</a></dt>
                     <dd>
                     </dd>
@@ -158,6 +161,9 @@
                     <dd>
                     </dd>
                     <dt><a href="GroupChat.html#unarchive">unarchive()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="GroupChat.html#unmute">unmute()</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -496,6 +502,42 @@
               <dl class="dl-compact">
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="mute"><span class="symbol-name">mute</span><span class="signature"><span class="signature-params">(unmuteDate)</span></span></h3>
+              <p>Mutes this chat until a specified date</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>unmuteDate</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Date at which the Chat will be unmuted</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#mute">Chat#mute</a></dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="promoteParticipants"><span class="symbol-name">promoteParticipants</span><span class="signature"><span class="signature-params">(participantIds)</span></span></h3>
               <p>Promotes participants by IDs to admins</p>
               <section>
@@ -716,6 +758,13 @@
                 <dt>Inherited from</dt>
                 <dd><a href="Chat.html#unarchive">Chat#unarchive</a></dd>
               </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="unmute"><span class="symbol-name">unmute</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Unmutes this chat</p>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#unmute">Chat#unmute</a></dd>
+              </dl>
             </section>
           </section>
         </div>
@@ -726,7 +775,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on April 14, 2020.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.4 on May 24, 2020.
       </p>
     </div>
   </footer>
