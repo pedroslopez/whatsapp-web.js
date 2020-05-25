@@ -2,9 +2,9 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.6.3">
+  <meta name="generator" content="JSDoc 3.6.4">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.5.1 &raquo; Source: Client.js</title>
+  <title>whatsapp-web.js 1.6.0 &raquo; Source: Client.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>5.<wbr>1</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>6.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -94,8 +94,11 @@ class Client extends EventEmitter {
                 }, this.options.session);
         }
 
-        await page.goto(WhatsWebURL);
-
+        await page.goto(WhatsWebURL, {
+            waitUntil: &#x27;load&#x27;,
+            timeout: 0,
+        });
+        
         const KEEP_PHONE_CONNECTED_IMG_SELECTOR &#x3D; &#x27;[data-asset-intro-image&#x3D;&quot;true&quot;]&#x27;;
 
         if (this.options.session) {
@@ -413,6 +416,7 @@ class Client extends EventEmitter {
     async sendMessage(chatId, content, options &#x3D; {}) {
         let internalOptions &#x3D; {
             linkPreview: options.linkPreview &#x3D;&#x3D;&#x3D; false ? undefined : true,
+            sendAudioAsVoice: options.sendAudioAsVoice,
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
             mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact &#x3D;&gt; contact.id._serialized) : []
@@ -426,38 +430,21 @@ class Client extends EventEmitter {
         } else if (options.media instanceof MessageMedia) {
             internalOptions.attachment &#x3D; options.media;
             internalOptions.caption &#x3D; content;
+            content &#x3D; &#x27;&#x27;;
         } else if (content instanceof Location) {
             internalOptions.location &#x3D; content;
             content &#x3D; &#x27;&#x27;;
         }
 
         const newMessage &#x3D; await this.pupPage.evaluate(async (chatId, message, options, sendSeen) &#x3D;&gt; {
-            let chat &#x3D; window.Store.Chat.get(chatId);
-            let msg;
-            if (!chat) { // The chat is not available in the previously chatted list
+            const chatWid &#x3D; window.Store.WidFactory.createWid(chatId);
+            const chat &#x3D; await window.Store.Chat.find(chatWid);
 
-                let newChatId &#x3D; await window.WWebJS.getNumberId(chatId);
-                if (newChatId) {
-                    //get the topmost chat object and assign the new chatId to it . 
-                    //This is just a workaround.May cause problem if there are no chats at all. Need to dig in and emulate how whatsapp web does
-                    let chat &#x3D; window.Store.Chat.models[0];
-                    if (!chat)
-                        throw &#x27;Chat List empty! Need at least one open conversation with any of your contact&#x27;;
-
-                    let originalChatObjId &#x3D; chat.id;
-                    chat.id &#x3D; newChatId;
-
-                    msg &#x3D; await window.WWebJS.sendMessage(chat, message, options);
-                    chat.id &#x3D; originalChatObjId; //replace the chat with its original id
-                }
+            if(sendSeen) {
+                window.WWebJS.sendSeen(chatId);
             }
-            else {
-                if(sendSeen) {
-                    window.WWebJS.sendSeen(chatId);
-                }
-                
-                msg &#x3D; await window.WWebJS.sendMessage(chat, message, options, sendSeen);
-            }
+
+            const msg &#x3D; await window.WWebJS.sendMessage(chat, message, options, sendSeen);
             return msg.serialize();
         }, chatId, content, internalOptions, sendSeen);
 
@@ -580,6 +567,29 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Mutes the Chat until a specified date
+     * @param {string} chatId ID of the chat that will be muted
+     * @param {Date} unmuteDate Date when the chat will be unmuted
+     */
+    async muteChat(chatId, unmuteDate) {
+        await this.pupPage.evaluate(async (chatId, timestamp) &#x3D;&gt; {
+            let chat &#x3D; await window.Store.Chat.get(chatId);
+            await chat.mute.mute(timestamp, !0);
+        }, chatId, unmuteDate.getTime() / 1000);
+    }
+    
+    /**
+     * Unmutes the Chat
+     * @param {string} chatId ID of the chat that will be unmuted
+     */
+    async unmuteChat(chatId) {
+        await this.pupPage.evaluate(async chatId &#x3D;&gt; {
+            let chat &#x3D; await window.Store.Chat.get(chatId);
+            await window.Store.Cmd.muteChat(chat, false);
+        }, chatId);
+    }
+    
+    /**
      * Returns the contact ID&#x27;s profile picture URL, if privacy settings allow it
      * @param {string} contactId the whatsapp user&#x27;s ID
      * @returns {Promise&amp;lt;string&gt;}
@@ -662,7 +672,7 @@ module.exports &#x3D; Client;
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on April 14, 2020.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.4 on May 24, 2020.
       </p>
     </div>
   </footer>
