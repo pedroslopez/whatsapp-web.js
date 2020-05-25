@@ -557,6 +557,26 @@ class Client extends EventEmitter {
             await window.Store.Cmd.muteChat(chat, false);
         }, chatId);
     }
+
+    /**
+     * Opens the Chat Drawer
+     * @param {string} chatId ID of the chat drawer that will be opened
+     */
+    async openChatDrawer(chatId) {
+        await this.pupPage.evaluate(async chatId => {
+            let chat = await window.Store.Chat.get(chatId);
+            await window.Store.Cmd.chatInfoDrawer(chat);
+        }, chatId);
+    }
+
+    /**
+     * Closes the Right Drawer
+     */
+    async closeRightDrawer() {
+        await this.pupPage.evaluate(async () => {
+            await window.Store.Cmd.closeDrawerRight();
+        });
+    }
     
     /**
      * Returns the contact ID's profile picture URL, if privacy settings allow it

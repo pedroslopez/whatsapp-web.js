@@ -178,6 +178,13 @@ class Chat extends Base {
     }
 
     /**
+     * Opens the Chat Window of the chat
+     */
+    async openDrawer() {
+        return this.client.openChatDrawer(this.id._serialized);
+    }
+    
+    /**
      * Stops typing or recording in chat immediately.
      */
     async clearState() {
