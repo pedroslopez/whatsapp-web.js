@@ -541,9 +541,16 @@ class Client extends EventEmitter {
      */
     async pinChat(chatId) {
         return await this.pupPage.evaluate(async chatId => {
+            let maxPinned = await window.Store.Chat.models[2].pin;
+            if (maxPinned) {
+                return false;
+            }
             let chat = await window.Store.Chat.get(chatId);
+            if (chat.pin) {
+                return true;
+            }
             await window.Store.Cmd.pinChat(chat, true);
-            return !!chat.pin;
+            return true;
         }, chatId);
     }
 
@@ -554,8 +561,11 @@ class Client extends EventEmitter {
     async unpinChat(chatId) {
         return await this.pupPage.evaluate(async chatId => {
             let chat = await window.Store.Chat.get(chatId);
+            if (!chat.pin) {
+                return false;
+            }
             await window.Store.Cmd.pinChat(chat, false);
-            return !!chat.pin;
+            return false;
         }, chatId);
     }
 
