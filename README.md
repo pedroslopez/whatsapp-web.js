@@ -11,7 +11,7 @@ It uses Puppeteer to run a real instance of Whatsapp Web to avoid getting blocke
 
 The module is now available on npm! `npm i whatsapp-web.js`
 
-Please note that Node v8+ is required due to Puppeteer.
+Please note that Node v10.18.1+ is required due to Puppeteer.
 
 ## Example usage
 
