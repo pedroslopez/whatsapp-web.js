@@ -559,6 +559,17 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Opens the Chat Window
+     * @param {string} chatId ID of the chat window that will be opened
+     */
+    async openChatWindow(chatId) {
+        await this.pupPage.evaluate(async chatId => {
+            let chat = await window.Store.Chat.get(chatId);
+            await window.Store.Cmd.openChatAt(chat);
+        }, chatId);
+    }
+    
+    /**
      * Opens the Chat Drawer
      * @param {string} chatId ID of the chat drawer that will be opened
      */
