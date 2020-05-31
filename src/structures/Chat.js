@@ -181,14 +181,14 @@ class Chat extends Base {
      * Opens the Chat Window of the chat
      */
     async openWindow() {
-        return this.client.openChatWindow(this.id._serialized);
+        return this.client.interface.openChatWindow(this.id._serialized);
     }
 
     /**
      * Opens the Chat Drawer of the chat
      */
     async openDrawer() {
-        return this.client.openChatDrawer(this.id._serialized);
+        return this.client.interface.openChatDrawer(this.id._serialized);
     }
     
     /**

@@ -6,6 +6,7 @@ const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
 const jsQR = require('jsqr');
 
 const Util = require('./util/Util');
+const InterfaceController = require('./util/InterfaceController');
 const { WhatsWebURL, UserAgent, DefaultOptions, Events, WAState } = require('./util/Constants');
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
@@ -156,6 +157,9 @@ class Client extends EventEmitter {
         this.info = new ClientInfo(this, await page.evaluate(() => {
             return window.Store.Conn.serialize();
         }));
+
+        // Add InterfaceController
+        this.interface = new InterfaceController(this);
 
         // Register events
         await page.exposeFunction('onAddMessageEvent', msg => {
@@ -556,37 +560,6 @@ class Client extends EventEmitter {
             let chat = await window.Store.Chat.get(chatId);
             await window.Store.Cmd.muteChat(chat, false);
         }, chatId);
-    }
-
-    /**
-     * Opens the Chat Window
-     * @param {string} chatId ID of the chat window that will be opened
-     */
-    async openChatWindow(chatId) {
-        await this.pupPage.evaluate(async chatId => {
-            let chat = await window.Store.Chat.get(chatId);
-            await window.Store.Cmd.openChatAt(chat);
-        }, chatId);
-    }
-    
-    /**
-     * Opens the Chat Drawer
-     * @param {string} chatId ID of the chat drawer that will be opened
-     */
-    async openChatDrawer(chatId) {
-        await this.pupPage.evaluate(async chatId => {
-            let chat = await window.Store.Chat.get(chatId);
-            await window.Store.Cmd.chatInfoDrawer(chat);
-        }, chatId);
-    }
-
-    /**
-     * Closes the Right Drawer
-     */
-    async closeRightDrawer() {
-        await this.pupPage.evaluate(async () => {
-            await window.Store.Cmd.closeDrawerRight();
-        });
     }
     
     /**
