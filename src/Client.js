@@ -6,6 +6,7 @@ const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
 const jsQR = require('jsqr');
 
 const Util = require('./util/Util');
+const InterfaceController = require('./util/InterfaceController');
 const { WhatsWebURL, UserAgent, DefaultOptions, Events, WAState } = require('./util/Constants');
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
@@ -156,6 +157,9 @@ class Client extends EventEmitter {
         this.info = new ClientInfo(this, await page.evaluate(() => {
             return window.Store.Conn.serialize();
         }));
+
+        // Add InterfaceController
+        this.interface = new InterfaceController(this);
 
         // Register events
         await page.exposeFunction('onAddMessageEvent', msg => {
