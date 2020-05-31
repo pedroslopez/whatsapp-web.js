@@ -176,20 +176,6 @@ class Chat extends Base {
             return true;
         }, this.id._serialized);
     }
-
-    /**
-     * Opens the Chat Window of the chat
-     */
-    async openWindow() {
-        return this.client.interface.openChatWindow(this.id._serialized);
-    }
-
-    /**
-     * Opens the Chat Drawer of the chat
-     */
-    async openDrawer() {
-        return this.client.interface.openChatDrawer(this.id._serialized);
-    }
     
     /**
      * Stops typing or recording in chat immediately.

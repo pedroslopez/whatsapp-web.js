@@ -32,6 +32,17 @@ class InterfaceController {
     }
 
     /**
+     * Opens the Message Drawer
+     * @param {string} msgId ID of the message drawer that will be opened
+     */
+    async openMessageDrawer(msgId) {
+        await this.pupPage.evaluate(async msgId => {
+            let msg = await window.Store.Msg.get(msgId);
+            await window.Store.Cmd.msgInfoDrawer(msg);
+        }, msgId);
+    }
+
+    /**
      * Closes the Right Drawer
      */
     async closeRightDrawer() {
