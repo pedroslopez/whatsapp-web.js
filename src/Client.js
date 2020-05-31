@@ -541,13 +541,13 @@ class Client extends EventEmitter {
      */
     async pinChat(chatId) {
         return await this.pupPage.evaluate(async chatId => {
-            let maxPinned = await window.Store.Chat.models[2].pin;
-            if (maxPinned) {
-                return false;
-            }
             let chat = await window.Store.Chat.get(chatId);
             if (chat.pin) {
                 return true;
+            }
+            let maxPinned = await window.Store.Chat.models[2].pin;
+            if (maxPinned) {
+                return false;
             }
             await window.Store.Cmd.pinChat(chat, true);
             return true;
