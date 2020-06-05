@@ -69,7 +69,7 @@ class Client extends EventEmitter {
             timeout: 0,
         });
         
-        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image="true"]';
+        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image-light="true"]';
 
         if (this.options.session) {
             // Check if session restore was successfull 
