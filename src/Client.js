@@ -118,11 +118,12 @@ class Client extends EventEmitter {
                 this.emit(Events.QR_RECEIVED, qr);
             };
             getQrCode();
-            let retryInterval = setInterval(getQrCode, this.options.qrRefreshIntervalMs);
+            this.retryInterval = setInterval(getQrCode, this.options.qrRefreshIntervalMs);
 
             // Wait for code scan
             await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 0 });
-            clearInterval(retryInterval);
+            clearInterval(this.retryInterval);
+            this.retryInterval = undefined
 
         }
 
@@ -352,6 +353,9 @@ class Client extends EventEmitter {
      * Closes the client
      */
     async destroy() {
+        if (this.retryInterval) {
+            clearInterval(this.retryInterval)
+        }
         await this.pupBrowser.close();
     }
 
