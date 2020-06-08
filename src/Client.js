@@ -123,7 +123,7 @@ class Client extends EventEmitter {
             // Wait for code scan
             await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 0 });
             clearInterval(this.retryInterval);
-            this.retryInterval = undefined
+            this.retryInterval = undefined;
 
         }
 
@@ -354,7 +354,7 @@ class Client extends EventEmitter {
      */
     async destroy() {
         if (this.retryInterval) {
-            clearInterval(this.retryInterval)
+            clearInterval(this.retryInterval);
         }
         await this.pupBrowser.close();
     }
