@@ -79,7 +79,7 @@ class Message extends Base {
          * If the message was sent to a group, this field will contain the user that sent the message.
          * @type {string}
          */
-        this.author = typeof (data.author) === 'object' ? data.author._serialized : data.author;
+        this.author = (typeof (data.author) === 'object' && data.author !== null) ? data.author._serialized : data.author;
 
         /**
          * Indicates if the message was forwarded
