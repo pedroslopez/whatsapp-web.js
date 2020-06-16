@@ -660,4 +660,4 @@ declare namespace WAWebJS {
   }
 }
 
-export = WhatsappWeb
+export = WAWebJS
