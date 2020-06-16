@@ -3,6 +3,7 @@
   "version": "1.6.1-post",
   "description": "Library for interacting with the WhatsApp Web API ",
   "main": "./index.js",
+  "typings": "./index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "generate-docs": "node_modules/.bin/jsdoc --configure .jsdoc.json --verbose"
