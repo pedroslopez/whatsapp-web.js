@@ -5,7 +5,7 @@ import puppeteer = require('puppeteer')
 declare namespace WAWebJS {
 
   export class Client extends EventEmitter {
-    constructor(options: WhatsappWeb.ClientOptions)
+    constructor(options: ClientOptions)
 
     /**Accepts an invitation to join a group */
     acceptInvite(inviteCode: string): Promise<void>
