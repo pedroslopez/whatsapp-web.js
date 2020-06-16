@@ -2,7 +2,7 @@
 import { EventEmitter } from 'events'
 import puppeteer = require('puppeteer')
 
-declare namespace WhatsappWeb {
+declare namespace WAWebJS {
 
   export class Client extends EventEmitter {
     constructor(options: WhatsappWeb.ClientOptions)
@@ -661,4 +661,3 @@ declare namespace WhatsappWeb {
 }
 
 export = WhatsappWeb
-
