@@ -46,6 +46,19 @@ class ClientInfo extends Base {
         return super._patch(data);
     }
 
+    /**
+     * Get current battery percentage and charging status for the attached device
+     * @returns {object} batteryStatus
+     * @returns {number} batteryStatus.battery - The current battery percentage
+     * @returns {boolean} batteryStatus.plugged - Indicates if the phone is plugged in (true) or not (false)
+     */
+    async getBatteryStatus() {
+        return await this.client.pupPage.evaluate(() => {
+            const { battery, plugged } = window.Store.Conn;
+            return { battery, plugged };
+        });
+    }
+
 }
 
 module.exports = ClientInfo;
