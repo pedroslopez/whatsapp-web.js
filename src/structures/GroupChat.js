@@ -137,27 +137,6 @@ class GroupChat extends Chat {
     }
 
     /**
-     * Returns an object with information about the invite code's group
-     * @param {string} inviteCode 
-     * @returns {Promise<object>} Invite information
-     */
-    static async getInviteInfo(inviteCode) {
-        return await this.client.pupPage.evaluate(inviteCode => {
-            return window.Store.Wap.groupInviteInfo(inviteCode);
-        }, inviteCode);
-    }
-
-    /**
-     * Joins a group with an invite code
-     * @param {string} inviteCode 
-     */
-    static async join(inviteCode) {
-        return await this.client.pupPage.evaluate(inviteCode => {
-            return window.Store.Wap.acceptGroupInvite(inviteCode);
-        }, inviteCode);
-    }
-
-    /**
      * Makes the bot leave the group
      */
     async leave() {
