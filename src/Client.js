@@ -360,6 +360,15 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Logs out the client, closing the current session
+     */
+    async logout() {
+        return await this.pupPage.evaluate(() => {
+            return window.Store.AppState.logout();
+        });
+    }
+
+    /**
      * Returns the version of WhatsApp Web currently being run
      * @returns Promise<string>
      */

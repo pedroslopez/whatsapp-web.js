@@ -28,6 +28,9 @@ declare namespace WAWebJS {
     /** Closes the client */
     destroy(): Promise<void>
 
+    /** Logs out the client, closing the current session */
+    logout(): Promise<void>
+
     /** Get chat instance by ID */
     getChatById(chatId: string): Promise<Chat>
 
