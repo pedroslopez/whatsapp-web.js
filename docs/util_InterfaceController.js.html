@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.4">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.7.0 &raquo; Source: structures/MessageMedia.js</title>
+  <title>whatsapp-web.js 1.7.0 &raquo; Source: util/InterfaceController.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -26,57 +26,65 @@
         </div>
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1>Source: structures/MessageMedia.js</h1>
+            <h1>Source: util/InterfaceController.js</h1>
           </header>
           <article>
             <pre class="prettyprint linenums"><code>&#x27;use strict&#x27;;
 
-const fs &#x3D; require(&#x27;fs&#x27;);
-const path &#x3D; require(&#x27;path&#x27;);
-const mime &#x3D; require(&#x27;mime&#x27;);
-
 /**
- * Media attached to a message
- * @param {string} mimetype MIME type of the attachment
- * @param {string} data Base64-encoded data of the file
- * @param {?string} filename Document file name
+ * Interface Controller
  */
-class MessageMedia {
-    constructor(mimetype, data, filename) {
-        /**
-         * MIME type of the attachment
-         * @type {string}
-         */
-        this.mimetype &#x3D; mimetype;
+class InterfaceController {
 
-        /**
-         * Base64 encoded data that represents the file
-         * @type {string}
-         */
-        this.data &#x3D; data;
-
-        /**
-         * Name of the file (for documents)
-         * @type {?string}
-         */
-        this.filename &#x3D; filename;
+    constructor(props) {
+        this.pupPage &#x3D; props.pupPage;
     }
 
     /**
-     * Creates a MessageMedia instance from a local file path
-     * @param {string} filePath 
-     * @returns {MessageMedia}
+     * Opens the Chat Window
+     * @param {string} chatId ID of the chat window that will be opened
      */
-    static fromFilePath(filePath) {
-        const b64data &#x3D; fs.readFileSync(filePath, {encoding: &#x27;base64&#x27;});
-        const mimetype &#x3D; mime.getType(filePath); 
-        const filename &#x3D; path.basename(filePath);
-
-        return new MessageMedia(mimetype, b64data, filename);
+    async openChatWindow(chatId) {
+        await this.pupPage.evaluate(async chatId &#x3D;&gt; {
+            let chat &#x3D; await window.Store.Chat.get(chatId);
+            await window.Store.Cmd.openChatAt(chat);
+        }, chatId);
     }
+
+    /**
+     * Opens the Chat Drawer
+     * @param {string} chatId ID of the chat drawer that will be opened
+     */
+    async openChatDrawer(chatId) {
+        await this.pupPage.evaluate(async chatId &#x3D;&gt; {
+            let chat &#x3D; await window.Store.Chat.get(chatId);
+            await window.Store.Cmd.chatInfoDrawer(chat);
+        }, chatId);
+    }
+
+    /**
+     * Opens the Message Drawer
+     * @param {string} msgId ID of the message drawer that will be opened
+     */
+    async openMessageDrawer(msgId) {
+        await this.pupPage.evaluate(async msgId &#x3D;&gt; {
+            let msg &#x3D; await window.Store.Msg.get(msgId);
+            await window.Store.Cmd.msgInfoDrawer(msg);
+        }, msgId);
+    }
+
+    /**
+     * Closes the Right Drawer
+     */
+    async closeRightDrawer() {
+        await this.pupPage.evaluate(async () &#x3D;&gt; {
+            await window.Store.Cmd.closeDrawerRight();
+        });
+    }
+    
 }
 
-module.exports &#x3D; MessageMedia;</code></pre>
+module.exports &#x3D; InterfaceController;</code></pre>
           </article>
         </div>
       </div>
