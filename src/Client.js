@@ -479,6 +479,17 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Returns an object with information about the invite code's group
+     * @param {string} inviteCode 
+     * @returns {Promise<object>} Invite information
+     */
+    async getInviteInfo(inviteCode) {
+        return await this.pupPage.evaluate(inviteCode => {
+            return window.Store.Wap.groupInviteInfo(inviteCode);
+        }, inviteCode);
+    }
+
+    /**
      * Accepts an invitation to join a group
      * @param {string} inviteCode Invitation code
      */
