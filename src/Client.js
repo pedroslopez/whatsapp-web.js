@@ -6,6 +6,7 @@ const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
 const jsQR = require('jsqr');
 
 const Util = require('./util/Util');
+const InterfaceController = require('./util/InterfaceController');
 const { WhatsWebURL, UserAgent, DefaultOptions, Events, WAState } = require('./util/Constants');
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
@@ -68,7 +69,7 @@ class Client extends EventEmitter {
             timeout: 0,
         });
         
-        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image="true"]';
+        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image-light="true"]';
 
         if (this.options.session) {
             // Check if session restore was successfull 
@@ -117,11 +118,12 @@ class Client extends EventEmitter {
                 this.emit(Events.QR_RECEIVED, qr);
             };
             getQrCode();
-            let retryInterval = setInterval(getQrCode, this.options.qrRefreshIntervalMs);
+            this._qrRefreshInterval = setInterval(getQrCode, this.options.qrRefreshIntervalMs);
 
             // Wait for code scan
             await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 0 });
-            clearInterval(retryInterval);
+            clearInterval(this._qrRefreshInterval);
+            this._qrRefreshInterval = undefined;
 
         }
 
@@ -156,6 +158,9 @@ class Client extends EventEmitter {
         this.info = new ClientInfo(this, await page.evaluate(() => {
             return window.Store.Conn.serialize();
         }));
+
+        // Add InterfaceController
+        this.interface = new InterfaceController(this);
 
         // Register events
         await page.exposeFunction('onAddMessageEvent', msg => {
@@ -348,7 +353,19 @@ class Client extends EventEmitter {
      * Closes the client
      */
     async destroy() {
+        if (this._qrRefreshInterval) {
+            clearInterval(this._qrRefreshInterval);
+        }
         await this.pupBrowser.close();
+    }
+
+    /**
+     * Logs out the client, closing the current session
+     */
+    async logout() {
+        return await this.pupPage.evaluate(() => {
+            return window.Store.AppState.logout();
+        });
     }
 
     /**
@@ -468,6 +485,17 @@ class Client extends EventEmitter {
         }, contactId);
 
         return ContactFactory.create(this, contact);
+    }
+
+    /**
+     * Returns an object with information about the invite code's group
+     * @param {string} inviteCode 
+     * @returns {Promise<object>} Invite information
+     */
+    async getInviteInfo(inviteCode) {
+        return await this.pupPage.evaluate(inviteCode => {
+            return window.Store.Wap.groupInviteInfo(inviteCode);
+        }, inviteCode);
     }
 
     /**

@@ -196,7 +196,7 @@ class Chat extends Base {
             return true;
         }, this.id._serialized);
     }
-
+    
     /**
      * Stops typing or recording in chat immediately.
      */
