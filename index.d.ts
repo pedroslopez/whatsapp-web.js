@@ -216,7 +216,7 @@ declare namespace WAWebJS {
     /** @default 0 */
     takeoverTimeoutMs?: number,
     /** @default 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36' */
-    UserAgent?: string
+    userAgent?: string
   }
 
   /** Represents a Whatsapp client session */
