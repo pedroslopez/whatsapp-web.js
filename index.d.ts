@@ -202,7 +202,7 @@ declare namespace WAWebJS {
     pushname: string
 
     /** Get current battery percentage and charging status for the attached device */
-    getBatteryStatus: () => BatteryInfo
+    getBatteryStatus: () => Promise<BatteryInfo>
   }
 
   /** Information about the phone this client is connected to */
