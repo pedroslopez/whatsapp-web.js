@@ -205,6 +205,20 @@ declare namespace WAWebJS {
     getBatteryStatus: () => BatteryInfo
   }
 
+  /** Information about the phone this client is connected to */
+  export interface ClientInfoPhone {
+    /** WhatsApp Version running on the phone */
+    wa_version: string
+    /** OS Version running on the phone (iOS or Android version) */
+    os_version: string
+    /** Device manufacturer */
+    device_manufacturer: string
+    /** Device model */
+    device_model: string
+    /** OS build number */
+    os_build_number: string
+  }
+
   /**
    * Options for initializing the whatsapp client
    * @todo add these in the official docs
