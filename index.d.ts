@@ -7,6 +7,8 @@ declare namespace WAWebJS {
   export class Client extends EventEmitter {
     constructor(options: ClientOptions)
 
+    public info: ClientInfo
+
     /**Accepts an invitation to join a group */
     acceptInvite(inviteCode: string): Promise<void>
 
@@ -186,6 +188,21 @@ declare namespace WAWebJS {
 
     /** Emitted when the client has initialized and is ready to receive messages */
     on(event: 'ready', listener: () => void): this
+  }
+
+  /** Current connection information */
+  export interface ClientInfo {
+    /** Current user ID */
+    me: ContactId
+    /** Information about the phone this client is connected to */
+    phone: ClientInfoPhone
+    /** Platform the phone is running on */
+    platform: string
+    /** Name configured to be shown in push notifications */
+    pushname: string
+
+    /** Get current battery percentage and charging status for the attached device */
+    getBatteryStatus: () => BatteryInfo
   }
 
   /**
