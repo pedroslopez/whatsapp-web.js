@@ -6,7 +6,11 @@ declare namespace WAWebJS {
 
   export class Client extends EventEmitter {
     constructor(options: ClientOptions)
-
+    
+    /** 
+     * Current connection information 
+     * @todo add this in the official docs 
+     */
     public info: ClientInfo
 
     /**Accepts an invitation to join a group */
