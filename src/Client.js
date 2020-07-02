@@ -360,6 +360,15 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Logs out the client, closing the current session
+     */
+    async logout() {
+        return await this.pupPage.evaluate(() => {
+            return window.Store.AppState.logout();
+        });
+    }
+
+    /**
      * Returns the version of WhatsApp Web currently being run
      * @returns Promise<string>
      */
@@ -476,6 +485,17 @@ class Client extends EventEmitter {
         }, contactId);
 
         return ContactFactory.create(this, contact);
+    }
+
+    /**
+     * Returns an object with information about the invite code's group
+     * @param {string} inviteCode 
+     * @returns {Promise<object>} Invite information
+     */
+    async getInviteInfo(inviteCode) {
+        return await this.pupPage.evaluate(inviteCode => {
+            return window.Store.Wap.groupInviteInfo(inviteCode);
+        }, inviteCode);
     }
 
     /**

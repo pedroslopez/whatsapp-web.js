@@ -10,6 +10,9 @@ declare namespace WAWebJS {
     /**Accepts an invitation to join a group */
     acceptInvite(inviteCode: string): Promise<void>
 
+    /**Returns an object with information about the invite code's group */
+    getInviteInfo(inviteCode: string): Promise<object>
+
     /** Enables and returns the archive state of the Chat */
     archiveChat(): Promise<boolean>
 
@@ -24,6 +27,9 @@ declare namespace WAWebJS {
 
     /** Closes the client */
     destroy(): Promise<void>
+
+    /** Logs out the client, closing the current session */
+    logout(): Promise<void>
 
     /** Get chat instance by ID */
     getChatById(chatId: string): Promise<Chat>
