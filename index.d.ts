@@ -49,19 +49,13 @@ declare namespace WAWebJS {
     /** Gets the current connection state for the client */
     getState(): Promise<WAState>
 
-    /** 
-     * Returns the version of WhatsApp Web currently being run
-     * @todo fix the return value in the official docs
-     */
+    /** Returns the version of WhatsApp Web currently being run */
     getWWebVersion(): Promise<string>
 
     /** Sets up events and requirements, kicks off authentication request */
     initialize(): Promise<void>
 
-    /** 
-     * Check if a given ID is registered in whatsapp
-     * @todo add contactId param in the official docs
-     */
+    /** Check if a given ID is registered in whatsapp */
     isRegisteredUser(contactId: string): Promise<boolean>
 
     /**
@@ -92,10 +86,7 @@ declare namespace WAWebJS {
     /** Changes and returns the archive state of the Chat */
     unarchiveChat(chatId: string): Promise<boolean>
 
-    /**
-     * Unmutes the Chat 
-     * @todo add chatId param in the official docs
-     */
+    /** Unmutes the Chat */
     unmuteChat(chatId: string): Promise<void>
 
     /** Generic event */
