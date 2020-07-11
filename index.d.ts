@@ -6,6 +6,12 @@ declare namespace WAWebJS {
 
   export class Client extends EventEmitter {
     constructor(options: ClientOptions)
+    
+    /** 
+     * Current connection information 
+     * @todo add this in the official docs 
+     */
+    public info: ClientInfo
 
     /**Accepts an invitation to join a group */
     acceptInvite(inviteCode: string): Promise<void>
@@ -49,19 +55,13 @@ declare namespace WAWebJS {
     /** Gets the current connection state for the client */
     getState(): Promise<WAState>
 
-    /** 
-     * Returns the version of WhatsApp Web currently being run
-     * @todo fix the return value in the official docs
-     */
+    /** Returns the version of WhatsApp Web currently being run */
     getWWebVersion(): Promise<string>
 
     /** Sets up events and requirements, kicks off authentication request */
     initialize(): Promise<void>
 
-    /** 
-     * Check if a given ID is registered in whatsapp
-     * @todo add contactId param in the official docs
-     */
+    /** Check if a given ID is registered in whatsapp */
     isRegisteredUser(contactId: string): Promise<boolean>
 
     /**
@@ -92,10 +92,7 @@ declare namespace WAWebJS {
     /** Changes and returns the archive state of the Chat */
     unarchiveChat(chatId: string): Promise<boolean>
 
-    /**
-     * Unmutes the Chat 
-     * @todo add chatId param in the official docs
-     */
+    /** Unmutes the Chat */
     unmuteChat(chatId: string): Promise<void>
 
     /** Generic event */
@@ -195,6 +192,35 @@ declare namespace WAWebJS {
 
     /** Emitted when the client has initialized and is ready to receive messages */
     on(event: 'ready', listener: () => void): this
+  }
+
+  /** Current connection information */
+  export interface ClientInfo {
+    /** Current user ID */
+    me: ContactId
+    /** Information about the phone this client is connected to */
+    phone: ClientInfoPhone
+    /** Platform the phone is running on */
+    platform: string
+    /** Name configured to be shown in push notifications */
+    pushname: string
+
+    /** Get current battery percentage and charging status for the attached device */
+    getBatteryStatus: () => Promise<BatteryInfo>
+  }
+
+  /** Information about the phone this client is connected to */
+  export interface ClientInfoPhone {
+    /** WhatsApp Version running on the phone */
+    wa_version: string
+    /** OS Version running on the phone (iOS or Android version) */
+    os_version: string
+    /** Device manufacturer */
+    device_manufacturer: string
+    /** Device model */
+    device_model: string
+    /** OS build number */
+    os_build_number: string
   }
 
   /**
