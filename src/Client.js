@@ -202,7 +202,7 @@ class Client extends EventEmitter {
              */
             this.emit(Events.MESSAGE_CREATE, message);
 
-            if (msg.id.fromMe) return;
+            if (msg.id.fromMe && this.options.allowMsgFromMe !== true) return;
 
             /**
              * Emitted when a new message is received.
