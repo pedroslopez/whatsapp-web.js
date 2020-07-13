@@ -7,10 +7,7 @@ declare namespace WAWebJS {
   export class Client extends EventEmitter {
     constructor(options: ClientOptions)
     
-    /** 
-     * Current connection information 
-     * @todo add this in the official docs 
-     */
+    /** Current connection information */
     public info: ClientInfo
 
     /**Accepts an invitation to join a group */
@@ -223,29 +220,36 @@ declare namespace WAWebJS {
     os_build_number: string
   }
 
-  /**
-   * Options for initializing the whatsapp client
-   * @todo add these in the official docs
-   */
+  /** Options for initializing the whatsapp client */
   export interface ClientOptions {
+    /** Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/ */
     puppeteer?: puppeteer.LaunchOptions
-    /** Whatsapp session to restore. If not set, will start a new session  */
+    /** Whatsapp session to restore. If not set, will start a new session  
+     * @todo specify this type also in JSDoc */
     session?: ClientSession,
-    /** @default 45000 */
+    /** Timeout for qr code selector in puppeteer
+     * @default 45000 */
     qrTimeoutMs?: number,
-    /** @default 20000 */
+    /** Refresh interval for qr code (how much time to wait before checking if the qr code has changed)
+     * @default 20000 */
     qrRefreshIntervalMs?: number,
-    /** @default 45000 */
+    /** Timeout for authentication selector in puppeteer
+     * @default 45000 */
     authTimeoutMs?: number,
-    /** @default false */
+    /** If another whatsapp web session is detected (another browser), take over the session in the current browser
+     * @default false */
     takeoverOnConflict?: boolean,
-    /** @default 0 */
+    /** How much time to wait before taking over the session
+     * @default 0 */
     takeoverTimeoutMs?: number,
-    /** @default 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36' */
+    /** User agent to use in puppeteer.
+     * @default 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36' */
     userAgent?: string
   }
 
-  /** Represents a Whatsapp client session */
+  /** Represents a Whatsapp client session
+   * @todo specify this type also in JSDoc
+   */
   export interface ClientSession {
     WABrowserId: string,
     WASecretBundle: string,
