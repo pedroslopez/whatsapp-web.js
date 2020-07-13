@@ -493,8 +493,22 @@ declare namespace WAWebJS {
 
   /**
    * Options for sending a message
-   * @todo add more specific type for the object */
-  export type MessageSendOptions = object
+   * @todo add this type in JSDoc 
+   */
+  export interface MessageSendOptions {
+    /** Show links preview */
+    linkPreview?: boolean
+    /** Send audio as voice message */
+    sendAudioAsVoice?: boolean
+    /** Image or videos caption */
+    caption?: string
+    /** Id of the message that is being quoted (or replied to) */
+    quotedMessageId?: string
+    /** Contacts that are being mentioned in the message */
+    mentions?: Contact[]
+    /** Send 'seen' status */
+    sendSeen?: boolean
+  }
 
   export interface MessageMedia {
     data: string,
