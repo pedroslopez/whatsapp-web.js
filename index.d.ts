@@ -23,8 +23,6 @@ declare namespace WAWebJS {
      * Create a new group
      * @param name group title
      * @param participants an array of Contacts or contact IDs to add to the group
-     * 
-     * @todo improve return type in the official docs
      */
     createGroup(name: string, participants: Contact[] | string[]): Promise<CreateGroupResult>
 
