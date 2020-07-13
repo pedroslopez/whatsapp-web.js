@@ -500,6 +500,8 @@ declare namespace WAWebJS {
     mentions?: Contact[]
     /** Send 'seen' status */
     sendSeen?: boolean
+    /** Media to be sent */
+    media?: MessageMedia
   }
 
   export interface MessageMedia {

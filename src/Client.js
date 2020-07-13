@@ -423,6 +423,7 @@ class Client extends EventEmitter {
      * @param {string} options.quotedMessageId - Id of the message that is being quoted (or replied to)
      * @param {Contact} options.mentions - Contacts that are being mentioned in the message
      * @param {boolean} options.sendSeen - Send 'seen' status
+     * @param {boolean} options.media - Media to be sent
      * @returns {Promise<Message>} Message that was just sent
      */
     async sendMessage(chatId, content, options = {}) {
