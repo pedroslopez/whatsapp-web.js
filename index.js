@@ -1,6 +1,9 @@
 'use strict';
 
+const Constants = require('./src/util/Constants');
+
 module.exports = {
+    ...Constants,
     Client: require('./src/Client'),
     
     version: require('./package.json').version,
@@ -15,5 +18,5 @@ module.exports = {
     PrivateContact: require('./src/structures/PrivateContact'),
     BusinessContact: require('./src/structures/BusinessContact'),
     ClientInfo: require('./src/structures/ClientInfo'),
-    Location: require('./src/structures/Location')
+    Location: require('./src/structures/Location'),
 };
