@@ -18,6 +18,10 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @param {object} options - Client options
  * @param {object} options.puppeteer - Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/
  * @param {object} options.session - Whatsapp session to restore. If not set, will start a new session
+ * @param {string} options.session.WABrowserId
+ * @param {string} options.session.WASecretBundle
+ * @param {string} options.session.WAToken1
+ * @param {string} options.session.WAToken2
  * @param {number} options.qrTimeoutMs - Timeout for qr code selector in puppeteer
  * @param {number} options.qrRefreshIntervalMs - Refresh interval for qr code (how much time to wait before checking if the qr code has changed)
  * @param {number} options.authTimeoutMs - Timeout for authentication selector in puppeteer
@@ -157,6 +161,10 @@ class Client extends EventEmitter {
          * Emitted when authentication is successful
          * @event Client#authenticated
          * @param {object} session Object containing session information. Can be used to restore the session.
+         * @param {string} session.WABrowserId
+         * @param {string} session.WASecretBundle
+         * @param {string} session.WAToken1
+         * @param {string} session.WAToken2
          */
         this.emit(Events.AUTHENTICATED, session);
 

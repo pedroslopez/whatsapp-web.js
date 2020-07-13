@@ -224,8 +224,7 @@ declare namespace WAWebJS {
   export interface ClientOptions {
     /** Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/ */
     puppeteer?: puppeteer.LaunchOptions
-    /** Whatsapp session to restore. If not set, will start a new session  
-     * @todo specify this type also in JSDoc */
+    /** Whatsapp session to restore. If not set, will start a new session */
     session?: ClientSession,
     /** Timeout for qr code selector in puppeteer
      * @default 45000 */
@@ -247,9 +246,7 @@ declare namespace WAWebJS {
     userAgent?: string
   }
 
-  /** Represents a Whatsapp client session
-   * @todo specify this type also in JSDoc
-   */
+  /** Represents a Whatsapp client session */
   export interface ClientSession {
     WABrowserId: string,
     WASecretBundle: string,
@@ -491,10 +488,7 @@ declare namespace WAWebJS {
     longitude: string,
   }
 
-  /**
-   * Options for sending a message
-   * @todo add this type in JSDoc 
-   */
+  /** Options for sending a message */
   export interface MessageSendOptions {
     /** Show links preview */
     linkPreview?: boolean
