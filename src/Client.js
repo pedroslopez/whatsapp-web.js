@@ -18,8 +18,8 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @param {object} options - Client options
  * @param {number} options.authTimeoutMs - Timeout for authentication selector in puppeteer
  * @param {object} options.puppeteer - Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/
- * @param {number} options.qrTimeoutMs - Timeout for qr code selector in puppeteer
  * @param {number} options.qrRefreshIntervalMs - Refresh interval for qr code (how much time to wait before checking if the qr code has changed)
+ * @param {number} options.qrTimeoutMs - Timeout for qr code selector in puppeteer
  * @param {string} options.restartOnAuthFail  - Restart client with a new session (i.e. use null 'session' var) if authentication fails
  * @param {object} options.session - Whatsapp session to restore. If not set, will start a new session
  * @param {string} options.session.WABrowserId
