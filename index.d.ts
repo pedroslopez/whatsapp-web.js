@@ -233,6 +233,9 @@ declare namespace WAWebJS {
     /** Timeout for authentication selector in puppeteer
      * @default 45000 */
     authTimeoutMs?: number,
+    /** Restart client with a new session (i.e. use null 'session' var) if authentication fails
+     * @default false */
+    restartOnAuthFail?: boolean
     /** If another whatsapp web session is detected (another browser), take over the session in the current browser
      * @default false */
     takeoverOnConflict?: boolean,
