@@ -220,22 +220,22 @@ declare namespace WAWebJS {
 
   /** Options for initializing the whatsapp client */
   export interface ClientOptions {
+    /** Timeout for authentication selector in puppeteer
+     * @default 45000 */
+    authTimeoutMs?: number,
     /** Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/ */
     puppeteer?: puppeteer.LaunchOptions
-    /** Whatsapp session to restore. If not set, will start a new session */
-    session?: ClientSession,
     /** Timeout for qr code selector in puppeteer
      * @default 45000 */
     qrTimeoutMs?: number,
     /** Refresh interval for qr code (how much time to wait before checking if the qr code has changed)
      * @default 20000 */
-    qrRefreshIntervalMs?: number,
-    /** Timeout for authentication selector in puppeteer
-     * @default 45000 */
-    authTimeoutMs?: number,
+    qrRefreshIntervalMs?: number
     /** Restart client with a new session (i.e. use null 'session' var) if authentication fails
      * @default false */
     restartOnAuthFail?: boolean
+    /** Whatsapp session to restore. If not set, will start a new session */
+    session?: ClientSession
     /** If another whatsapp web session is detected (another browser), take over the session in the current browser
      * @default false */
     takeoverOnConflict?: boolean,
