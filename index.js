@@ -1,6 +1,9 @@
 'use strict';
 
+const Constants = require('./src/util/Constants');
+
 module.exports = {
+    ...Constants,
     Client: require('./src/Client'),
     
     version: require('./package.json').version,
