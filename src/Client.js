@@ -15,7 +15,23 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
 /**
  * Starting point for interacting with the WhatsApp Web API
  * @extends {EventEmitter}
- * @param {object} options
+ * @param {object} options - Client options
+ * @param {number} options.authTimeoutMs - Timeout for authentication selector in puppeteer
+ * @param {object} options.puppeteer - Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/
+ * @param {number} options.qrRefreshIntervalMs - Refresh interval for qr code (how much time to wait before checking if the qr code has changed)
+ * @param {number} options.qrTimeoutMs - Timeout for qr code selector in puppeteer
+ * @param {string} options.restartOnAuthFail  - Restart client with a new session (i.e. use null 'session' var) if authentication fails
+ * @param {object} options.session - Whatsapp session to restore. If not set, will start a new session
+ * @param {string} options.session.WABrowserId
+ * @param {string} options.session.WASecretBundle
+ * @param {string} options.session.WAToken1
+ * @param {string} options.session.WAToken2
+ * @param {number} options.takeoverOnConflict - If another whatsapp web session is detected (another browser), take over the session in the current browser
+ * @param {number} options.takeoverTimeoutMs - How much time to wait before taking over the session
+ * @param {string} options.userAgent - User agent to use in puppeteer
+ * 
+ * @property {ClientInfo} info - Current connection information
+ * 
  * @fires Client#qr
  * @fires Client#authenticated
  * @fires Client#auth_failure
@@ -146,6 +162,10 @@ class Client extends EventEmitter {
          * Emitted when authentication is successful
          * @event Client#authenticated
          * @param {object} session Object containing session information. Can be used to restore the session.
+         * @param {string} session.WABrowserId
+         * @param {string} session.WASecretBundle
+         * @param {string} session.WAToken1
+         * @param {string} session.WAToken2
          */
         this.emit(Events.AUTHENTICATED, session);
 
@@ -397,7 +417,14 @@ class Client extends EventEmitter {
      * Send a message to a specific chatId
      * @param {string} chatId
      * @param {string|MessageMedia|Location} content
-     * @param {object} options 
+     * @param {object} options - Message send options
+     * @param {boolean} options.linkPreview - Show links preview
+     * @param {boolean} options.sendAudioAsVoice - Send audio as voice message
+     * @param {string} options.caption - Image or videos caption
+     * @param {string} options.quotedMessageId - Id of the message that is being quoted (or replied to)
+     * @param {Contact} options.mentions - Contacts that are being mentioned in the message
+     * @param {boolean} options.sendSeen - Send 'seen' status
+     * @param {boolean} options.media - Media to be sent
      * @returns {Promise<Message>} Message that was just sent
      */
     async sendMessage(chatId, content, options = {}) {
