@@ -7,7 +7,7 @@ const jsQR = require('jsqr');
 
 const Util = require('./util/Util');
 const InterfaceController = require('./util/InterfaceController');
-const { WhatsWebURL, UserAgent, DefaultOptions, Events, WAState } = require('./util/Constants');
+const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constants');
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
@@ -15,6 +15,7 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
 /**
  * Starting point for interacting with the WhatsApp Web API
  * @extends {EventEmitter}
+ * @param {object} options
  * @fires Client#qr
  * @fires Client#authenticated
  * @fires Client#auth_failure
@@ -48,7 +49,7 @@ class Client extends EventEmitter {
     async initialize() {
         const browser = await puppeteer.launch(this.options.puppeteer);
         const page = (await browser.pages())[0];
-        page.setUserAgent(UserAgent);
+        page.setUserAgent(this.options.userAgent);
 
         this.pupBrowser = browser;
         this.pupPage = page;
@@ -370,7 +371,7 @@ class Client extends EventEmitter {
 
     /**
      * Returns the version of WhatsApp Web currently being run
-     * @returns Promise<string>
+     * @returns {Promise<string>}
      */
     async getWWebVersion() {
         return await this.pupPage.evaluate(() => {
@@ -644,6 +645,7 @@ class Client extends EventEmitter {
 
     /**
      * Check if a given ID is registered in whatsapp
+     * @param {string} id the whatsapp user's ID
      * @returns {Promise<Boolean>}
      */
     async isRegisteredUser(id) {
