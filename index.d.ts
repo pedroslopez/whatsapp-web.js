@@ -459,7 +459,7 @@ declare namespace WAWebJS {
      */
     to: string,
     /** Message type */
-    type: string,
+    type: MessageTypes,
 
     /** Deletes the message from the chat */
     delete: (everyone?: boolean) => Promise<void>,
