@@ -300,6 +300,12 @@ declare namespace WAWebJS {
 
   }
 
+  /** whatsapp web url */
+  export const WhatsWebURL: string
+  
+  /** default client options */
+  export const DefaultOptions: ClientOptions
+
   /** Chat types */
   export enum ChatTypes {
     SOLO = 'solo',
