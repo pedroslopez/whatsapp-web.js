@@ -7,10 +7,7 @@ declare namespace WAWebJS {
   export class Client extends EventEmitter {
     constructor(options: ClientOptions)
     
-    /** 
-     * Current connection information 
-     * @todo add this in the official docs 
-     */
+    /** Current connection information */
     public info: ClientInfo
 
     /**Accepts an invitation to join a group */
@@ -26,8 +23,6 @@ declare namespace WAWebJS {
      * Create a new group
      * @param name group title
      * @param participants an array of Contacts or contact IDs to add to the group
-     * 
-     * @todo improve return type in the official docs
      */
     createGroup(name: string, participants: Contact[] | string[]): Promise<CreateGroupResult>
 
@@ -223,25 +218,32 @@ declare namespace WAWebJS {
     os_build_number: string
   }
 
-  /**
-   * Options for initializing the whatsapp client
-   * @todo add these in the official docs
-   */
+  /** Options for initializing the whatsapp client */
   export interface ClientOptions {
-    puppeteer?: puppeteer.LaunchOptions
-    /** Whatsapp session to restore. If not set, will start a new session  */
-    session?: ClientSession,
-    /** @default 45000 */
-    qrTimeoutMs?: number,
-    /** @default 20000 */
-    qrRefreshIntervalMs?: number,
-    /** @default 45000 */
+    /** Timeout for authentication selector in puppeteer
+     * @default 45000 */
     authTimeoutMs?: number,
-    /** @default false */
+    /** Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/ */
+    puppeteer?: puppeteer.LaunchOptions
+    /** Refresh interval for qr code (how much time to wait before checking if the qr code has changed)
+     * @default 20000 */
+    qrRefreshIntervalMs?: number
+    /** Timeout for qr code selector in puppeteer
+     * @default 45000 */
+    qrTimeoutMs?: number,
+    /** Restart client with a new session (i.e. use null 'session' var) if authentication fails
+     * @default false */
+    restartOnAuthFail?: boolean
+    /** Whatsapp session to restore. If not set, will start a new session */
+    session?: ClientSession
+    /** If another whatsapp web session is detected (another browser), take over the session in the current browser
+     * @default false */
     takeoverOnConflict?: boolean,
-    /** @default 0 */
+    /** How much time to wait before taking over the session
+     * @default 0 */
     takeoverTimeoutMs?: number,
-    /** @default 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36' */
+    /** User agent to use in puppeteer.
+     * @default 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36' */
     userAgent?: string
   }
 
@@ -451,7 +453,7 @@ declare namespace WAWebJS {
      */
     to: string,
     /** Message type */
-    type: string,
+    type: MessageTypes,
 
     /** Deletes the message from the chat */
     delete: (everyone?: boolean) => Promise<void>,
@@ -487,10 +489,23 @@ declare namespace WAWebJS {
     longitude: string,
   }
 
-  /**
-   * Options for sending a message
-   * @todo add more specific type for the object */
-  export type MessageSendOptions = object
+  /** Options for sending a message */
+  export interface MessageSendOptions {
+    /** Show links preview */
+    linkPreview?: boolean
+    /** Send audio as voice message */
+    sendAudioAsVoice?: boolean
+    /** Image or videos caption */
+    caption?: string
+    /** Id of the message that is being quoted (or replied to) */
+    quotedMessageId?: string
+    /** Contacts that are being mentioned in the message */
+    mentions?: Contact[]
+    /** Send 'seen' status */
+    sendSeen?: boolean
+    /** Media to be sent */
+    media?: MessageMedia
+  }
 
   export interface MessageMedia {
     data: string,
