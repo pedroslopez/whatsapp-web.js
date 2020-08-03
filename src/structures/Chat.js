@@ -63,7 +63,7 @@ class Chat extends Base {
     /**
      * Send a message to this chat
      * @param {string|MessageMedia|Location} content
-     * @param {object} options 
+     * @param {MessageSendOptions} [options] 
      * @returns {Promise<Message>} Message that was just sent
      */
     async sendMessage(content, options) {
@@ -119,7 +119,7 @@ class Chat extends Base {
     async mute(unmuteDate) {
         return this.client.muteChat(this.id._serialized, unmuteDate);
     }
-    
+
     /**
      * Unmutes this chat
      */
@@ -134,18 +134,18 @@ class Chat extends Base {
      * @returns {Promise<Array<Message>>}
      */
     async fetchMessages(searchOptions) {
-        if(!searchOptions || !searchOptions.limit) {
-            searchOptions = {limit: 50};
+        if (!searchOptions || !searchOptions.limit) {
+            searchOptions = { limit: 50 };
         }
         let messages = await this.client.pupPage.evaluate(async (chatId, limit) => {
             const msgFilter = m => !m.isNotification; // dont include notification messages
-            
+
             const chat = window.Store.Chat.get(chatId);
             let msgs = chat.msgs.models.filter(msgFilter);
-            
-            while(msgs.length < limit) {
+
+            while (msgs.length < limit) {
                 const loadedMessages = await chat.loadEarlierMsgs();
-                if(!loadedMessages) break;
+                if (!loadedMessages) break;
                 msgs = [...loadedMessages.filter(msgFilter), ...msgs];
             }
 
@@ -156,7 +156,7 @@ class Chat extends Base {
 
         return messages.map(m => new Message(this.client, m));
     }
-   
+
     /**
      * Simulate typing in chat. This will last for 25 seconds.
      */
@@ -166,7 +166,7 @@ class Chat extends Base {
             return true;
         }, this.id._serialized);
     }
-    
+
     /**
      * Simulate recording audio in chat. This will last for 25 seconds.
      */
@@ -176,7 +176,7 @@ class Chat extends Base {
             return true;
         }, this.id._serialized);
     }
-    
+
     /**
      * Stops typing or recording in chat immediately.
      */

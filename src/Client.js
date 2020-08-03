@@ -416,17 +416,23 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Message options.
+     * @typedef {Object} MessageSendOptions
+     * @property {boolean} [linkPreview=true] - Show links preview
+     * @property {boolean} [sendAudioAsVoice=false] - Send audio as voice message
+     * @property {string} [caption] - Image or video caption
+     * @property {string} [quotedMessageId] - Id of the message that is being quoted (or replied to)
+     * @property {Contact[]} [mentions] - Contacts that are being mentioned in the message
+     * @property {boolean} [sendSeen=true] - Mark the conversation as seen after sending the message
+     * @property {boolean} [media] - Media to be sent
+     */
+
+    /**
      * Send a message to a specific chatId
      * @param {string} chatId
      * @param {string|MessageMedia|Location} content
-     * @param {object} options - Message send options
-     * @param {boolean} options.linkPreview - Show links preview
-     * @param {boolean} options.sendAudioAsVoice - Send audio as voice message
-     * @param {string} options.caption - Image or videos caption
-     * @param {string} options.quotedMessageId - Id of the message that is being quoted (or replied to)
-     * @param {Contact} options.mentions - Contacts that are being mentioned in the message
-     * @param {boolean} options.sendSeen - Send 'seen' status
-     * @param {boolean} options.media - Media to be sent
+     * @param {MessageSendOptions} [options] - Options used when sending the message
+     * 
      * @returns {Promise<Message>} Message that was just sent
      */
     async sendMessage(chatId, content, options = {}) {
