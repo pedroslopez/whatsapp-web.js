@@ -515,13 +515,18 @@ declare namespace WAWebJS {
 
   /** Media attached to a message */
   export class MessageMedia {
-    /** Base64-encoded data of the file */
-    data: string
     /** MIME type of the attachment */
     mimetype: string
+    /** Base64-encoded data of the file */
+    data: string
     /** Document file name. Value can be null */
     filename?: string | null
 
+    /**
+     * @param {string} mimetype MIME type of the attachment
+     * @param {string} data Base64-encoded data of the file
+     * @param {?string} filename Document file name. Value can be null
+     */
     constructor(mimetype: string, data: string, filename?: string | null)
 
     /** Creates a MessageMedia instance from a local file path */
