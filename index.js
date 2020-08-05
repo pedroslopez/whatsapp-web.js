@@ -18,5 +18,7 @@ module.exports = {
     PrivateContact: require('./src/structures/PrivateContact'),
     BusinessContact: require('./src/structures/BusinessContact'),
     ClientInfo: require('./src/structures/ClientInfo'),
-    Location: require('./src/structures/Location')
+    Location: require('./src/structures/Location'),
+    
+    ...Constants
 };
