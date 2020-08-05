@@ -464,7 +464,7 @@ declare namespace WAWebJS {
     /** Deletes the message from the chat */
     delete: (everyone?: boolean) => Promise<void>,
     /** Downloads and returns the attatched message media */
-    downloadMedia: () => Promise<MessageMediaInterface>,
+    downloadMedia: () => Promise<MessageMedia>,
     /** Returns the Chat this message was sent in */
     getChat: () => Promise<Chat>,
     /** Returns the Contact this message was sent from */
@@ -525,10 +525,10 @@ declare namespace WAWebJS {
     constructor(mimetype: string, data: string, filename?: string | null)
 
     /** Creates a MessageMedia instance from a local file path */
-    static fromFilePath: (filePath: string) => MessageMediaInterface
+    static fromFilePath: (filePath: string) => MessageMedia
   }
 
-  export type MessageContent = string | MessageMediaInterface | Location
+  export type MessageContent = string | MessageMedia | Location
 
   /**
    * Represents a Contact on WhatsApp
