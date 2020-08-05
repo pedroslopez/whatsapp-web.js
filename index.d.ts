@@ -510,23 +510,22 @@ declare namespace WAWebJS {
     /** Send 'seen' status */
     sendSeen?: boolean
     /** Media to be sent */
-    media?: MessageMediaInterface
+    media?: MessageMedia
   }
 
   /** Media attached to a message */
-  export interface MessageMediaInterface {
+  export class MessageMedia {
     /** Base64-encoded data of the file */
-    data: string,
+    data: string
     /** MIME type of the attachment */
-    mimetype: string,
+    mimetype: string
     /** Document file name. Value can be null */
-    filename?: string | null,
-  }
+    filename?: string | null
 
-  /** Media attached to a message, with static methods */
-  export interface MessageMedia extends MessageMediaInterface {
+    constructor(mimetype: string, data: string, filename?: string | null)
+
     /** Creates a MessageMedia instance from a local file path */
-    fromFilePath: (filePath: string) => MessageMediaInterface,
+    static fromFilePath: (filePath: string) => MessageMediaInterface
   }
 
   export type MessageContent = string | MessageMediaInterface | Location
