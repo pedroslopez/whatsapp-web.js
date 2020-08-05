@@ -6,7 +6,7 @@ declare namespace WAWebJS {
 
   export class Client extends EventEmitter {
     constructor(options: ClientOptions)
-    
+
     /** Current connection information */
     public info: ClientInfo
 
@@ -302,7 +302,7 @@ declare namespace WAWebJS {
 
   /** whatsapp web url */
   export const WhatsWebURL: string
-  
+
   /** default client options */
   export const DefaultOptions: ClientOptions
 
@@ -464,7 +464,7 @@ declare namespace WAWebJS {
     /** Deletes the message from the chat */
     delete: (everyone?: boolean) => Promise<void>,
     /** Downloads and returns the attatched message media */
-    downloadMedia: () => Promise<MessageMedia>,
+    downloadMedia: () => Promise<MessageMediaInterface>,
     /** Returns the Chat this message was sent in */
     getChat: () => Promise<Chat>,
     /** Returns the Contact this message was sent from */
@@ -510,23 +510,26 @@ declare namespace WAWebJS {
     /** Send 'seen' status */
     sendSeen?: boolean
     /** Media to be sent */
-    media?: MessageMedia
+    media?: MessageMediaInterface
   }
 
   /** Media attached to a message */
-  export interface MessageMedia {
+  export interface MessageMediaInterface {
     /** Base64-encoded data of the file */
     data: string,
     /** MIME type of the attachment */
     mimetype: string,
     /** Document file name. Value can be null */
     filename?: string | null,
-    
-    /** Creates a MessageMedia instance from a local file path */
-    fromFilePath: (filePath: string) => MessageMedia,
   }
 
-  export type MessageContent = string | MessageMedia | Location
+  /** Media attached to a message, with static methods */
+  export interface MessageMedia extends MessageMediaInterface {
+    /** Creates a MessageMedia instance from a local file path */
+    fromFilePath: (filePath: string) => MessageMediaInterface,
+  }
+
+  export type MessageContent = string | MessageMediaInterface | Location
 
   /**
    * Represents a Contact on WhatsApp
