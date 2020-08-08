@@ -6,7 +6,7 @@ declare namespace WAWebJS {
 
   export class Client extends EventEmitter {
     constructor(options: ClientOptions)
-    
+
     /** Current connection information */
     public info: ClientInfo
 
@@ -302,7 +302,7 @@ declare namespace WAWebJS {
 
   /** whatsapp web url */
   export const WhatsWebURL: string
-  
+
   /** default client options */
   export const DefaultOptions: ClientOptions
 
@@ -513,12 +513,24 @@ declare namespace WAWebJS {
     media?: MessageMedia
   }
 
-  export interface MessageMedia {
-    data: string,
-    mimetype: string,
-    filename?: string | null,
+  /** Media attached to a message */
+  export class MessageMedia {
+    /** MIME type of the attachment */
+    mimetype: string
+    /** Base64-encoded data of the file */
+    data: string
+    /** Document file name. Value can be null */
+    filename?: string | null
 
-    fromFilePath: (filePath: string) => MessageMedia,
+    /**
+     * @param {string} mimetype MIME type of the attachment
+     * @param {string} data Base64-encoded data of the file
+     * @param {?string} filename Document file name. Value can be null
+     */
+    constructor(mimetype: string, data: string, filename?: string | null)
+
+    /** Creates a MessageMedia instance from a local file path */
+    static fromFilePath: (filePath: string) => MessageMedia
   }
 
   export type MessageContent = string | MessageMedia | Location
