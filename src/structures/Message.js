@@ -218,6 +218,7 @@ class Message extends Base {
 
         const result = await this.client.pupPage.evaluate(async (msgId) => {
             const msg = window.Store.Msg.get(msgId);
+            if (!msg || !msg.mediaData || !msg.mediaData.mediaStage) return null;
 
             if (msg.mediaData.mediaStage != 'RESOLVED') {
                 // try to resolve media
@@ -252,6 +253,7 @@ class Message extends Base {
     async delete(everyone) {
         await this.client.pupPage.evaluate((msgId, everyone) => {
             let msg = window.Store.Msg.get(msgId);
+            if (!msg) return null;
 
             if (everyone && msg.id.fromMe && msg.canRevoke()) {
                 return window.Store.Cmd.sendRevokeMsgs(msg.chat, [msg], true);

@@ -167,6 +167,8 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getChatModel = chat => {
+        if (!chat) return null;
+
         let res = chat.serialize();
         res.isGroup = chat.isGroup;
         res.formattedTitle = chat.formattedTitle;
@@ -180,6 +182,8 @@ exports.LoadUtils = () => {
 
     window.WWebJS.getChat = chatId => {
         const chat = window.Store.Chat.get(chatId);
+        if (!chat) return null;
+
         return window.WWebJS.getChatModel(chat);
     };
 
@@ -189,6 +193,8 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getContactModel = contact => {
+        if (!contact) return null;
+
         let res = contact.serialize();
         res.isBusiness = contact.isBusiness;
 
