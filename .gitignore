@@ -64,5 +64,9 @@ typings/
 # next.js build output
 .next
 
+<<<<<<< HEAD
 #ignore client folder
+=======
+# client files
+>>>>>>> 87eea0273e8e368ead98525a4339b3e8959c2b88
 client/
