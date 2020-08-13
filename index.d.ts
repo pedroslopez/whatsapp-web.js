@@ -184,6 +184,9 @@ declare namespace WAWebJS {
        *  @example ```1@9Q8tWf6bnezr8uVGwVCluyRuBOJ3tIglimzI5dHB0vQW2m4DQ0GMlCGf,f1/vGcW4Z3vBa1eDNl3tOjWqLL5DpYTI84DMVkYnQE8=,ZL7YnK2qdPN8vKo2ESxhOQ==``` */
       qr: string
     ) => void): this
+    
+    /** Emitted when user is paired or not **/
+    on(event: 'check_isconnected', listener: (msg: string) => void): this
 
     /** Emitted when the client has initialized and is ready to receive messages */
     on(event: 'ready', listener: () => void): this
@@ -331,6 +334,7 @@ declare namespace WAWebJS {
     DISCONNECTED = 'disconnected',
     STATE_CHANGED = 'change_state',
     BATTERY_CHANGED = 'change_battery',
+    CHECK_ISCONNECTED = 'check_isconnected'
   }
 
   /** Group notification types */
