@@ -48,7 +48,8 @@ exports.Events = {
     QR_RECEIVED: 'qr',
     DISCONNECTED: 'disconnected',
     STATE_CHANGED: 'change_state',
-    BATTERY_CHANGED: 'change_battery'
+    BATTERY_CHANGED: 'change_battery',
+    CHECK_ISCONNECTED: 'check_isconnected'
 };
 
 /**
@@ -110,6 +111,7 @@ exports.WAState = {
     DEPRECATED_VERSION: 'DEPRECATED_VERSION',
     OPENING: 'OPENING',
     PAIRING: 'PAIRING',
+    PAIRED: 'PAIRED',
     PROXYBLOCK: 'PROXYBLOCK',
     SMB_TOS_BLOCK: 'SMB_TOS_BLOCK',
     TIMEOUT: 'TIMEOUT',
