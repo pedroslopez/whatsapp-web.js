@@ -84,6 +84,12 @@ declare namespace WAWebJS {
      */
     setStatus(status: string): Promise<void>
 
+    /** 
+     * Sets the current user's display name
+     * @param displayName New display name
+     */
+    setDisplayName(displayName: string): Promise<void>
+
     /** Changes and returns the archive state of the Chat */
     unarchiveChat(chatId: string): Promise<boolean>
 
