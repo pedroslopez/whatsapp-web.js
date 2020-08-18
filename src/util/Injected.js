@@ -23,7 +23,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.MediaUpload = window.mR.findModule('uploadMedia')[0];
     window.Store.Cmd = window.mR.findModule('Cmd')[0].default;
     window.Store.MediaTypes = window.mR.findModule('msgToMediaType')[0];
-    window.Store.VCard = window.mR.findModule('fromContactModel')[0];
+    window.Store.VCard = window.mR.findModule('vcardFromContactModel')[0];
     window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default;
     window.Store.Validators = window.mR.findModule('findLinks')[0];
     window.Store.WidFactory = window.mR.findModule('createWid')[0];
@@ -83,14 +83,14 @@ exports.LoadUtils = () => {
         if (options.contactCard) {
             let contact = window.Store.Contact.get(options.contactCard);
             vcardOptions = {
-                body: window.Store.VCard.fromContactModel(contact).vcard,
+                body: window.Store.VCard.vcardFromContactModel(contact).vcard,
                 type: 'vcard',
-                subtype: contact.formattedName
+                vcardFormattedName: contact.formattedName
             };
             delete options.contactCard;
         } else if(options.contactCardList) {
             let contacts = options.contactCardList.map(c => window.Store.Contact.get(c));
-            let vcards = contacts.map(c => window.Store.VCard.fromContactModel(c));
+            let vcards = contacts.map(c => window.Store.VCard.vcardFromContactModel(c));
             vcardOptions = {
                 type: 'multi_vcard',
                 vcardList: vcards,
