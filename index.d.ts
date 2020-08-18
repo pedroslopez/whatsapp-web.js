@@ -70,7 +70,7 @@ declare namespace WAWebJS {
     resetState(): Promise<void>
 
     /** Send a message to a specific chatId */
-    sendMessage(chatId: string, content: MessageContent, options: MessageSendOptions): Promise<Message>
+    sendMessage(chatId: string, content: MessageContent, options?: MessageSendOptions): Promise<Message>
 
     /** Marks the client as online */
     sendPresenceAvailable(): Promise<void>
@@ -302,7 +302,7 @@ declare namespace WAWebJS {
     /** Returns the Contacts affected by this GroupNotification */
     getRecipients: () => Promise<Contact[]>,
     /** Sends a message to the same chat this GroupNotification was produced in */
-    reply: (content: MessageContent, options: MessageSendOptions) => Promise<Message>,
+    reply: (content: MessageContent, options?: MessageSendOptions) => Promise<Message>,
 
   }
 
@@ -484,7 +484,7 @@ declare namespace WAWebJS {
      * If chatId is specified, it will be sent through the specified Chat.
      * If not, it will send the message in the same Chat as the original message was sent. 
      */
-    reply: (content: MessageContent, chatId: string, options: MessageSendOptions) => Promise<Message>,
+    reply: (content: MessageContent, chatId?: string, options?: MessageSendOptions) => Promise<Message>,
   }
 
   /** ID that represents a message */
