@@ -46,7 +46,7 @@ class Chat extends Base {
         this.unreadCount = data.unreadCount;
 
         /**
-         * Unix timestamp for when the chat was created
+         * Unix timestamp for when the last activity occurred
          * @type {number}
          */
         this.timestamp = data.t;

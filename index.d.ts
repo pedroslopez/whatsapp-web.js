@@ -659,7 +659,7 @@ declare namespace WAWebJS {
     isReadOnly: boolean,
     /** Title of the chat */
     name: string,
-    /** Unix timestamp for when the chat was created */
+    /** Unix timestamp for when the last activity occurred */
     timestamp: number,
     /** Amount of messages unread */
     unreadCount: number,
