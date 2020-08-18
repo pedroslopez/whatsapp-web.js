@@ -2,9 +2,9 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.6.3">
+  <meta name="generator" content="JSDoc 3.6.4">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 0.3.2-post &raquo; Class: Client</title>
+  <title>whatsapp-web.js 1.7.0 &raquo; Class: Client</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 0.<wbr>3.<wbr>2-post</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>7.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -26,7 +26,7 @@
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
             <h1><small></small><span class="symbol-name">Client</span></h1>
-            <p class="source-link">Source: <a href="Client.js.html#source-line-31">Client.<wbr>js:31</a></p>
+            <p class="source-link">Source: <a href="Client.js.html#source-line-36">Client.<wbr>js:36</a></p>
             <div class="symbol-classdesc">
               <p>Starting point for interacting with the WhatsApp Web API</p>
             </div>
@@ -42,16 +42,18 @@
                     <dt><a href="Client.html#acceptInvite">acceptInvite(inviteCode)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Client.html#archiveChat">archiveChat()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#createGroup">createGroup(name, participants)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#destroy">destroy()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Client.html#getChatById">getChatById(chatId)</a></dt>
                     <dd>
                     </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
                     <dt><a href="Client.html#getChats">getChats()</a></dt>
                     <dd>
                     </dd>
@@ -65,10 +67,53 @@
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Client.html#getInviteInfo">getInviteInfo(inviteCode)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#getProfilePicUrl">getProfilePicUrl(contactId)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#getState">getState()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#getWWebVersion">getWWebVersion()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#initialize">initialize()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Client.html#isRegisteredUser">isRegisteredUser()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#logout">logout()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#muteChat">muteChat(chatId, unmuteDate)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Client.html#resetState">resetState()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#sendMessage">sendMessage(chatId, content, options)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#sendPresenceAvailable">sendPresenceAvailable()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#sendSeen">sendSeen(chatId)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#setStatus">setStatus(status)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#unarchiveChat">unarchiveChat()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#unmuteChat">unmuteChat(chatId)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -86,26 +131,47 @@
                     <dt><a href="Client.html#event:authenticated">authenticated</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Client.html#event:change_battery">change_battery</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#event:change_state">change_state</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#event:disconnected">disconnected</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#event:group_join">group_join</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Client.html#event:group_leave">group_leave</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#event:group_update">group_update</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#event:media_uploaded">media_uploaded</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#event:message">message</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#event:message_ack">message_ack</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Client.html#event:message_create">message_create</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Client.html#event:message_revoke_everyone">message_revoke_everyone</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Client.html#event:message_revoke_everyone">message_revoke_everyone</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#event:message_revoke_me">message_revoke_me</a></dt>
                     <dd>
                     </dd>
@@ -131,10 +197,17 @@
               <dd><a href="Client.html#event:auth_failure">Client#event:auth_failure</a></dd>
               <dd><a href="Client.html#event:ready">Client#event:ready</a></dd>
               <dd><a href="Client.html#event:message">Client#event:message</a></dd>
+              <dd><a href="Client.html#event:message_ack">Client#event:message_ack</a></dd>
               <dd><a href="Client.html#event:message_create">Client#event:message_create</a></dd>
               <dd><a href="Client.html#event:message_revoke_me">Client#event:message_revoke_me</a></dd>
               <dd><a href="Client.html#event:message_revoke_everyone">Client#event:message_revoke_everyone</a></dd>
+              <dd><a href="Client.html#event:media_uploaded">Client#event:media_uploaded</a></dd>
+              <dd><a href="Client.html#event:group_join">Client#event:group_join</a></dd>
+              <dd><a href="Client.html#event:group_leave">Client#event:group_leave</a></dd>
+              <dd><a href="Client.html#event:group_update">Client#event:group_update</a></dd>
               <dd><a href="Client.html#event:disconnected">Client#event:disconnected</a></dd>
+              <dd><a href="Client.html#event:change_state">Client#event:change_state</a></dd>
+              <dd><a href="Client.html#event:change_battery">Client#event:change_battery</a></dd>
             </dl>
           </section>
           <section>
@@ -173,6 +246,76 @@
                 </table>
               </section>
               <dl class="dl-compact">
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="archiveChat"><span class="symbol-name">archiveChat</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
+              <p>Enables and returns the archive state of the Chat</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>boolean</code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="createGroup"><span class="symbol-name">createGroup</span><span class="signature"><span class="signature-params">(name, participants)</span>&nbsp;&rarr; <span class="signature-returns"> (Object, string, or Object with string properties)</span></span></h3>
+              <p>Create a new group</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>name</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>group title</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>participants</p>
+                      </td>
+                      <td>
+                        <p>Array of (<a href="Contact.html">Contact</a> or string)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>an array of Contacts or contact IDs to add to the group</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Object</code> <p>createRes</p>
+                  </p>
+                </dd>
+                <dd>
+                  <p><code>string</code> <p>createRes.gid - ID for the group that was just created</p>
+                  </p>
+                </dd>
+                <dd>
+                  <p><code>Object with string properties</code> <p>createRes.missingParticipants - participants that were not added to the group. Keys represent the ID for participant that was not added and its value is a status code that represents the reason why participant could not be added. This is usually 403 if the user's privacy settings don't allow you to add them to groups.</p>
+                  </p>
+                </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="destroy"><span class="symbol-name">destroy</span><span class="signature"><span class="signature-params">()</span></span></h3>
@@ -272,8 +415,170 @@
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getInviteInfo"><span class="symbol-name">getInviteInfo</span><span class="signature"><span class="signature-params">(inviteCode)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing object</span></span></h3>
+              <p>Returns an object with information about the invite code's group</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>inviteCode</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing object</code> <p>Invite information</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getProfilePicUrl"><span class="symbol-name">getProfilePicUrl</span><span class="signature"><span class="signature-params">(contactId)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing string</span></span></h3>
+              <p>Returns the contact ID's profile picture URL, if privacy settings allow it</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>contactId</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>the whatsapp user's ID</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing string</code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getState"><span class="symbol-name">getState</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="global.html#WAState">WAState</a></span></span></h3>
+              <p>Gets the current connection state for the client</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="global.html#WAState">WAState</a></code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getWWebVersion"><span class="symbol-name">getWWebVersion</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Returns the version of WhatsApp Web currently being run</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p>Promise<string>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="initialize"><span class="symbol-name">initialize</span><span class="signature"><span class="signature-params">()</span></span></h3>
               <p>Sets up events and requirements, kicks off authentication request</p>
+              <dl class="dl-compact">
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="isRegisteredUser"><span class="symbol-name">isRegisteredUser</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Boolean</span></span></h3>
+              <p>Check if a given ID is registered in whatsapp</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing Boolean</code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="logout"><span class="symbol-name">logout</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Logs out the client, closing the current session</p>
+              <dl class="dl-compact">
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="muteChat"><span class="symbol-name">muteChat</span><span class="signature"><span class="signature-params">(chatId, unmuteDate)</span></span></h3>
+              <p>Mutes the Chat until a specified date</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>chatId</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>ID of the chat that will be muted</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>unmuteDate</p>
+                      </td>
+                      <td>
+                        <p>Date</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Date when the chat will be unmuted</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="resetState"><span class="symbol-name">resetState</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Force reset of connection state for the client</p>
               <dl class="dl-compact">
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
@@ -309,7 +614,7 @@
                         <p>content</p>
                       </td>
                       <td>
-                        <p>(string or <a href="MessageMedia.html">MessageMedia</a>)</p>
+                        <p>(string, <a href="MessageMedia.html">MessageMedia</a>, or <a href="Location.html">Location</a>)</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
@@ -339,6 +644,126 @@
                   <p><code>Promise containing <a href="Message.html">Message</a></code> <p>Message that was just sent</p>
                   </p>
                 </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="sendPresenceAvailable"><span class="symbol-name">sendPresenceAvailable</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Marks the client as online</p>
+              <dl class="dl-compact">
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="sendSeen"><span class="symbol-name">sendSeen</span><span class="signature"><span class="signature-params">(chatId)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Mark as seen for the Chat</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>chatId</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code> <p>result</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="setStatus"><span class="symbol-name">setStatus</span><span class="signature"><span class="signature-params">(status)</span></span></h3>
+              <p>Sets the current user's status message</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>status</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>New status message</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="unarchiveChat"><span class="symbol-name">unarchiveChat</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
+              <p>Changes and returns the archive state of the Chat</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>boolean</code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="unmuteChat"><span class="symbol-name">unmuteChat</span><span class="signature"><span class="signature-params">(chatId)</span></span></h3>
+              <p>Unmutes the Chat</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>chatId</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>ID of the chat that will be unmuted</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
               </dl>
             </section>
             <h2>Events</h2>
@@ -408,8 +833,275 @@
               </section>
               <dl class="dl-compact">
               </dl>
+              <h3 id="event:change_battery"><span class="symbol-name">change_battery</span></h3>
+              <p>Emitted when the battery percentage for the attached device changes</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>batteryInfo</p>
+                      </td>
+                      <td>
+                        <p>object</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Values in <code>batteryInfo</code> have the following properties:</p>
+                        <table class="jsdoc-details-table">
+                          <thead>
+                            <tr>
+                              <th>Name</th>
+                              <th>Type</th>
+                              <th>Optional</th>
+                              <th>Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>
+                                <p>battery</p>
+                              </td>
+                              <td>
+                                <p>number</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                                <p>The current battery percentage</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>plugged</p>
+                              </td>
+                              <td>
+                                <p>boolean</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                                <p>Indicates if the phone is plugged in (true) or not (false)</p>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="event:change_state"><span class="symbol-name">change_state</span></h3>
+              <p>Emitted when the connection state changes</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>state</p>
+                      </td>
+                      <td>
+                        <p><a href="global.html#WAState">WAState</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>the new connection state</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="event:disconnected"><span class="symbol-name">disconnected</span></h3>
               <p>Emitted when the client has been disconnected</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>reason</p>
+                      </td>
+                      <td>
+                        <p><a href="global.html#WAState">WAState</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>state that caused the disconnect</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="event:group_join"><span class="symbol-name">group_join</span></h3>
+              <p>Emitted when a user joins the chat via invite link or is added by an admin.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>notification</p>
+                      </td>
+                      <td>
+                        <p><a href="GroupNotification.html">GroupNotification</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>GroupNotification with more information about the action</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="event:group_leave"><span class="symbol-name">group_leave</span></h3>
+              <p>Emitted when a user leaves the chat or is removed by an admin.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>notification</p>
+                      </td>
+                      <td>
+                        <p><a href="GroupNotification.html">GroupNotification</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>GroupNotification with more information about the action</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="event:group_update"><span class="symbol-name">group_update</span></h3>
+              <p>Emitted when group settings are updated, such as subject, description or picture.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>notification</p>
+                      </td>
+                      <td>
+                        <p><a href="GroupNotification.html">GroupNotification</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>GroupNotification with more information about the action</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="event:media_uploaded"><span class="symbol-name">media_uploaded</span></h3>
+              <p>Emitted when media has been uploaded for a message sent by the client.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>message</p>
+                      </td>
+                      <td>
+                        <p><a href="Message.html">Message</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The message with media that was uploaded</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
               <dl class="dl-compact">
               </dl>
               <h3 id="event:message"><span class="symbol-name">message</span></h3>
@@ -438,6 +1130,53 @@
                       </td>
                       <td>
                         <p>The message that was received</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="event:message_ack"><span class="symbol-name">message_ack</span></h3>
+              <p>Emitted when an ack event occurrs on message type.</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>message</p>
+                      </td>
+                      <td>
+                        <p><a href="Message.html">Message</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The message that was affected</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>ack</p>
+                      </td>
+                      <td>
+                        <p><a href="global.html#MessageAck">MessageAck</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The new ACK value</p>
                       </td>
                     </tr>
                   </tbody>
@@ -607,7 +1346,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on February 5, 2020.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.4 on June 18, 2020.
       </p>
     </div>
   </footer>

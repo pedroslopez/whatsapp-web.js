@@ -2,9 +2,9 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.6.3">
+  <meta name="generator" content="JSDoc 3.6.4">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 0.3.2-post &raquo; Home</title>
+  <title>whatsapp-web.js 1.7.0 &raquo; Home</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 0.<wbr>3.<wbr>2-post</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>7.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -27,18 +27,18 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1>
-              whatsapp-web.js 0.3.2-post
+              whatsapp-web.js 1.7.0
             </h1>
           </header>
           <article>
-            <p><a href="https://www.npmjs.com/package/whatsapp-web.js"><img src="https://img.shields.io/npm/v/whatsapp-web.js.svg" alt="npm"></a> <a href="https://depfu.com/github/pedroslopez/whatsapp-web.js?project_id=9765"><img src="https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg" alt="Depfu"></a></p>
+            <p><a href="https://www.npmjs.com/package/whatsapp-web.js"><img src="https://img.shields.io/npm/v/whatsapp-web.js.svg" alt="npm"></a> <a href="https://depfu.com/github/pedroslopez/whatsapp-web.js?project_id=9765"><img src="https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg" alt="Depfu"></a> <img src="https://img.shields.io/badge/WhatsApp_Web-2.2023.2-brightgreen.svg" alt="WhatsApp_Web 2.2023.2"> <a href="https://discord.gg/H7DqQs4"><img src="https://img.shields.io/discord/698610475432411196.svg?logo=discord" alt="Discord Chat"></a></p>
             <h1>whatsapp-web.js</h1>
             <p>A WhatsApp API client that connects through the WhatsApp Web browser app</p>
             <p>It uses Puppeteer to run a real instance of Whatsapp Web to avoid getting blocked.</p>
             <p><strong>NOTE:</strong> I can't guarantee you will not be blocked by using this method, although it has worked for me. WhatsApp does not allow bots or unofficial clients on their platform, so this shouldn't be considered totally safe.</p>
             <h2>Installation</h2>
             <p>The module is now available on npm! <code>npm i whatsapp-web.js</code></p>
-            <p>Please note that Node v8+ is required due to Puppeteer.</p>
+            <p>Please note that Node v10.18.1+ is required due to Puppeteer.</p>
             <h2>Example usage</h2>
             <pre class="prettyprint source lang-js"><code>const { Client } = require('whatsapp-web.js');
 const client = new Client();
@@ -84,7 +84,7 @@ client.initialize();
                 </tr>
                 <tr>
                   <td>Send media (video)</td>
-                  <td><em>pending</em></td>
+                  <td>✅ <a href="https://github.com/pedroslopez/whatsapp-web.js/issues/78#issuecomment-592723583">(requires google chrome)</a></td>
                 </tr>
                 <tr>
                   <td>Send stickers</td>
@@ -100,7 +100,11 @@ client.initialize();
                 </tr>
                 <tr>
                   <td>Send location</td>
-                  <td><em>pending</em></td>
+                  <td>✅</td>
+                </tr>
+                <tr>
+                  <td>Receive location</td>
+                  <td>✅</td>
                 </tr>
                 <tr>
                   <td>Message replies</td>
@@ -108,6 +112,10 @@ client.initialize();
                 </tr>
                 <tr>
                   <td>Join groups by invite</td>
+                  <td>✅</td>
+                </tr>
+                <tr>
+                  <td>Get invite for group</td>
                   <td>✅</td>
                 </tr>
                 <tr>
@@ -128,10 +136,22 @@ client.initialize();
                 </tr>
                 <tr>
                   <td>Mention users</td>
-                  <td><em>pending</em></td>
+                  <td>✅</td>
+                </tr>
+                <tr>
+                  <td>Mute/unmute chats</td>
+                  <td>✅</td>
                 </tr>
                 <tr>
                   <td>Get contact info</td>
+                  <td>✅</td>
+                </tr>
+                <tr>
+                  <td>Get profile pictures</td>
+                  <td>✅</td>
+                </tr>
+                <tr>
+                  <td>Set user status message</td>
                   <td>✅</td>
                 </tr>
               </tbody>
@@ -139,11 +159,27 @@ client.initialize();
             <p>Something missing? Make an issue and let us know!</p>
             <h2>Links</h2>
             <ul>
-              <li><a href="https://pedroslopez.me/whatsapp-web.js">Documentation</a> <em>(preview)</em></li>
+              <li><a href="https://pedroslopez.me/whatsapp-web.js">Reference</a></li>
+              <li><a href="https://waguide.pedroslopez.me/">Guide</a> <em>(work in progress)</em></li>
               <li><a href="https://github.com/pedroslopez/whatsapp-web.js">GitHub</a></li>
             </ul>
             <h2>Contributing</h2>
             <p>Pull requests are welcome! If you see something you'd like to add, please do. For drastic changes, please open an issue first.</p>
+            <h2>Donating</h2>
+            <p>You can support the maintainer of this project through the link below</p>
+            <p><a href="https://www.paypal.me/psla/"><img src="https://cdn.rawgit.com/twolfson/paypal-github-button/1.0.0/dist/button.svg" alt="Support via PayPal"></a></p>
+            <h2>Disclaimer</h2>
+            <p>This project is not affiliated, associated, authorized, endorsed by, or in any way officially connected with WhatsApp or any of its subsidiaries or its affiliates. The official WhatsApp website can be found at https://whatsapp.com. &quot;WhatsApp&quot; as well as related names, marks, emblems and images are registered trademarks of their respective owners.</p>
+            <h2>License</h2>
+            <p>Copyright 2019 Pedro S Lopez</p>
+            <p>Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+              you may not use this project except in compliance with the License.
+              You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.</p>
+            <p>Unless required by applicable law or agreed to in writing, software
+              distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+              WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+              See the License for the specific language governing permissions and
+              limitations under the License.</p>
           </article>
           <div class="symbol-index">
             <section>
@@ -187,7 +223,17 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="BusinessContact.html#getProfilePicUrl" class="!symbol-index-name">BusinessContact#<wbr>getProfilePicUrl()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="BusinessContact.html#id" class="!symbol-index-name">BusinessContact#<wbr>id</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="BusinessContact.html#isBusiness" class="!symbol-index-name">BusinessContact#<wbr>isBusiness</a>
                       </dt>
                       <dd>
                       </dd>
@@ -196,12 +242,36 @@ client.initialize();
                   <div class="symbol-index-column">
                     <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
-                        <a href="BusinessContact.html#isBusiness" class="!symbol-index-name">BusinessContact#<wbr>isBusiness</a>
+                        <a href="BusinessContact.html#isEnterprise" class="!symbol-index-name">BusinessContact#<wbr>isEnterprise</a>
                       </dt>
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
-                        <a href="BusinessContact.html#isEnterprise" class="!symbol-index-name">BusinessContact#<wbr>isEnterprise</a>
+                        <a href="BusinessContact.html#isGroup" class="!symbol-index-name">BusinessContact#<wbr>isGroup</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="BusinessContact.html#isMe" class="!symbol-index-name">BusinessContact#<wbr>isMe</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="BusinessContact.html#isMyContact" class="!symbol-index-name">BusinessContact#<wbr>isMyContact</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="BusinessContact.html#isUser" class="!symbol-index-name">BusinessContact#<wbr>isUser</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="BusinessContact.html#isWAContact" class="!symbol-index-name">BusinessContact#<wbr>isWAContact</a>
                       </dt>
                       <dd>
                       </dd>
@@ -210,10 +280,11 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="BusinessContact.html#number" class="!symbol-index-name">BusinessContact#<wbr>number</a>
+                      </dt>
+                      <dd>
+                      </dd>
                       <dt class="symbol-index-name">
                         <a href="BusinessContact.html#pushname" class="!symbol-index-name">BusinessContact#<wbr>pushname</a>
                       </dt>
@@ -241,6 +312,40 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="Chat.html#archive" class="!symbol-index-name">Chat#<wbr>archive()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Chat.html#archived" class="!symbol-index-name">Chat#<wbr>archived</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Chat.html#clearMessages" class="!symbol-index-name">Chat#<wbr>clearMessages()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Chat.html#clearState" class="!symbol-index-name">Chat#<wbr>clearState()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Chat.html#delete" class="!symbol-index-name">Chat#<wbr>delete()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Chat.html#fetchMessages" class="!symbol-index-name">Chat#<wbr>fetchMessages(searchOptions)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
                         <a href="Chat.html#id" class="!symbol-index-name">Chat#<wbr>id</a>
                       </dt>
                       <dd>
@@ -250,12 +355,13 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Chat.html#isReadOnly" class="!symbol-index-name">Chat#<wbr>isReadOnly</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Chat.html#mute" class="!symbol-index-name">Chat#<wbr>mute(unmuteDate)</a>
                       </dt>
                       <dd>
                       </dd>
@@ -269,12 +375,37 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Chat.html#sendSeen" class="!symbol-index-name">Chat#<wbr>sendSeen()</a>
+                      </dt>
+                      <dd>
+                      </dd>
                     </dl>
                   </div>
                   <div class="symbol-index-column">
                     <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
+                        <a href="Chat.html#sendStateRecording" class="!symbol-index-name">Chat#<wbr>sendStateRecording()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Chat.html#sendStateTyping" class="!symbol-index-name">Chat#<wbr>sendStateTyping()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="Chat.html#timestamp" class="!symbol-index-name">Chat#<wbr>timestamp</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Chat.html#unarchive" class="!symbol-index-name">Chat#<wbr>unarchive()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Chat.html#unmute" class="!symbol-index-name">Chat#<wbr>unmute()</a>
                       </dt>
                       <dd>
                       </dd>
@@ -339,6 +470,16 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="Client.html#archiveChat" class="!symbol-index-name">Client#<wbr>archiveChat()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Client.html#createGroup" class="!symbol-index-name">Client#<wbr>createGroup(name, participants)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="Client.html#destroy" class="!symbol-index-name">Client#<wbr>destroy()</a>
                       </dt>
                       <dd>
@@ -354,7 +495,37 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="Client.html#event:change_battery" class="!symbol-index-name">Client#<wbr>event:change_battery</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Client.html#event:change_state" class="!symbol-index-name">Client#<wbr>event:change_state</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="Client.html#event:disconnected" class="!symbol-index-name">Client#<wbr>event:disconnected</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Client.html#event:group_join" class="!symbol-index-name">Client#<wbr>event:group_join</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Client.html#event:group_leave" class="!symbol-index-name">Client#<wbr>event:group_leave</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Client.html#event:group_update" class="!symbol-index-name">Client#<wbr>event:group_update</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Client.html#event:media_uploaded" class="!symbol-index-name">Client#<wbr>event:media_uploaded</a>
                       </dt>
                       <dd>
                       </dd>
@@ -364,6 +535,11 @@ client.initialize();
                     <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Client.html#event:message" class="!symbol-index-name">Client#<wbr>event:message</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Client.html#event:message_ack" class="!symbol-index-name">Client#<wbr>event:message_ack</a>
                       </dt>
                       <dd>
                       </dd>
@@ -392,10 +568,6 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Client.html#getChatById" class="!symbol-index-name">Client#<wbr>getChatById(chatId)</a>
                       </dt>
@@ -417,12 +589,81 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="Client.html#getInviteInfo" class="!symbol-index-name">Client#<wbr>getInviteInfo(inviteCode)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Client.html#getProfilePicUrl" class="!symbol-index-name">Client#<wbr>getProfilePicUrl(contactId)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Client.html#getState" class="!symbol-index-name">Client#<wbr>getState()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="Client.html#getWWebVersion" class="!symbol-index-name">Client#<wbr>getWWebVersion()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="Client.html#initialize" class="!symbol-index-name">Client#<wbr>initialize()</a>
                       </dt>
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="Client.html#isRegisteredUser" class="!symbol-index-name">Client#<wbr>isRegisteredUser()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Client.html#logout" class="!symbol-index-name">Client#<wbr>logout()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Client.html#muteChat" class="!symbol-index-name">Client#<wbr>muteChat(chatId, unmuteDate)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Client.html#resetState" class="!symbol-index-name">Client#<wbr>resetState()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="Client.html#sendMessage" class="!symbol-index-name">Client#<wbr>sendMessage(chatId, content, options)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Client.html#sendPresenceAvailable" class="!symbol-index-name">Client#<wbr>sendPresenceAvailable()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Client.html#sendSeen" class="!symbol-index-name">Client#<wbr>sendSeen(chatId)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Client.html#setStatus" class="!symbol-index-name">Client#<wbr>setStatus(status)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Client.html#unarchiveChat" class="!symbol-index-name">Client#<wbr>unarchiveChat()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Client.html#unmuteChat" class="!symbol-index-name">Client#<wbr>unmuteChat(chatId)</a>
                       </dt>
                       <dd>
                       </dd>
@@ -443,7 +684,7 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
-                        <a href="ClientInfo.html#me" class="!symbol-index-name">ClientInfo#<wbr>me</a>
+                        <a href="ClientInfo.html#getBatteryStatus" class="!symbol-index-name">ClientInfo#<wbr>getBatteryStatus()</a>
                       </dt>
                       <dd>
                       </dd>
@@ -451,20 +692,25 @@ client.initialize();
                   </div>
                   <div class="symbol-index-column">
                     <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="ClientInfo.html#me" class="!symbol-index-name">ClientInfo#<wbr>me</a>
+                      </dt>
+                      <dd>
+                      </dd>
                       <dt class="symbol-index-name">
                         <a href="ClientInfo.html#phone" class="!symbol-index-name">ClientInfo#<wbr>phone</a>
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="ClientInfo.html#platform" class="!symbol-index-name">ClientInfo#<wbr>platform</a>
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="ClientInfo.html#pushname" class="!symbol-index-name">ClientInfo#<wbr>pushname</a>
                       </dt>
@@ -487,6 +733,11 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="Contact.html#getProfilePicUrl" class="!symbol-index-name">Contact#<wbr>getProfilePicUrl()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="Contact.html#id" class="!symbol-index-name">Contact#<wbr>id</a>
                       </dt>
                       <dd>
@@ -496,17 +747,51 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Contact.html#isEnterprise" class="!symbol-index-name">Contact#<wbr>isEnterprise</a>
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="Contact.html#isGroup" class="!symbol-index-name">Contact#<wbr>isGroup</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Contact.html#isMe" class="!symbol-index-name">Contact#<wbr>isMe</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Contact.html#isMyContact" class="!symbol-index-name">Contact#<wbr>isMyContact</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Contact.html#isUser" class="!symbol-index-name">Contact#<wbr>isUser</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Contact.html#isWAContact" class="!symbol-index-name">Contact#<wbr>isWAContact</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Contact.html#name" class="!symbol-index-name">Contact#<wbr>name</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Contact.html#number" class="!symbol-index-name">Contact#<wbr>number</a>
                       </dt>
                       <dd>
                       </dd>
@@ -515,10 +800,6 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Contact.html#shortName" class="!symbol-index-name">Contact#<wbr>shortName</a>
                       </dt>
@@ -546,7 +827,22 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="global.html#Events#.BATTERY_CHANGED" class="!symbol-index-name">Events.<wbr>BATTERY_CHANGED</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="global.html#Events#.DISCONNECTED" class="!symbol-index-name">Events.<wbr>DISCONNECTED</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="global.html#Events#.GROUP_JOIN" class="!symbol-index-name">Events.<wbr>GROUP_JOIN</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="global.html#Events#.GROUP_LEAVE" class="!symbol-index-name">Events.<wbr>GROUP_LEAVE</a>
                       </dt>
                       <dd>
                       </dd>
@@ -554,6 +850,21 @@ client.initialize();
                   </div>
                   <div class="symbol-index-column">
                     <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="global.html#Events#.GROUP_UPDATE" class="!symbol-index-name">Events.<wbr>GROUP_UPDATE</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="global.html#Events#.MEDIA_UPLOADED" class="!symbol-index-name">Events.<wbr>MEDIA_UPLOADED</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="global.html#Events#.MESSAGE_ACK" class="!symbol-index-name">Events.<wbr>MESSAGE_ACK</a>
+                      </dt>
+                      <dd>
+                      </dd>
                       <dt class="symbol-index-name">
                         <a href="global.html#Events#.MESSAGE_CREATE" class="!symbol-index-name">Events.<wbr>MESSAGE_CREATE</a>
                       </dt>
@@ -588,6 +899,11 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
+                      <dt class="symbol-index-name">
+                        <a href="global.html#Events#.STATE_CHANGED" class="!symbol-index-name">Events.<wbr>STATE_CHANGED</a>
+                      </dt>
+                      <dd>
+                      </dd>
                     </dl>
                   </div>
                 </div>
@@ -605,22 +921,37 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
-                        <a href="GroupChat.html#.getInviteInfo" class="!symbol-index-name">GroupChat.<wbr>getInviteInfo(inviteCode)</a>
-                      </dt>
-                      <dd>
-                      </dd>
-                      <dt class="symbol-index-name">
-                        <a href="GroupChat.html#.join" class="!symbol-index-name">GroupChat.<wbr>join(inviteCode)</a>
-                      </dt>
-                      <dd>
-                      </dd>
-                      <dt class="symbol-index-name">
                         <a href="GroupChat.html#addParticipants" class="!symbol-index-name">GroupChat#<wbr>addParticipants(participantIds)</a>
                       </dt>
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="GroupChat.html#archive" class="!symbol-index-name">GroupChat#<wbr>archive()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="GroupChat.html#archived" class="!symbol-index-name">GroupChat#<wbr>archived</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="GroupChat.html#clearMessages" class="!symbol-index-name">GroupChat#<wbr>clearMessages()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="GroupChat.html#clearState" class="!symbol-index-name">GroupChat#<wbr>clearState()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="GroupChat.html#createdAt" class="!symbol-index-name">GroupChat#<wbr>createdAt</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="GroupChat.html#delete" class="!symbol-index-name">GroupChat#<wbr>delete()</a>
                       </dt>
                       <dd>
                       </dd>
@@ -635,7 +966,7 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
-                        <a href="GroupChat.html#getInviteCode" class="!symbol-index-name">GroupChat#<wbr>getInviteCode()</a>
+                        <a href="GroupChat.html#fetchMessages" class="!symbol-index-name">GroupChat#<wbr>fetchMessages(searchOptions)</a>
                       </dt>
                       <dd>
                       </dd>
@@ -643,6 +974,11 @@ client.initialize();
                   </div>
                   <div class="symbol-index-column">
                     <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="GroupChat.html#getInviteCode" class="!symbol-index-name">GroupChat#<wbr>getInviteCode()</a>
+                      </dt>
+                      <dd>
+                      </dd>
                       <dt class="symbol-index-name">
                         <a href="GroupChat.html#id" class="!symbol-index-name">GroupChat#<wbr>id</a>
                       </dt>
@@ -660,6 +996,11 @@ client.initialize();
                       </dd>
                       <dt class="symbol-index-name">
                         <a href="GroupChat.html#leave" class="!symbol-index-name">GroupChat#<wbr>leave()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="GroupChat.html#mute" class="!symbol-index-name">GroupChat#<wbr>mute(unmuteDate)</a>
                       </dt>
                       <dd>
                       </dd>
@@ -683,15 +1024,15 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="GroupChat.html#removeParticipants" class="!symbol-index-name">GroupChat#<wbr>removeParticipants(participantIds)</a>
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="GroupChat.html#revokeInvite" class="!symbol-index-name">GroupChat#<wbr>revokeInvite()</a>
                       </dt>
@@ -699,6 +1040,21 @@ client.initialize();
                       </dd>
                       <dt class="symbol-index-name">
                         <a href="GroupChat.html#sendMessage" class="!symbol-index-name">GroupChat#<wbr>sendMessage(content, options)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="GroupChat.html#sendSeen" class="!symbol-index-name">GroupChat#<wbr>sendSeen()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="GroupChat.html#sendStateRecording" class="!symbol-index-name">GroupChat#<wbr>sendStateRecording()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="GroupChat.html#sendStateTyping" class="!symbol-index-name">GroupChat#<wbr>sendStateTyping()</a>
                       </dt>
                       <dd>
                       </dd>
@@ -718,10 +1074,246 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="GroupChat.html#unarchive" class="!symbol-index-name">GroupChat#<wbr>unarchive()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="GroupChat.html#unmute" class="!symbol-index-name">GroupChat#<wbr>unmute()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="GroupChat.html#unreadCount" class="!symbol-index-name">GroupChat#<wbr>unreadCount</a>
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section>
+              <div class="symbol-index-content">
+                <h2 id="GroupNotification">GroupNotification</h2>
+                <div class="symbol-index-section">
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="GroupNotification.html" class="!symbol-index-name">GroupNotification()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="GroupNotification.html#author" class="!symbol-index-name">GroupNotification#<wbr>author</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="GroupNotification.html#body" class="!symbol-index-name">GroupNotification#<wbr>body</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="GroupNotification.html#chatId" class="!symbol-index-name">GroupNotification#<wbr>chatId</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="GroupNotification.html#getChat" class="!symbol-index-name">GroupNotification#<wbr>getChat()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="GroupNotification.html#getContact" class="!symbol-index-name">GroupNotification#<wbr>getContact()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="GroupNotification.html#getRecipients" class="!symbol-index-name">GroupNotification#<wbr>getRecipients()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="GroupNotification.html#id" class="!symbol-index-name">GroupNotification#<wbr>id</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="GroupNotification.html#recipientIds" class="!symbol-index-name">GroupNotification#<wbr>recipientIds</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="GroupNotification.html#reply" class="!symbol-index-name">GroupNotification#<wbr>reply(content, options)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="GroupNotification.html#timestamp" class="!symbol-index-name">GroupNotification#<wbr>timestamp</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="GroupNotification.html#type" class="!symbol-index-name">GroupNotification#<wbr>type</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section>
+              <div class="symbol-index-content">
+                <h2 id="GroupNotificationTypes">GroupNotificationTypes</h2>
+                <div class="symbol-index-section">
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="global.html#GroupNotificationTypes#.ADD" class="!symbol-index-name">GroupNotificationTypes.<wbr>ADD</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="global.html#GroupNotificationTypes#.ANNOUNCE" class="!symbol-index-name">GroupNotificationTypes.<wbr>ANNOUNCE</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="global.html#GroupNotificationTypes#.DESCRIPTION" class="!symbol-index-name">GroupNotificationTypes.<wbr>DESCRIPTION</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="global.html#GroupNotificationTypes#.INVITE" class="!symbol-index-name">GroupNotificationTypes.<wbr>INVITE</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="global.html#GroupNotificationTypes#.LEAVE" class="!symbol-index-name">GroupNotificationTypes.<wbr>LEAVE</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="global.html#GroupNotificationTypes#.PICTURE" class="!symbol-index-name">GroupNotificationTypes.<wbr>PICTURE</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="global.html#GroupNotificationTypes#.REMOVE" class="!symbol-index-name">GroupNotificationTypes.<wbr>REMOVE</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="global.html#GroupNotificationTypes#.RESTRICT" class="!symbol-index-name">GroupNotificationTypes.<wbr>RESTRICT</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="global.html#GroupNotificationTypes#.SUBJECT" class="!symbol-index-name">GroupNotificationTypes.<wbr>SUBJECT</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section>
+              <div class="symbol-index-content">
+                <h2 id="InterfaceController">InterfaceController</h2>
+                <div class="symbol-index-section">
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="InterfaceController.html" class="!symbol-index-name">InterfaceController()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="InterfaceController.html#closeRightDrawer" class="!symbol-index-name">InterfaceController#<wbr>closeRightDrawer()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="InterfaceController.html#openChatDrawer" class="!symbol-index-name">InterfaceController#<wbr>openChatDrawer(chatId)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="InterfaceController.html#openChatWindow" class="!symbol-index-name">InterfaceController#<wbr>openChatWindow(chatId)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="InterfaceController.html#openMessageDrawer" class="!symbol-index-name">InterfaceController#<wbr>openMessageDrawer(msgId)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section>
+              <div class="symbol-index-content">
+                <h2 id="Location">Location</h2>
+                <div class="symbol-index-section">
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="Location.html" class="!symbol-index-name">Location(latitude, longitude, description)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Location.html#description" class="!symbol-index-name">Location#<wbr>description</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="Location.html#latitude" class="!symbol-index-name">Location#<wbr>latitude</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Location.html#longitude" class="!symbol-index-name">Location#<wbr>longitude</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                     </dl>
                   </div>
                 </div>
@@ -739,6 +1331,11 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="Message.html#ack" class="!symbol-index-name">Message#<wbr>ack</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="Message.html#author" class="!symbol-index-name">Message#<wbr>author</a>
                       </dt>
                       <dd>
@@ -750,6 +1347,11 @@ client.initialize();
                       </dd>
                       <dt class="symbol-index-name">
                         <a href="Message.html#broadcast" class="!symbol-index-name">Message#<wbr>broadcast</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Message.html#delete" class="!symbol-index-name">Message#<wbr>delete(everyone)</a>
                       </dt>
                       <dd>
                       </dd>
@@ -783,6 +1385,11 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="Message.html#getMentions" class="!symbol-index-name">Message#<wbr>getMentions()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="Message.html#getQuotedMessage" class="!symbol-index-name">Message#<wbr>getQuotedMessage()</a>
                       </dt>
                       <dd>
@@ -797,17 +1404,32 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Message.html#id" class="!symbol-index-name">Message#<wbr>id</a>
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Message.html#isForwarded" class="!symbol-index-name">Message#<wbr>isForwarded</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Message.html#location" class="!symbol-index-name">Message#<wbr>location</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Message.html#mediaKey" class="!symbol-index-name">Message#<wbr>mediaKey</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Message.html#mentionedIds" class="!symbol-index-name">Message#<wbr>mentionedIds</a>
                       </dt>
                       <dd>
                       </dd>
@@ -838,6 +1460,55 @@ client.initialize();
             </section>
             <section>
               <div class="symbol-index-content">
+                <h2 id="MessageAck">MessageAck</h2>
+                <div class="symbol-index-section">
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="global.html#MessageAck#.ACK_DEVICE" class="!symbol-index-name">MessageAck.<wbr>ACK_DEVICE</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="global.html#MessageAck#.ACK_ERROR" class="!symbol-index-name">MessageAck.<wbr>ACK_ERROR</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="global.html#MessageAck#.ACK_PENDING" class="!symbol-index-name">MessageAck.<wbr>ACK_PENDING</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="global.html#MessageAck#.ACK_PLAYED" class="!symbol-index-name">MessageAck.<wbr>ACK_PLAYED</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="global.html#MessageAck#.ACK_READ" class="!symbol-index-name">MessageAck.<wbr>ACK_READ</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="global.html#MessageAck#.ACK_SERVER" class="!symbol-index-name">MessageAck.<wbr>ACK_SERVER</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section>
+              <div class="symbol-index-content">
                 <h2 id="MessageMedia">MessageMedia</h2>
                 <div class="symbol-index-section">
                   <div class="symbol-index-column">
@@ -848,7 +1519,7 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
-                        <a href="MessageMedia.html#data" class="!symbol-index-name">MessageMedia#<wbr>data</a>
+                        <a href="MessageMedia.html#.fromFilePath" class="!symbol-index-name">MessageMedia.<wbr>fromFilePath(filePath)</a>
                       </dt>
                       <dd>
                       </dd>
@@ -856,20 +1527,25 @@ client.initialize();
                   </div>
                   <div class="symbol-index-column">
                     <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="MessageMedia.html#data" class="!symbol-index-name">MessageMedia#<wbr>data</a>
+                      </dt>
+                      <dd>
+                      </dd>
                       <dt class="symbol-index-name">
                         <a href="MessageMedia.html#filename" class="!symbol-index-name">MessageMedia#<wbr>filename</a>
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="MessageMedia.html#mimetype" class="!symbol-index-name">MessageMedia#<wbr>mimetype</a>
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                     </dl>
                   </div>
                 </div>
@@ -887,12 +1563,17 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
-                        <a href="global.html#MessageTypes#.DOCUMENT" class="!symbol-index-name">MessageTypes.<wbr>DOCUMENT</a>
+                        <a href="global.html#MessageTypes#.CONTACT_CARD" class="!symbol-index-name">MessageTypes.<wbr>CONTACT_CARD</a>
                       </dt>
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
-                        <a href="global.html#MessageTypes#.IMAGE" class="!symbol-index-name">MessageTypes.<wbr>IMAGE</a>
+                        <a href="global.html#MessageTypes#.CONTACT_CARD_MULTI" class="!symbol-index-name">MessageTypes.<wbr>CONTACT_CARD_MULTI</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="global.html#MessageTypes#.DOCUMENT" class="!symbol-index-name">MessageTypes.<wbr>DOCUMENT</a>
                       </dt>
                       <dd>
                       </dd>
@@ -901,12 +1582,36 @@ client.initialize();
                   <div class="symbol-index-column">
                     <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
-                        <a href="global.html#MessageTypes#.STICKER" class="!symbol-index-name">MessageTypes.<wbr>STICKER</a>
+                        <a href="global.html#MessageTypes#.IMAGE" class="!symbol-index-name">MessageTypes.<wbr>IMAGE</a>
                       </dt>
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="global.html#MessageTypes#.LOCATION" class="!symbol-index-name">MessageTypes.<wbr>LOCATION</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="global.html#MessageTypes#.REVOKED" class="!symbol-index-name">MessageTypes.<wbr>REVOKED</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="global.html#MessageTypes#.STICKER" class="!symbol-index-name">MessageTypes.<wbr>STICKER</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
                         <a href="global.html#MessageTypes#.TEXT" class="!symbol-index-name">MessageTypes.<wbr>TEXT</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="global.html#MessageTypes#.UNKNOWN" class="!symbol-index-name">MessageTypes.<wbr>UNKNOWN</a>
                       </dt>
                       <dd>
                       </dd>
@@ -915,10 +1620,6 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="global.html#MessageTypes#.VOICE" class="!symbol-index-name">MessageTypes.<wbr>VOICE</a>
                       </dt>
@@ -941,6 +1642,40 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="PrivateChat.html#archive" class="!symbol-index-name">PrivateChat#<wbr>archive()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="PrivateChat.html#archived" class="!symbol-index-name">PrivateChat#<wbr>archived</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="PrivateChat.html#clearMessages" class="!symbol-index-name">PrivateChat#<wbr>clearMessages()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="PrivateChat.html#clearState" class="!symbol-index-name">PrivateChat#<wbr>clearState()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="PrivateChat.html#delete" class="!symbol-index-name">PrivateChat#<wbr>delete()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="PrivateChat.html#fetchMessages" class="!symbol-index-name">PrivateChat#<wbr>fetchMessages(searchOptions)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
                         <a href="PrivateChat.html#id" class="!symbol-index-name">PrivateChat#<wbr>id</a>
                       </dt>
                       <dd>
@@ -950,12 +1685,13 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="PrivateChat.html#isReadOnly" class="!symbol-index-name">PrivateChat#<wbr>isReadOnly</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="PrivateChat.html#mute" class="!symbol-index-name">PrivateChat#<wbr>mute(unmuteDate)</a>
                       </dt>
                       <dd>
                       </dd>
@@ -969,12 +1705,37 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
+                      <dt class="symbol-index-name">
+                        <a href="PrivateChat.html#sendSeen" class="!symbol-index-name">PrivateChat#<wbr>sendSeen()</a>
+                      </dt>
+                      <dd>
+                      </dd>
                     </dl>
                   </div>
                   <div class="symbol-index-column">
                     <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
+                        <a href="PrivateChat.html#sendStateRecording" class="!symbol-index-name">PrivateChat#<wbr>sendStateRecording()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="PrivateChat.html#sendStateTyping" class="!symbol-index-name">PrivateChat#<wbr>sendStateTyping()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="PrivateChat.html#timestamp" class="!symbol-index-name">PrivateChat#<wbr>timestamp</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="PrivateChat.html#unarchive" class="!symbol-index-name">PrivateChat#<wbr>unarchive()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="PrivateChat.html#unmute" class="!symbol-index-name">PrivateChat#<wbr>unmute()</a>
                       </dt>
                       <dd>
                       </dd>
@@ -1000,6 +1761,11 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="PrivateContact.html#getProfilePicUrl" class="!symbol-index-name">PrivateContact#<wbr>getProfilePicUrl()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="PrivateContact.html#id" class="!symbol-index-name">PrivateContact#<wbr>id</a>
                       </dt>
                       <dd>
@@ -1009,17 +1775,51 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="PrivateContact.html#isEnterprise" class="!symbol-index-name">PrivateContact#<wbr>isEnterprise</a>
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="PrivateContact.html#isGroup" class="!symbol-index-name">PrivateContact#<wbr>isGroup</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="PrivateContact.html#isMe" class="!symbol-index-name">PrivateContact#<wbr>isMe</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="PrivateContact.html#isMyContact" class="!symbol-index-name">PrivateContact#<wbr>isMyContact</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="PrivateContact.html#isUser" class="!symbol-index-name">PrivateContact#<wbr>isUser</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="PrivateContact.html#isWAContact" class="!symbol-index-name">PrivateContact#<wbr>isWAContact</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="PrivateContact.html#name" class="!symbol-index-name">PrivateContact#<wbr>name</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="PrivateContact.html#number" class="!symbol-index-name">PrivateContact#<wbr>number</a>
                       </dt>
                       <dd>
                       </dd>
@@ -1028,10 +1828,6 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="PrivateContact.html#shortName" class="!symbol-index-name">PrivateContact#<wbr>shortName</a>
                       </dt>
@@ -1188,7 +1984,7 @@ client.initialize();
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on February 5, 2020.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.4 on June 18, 2020.
       </p>
     </div>
   </footer>

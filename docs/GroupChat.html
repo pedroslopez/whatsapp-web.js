@@ -2,9 +2,9 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.6.3">
+  <meta name="generator" content="JSDoc 3.6.4">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 0.3.2-post &raquo; Class: GroupChat</title>
+  <title>whatsapp-web.js 1.7.0 &raquo; Class: GroupChat</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 0.<wbr>3.<wbr>2-post</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>7.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -39,6 +39,9 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="GroupChat.html#archived">archived</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="GroupChat.html#createdAt">createdAt</a></dt>
                     <dd>
                     </dd>
@@ -48,13 +51,13 @@
                     <dt><a href="GroupChat.html#id">id</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="GroupChat.html#isGroup">isGroup</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="GroupChat.html#isGroup">isGroup</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="GroupChat.html#isReadOnly">isReadOnly</a></dt>
                     <dd>
                     </dd>
@@ -64,13 +67,13 @@
                     <dt><a href="GroupChat.html#owner">owner</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="GroupChat.html#participants">participants</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="GroupChat.html#participants">participants</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="GroupChat.html#timestamp">timestamp</a></dt>
                     <dd>
                     </dd>
@@ -86,16 +89,25 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="GroupChat.html#.getInviteInfo">getInviteInfo(inviteCode)</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="GroupChat.html#.join">join(inviteCode)</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="GroupChat.html#addParticipants">addParticipants(participantIds)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="GroupChat.html#archive">archive()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="GroupChat.html#clearMessages">clearMessages()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="GroupChat.html#clearState">clearState()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="GroupChat.html#delete">delete()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="GroupChat.html#demoteParticipants">demoteParticipants(participantIds)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="GroupChat.html#fetchMessages">fetchMessages(searchOptions)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -108,26 +120,44 @@
                     <dt><a href="GroupChat.html#leave">leave()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="GroupChat.html#mute">mute(unmuteDate)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="GroupChat.html#promoteParticipants">promoteParticipants(participantIds)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="GroupChat.html#removeParticipants">removeParticipants(participantIds)</a></dt>
                     <dd>
                     </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
                     <dt><a href="GroupChat.html#revokeInvite">revokeInvite()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="GroupChat.html#sendMessage">sendMessage(content, options)</a></dt>
                     <dd>
                     </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="GroupChat.html#sendSeen">sendSeen()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="GroupChat.html#sendStateRecording">sendStateRecording()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="GroupChat.html#sendStateTyping">sendStateTyping()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="GroupChat.html#setDescription">setDescription(description)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="GroupChat.html#setSubject">setSubject(subject)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="GroupChat.html#unarchive">unarchive()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="GroupChat.html#unmute">unmute()</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -145,6 +175,13 @@
           <section>
             <h2>Properties</h2>
             <section>
+              <h3 id="archived"><span class="symbol-name">archived</span><small class="property-type">
+                  &nbsp;unknown</small></h3>
+              <p>Indicates if the Chat is archived</p>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#archived">Chat#archived</a></dd>
+              </dl>
               <h3 id="createdAt"><span class="symbol-name">createdAt</span><small class="property-type">
                   &nbsp;date</small></h3>
               <p>Gets the date at which the group was created</p>
@@ -209,77 +246,6 @@
             </section>
             <h2>Methods</h2>
             <section>
-              <div class="symbol-detail-labels"><span class="label label-async">async</span>&nbsp;<span class="label label-static">static</span></div>
-              <h3 id=".getInviteInfo"><span class="symbol-name">getInviteInfo</span><span class="signature"><span class="signature-params">(inviteCode)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing object</span></span></h3>
-              <p>Returns an object with information about the invite code's group</p>
-              <section>
-                <h4>Parameter</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>inviteCode</p>
-                      </td>
-                      <td>
-                        <p>string</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code>Promise containing object</code> <p>Invite information</p>
-                  </p>
-                </dd>
-              </dl>
-              <div class="symbol-detail-labels"><span class="label label-async">async</span>&nbsp;<span class="label label-static">static</span></div>
-              <h3 id=".join"><span class="symbol-name">join</span><span class="signature"><span class="signature-params">(inviteCode)</span></span></h3>
-              <p>Joins a group with an invite code</p>
-              <section>
-                <h4>Parameter</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>inviteCode</p>
-                      </td>
-                      <td>
-                        <p>string</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-              </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="addParticipants"><span class="symbol-name">addParticipants</span><span class="signature"><span class="signature-params">(participantIds)</span></span></h3>
               <p>Adds a list of participants by ID to the group</p>
@@ -312,6 +278,42 @@
                 </table>
               </section>
               <dl class="dl-compact">
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="archive"><span class="symbol-name">archive</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Archives this chat</p>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#archive">Chat#archive</a></dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="clearMessages"><span class="symbol-name">clearMessages</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Boolean</span></span></h3>
+              <p>Clears all messages from the chat</p>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#clearMessages">Chat#clearMessages</a></dd>
+                <dt>Returns</dt>
+                <dd>
+                  <p>result</p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="clearState"><span class="symbol-name">clearState</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Stops typing or recording in chat immediately.</p>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#clearState">Chat#clearState</a></dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="delete"><span class="symbol-name">delete</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Boolean</span></span></h3>
+              <p>Deletes the chat</p>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#delete">Chat#delete</a></dd>
+                <dt>Returns</dt>
+                <dd>
+                  <p>result</p>
+                </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="demoteParticipants"><span class="symbol-name">demoteParticipants</span><span class="signature"><span class="signature-params">(participantIds)</span></span></h3>
@@ -347,6 +349,72 @@
               <dl class="dl-compact">
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="fetchMessages"><span class="symbol-name">fetchMessages</span><span class="signature"><span class="signature-params">(searchOptions)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of <a href="Message.html">Message</a></span></span></h3>
+              <p>Loads chat messages, sorted from earliest to latest.</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>searchOptions</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Options for searching messages. Right now only limit is supported.</p>
+                        <p>Values in <code>searchOptions</code> have the following properties:</p>
+                        <table class="jsdoc-details-table">
+                          <thead>
+                            <tr>
+                              <th>Name</th>
+                              <th>Type</th>
+                              <th>Optional</th>
+                              <th>Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>
+                                <p>limit</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                                <p>Yes</p>
+                              </td>
+                              <td>
+                                <p>The amount of messages to return. Note that the actual number of returned messages may be smaller if there aren't enough messages in the conversation. Set this to Infinity to load all messages.</p>
+                                <p>Defaults to <code>50</code>.</p>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#fetchMessages">Chat#fetchMessages</a></dd>
+                <dt>Returns</dt>
+                <dd></dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="getInviteCode"><span class="symbol-name">getInviteCode</span><span class="signature"><span class="signature-params">()</span></span></h3>
               <p>Gets the invite code for a specific group</p>
               <dl class="dl-compact">
@@ -355,6 +423,42 @@
               <h3 id="leave"><span class="symbol-name">leave</span><span class="signature"><span class="signature-params">()</span></span></h3>
               <p>Makes the bot leave the group</p>
               <dl class="dl-compact">
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="mute"><span class="symbol-name">mute</span><span class="signature"><span class="signature-params">(unmuteDate)</span></span></h3>
+              <p>Mutes this chat until a specified date</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>unmuteDate</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Date at which the Chat will be unmuted</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#mute">Chat#mute</a></dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="promoteParticipants"><span class="symbol-name">promoteParticipants</span><span class="signature"><span class="signature-params">(participantIds)</span></span></h3>
@@ -480,6 +584,31 @@
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="sendSeen"><span class="symbol-name">sendSeen</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Boolean</span></span></h3>
+              <p>Set the message as seen</p>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#sendSeen">Chat#sendSeen</a></dd>
+                <dt>Returns</dt>
+                <dd>
+                  <p>result</p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="sendStateRecording"><span class="symbol-name">sendStateRecording</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Simulate recording audio in chat. This will last for 25 seconds.</p>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#sendStateRecording">Chat#sendStateRecording</a></dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="sendStateTyping"><span class="symbol-name">sendStateTyping</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Simulate typing in chat. This will last for 25 seconds.</p>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#sendStateTyping">Chat#sendStateTyping</a></dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="setDescription"><span class="symbol-name">setDescription</span><span class="signature"><span class="signature-params">(description)</span></span></h3>
               <p>Updates the group description</p>
               <section>
@@ -545,6 +674,20 @@
               </section>
               <dl class="dl-compact">
               </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="unarchive"><span class="symbol-name">unarchive</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>un-archives this chat</p>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#unarchive">Chat#unarchive</a></dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="unmute"><span class="symbol-name">unmute</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Unmutes this chat</p>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#unmute">Chat#unmute</a></dd>
+              </dl>
             </section>
           </section>
         </div>
@@ -555,7 +698,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.3 on February 5, 2020.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.4 on June 18, 2020.
       </p>
     </div>
   </footer>
