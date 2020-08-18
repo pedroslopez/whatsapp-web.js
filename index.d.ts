@@ -610,6 +610,11 @@ declare namespace WAWebJS {
 
     /** Returns the contact's profile picture URL, if privacy settings allow it */
     getProfilePicUrl: () => Promise<string>,
+
+    /** Returns the Chat that corresponds to this Contact.  
+     * Will return null when getting chat for currently logged in user.
+     */
+    getChat: () => Promise<Chat>,
   }
 
   export interface ContactId {
@@ -688,6 +693,8 @@ declare namespace WAWebJS {
     unarchive: () => Promise<void>,
     /** Unmutes this chat */
     unmute: () => Promise<void>,
+    /** Returns the Contact that corresponds to this Chat. */
+    getContact: () => Promise<Contact>,
   }
 
   export interface MessageSearchOptions {

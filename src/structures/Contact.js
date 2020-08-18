@@ -105,6 +105,17 @@ class Contact extends Base {
     async getProfilePicUrl() {
         return await this.client.getProfilePicUrl(this.id._serialized);
     }
+
+    /**
+     * Returns the Chat that corresponds to this Contact. 
+     * Will return null when getting chat for currently logged in user.
+     * @returns {Promise<Chat>}
+     */
+    async getChat() {
+        if(this.isMe) return null;
+
+        return await this.client.getChatById(this.id._serialized);
+    }
     
 }
 

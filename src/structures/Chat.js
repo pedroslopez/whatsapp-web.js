@@ -186,6 +186,14 @@ class Chat extends Base {
             return true;
         }, this.id._serialized);
     }
+
+    /**
+     * Returns the Contact that corresponds to this Chat.
+     * @returns {Promise<Contact>}
+     */
+    async getContact() {
+        return await this.client.getContactById(this.id._serialized);
+    }
 }
 
 module.exports = Chat;
