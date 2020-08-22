@@ -6,11 +6,8 @@ declare namespace WAWebJS {
 
   export class Client extends EventEmitter {
     constructor(options: ClientOptions)
-    
-    /** 
-     * Current connection information 
-     * @todo add this in the official docs 
-     */
+
+    /** Current connection information */
     public info: ClientInfo
 
     /**Accepts an invitation to join a group */
@@ -26,8 +23,6 @@ declare namespace WAWebJS {
      * Create a new group
      * @param name group title
      * @param participants an array of Contacts or contact IDs to add to the group
-     * 
-     * @todo improve return type in the official docs
      */
     createGroup(name: string, participants: Contact[] | string[]): Promise<CreateGroupResult>
 
@@ -75,7 +70,7 @@ declare namespace WAWebJS {
     resetState(): Promise<void>
 
     /** Send a message to a specific chatId */
-    sendMessage(chatId: string, content: MessageContent, options: MessageSendOptions): Promise<Message>
+    sendMessage(chatId: string, content: MessageContent, options?: MessageSendOptions): Promise<Message>
 
     /** Marks the client as online */
     sendPresenceAvailable(): Promise<void>
@@ -88,6 +83,12 @@ declare namespace WAWebJS {
      * @param status New status message
      */
     setStatus(status: string): Promise<void>
+
+    /** 
+     * Sets the current user's display name
+     * @param displayName New display name
+     */
+    setDisplayName(displayName: string): Promise<void>
 
     /** Changes and returns the archive state of the Chat */
     unarchiveChat(chatId: string): Promise<boolean>
@@ -223,25 +224,32 @@ declare namespace WAWebJS {
     os_build_number: string
   }
 
-  /**
-   * Options for initializing the whatsapp client
-   * @todo add these in the official docs
-   */
+  /** Options for initializing the whatsapp client */
   export interface ClientOptions {
-    puppeteer?: puppeteer.LaunchOptions
-    /** Whatsapp session to restore. If not set, will start a new session  */
-    session?: ClientSession,
-    /** @default 45000 */
-    qrTimeoutMs?: number,
-    /** @default 20000 */
-    qrRefreshIntervalMs?: number,
-    /** @default 45000 */
+    /** Timeout for authentication selector in puppeteer
+     * @default 45000 */
     authTimeoutMs?: number,
-    /** @default false */
+    /** Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/ */
+    puppeteer?: puppeteer.LaunchOptions
+    /** Refresh interval for qr code (how much time to wait before checking if the qr code has changed)
+     * @default 20000 */
+    qrRefreshIntervalMs?: number
+    /** Timeout for qr code selector in puppeteer
+     * @default 45000 */
+    qrTimeoutMs?: number,
+    /** Restart client with a new session (i.e. use null 'session' var) if authentication fails
+     * @default false */
+    restartOnAuthFail?: boolean
+    /** Whatsapp session to restore. If not set, will start a new session */
+    session?: ClientSession
+    /** If another whatsapp web session is detected (another browser), take over the session in the current browser
+     * @default false */
     takeoverOnConflict?: boolean,
-    /** @default 0 */
+    /** How much time to wait before taking over the session
+     * @default 0 */
     takeoverTimeoutMs?: number,
-    /** @default 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36' */
+    /** User agent to use in puppeteer.
+     * @default 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36' */
     userAgent?: string
   }
 
@@ -294,9 +302,15 @@ declare namespace WAWebJS {
     /** Returns the Contacts affected by this GroupNotification */
     getRecipients: () => Promise<Contact[]>,
     /** Sends a message to the same chat this GroupNotification was produced in */
-    reply: (content: MessageContent, options: MessageSendOptions) => Promise<Message>,
+    reply: (content: MessageContent, options?: MessageSendOptions) => Promise<Message>,
 
   }
+
+  /** whatsapp web url */
+  export const WhatsWebURL: string
+
+  /** default client options */
+  export const DefaultOptions: ClientOptions
 
   /** Chat types */
   export enum ChatTypes {
@@ -451,7 +465,7 @@ declare namespace WAWebJS {
      */
     to: string,
     /** Message type */
-    type: string,
+    type: MessageTypes,
 
     /** Deletes the message from the chat */
     delete: (everyone?: boolean) => Promise<void>,
@@ -470,7 +484,7 @@ declare namespace WAWebJS {
      * If chatId is specified, it will be sent through the specified Chat.
      * If not, it will send the message in the same Chat as the original message was sent. 
      */
-    reply: (content: MessageContent, chatId: string, options: MessageSendOptions) => Promise<Message>,
+    reply: (content: MessageContent, chatId?: string, options?: MessageSendOptions) => Promise<Message>,
   }
 
   /** ID that represents a message */
@@ -487,17 +501,42 @@ declare namespace WAWebJS {
     longitude: string,
   }
 
-  /**
-   * Options for sending a message
-   * @todo add more specific type for the object */
-  export type MessageSendOptions = object
+  /** Options for sending a message */
+  export interface MessageSendOptions {
+    /** Show links preview */
+    linkPreview?: boolean
+    /** Send audio as voice message */
+    sendAudioAsVoice?: boolean
+    /** Image or videos caption */
+    caption?: string
+    /** Id of the message that is being quoted (or replied to) */
+    quotedMessageId?: string
+    /** Contacts that are being mentioned in the message */
+    mentions?: Contact[]
+    /** Send 'seen' status */
+    sendSeen?: boolean
+    /** Media to be sent */
+    media?: MessageMedia
+  }
 
-  export interface MessageMedia {
-    data: string,
-    mimetype: string,
-    filename?: string | null,
+  /** Media attached to a message */
+  export class MessageMedia {
+    /** MIME type of the attachment */
+    mimetype: string
+    /** Base64-encoded data of the file */
+    data: string
+    /** Document file name. Value can be null */
+    filename?: string | null
 
-    fromFilePath: (filePath: string) => MessageMedia,
+    /**
+     * @param {string} mimetype MIME type of the attachment
+     * @param {string} data Base64-encoded data of the file
+     * @param {?string} filename Document file name. Value can be null
+     */
+    constructor(mimetype: string, data: string, filename?: string | null)
+
+    /** Creates a MessageMedia instance from a local file path */
+    static fromFilePath: (filePath: string) => MessageMedia
   }
 
   export type MessageContent = string | MessageMedia | Location
@@ -571,6 +610,11 @@ declare namespace WAWebJS {
 
     /** Returns the contact's profile picture URL, if privacy settings allow it */
     getProfilePicUrl: () => Promise<string>,
+
+    /** Returns the Chat that corresponds to this Contact.  
+     * Will return null when getting chat for currently logged in user.
+     */
+    getChat: () => Promise<Chat>,
   }
 
   export interface ContactId {
@@ -620,7 +664,7 @@ declare namespace WAWebJS {
     isReadOnly: boolean,
     /** Title of the chat */
     name: string,
-    /** Unix timestamp for when the chat was created */
+    /** Unix timestamp for when the last activity occurred */
     timestamp: number,
     /** Amount of messages unread */
     unreadCount: number,
@@ -649,6 +693,8 @@ declare namespace WAWebJS {
     unarchive: () => Promise<void>,
     /** Unmutes this chat */
     unmute: () => Promise<void>,
+    /** Returns the Contact that corresponds to this Chat. */
+    getContact: () => Promise<Contact>,
   }
 
   export interface MessageSearchOptions {
