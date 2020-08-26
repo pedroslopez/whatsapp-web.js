@@ -191,6 +191,23 @@ class Message extends Base {
     }
 
     /**
+     * Forwards this message to another chat
+     * 
+     * @param {string|Chat} chat Chat model or chat ID to which the message will be forwarded
+     * @returns {Promise}
+     */
+    async forward(chat) {
+        const chatId = typeof chat === 'string' ? chat : chat.id._serialized;
+
+        await this.client.pupPage.evaluate(async (msgId, chatId) => {
+            let msg = window.Store.Msg.get(msgId);
+            let chat = window.Store.Chat.get(chatId);
+
+            return await chat.forwardMessages([msg]);
+        }, this.id._serialized, chatId);
+    }
+
+    /**
      * Downloads and returns the attatched message media
      * @returns {Promise<MessageMedia>}
      */
