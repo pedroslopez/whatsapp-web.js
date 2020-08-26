@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.4">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.7.0 &raquo; Class: Chat</title>
+  <title>whatsapp-web.js 1.8.0 &raquo; Class: Chat</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>7.<wbr>0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>8.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -89,29 +89,32 @@
                     <dt><a href="Chat.html#delete">delete()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Chat.html#fetchMessages">fetchMessages(searchOptions)</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Chat.html#fetchMessages">fetchMessages(searchOptions)</a></dt>
+                    <dt><a href="Chat.html#getContact">getContact()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Chat.html#mute">mute(unmuteDate)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Chat.html#sendMessage">sendMessage(content, options)</a></dt>
+                    <dt><a href="Chat.html#sendMessage">sendMessage(content[, options])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Chat.html#sendSeen">sendSeen()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Chat.html#sendStateRecording">sendStateRecording()</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Chat.html#sendStateRecording">sendStateRecording()</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="Chat.html#sendStateTyping">sendStateTyping()</a></dt>
                     <dd>
                     </dd>
@@ -163,7 +166,7 @@
               </dl>
               <h3 id="timestamp"><span class="symbol-name">timestamp</span><small class="property-type">
                   &nbsp;number</small></h3>
-              <p>Unix timestamp for when the chat was created</p>
+              <p>Unix timestamp for when the last activity occurred</p>
               <dl class="dl-compact">
               </dl>
               <h3 id="unreadCount"><span class="symbol-name">unreadCount</span><small class="property-type">
@@ -271,6 +274,15 @@
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getContact"><span class="symbol-name">getContact</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="Contact.html">Contact</a></span></span></h3>
+              <p>Returns the Contact that corresponds to this Chat.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing <a href="Contact.html">Contact</a></code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="mute"><span class="symbol-name">mute</span><span class="signature"><span class="signature-params">(unmuteDate)</span></span></h3>
               <p>Mutes this chat until a specified date</p>
               <section>
@@ -305,7 +317,7 @@
               <dl class="dl-compact">
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
-              <h3 id="sendMessage"><span class="symbol-name">sendMessage</span><span class="signature"><span class="signature-params">(content, options)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="Message.html">Message</a></span></span></h3>
+              <h3 id="sendMessage"><span class="symbol-name">sendMessage</span><span class="signature"><span class="signature-params">(content[, options])</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="Message.html">Message</a></span></span></h3>
               <p>Send a message to this chat</p>
               <section>
                 <h4>Parameters</h4>
@@ -337,10 +349,10 @@
                         <p>options</p>
                       </td>
                       <td>
-                        <p>object</p>
+                        <p><a href="global.html#MessageSendOptions">MessageSendOptions</a></p>
                       </td>
                       <td>
-                        <p>&nbsp;</p>
+                        <p>Yes</p>
                       </td>
                       <td>
                       </td>
@@ -395,7 +407,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.4 on June 18, 2020.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.4 on August 25, 2020.
       </p>
     </div>
   </footer>

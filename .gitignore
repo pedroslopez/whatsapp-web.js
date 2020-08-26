@@ -63,3 +63,6 @@ typings/
 
 # next.js build output
 .next
+
+# macOS Thumbnails
+._*

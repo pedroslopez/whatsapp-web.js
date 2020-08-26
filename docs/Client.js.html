@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.4">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.7.0 &raquo; Source: Client.js</title>
+  <title>whatsapp-web.js 1.8.0 &raquo; Source: Client.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>7.<wbr>0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>8.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -38,7 +38,7 @@ const jsQR &#x3D; require(&#x27;jsqr&#x27;);
 
 const Util &#x3D; require(&#x27;./util/Util&#x27;);
 const InterfaceController &#x3D; require(&#x27;./util/InterfaceController&#x27;);
-const { WhatsWebURL, UserAgent, DefaultOptions, Events, WAState } &#x3D; require(&#x27;./util/Constants&#x27;);
+const { WhatsWebURL, DefaultOptions, Events, WAState } &#x3D; require(&#x27;./util/Constants&#x27;);
 const { ExposeStore, LoadUtils } &#x3D; require(&#x27;./util/Injected&#x27;);
 const ChatFactory &#x3D; require(&#x27;./factories/ChatFactory&#x27;);
 const ContactFactory &#x3D; require(&#x27;./factories/ContactFactory&#x27;);
@@ -46,6 +46,21 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
 /**
  * Starting point for interacting with the WhatsApp Web API
  * @extends {EventEmitter}
+ * @param {object} options - Client options
+ * @param {number} options.authTimeoutMs - Timeout for authentication selector in puppeteer
+ * @param {object} options.puppeteer - Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/
+ * @param {number} options.qrRefreshIntervalMs - Refresh interval for qr code (how much time to wait before checking if the qr code has changed)
+ * @param {number} options.qrTimeoutMs - Timeout for qr code selector in puppeteer
+ * @param {string} options.restartOnAuthFail  - Restart client with a new session (i.e. use null &#x27;session&#x27; var) if authentication fails
+ * @param {object} options.session - Whatsapp session to restore. If not set, will start a new session
+ * @param {string} options.session.WABrowserId
+ * @param {string} options.session.WASecretBundle
+ * @param {string} options.session.WAToken1
+ * @param {string} options.session.WAToken2
+ * @param {number} options.takeoverOnConflict - If another whatsapp web session is detected (another browser), take over the session in the current browser
+ * @param {number} options.takeoverTimeoutMs - How much time to wait before taking over the session
+ * @param {string} options.userAgent - User agent to use in puppeteer
+ * 
  * @fires Client#qr
  * @fires Client#authenticated
  * @fires Client#auth_failure
@@ -79,11 +94,11 @@ class Client extends EventEmitter {
     async initialize() {
         const browser &#x3D; await puppeteer.launch(this.options.puppeteer);
         const page &#x3D; (await browser.pages())[0];
-        page.setUserAgent(UserAgent);
+        page.setUserAgent(this.options.userAgent);
 
         this.pupBrowser &#x3D; browser;
         this.pupPage &#x3D; page;
-        
+
         if (this.options.session) {
             await page.evaluateOnNewDocument(
                 session &#x3D;&gt; {
@@ -99,8 +114,8 @@ class Client extends EventEmitter {
             waitUntil: &#x27;load&#x27;,
             timeout: 0,
         });
-        
-        const KEEP_PHONE_CONNECTED_IMG_SELECTOR &#x3D; &#x27;[data-asset-intro-image-light&#x3D;&quot;true&quot;]&#x27;;
+
+        const KEEP_PHONE_CONNECTED_IMG_SELECTOR &#x3D; &#x27;[data-asset-intro-image-light&#x3D;&quot;true&quot;], [data-asset-intro-image-dark&#x3D;&quot;true&quot;]&#x27;;
 
         if (this.options.session) {
             // Check if session restore was successfull 
@@ -176,6 +191,10 @@ class Client extends EventEmitter {
          * Emitted when authentication is successful
          * @event Client#authenticated
          * @param {object} session Object containing session information. Can be used to restore the session.
+         * @param {string} session.WABrowserId
+         * @param {string} session.WASecretBundle
+         * @param {string} session.WAToken1
+         * @param {string} session.WAToken2
          */
         this.emit(Events.AUTHENTICATED, session);
 
@@ -186,6 +205,10 @@ class Client extends EventEmitter {
         await page.evaluate(LoadUtils);
 
         // Expose client info
+        /**
+         * Current connection information
+         * @type {ClientInfo}
+         */
         this.info &#x3D; new ClientInfo(this, await page.evaluate(() &#x3D;&gt; {
             return window.Store.Conn.serialize();
         }));
@@ -223,7 +246,7 @@ class Client extends EventEmitter {
                 }
                 return;
             }
-            
+
             const message &#x3D; new Message(this, msg);
 
             /**
@@ -292,7 +315,7 @@ class Client extends EventEmitter {
         await page.exposeFunction(&#x27;onMessageAckEvent&#x27;, (msg, ack) &#x3D;&gt; {
 
             const message &#x3D; new Message(this, msg);
-            
+
             /**
              * Emitted when an ack event occurrs on message type.
              * @event Client#message_ack
@@ -306,7 +329,7 @@ class Client extends EventEmitter {
         await page.exposeFunction(&#x27;onMessageMediaUploadedEvent&#x27;, (msg) &#x3D;&gt; {
 
             const message &#x3D; new Message(this, msg);
-            
+
             /**
              * Emitted when media has been uploaded for a message sent by the client.
              * @event Client#media_uploaded
@@ -326,10 +349,10 @@ class Client extends EventEmitter {
 
             const ACCEPTED_STATES &#x3D; [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING, WAState.TIMEOUT];
 
-            if(this.options.takeoverOnConflict) {
+            if (this.options.takeoverOnConflict) {
                 ACCEPTED_STATES.push(WAState.CONFLICT);
 
-                if(state &#x3D;&#x3D;&#x3D; WAState.CONFLICT) {
+                if (state &#x3D;&#x3D;&#x3D; WAState.CONFLICT) {
                     setTimeout(() &#x3D;&gt; {
                         this.pupPage.evaluate(() &#x3D;&gt; window.Store.AppState.takeover());
                     }, this.options.takeoverTimeoutMs);
@@ -350,7 +373,7 @@ class Client extends EventEmitter {
         await page.exposeFunction(&#x27;onBatteryStateChangedEvent&#x27;, (state) &#x3D;&gt; {
             const { battery, plugged } &#x3D; state;
 
-            if(battery &#x3D;&#x3D;&#x3D; undefined) return;
+            if (battery &#x3D;&#x3D;&#x3D; undefined) return;
 
             /**
              * Emitted when the battery percentage for the attached device changes
@@ -363,12 +386,12 @@ class Client extends EventEmitter {
         });
 
         await page.evaluate(() &#x3D;&gt; {
-            window.Store.Msg.on(&#x27;add&#x27;, (msg) &#x3D;&gt; { if(msg.isNewMsg) window.onAddMessageEvent(msg); });
+            window.Store.Msg.on(&#x27;add&#x27;, (msg) &#x3D;&gt; { if (msg.isNewMsg) window.onAddMessageEvent(msg); });
             window.Store.Msg.on(&#x27;change&#x27;, (msg) &#x3D;&gt; { window.onChangeMessageEvent(msg); });
             window.Store.Msg.on(&#x27;change:type&#x27;, (msg) &#x3D;&gt; { window.onChangeMessageTypeEvent(msg); });
             window.Store.Msg.on(&#x27;change:ack&#x27;, (msg, ack) &#x3D;&gt; { window.onMessageAckEvent(msg, ack); });
-            window.Store.Msg.on(&#x27;change:isUnsentMedia&#x27;, (msg, unsent) &#x3D;&gt; { if(msg.id.fromMe &amp;amp;&amp;amp; !unsent) window.onMessageMediaUploadedEvent(msg); });
-            window.Store.Msg.on(&#x27;remove&#x27;, (msg) &#x3D;&gt; { if(msg.isNewMsg) window.onRemoveMessageEvent(msg); });
+            window.Store.Msg.on(&#x27;change:isUnsentMedia&#x27;, (msg, unsent) &#x3D;&gt; { if (msg.id.fromMe &amp;amp;&amp;amp; !unsent) window.onMessageMediaUploadedEvent(msg); });
+            window.Store.Msg.on(&#x27;remove&#x27;, (msg) &#x3D;&gt; { if (msg.isNewMsg) window.onRemoveMessageEvent(msg); });
             window.Store.AppState.on(&#x27;change:state&#x27;, (_AppState, state) &#x3D;&gt; { window.onAppStateChangedEvent(state); });
             window.Store.Conn.on(&#x27;change:battery&#x27;, (state) &#x3D;&gt; { window.onBatteryStateChangedEvent(state); });
         });
@@ -401,7 +424,7 @@ class Client extends EventEmitter {
 
     /**
      * Returns the version of WhatsApp Web currently being run
-     * @returns Promise&amp;lt;string&gt;
+     * @returns {Promise&amp;lt;string&gt;}
      */
     async getWWebVersion() {
         return await this.pupPage.evaluate(() &#x3D;&gt; {
@@ -424,10 +447,23 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Message options.
+     * @typedef {Object} MessageSendOptions
+     * @property {boolean} [linkPreview&#x3D;true] - Show links preview
+     * @property {boolean} [sendAudioAsVoice&#x3D;false] - Send audio as voice message
+     * @property {string} [caption] - Image or video caption
+     * @property {string} [quotedMessageId] - Id of the message that is being quoted (or replied to)
+     * @property {Contact[]} [mentions] - Contacts that are being mentioned in the message
+     * @property {boolean} [sendSeen&#x3D;true] - Mark the conversation as seen after sending the message
+     * @property {boolean} [media] - Media to be sent
+     */
+
+    /**
      * Send a message to a specific chatId
      * @param {string} chatId
      * @param {string|MessageMedia|Location} content
-     * @param {object} options 
+     * @param {MessageSendOptions} [options] - Options used when sending the message
+     * 
      * @returns {Promise&amp;lt;Message&gt;} Message that was just sent
      */
     async sendMessage(chatId, content, options &#x3D; {}) {
@@ -438,7 +474,7 @@ class Client extends EventEmitter {
             quotedMessageId: options.quotedMessageId,
             mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact &#x3D;&gt; contact.id._serialized) : []
         };
-        
+
         const sendSeen &#x3D; typeof options.sendSeen &#x3D;&#x3D;&#x3D; &#x27;undefined&#x27; ? true : options.sendSeen;
 
         if (content instanceof MessageMedia) {
@@ -457,7 +493,7 @@ class Client extends EventEmitter {
             const chatWid &#x3D; window.Store.WidFactory.createWid(chatId);
             const chat &#x3D; await window.Store.Chat.find(chatWid);
 
-            if(sendSeen) {
+            if (sendSeen) {
                 window.WWebJS.sendSeen(chatId);
             }
 
@@ -552,6 +588,17 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Sets the current user&#x27;s display name. 
+     * This is the name shown to WhatsApp users that have not added you as a contact beside your number in groups and in your profile.
+     * @param {string} displayName New display name
+     */
+    async setDisplayName(displayName) {
+        await this.pupPage.evaluate(async displayName &#x3D;&gt; {
+            return await window.Store.Wap.setPushname(displayName);
+        }, displayName);
+    }
+
+    /**
      * Gets the current connection state for the client
      * @returns {WAState} 
      */
@@ -605,7 +652,7 @@ class Client extends EventEmitter {
             await chat.mute.mute(timestamp, !0);
         }, chatId, unmuteDate.getTime() / 1000);
     }
-    
+
     /**
      * Unmutes the Chat
      * @param {string} chatId ID of the chat that will be unmuted
@@ -616,7 +663,7 @@ class Client extends EventEmitter {
             await window.Store.Cmd.muteChat(chat, false);
         }, chatId);
     }
-    
+
     /**
      * Returns the contact ID&#x27;s profile picture URL, if privacy settings allow it
      * @param {string} contactId the whatsapp user&#x27;s ID
@@ -633,7 +680,7 @@ class Client extends EventEmitter {
     /**
      * Force reset of connection state for the client
     */
-    async resetState(){
+    async resetState() {
         await this.pupPage.evaluate(() &#x3D;&gt; {
             window.Store.AppState.phoneWatchdog.shiftTimer.forceRunNow();
         });
@@ -641,6 +688,7 @@ class Client extends EventEmitter {
 
     /**
      * Check if a given ID is registered in whatsapp
+     * @param {string} id the whatsapp user&#x27;s ID
      * @returns {Promise&amp;lt;Boolean&gt;}
      */
     async isRegisteredUser(id) {
@@ -659,18 +707,18 @@ class Client extends EventEmitter {
      * @returns {Object.&amp;lt;string,string&gt;} createRes.missingParticipants - participants that were not added to the group. Keys represent the ID for participant that was not added and its value is a status code that represents the reason why participant could not be added. This is usually 403 if the user&#x27;s privacy settings don&#x27;t allow you to add them to groups.
      */
     async createGroup(name, participants) {
-        if(!Array.isArray(participants) || participants.length &#x3D;&#x3D; 0) {
+        if (!Array.isArray(participants) || participants.length &#x3D;&#x3D; 0) {
             throw &#x27;You need to add at least one other participant to the group&#x27;;
         }
 
-        if(participants.every(c &#x3D;&gt; c instanceof Contact)) {
+        if (participants.every(c &#x3D;&gt; c instanceof Contact)) {
             participants &#x3D; participants.map(c &#x3D;&gt; c.id._serialized);
         }
 
         const createRes &#x3D; await this.pupPage.evaluate(async (name, participantIds) &#x3D;&gt; {
             const res &#x3D; await window.Store.Wap.createGroup(name, participantIds);
             console.log(res);
-            if(!res.status &#x3D;&#x3D;&#x3D; 200) {
+            if (!res.status &#x3D;&#x3D;&#x3D; 200) {
                 throw &#x27;An error occurred while creating the group!&#x27;;
             }
 
@@ -680,11 +728,11 @@ class Client extends EventEmitter {
         const missingParticipants &#x3D; createRes.participants.reduce(((missing, c) &#x3D;&gt; {
             const id &#x3D; Object.keys(c)[0];
             const statusCode &#x3D; c[id].code;
-            if(statusCode !&#x3D; 200) return Object.assign(missing, {[id]: statusCode});
+            if (statusCode !&#x3D; 200) return Object.assign(missing, { [id]: statusCode });
             return missing;
         }), {});
 
-        return { gid: createRes.gid, missingParticipants};
+        return { gid: createRes.gid, missingParticipants };
     }
 
 }
@@ -700,7 +748,7 @@ module.exports &#x3D; Client;
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.4 on June 18, 2020.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.4 on August 25, 2020.
       </p>
     </div>
   </footer>

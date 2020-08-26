@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.4">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.7.0 &raquo; Class: Client</title>
+  <title>whatsapp-web.js 1.8.0 &raquo; Class: Client</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>7.<wbr>0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>8.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -26,7 +26,7 @@
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
             <h1><small></small><span class="symbol-name">Client</span></h1>
-            <p class="source-link">Source: <a href="Client.js.html#source-line-36">Client.<wbr>js:36</a></p>
+            <p class="source-link">Source: <a href="Client.js.html#source-line-51">Client.<wbr>js:51</a></p>
             <div class="symbol-classdesc">
               <p>Starting point for interacting with the WhatsApp Web API</p>
             </div>
@@ -34,6 +34,22 @@
             </dl>
           </header>
           <section id="summary">
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Property</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Client.html#info">info</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                </div>
+                <div class="summary-column">
+                </div>
+              </div>
+            </div>
             <div class="summary-callout">
               <h2 class="summary-callout-heading">Methods</h2>
               <div class="summary-content">
@@ -82,7 +98,7 @@
                     <dt><a href="Client.html#initialize">initialize()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Client.html#isRegisteredUser">isRegisteredUser()</a></dt>
+                    <dt><a href="Client.html#isRegisteredUser">isRegisteredUser(id)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Client.html#logout">logout()</a></dt>
@@ -98,13 +114,16 @@
                     <dt><a href="Client.html#resetState">resetState()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Client.html#sendMessage">sendMessage(chatId, content, options)</a></dt>
+                    <dt><a href="Client.html#sendMessage">sendMessage(chatId, content[, options])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Client.html#sendPresenceAvailable">sendPresenceAvailable()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Client.html#sendSeen">sendSeen(chatId)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#setDisplayName">setDisplayName(displayName)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Client.html#setStatus">setStatus(status)</a></dt>
@@ -187,7 +206,227 @@
             </div>
           </section>
           <section>
-            <h2 id="Client">new&nbsp;<span class="symbol-name">Client</span><span class="signature"><span class="signature-params">()</span></span></h2>
+            <h2 id="Client">new&nbsp;<span class="symbol-name">Client</span><span class="signature"><span class="signature-params">(options)</span></span></h2>
+            <section>
+              <h3>Parameters</h3>
+              <table class="jsdoc-details-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p>options</p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                      <p>Client options</p>
+                      <p>Values in <code>options</code> have the following properties:</p>
+                      <table class="jsdoc-details-table">
+                        <thead>
+                          <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Optional</th>
+                            <th>Description</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>
+                              <p>authTimeoutMs</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>Timeout for authentication selector in puppeteer</p>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <p>puppeteer</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/</p>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <p>qrRefreshIntervalMs</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>Refresh interval for qr code (how much time to wait before checking if the qr code has changed)</p>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <p>qrTimeoutMs</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>Timeout for qr code selector in puppeteer</p>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <p>restartOnAuthFail</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>Restart client with a new session (i.e. use null 'session' var) if authentication fails</p>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <p>session</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>Whatsapp session to restore. If not set, will start a new session</p>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <p>session.WABrowserId</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <p>session.WASecretBundle</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <p>session.WAToken1</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <p>session.WAToken2</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <p>takeoverOnConflict</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>If another whatsapp web session is detected (another browser), take over the session in the current browser</p>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <p>takeoverTimeoutMs</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>How much time to wait before taking over the session</p>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <p>userAgent</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>User agent to use in puppeteer</p>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
             <dl class="dl-compact">
               <dt>Extends</dt>
               <dd>EventEmitter</dd>
@@ -211,6 +450,14 @@
             </dl>
           </section>
           <section>
+            <h2>Property</h2>
+            <section>
+              <h3 id="info"><span class="symbol-name">info</span><small class="property-type">
+                  &nbsp;<a href="ClientInfo.html">ClientInfo</a></small></h3>
+              <p>Current connection information</p>
+              <dl class="dl-compact">
+              </dl>
+            </section>
             <h2>Methods</h2>
             <section>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
@@ -500,13 +747,12 @@
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
-              <h3 id="getWWebVersion"><span class="symbol-name">getWWebVersion</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <h3 id="getWWebVersion"><span class="symbol-name">getWWebVersion</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing string</span></span></h3>
               <p>Returns the version of WhatsApp Web currently being run</p>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p>Promise<string>
-                  </p>
+                  <p><code>Promise containing string</code> </p>
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
@@ -515,8 +761,37 @@
               <dl class="dl-compact">
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
-              <h3 id="isRegisteredUser"><span class="symbol-name">isRegisteredUser</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Boolean</span></span></h3>
+              <h3 id="isRegisteredUser"><span class="symbol-name">isRegisteredUser</span><span class="signature"><span class="signature-params">(id)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Boolean</span></span></h3>
               <p>Check if a given ID is registered in whatsapp</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>id</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>the whatsapp user's ID</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
@@ -582,7 +857,7 @@
               <dl class="dl-compact">
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
-              <h3 id="sendMessage"><span class="symbol-name">sendMessage</span><span class="signature"><span class="signature-params">(chatId, content, options)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="Message.html">Message</a></span></span></h3>
+              <h3 id="sendMessage"><span class="symbol-name">sendMessage</span><span class="signature"><span class="signature-params">(chatId, content[, options])</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="Message.html">Message</a></span></span></h3>
               <p>Send a message to a specific chatId</p>
               <section>
                 <h4>Parameters</h4>
@@ -627,12 +902,13 @@
                         <p>options</p>
                       </td>
                       <td>
-                        <p>object</p>
+                        <p><a href="global.html#MessageSendOptions">MessageSendOptions</a></p>
                       </td>
                       <td>
-                        <p>&nbsp;</p>
+                        <p>Yes</p>
                       </td>
                       <td>
+                        <p>Options used when sending the message</p>
                       </td>
                     </tr>
                   </tbody>
@@ -687,6 +963,41 @@
                   <p><code>Promise containing boolean</code> <p>result</p>
                   </p>
                 </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="setDisplayName"><span class="symbol-name">setDisplayName</span><span class="signature"><span class="signature-params">(displayName)</span></span></h3>
+              <p>Sets the current user's display name.
+                This is the name shown to WhatsApp users that have not added you as a contact beside your number in groups and in your profile.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>displayName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>New display name</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="setStatus"><span class="symbol-name">setStatus</span><span class="signature"><span class="signature-params">(status)</span></span></h3>
@@ -803,7 +1114,7 @@
               <h3 id="event:authenticated"><span class="symbol-name">authenticated</span></h3>
               <p>Emitted when authentication is successful</p>
               <section>
-                <h4>Parameter</h4>
+                <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
                   <thead>
                     <tr>
@@ -826,6 +1137,71 @@
                       </td>
                       <td>
                         <p>Object containing session information. Can be used to restore the session.</p>
+                        <p>Values in <code>session</code> have the following properties:</p>
+                        <table class="jsdoc-details-table">
+                          <thead>
+                            <tr>
+                              <th>Name</th>
+                              <th>Type</th>
+                              <th>Optional</th>
+                              <th>Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>
+                                <p>WABrowserId</p>
+                              </td>
+                              <td>
+                                <p>string</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>WASecretBundle</p>
+                              </td>
+                              <td>
+                                <p>string</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>WAToken1</p>
+                              </td>
+                              <td>
+                                <p>string</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>WAToken2</p>
+                              </td>
+                              <td>
+                                <p>string</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </td>
                     </tr>
                   </tbody>
@@ -1346,7 +1722,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.4 on June 18, 2020.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.4 on August 25, 2020.
       </p>
     </div>
   </footer>

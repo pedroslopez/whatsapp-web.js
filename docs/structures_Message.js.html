@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.4">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.7.0 &raquo; Source: structures/Message.js</title>
+  <title>whatsapp-web.js 1.8.0 &raquo; Source: structures/Message.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>7.<wbr>0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>8.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -44,7 +44,7 @@ class Message extends Base {
     constructor(client, data) {
         super(client);
 
-        if(data) this._patch(data);
+        if (data) this._patch(data);
     }
 
     _patch(data) {
@@ -129,7 +129,7 @@ class Message extends Base {
          * @type {boolean}
          */
         this.fromMe &#x3D; data.id.fromMe;
-        
+
         /**
          * Indicates if the message was sent as a reply to another message.
          * @type {boolean}
@@ -204,11 +204,11 @@ class Message extends Base {
      * in the same Chat as the original message was sent.
      * 
      * @param {string|MessageMedia|Location} content 
-     * @param {?string} chatId 
-     * @param {object} options
+     * @param {string} [chatId] 
+     * @param {MessageSendOptions} [options]
      * @returns {Promise&amp;lt;Message&gt;}
      */
-    async reply(content, chatId, options&#x3D;{}) {
+    async reply(content, chatId, options &#x3D; {}) {
         if (!chatId) {
             chatId &#x3D; this._getChatId();
         }
@@ -222,6 +222,23 @@ class Message extends Base {
     }
 
     /**
+     * Forwards this message to another chat
+     * 
+     * @param {string|Chat} chat Chat model or chat ID to which the message will be forwarded
+     * @returns {Promise}
+     */
+    async forward(chat) {
+        const chatId &#x3D; typeof chat &#x3D;&#x3D;&#x3D; &#x27;string&#x27; ? chat : chat.id._serialized;
+
+        await this.client.pupPage.evaluate(async (msgId, chatId) &#x3D;&gt; {
+            let msg &#x3D; window.Store.Msg.get(msgId);
+            let chat &#x3D; window.Store.Chat.get(chatId);
+
+            return await chat.forwardMessages([msg]);
+        }, this.id._serialized, chatId);
+    }
+
+    /**
      * Downloads and returns the attatched message media
      * @returns {Promise&amp;lt;MessageMedia&gt;}
      */
@@ -232,13 +249,13 @@ class Message extends Base {
 
         const result &#x3D; await this.client.pupPage.evaluate(async (msgId) &#x3D;&gt; {
             const msg &#x3D; window.Store.Msg.get(msgId);
-            
-            if(msg.mediaData.mediaStage !&#x3D; &#x27;RESOLVED&#x27;) {
+
+            if (msg.mediaData.mediaStage !&#x3D; &#x27;RESOLVED&#x27;) {
                 // try to resolve media
                 await msg.downloadMedia(true, 1);
             }
-            
-            if(msg.mediaData.mediaStage.includes(&#x27;ERROR&#x27;)) {
+
+            if (msg.mediaData.mediaStage.includes(&#x27;ERROR&#x27;)) {
                 // media could not be downloaded
                 return undefined;
             }
@@ -246,7 +263,7 @@ class Message extends Base {
             const buffer &#x3D; await window.WWebJS.downloadBuffer(msg.clientUrl);
             const decrypted &#x3D; await window.Store.CryptoLib.decryptE2EMedia(msg.type, buffer, msg.mediaKey, msg.mimetype);
             const data &#x3D; await window.WWebJS.readBlobAsync(decrypted._blob);
-            
+
             return {
                 data: data.split(&#x27;,&#x27;)[1],
                 mimetype: msg.mimetype,
@@ -255,7 +272,7 @@ class Message extends Base {
 
         }, this.id._serialized);
 
-        if(!result) return undefined;
+        if (!result) return undefined;
         return new MessageMedia(result.mimetype, result.data, result.filename);
     }
 
@@ -267,10 +284,10 @@ class Message extends Base {
         await this.client.pupPage.evaluate((msgId, everyone) &#x3D;&gt; {
             let msg &#x3D; window.Store.Msg.get(msgId);
 
-            if(everyone &amp;amp;&amp;amp; msg.id.fromMe &amp;amp;&amp;amp; msg.canRevoke()) {
+            if (everyone &amp;amp;&amp;amp; msg.id.fromMe &amp;amp;&amp;amp; msg.canRevoke()) {
                 return window.Store.Cmd.sendRevokeMsgs(msg.chat, [msg], true);
-            } 
-            
+            }
+
             return window.Store.Cmd.sendDeleteMsgs(msg.chat, [msg], true);
         }, this.id._serialized, everyone);
     }
@@ -287,7 +304,7 @@ module.exports &#x3D; Message;
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.4 on June 18, 2020.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.4 on August 25, 2020.
       </p>
     </div>
   </footer>
