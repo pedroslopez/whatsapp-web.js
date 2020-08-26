@@ -128,7 +128,7 @@ exports.LoadUtils = () => {
             isGif: mediaData.isGif
         });
 
-        if(forceVoice && mediaData.type === 'audio') {
+        if (forceVoice && mediaData.type === 'audio') {
             mediaData.type = 'ptt';
         }
 
@@ -140,21 +140,27 @@ exports.LoadUtils = () => {
         mediaObject.consolidate(mediaData.toJSON());
         mediaData.mediaBlob.autorelease();
 
-        const uploadedMedia = await window.Store.MediaUpload.uploadMedia({ mimetype: mediaData.mimetype, mediaObject, mediaType });
-        if (!uploadedMedia) {
+        const uploadedMedia = await window.Store.MediaUpload.uploadMedia({
+            mimetype: mediaData.mimetype,
+            mediaObject,
+            mediaType
+        });
+
+        const mediaEntry = uploadedMedia.mediaEntry;
+        if (!mediaEntry) {
             throw new Error('upload failed: media entry was not created');
         }
 
         mediaData.set({
-            clientUrl: uploadedMedia.mmsUrl,
-            directPath: uploadedMedia.directPath,
-            mediaKey: uploadedMedia.mediaKey,
-            mediaKeyTimestamp: uploadedMedia.mediaKeyTimestamp,
+            clientUrl: mediaEntry.mmsUrl,
+            directPath: mediaEntry.directPath,
+            mediaKey: mediaEntry.mediaKey,
+            mediaKeyTimestamp: mediaEntry.mediaKeyTimestamp,
             filehash: mediaObject.filehash,
-            uploadhash: uploadedMedia.uploadHash,
+            uploadhash: mediaEntry.uploadHash,
             size: mediaObject.size,
-            streamingSidecar: uploadedMedia.sidecar,
-            firstFrameSidecar: uploadedMedia.firstFrameSidecar
+            streamingSidecar: mediaEntry.sidecar,
+            firstFrameSidecar: mediaEntry.firstFrameSidecar
         });
 
         return mediaData;
@@ -284,7 +290,7 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.sendChatstate = async (state, chatId) => {
-        switch(state) {
+        switch (state) {
         case 'typing':
             await window.Store.Wap.sendChatstateComposing(chatId);
             break;
@@ -297,10 +303,10 @@ exports.LoadUtils = () => {
         default:
             throw 'Invalid chatstate';
         }
-        
+
         return true;
-    };    
-    
+    };
+
 };
 
 exports.MarkAllRead = () => {
