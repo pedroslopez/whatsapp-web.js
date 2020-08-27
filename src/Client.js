@@ -12,6 +12,9 @@ const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
 const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification } = require('./structures');
+
+let _browser;
+
 /**
  * Starting point for interacting with the WhatsApp Web API
  * @extends {EventEmitter}
@@ -61,11 +64,16 @@ class Client extends EventEmitter {
      * Sets up events and requirements, kicks off authentication request
      */
     async initialize() {
-        const browser = await puppeteer.launch(this.options.puppeteer);
-        const page = (await browser.pages())[0];
+        if(!_browser || !_browser.isConnected()) {
+            _browser = await puppeteer.launch(this.options.puppeteer);
+        } 
+
+        let context = await _browser.createIncognitoBrowserContext();
+        const page = await context.newPage();
         page.setUserAgent(this.options.userAgent);
 
-        this.pupBrowser = browser;
+        this.pupBrowser = _browser;
+        this.pupContext = context;
         this.pupPage = page;
 
         if (this.options.session) {
@@ -98,7 +106,7 @@ class Client extends EventEmitter {
                      * @param {string} message
                      */
                     this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in. Are the session details valid?');
-                    browser.close();
+                    this.destroy();
                     if (this.options.restartOnAuthFail) {
                         // session restore failed so try again but without session to force new authentication
                         this.options.session = null;
@@ -379,7 +387,13 @@ class Client extends EventEmitter {
         if (this._qrRefreshInterval) {
             clearInterval(this._qrRefreshInterval);
         }
-        await this.pupBrowser.close();
+        
+        await this.pupPage.close();
+        await this.pupContext.close();
+
+        if(this.pupBrowser.browserContexts().length == 1) {
+            await this.pupBrowser.close();
+        }
     }
 
     /**
