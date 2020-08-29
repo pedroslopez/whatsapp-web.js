@@ -488,7 +488,7 @@ declare namespace WAWebJS {
     /** 
      * Forwards this message to another chat
      */
-    forward: (chat: Chat | string) => Promise,
+    forward: (chat: Chat | string) => Promise<Message>,
   }
 
   /** ID that represents a message */
