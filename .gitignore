@@ -66,3 +66,6 @@ typings/
 
 # macOS Thumbnails
 ._*
+
+# Test sessions
+*session.json
