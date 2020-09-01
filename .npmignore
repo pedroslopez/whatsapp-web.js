@@ -1,0 +1,8 @@
+docs/*
+.github/*
+
+.eslintrc.json
+.jsdoc.json
+.editorconfig
+
+session.json
