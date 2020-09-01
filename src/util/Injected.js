@@ -166,26 +166,29 @@ exports.LoadUtils = () => {
         return mediaData;
     };
 
-    window.WWebJS.getChatModel = chat => {
+    window.WWebJS.getChatModel = async chat => {
         let res = chat.serialize();
         res.isGroup = chat.isGroup;
         res.formattedTitle = chat.formattedTitle;
 
         if (chat.groupMetadata) {
+            await window.Store.GroupMetadata.update(chat.id._serialized);
             res.groupMetadata = chat.groupMetadata.serialize();
         }
 
         return res;
     };
 
-    window.WWebJS.getChat = chatId => {
+    window.WWebJS.getChat = async chatId => {
         const chat = window.Store.Chat.get(chatId);
-        return window.WWebJS.getChatModel(chat);
+        return await window.WWebJS.getChatModel(chat);
     };
 
-    window.WWebJS.getChats = () => {
+    window.WWebJS.getChats = async () => {
         const chats = window.Store.Chat.models;
-        return chats.map(chat => window.WWebJS.getChatModel(chat));
+
+        const chatPromises = chats.map(chat => window.WWebJS.getChatModel(chat));
+        return await Promise.all(chatPromises);
     };
 
     window.WWebJS.getContactModel = contact => {
