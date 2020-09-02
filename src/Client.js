@@ -620,9 +620,11 @@ class Client extends EventEmitter {
             if (chat.pin) {
                 return true;
             }
-            let maxPinned = await window.Store.Chat.models[2].pin;
-            if (maxPinned) {
-                return false;
+            if (window.Store.Chat.models.length > 3)
+                let maxPinned = await window.Store.Chat.models[2].pin;
+                if (maxPinned) {
+                    return false;
+                }
             }
             await window.Store.Cmd.pinChat(chat, true);
             return true;
