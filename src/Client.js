@@ -615,7 +615,7 @@ class Client extends EventEmitter {
      * @returns {boolean}
      */
     async pinChat(chatId) {
-        return await this.pupPage.evaluate(async chatId => {
+        return this.pupPage.evaluate(async chatId => {
             let chat = window.Store.Chat.get(chatId);
             if (chat.pin) {
                 return true;
