@@ -622,7 +622,7 @@ class Client extends EventEmitter {
             }
             const MAX_PIN_COUNT = 3;
             if (window.Store.Chat.models.length > MAX_PIN_COUNT) {
-                let maxPinned = await window.Store.Chat.models[MAX_PIN_COUNT - 1].pin;
+                let maxPinned = window.Store.Chat.models[MAX_PIN_COUNT - 1].pin;
                 if (maxPinned) {
                     return false;
                 }
