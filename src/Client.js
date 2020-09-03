@@ -29,7 +29,7 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @param {number} options.takeoverOnConflict - If another whatsapp web session is detected (another browser), take over the session in the current browser
  * @param {number} options.takeoverTimeoutMs - How much time to wait before taking over the session
  * @param {string} options.userAgent - User agent to use in puppeteer
- * 
+ *
  * @fires Client#qr
  * @fires Client#authenticated
  * @fires Client#auth_failure
@@ -87,7 +87,7 @@ class Client extends EventEmitter {
         const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
 
         if (this.options.session) {
-            // Check if session restore was successfull 
+            // Check if session restore was successfull
             try {
                 await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: this.options.authTimeoutMs });
             } catch (err) {
@@ -120,17 +120,21 @@ class Client extends EventEmitter {
                 }
 
                 // Wait for QR Code
+                try {
+                  const QR_CANVAS_SELECTOR = 'canvas';
+                  await page.waitForSelector(QR_CANVAS_SELECTOR, { timeout: this.options.qrTimeoutMs });
+                  const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0, 0, 264, 264).data));
+                  const qr = jsQR(qrImgData, 264, 264).data;
+                  /**
+                  * Emitted when the QR code is received
+                  * @event Client#qr
+                  * @param {string} qr QR Code
+                  */
+                  this.emit(Events.QR_RECEIVED, qr);
+                } catch (e) {
+                  return;
+                }
 
-                const QR_CANVAS_SELECTOR = 'canvas';
-                await page.waitForSelector(QR_CANVAS_SELECTOR, { timeout: this.options.qrTimeoutMs });
-                const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0, 0, 264, 264).data));
-                const qr = jsQR(qrImgData, 264, 264).data;
-                /**
-                * Emitted when the QR code is received
-                * @event Client#qr
-                * @param {string} qr QR Code
-                */
-                this.emit(Events.QR_RECEIVED, qr);
             };
             getQrCode();
             this._qrRefreshInterval = setInterval(getQrCode, this.options.qrRefreshIntervalMs);
@@ -250,7 +254,7 @@ class Client extends EventEmitter {
                  * Emitted when a message is deleted for everyone in the chat.
                  * @event Client#message_revoke_everyone
                  * @param {Message} message The message that was revoked, in its current state. It will not contain the original message's data.
-                 * @param {?Message} revoked_msg The message that was revoked, before it was revoked. It will contain the message's original data. 
+                 * @param {?Message} revoked_msg The message that was revoked, before it was revoked. It will contain the message's original data.
                  * Note that due to the way this data is captured, it may be possible that this param will be undefined.
                  */
                 this.emit(Events.MESSAGE_REVOKED_EVERYONE, message, revoked_msg);
@@ -405,7 +409,7 @@ class Client extends EventEmitter {
      * Mark as seen for the Chat
      *  @param {string} chatId
      *  @returns {Promise<boolean>} result
-     * 
+     *
      */
     async sendSeen(chatId) {
         const result = await this.pupPage.evaluate(async (chatId) => {
@@ -432,7 +436,7 @@ class Client extends EventEmitter {
      * @param {string} chatId
      * @param {string|MessageMedia|Location} content
      * @param {MessageSendOptions} [options] - Options used when sending the message
-     * 
+     *
      * @returns {Promise<Message>} Message that was just sent
      */
     async sendMessage(chatId, content, options = {}) {
@@ -487,7 +491,7 @@ class Client extends EventEmitter {
 
     /**
      * Get chat instance by ID
-     * @param {string} chatId 
+     * @param {string} chatId
      * @returns {Promise<Chat>}
      */
     async getChatById(chatId) {
@@ -525,7 +529,7 @@ class Client extends EventEmitter {
 
     /**
      * Returns an object with information about the invite code's group
-     * @param {string} inviteCode 
+     * @param {string} inviteCode
      * @returns {Promise<object>} Invite information
      */
     async getInviteInfo(inviteCode) {
@@ -557,7 +561,7 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Sets the current user's display name. 
+     * Sets the current user's display name.
      * This is the name shown to WhatsApp users that have not added you as a contact beside your number in groups and in your profile.
      * @param {string} displayName New display name
      */
@@ -569,7 +573,7 @@ class Client extends EventEmitter {
 
     /**
      * Gets the current connection state for the client
-     * @returns {WAState} 
+     * @returns {WAState}
      */
     async getState() {
         return await this.pupPage.evaluate(() => {
