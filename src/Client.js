@@ -140,9 +140,18 @@ class Client extends EventEmitter {
             this._qrRefreshInterval = setInterval(getQrCode, this.options.qrRefreshIntervalMs);
 
             // Wait for code scan
-            await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 0 });
-            clearInterval(this._qrRefreshInterval);
-            this._qrRefreshInterval = undefined;
+            try {
+                await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 0 });
+                clearInterval(this._qrRefreshInterval);
+                this._qrRefreshInterval = undefined;
+            } catch (err) {
+                if(page._closed) {
+                    this.emit(Events.AUTHENTICATION_FAILURE, 'Client was closed while waiting qrcode scan');
+                    return false;
+                } else {
+                    throw err;
+                }
+            }
 
         }
 
