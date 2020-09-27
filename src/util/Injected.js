@@ -170,6 +170,7 @@ exports.LoadUtils = () => {
         let res = chat.serialize();
         res.isGroup = chat.isGroup;
         res.formattedTitle = chat.formattedTitle;
+        res.isMuted = chat.mute && chat.mute.isMuted;
 
         if (chat.groupMetadata) {
             await window.Store.GroupMetadata.update(chat.id._serialized);

@@ -58,6 +58,12 @@ class Chat extends Base {
         this.archived = data.archive;
 
         /**
+         * Indicates if the chat is muted or not
+         * @type {number}
+         */
+        this.isMuted = data.isMuted;
+
+        /**
          * Unix timestamp for when the mute expires
          * @type {number}
          */
