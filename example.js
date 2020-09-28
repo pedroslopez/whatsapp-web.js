@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { Client, Location } = require('./index');
+const { Client, Location, WAState } = require('./index');
 
 const SESSION_FILE_PATH = './session.json';
 let sessionCfg;
@@ -251,5 +251,9 @@ client.on('change_battery', (batteryInfo) => {
 
 client.on('disconnected', (reason) => {
     console.log('Client was logged out', reason);
+    if (reason == WAState.UNPAIRED){
+        console.log("Deleting session file as client logged out.")
+        fs.unlinkSync(SESSION_FILE_PATH)
+    }
 });
 
