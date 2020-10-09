@@ -355,12 +355,12 @@ class Client extends EventEmitter {
         });
 
         await page.evaluate(() => {
-            window.Store.Msg.on('add', (msg) => { if (msg.isNewMsg) window.onAddMessageEvent(msg); });
-            window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(msg); });
-            window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(msg); });
-            window.Store.Msg.on('change:ack', (msg, ack) => { window.onMessageAckEvent({...msg.serialize(), pendingAckUpdate: undefined}, ack); });
-            window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => { if (msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(msg); });
-            window.Store.Msg.on('remove', (msg) => { if (msg.isNewMsg) window.onRemoveMessageEvent(msg); });
+            window.Store.Msg.on('add', (msg) => { if (msg.isNewMsg) window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); });
+            window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
+            window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
+            window.Store.Msg.on('change:ack', (msg,ack) => { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
+            window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => { if (msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(window.WWebJS.getMessageModel(msg)); });
+            window.Store.Msg.on('remove', (msg) => { if (msg.isNewMsg) window.onRemoveMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
             window.Store.Conn.on('change:battery', (state) => { window.onBatteryStateChangedEvent(state); });
         });

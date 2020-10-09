@@ -162,7 +162,7 @@ class Chat extends Base {
             }
 
             msgs.sort((a, b) => (a.t > b.t) ? 1 : -1);
-            return msgs.splice(msgs.length - limit).map(m => m.serialize());
+            return msgs.splice(msgs.length - limit).map(m => window.WWebJS.getMessageModel(m));
 
         }, this.id._serialized, searchOptions.limit);
 
