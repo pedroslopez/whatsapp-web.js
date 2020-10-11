@@ -369,7 +369,7 @@ class Client extends EventEmitter {
          * Emitted when the client has initialized and is ready to receive messages.
          * @event Client#ready
          */
-        this.emit(Events.READY);
+        this.emit(Events.READY,this.info,session);
     }
 
     /**
