@@ -125,7 +125,7 @@ class GroupChat extends Chat {
 
         if (res.status !== 200) return false;
         
-        this.groupMetadata.announcement = adminsOnly;
+        this.groupMetadata.announce = adminsOnly;
         return true;
     }
 
