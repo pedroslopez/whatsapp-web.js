@@ -611,8 +611,8 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Enables and returns the pin state of the Chat
-     * @returns {boolean}
+     * Pins the Chat
+     * @returns {Promise<boolean>} New pin state. Could be false if the max number of pinned chats was reached.
      */
     async pinChat(chatId) {
         return this.pupPage.evaluate(async chatId => {
@@ -633,8 +633,8 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Changes and returns the pin state of the Chat
-     * @returns {boolean}
+     * Unpins the Chat
+     * @returns {Promise<boolean>} New pin state
      */
     async unpinChat(chatId) {
         return this.pupPage.evaluate(async chatId => {
