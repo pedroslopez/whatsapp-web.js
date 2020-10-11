@@ -150,7 +150,7 @@ exports.LoadUtils = () => {
             isGif: mediaData.isGif
         });
 
-        if(forceVoice && mediaData.type === 'audio') {
+        if (forceVoice && mediaData.type === 'audio') {
             mediaData.type = 'ptt';
         }
 
@@ -162,46 +162,62 @@ exports.LoadUtils = () => {
         mediaObject.consolidate(mediaData.toJSON());
         mediaData.mediaBlob.autorelease();
 
-        const uploadedMedia = await window.Store.MediaUpload.uploadMedia({ mimetype: mediaData.mimetype, mediaObject, mediaType });
-        if (!uploadedMedia) {
+        const uploadedMedia = await window.Store.MediaUpload.uploadMedia({
+            mimetype: mediaData.mimetype,
+            mediaObject,
+            mediaType
+        });
+
+        const mediaEntry = uploadedMedia.mediaEntry;
+        if (!mediaEntry) {
             throw new Error('upload failed: media entry was not created');
         }
 
         mediaData.set({
-            clientUrl: uploadedMedia.mmsUrl,
-            directPath: uploadedMedia.directPath,
-            mediaKey: uploadedMedia.mediaKey,
-            mediaKeyTimestamp: uploadedMedia.mediaKeyTimestamp,
+            clientUrl: mediaEntry.mmsUrl,
+            directPath: mediaEntry.directPath,
+            mediaKey: mediaEntry.mediaKey,
+            mediaKeyTimestamp: mediaEntry.mediaKeyTimestamp,
             filehash: mediaObject.filehash,
-            uploadhash: uploadedMedia.uploadHash,
+            uploadhash: mediaEntry.uploadHash,
             size: mediaObject.size,
-            streamingSidecar: uploadedMedia.sidecar,
-            firstFrameSidecar: uploadedMedia.firstFrameSidecar
+            streamingSidecar: mediaEntry.sidecar,
+            firstFrameSidecar: mediaEntry.firstFrameSidecar
         });
 
         return mediaData;
     };
 
-    window.WWebJS.getChatModel = chat => {
+    window.WWebJS.getMessageModel = message => {
+        const msg = message.serialize();
+        delete msg.pendingAckUpdate;
+        return msg;
+    };
+
+    window.WWebJS.getChatModel = async chat => {
         let res = chat.serialize();
         res.isGroup = chat.isGroup;
         res.formattedTitle = chat.formattedTitle;
+        res.isMuted = chat.mute && chat.mute.isMuted;
 
         if (chat.groupMetadata) {
+            await window.Store.GroupMetadata.update(chat.id._serialized);
             res.groupMetadata = chat.groupMetadata.serialize();
         }
 
         return res;
     };
 
-    window.WWebJS.getChat = chatId => {
+    window.WWebJS.getChat = async chatId => {
         const chat = window.Store.Chat.get(chatId);
-        return window.WWebJS.getChatModel(chat);
+        return await window.WWebJS.getChatModel(chat);
     };
 
-    window.WWebJS.getChats = () => {
+    window.WWebJS.getChats = async () => {
         const chats = window.Store.Chat.models;
-        return chats.map(chat => window.WWebJS.getChatModel(chat));
+
+        const chatPromises = chats.map(chat => window.WWebJS.getChatModel(chat));
+        return await Promise.all(chatPromises);
     };
 
     window.WWebJS.getContactModel = contact => {
@@ -306,7 +322,7 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.sendChatstate = async (state, chatId) => {
-        switch(state) {
+        switch (state) {
         case 'typing':
             await window.Store.Wap.sendChatstateComposing(chatId);
             break;
@@ -319,10 +335,10 @@ exports.LoadUtils = () => {
         default:
             throw 'Invalid chatstate';
         }
-        
+
         return true;
-    };    
-    
+    };
+
 };
 
 exports.MarkAllRead = () => {

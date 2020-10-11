@@ -17,7 +17,13 @@ declare namespace WAWebJS {
     getInviteInfo(inviteCode: string): Promise<object>
 
     /** Enables and returns the archive state of the Chat */
-    archiveChat(): Promise<boolean>
+    archiveChat(chatId: string): Promise<boolean>
+
+    /** Pins the Chat and returns its new Pin state */
+    pinChat(chatId: string): Promise<boolean>
+
+    /** Unpins the Chat and returns its new Pin state */
+    unpinChat(chatId: string): Promise<boolean>
 
     /**
      * Create a new group
@@ -485,6 +491,10 @@ declare namespace WAWebJS {
      * If not, it will send the message in the same Chat as the original message was sent. 
      */
     reply: (content: MessageContent, chatId?: string, options?: MessageSendOptions) => Promise<Message>,
+    /** 
+     * Forwards this message to another chat
+     */
+    forward: (chat: Chat | string) => Promise<void>,
   }
 
   /** ID that represents a message */
@@ -662,6 +672,10 @@ declare namespace WAWebJS {
     isGroup: boolean,
     /** Indicates if the Chat is readonly */
     isReadOnly: boolean,
+    /** Indicates if the Chat is muted */
+    isMuted: boolean,
+    /** Unix timestamp for when the mute expires */
+    muteExpiration: number,
     /** Title of the chat */
     name: string,
     /** Unix timestamp for when the last activity occurred */
@@ -671,6 +685,10 @@ declare namespace WAWebJS {
 
     /** Archives this chat */
     archive: () => Promise<void>,
+    /** Pins this chat and returns its new Pin state */
+    pin: () => Promise<boolean>,
+    /** Unpins this chat and returns its new Pin state */
+    unpin: () => Promise<boolean>,
     /** Clears all messages from the chat */
     clearMessages: () => Promise<boolean>,
     /** Stops typing or recording in chat immediately. */

@@ -84,7 +84,7 @@ class Client extends EventEmitter {
             timeout: 0,
         });
 
-        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image-light="true"]';
+        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
 
         if (this.options.session) {
             // Check if session restore was successfull 
@@ -355,12 +355,12 @@ class Client extends EventEmitter {
         });
 
         await page.evaluate(() => {
-            window.Store.Msg.on('add', (msg) => { if (msg.isNewMsg) window.onAddMessageEvent(msg); });
-            window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(msg); });
-            window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(msg); });
-            window.Store.Msg.on('change:ack', (msg, ack) => { window.onMessageAckEvent(msg, ack); });
-            window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => { if (msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(msg); });
-            window.Store.Msg.on('remove', (msg) => { if (msg.isNewMsg) window.onRemoveMessageEvent(msg); });
+            window.Store.Msg.on('add', (msg) => { if (msg.isNewMsg) window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); });
+            window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
+            window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
+            window.Store.Msg.on('change:ack', (msg,ack) => { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
+            window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => { if (msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(window.WWebJS.getMessageModel(msg)); });
+            window.Store.Msg.on('remove', (msg) => { if (msg.isNewMsg) window.onRemoveMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
             window.Store.Conn.on('change:battery', (state) => { window.onBatteryStateChangedEvent(state); });
         });
@@ -484,8 +484,8 @@ class Client extends EventEmitter {
      * @returns {Promise<Array<Chat>>}
      */
     async getChats() {
-        let chats = await this.pupPage.evaluate(() => {
-            return window.WWebJS.getChats();
+        let chats = await this.pupPage.evaluate(async () => {
+            return await window.WWebJS.getChats();
         });
 
         return chats.map(chat => ChatFactory.create(this, chat));
@@ -497,8 +497,8 @@ class Client extends EventEmitter {
      * @returns {Promise<Chat>}
      */
     async getChatById(chatId) {
-        let chat = await this.pupPage.evaluate(chatId => {
-            return window.WWebJS.getChat(chatId);
+        let chat = await this.pupPage.evaluate(async chatId => {
+            return await window.WWebJS.getChat(chatId);
         }, chatId);
 
         return ChatFactory.create(this, chat);
@@ -613,6 +613,43 @@ class Client extends EventEmitter {
             let chat = await window.Store.Chat.get(chatId);
             await window.Store.Cmd.archiveChat(chat, false);
             return chat.archive;
+        }, chatId);
+    }
+
+    /**
+     * Pins the Chat
+     * @returns {Promise<boolean>} New pin state. Could be false if the max number of pinned chats was reached.
+     */
+    async pinChat(chatId) {
+        return this.pupPage.evaluate(async chatId => {
+            let chat = window.Store.Chat.get(chatId);
+            if (chat.pin) {
+                return true;
+            }
+            const MAX_PIN_COUNT = 3;
+            if (window.Store.Chat.models.length > MAX_PIN_COUNT) {
+                let maxPinned = window.Store.Chat.models[MAX_PIN_COUNT - 1].pin;
+                if (maxPinned) {
+                    return false;
+                }
+            }
+            await window.Store.Cmd.pinChat(chat, true);
+            return true;
+        }, chatId);
+    }
+
+    /**
+     * Unpins the Chat
+     * @returns {Promise<boolean>} New pin state
+     */
+    async unpinChat(chatId) {
+        return this.pupPage.evaluate(async chatId => {
+            let chat = window.Store.Chat.get(chatId);
+            if (!chat.pin) {
+                return false;
+            }
+            await window.Store.Cmd.pinChat(chat, false);
+            return false;
         }, chatId);
     }
 

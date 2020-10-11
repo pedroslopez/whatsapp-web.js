@@ -63,3 +63,9 @@ typings/
 
 # next.js build output
 .next
+
+# macOS Thumbnails
+._*
+
+# Test sessions
+*session.json
