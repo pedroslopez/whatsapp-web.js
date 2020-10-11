@@ -58,6 +58,12 @@ class Chat extends Base {
         this.archived = data.archive;
 
         /**
+         * Indicates if the Chat is pinned
+         * @type {boolean}
+         */
+        this.pinned = !!data.pin;
+
+        /**
          * Indicates if the chat is muted or not
          * @type {number}
          */
@@ -122,6 +128,22 @@ class Chat extends Base {
      */
     async unarchive() {
         return this.client.unarchiveChat(this.id._serialized);
+    }
+
+    /**
+     * Pins this chat
+     * @returns {Promise<boolean>} New pin state. Could be false if the max number of pinned chats was reached.
+     */
+    async pin() {
+        return this.client.pinChat(this.id._serialized);
+    }
+
+    /**
+     * Unpins this chat
+     * @returns {Promise<boolean>} New pin state
+     */
+    async unpin() {
+        return this.client.unpinChat(this.id._serialized);
     }
 
     /**
