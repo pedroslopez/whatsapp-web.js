@@ -666,6 +666,10 @@ declare namespace WAWebJS {
     isGroup: boolean,
     /** Indicates if the Chat is readonly */
     isReadOnly: boolean,
+    /** Indicates if the Chat is muted */
+    isMuted: boolean,
+    /** Unix timestamp for when the mute expires */
+    muteExpiration: number,
     /** Title of the chat */
     name: string,
     /** Unix timestamp for when the last activity occurred */
