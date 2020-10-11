@@ -132,7 +132,7 @@ class Chat extends Base {
 
     /**
      * Pins this chat
-     * @returns {Promise<boolean>} New pin state. Could be false if the max amount of pinned chats was reached.
+     * @returns {Promise<boolean>} New pin state. Could be false if the max number of pinned chats was reached.
      */
     async pin() {
         return this.client.pinChat(this.id._serialized);
