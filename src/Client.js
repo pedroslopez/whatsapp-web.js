@@ -611,6 +611,43 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Pins the Chat
+     * @returns {Promise<boolean>} New pin state. Could be false if the max number of pinned chats was reached.
+     */
+    async pinChat(chatId) {
+        return this.pupPage.evaluate(async chatId => {
+            let chat = window.Store.Chat.get(chatId);
+            if (chat.pin) {
+                return true;
+            }
+            const MAX_PIN_COUNT = 3;
+            if (window.Store.Chat.models.length > MAX_PIN_COUNT) {
+                let maxPinned = window.Store.Chat.models[MAX_PIN_COUNT - 1].pin;
+                if (maxPinned) {
+                    return false;
+                }
+            }
+            await window.Store.Cmd.pinChat(chat, true);
+            return true;
+        }, chatId);
+    }
+
+    /**
+     * Unpins the Chat
+     * @returns {Promise<boolean>} New pin state
+     */
+    async unpinChat(chatId) {
+        return this.pupPage.evaluate(async chatId => {
+            let chat = window.Store.Chat.get(chatId);
+            if (!chat.pin) {
+                return false;
+            }
+            await window.Store.Cmd.pinChat(chat, false);
+            return false;
+        }, chatId);
+    }
+
+    /**
      * Mutes the Chat until a specified date
      * @param {string} chatId ID of the chat that will be muted
      * @param {Date} unmuteDate Date when the chat will be unmuted

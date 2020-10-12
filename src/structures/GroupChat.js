@@ -35,6 +35,7 @@ class GroupChat extends Chat {
     get description() {
         return this.groupMetadata.desc;
     }
+
     /**
      * Gets the group participants
      * @type {array}
@@ -110,6 +111,38 @@ class GroupChat extends Chat {
         if (res.status == 200) {
             this.groupMetadata.desc = description;
         }
+    }
+
+    /**
+     * Updates the group settings to only allow admins to send messages.
+     * @param {boolean} [adminsOnly=true] Enable or disable this option 
+     * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
+     */
+    async setMessagesAdminsOnly(adminsOnly=true) {
+        let res = await this.client.pupPage.evaluate((chatId, value) => {
+            return window.Store.Wap.setGroupProperty(chatId, 'announcement', value);
+        }, this.id._serialized, adminsOnly);
+
+        if (res.status !== 200) return false;
+        
+        this.groupMetadata.announce = adminsOnly;
+        return true;
+    }
+
+    /**
+     * Updates the group settings to only allow admins to edit group info (title, description, photo).
+     * @param {boolean} [adminsOnly=true] Enable or disable this option 
+     * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
+     */
+    async setInfoAdminsOnly(adminsOnly=true) {
+        let res = await this.client.pupPage.evaluate((chatId, value) => {
+            return window.Store.Wap.setGroupProperty(chatId, 'restrict', value);
+        }, this.id._serialized, adminsOnly);
+
+        if (res.status !== 200) return false;
+        
+        this.groupMetadata.restrict = adminsOnly;
+        return true;
     }
 
     /**
