@@ -11,7 +11,7 @@ const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constan
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
-const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification } = require('./structures');
+const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification , Label } = require('./structures');
 /**
  * Starting point for interacting with the WhatsApp Web API
  * @extends {EventEmitter}
@@ -739,6 +739,42 @@ class Client extends EventEmitter {
         }), {});
 
         return { gid: createRes.gid, missingParticipants };
+    }
+
+    /**
+     * Returns all current Labels
+     * @returns {Promise<Array<Label>>}
+     */
+    async getLabels() {
+        const x = await this.pupPage.evaluate(async () => {
+            return  window.WWebJS.getLabels();
+        }) ; 
+        return x.map(data => new Label(data));
+    }
+
+    /**
+     * Returns Label of specified chat 
+     * @returns {Promise<Label>}
+     */
+    async getChatLabels(chatId){
+        const x = await this.pupPage.evaluate(async (chatId) => {
+            return  window.WWebJS.getChatLabels(chatId);
+        }, chatId);
+        return x.map(data => new Label(data)); 
+    }
+
+    /**
+     * Returns all Chats of specified label
+     * @returns {Array<ChatId>}
+     */
+    async getAllChatsFromLabel(labelId){
+        return this.pupPage.evaluate(async (labelId) => {
+            return (window.Store.Label.get(labelId).labelItemCollection.models.reduce(function(result, i) {
+                if(i.parentType === 'Chat'){  
+                    result.push(i.parentId);
+                }
+                return result;},[]));
+        }, labelId);
     }
 
 }

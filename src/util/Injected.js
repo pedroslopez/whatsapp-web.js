@@ -317,6 +317,25 @@ exports.LoadUtils = () => {
         return true;
     };
 
+    window.WWebJS.getLabelModel = label => {
+        return {'name': label.name , 'hexColor' :  label.hexColor , 'id' : label.id }; 
+    };
+
+    window.WWebJS.getLabels = async () =>{
+        var labels = window.Store.Label.models.map(label =>  window.WWebJS.getLabelModel(label));
+        return labels;
+    };
+
+    window.WWebJS.getChatLabels = async (chatId) => {
+        let chatLabelsIndex = await window.WWebJS.getChat(chatId);
+        chatLabelsIndex = chatLabelsIndex.labels;
+        let res = [];
+        for (var i in chatLabelsIndex){
+            res.push( window.WWebJS.getLabelModel(window.Store.Label.get(chatLabelsIndex[i])));
+        }
+
+        return res;
+    };
 };
 
 exports.MarkAllRead = () => {
