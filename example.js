@@ -166,9 +166,12 @@ client.on('message', async msg => {
         } else {
             msg.reply('I can only delete my own messages');
         }
+    } else if (msg.body === '!pin') {
+        const chat = await msg.getChat();
+        await chat.pin();
     } else if (msg.body === '!archive') {
         const chat = await msg.getChat();
-        chat.archive();
+        await chat.archive();
     } else if (msg.body === '!mute') {
         const chat = await msg.getChat();
         // mute the chat for 20 seconds
