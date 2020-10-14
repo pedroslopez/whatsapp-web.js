@@ -129,12 +129,12 @@ class Client extends EventEmitter {
                 } catch (e) {
                     qr = null;
                 }
-                  /**
+                /**
                   * Emitted when the QR code is received
                   * @event Client#qr
                   * @param {string} qr QR Code
                   */
-                  this.emit(Events.QR_RECEIVED, qr);
+                this.emit(Events.QR_RECEIVED, qr);
 
             };
             getQrCode();
