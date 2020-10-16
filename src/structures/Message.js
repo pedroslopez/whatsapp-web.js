@@ -36,12 +36,25 @@ class Message extends Base {
          */
         this.ack = data.ack;
 
+         /**
+         * filehash is encryipted key for media by sender
+         * @type {string}
+         */
+         this.filehash = data.filehash;
+ 
+        /**
+         * uploadhash is same like filehash but it's encrypted key for author 
+         * @type {string}
+         */
+         this.uploadhash = data.uploadhash;
+
         /**
          * Indicates if the message has media available for download
          * @type {boolean}
          */
         this.hasMedia = data.clientUrl ? true : false;
 
+         
         /**
          * Message content
          * @type {string}
