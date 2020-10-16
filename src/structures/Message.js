@@ -36,7 +36,7 @@ class Message extends Base {
          */
         this.ack = data.ack;
 
-         /**
+       /**
          * filehash is encryipted key for media by sender
          * @type {string}
          */
