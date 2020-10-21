@@ -34,6 +34,12 @@ declare namespace WAWebJS {
 
     /** Closes the client */
     destroy(): Promise<void>
+    
+    /**
+     *  @param path like "tmp/screen.png"
+     * Takes screenShot the client 
+     * */
+    screenShot(path: string): Promise<void>
 
     /** Logs out the client, closing the current session */
     logout(): Promise<void>
