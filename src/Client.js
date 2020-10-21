@@ -383,6 +383,14 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Takes client screenshot with given path
+     */
+    async screenShot(path) {
+        await this.pupPage.screenshot({path});
+        return path;
+    }
+    
+    /**
      * Logs out the client, closing the current session
      */
     async logout() {
