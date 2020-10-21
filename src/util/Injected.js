@@ -17,7 +17,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.SendMessage = window.mR.findModule('addAndSendMsgToChat')[0];
     window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
     window.Store.Invite = window.mR.findModule('sendJoinGroupViaInvite')[0];
-    window.Store.OpaqueData = window.mR.findModule('getOrCreateOpaqueDataForPath')[0];
+    window.Store.OpaqueData = window.mR.findModule(module => module.default && module.default.createFromData)[0].default;
     window.Store.MediaPrep = window.mR.findModule('MediaPrep')[0];
     window.Store.MediaObject = window.mR.findModule('getOrCreateMediaObject')[0];
     window.Store.MediaUpload = window.mR.findModule('uploadMedia')[0];
@@ -118,7 +118,7 @@ exports.LoadUtils = () => {
 
     window.WWebJS.processMediaData = async (mediaInfo, forceVoice) => {
         const file = window.WWebJS.mediaInfoToFile(mediaInfo);
-        const mData = await window.Store.OpaqueData.default.createFromData(file, file.type);
+        const mData = await window.Store.OpaqueData.createFromData(file, file.type);
         const mediaPrep = window.Store.MediaPrep.prepRawMedia(mData, {});
         const mediaData = await mediaPrep.waitForPrep();
         const mediaObject = window.Store.MediaObject.getOrCreateMediaObject(mediaData.filehash);
@@ -132,8 +132,8 @@ exports.LoadUtils = () => {
             mediaData.type = 'ptt';
         }
 
-        if (!(mediaData.mediaBlob instanceof window.Store.OpaqueData.default)) {
-            mediaData.mediaBlob = await window.Store.OpaqueData.default.createFromData(mediaData.mediaBlob, mediaData.mediaBlob.type);
+        if (!(mediaData.mediaBlob instanceof window.Store.OpaqueData)) {
+            mediaData.mediaBlob = await window.Store.OpaqueData.createFromData(mediaData.mediaBlob, mediaData.mediaBlob.type);
         }
 
         mediaData.renderableUrl = mediaData.mediaBlob.url();
