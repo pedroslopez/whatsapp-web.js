@@ -116,6 +116,24 @@ class Contact extends Base {
 
         return await this.client.getChatById(this.id._serialized);
     }
+
+    async getPresence() {
+        return this.client.pupPage.evaluate(async contactId => {
+            const presence = await window.Store.Presence.get(contactId);
+            await presence.subscribe();
+            console.log('initial', presence.hasData, presence.forceDisplay, presence.stale, presence.chatstate.t);
+            setTimeout(() => {
+                console.log('after timeout', presence.hasData, presence.forceDisplay, presence.stale, presence.chatstate.t);
+            }, 0);
+            setTimeout(() => {
+                console.log('after longer timeout', presence.hasData, presence.forceDisplay, presence.stale, presence.chatstate.t);
+            }, 300);
+            return {
+                isOnline: presence.isOnline,
+                lastSeen: presence.chatstate.t 
+            };
+        }, this.id._serialized);
+    }
     
 }
 
