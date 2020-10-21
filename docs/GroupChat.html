@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.4">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.9.0 &raquo; Class: GroupChat</title>
+  <title>whatsapp-web.js 1.10.0 &raquo; Class: GroupChat</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>9.<wbr>0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>10.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -80,6 +80,9 @@
                     <dt><a href="GroupChat.html#participants">participants</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="GroupChat.html#pinned">pinned</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="GroupChat.html#timestamp">timestamp</a></dt>
                     <dd>
                     </dd>
@@ -119,17 +122,20 @@
                     <dt><a href="GroupChat.html#getContact">getContact()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="GroupChat.html#getInviteCode">getInviteCode()</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="GroupChat.html#getInviteCode">getInviteCode()</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="GroupChat.html#leave">leave()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="GroupChat.html#mute">mute(unmuteDate)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="GroupChat.html#pin">pin()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="GroupChat.html#promoteParticipants">promoteParticipants(participantIds)</a></dt>
@@ -147,17 +153,23 @@
                     <dt><a href="GroupChat.html#sendSeen">sendSeen()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="GroupChat.html#sendStateRecording">sendStateRecording()</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="GroupChat.html#sendStateRecording">sendStateRecording()</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="GroupChat.html#sendStateTyping">sendStateTyping()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="GroupChat.html#setDescription">setDescription(description)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="GroupChat.html#setInfoAdminsOnly">setInfoAdminsOnly([adminsOnly])</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="GroupChat.html#setMessagesAdminsOnly">setMessagesAdminsOnly([adminsOnly])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="GroupChat.html#setSubject">setSubject(subject)</a></dt>
@@ -167,6 +179,9 @@
                     <dd>
                     </dd>
                     <dt><a href="GroupChat.html#unmute">unmute()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="GroupChat.html#unpin">unpin()</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -251,6 +266,13 @@
                   &nbsp;array</small></h3>
               <p>Gets the group participants</p>
               <dl class="dl-compact">
+              </dl>
+              <h3 id="pinned"><span class="symbol-name">pinned</span><small class="property-type">
+                  &nbsp;unknown</small></h3>
+              <p>Indicates if the Chat is pinned</p>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#pinned">Chat#pinned</a></dd>
               </dl>
               <h3 id="timestamp"><span class="symbol-name">timestamp</span><small class="property-type">
                   &nbsp;unknown</small></h3>
@@ -493,6 +515,17 @@
                 <dd><a href="Chat.html#mute">Chat#mute</a></dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="pin"><span class="symbol-name">pin</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Pins this chat</p>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#pin">Chat#pin</a></dd>
+                <dt>Returns</dt>
+                <dd>
+                  <p>New pin state. Could be false if the max number of pinned chats was reached.</p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="promoteParticipants"><span class="symbol-name">promoteParticipants</span><span class="signature"><span class="signature-params">(participantIds)</span></span></h3>
               <p>Promotes participants by IDs to admins</p>
               <section>
@@ -674,6 +707,86 @@
               <dl class="dl-compact">
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="setInfoAdminsOnly"><span class="symbol-name">setInfoAdminsOnly</span><span class="signature"><span class="signature-params">([adminsOnly])</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Updates the group settings to only allow admins to edit group info (title, description, photo).</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>adminsOnly</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Enable or disable this option</p>
+                        <p>Defaults to <code>true</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code> <p>Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="setMessagesAdminsOnly"><span class="symbol-name">setMessagesAdminsOnly</span><span class="signature"><span class="signature-params">([adminsOnly])</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Updates the group settings to only allow admins to send messages.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>adminsOnly</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Enable or disable this option</p>
+                        <p>Defaults to <code>true</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code> <p>Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="setSubject"><span class="symbol-name">setSubject</span><span class="signature"><span class="signature-params">(subject)</span></span></h3>
               <p>Updates the group subject</p>
               <section>
@@ -720,6 +833,17 @@
                 <dt>Inherited from</dt>
                 <dd><a href="Chat.html#unmute">Chat#unmute</a></dd>
               </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="unpin"><span class="symbol-name">unpin</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Unpins this chat</p>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#unpin">Chat#unpin</a></dd>
+                <dt>Returns</dt>
+                <dd>
+                  <p>New pin state</p>
+                </dd>
+              </dl>
             </section>
           </section>
         </div>
@@ -730,7 +854,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.4 on October 9, 2020.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.4 on October 21, 2020.
       </p>
     </div>
   </footer>
