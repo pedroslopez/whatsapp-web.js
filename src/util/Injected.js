@@ -97,6 +97,18 @@ exports.LoadUtils = () => {
                 body: undefined
             };
             delete options.contactCardList;
+        } else if(options.parseVCards && typeof(content) === 'string' && content.startsWith('BEGIN:VCARD')) {
+            try {
+                const parsed = window.Store.VCard.parseVcard(content);
+                if(parsed) {
+                    vcardOptions = {
+                        type: 'vcard',
+                        vcardFormattedName: window.Store.VCard.vcardGetNameFromParsed(parsed)
+                    };
+                }
+            } catch(_) {
+                // not a vcard
+            }
         }
         
         if (options.linkPreview) {
