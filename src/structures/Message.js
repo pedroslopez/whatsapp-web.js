@@ -46,7 +46,7 @@ class Message extends Base {
          * Message content
          * @type {string}
          */
-        this.body = data.type === MessageTypes.CONTACT_CARD_MULTI ? data.vcardList.map((c) => c.vcard) : this.hasMedia ? data.caption || '' : data.body || '';
+        this.body = this.hasMedia ? data.caption || '' : data.body || '';
 
         /** 
          * Message type
@@ -116,6 +116,12 @@ class Message extends Base {
          * @type {Location}
          */
         this.location = data.type === MessageTypes.LOCATION ? new Location(data.lat, data.lng, data.loc) : undefined;
+
+        /**
+         * List of vcards contained in the message, if the message is a vcard or multiple vcards.
+         * @type {Array<string>}
+         */
+        this.vcards = data.type === MessageTypes.CONTACT_CARD_MULTI ? data.vcardList.map((c) => c.vcard) : data.type === MessageTypes.CONTACT_CARD ? [data.body] : [];
 
         /**
          * Indicates the mentions in the message body.
