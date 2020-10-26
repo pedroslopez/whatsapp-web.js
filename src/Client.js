@@ -442,7 +442,7 @@ class Client extends EventEmitter {
             sendAudioAsVoice: options.sendAudioAsVoice,
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
-            parseVCards: options.parseVCards || true,
+            parseVCards: options.parseVCards === false ? false : true,
             mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact => contact.id._serialized) : []
         };
 
