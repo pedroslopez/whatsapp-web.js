@@ -603,6 +603,8 @@ declare namespace WAWebJS {
     isUser: boolean,
     /** Indicates if the number is registered on WhatsApp */
     isWAContact: boolean,
+    /** Indicates if you have blocked this contact */
+    isBlocked: boolean,
     /** @todo verify labels type. didn't have any documentation */
     labels?: string[],
     /** The contact's name, as saved by the current user */
@@ -629,6 +631,11 @@ declare namespace WAWebJS {
      * Will return null when getting chat for currently logged in user.
      */
     getChat: () => Promise<Chat>,
+
+    /** Blocks this contact from WhatsApp */
+    block: () => Promise<boolean>,
+    /** Unlocks this contact from WhatsApp */
+    unblock: () => Promise<boolean>,
   }
 
   export interface ContactId {
