@@ -49,7 +49,7 @@ Take a look at [example.js](https://github.com/pedroslopez/whatsapp-web.js/blob/
 | Send media (video)  | ✅ [(requires google chrome)](https://github.com/pedroslopez/whatsapp-web.js/issues/78#issuecomment-592723583)  |
 | Send stickers | _pending_ |
 | Receive media (images/audio/video/documents)  | ✅  |
-| Send contact cards | _pending_ |
+| Send contact cards | ✅ |
 | Send location | ✅ |
 | Receive location | ✅ | 
 | Message replies | ✅ |
