@@ -517,6 +517,8 @@ declare namespace WAWebJS {
     linkPreview?: boolean
     /** Send audio as voice message */
     sendAudioAsVoice?: boolean
+    /** Automatically parse vCards and send them as contacts */
+    parseVCards?: boolean
     /** Image or videos caption */
     caption?: string
     /** Id of the message that is being quoted (or replied to) */
@@ -549,7 +551,7 @@ declare namespace WAWebJS {
     static fromFilePath: (filePath: string) => MessageMedia
   }
 
-  export type MessageContent = string | MessageMedia | Location
+  export type MessageContent = string | MessageMedia | Location | Contact | Contact[]
 
   /**
    * Represents a Contact on WhatsApp
