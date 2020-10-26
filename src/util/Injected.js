@@ -203,6 +203,8 @@ exports.LoadUtils = () => {
 
     window.WWebJS.getMessageModel = message => {
         const msg = message.serialize();
+        msg.isStatusV3 = message.isStatusV3;
+
         delete msg.pendingAckUpdate;
         return msg;
     };
