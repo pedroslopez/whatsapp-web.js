@@ -444,6 +444,8 @@ declare namespace WAWebJS {
     body: string,
     /** Indicates if the message was a broadcast */
     broadcast: boolean,
+    /** Indicates if the message was a status update */
+    isStatus: boolean,
     /** ID for the Chat that this message was sent to, except if the message was sent by the current user */
     from: string,
     /** Indicates if the message was sent by the current user */
