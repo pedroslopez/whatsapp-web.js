@@ -444,6 +444,8 @@ declare namespace WAWebJS {
     body: string,
     /** Indicates if the message was a broadcast */
     broadcast: boolean,
+    /** Indicates if the message was a status update */
+    isStatus: boolean,
     /** ID for the Chat that this message was sent to, except if the message was sent by the current user */
     from: string,
     /** Indicates if the message was sent by the current user */
@@ -517,6 +519,8 @@ declare namespace WAWebJS {
     linkPreview?: boolean
     /** Send audio as voice message */
     sendAudioAsVoice?: boolean
+    /** Automatically parse vCards and send them as contacts */
+    parseVCards?: boolean
     /** Image or videos caption */
     caption?: string
     /** Id of the message that is being quoted (or replied to) */
@@ -549,7 +553,7 @@ declare namespace WAWebJS {
     static fromFilePath: (filePath: string) => MessageMedia
   }
 
-  export type MessageContent = string | MessageMedia | Location
+  export type MessageContent = string | MessageMedia | Location | Contact | Contact[]
 
   /**
    * Represents a Contact on WhatsApp
@@ -599,6 +603,8 @@ declare namespace WAWebJS {
     isUser: boolean,
     /** Indicates if the number is registered on WhatsApp */
     isWAContact: boolean,
+    /** Indicates if you have blocked this contact */
+    isBlocked: boolean,
     /** @todo verify labels type. didn't have any documentation */
     labels?: string[],
     /** The contact's name, as saved by the current user */
@@ -625,6 +631,11 @@ declare namespace WAWebJS {
      * Will return null when getting chat for currently logged in user.
      */
     getChat: () => Promise<Chat>,
+
+    /** Blocks this contact from WhatsApp */
+    block: () => Promise<boolean>,
+    /** Unlocks this contact from WhatsApp */
+    unblock: () => Promise<boolean>,
   }
 
   export interface ContactId {

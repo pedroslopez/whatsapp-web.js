@@ -88,6 +88,12 @@ class Message extends Base {
         this.isForwarded = data.isForwarded;
 
         /**
+         * Indicates if the message is a status update
+         * @type {boolean}
+         */
+        this.isStatus = data.isStatusV3;
+
+        /**
          * Indicates if the message was a broadcast
          * @type {boolean}
          */

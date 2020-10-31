@@ -420,6 +420,7 @@ class Client extends EventEmitter {
      * @typedef {Object} MessageSendOptions
      * @property {boolean} [linkPreview=true] - Show links preview
      * @property {boolean} [sendAudioAsVoice=false] - Send audio as voice message
+     * @property {boolean} [parseVCards=true] - Automatically parse vCards and send them as contacts
      * @property {string} [caption] - Image or video caption
      * @property {string} [quotedMessageId] - Id of the message that is being quoted (or replied to)
      * @property {Contact[]} [mentions] - Contacts that are being mentioned in the message
@@ -430,7 +431,7 @@ class Client extends EventEmitter {
     /**
      * Send a message to a specific chatId
      * @param {string} chatId
-     * @param {string|MessageMedia|Location} content
+     * @param {string|MessageMedia|Location|Contact|Array<Contact>} content
      * @param {MessageSendOptions} [options] - Options used when sending the message
      * 
      * @returns {Promise<Message>} Message that was just sent
@@ -441,6 +442,7 @@ class Client extends EventEmitter {
             sendAudioAsVoice: options.sendAudioAsVoice,
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
+            parseVCards: options.parseVCards === false ? false : true,
             mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact => contact.id._serialized) : []
         };
 
@@ -455,6 +457,12 @@ class Client extends EventEmitter {
             content = '';
         } else if (content instanceof Location) {
             internalOptions.location = content;
+            content = '';
+        } else if(content instanceof Contact) {
+            internalOptions.contactCard = content.id._serialized;
+            content = '';
+        } else if(Array.isArray(content) && content.length > 0 && content[0] instanceof Contact) {
+            internalOptions.contactCardList = content.map(contact => contact.id._serialized);
             content = '';
         }
 

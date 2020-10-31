@@ -17,15 +17,17 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.SendMessage = window.mR.findModule('addAndSendMsgToChat')[0];
     window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
     window.Store.Invite = window.mR.findModule('sendJoinGroupViaInvite')[0];
-    window.Store.OpaqueData = window.mR.findModule('getOrCreateOpaqueDataForPath')[0];
+    window.Store.OpaqueData = window.mR.findModule(module => module.default && module.default.createFromData)[0].default;
     window.Store.MediaPrep = window.mR.findModule('MediaPrep')[0];
     window.Store.MediaObject = window.mR.findModule('getOrCreateMediaObject')[0];
     window.Store.MediaUpload = window.mR.findModule('uploadMedia')[0];
     window.Store.Cmd = window.mR.findModule('Cmd')[0].default;
     window.Store.MediaTypes = window.mR.findModule('msgToMediaType')[0];
+    window.Store.VCard = window.mR.findModule('vcardFromContactModel')[0];
     window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default;
     window.Store.Validators = window.mR.findModule('findLinks')[0];
     window.Store.WidFactory = window.mR.findModule('createWid')[0];
+    window.Store.BlockContact = window.mR.findModule('blockContact')[0];
 };
 
 exports.LoadUtils = () => {
@@ -78,6 +80,39 @@ exports.LoadUtils = () => {
             delete options.location;
         }
 
+        let vcardOptions = {};
+        if (options.contactCard) {
+            let contact = window.Store.Contact.get(options.contactCard);
+            vcardOptions = {
+                body: window.Store.VCard.vcardFromContactModel(contact).vcard,
+                type: 'vcard',
+                vcardFormattedName: contact.formattedName
+            };
+            delete options.contactCard;
+        } else if(options.contactCardList) {
+            let contacts = options.contactCardList.map(c => window.Store.Contact.get(c));
+            let vcards = contacts.map(c => window.Store.VCard.vcardFromContactModel(c));
+            vcardOptions = {
+                type: 'multi_vcard',
+                vcardList: vcards,
+                body: undefined
+            };
+            delete options.contactCardList;
+        } else if(options.parseVCards && typeof(content) === 'string' && content.startsWith('BEGIN:VCARD')) {
+            delete options.parseVCards;
+            try {
+                const parsed = window.Store.VCard.parseVcard(content);
+                if(parsed) {
+                    vcardOptions = {
+                        type: 'vcard',
+                        vcardFormattedName: window.Store.VCard.vcardGetNameFromParsed(parsed)
+                    };
+                }
+            } catch(_) {
+                // not a vcard
+            }
+        }
+        
         if (options.linkPreview) {
             delete options.linkPreview;
             const link = window.Store.Validators.findLink(content);
@@ -109,7 +144,8 @@ exports.LoadUtils = () => {
             type: 'chat',
             ...locationOptions,
             ...attOptions,
-            ...quotedMsgOptions
+            ...quotedMsgOptions,
+            ...vcardOptions
         };
 
         await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
@@ -118,7 +154,7 @@ exports.LoadUtils = () => {
 
     window.WWebJS.processMediaData = async (mediaInfo, forceVoice) => {
         const file = window.WWebJS.mediaInfoToFile(mediaInfo);
-        const mData = await window.Store.OpaqueData.default.createFromData(file, file.type);
+        const mData = await window.Store.OpaqueData.createFromData(file, file.type);
         const mediaPrep = window.Store.MediaPrep.prepRawMedia(mData, {});
         const mediaData = await mediaPrep.waitForPrep();
         const mediaObject = window.Store.MediaObject.getOrCreateMediaObject(mediaData.filehash);
@@ -132,8 +168,8 @@ exports.LoadUtils = () => {
             mediaData.type = 'ptt';
         }
 
-        if (!(mediaData.mediaBlob instanceof window.Store.OpaqueData.default)) {
-            mediaData.mediaBlob = await window.Store.OpaqueData.default.createFromData(mediaData.mediaBlob, mediaData.mediaBlob.type);
+        if (!(mediaData.mediaBlob instanceof window.Store.OpaqueData)) {
+            mediaData.mediaBlob = await window.Store.OpaqueData.createFromData(mediaData.mediaBlob, mediaData.mediaBlob.type);
         }
 
         mediaData.renderableUrl = mediaData.mediaBlob.url();
@@ -168,6 +204,8 @@ exports.LoadUtils = () => {
 
     window.WWebJS.getMessageModel = message => {
         const msg = message.serialize();
+        msg.isStatusV3 = message.isStatusV3;
+
         delete msg.pendingAckUpdate;
         return msg;
     };
@@ -211,6 +249,7 @@ exports.LoadUtils = () => {
         res.isGroup = contact.isGroup;
         res.isWAContact = contact.isWAContact;
         res.isMyContact = contact.isMyContact;
+        res.isBlocked = contact.isContactBlocked;
         res.userid = contact.userid;
 
         return res;
