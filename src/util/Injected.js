@@ -205,7 +205,9 @@ exports.LoadUtils = () => {
     window.WWebJS.getMessageModel = message => {
         const msg = message.serialize();
         msg.isStatusV3 = message.isStatusV3;
-
+        if (msg.buttons) {
+            msg.buttons = msg.buttons.serialize();
+        }
         delete msg.pendingAckUpdate;
         return msg;
     };
@@ -220,6 +222,8 @@ exports.LoadUtils = () => {
             await window.Store.GroupMetadata.update(chat.id._serialized);
             res.groupMetadata = chat.groupMetadata.serialize();
         }
+
+        delete res.msgs;
 
         return res;
     };
