@@ -127,7 +127,7 @@ class Client extends EventEmitter {
 
                 let qr;
                 if (this.options.qrAsDataUrl) {
-                    qr = await page.$eval(QR_CANVAS_SELECTOR, canvas => canvas.toDataURL()));
+                    qr = await page.$eval(QR_CANVAS_SELECTOR, canvas => canvas.toDataURL());
                 } else {
                     const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0, 0, 264, 264).data));
                     qr = jsQR(qrImgData, 264, 264).data;
