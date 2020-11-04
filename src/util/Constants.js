@@ -10,6 +10,7 @@ exports.DefaultOptions = {
     session: false,
     qrTimeoutMs: 45000,
     qrRefreshIntervalMs: 20000,
+    qrAsDataUrl: false,
     authTimeoutMs: 45000,
     takeoverOnConflict: false,
     takeoverTimeoutMs: 0,
