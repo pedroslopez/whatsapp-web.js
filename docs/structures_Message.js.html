@@ -149,6 +149,12 @@ class Message extends Base {
         this.location &#x3D; data.type &#x3D;&#x3D;&#x3D; MessageTypes.LOCATION ? new Location(data.lat, data.lng, data.loc) : undefined;
 
         /**
+         * List of vCards contained in the message.
+         * @type {Array&amp;lt;string&gt;}
+         */
+        this.vCards &#x3D; data.type &#x3D;&#x3D;&#x3D; MessageTypes.CONTACT_CARD_MULTI ? data.vcardList.map((c) &#x3D;&gt; c.vcard) : data.type &#x3D;&#x3D;&#x3D; MessageTypes.CONTACT_CARD ? [data.body] : [];
+
+        /**
          * Indicates the mentions in the message body.
          * @type {Array&amp;lt;string&gt;}
          */
