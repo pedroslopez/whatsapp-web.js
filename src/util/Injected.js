@@ -28,6 +28,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Validators = window.mR.findModule('findLinks')[0];
     window.Store.WidFactory = window.mR.findModule('createWid')[0];
     window.Store.BlockContact = window.mR.findModule('blockContact')[0];
+    window.Store.GroupMetadata = window.mR.findModule((module) => module.default && module.default.handlePendingInvite)[0].default;
 };
 
 exports.LoadUtils = () => {
@@ -89,7 +90,7 @@ exports.LoadUtils = () => {
                 vcardFormattedName: contact.formattedName
             };
             delete options.contactCard;
-        } else if(options.contactCardList) {
+        } else if (options.contactCardList) {
             let contacts = options.contactCardList.map(c => window.Store.Contact.get(c));
             let vcards = contacts.map(c => window.Store.VCard.vcardFromContactModel(c));
             vcardOptions = {
@@ -98,21 +99,21 @@ exports.LoadUtils = () => {
                 body: undefined
             };
             delete options.contactCardList;
-        } else if(options.parseVCards && typeof(content) === 'string' && content.startsWith('BEGIN:VCARD')) {
+        } else if (options.parseVCards && typeof (content) === 'string' && content.startsWith('BEGIN:VCARD')) {
             delete options.parseVCards;
             try {
                 const parsed = window.Store.VCard.parseVcard(content);
-                if(parsed) {
+                if (parsed) {
                     vcardOptions = {
                         type: 'vcard',
                         vcardFormattedName: window.Store.VCard.vcardGetNameFromParsed(parsed)
                     };
                 }
-            } catch(_) {
+            } catch (_) {
                 // not a vcard
             }
         }
-        
+
         if (options.linkPreview) {
             delete options.linkPreview;
             const link = window.Store.Validators.findLink(content);
@@ -344,17 +345,17 @@ exports.LoadUtils = () => {
 
     window.WWebJS.sendChatstate = async (state, chatId) => {
         switch (state) {
-        case 'typing':
-            await window.Store.Wap.sendChatstateComposing(chatId);
-            break;
-        case 'recording':
-            await window.Store.Wap.sendChatstateRecording(chatId);
-            break;
-        case 'stop':
-            await window.Store.Wap.sendChatstatePaused(chatId);
-            break;
-        default:
-            throw 'Invalid chatstate';
+            case 'typing':
+                await window.Store.Wap.sendChatstateComposing(chatId);
+                break;
+            case 'recording':
+                await window.Store.Wap.sendChatstateRecording(chatId);
+                break;
+            case 'stop':
+                await window.Store.Wap.sendChatstatePaused(chatId);
+                break;
+            default:
+                throw 'Invalid chatstate';
         }
 
         return true;
