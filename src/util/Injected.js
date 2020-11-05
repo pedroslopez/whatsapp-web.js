@@ -126,8 +126,8 @@ exports.LoadUtils = () => {
         }
 
         const newMsgId = new window.Store.MsgKey({
-            from: window.Store.Conn.me,
-            to: chat.id,
+            fromMe: true,
+            remote: chat.id,
             id: window.Store.genId(),
         });
 
@@ -136,7 +136,7 @@ exports.LoadUtils = () => {
             id: newMsgId,
             ack: 0,
             body: content,
-            from: window.Store.Conn.me,
+            from: window.Store.Conn.wid,
             to: chat.id,
             local: true,
             self: 'out',
