@@ -118,10 +118,10 @@ class Message extends Base {
         this.location = data.type === MessageTypes.LOCATION ? new Location(data.lat, data.lng, data.loc) : undefined;
 
         /**
-         * List of vcards contained in the message, if the message is a vcard or multiple vcards.
+         * List of vCards contained in the message.
          * @type {Array<string>}
          */
-        this.vcards = data.type === MessageTypes.CONTACT_CARD_MULTI ? data.vcardList.map((c) => c.vcard) : data.type === MessageTypes.CONTACT_CARD ? [data.body] : [];
+        this.vCards = data.type === MessageTypes.CONTACT_CARD_MULTI ? data.vcardList.map((c) => c.vcard) : data.type === MessageTypes.CONTACT_CARD ? [data.body] : [];
 
         /**
          * Indicates the mentions in the message body.
