@@ -465,6 +465,8 @@ declare namespace WAWebJS {
         isForwarded: boolean,
         /** Location information contained in the message, if the message is type "location" */
         location: Location,
+        /** List of vCards contained in the message */
+        vCards: string[],
         /** MediaKey that represents the sticker 'ID' */
         mediaKey?: string,
         /** Indicates the mentions in the message body. */
