@@ -62,6 +62,7 @@ Take a look at [example.js](https://github.com/pedroslopez/whatsapp-web.js/blob/
 | Promote/demote group participants | ✅ |
 | Mention users | ✅ |
 | Mute/unmute chats | ✅ |
+| Block/unblock contacts | ✅ |
 | Get contact info | ✅ |
 | Get profile pictures | ✅ |
 | Set user status message | ✅ |

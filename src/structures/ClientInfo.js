@@ -10,7 +10,7 @@ class ClientInfo extends Base {
     constructor(client, data) {
         super(client);
 
-        if(data) this._patch(data);
+        if (data) this._patch(data);
     }
 
     _patch(data) {
@@ -21,10 +21,16 @@ class ClientInfo extends Base {
         this.pushname = data.pushname;
 
         /**
+         * @type {object}
+         * @deprecated Use .wid instead
+         */
+        this.me = data.wid;
+
+        /**
          * Current user ID
          * @type {object}
          */
-        this.me = data.me;
+        this.wid = data.wid;
 
         /**
          * Information about the phone this client is connected to
