@@ -345,17 +345,17 @@ exports.LoadUtils = () => {
 
     window.WWebJS.sendChatstate = async (state, chatId) => {
         switch (state) {
-            case 'typing':
-                await window.Store.Wap.sendChatstateComposing(chatId);
-                break;
-            case 'recording':
-                await window.Store.Wap.sendChatstateRecording(chatId);
-                break;
-            case 'stop':
-                await window.Store.Wap.sendChatstatePaused(chatId);
-                break;
-            default:
-                throw 'Invalid chatstate';
+        case 'typing':
+            await window.Store.Wap.sendChatstateComposing(chatId);
+            break;
+        case 'recording':
+            await window.Store.Wap.sendChatstateRecording(chatId);
+            break;
+        case 'stop':
+            await window.Store.Wap.sendChatstatePaused(chatId);
+            break;
+        default:
+            throw 'Invalid chatstate';
         }
 
         return true;
