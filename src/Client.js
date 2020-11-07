@@ -713,6 +713,19 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Get the registered chat id in whatsapp
+     * @param {string} id the whatsapp user's ID
+     * @returns {Promise<object>}
+     */
+    async getRegisteredChatId(id) {
+        return await this.pupPage.evaluate(async (id) => {
+            let result = await window.Store.Wap.queryExist(id);
+            if( result.jid === undefined ) throw 'The number provided is not a registered whatsapp user';
+            return result.jid._serialized;
+        }, id);
+    }
+
+    /**
      * Create a new group
      * @param {string} name group title
      * @param {Array<Contact|string>} participants an array of Contacts or contact IDs to add to the group
