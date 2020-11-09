@@ -773,9 +773,25 @@ class Client extends EventEmitter {
 
     /**
      * Returns all Chats of specified label
-     * @returns {Array<ChatId>}
+     * @returns {Array<Chat>}
      */
     async getAllChatsFromLabel(labelId){
+        var x = await this.pupPage.evaluate(async (labelId) => {
+            return (window.Store.Label.get(labelId).labelItemCollection.models.reduce(function(result, i) {
+                if(i.parentType === 'Chat'){  
+                    result.push(i.parentId);
+                }
+                return result;},[]));
+        }, labelId);
+        x = await Promise.all( x.map(i => this.getChatById(i)) );
+        return x;
+    }
+
+    /**
+     * Returns all Chat's IDs of specified label
+     * @returns {Array<String>}
+     */
+    async getAllChatsIDFromLabel(labelId){
         return this.pupPage.evaluate(async (labelId) => {
             return (window.Store.Label.get(labelId).labelItemCollection.models.reduce(function(result, i) {
                 if(i.parentType === 'Chat'){  
@@ -784,7 +800,6 @@ class Client extends EventEmitter {
                 return result;},[]));
         }, labelId);
     }
-
 }
 
 module.exports = Client;
