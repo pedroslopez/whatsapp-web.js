@@ -29,6 +29,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.WidFactory = window.mR.findModule('createWid')[0];
     window.Store.BlockContact = window.mR.findModule('blockContact')[0];
     window.Store.GroupMetadata = window.mR.findModule((module) => module.default && module.default.handlePendingInvite)[0].default;
+    window.Store.Label = window.mR.findModule('LabelCollection')[0].default;
 };
 
 exports.LoadUtils = () => {
