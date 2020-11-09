@@ -231,7 +231,7 @@ class Chat extends Base {
 
     /**
      * Returns array of all labels this Chat is marked
-     * @returns {Array<Labels>}
+     * @returns {Promise<Array<Label>>}
      */
     async getLabels() {
         return this.client.getChatLabels(this.id._serialized);

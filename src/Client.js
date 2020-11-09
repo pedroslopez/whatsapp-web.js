@@ -773,7 +773,7 @@ class Client extends EventEmitter {
 
     /**
      * Returns all Chats of specified label
-     * @returns {Array<Chat>}
+     * @returns {Promise<Array<Chat>>}
      */
     async getAllChatsFromLabel(labelId){
         var x = await this.pupPage.evaluate(async (labelId) => {
@@ -789,7 +789,7 @@ class Client extends EventEmitter {
 
     /**
      * Returns all Chat's IDs of specified label
-     * @returns {Array<String>}
+     * @returns {Promise<Array<String>>}
      */
     async getAllChatsIDFromLabel(labelId){
         return this.pupPage.evaluate(async (labelId) => {
