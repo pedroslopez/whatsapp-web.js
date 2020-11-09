@@ -757,7 +757,7 @@ class Client extends EventEmitter {
         const x = await this.pupPage.evaluate(async () => {
             return  window.WWebJS.getLabels();
         }) ; 
-        return x.map(data => new Label(data));
+        return x.map(data => new Label(this , data));
     }
 
     /**
@@ -768,7 +768,7 @@ class Client extends EventEmitter {
         const x = await this.pupPage.evaluate(async (chatId) => {
             return  window.WWebJS.getChatLabels(chatId);
         }, chatId);
-        return x.map(data => new Label(data)); 
+        return x.map(data => new Label(this, data)); 
     }
 
     /**
