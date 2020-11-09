@@ -713,15 +713,13 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Get the registered chat id in whatsapp
+     * Get the registered number id in whatsapp
      * @param {string} id the whatsapp user's ID
      * @returns {Promise<object>}
      */
-    async getRegisteredChatId(id) {
-        return await this.pupPage.evaluate(async (id) => {
-            let result = await window.Store.Wap.queryExist(id);
-            if( result.jid === undefined ) throw 'The number provided is not a registered whatsapp user';
-            return result.jid._serialized;
+    async getNumberId(id) {
+        return await this.pupPage.evaluate(async numberId => {
+            return await window.WWebJS.getNumberId(numberId);
         }, id);
     }
 
