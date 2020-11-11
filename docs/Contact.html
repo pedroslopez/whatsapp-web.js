@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.4">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.10.0 &raquo; Class: Contact</title>
+  <title>whatsapp-web.js 1.11.0 &raquo; Class: Contact</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>10.<wbr>0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>11.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -40,6 +40,9 @@
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
                     <dt><a href="Contact.html#id">id</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Contact.html#isBlocked">isBlocked</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Contact.html#isBusiness">isBusiness</a></dt>
@@ -67,13 +70,13 @@
                     <dt><a href="Contact.html#isWAContact">isWAContact</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Contact.html#name">name</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Contact.html#name">name</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="Contact.html#number">number</a></dt>
                     <dd>
                     </dd>
@@ -92,6 +95,9 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Contact.html#block">block()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Contact.html#getChat">getChat()</a></dt>
                     <dd>
                     </dd>
@@ -100,6 +106,9 @@
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
                     <dt><a href="Contact.html#getProfilePicUrl">getProfilePicUrl()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Contact.html#unblock">unblock()</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -122,6 +131,11 @@
               <h3 id="id"><span class="symbol-name">id</span><small class="property-type">
                   &nbsp;object</small></h3>
               <p>ID that represents the contact</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="isBlocked"><span class="symbol-name">isBlocked</span><small class="property-type">
+                  &nbsp;boolean</small></h3>
+              <p>Indicates if you have blocked this contact</p>
               <dl class="dl-compact">
               </dl>
               <h3 id="isBusiness"><span class="symbol-name">isBusiness</span><small class="property-type">
@@ -183,6 +197,15 @@
             <h2>Methods</h2>
             <section>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="block"><span class="symbol-name">block</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Blocks this contact from WhatsApp</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="getChat"><span class="symbol-name">getChat</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="Chat.html">Chat</a></span></span></h3>
               <p>Returns the Chat that corresponds to this Contact.
                 Will return null when getting chat for currently logged in user.</p>
@@ -201,6 +224,15 @@
                   <p><code>Promise containing string</code> </p>
                 </dd>
               </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="unblock"><span class="symbol-name">unblock</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Unblocks this contact from WhatsApp</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code> </p>
+                </dd>
+              </dl>
             </section>
           </section>
         </div>
@@ -211,7 +243,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.4 on October 21, 2020.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.4 on November 5, 2020.
       </p>
     </div>
   </footer>
