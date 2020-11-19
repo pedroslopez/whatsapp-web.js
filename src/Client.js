@@ -20,6 +20,7 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @param {object} options.puppeteer - Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/
  * @param {number} options.qrRefreshIntervalMs - Refresh interval for qr code (how much time to wait before checking if the qr code has changed)
  * @param {number} options.qrTimeoutMs - Timeout for qr code selector in puppeteer
+ * @param {boolean} options.qrAsDataUrl - Set if the qrcode data returned should be string or base64-encoded image (set true for base64)
  * @param {string} options.restartOnAuthFail  - Restart client with a new session (i.e. use null 'session' var) if authentication fails
  * @param {object} options.session - Whatsapp session to restore. If not set, will start a new session
  * @param {string} options.session.WABrowserId
@@ -123,8 +124,13 @@ class Client extends EventEmitter {
 
                 const QR_CANVAS_SELECTOR = 'canvas';
                 await page.waitForSelector(QR_CANVAS_SELECTOR, { timeout: this.options.qrTimeoutMs });
-                const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0, 0, 264, 264).data));
-                const qr = jsQR(qrImgData, 264, 264).data;
+                let qr;
+                if (this.options.qrAsDataUrl) {
+                    qr = await page.$eval(QR_CANVAS_SELECTOR, canvas => canvas.toDataURL());
+                } else {
+                    const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0, 0, 264, 264).data));
+                    qr = jsQR(qrImgData, 264, 264).data;
+                }
                 /**
                 * Emitted when the QR code is received
                 * @event Client#qr
