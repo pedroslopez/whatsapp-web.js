@@ -29,7 +29,7 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @param {number} options.takeoverOnConflict - If another whatsapp web session is detected (another browser), take over the session in the current browser
  * @param {number} options.takeoverTimeoutMs - How much time to wait before taking over the session
  * @param {string} options.userAgent - User agent to use in puppeteer
- * 
+ *
  * @fires Client#qr
  * @fires Client#authenticated
  * @fires Client#auth_failure
@@ -58,7 +58,7 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Sets up events and requirements, kicks off authentication request
+     * Initializes Browser
      */
     async initialize() {
         const browser = await puppeteer.launch(this.options.puppeteer);
@@ -83,108 +83,9 @@ class Client extends EventEmitter {
             waitUntil: 'load',
             timeout: 0,
         });
-
-        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
-
-        if (this.options.session) {
-            // Check if session restore was successfull 
-            try {
-                await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: this.options.authTimeoutMs });
-            } catch (err) {
-                if (err.name === 'TimeoutError') {
-                    /**
-                     * Emitted when there has been an error while trying to restore an existing session
-                     * @event Client#auth_failure
-                     * @param {string} message
-                     */
-                    this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in. Are the session details valid?');
-                    browser.close();
-                    if (this.options.restartOnAuthFail) {
-                        // session restore failed so try again but without session to force new authentication
-                        this.options.session = null;
-                        this.initialize();
-                    }
-                    return;
-                }
-
-                throw err;
-            }
-
-        } else {
-            const getQrCode = async () => {
-                // Check if retry button is present
-                var QR_RETRY_SELECTOR = 'div[data-ref] > span > div';
-                var qrRetry = await page.$(QR_RETRY_SELECTOR);
-                if (qrRetry) {
-                    await qrRetry.click();
-                }
-
-                // Wait for QR Code
-
-                const QR_CANVAS_SELECTOR = 'canvas';
-                await page.waitForSelector(QR_CANVAS_SELECTOR, { timeout: this.options.qrTimeoutMs });
-                const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0, 0, 264, 264).data));
-                const qr = jsQR(qrImgData, 264, 264).data;
-                /**
-                * Emitted when the QR code is received
-                * @event Client#qr
-                * @param {string} qr QR Code
-                */
-                this.emit(Events.QR_RECEIVED, qr);
-            };
-            getQrCode();
-            this._qrRefreshInterval = setInterval(getQrCode, this.options.qrRefreshIntervalMs);
-
-            // Wait for code scan
-            await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 0 });
-            clearInterval(this._qrRefreshInterval);
-            this._qrRefreshInterval = undefined;
-
-        }
-
-        await page.evaluate(ExposeStore, moduleRaid.toString());
-
-        // Get session tokens
-        const localStorage = JSON.parse(await page.evaluate(() => {
-            return JSON.stringify(window.localStorage);
-        }));
-
-        const session = {
-            WABrowserId: localStorage.WABrowserId,
-            WASecretBundle: localStorage.WASecretBundle,
-            WAToken1: localStorage.WAToken1,
-            WAToken2: localStorage.WAToken2
-        };
-
-        /**
-         * Emitted when authentication is successful
-         * @event Client#authenticated
-         * @param {object} session Object containing session information. Can be used to restore the session.
-         * @param {string} session.WABrowserId
-         * @param {string} session.WASecretBundle
-         * @param {string} session.WAToken1
-         * @param {string} session.WAToken2
-         */
-        this.emit(Events.AUTHENTICATED, session);
-
-        // Check window.Store Injection
-        await page.waitForFunction('window.Store != undefined');
-
-        //Load util functions (serializers, helper functions)
-        await page.evaluate(LoadUtils);
-
-        // Expose client info
-        /**
-         * Current connection information
-         * @type {ClientInfo}
-         */
-        this.info = new ClientInfo(this, await page.evaluate(() => {
-            return window.Store.Conn.serialize();
-        }));
-
-        // Add InterfaceController
-        this.interface = new InterfaceController(this);
-
+        
+        await page.on('framenavigated', (frame) => this.setup(frame));
+        
         // Register events
         await page.exposeFunction('onAddMessageEvent', msg => {
             if (!msg.isNewMsg) return;
@@ -250,7 +151,7 @@ class Client extends EventEmitter {
                  * Emitted when a message is deleted for everyone in the chat.
                  * @event Client#message_revoke_everyone
                  * @param {Message} message The message that was revoked, in its current state. It will not contain the original message's data.
-                 * @param {?Message} revoked_msg The message that was revoked, before it was revoked. It will contain the message's original data. 
+                 * @param {?Message} revoked_msg The message that was revoked, before it was revoked. It will contain the message's original data.
                  * Note that due to the way this data is captured, it may be possible that this param will be undefined.
                  */
                 this.emit(Events.MESSAGE_REVOKED_EVERYONE, message, revoked_msg);
@@ -354,15 +255,143 @@ class Client extends EventEmitter {
             this.emit(Events.BATTERY_CHANGED, { battery, plugged });
         });
 
+    }
+
+    /**
+     * Sets up events and requirements, kicks off authentication request
+     */
+    async setup(frame, page = this.pupPage, browser = this.pupBrowser) {
+
+        if (frame.url() !== WhatsWebURL || page.url() !== WhatsWebURL) {
+            return;
+        }
+
+        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
+
+        if (this.options.session) {
+            // Check if session restore was successfull 
+            try {
+                await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, {timeout: this.options.authTimeoutMs});
+            } catch (err) {
+                if (err.name === 'TimeoutError') {
+                    /**
+                     * Emitted when there has been an error while trying to restore an existing session
+                     * @event Client#auth_failure
+                     * @param {string} message
+                     */
+                    this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in. Are the session details valid?');
+                    browser.close();
+                    if (this.options.restartOnAuthFail) {
+                        // session restore failed so try again but without session to force new authentication
+                        this.options.session = null;
+                        this.initialize();
+                    }
+                    return;
+                }
+
+                throw err;
+            }
+
+        } else {
+            const getQrCode = async () => {
+                // Check if retry button is present
+                var QR_RETRY_SELECTOR = 'div[data-ref] > span > div';
+                var qrRetry = await page.$(QR_RETRY_SELECTOR);
+                if (qrRetry) {
+                    await qrRetry.click();
+                }
+
+                // Wait for QR Code
+
+                const QR_CANVAS_SELECTOR = 'canvas';
+                await page.waitForSelector(QR_CANVAS_SELECTOR, {timeout: this.options.qrTimeoutMs});
+                const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0, 0, 264, 264).data));
+                const qr = jsQR(qrImgData, 264, 264).data;
+                /**
+                 * Emitted when the QR code is received
+                 * @event Client#qr
+                 * @param {string} qr QR Code
+                 */
+                this.emit(Events.QR_RECEIVED, qr);
+            };
+            getQrCode();
+            this._qrRefreshInterval = setInterval(getQrCode, this.options.qrRefreshIntervalMs);
+
+            // Wait for code scan
+            await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, {timeout: 0});
+            clearInterval(this._qrRefreshInterval);
+            this._qrRefreshInterval = undefined;
+
+        }
+
+        await page.evaluate(ExposeStore, moduleRaid.toString());
+
+        // Get session tokens
+        const localStorage = JSON.parse(await page.evaluate(() => {
+            return JSON.stringify(window.localStorage);
+        }));
+
+        const session = {
+            WABrowserId: localStorage.WABrowserId,
+            WASecretBundle: localStorage.WASecretBundle,
+            WAToken1: localStorage.WAToken1,
+            WAToken2: localStorage.WAToken2
+        };
+
+        /**
+         * Emitted when authentication is successful
+         * @event Client#authenticated
+         * @param {object} session Object containing session information. Can be used to restore the session.
+         * @param {string} session.WABrowserId
+         * @param {string} session.WASecretBundle
+         * @param {string} session.WAToken1
+         * @param {string} session.WAToken2
+         */
+        this.emit(Events.AUTHENTICATED, session);
+
+        // Check window.Store Injection
+        await page.waitForFunction('window.Store != undefined');
+
+        //Load util functions (serializers, helper functions)
+        await page.evaluate(LoadUtils);
+
+        // Expose client info
+        /**
+         * Current connection information
+         * @type {ClientInfo}
+         */
+        this.info = new ClientInfo(this, await page.evaluate(() => {
+            return window.Store.Conn.serialize();
+        }));
+
+        // Add InterfaceController
+        this.interface = new InterfaceController(this);
+
         await page.evaluate(() => {
-            window.Store.Msg.on('add', (msg) => { if (msg.isNewMsg) window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); });
-            window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
-            window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
-            window.Store.Msg.on('change:ack', (msg,ack) => { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
-            window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => { if (msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(window.WWebJS.getMessageModel(msg)); });
-            window.Store.Msg.on('remove', (msg) => { if (msg.isNewMsg) window.onRemoveMessageEvent(window.WWebJS.getMessageModel(msg)); });
-            window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
-            window.Store.Conn.on('change:battery', (state) => { window.onBatteryStateChangedEvent(state); });
+            window.Store.Msg.on('add', (msg) => {
+                if (msg.isNewMsg) window.onAddMessageEvent(window.WWebJS.getMessageModel(msg));
+            });
+            window.Store.Msg.on('change', (msg) => {
+                window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg));
+            });
+            window.Store.Msg.on('change:type', (msg) => {
+                window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg));
+            });
+            window.Store.Msg.on('change:ack', (msg, ack) => {
+                window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack);
+            });
+            window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => {
+                if (msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(window.WWebJS.getMessageModel(msg));
+            });
+            window.Store.Msg.on('remove', (msg) => {
+                if (msg.isNewMsg) window.onRemoveMessageEvent(window.WWebJS.getMessageModel(msg));
+            });
+            window.Store.AppState.on('change:state', (_AppState, state) => {
+                window.onAppStateChangedEvent(state);
+            });
+            window.Store.Conn.on('change:battery', (state) => {
+                window.onBatteryStateChangedEvent(state);
+            });
         });
 
         /**
@@ -405,7 +434,7 @@ class Client extends EventEmitter {
      * Mark as seen for the Chat
      *  @param {string} chatId
      *  @returns {Promise<boolean>} result
-     * 
+     *
      */
     async sendSeen(chatId) {
         const result = await this.pupPage.evaluate(async (chatId) => {
@@ -433,7 +462,7 @@ class Client extends EventEmitter {
      * @param {string} chatId
      * @param {string|MessageMedia|Location|Contact|Array<Contact>} content
      * @param {MessageSendOptions} [options] - Options used when sending the message
-     * 
+     *
      * @returns {Promise<Message>} Message that was just sent
      */
     async sendMessage(chatId, content, options = {}) {
@@ -495,7 +524,7 @@ class Client extends EventEmitter {
 
     /**
      * Get chat instance by ID
-     * @param {string} chatId 
+     * @param {string} chatId
      * @returns {Promise<Chat>}
      */
     async getChatById(chatId) {
@@ -533,7 +562,7 @@ class Client extends EventEmitter {
 
     /**
      * Returns an object with information about the invite code's group
-     * @param {string} inviteCode 
+     * @param {string} inviteCode
      * @returns {Promise<object>} Invite information
      */
     async getInviteInfo(inviteCode) {
@@ -565,7 +594,7 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Sets the current user's display name. 
+     * Sets the current user's display name.
      * This is the name shown to WhatsApp users that have not added you as a contact beside your number in groups and in your profile.
      * @param {string} displayName New display name
      */
@@ -577,7 +606,7 @@ class Client extends EventEmitter {
 
     /**
      * Gets the current connection state for the client
-     * @returns {WAState} 
+     * @returns {WAState}
      */
     async getState() {
         return await this.pupPage.evaluate(() => {
@@ -693,7 +722,7 @@ class Client extends EventEmitter {
 
     /**
      * Force reset of connection state for the client
-    */
+     */
     async resetState() {
         await this.pupPage.evaluate(() => {
             window.Store.AppState.phoneWatchdog.shiftTimer.forceRunNow();
