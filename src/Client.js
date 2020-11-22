@@ -84,7 +84,15 @@ class Client extends EventEmitter {
             timeout: 0,
         });
         
-        await page.on('framenavigated', (frame) => this.setup(frame));
+        let frame_load = true;
+        await page.on('framenavigated', (frame) => {
+            if (frame_load) {
+                this.setup(frame);
+                frame_load = false;
+                return;
+            }
+            frame_load = true;
+        });
         
         // Register events
         await page.exposeFunction('onAddMessageEvent', msg => {
