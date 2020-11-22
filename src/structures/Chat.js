@@ -46,7 +46,7 @@ class Chat extends Base {
         this.unreadCount = data.unreadCount;
 
         /**
-         * Unix timestamp for when the chat was created
+         * Unix timestamp for when the last activity occurred
          * @type {number}
          */
         this.timestamp = data.t;
@@ -57,13 +57,31 @@ class Chat extends Base {
          */
         this.archived = data.archive;
 
+        /**
+         * Indicates if the Chat is pinned
+         * @type {boolean}
+         */
+        this.pinned = !!data.pin;
+
+        /**
+         * Indicates if the chat is muted or not
+         * @type {number}
+         */
+        this.isMuted = data.isMuted;
+
+        /**
+         * Unix timestamp for when the mute expires
+         * @type {number}
+         */
+        this.muteExpiration = data.muteExpiration;
+
         return super._patch(data);
     }
 
     /**
      * Send a message to this chat
      * @param {string|MessageMedia|Location} content
-     * @param {object} options 
+     * @param {MessageSendOptions} [options] 
      * @returns {Promise<Message>} Message that was just sent
      */
     async sendMessage(content, options) {
@@ -113,13 +131,29 @@ class Chat extends Base {
     }
 
     /**
+     * Pins this chat
+     * @returns {Promise<boolean>} New pin state. Could be false if the max number of pinned chats was reached.
+     */
+    async pin() {
+        return this.client.pinChat(this.id._serialized);
+    }
+
+    /**
+     * Unpins this chat
+     * @returns {Promise<boolean>} New pin state
+     */
+    async unpin() {
+        return this.client.unpinChat(this.id._serialized);
+    }
+
+    /**
      * Mutes this chat until a specified date
      * @param {Date} unmuteDate Date at which the Chat will be unmuted
      */
     async mute(unmuteDate) {
         return this.client.muteChat(this.id._serialized, unmuteDate);
     }
-    
+
     /**
      * Unmutes this chat
      */
@@ -134,29 +168,30 @@ class Chat extends Base {
      * @returns {Promise<Array<Message>>}
      */
     async fetchMessages(searchOptions) {
-        if(!searchOptions || !searchOptions.limit) {
-            searchOptions = {limit: 50};
+        if (!searchOptions || !searchOptions.limit) {
+            searchOptions = { limit: 50 };
         }
         let messages = await this.client.pupPage.evaluate(async (chatId, limit) => {
             const msgFilter = m => !m.isNotification; // dont include notification messages
-            
+
             const chat = window.Store.Chat.get(chatId);
             let msgs = chat.msgs.models.filter(msgFilter);
-            
-            while(msgs.length < limit) {
+
+            while (msgs.length < limit) {
                 const loadedMessages = await chat.loadEarlierMsgs();
-                if(!loadedMessages) break;
+                if (!loadedMessages) break;
                 msgs = [...loadedMessages.filter(msgFilter), ...msgs];
             }
 
             msgs.sort((a, b) => (a.t > b.t) ? 1 : -1);
-            return msgs.splice(msgs.length - limit).map(m => m.serialize());
+            if (msgs.length > limit) msgs = msgs.splice(msgs.length - limit);
+            return msgs.map(m => window.WWebJS.getMessageModel(m));
 
         }, this.id._serialized, searchOptions.limit);
 
         return messages.map(m => new Message(this.client, m));
     }
-   
+
     /**
      * Simulate typing in chat. This will last for 25 seconds.
      */
@@ -166,7 +201,7 @@ class Chat extends Base {
             return true;
         }, this.id._serialized);
     }
-    
+
     /**
      * Simulate recording audio in chat. This will last for 25 seconds.
      */
@@ -185,6 +220,14 @@ class Chat extends Base {
             window.WWebJS.sendChatstate('stop', chatId);
             return true;
         }, this.id._serialized);
+    }
+
+    /**
+     * Returns the Contact that corresponds to this Chat.
+     * @returns {Promise<Contact>}
+     */
+    async getContact() {
+        return await this.client.getContactById(this.id._serialized);
     }
 }
 

@@ -35,6 +35,7 @@ class GroupChat extends Chat {
     get description() {
         return this.groupMetadata.desc;
     }
+
     /**
      * Gets the group participants
      * @type {array}
@@ -113,6 +114,38 @@ class GroupChat extends Chat {
     }
 
     /**
+     * Updates the group settings to only allow admins to send messages.
+     * @param {boolean} [adminsOnly=true] Enable or disable this option 
+     * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
+     */
+    async setMessagesAdminsOnly(adminsOnly=true) {
+        let res = await this.client.pupPage.evaluate((chatId, value) => {
+            return window.Store.Wap.setGroupProperty(chatId, 'announcement', value);
+        }, this.id._serialized, adminsOnly);
+
+        if (res.status !== 200) return false;
+        
+        this.groupMetadata.announce = adminsOnly;
+        return true;
+    }
+
+    /**
+     * Updates the group settings to only allow admins to edit group info (title, description, photo).
+     * @param {boolean} [adminsOnly=true] Enable or disable this option 
+     * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
+     */
+    async setInfoAdminsOnly(adminsOnly=true) {
+        let res = await this.client.pupPage.evaluate((chatId, value) => {
+            return window.Store.Wap.setGroupProperty(chatId, 'restrict', value);
+        }, this.id._serialized, adminsOnly);
+
+        if (res.status !== 200) return false;
+        
+        this.groupMetadata.restrict = adminsOnly;
+        return true;
+    }
+
+    /**
      * Gets the invite code for a specific group
      */
     async getInviteCode() {
@@ -134,27 +167,6 @@ class GroupChat extends Chat {
         return await this.client.pupPage.evaluate(chatId => {
             return window.Store.Wap.revokeGroupInvite(chatId);
         }, this.id._serialized);
-    }
-
-    /**
-     * Returns an object with information about the invite code's group
-     * @param {string} inviteCode 
-     * @returns {Promise<object>} Invite information
-     */
-    static async getInviteInfo(inviteCode) {
-        return await this.client.pupPage.evaluate(inviteCode => {
-            return window.Store.Wap.groupInviteInfo(inviteCode);
-        }, inviteCode);
-    }
-
-    /**
-     * Joins a group with an invite code
-     * @param {string} inviteCode 
-     */
-    static async join(inviteCode) {
-        return await this.client.pupPage.evaluate(inviteCode => {
-            return window.Store.Wap.acceptGroupInvite(inviteCode);
-        }, inviteCode);
     }
 
     /**

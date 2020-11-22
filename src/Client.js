@@ -6,7 +6,8 @@ const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
 const jsQR = require('jsqr');
 
 const Util = require('./util/Util');
-const { WhatsWebURL, UserAgent, DefaultOptions, Events, WAState } = require('./util/Constants');
+const InterfaceController = require('./util/InterfaceController');
+const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constants');
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
@@ -14,6 +15,21 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
 /**
  * Starting point for interacting with the WhatsApp Web API
  * @extends {EventEmitter}
+ * @param {object} options - Client options
+ * @param {number} options.authTimeoutMs - Timeout for authentication selector in puppeteer
+ * @param {object} options.puppeteer - Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/
+ * @param {number} options.qrRefreshIntervalMs - Refresh interval for qr code (how much time to wait before checking if the qr code has changed)
+ * @param {number} options.qrTimeoutMs - Timeout for qr code selector in puppeteer
+ * @param {string} options.restartOnAuthFail  - Restart client with a new session (i.e. use null 'session' var) if authentication fails
+ * @param {object} options.session - Whatsapp session to restore. If not set, will start a new session
+ * @param {string} options.session.WABrowserId
+ * @param {string} options.session.WASecretBundle
+ * @param {string} options.session.WAToken1
+ * @param {string} options.session.WAToken2
+ * @param {number} options.takeoverOnConflict - If another whatsapp web session is detected (another browser), take over the session in the current browser
+ * @param {number} options.takeoverTimeoutMs - How much time to wait before taking over the session
+ * @param {string} options.userAgent - User agent to use in puppeteer
+ * 
  * @fires Client#qr
  * @fires Client#authenticated
  * @fires Client#auth_failure
@@ -47,11 +63,11 @@ class Client extends EventEmitter {
     async initialize() {
         const browser = await puppeteer.launch(this.options.puppeteer);
         const page = (await browser.pages())[0];
-        page.setUserAgent(UserAgent);
+        page.setUserAgent(this.options.userAgent);
 
         this.pupBrowser = browser;
         this.pupPage = page;
-        
+
         if (this.options.session) {
             await page.evaluateOnNewDocument(
                 session => {
@@ -67,8 +83,8 @@ class Client extends EventEmitter {
             waitUntil: 'load',
             timeout: 0,
         });
-        
-        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image="true"]';
+
+        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
 
         if (this.options.session) {
             // Check if session restore was successfull 
@@ -117,11 +133,12 @@ class Client extends EventEmitter {
                 this.emit(Events.QR_RECEIVED, qr);
             };
             getQrCode();
-            let retryInterval = setInterval(getQrCode, this.options.qrRefreshIntervalMs);
+            this._qrRefreshInterval = setInterval(getQrCode, this.options.qrRefreshIntervalMs);
 
             // Wait for code scan
             await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 0 });
-            clearInterval(retryInterval);
+            clearInterval(this._qrRefreshInterval);
+            this._qrRefreshInterval = undefined;
 
         }
 
@@ -143,6 +160,10 @@ class Client extends EventEmitter {
          * Emitted when authentication is successful
          * @event Client#authenticated
          * @param {object} session Object containing session information. Can be used to restore the session.
+         * @param {string} session.WABrowserId
+         * @param {string} session.WASecretBundle
+         * @param {string} session.WAToken1
+         * @param {string} session.WAToken2
          */
         this.emit(Events.AUTHENTICATED, session);
 
@@ -153,9 +174,16 @@ class Client extends EventEmitter {
         await page.evaluate(LoadUtils);
 
         // Expose client info
+        /**
+         * Current connection information
+         * @type {ClientInfo}
+         */
         this.info = new ClientInfo(this, await page.evaluate(() => {
             return window.Store.Conn.serialize();
         }));
+
+        // Add InterfaceController
+        this.interface = new InterfaceController(this);
 
         // Register events
         await page.exposeFunction('onAddMessageEvent', msg => {
@@ -187,7 +215,7 @@ class Client extends EventEmitter {
                 }
                 return;
             }
-            
+
             const message = new Message(this, msg);
 
             /**
@@ -256,7 +284,7 @@ class Client extends EventEmitter {
         await page.exposeFunction('onMessageAckEvent', (msg, ack) => {
 
             const message = new Message(this, msg);
-            
+
             /**
              * Emitted when an ack event occurrs on message type.
              * @event Client#message_ack
@@ -270,7 +298,7 @@ class Client extends EventEmitter {
         await page.exposeFunction('onMessageMediaUploadedEvent', (msg) => {
 
             const message = new Message(this, msg);
-            
+
             /**
              * Emitted when media has been uploaded for a message sent by the client.
              * @event Client#media_uploaded
@@ -290,10 +318,10 @@ class Client extends EventEmitter {
 
             const ACCEPTED_STATES = [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING, WAState.TIMEOUT];
 
-            if(this.options.takeoverOnConflict) {
+            if (this.options.takeoverOnConflict) {
                 ACCEPTED_STATES.push(WAState.CONFLICT);
 
-                if(state === WAState.CONFLICT) {
+                if (state === WAState.CONFLICT) {
                     setTimeout(() => {
                         this.pupPage.evaluate(() => window.Store.AppState.takeover());
                     }, this.options.takeoverTimeoutMs);
@@ -314,7 +342,7 @@ class Client extends EventEmitter {
         await page.exposeFunction('onBatteryStateChangedEvent', (state) => {
             const { battery, plugged } = state;
 
-            if(battery === undefined) return;
+            if (battery === undefined) return;
 
             /**
              * Emitted when the battery percentage for the attached device changes
@@ -327,12 +355,12 @@ class Client extends EventEmitter {
         });
 
         await page.evaluate(() => {
-            window.Store.Msg.on('add', (msg) => { if(msg.isNewMsg) window.onAddMessageEvent(msg); });
-            window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(msg); });
-            window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(msg); });
-            window.Store.Msg.on('change:ack', (msg, ack) => { window.onMessageAckEvent(msg, ack); });
-            window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => { if(msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(msg); });
-            window.Store.Msg.on('remove', (msg) => { if(msg.isNewMsg) window.onRemoveMessageEvent(msg); });
+            window.Store.Msg.on('add', (msg) => { if (msg.isNewMsg) window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); });
+            window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
+            window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
+            window.Store.Msg.on('change:ack', (msg,ack) => { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
+            window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => { if (msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(window.WWebJS.getMessageModel(msg)); });
+            window.Store.Msg.on('remove', (msg) => { if (msg.isNewMsg) window.onRemoveMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
             window.Store.Conn.on('change:battery', (state) => { window.onBatteryStateChangedEvent(state); });
         });
@@ -348,12 +376,24 @@ class Client extends EventEmitter {
      * Closes the client
      */
     async destroy() {
+        if (this._qrRefreshInterval) {
+            clearInterval(this._qrRefreshInterval);
+        }
         await this.pupBrowser.close();
     }
 
     /**
+     * Logs out the client, closing the current session
+     */
+    async logout() {
+        return await this.pupPage.evaluate(() => {
+            return window.Store.AppState.logout();
+        });
+    }
+
+    /**
      * Returns the version of WhatsApp Web currently being run
-     * @returns Promise<string>
+     * @returns {Promise<string>}
      */
     async getWWebVersion() {
         return await this.pupPage.evaluate(() => {
@@ -376,10 +416,24 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Message options.
+     * @typedef {Object} MessageSendOptions
+     * @property {boolean} [linkPreview=true] - Show links preview
+     * @property {boolean} [sendAudioAsVoice=false] - Send audio as voice message
+     * @property {boolean} [parseVCards=true] - Automatically parse vCards and send them as contacts
+     * @property {string} [caption] - Image or video caption
+     * @property {string} [quotedMessageId] - Id of the message that is being quoted (or replied to)
+     * @property {Contact[]} [mentions] - Contacts that are being mentioned in the message
+     * @property {boolean} [sendSeen=true] - Mark the conversation as seen after sending the message
+     * @property {boolean} [media] - Media to be sent
+     */
+
+    /**
      * Send a message to a specific chatId
      * @param {string} chatId
-     * @param {string|MessageMedia|Location} content
-     * @param {object} options 
+     * @param {string|MessageMedia|Location|Contact|Array<Contact>} content
+     * @param {MessageSendOptions} [options] - Options used when sending the message
+     * 
      * @returns {Promise<Message>} Message that was just sent
      */
     async sendMessage(chatId, content, options = {}) {
@@ -388,9 +442,10 @@ class Client extends EventEmitter {
             sendAudioAsVoice: options.sendAudioAsVoice,
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
+            parseVCards: options.parseVCards === false ? false : true,
             mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact => contact.id._serialized) : []
         };
-        
+
         const sendSeen = typeof options.sendSeen === 'undefined' ? true : options.sendSeen;
 
         if (content instanceof MessageMedia) {
@@ -403,13 +458,19 @@ class Client extends EventEmitter {
         } else if (content instanceof Location) {
             internalOptions.location = content;
             content = '';
+        } else if(content instanceof Contact) {
+            internalOptions.contactCard = content.id._serialized;
+            content = '';
+        } else if(Array.isArray(content) && content.length > 0 && content[0] instanceof Contact) {
+            internalOptions.contactCardList = content.map(contact => contact.id._serialized);
+            content = '';
         }
 
         const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             const chat = await window.Store.Chat.find(chatWid);
 
-            if(sendSeen) {
+            if (sendSeen) {
                 window.WWebJS.sendSeen(chatId);
             }
 
@@ -425,8 +486,8 @@ class Client extends EventEmitter {
      * @returns {Promise<Array<Chat>>}
      */
     async getChats() {
-        let chats = await this.pupPage.evaluate(() => {
-            return window.WWebJS.getChats();
+        let chats = await this.pupPage.evaluate(async () => {
+            return await window.WWebJS.getChats();
         });
 
         return chats.map(chat => ChatFactory.create(this, chat));
@@ -438,8 +499,8 @@ class Client extends EventEmitter {
      * @returns {Promise<Chat>}
      */
     async getChatById(chatId) {
-        let chat = await this.pupPage.evaluate(chatId => {
-            return window.WWebJS.getChat(chatId);
+        let chat = await this.pupPage.evaluate(async chatId => {
+            return await window.WWebJS.getChat(chatId);
         }, chatId);
 
         return ChatFactory.create(this, chat);
@@ -471,6 +532,17 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Returns an object with information about the invite code's group
+     * @param {string} inviteCode 
+     * @returns {Promise<object>} Invite information
+     */
+    async getInviteInfo(inviteCode) {
+        return await this.pupPage.evaluate(inviteCode => {
+            return window.Store.Wap.groupInviteInfo(inviteCode);
+        }, inviteCode);
+    }
+
+    /**
      * Accepts an invitation to join a group
      * @param {string} inviteCode Invitation code
      */
@@ -490,6 +562,17 @@ class Client extends EventEmitter {
         await this.pupPage.evaluate(async status => {
             return await window.Store.Wap.sendSetStatus(status);
         }, status);
+    }
+
+    /**
+     * Sets the current user's display name. 
+     * This is the name shown to WhatsApp users that have not added you as a contact beside your number in groups and in your profile.
+     * @param {string} displayName New display name
+     */
+    async setDisplayName(displayName) {
+        await this.pupPage.evaluate(async displayName => {
+            return await window.Store.Wap.setPushname(displayName);
+        }, displayName);
     }
 
     /**
@@ -536,6 +619,43 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Pins the Chat
+     * @returns {Promise<boolean>} New pin state. Could be false if the max number of pinned chats was reached.
+     */
+    async pinChat(chatId) {
+        return this.pupPage.evaluate(async chatId => {
+            let chat = window.Store.Chat.get(chatId);
+            if (chat.pin) {
+                return true;
+            }
+            const MAX_PIN_COUNT = 3;
+            if (window.Store.Chat.models.length > MAX_PIN_COUNT) {
+                let maxPinned = window.Store.Chat.models[MAX_PIN_COUNT - 1].pin;
+                if (maxPinned) {
+                    return false;
+                }
+            }
+            await window.Store.Cmd.pinChat(chat, true);
+            return true;
+        }, chatId);
+    }
+
+    /**
+     * Unpins the Chat
+     * @returns {Promise<boolean>} New pin state
+     */
+    async unpinChat(chatId) {
+        return this.pupPage.evaluate(async chatId => {
+            let chat = window.Store.Chat.get(chatId);
+            if (!chat.pin) {
+                return false;
+            }
+            await window.Store.Cmd.pinChat(chat, false);
+            return false;
+        }, chatId);
+    }
+
+    /**
      * Mutes the Chat until a specified date
      * @param {string} chatId ID of the chat that will be muted
      * @param {Date} unmuteDate Date when the chat will be unmuted
@@ -546,7 +666,7 @@ class Client extends EventEmitter {
             await chat.mute.mute(timestamp, !0);
         }, chatId, unmuteDate.getTime() / 1000);
     }
-    
+
     /**
      * Unmutes the Chat
      * @param {string} chatId ID of the chat that will be unmuted
@@ -557,7 +677,7 @@ class Client extends EventEmitter {
             await window.Store.Cmd.muteChat(chat, false);
         }, chatId);
     }
-    
+
     /**
      * Returns the contact ID's profile picture URL, if privacy settings allow it
      * @param {string} contactId the whatsapp user's ID
@@ -574,7 +694,7 @@ class Client extends EventEmitter {
     /**
      * Force reset of connection state for the client
     */
-    async resetState(){
+    async resetState() {
         await this.pupPage.evaluate(() => {
             window.Store.AppState.phoneWatchdog.shiftTimer.forceRunNow();
         });
@@ -582,6 +702,7 @@ class Client extends EventEmitter {
 
     /**
      * Check if a given ID is registered in whatsapp
+     * @param {string} id the whatsapp user's ID
      * @returns {Promise<Boolean>}
      */
     async isRegisteredUser(id) {
@@ -600,18 +721,18 @@ class Client extends EventEmitter {
      * @returns {Object.<string,string>} createRes.missingParticipants - participants that were not added to the group. Keys represent the ID for participant that was not added and its value is a status code that represents the reason why participant could not be added. This is usually 403 if the user's privacy settings don't allow you to add them to groups.
      */
     async createGroup(name, participants) {
-        if(!Array.isArray(participants) || participants.length == 0) {
+        if (!Array.isArray(participants) || participants.length == 0) {
             throw 'You need to add at least one other participant to the group';
         }
 
-        if(participants.every(c => c instanceof Contact)) {
+        if (participants.every(c => c instanceof Contact)) {
             participants = participants.map(c => c.id._serialized);
         }
 
         const createRes = await this.pupPage.evaluate(async (name, participantIds) => {
             const res = await window.Store.Wap.createGroup(name, participantIds);
             console.log(res);
-            if(!res.status === 200) {
+            if (!res.status === 200) {
                 throw 'An error occurred while creating the group!';
             }
 
@@ -621,11 +742,11 @@ class Client extends EventEmitter {
         const missingParticipants = createRes.participants.reduce(((missing, c) => {
             const id = Object.keys(c)[0];
             const statusCode = c[id].code;
-            if(statusCode != 200) return Object.assign(missing, {[id]: statusCode});
+            if (statusCode != 200) return Object.assign(missing, { [id]: statusCode });
             return missing;
         }), {});
 
-        return { gid: createRes.gid, missingParticipants};
+        return { gid: createRes.gid, missingParticipants };
     }
 
 }

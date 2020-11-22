@@ -95,6 +95,12 @@ class Contact extends Base {
          */
         this.isMyContact = data.isMyContact;
 
+        /**
+         * Indicates if you have blocked this contact
+         * @type {boolean}
+         */
+        this.isBlocked = data.isBlocked;
+
         return super._patch(data);
     }
 
@@ -104,6 +110,47 @@ class Contact extends Base {
      */
     async getProfilePicUrl() {
         return await this.client.getProfilePicUrl(this.id._serialized);
+    }
+
+    /**
+     * Returns the Chat that corresponds to this Contact. 
+     * Will return null when getting chat for currently logged in user.
+     * @returns {Promise<Chat>}
+     */
+    async getChat() {
+        if(this.isMe) return null;
+
+        return await this.client.getChatById(this.id._serialized);
+    }
+
+    /**
+     * Blocks this contact from WhatsApp
+     * @returns {Promise<boolean>}
+     */
+    async block() {
+        if(this.isGroup) return false;
+
+        await this.client.pupPage.evaluate(async (contactId) => {
+            const contact = window.Store.Contact.get(contactId);
+            await window.Store.BlockContact.blockContact(contact);
+        }, this.id._serialized);
+
+        return true;
+    }
+
+    /**
+     * Unblocks this contact from WhatsApp
+     * @returns {Promise<boolean>}
+     */
+    async unblock() {
+        if(this.isGroup) return false;
+
+        await this.client.pupPage.evaluate(async (contactId) => {
+            const contact = window.Store.Contact.get(contactId);
+            await window.Store.BlockContact.unblockContact(contact);
+        }, this.id._serialized);
+
+        return true;
     }
     
 }
