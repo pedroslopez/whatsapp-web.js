@@ -32,6 +32,17 @@ class InterfaceController {
     }
 
     /**
+     * Opens the Chat Search
+     * @param {string} chatId ID of the chat search that will be opened
+     */
+    async openChatSearch(chatId) {
+        await this.pupPage.evaluate(async chatId => {
+            let chat = await window.Store.Chat.get(chatId);
+            await window.Store.Cmd.chatSearch(chat);
+        }, chatId);
+    }
+
+    /**
      * Opens or Scrolls the Chat Window to the position of the message
      * @param {string} msgId ID of the message that will be scrolled to
      */
