@@ -217,7 +217,7 @@ class Chat extends Base {
 
                 filteredMessages = loadedMessages.filter(msgFilter);
                 msgs = [...msgs, ...filteredMessages];
-            } while(filteredMessages.length > 0)
+            } while(filteredMessages.length > 0);
 
             msgs.sort((a, b) => (a.t > b.t) ? 1 : -1);
             return msgs.map(m => window.WWebJS.getMessageModel(m));
