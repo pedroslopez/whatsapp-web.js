@@ -191,6 +191,41 @@ class Chat extends Base {
 
         return messages.map(m => new Message(this.client, m));
     }
+	
+    /**
+     * Loads chat messages after a given timestamp, sorted from earliest to latest.
+     * @param {Object} searchOptions Options for searching messages. Right now only limit is supported.
+     * @param {Number} [timestamp=] The unix timestamp to get the messages after it to return. You need to provide a valid timestamp or will return an empty result
+     * @returns {Promise<Array<Message>>}
+     */
+    async fetchMessagesAfter(timestamp) {
+        if(typeof timestamp !== 'number' || timestamp < 1) return [];
+
+        const date = new Date(timestamp * 1000);
+        if(date instanceof Date === false || isNaN(date.valueOf())) return [];		
+		
+        let messages = await this.client.pupPage.evaluate(async (chatId, timestamp) => {
+            const msgFilter = m => !m.isNotification && m.t > timestamp; // dont include notification messages, and older than given timestamp
+
+            const chat = window.Store.Chat.get(chatId);
+            let msgs = chat.msgs.models.filter(msgFilter);
+
+            let filteredMessages = [];
+            do{
+                const loadedMessages = await chat.loadEarlierMsgs();
+                if (!loadedMessages) break;
+
+                filteredMessages = loadedMessages.filter(msgFilter);
+                msgs = [...msgs, ...filteredMessages];
+            } while(filteredMessages.length > 0)
+
+            msgs.sort((a, b) => (a.t > b.t) ? 1 : -1);
+            return msgs.map(m => window.WWebJS.getMessageModel(m));
+
+        }, this.id._serialized, timestamp);
+
+        return messages.map(m => new Message(this.client, m));
+    }
 
     /**
      * Simulate typing in chat. This will last for 25 seconds.
