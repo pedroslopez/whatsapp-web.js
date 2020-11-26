@@ -168,14 +168,15 @@ class Chat extends Base {
 	 * @param {Number} [searchOptions.timestamp] Unix timestamp to return only messages after a given date/time. If you do not provide a valid timestamp, it will be ignored; and will use only searchOptions.limit value
      * @returns {Promise<Array<Message>>}
      */
-	async fetchMessages(searchOptions) {
+    async fetchMessages(searchOptions) {
         let {limit, timestamp} = searchOptions || {};
 
         if(timestamp < 1) timestamp = null;
         if(limit === undefined || limit === null) limit = (timestamp ? limit : 50);
         if(timestamp){
             const date = new Date(timestamp * 1000);
-            if(date instanceof Date === false || isNaN(date.valueOf())) timestamp = null;
+            if(date instanceof Date === false || isNaN(date.valueOf()))
+		        timestamp = null;
         }
 
         let messages = await this.client.pupPage.evaluate(async (chatId, limit, timestamp) => {
