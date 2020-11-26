@@ -165,47 +165,22 @@ class Chat extends Base {
      * Loads chat messages, sorted from earliest to latest.
      * @param {Object} searchOptions Options for searching messages. Right now only limit is supported.
      * @param {Number} [searchOptions.limit=50] The amount of messages to return. Note that the actual number of returned messages may be smaller if there aren't enough messages in the conversation. Set this to Infinity to load all messages.
+	 * @param {Number} [searchOptions.timestamp] Unix timestamp to return only messages after a given date/time. If you do not provide a valid timestamp, it will be ignored; and will use only searchOptions.limit value
      * @returns {Promise<Array<Message>>}
      */
-    async fetchMessages(searchOptions) {
-        if (!searchOptions || !searchOptions.limit) {
-            searchOptions = { limit: 50 };
+	async fetchMessages(searchOptions) {
+        let {limit, timestamp} = searchOptions || {};
+
+        if(timestamp < 1) timestamp = null;
+        if(limit === undefined || limit === null) limit = (timestamp ? limit : 50);
+        if(timestamp){
+            const date = new Date(timestamp * 1000);
+            if(date instanceof Date === false || isNaN(date.valueOf())) timestamp = null;
         }
-        let messages = await this.client.pupPage.evaluate(async (chatId, limit) => {
-            const msgFilter = m => !m.isNotification; // dont include notification messages
 
-            const chat = window.Store.Chat.get(chatId);
-            let msgs = chat.msgs.models.filter(msgFilter);
-
-            while (msgs.length < limit) {
-                const loadedMessages = await chat.loadEarlierMsgs();
-                if (!loadedMessages) break;
-                msgs = [...loadedMessages.filter(msgFilter), ...msgs];
-            }
-
-            msgs.sort((a, b) => (a.t > b.t) ? 1 : -1);
-            if (msgs.length > limit) msgs = msgs.splice(msgs.length - limit);
-            return msgs.map(m => window.WWebJS.getMessageModel(m));
-
-        }, this.id._serialized, searchOptions.limit);
-
-        return messages.map(m => new Message(this.client, m));
-    }
-	
-    /**
-     * Loads chat messages after a given timestamp, sorted from earliest to latest.
-     * @param {Object} searchOptions Options for searching messages. Right now only limit is supported.
-     * @param {Number} [timestamp=] The unix timestamp to get the messages after it to return. You need to provide a valid timestamp or will return an empty result
-     * @returns {Promise<Array<Message>>}
-     */
-    async fetchMessagesAfter(timestamp) {
-        if(typeof timestamp !== 'number' || timestamp < 1) return [];
-
-        const date = new Date(timestamp * 1000);
-        if(date instanceof Date === false || isNaN(date.valueOf())) return [];		
-		
-        let messages = await this.client.pupPage.evaluate(async (chatId, timestamp) => {
-            const msgFilter = m => !m.isNotification && m.t > timestamp; // dont include notification messages, and older than given timestamp
+        let messages = await this.client.pupPage.evaluate(async (chatId, limit, timestamp) => {
+            // dont include notification messages... and if has a valid timestamp, add it to filter too
+            const msgFilter = m => !m.isNotification && (timestamp ? m.t > timestamp : true);
 
             const chat = window.Store.Chat.get(chatId);
             let msgs = chat.msgs.models.filter(msgFilter);
@@ -217,12 +192,15 @@ class Chat extends Base {
 
                 filteredMessages = loadedMessages.filter(msgFilter);
                 msgs = [...msgs, ...filteredMessages];
+
+                if(limit > 0 && msgs.length >= limit) break;
             } while(filteredMessages.length > 0);
 
             msgs.sort((a, b) => (a.t > b.t) ? 1 : -1);
+            if (limit > 0 && msgs.length > limit) msgs = msgs.splice(msgs.length - limit);
             return msgs.map(m => window.WWebJS.getMessageModel(m));
 
-        }, this.id._serialized, timestamp);
+        }, this.id._serialized, limit, timestamp);
 
         return messages.map(m => new Message(this.client, m));
     }
