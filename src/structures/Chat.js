@@ -176,7 +176,7 @@ class Chat extends Base {
         if(timestamp){
             const date = new Date(timestamp * 1000);
             if(date instanceof Date === false || isNaN(date.valueOf()))
-		        timestamp = null;
+                timestamp = null;
         }
 
         let messages = await this.client.pupPage.evaluate(async (chatId, limit, timestamp) => {
