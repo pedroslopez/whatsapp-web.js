@@ -700,7 +700,11 @@ declare namespace WAWebJS {
         timestamp: number,
         /** Amount of messages unread */
         unreadCount: number,
-
+        /** Indicates the id of all participating users */
+        participants: [{
+            id: ContactId
+        }],
+  
         /** Archives this chat */
         archive: () => Promise<void>,
         /** Pins this chat and returns its new Pin state */
