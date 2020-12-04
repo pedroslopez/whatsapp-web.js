@@ -713,6 +713,18 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Returns a real id registered in whatsapp
+     * @param {string} id the whatsapp user's ID
+     * @returns {Promise<string>}
+     */
+    async getIdByNumber(id) {
+        return await this.pupPage.evaluate(async (id) => {
+            let result = await window.Store.Wap.queryExist(id);
+            return result.status === 200 ? result.jid._serialized : undefined;
+        }, id);
+    }
+
+    /**
      * Create a new group
      * @param {string} name group title
      * @param {Array<Contact|string>} participants an array of Contacts or contact IDs to add to the group
