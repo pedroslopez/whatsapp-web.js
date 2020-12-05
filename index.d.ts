@@ -66,7 +66,7 @@ declare namespace WAWebJS {
         isRegisteredUser(contactId: string): Promise<boolean>
 
         /** Returns real id registered in whatsapp of given phone number */
-        getIdByNumber(contactId: string): Promise<string>
+        getIdByNumber(contactId: string): Promise<string | null>
 
         /**
          * Mutes the Chat until a specified date

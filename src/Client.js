@@ -720,7 +720,7 @@ class Client extends EventEmitter {
     async getIdByNumber(id) {
         return await this.pupPage.evaluate(async (id) => {
             let result = await window.Store.Wap.queryExist(id);
-            return result.status === 200 ? result.jid._serialized : undefined;
+            return result.status === 200 ? result.jid._serialized : null;
         }, id);
     }
 
