@@ -272,6 +272,16 @@ class Message extends Base {
             return window.Store.Cmd.sendDeleteMsgs(msg.chat, [msg], true);
         }, this.id._serialized, everyone);
     }
+
+    /**
+     * Checks if the message has been revoked
+     * @returns {Promise<boolean>}
+     */
+    async checkRevoked() {
+        return await this.client.pupPage.evaluate((msgId) => {
+            return !window.Store.Msg.get(msgId);
+        }, this.id._serialized);
+    }
 }
 
 module.exports = Message;

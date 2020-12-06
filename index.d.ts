@@ -504,6 +504,10 @@ declare namespace WAWebJS {
          * Forwards this message to another chat
          */
         forward: (chat: Chat | string) => Promise<void>,
+        /**
+         * Checks if the message has been revoked
+         */
+        checkRevoked: () => Promise<boolean>
     }
 
     /** ID that represents a message */
