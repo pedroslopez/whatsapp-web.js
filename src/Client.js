@@ -679,6 +679,17 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Mark Unread the Chat
+     * @param {string} chatId ID of the chat that will be unread
+     */
+    async markUnread(chatId) {
+        await this.pupPage.evaluate(async chatId => {
+            let chat = await window.Store.Chat.get(chatId);
+            await window.Store.Cmd.markChatUnread(chat, -1);
+        }, chatId);
+    }
+
+    /**
      * Returns the contact ID's profile picture URL, if privacy settings allow it
      * @param {string} contactId the whatsapp user's ID
      * @returns {Promise<string>}
