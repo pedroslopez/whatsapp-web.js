@@ -78,6 +78,9 @@ declare namespace WAWebJS {
         /** Send a message to a specific chatId */
         sendMessage(chatId: string, content: MessageContent, options?: MessageSendOptions): Promise<Message>
 
+        /** Send a webp image as sticker to a specific chatId */
+        sendImageAsSticker(chatId, content): Promise<void>
+
         /** Marks the client as online */
         sendPresenceAvailable(): Promise<void>
 
@@ -719,6 +722,8 @@ declare namespace WAWebJS {
         mute: (unmuteDate: Date) => Promise<void>,
         /** Send a message to this chat */
         sendMessage: (content: MessageContent, options?: MessageSendOptions) => Promise<Message>,
+        /** Send a webp image as sticker to this chat */
+        sendImageAsSticker: (content) => Promise<void>,
         /** Set the message as seen */
         sendSeen: () => Promise<void>,
         /** Simulate recording audio in chat. This will last for 25 seconds */
