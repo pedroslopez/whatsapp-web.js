@@ -87,6 +87,14 @@ class Chat extends Base {
     async sendMessage(content, options) {
         return this.client.sendMessage(this.id._serialized, content, options);
     }
+    
+    /**
+     * Send a webp image as sticker to this chat
+     * @param {MessageMedia} content
+     */
+    async sendImageAsSticker(content) {
+        return this.client.sendImageAsSticker(this.id._serialized, content);
+    }
 
     /**
      * Set the message as seen
