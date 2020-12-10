@@ -29,6 +29,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.WidFactory = window.mR.findModule('createWid')[0];
     window.Store.BlockContact = window.mR.findModule('blockContact')[0];
     window.Store.GroupMetadata = window.mR.findModule((module) => module.default && module.default.handlePendingInvite)[0].default;
+    window.Store.Sticker = window.mR.findModule('Sticker')[0].default.Sticker;
+    window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
 };
 
 exports.LoadUtils = () => {
@@ -151,6 +153,56 @@ exports.LoadUtils = () => {
 
         await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
         return window.Store.Msg.get(newMsgId._serialized);
+    };
+
+    window.WWebJS.sendImageAsSticker = async function (mediaInfo, chatId) {
+        const stickerInfo = await window.WWebJS.processStickerData(mediaInfo);
+        return await window.WWebJS.sendSticker(stickerInfo, chatId);
+    };
+
+    window.WWebJS.sendSticker = async function (stickerInfo, chatId) {
+        let chat = window.Store.Chat.get(chatId);
+        if (!chat) throw new Error('Invalid chatId');
+        await window.Store.StickerPack.fetchAt(0);
+        await window.Store.StickerPack._models[0].stickers.fetch();
+        let stick = new window.Store.StickerPack._models[0].stickers.modelClass();
+        stick.__x_clientUrl = stickerInfo.clientUrl;
+        stick.__x_filehash = stickerInfo.filehash;
+        stick.__x_id = stickerInfo.filehash;
+        stick.__x_uploadhash = stickerInfo.uploadhash;
+        stick.__x_mediaKey = stickerInfo.mediaKey;
+        stick.__x_initialized = false;
+        stick.__x_mediaData.mediaStage = 'INIT';
+        stick.mimetype = 'image/webp';
+        stick.height = 512;
+        stick.width = 512;
+        await stick.initialize();
+        return await stick.sendToChat(chat);
+    };
+
+    window.WWebJS.processStickerData = async (mediaInfo) => {
+        if (mediaInfo.mimetype !== 'image/webp') throw new Error('Invalid media type');
+
+        const file = window.WWebJS.mediaInfoToFile(mediaInfo);
+        let filehash = await window.WWebJS.getFileHash(file);	
+        let mediaKey = await window.WWebJS.generateHash(32);
+
+        const controller = new AbortController();
+        const uploadedInfo = await window.Store.UploadUtils.encryptAndUpload({
+            blob: file,
+            type: 'sticker',
+            signal: controller.signal,
+            mediaKey
+        });
+
+        const stickerInfo = {
+            clientUrl: uploadedInfo.url,
+            uploadhash: uploadedInfo.encFilehash,
+            filehash,
+            mediaKey,
+        };
+
+        return stickerInfo;
     };
 
     window.WWebJS.processMediaData = async (mediaInfo, forceVoice) => {
@@ -323,6 +375,22 @@ exports.LoadUtils = () => {
 
             reader.readAsDataURL(blob);
         });
+    };
+
+    window.WWebJS.getFileHash = async (data) => {                  
+        let buffer = await data.arrayBuffer();
+        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+        return btoa(String.fromCharCode(...new Uint8Array(hashBuffer)));
+    };
+
+    window.WWebJS.generateHash = async (length) => {
+        var result = '';
+        var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        var charactersLength = characters.length;
+        for ( var i = 0; i < length; i++ ) {
+            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+        return result;
     };
 
     window.WWebJS.sendClearChat = async (chatId) => {
