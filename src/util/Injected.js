@@ -196,10 +196,11 @@ exports.LoadUtils = () => {
         });
 
         const stickerInfo = {
+            ...uploadedInfo,
             clientUrl: uploadedInfo.url,
             uploadhash: uploadedInfo.encFilehash,
+            id: filehash,
             filehash,
-            mediaKey,
         };
 
         return stickerInfo;
