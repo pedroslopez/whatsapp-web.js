@@ -178,6 +178,7 @@ exports.LoadUtils = () => {
         stick.width = 512;
         await stick.initialize();
         return await stick.sendToChat(chat);
+        return await stick.sendToChat(chat, {});
     };
 
     window.WWebJS.processStickerData = async (mediaInfo) => {
