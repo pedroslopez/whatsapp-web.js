@@ -177,7 +177,6 @@ exports.LoadUtils = () => {
         stick.height = 512;
         stick.width = 512;
         await stick.initialize();
-        return await stick.sendToChat(chat);
         return await stick.sendToChat(chat, {});
     };
 
