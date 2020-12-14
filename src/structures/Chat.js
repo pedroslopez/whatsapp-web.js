@@ -193,6 +193,22 @@ class Chat extends Base {
     }
 
     /**
+     * Fetches a message from the chat.
+     * @param {String} messageId The Message id of message looking for.
+     * @returns {Promise<Message>}
+     */
+    async getMessageById(messageId) {
+        let message = await this.client.pupPage.evaluate(async (chatId, messageId) => {
+            const chat = window.Store.Chat.get(chatId);
+            const msg = chat.msgs.models.find(m => m.id.id === messageId);
+            return window.WWebJS.getMessageModel(msg);
+
+        }, this.id._serialized, messageId);
+
+        return new Message(this.client, message);
+    }
+
+    /**
      * Simulate typing in chat. This will last for 25 seconds.
      */
     async sendStateTyping() {
