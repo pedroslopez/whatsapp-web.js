@@ -20,6 +20,12 @@ class Label extends Base {
 
     _patch(labelData){
         /**
+         * Label ID
+         * @type {string}
+         */
+        this.id = labelData.id;
+
+        /**
          * Label name
          * @type {string}
          */
@@ -30,15 +36,9 @@ class Label extends Base {
          * @type {string}
          */
         this.hexColor = labelData.hexColor;
-
-        /**
-         * Label id
-         * @type {string}
-         */
-        this.id = labelData.id;
     }
     /**
-     * Get all chats with this label assigned.
+     * Get all chats that have been assigned this Label
      * @returns {Promise<Array<Chat>>>}
      */
     async getChats(){

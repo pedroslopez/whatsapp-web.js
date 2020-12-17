@@ -763,6 +763,7 @@ class Client extends EventEmitter {
 
     /**
      * Get Label instance by ID
+     * @param {string} labelId
      * @returns {Promise<Label>}
      */
     async getLabelById(labelId) {
@@ -775,6 +776,7 @@ class Client extends EventEmitter {
 
     /**
      * Get all Labels assigned to a chat 
+     * @param {string} chatId
      * @returns {Promise<Array<Label>>}
      */
     async getChatLabels(chatId){
@@ -787,6 +789,7 @@ class Client extends EventEmitter {
 
     /**
      * Get all Chats for a specific Label
+     * @param {string} labelId
      * @returns {Promise<Array<Chat>>}
      */
     async getChatsByLabelId(labelId){
