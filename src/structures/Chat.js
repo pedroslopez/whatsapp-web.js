@@ -229,6 +229,14 @@ class Chat extends Base {
     async getContact() {
         return await this.client.getContactById(this.id._serialized);
     }
+
+    /**
+     * Returns array of all Labels assigned to this Chat
+     * @returns {Promise<Array<Label>>}
+     */
+    async getLabels() {
+        return this.client.getChatLabels(this.id._serialized);
+    }
 }
 
 module.exports = Chat;

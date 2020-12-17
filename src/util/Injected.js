@@ -29,6 +29,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.WidFactory = window.mR.findModule('createWid')[0];
     window.Store.BlockContact = window.mR.findModule('blockContact')[0];
     window.Store.GroupMetadata = window.mR.findModule((module) => module.default && module.default.handlePendingInvite)[0].default;
+    window.Store.Label = window.mR.findModule('LabelCollection')[0].default;
 };
 
 exports.LoadUtils = () => {
@@ -363,6 +364,27 @@ exports.LoadUtils = () => {
         return true;
     };
 
+    window.WWebJS.getLabelModel = label => {
+        let res = label.serialize();
+        res.hexColor = label.hexColor;
+        
+        return res;
+    };
+
+    window.WWebJS.getLabels = () => {
+        const labels = window.Store.Label.models;
+        return labels.map(label => window.WWebJS.getLabelModel(label));
+    };
+
+    window.WWebJS.getLabel = (labelId) => {
+        const label = window.Store.Label.get(labelId);
+        return window.WWebJS.getLabelModel(label);
+    };
+
+    window.WWebJS.getChatLabels = async (chatId) => {
+        const chat = await window.WWebJS.getChat(chatId);
+        return (chat.labels || []).map(id => window.WWebJS.getLabel(id));
+    };
 };
 
 exports.MarkAllRead = () => {
