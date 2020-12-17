@@ -363,23 +363,25 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getLabelModel = label => {
-        return {'name': label.name , 'hexColor' :  label.hexColor , 'id' : label.id }; 
+        let res = label.serialize();
+        res.hexColor = label.hexColor;
+        
+        return res;
     };
 
-    window.WWebJS.getLabels = async () =>{
-        var labels = window.Store.Label.models.map(label =>  window.WWebJS.getLabelModel(label));
-        return labels;
+    window.WWebJS.getLabels = () => {
+        const labels = window.Store.Label.models;
+        return labels.map(label => window.WWebJS.getLabelModel(label));
     };
+
+    window.WWebJS.getLabel = (labelId) => {
+        const label = window.Store.Label.get(labelId);
+        return window.WWebJS.getLabelModel(label);
+    }
 
     window.WWebJS.getChatLabels = async (chatId) => {
-        let chatLabelsIndex = await window.WWebJS.getChat(chatId);
-        chatLabelsIndex = chatLabelsIndex.labels;
-        let res = [];
-        for (var i in chatLabelsIndex){
-            res.push( window.WWebJS.getLabelModel(window.Store.Label.get(chatLabelsIndex[i])));
-        }
-
-        return res;
+        const chat = await window.WWebJS.getChat(chatId);
+        return (chat.labels || []).map(id => window.WWebJS.getLabel(id));
     };
 };
 

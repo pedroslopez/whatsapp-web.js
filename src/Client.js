@@ -750,55 +750,58 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Returns all current Labels
+     * Get all current Labels
      * @returns {Promise<Array<Label>>}
      */
     async getLabels() {
-        const x = await this.pupPage.evaluate(async () => {
-            return  window.WWebJS.getLabels();
-        }) ; 
-        return x.map(data => new Label(this , data));
+        const labels = await this.pupPage.evaluate(async () => {
+            return window.WWebJS.getLabels();
+        }); 
+
+        return labels.map(data => new Label(this , data));
     }
 
     /**
-     * Returns Label of specified chat 
+     * Get Label instance by ID
      * @returns {Promise<Label>}
      */
-    async getChatLabels(chatId){
-        const x = await this.pupPage.evaluate(async (chatId) => {
-            return  window.WWebJS.getChatLabels(chatId);
-        }, chatId);
-        return x.map(data => new Label(this, data)); 
+    async getLabelById(labelId) {
+        const label = await this.pupPage.evaluate(async (labelId) => {
+            return window.WWebJS.getLabel(labelId);
+        }, labelId); 
+
+        return new Label(this, label);
     }
 
     /**
-     * Returns all Chats of specified label
+     * Get all Labels assigned to a chat 
+     * @returns {Promise<Array<Label>>}
+     */
+    async getChatLabels(chatId){
+        const labels = await this.pupPage.evaluate(async (chatId) => {
+            return window.WWebJS.getChatLabels(chatId);
+        }, chatId);
+
+        return labels.map(data => new Label(this, data)); 
+    }
+
+    /**
+     * Get all Chats for a specific Label
      * @returns {Promise<Array<Chat>>}
      */
-    async getAllChatsFromLabel(labelId){
-        var x = await this.pupPage.evaluate(async (labelId) => {
-            return (window.Store.Label.get(labelId).labelItemCollection.models.reduce(function(result, i) {
-                if(i.parentType === 'Chat'){  
-                    result.push(i.parentId);
+    async getChatsByLabelId(labelId){
+        const chatIds = await this.pupPage.evaluate(async (labelId) => {
+            const label = window.Store.Label.get(labelId);
+            const labelItems = label.labelItemCollection.models;
+            return labelItems.reduce((result, item) => {
+                if(item.parentType === 'Chat'){  
+                    result.push(item.parentId);
                 }
-                return result;},[]));
+                return result;
+            },[]);
         }, labelId);
-        x = await Promise.all( x.map(i => this.getChatById(i)) );
-        return x;
-    }
 
-    /**
-     * Returns all Chat's IDs of specified label
-     * @returns {Promise<Array<String>>}
-     */
-    async getAllChatsIDFromLabel(labelId){
-        return this.pupPage.evaluate(async (labelId) => {
-            return (window.Store.Label.get(labelId).labelItemCollection.models.reduce(function(result, i) {
-                if(i.parentType === 'Chat'){  
-                    result.push(i.parentId);
-                }
-                return result;},[]));
-        }, labelId);
+        return Promise.all(chatIds.map(id => this.getChatById(id)));
     }
 }
 

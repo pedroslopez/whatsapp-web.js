@@ -5,14 +5,14 @@ const Base = require('./Base');
 const Chat = require('./Chat');
 
 /**
- * Whatsapp Business Label information
+ * WhatsApp Business Label information
  */
 class Label extends Base {
     /**
      * @param {Base} client
      * @param {object} labelData
      */
-    constructor(client ,labelData){
+    constructor(client, labelData){
         super(client);
 
         if(labelData) this._patch(labelData);
@@ -38,17 +38,11 @@ class Label extends Base {
         this.id = labelData.id;
     }
     /**
+     * Get all chats with this label assigned.
      * @returns {Promise<Array<Chat>>>}
      */
-    async getAllChats(){
-        return this.client.getAllChatsFromLabel(this.id);
-    }
-
-    /**
-     * @returns {Promise<Array<String>>}
-     */
-    async getAllChatIDs(){
-        return this.client.getAllChatsIDFromLabel(this.id);
+    async getChats(){
+        return this.client.getChatsByLabelId(this.id);
     }
 
 }

@@ -231,7 +231,7 @@ class Chat extends Base {
     }
 
     /**
-     * Returns array of all labels this Chat is marked
+     * Returns array of all Labels assigned to this Chat
      * @returns {Promise<Array<Label>>}
      */
     async getLabels() {
