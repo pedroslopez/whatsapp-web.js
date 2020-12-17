@@ -377,7 +377,7 @@ exports.LoadUtils = () => {
     window.WWebJS.getLabel = (labelId) => {
         const label = window.Store.Label.get(labelId);
         return window.WWebJS.getLabelModel(label);
-    }
+    };
 
     window.WWebJS.getChatLabels = async (chatId) => {
         const chat = await window.WWebJS.getChat(chatId);
