@@ -50,6 +50,18 @@ declare namespace WAWebJS {
         /** Get all current contact instances */
         getContacts(): Promise<Contact[]>
 
+        /** Get all current Labels  */
+        getLabels(): Promise<Label[]>
+
+        /** Get Label instance by ID */
+        getLabelById(labelId: string): Promise<Label>
+
+        /** Get all Labels assigned to a Chat */
+        getChatLabels(chatId: string): Promise<Label[]>
+
+        /** Get all Chats for a specific Label */
+        getChatsByLabelId(labelId: string): Promise<Chat[]>
+
         /** Returns the contact ID's profile picture URL, if privacy settings allow it */
         getProfilePicUrl(contactId: string): Promise<string>
 
@@ -520,6 +532,18 @@ declare namespace WAWebJS {
         longitude: string,
     }
 
+    export interface Label {
+        /** Label name */
+        name: string,
+        /** Label ID */
+        id: string,
+        /** Color assigned to the label */
+        hexColor: string,
+
+        /** Get all chats that have been assigned this Label */
+        getChats: () => Promise<Chat[]>
+    }
+
     /** Options for sending a message */
     export interface MessageSendOptions {
         /** Show links preview */
@@ -731,6 +755,8 @@ declare namespace WAWebJS {
         unmute: () => Promise<void>,
         /** Returns the Contact that corresponds to this Chat. */
         getContact: () => Promise<Contact>,
+        /** Returns array of all Labels assigned to this Chat */
+        getLabels: () => Promise<Label[]>
     }
 
     export interface MessageSearchOptions {

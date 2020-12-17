@@ -10,5 +10,6 @@ module.exports = {
     MessageMedia: require('./MessageMedia'),
     PrivateChat: require('./PrivateChat'),
     PrivateContact: require('./PrivateContact'),
-    GroupNotification: require('./GroupNotification')
+    GroupNotification: require('./GroupNotification'),
+    Label: require('./Label.js')
 };
