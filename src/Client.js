@@ -467,6 +467,10 @@ class Client extends EventEmitter {
             content = '';
         }
 
+        if (internalOptions.sendMediaAsSticker && internalOptions.attachment) {
+            internalOptions.attachment = await Util.formatToWebpSticker(internalOptions.attachment);
+        }
+
         const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             const chat = await window.Store.Chat.find(chatWid);
