@@ -483,23 +483,6 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Send a webp image as sticker to a specific chatId
-     * @param {string} chatId
-     * @param {MessageMedia} content
-     */
-    async sendImageAsSticker(chatId, content) {
-        if (!(content instanceof MessageMedia) || content.mimetype !== 'image/webp') {
-            throw new Error('Invalid content');
-        }
-
-        await this.pupPage.evaluate(async (chatId, message) => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
-            const chat = await window.Store.Chat.find(chatWid);
-            await window.WWebJS.sendImageAsSticker(message, chat.id._serialized);
-        }, chatId, content);
-    }
-
-    /**
      * Get all current chat instances
      * @returns {Promise<Array<Chat>>}
      */
