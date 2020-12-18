@@ -54,8 +54,11 @@ exports.LoadUtils = () => {
     window.WWebJS.sendMessage = async (chat, content, options = {}) => {
         let attOptions = {};
         if (options.attachment) {
-            attOptions = await window.WWebJS.processMediaData(options.attachment, options.sendAudioAsVoice);
-            content = attOptions.preview;
+            attOptions = options.sendMediaAsSticker 
+                ? await window.WWebJS.processStickerData(options.attachment)
+                : await window.WWebJS.processMediaData(options.attachment, options.sendAudioAsVoice);
+
+            if (!options.sendMediaAsSticker) content = attOptions.preview;
             delete options.attachment;
         }
 
@@ -133,6 +136,8 @@ exports.LoadUtils = () => {
             id: window.Store.genId(),
         });
 
+        const msgType = options.sendMediaAsSticker ? 'sticker' : 'chat';
+
         const message = {
             ...options,
             id: newMsgId,
@@ -144,7 +149,7 @@ exports.LoadUtils = () => {
             self: 'out',
             t: parseInt(new Date().getTime() / 1000),
             isNewMsg: true,
-            type: 'chat',
+            type: msgType,
             ...locationOptions,
             ...attOptions,
             ...quotedMsgOptions,
@@ -153,31 +158,6 @@ exports.LoadUtils = () => {
 
         await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
         return window.Store.Msg.get(newMsgId._serialized);
-    };
-
-    window.WWebJS.sendImageAsSticker = async function (mediaInfo, chatId) {
-        const stickerInfo = await window.WWebJS.processStickerData(mediaInfo);
-        return await window.WWebJS.sendSticker(stickerInfo, chatId);
-    };
-
-    window.WWebJS.sendSticker = async function (stickerInfo, chatId) {
-        let chat = window.Store.Chat.get(chatId);
-        if (!chat) throw new Error('Invalid chatId');
-        await window.Store.StickerPack.fetchAt(0);
-        await window.Store.StickerPack._models[0].stickers.fetch();
-        let stick = new window.Store.StickerPack._models[0].stickers.modelClass();
-        stick.__x_clientUrl = stickerInfo.clientUrl;
-        stick.__x_filehash = stickerInfo.filehash;
-        stick.__x_id = stickerInfo.filehash;
-        stick.__x_uploadhash = stickerInfo.uploadhash;
-        stick.__x_mediaKey = stickerInfo.mediaKey;
-        stick.__x_initialized = false;
-        stick.__x_mediaData.mediaStage = 'INIT';
-        stick.mimetype = 'image/webp';
-        stick.height = 512;
-        stick.width = 512;
-        await stick.initialize();
-        return await stick.sendToChat(chat, {});
     };
 
     window.WWebJS.processStickerData = async (mediaInfo) => {
@@ -199,7 +179,6 @@ exports.LoadUtils = () => {
             ...uploadedInfo,
             clientUrl: uploadedInfo.url,
             uploadhash: uploadedInfo.encFilehash,
-            id: filehash,
             filehash,
         };
 
