@@ -65,8 +65,8 @@ declare namespace WAWebJS {
         /** Check if a given ID is registered in whatsapp */
         isRegisteredUser(contactId: string): Promise<boolean>
 
-        /** Get the registered number id in whatsapp */
-        getNumberId(chatId: string): Promise<object>
+        /** Get the registered WhatsApp ID for a number. Returns null if the number is not registered on WhatsApp. */
+        getNumberId(number: string): Promise<ContactId?>
 
         /**
          * Mutes the Chat until a specified date

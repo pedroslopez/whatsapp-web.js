@@ -713,14 +713,23 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Get the registered number id in whatsapp
-     * @param {string} id the whatsapp user's ID
-     * @returns {Promise<object>}
+     * Get the registered WhatsApp ID for a number. 
+     * Will return null if the number is not registered on WhatsApp.
+     * @param {string} number Number or ID ("@c.us" will be automatically appended if not specified)
+     * @returns {Promise<Object|null>}
      */
-    async getNumberId(id) {
-        return await this.pupPage.evaluate(async numberId => {
-            return await window.WWebJS.getNumberId(numberId);
-        }, id);
+    async getNumberId(number) {
+        if(!number.endsWith("@c.us")) {
+            number += "@c.us";
+        }
+
+        try {
+            return await this.pupPage.evaluate(async numberId => {
+                return window.WWebJS.getNumberId(numberId);
+            }, number);
+        } catch(_) {
+            return null;
+        }
     }
 
     /**
