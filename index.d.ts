@@ -774,6 +774,46 @@ declare namespace WAWebJS {
     export interface PrivateChat extends Chat {
 
     }
+
+    export interface GroupChat extends Chat {
+        /** Group owner */
+        owner: any;
+        /** Date at which the group was created */
+        createdAt: Date;
+        /** Group description */
+        description: string;
+        /** Group participants */
+        participantes: Array<any>;
+        /** Adds a list of participants by ID to the group */
+        addParticipants: (participantIds: Array<string>) => Promise<void>;
+        /** Removes a list of participants by ID to the group */
+        removeParticipants: (participantIds: Array<string>) => Promise<void>;
+        /** Promotes participants by IDs to admins */
+        promoteParticipants: (participantIds: Array<string>) => Promise<void>;
+        /** Demotes participants by IDs to regular users */
+        demoteParticipants: (participantIds: Array<string>) => Promise<void>;
+        /** Updates the group subject */
+        setSubject: (subject: string) => Promise<void>;
+        /** Updates the group description */
+        setDescription: (description: string) => Promise<void>;
+        /** Updates the group settings to only allow admins to send messages 
+         * @param {boolean} [adminsOnly=true] Enable or disable this option 
+         * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
+         */
+        setMessagesAdminsOnly: (adminsOnly?: boolean) => Promise<boolean>;
+        /**
+         * Updates the group settings to only allow admins to edit group info (title, description, photo).
+         * @param {boolean} [adminsOnly=true] Enable or disable this option 
+         * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
+         */
+        setInfoAdminsOnly: (adminsOnly?: boolean) => Promise<boolean>;
+        /** Gets the invite code for a specific group */
+        getInviteCode: () => Promise<string>;
+        /** Invalidates the current group invite code and generates a new one */
+        revokeInvite: () => Promise<void>;
+        /** Makes the bot leave the group */
+        leave: () => Promise<void>;
+    }
 }
 
 export = WAWebJS
