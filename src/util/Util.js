@@ -145,6 +145,14 @@ class Util {
         else if (media.mimetype.includes('video')) return this.formatVideoToWebpSticker(media);
         else throw new Error('Invalid media format');
     }
+
+    /**
+     * Configure ffmpeg path
+     * @param {string} path
+     */
+    static setFfmpegPath(path) {
+        ffmpeg.setFfmpegPath(path);
+    }
 }
 
 module.exports = Util;
