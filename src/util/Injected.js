@@ -234,8 +234,12 @@ exports.LoadUtils = () => {
         return await window.WWebJS.getChatModel(chat);
     };
 
-    window.WWebJS.getChats = async () => {
-        const chats = window.Store.Chat.models;
+    window.WWebJS.getChats = async (ids) => {
+        let chats = window.Store.Chat.models;
+
+        if (Array.isArray(ids)) {
+            chats = chats.filter(c => ids.includes(c.id._serialized))
+        }
 
         const chatPromises = chats.map(chat => window.WWebJS.getChatModel(chat));
         return await Promise.all(chatPromises);
