@@ -775,6 +775,12 @@ declare namespace WAWebJS {
 
     }
 
+    export type GroupParticipant = {
+        id: ContactId,
+        isAdmin: boolean
+        isSuperAdmin: boolean
+    }
+
     /** Promotes or demotes participants by IDs to regular users or admins */
     export type ChangeParticipantsPermisions = 
         (participantIds: Array<string>) => Promise<{ status: number }>
@@ -787,7 +793,7 @@ declare namespace WAWebJS {
         /** Group description */
         description: string;
         /** Group participants */
-        participants: Array<any>;
+        participants: Array<GroupParticipant>;
         /** Adds a list of participants by ID to the group */
         addParticipants: (participantIds: Array<string>) => Promise<void>;
         /** Removes a list of participants by ID to the group */
