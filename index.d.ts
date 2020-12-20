@@ -775,6 +775,10 @@ declare namespace WAWebJS {
 
     }
 
+    /** Promotes or demotes participants by IDs to regular users or admins */
+    export type ChangeParticipantsPermisions = 
+        (participantIds: Array<string>) => Promise<{ status: number }>
+
     export interface GroupChat extends Chat {
         /** Group owner */
         owner: any;
@@ -789,9 +793,9 @@ declare namespace WAWebJS {
         /** Removes a list of participants by ID to the group */
         removeParticipants: (participantIds: Array<string>) => Promise<void>;
         /** Promotes participants by IDs to admins */
-        promoteParticipants: (participantIds: Array<string>) => Promise<void>;
+        promoteParticipants: ChangeParticipantsPermisions;
         /** Demotes participants by IDs to regular users */
-        demoteParticipants: (participantIds: Array<string>) => Promise<void>;
+        demoteParticipants: ChangeParticipantsPermisions;
         /** Updates the group subject */
         setSubject: (subject: string) => Promise<void>;
         /** Updates the group description */
