@@ -58,8 +58,9 @@ exports.LoadUtils = () => {
                 ? await window.WWebJS.processStickerData(options.attachment)
                 : await window.WWebJS.processMediaData(options.attachment, options.sendAudioAsVoice);
 
-            if (!options.sendMediaAsSticker) content = attOptions.preview;
+            content = options.sendMediaAsSticker ? undefined : attOptions.preview;
             delete options.attachment;
+            delete options.sendMediaAsSticker;
         }
 
         let quotedMsgOptions = {};
@@ -136,8 +137,6 @@ exports.LoadUtils = () => {
             id: window.Store.genId(),
         });
 
-        const msgType = options.sendMediaAsSticker ? 'sticker' : 'chat';
-
         const message = {
             ...options,
             id: newMsgId,
@@ -149,7 +148,7 @@ exports.LoadUtils = () => {
             self: 'out',
             t: parseInt(new Date().getTime() / 1000),
             isNewMsg: true,
-            type: msgType,
+            type: 'chat',
             ...locationOptions,
             ...attOptions,
             ...quotedMsgOptions,
@@ -179,7 +178,9 @@ exports.LoadUtils = () => {
             ...uploadedInfo,
             clientUrl: uploadedInfo.url,
             uploadhash: uploadedInfo.encFilehash,
-            filehash,
+            size: file.size,
+            type: 'sticker',
+            filehash
         };
 
         return stickerInfo;
