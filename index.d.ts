@@ -800,7 +800,7 @@ declare namespace WAWebJS {
 
     export interface GroupChat extends Chat {
         /** Group owner */
-        owner: any;
+        owner: ContactId;
         /** Date at which the group was created */
         createdAt: Date;
         /** Group description */
