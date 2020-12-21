@@ -38,8 +38,12 @@ declare namespace WAWebJS {
         /** Logs out the client, closing the current session */
         logout(): Promise<void>
 
-        /** Get chat instance by ID */
-        getChatById(chatId: string): Promise<Chat>
+        /**
+         * Get all current chat instances
+         * @param ids chats serialized ids filter
+         * @param haveUnreadMessages
+         * */
+        getChats(ids?: string[], haveUnreadMessages?: boolean): Promise<Chat[]>
 
         /** Get all current chat instances */
         getChats(ids: string[]): Promise<Chat[]>

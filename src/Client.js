@@ -484,11 +484,13 @@ class Client extends EventEmitter {
     /**
      * Get all current chat instances
      * @returns {Promise<Array<Chat>>}
+     * @param ids array
+     * @param haveUnreadMessages boolean
      */
-    async getChats(ids = null) {
-        let chats = await this.pupPage.evaluate(async (ids) => {
-            return await window.WWebJS.getChats(ids);
-        }, ids);
+    async getChats(ids = null, haveUnreadMessages = false) {
+        let chats = await this.pupPage.evaluate(async (ids, haveUnreadMessages) => {
+            return await window.WWebJS.getChats(ids, haveUnreadMessages);
+        }, ids, haveUnreadMessages);
 
         return chats.map(chat => ChatFactory.create(this, chat));
     }
