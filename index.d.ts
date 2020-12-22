@@ -553,6 +553,8 @@ declare namespace WAWebJS {
         linkPreview?: boolean
         /** Send audio as voice message */
         sendAudioAsVoice?: boolean
+        /** Send media as document */
+        sendMediaAsDocument?: boolean
         /** Automatically parse vCards and send them as contacts */
         parseVCards?: boolean
         /** Image or videos caption */

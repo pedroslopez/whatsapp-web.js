@@ -56,7 +56,10 @@ exports.LoadUtils = () => {
     window.WWebJS.sendMessage = async (chat, content, options = {}) => {
         let attOptions = {};
         if (options.attachment) {
-            attOptions = await window.WWebJS.processMediaData(options.attachment, options.sendAudioAsVoice);
+            attOptions = await window.WWebJS.processMediaData(options.attachment, { 
+                forceVoice: options.sendAudioAsVoice, 
+                forceDocument: options.sendMediaAsDocument 
+            });
             content = attOptions.preview;
             delete options.attachment;
         }
@@ -157,10 +160,10 @@ exports.LoadUtils = () => {
         return window.Store.Msg.get(newMsgId._serialized);
     };
 
-    window.WWebJS.processMediaData = async (mediaInfo, forceVoice) => {
+    window.WWebJS.processMediaData = async (mediaInfo, { forceVoice, forceDocument }) => {
         const file = window.WWebJS.mediaInfoToFile(mediaInfo);
         const mData = await window.Store.OpaqueData.createFromData(file, file.type);
-        const mediaPrep = window.Store.MediaPrep.prepRawMedia(mData, {});
+        const mediaPrep = window.Store.MediaPrep.prepRawMedia(mData, { asDocument: forceDocument });
         const mediaData = await mediaPrep.waitForPrep();
         const mediaObject = window.Store.MediaObject.getOrCreateMediaObject(mediaData.filehash);
 
@@ -171,6 +174,10 @@ exports.LoadUtils = () => {
 
         if (forceVoice && mediaData.type === 'audio') {
             mediaData.type = 'ptt';
+        }
+
+        if (forceDocument) {
+            mediaData.type = 'document';
         }
 
         if (!(mediaData.mediaBlob instanceof window.Store.OpaqueData)) {
