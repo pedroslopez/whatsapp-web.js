@@ -272,6 +272,20 @@ class Message extends Base {
             return window.Store.Cmd.sendDeleteMsgs(msg.chat, [msg], true);
         }, this.id._serialized, everyone);
     }
+
+    /**
+     * Star this message
+     */
+    async star() {
+        return this.client.starMsgs([this]);
+    }
+
+    /**
+     * Unstar this message
+     */
+    async unstar() {
+        return this.client.unstarMsgs([this]);
+    }
 }
 
 module.exports = Message;
