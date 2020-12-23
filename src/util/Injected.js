@@ -225,6 +225,8 @@ exports.LoadUtils = () => {
         }
 
         delete res.msgs;
+        delete res.msgUnsyncedButtonReplyMsgs;
+        delete res.unsyncedButtonReplies;
 
         return res;
     };
