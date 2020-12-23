@@ -755,7 +755,7 @@ class Client extends EventEmitter {
      */
     async starMsgs(messages) {
         await this.pupPage.evaluate((messages) => {
-            Promise.all(messages.map(message => {
+            return Promise.all(messages.map(message => {
                 let msg = window.Store.Msg.get(message.id._serialized);
 
                 if (msg.canStar()) {
@@ -771,7 +771,7 @@ class Client extends EventEmitter {
      */
     async unstarMsgs(messages) {
         await this.pupPage.evaluate((messages) => {
-            Promise.all(messages.map(message => {
+            return Promise.all(messages.map(message => {
                 let msg = window.Store.Msg.get(message.id._serialized);
 
                 if (msg.canStar()) {
