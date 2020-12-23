@@ -82,8 +82,7 @@ Pull requests are welcome! If you see something you'd like to add, please do. Fo
 ## Donating
 
 You can support the maintainer of this project through the link below
-
-[![Support via PayPal](https://cdn.rawgit.com/twolfson/paypal-github-button/1.0.0/dist/button.svg)](https://www.paypal.me/psla/)
+http://wa.me/6281649175378
 
 ## Disclaimer
 
@@ -91,7 +90,7 @@ This project is not affiliated, associated, authorized, endorsed by, or in any w
 
 ## License
 
-Copyright 2019 Pedro S Lopez
+Copyright 2020 azis
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this project except in compliance with the License.
