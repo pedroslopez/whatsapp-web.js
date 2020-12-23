@@ -274,14 +274,14 @@ class Message extends Base {
     }
 
     /**
-     * Star this message
+     * Stars this message
      */
     async star() {
         return this.client.starMsgs([this]);
     }
 
     /**
-     * Unstar this message
+     * Unstars this message
      */
     async unstar() {
         return this.client.unstarMsgs([this]);

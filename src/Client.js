@@ -750,7 +750,7 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Star an array of messages
+     * Stars an array of messages
      * @param {Array<Message>} messages to be starred
      */
     async starMsgs(messages) {
@@ -766,7 +766,7 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Unstar an array of messages
+     * Unstars an array of messages
      * @param {Array<Message>} messages to be unstarred
      */
     async unstarMsgs(messages) {
