@@ -754,7 +754,7 @@ class Client extends EventEmitter {
      * @param {Array<Message>} messages to be starred
      */
     async starMsgs(messages) {
-        await this.client.pupPage.evaluate((messages) => {
+        await this.pupPage.evaluate((messages) => {
             Promise.all(messages.map(message => {
                 let msg = window.Store.Msg.get(message.id._serialized);
 
@@ -770,7 +770,7 @@ class Client extends EventEmitter {
      * @param {Array<Message>} messages to be unstarred
      */
     async unstarMsgs(messages) {
-        await this.client.pupPage.evaluate((messages) => {
+        await this.pupPage.evaluate((messages) => {
             Promise.all(messages.map(message => {
                 let msg = window.Store.Msg.get(message.id._serialized);
 
