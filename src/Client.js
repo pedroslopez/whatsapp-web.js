@@ -29,6 +29,7 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @param {number} options.takeoverOnConflict - If another whatsapp web session is detected (another browser), take over the session in the current browser
  * @param {number} options.takeoverTimeoutMs - How much time to wait before taking over the session
  * @param {string} options.userAgent - User agent to use in puppeteer
+ * @param {string} options.ffmpegPath - Ffmpeg path to use when formating videos to webp while sending stickers 
  * 
  * @fires Client#qr
  * @fires Client#authenticated
@@ -55,6 +56,8 @@ class Client extends EventEmitter {
 
         this.pupBrowser = null;
         this.pupPage = null;
+
+        Util.setFfmpegPath(this.options.ffmpegPath);
     }
 
     /**
@@ -420,6 +423,7 @@ class Client extends EventEmitter {
      * @typedef {Object} MessageSendOptions
      * @property {boolean} [linkPreview=true] - Show links preview
      * @property {boolean} [sendAudioAsVoice=false] - Send audio as voice message
+     * @property {boolean} [sendMediaAsSticker=false] - Send media as a sticker
      * @property {boolean} [sendMediaAsDocument=false] - Send media as a document
      * @property {boolean} [parseVCards=true] - Automatically parse vCards and send them as contacts
      * @property {string} [caption] - Image or video caption
@@ -441,6 +445,7 @@ class Client extends EventEmitter {
         let internalOptions = {
             linkPreview: options.linkPreview === false ? undefined : true,
             sendAudioAsVoice: options.sendAudioAsVoice,
+            sendMediaAsSticker: options.sendMediaAsSticker,
             sendMediaAsDocument: options.sendMediaAsDocument,
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
@@ -466,6 +471,10 @@ class Client extends EventEmitter {
         } else if(Array.isArray(content) && content.length > 0 && content[0] instanceof Contact) {
             internalOptions.contactCardList = content.map(contact => contact.id._serialized);
             content = '';
+        }
+
+        if (internalOptions.sendMediaAsSticker && internalOptions.attachment) {
+            internalOptions.attachment = await Util.formatToWebpSticker(internalOptions.attachment);
         }
 
         const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {

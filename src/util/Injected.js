@@ -29,6 +29,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.WidFactory = window.mR.findModule('createWid')[0];
     window.Store.BlockContact = window.mR.findModule('blockContact')[0];
     window.Store.GroupMetadata = window.mR.findModule((module) => module.default && module.default.handlePendingInvite)[0].default;
+    window.Store.Sticker = window.mR.findModule('Sticker')[0].default.Sticker;
+    window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
     window.Store.Label = window.mR.findModule('LabelCollection')[0].default;
 };
 
@@ -56,12 +58,17 @@ exports.LoadUtils = () => {
     window.WWebJS.sendMessage = async (chat, content, options = {}) => {
         let attOptions = {};
         if (options.attachment) {
-            attOptions = await window.WWebJS.processMediaData(options.attachment, { 
-                forceVoice: options.sendAudioAsVoice, 
-                forceDocument: options.sendMediaAsDocument 
-            });
-            content = attOptions.preview;
+            attOptions = options.sendMediaAsSticker 
+                ? await window.WWebJS.processStickerData(options.attachment)
+                : await window.WWebJS.processMediaData(options.attachment, {
+                    forceVoice: options.sendAudioAsVoice, 
+                    forceDocument: options.sendMediaAsDocument 
+                });
+
+            content = options.sendMediaAsSticker ? undefined : attOptions.preview;
+
             delete options.attachment;
+            delete options.sendMediaAsSticker;
         }
 
         let quotedMsgOptions = {};
@@ -158,6 +165,33 @@ exports.LoadUtils = () => {
 
         await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
         return window.Store.Msg.get(newMsgId._serialized);
+    };
+
+    window.WWebJS.processStickerData = async (mediaInfo) => {
+        if (mediaInfo.mimetype !== 'image/webp') throw new Error('Invalid media type');
+
+        const file = window.WWebJS.mediaInfoToFile(mediaInfo);
+        let filehash = await window.WWebJS.getFileHash(file);	
+        let mediaKey = await window.WWebJS.generateHash(32);
+
+        const controller = new AbortController();
+        const uploadedInfo = await window.Store.UploadUtils.encryptAndUpload({
+            blob: file,
+            type: 'sticker',
+            signal: controller.signal,
+            mediaKey
+        });
+
+        const stickerInfo = {
+            ...uploadedInfo,
+            clientUrl: uploadedInfo.url,
+            uploadhash: uploadedInfo.encFilehash,
+            size: file.size,
+            type: 'sticker',
+            filehash
+        };
+
+        return stickerInfo;
     };
 
     window.WWebJS.processMediaData = async (mediaInfo, { forceVoice, forceDocument }) => {
@@ -336,6 +370,22 @@ exports.LoadUtils = () => {
 
             reader.readAsDataURL(blob);
         });
+    };
+
+    window.WWebJS.getFileHash = async (data) => {                  
+        let buffer = await data.arrayBuffer();
+        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+        return btoa(String.fromCharCode(...new Uint8Array(hashBuffer)));
+    };
+
+    window.WWebJS.generateHash = async (length) => {
+        var result = '';
+        var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        var charactersLength = characters.length;
+        for ( var i = 0; i < length; i++ ) {
+            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+        return result;
     };
 
     window.WWebJS.sendClearChat = async (chatId) => {
