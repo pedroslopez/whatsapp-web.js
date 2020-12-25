@@ -679,6 +679,10 @@ declare namespace WAWebJS {
         block: () => Promise<boolean>,
         /** Unlocks this contact from WhatsApp */
         unblock: () => Promise<boolean>,
+
+        /** Gets the Contact's current "about" info. Returns null if you don't have permission to read their status.  */
+        getAbout: () => Promise<string | null>,
+
     }
 
     export interface ContactId {
