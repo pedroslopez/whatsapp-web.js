@@ -423,6 +423,7 @@ class Client extends EventEmitter {
      * @typedef {Object} MessageSendOptions
      * @property {boolean} [linkPreview=true] - Show links preview
      * @property {boolean} [sendAudioAsVoice=false] - Send audio as voice message
+     * @property {boolean} [sendMediaAsSticker=false] - Send media as a sticker
      * @property {boolean} [sendMediaAsDocument=false] - Send media as a document
      * @property {boolean} [parseVCards=true] - Automatically parse vCards and send them as contacts
      * @property {string} [caption] - Image or video caption
