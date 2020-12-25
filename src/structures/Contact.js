@@ -152,6 +152,21 @@ class Contact extends Base {
 
         return true;
     }
+
+    /**
+     * Gets the Contact's current "about" info. Returns null if you don't have permission to read their status.
+     * @returns {Promise<?string>}
+     */
+    async getAbout() {
+        const about = await this.client.pupPage.evaluate(async (contactId) => {
+            return window.Store.Wap.statusFind(contactId);
+        }, this.id._serialized);
+
+        if (typeof about.status !== 'string')
+            return null;
+
+        return about.status;
+    }
     
 }
 
