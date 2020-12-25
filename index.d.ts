@@ -499,6 +499,8 @@ declare namespace WAWebJS {
         to: string,
         /** Message type */
         type: MessageTypes,
+        /** Links included in the message. */
+        links: string[],
 
         /** Deletes the message from the chat */
         delete: (everyone?: boolean) => Promise<void>,

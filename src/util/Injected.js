@@ -250,11 +250,16 @@ exports.LoadUtils = () => {
 
     window.WWebJS.getMessageModel = message => {
         const msg = message.serialize();
+        
         msg.isStatusV3 = message.isStatusV3;
+        msg.links = (message.getLinks()).map(link => link.href);
+
         if (msg.buttons) {
             msg.buttons = msg.buttons.serialize();
         }
+        
         delete msg.pendingAckUpdate;
+        
         return msg;
     };
 

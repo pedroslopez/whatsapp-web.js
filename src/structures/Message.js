@@ -133,6 +133,12 @@ class Message extends Base {
             this.mentionedIds = data.mentionedJidList;
         }
 
+        /**
+         * Links included in the message.
+         * @type {Array<string>}
+         */
+        this.links = data.links;
+
         return super._patch(data);
     }
 
