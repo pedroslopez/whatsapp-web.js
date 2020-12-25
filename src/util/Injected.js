@@ -60,10 +60,10 @@ exports.LoadUtils = () => {
         if (options.attachment) {
             attOptions = options.sendMediaAsSticker 
                 ? await window.WWebJS.processStickerData(options.attachment)
-                : await window.WWebJS.processMediaData(options.attachment, { 
-                      forceVoice: options.sendAudioAsVoice, 
-                      forceDocument: options.sendMediaAsDocument 
-                  });
+                : await window.WWebJS.processMediaData(options.attachment, {
+                    forceVoice: options.sendAudioAsVoice, 
+                    forceDocument: options.sendMediaAsDocument 
+                });
 
             content = options.sendMediaAsSticker ? undefined : attOptions.preview;
 
