@@ -31,10 +31,12 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.GroupMetadata = window.mR.findModule((module) => module.default && module.default.handlePendingInvite)[0].default;
     window.Store.Sticker = window.mR.findModule('Sticker')[0].default.Sticker;
     window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
+    window.Store.Label = window.mR.findModule('LabelCollection')[0].default;
 };
 
 exports.LoadUtils = () => {
     window.WWebJS = {};
+
     window.WWebJS.getNumberId = async (id) => {
 
         let result = await window.Store.Wap.queryExist(id);
@@ -42,6 +44,7 @@ exports.LoadUtils = () => {
             throw 'The number provided is not a registered whatsapp user';
         return result.jid;
     };
+
     window.WWebJS.sendSeen = async (chatId) => {
         let chat = window.Store.Chat.get(chatId);
         if (chat !== undefined) {
@@ -51,14 +54,19 @@ exports.LoadUtils = () => {
         return false;
 
     };
+    
     window.WWebJS.sendMessage = async (chat, content, options = {}) => {
         let attOptions = {};
         if (options.attachment) {
             attOptions = options.sendMediaAsSticker 
                 ? await window.WWebJS.processStickerData(options.attachment)
-                : await window.WWebJS.processMediaData(options.attachment, options.sendAudioAsVoice);
+                : await window.WWebJS.processMediaData(options.attachment, { 
+                      forceVoice: options.sendAudioAsVoice, 
+                      forceDocument: options.sendMediaAsDocument 
+                  });
 
             content = options.sendMediaAsSticker ? undefined : attOptions.preview;
+
             delete options.attachment;
             delete options.sendMediaAsSticker;
         }
@@ -186,10 +194,10 @@ exports.LoadUtils = () => {
         return stickerInfo;
     };
 
-    window.WWebJS.processMediaData = async (mediaInfo, forceVoice) => {
+    window.WWebJS.processMediaData = async (mediaInfo, { forceVoice, forceDocument }) => {
         const file = window.WWebJS.mediaInfoToFile(mediaInfo);
         const mData = await window.Store.OpaqueData.createFromData(file, file.type);
-        const mediaPrep = window.Store.MediaPrep.prepRawMedia(mData, {});
+        const mediaPrep = window.Store.MediaPrep.prepRawMedia(mData, { asDocument: forceDocument });
         const mediaData = await mediaPrep.waitForPrep();
         const mediaObject = window.Store.MediaObject.getOrCreateMediaObject(mediaData.filehash);
 
@@ -200,6 +208,10 @@ exports.LoadUtils = () => {
 
         if (forceVoice && mediaData.type === 'audio') {
             mediaData.type = 'ptt';
+        }
+
+        if (forceDocument) {
+            mediaData.type = 'document';
         }
 
         if (!(mediaData.mediaBlob instanceof window.Store.OpaqueData)) {
@@ -258,6 +270,8 @@ exports.LoadUtils = () => {
         }
 
         delete res.msgs;
+        delete res.msgUnsyncedButtonReplyMsgs;
+        delete res.unsyncedButtonReplies;
 
         return res;
     };
@@ -410,6 +424,27 @@ exports.LoadUtils = () => {
         return true;
     };
 
+    window.WWebJS.getLabelModel = label => {
+        let res = label.serialize();
+        res.hexColor = label.hexColor;
+        
+        return res;
+    };
+
+    window.WWebJS.getLabels = () => {
+        const labels = window.Store.Label.models;
+        return labels.map(label => window.WWebJS.getLabelModel(label));
+    };
+
+    window.WWebJS.getLabel = (labelId) => {
+        const label = window.Store.Label.get(labelId);
+        return window.WWebJS.getLabelModel(label);
+    };
+
+    window.WWebJS.getChatLabels = async (chatId) => {
+        const chat = await window.WWebJS.getChat(chatId);
+        return (chat.labels || []).map(id => window.WWebJS.getLabel(id));
+    };
 };
 
 exports.MarkAllRead = () => {

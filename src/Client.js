@@ -11,7 +11,7 @@ const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constan
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
-const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification } = require('./structures');
+const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification , Label } = require('./structures');
 /**
  * Starting point for interacting with the WhatsApp Web API
  * @extends {EventEmitter}
@@ -423,6 +423,7 @@ class Client extends EventEmitter {
      * @typedef {Object} MessageSendOptions
      * @property {boolean} [linkPreview=true] - Show links preview
      * @property {boolean} [sendAudioAsVoice=false] - Send audio as voice message
+     * @property {boolean} [sendMediaAsDocument=false] - Send media as a document
      * @property {boolean} [parseVCards=true] - Automatically parse vCards and send them as contacts
      * @property {string} [caption] - Image or video caption
      * @property {string} [quotedMessageId] - Id of the message that is being quoted (or replied to)
@@ -444,6 +445,7 @@ class Client extends EventEmitter {
             linkPreview: options.linkPreview === false ? undefined : true,
             sendAudioAsVoice: options.sendAudioAsVoice,
             sendMediaAsSticker: options.sendMediaAsSticker,
+            sendMediaAsDocument: options.sendMediaAsDocument,
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
             parseVCards: options.parseVCards === false ? false : true,
@@ -721,6 +723,26 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Get the registered WhatsApp ID for a number. 
+     * Will return null if the number is not registered on WhatsApp.
+     * @param {string} number Number or ID ("@c.us" will be automatically appended if not specified)
+     * @returns {Promise<Object|null>}
+     */
+    async getNumberId(number) {
+        if(!number.endsWith('@c.us')) {
+            number += '@c.us';
+        }
+
+        try {
+            return await this.pupPage.evaluate(async numberId => {
+                return window.WWebJS.getNumberId(numberId);
+            }, number);
+        } catch(_) {
+            return null;
+        }
+    }
+
+    /**
      * Create a new group
      * @param {string} name group title
      * @param {Array<Contact|string>} participants an array of Contacts or contact IDs to add to the group
@@ -757,6 +779,63 @@ class Client extends EventEmitter {
         return { gid: createRes.gid, missingParticipants };
     }
 
+    /**
+     * Get all current Labels
+     * @returns {Promise<Array<Label>>}
+     */
+    async getLabels() {
+        const labels = await this.pupPage.evaluate(async () => {
+            return window.WWebJS.getLabels();
+        }); 
+
+        return labels.map(data => new Label(this , data));
+    }
+
+    /**
+     * Get Label instance by ID
+     * @param {string} labelId
+     * @returns {Promise<Label>}
+     */
+    async getLabelById(labelId) {
+        const label = await this.pupPage.evaluate(async (labelId) => {
+            return window.WWebJS.getLabel(labelId);
+        }, labelId); 
+
+        return new Label(this, label);
+    }
+
+    /**
+     * Get all Labels assigned to a chat 
+     * @param {string} chatId
+     * @returns {Promise<Array<Label>>}
+     */
+    async getChatLabels(chatId){
+        const labels = await this.pupPage.evaluate(async (chatId) => {
+            return window.WWebJS.getChatLabels(chatId);
+        }, chatId);
+
+        return labels.map(data => new Label(this, data)); 
+    }
+
+    /**
+     * Get all Chats for a specific Label
+     * @param {string} labelId
+     * @returns {Promise<Array<Chat>>}
+     */
+    async getChatsByLabelId(labelId){
+        const chatIds = await this.pupPage.evaluate(async (labelId) => {
+            const label = window.Store.Label.get(labelId);
+            const labelItems = label.labelItemCollection.models;
+            return labelItems.reduce((result, item) => {
+                if(item.parentType === 'Chat'){  
+                    result.push(item.parentId);
+                }
+                return result;
+            },[]);
+        }, labelId);
+
+        return Promise.all(chatIds.map(id => this.getChatById(id)));
+    }
 }
 
 module.exports = Client;
