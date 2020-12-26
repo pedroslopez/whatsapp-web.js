@@ -102,12 +102,6 @@ declare namespace WAWebJS {
         /** Unmutes the Chat */
         unmuteChat(chatId: string): Promise<void>
 
-        /** Stars an array of messages */
-        starMsgs(messages: Array<Message>): Promise<void>
-
-        /** Unstars an array of messages */
-        unstarMsgs(messages: Array<Message>): Promise<void>
-
         /** Generic event */
         on(event: string, listener: (...args: any) => void): this
 
@@ -741,10 +735,6 @@ declare namespace WAWebJS {
         unmute: () => Promise<void>,
         /** Returns the Contact that corresponds to this Chat. */
         getContact: () => Promise<Contact>,
-        /** Stars an array of messages */
-        starMsgs: (messages: Array<Message>) => Promise<void>
-        /** Unstars an array of messages */
-        unstarMsgs: (messages: Array<Message>) => Promise<void>
     }
 
     export interface MessageSearchOptions {
