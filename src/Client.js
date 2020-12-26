@@ -748,6 +748,7 @@ class Client extends EventEmitter {
 
         return { gid: createRes.gid, missingParticipants };
     }
+
 }
 
 module.exports = Client;
