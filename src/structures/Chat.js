@@ -229,22 +229,6 @@ class Chat extends Base {
     async getContact() {
         return await this.client.getContactById(this.id._serialized);
     }
-
-    /**
-     * Stars an array of messages
-     * @param {Array<Message>} messages to be starred
-     */
-    async starMsgs(messages) {
-        return this.client.starMsgs(messages);
-    }
-
-    /**
-     * Unstars an array of messages
-     * @param {Array<Message>} messages to be unstarred
-     */
-    async unstarMsgs(messages) {
-        return this.client.unstarMsgs(messages);
-    }
 }
 
 module.exports = Chat;

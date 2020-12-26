@@ -277,14 +277,26 @@ class Message extends Base {
      * Stars this message
      */
     async star() {
-        return this.client.starMsgs([this]);
+        await this.pupPage.evaluate((msgId) => {
+            let msg = window.Store.Msg.get(msgId);
+
+            if (msg.canStar()) {
+                return msg.chat.sendStarMsgs([msg], true);
+            }
+        }, this.id._serialized);
     }
 
     /**
      * Unstars this message
      */
     async unstar() {
-        return this.client.unstarMsgs([this]);
+        await this.pupPage.evaluate((msgId) => {
+            let msg = window.Store.Msg.get(msgId);
+
+            if (msg.canStar()) {
+                return msg.chat.sendStarMsgs([msg], false);
+            }
+        }, this.id._serialized);
     }
 }
 

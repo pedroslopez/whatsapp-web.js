@@ -748,38 +748,6 @@ class Client extends EventEmitter {
 
         return { gid: createRes.gid, missingParticipants };
     }
-
-    /**
-     * Stars an array of messages
-     * @param {Array<Message>} messages to be starred
-     */
-    async starMsgs(messages) {
-        await this.pupPage.evaluate((messages) => {
-            return Promise.all(messages.map(message => {
-                let msg = window.Store.Msg.get(message.id._serialized);
-
-                if (msg.canStar()) {
-                    return msg.chat.sendStarMsgs([msg], true);
-                }
-            }));
-        }, messages);
-    }
-
-    /**
-     * Unstars an array of messages
-     * @param {Array<Message>} messages to be unstarred
-     */
-    async unstarMsgs(messages) {
-        await this.pupPage.evaluate((messages) => {
-            return Promise.all(messages.map(message => {
-                let msg = window.Store.Msg.get(message.id._serialized);
-
-                if (msg.canStar()) {
-                    return msg.chat.sendStarMsgs([msg], false);
-                }
-            }));
-        }, messages);
-    }
 }
 
 module.exports = Client;
