@@ -78,7 +78,7 @@ class GroupChat extends Chat {
     /**
      * Promotes participants by IDs to admins
      * @param {Array<string>} participantIds 
-     * @returns {Promise<{ status: number }>} Object with status code indicating if the operation was successfull
+     * @returns {Promise<{ status: number }>} Object with status code indicating if the operation was successful
      */
     async promoteParticipants(participantIds) {
         return await this.client.pupPage.evaluate((chatId, participantIds) => {
@@ -89,7 +89,7 @@ class GroupChat extends Chat {
     /**
      * Demotes participants by IDs to regular users
      * @param {Array<string>} participantIds 
-     * @returns {Promise<{ status: number }>} Object with status code indicating if the operation was successfull
+     * @returns {Promise<{ status: number }>} Object with status code indicating if the operation was successful
      */
     async demoteParticipants(participantIds) {
         return await this.client.pupPage.evaluate((chatId, participantIds) => {
