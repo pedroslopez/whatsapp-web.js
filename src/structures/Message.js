@@ -278,6 +278,32 @@ class Message extends Base {
             return window.Store.Cmd.sendDeleteMsgs(msg.chat, [msg], true);
         }, this.id._serialized, everyone);
     }
+
+    /**
+     * Stars this message
+     */
+    async star() {
+        await this.pupPage.evaluate((msgId) => {
+            let msg = window.Store.Msg.get(msgId);
+
+            if (msg.canStar()) {
+                return msg.chat.sendStarMsgs([msg], true);
+            }
+        }, this.id._serialized);
+    }
+
+    /**
+     * Unstars this message
+     */
+    async unstar() {
+        await this.pupPage.evaluate((msgId) => {
+            let msg = window.Store.Msg.get(msgId);
+
+            if (msg.canStar()) {
+                return msg.chat.sendStarMsgs([msg], false);
+            }
+        }, this.id._serialized);
+    }
 }
 
 module.exports = Message;
