@@ -164,7 +164,7 @@ class Chat extends Base {
     /**
      * Unread this chat
      */
-    async markunread(){
+    async markUnread(){
         return this.client.markUnread(this.id._serialized);
     }
 
