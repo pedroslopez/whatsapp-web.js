@@ -94,7 +94,7 @@ class Message extends Base {
         this.isStatus = data.isStatusV3;
 
         /**
-         * Indicates if the message was stared
+         * Indicates if the message was starred
          * @type {boolean}
          */
         this.isStarred = data.star;
