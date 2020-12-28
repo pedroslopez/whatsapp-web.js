@@ -84,6 +84,9 @@ declare namespace WAWebJS {
         /** Mark as seen for the Chat */
         sendSeen(chatId: string): Promise<boolean>
 
+        /** Mark the Chat as unread */
+        markChatUnread(chatId: string): Promise<void>
+
         /** 
          * Sets the current user's status message
          * @param status New status message
@@ -731,6 +734,8 @@ declare namespace WAWebJS {
         unmute: () => Promise<void>,
         /** Returns the Contact that corresponds to this Chat. */
         getContact: () => Promise<Contact>,
+        /** Marks this Chat as unread */
+        markUnread: () => Promise<void>
     }
 
     export interface MessageSearchOptions {

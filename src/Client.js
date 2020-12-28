@@ -679,13 +679,13 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Mark Unread the Chat
-     * @param {string} chatId ID of the chat that will be unread
+     * Mark the Chat as unread
+     * @param {string} chatId ID of the chat that will be marked as unread
      */
     async markChatUnread(chatId) {
         await this.pupPage.evaluate(async chatId => {
             let chat = await window.Store.Chat.get(chatId);
-            await window.Store.Cmd.markChatUnread(chat, -1);
+            await window.Store.Cmd.markChatUnread(chat, true);
         }, chatId);
     }
 
