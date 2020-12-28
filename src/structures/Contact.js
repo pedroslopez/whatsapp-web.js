@@ -3,6 +3,14 @@
 const Base = require('./Base');
 
 /**
+ * ID that represents a contact
+ * @typedef {Object} ContactId
+ * @property {string} server
+ * @property {string} user
+ * @property {string} _serialized
+ */
+
+/**
  * Represents a Contact on WhatsApp
  * @extends {Base}
  */
@@ -16,7 +24,7 @@ class Contact extends Base {
     _patch(data) {
         /**
          * ID that represents the contact
-         * @type {object}
+         * @type {ContactId}
          */
         this.id = data.id;
 
