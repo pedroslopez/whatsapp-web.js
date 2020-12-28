@@ -5,4 +5,4 @@ docs/*
 .jsdoc.json
 .editorconfig
 
-session.json
+*session.json
