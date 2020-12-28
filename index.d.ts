@@ -481,6 +481,8 @@ declare namespace WAWebJS {
         id: MessageId,
         /** Indicates if the message was forwarded */
         isForwarded: boolean,
+        /** Indicates if the message was starred */
+        isStarred: boolean,
         /** Location information contained in the message, if the message is type "location" */
         location: Location,
         /** List of vCards contained in the message */
