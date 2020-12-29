@@ -21,6 +21,7 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @param {number} options.qrRefreshIntervalMs - Refresh interval for qr code (how much time to wait before checking if the qr code has changed)
  * @param {number} options.qrTimeoutMs - Timeout for qr code selector in puppeteer
  * @param {string} options.restartOnAuthFail  - Restart client with a new session (i.e. use null 'session' var) if authentication fails
+ * @param {boolean} options.keepBrowserOnAuthFail - Keep browser open when authentication fails and restartOnAuthFail is false
  * @param {object} options.session - Whatsapp session to restore. If not set, will start a new session
  * @param {string} options.session.WABrowserId
  * @param {string} options.session.WASecretBundle
@@ -101,7 +102,9 @@ class Client extends EventEmitter {
                      * @param {string} message
                      */
                     this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in. Are the session details valid?');
-                    browser.close();
+                    if ( !this.options.keepBrowserOnAuthFail || this.options.restartOnAuthFail ) {
+                        browser.close();
+                    }
                     if (this.options.restartOnAuthFail) {
                         // session restore failed so try again but without session to force new authentication
                         this.options.session = null;
