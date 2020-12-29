@@ -39,7 +39,7 @@ class Label extends Base {
     }
     /**
      * Get all chats that have been assigned this Label
-     * @returns {Promise<Array<Chat>>>}
+     * @returns {Promise<Array<Chat>>}
      */
     async getChats(){
         return this.client.getChatsByLabelId(this.id);
