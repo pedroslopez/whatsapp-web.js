@@ -433,6 +433,15 @@ declare namespace WAWebJS {
         UNPAIRED_IDLE = 'UNPAIRED_IDLE',
     }
 
+    export type MessageInfo = {
+        delivery: Array<{id: ContactId, t: number}>,
+        deliveryRemaining: number,
+        played: Array<{id: ContactId, t: number}>,
+        playedRemaining: number,
+        read: Array<{id: ContactId, t: number}>,
+        readRemaining: number
+    }
+
     /**
      * Represents a Message on WhatsApp
      * 
@@ -530,9 +539,11 @@ declare namespace WAWebJS {
          */
         forward: (chat: Chat | string) => Promise<void>,
         /** Star this message */
-        star: () => Promise<void>
+        star: () => Promise<void>,
         /** Unstar this message */
-        unstar: () => Promise<void>
+        unstar: () => Promise<void>,
+        /** Get information about message delivery statuso */
+        getInfo: () => Promise<MessageInfo | null>
     }
 
     /** ID that represents a message */

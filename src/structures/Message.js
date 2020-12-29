@@ -310,6 +310,36 @@ class Message extends Base {
             }
         }, this.id._serialized);
     }
+
+    /**
+     * Message Info
+     * @typedef {Object} MessageInfo
+     * @property {Array<{id: ContactId, t: number}>} delivery Contacts to which the message has been delivered to
+     * @property {number} deliveryRemaining Amount of people to whom the message has not been delivered to
+     * @property {Array<{id: ContactId, t: number}>} played Contacts who have listened to the voice message
+     * @property {number} playedRemaining Amount of people who have not listened to the message
+     * @property {Array<{id: ContactId, t: number}>} read Contacts who have read the message
+     * @property {number} readRemaining Amount of people who have not read the message
+     */
+
+    /**
+     * Get information about message delivery status. May return null if the message does not exist or is not sent by you.
+     * @returns {Promise<?MessageInfo>}
+     */
+    async getInfo() {
+        const info = await this.client.pupPage.evaluate(async (msgId) => {
+            const msg = window.Store.Msg.get(msgId);
+            if(!msg) return null;
+            
+            return await window.Store.Wap.queryMsgInfo(msg.id);
+        }, this.id._serialized);
+
+        if(info.status) {
+            return null;
+        }
+
+        return info;
+    }
 }
 
 module.exports = Message;
