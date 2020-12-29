@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.6">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.11.2 &raquo; Class: Util</title>
+  <title>whatsapp-web.js 1.12.0 &raquo; Class: Util</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>11.<wbr>2</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>12.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -26,7 +26,7 @@
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
             <h1><small></small><span class="symbol-name">Util</span></h1>
-            <p class="source-link">Source: <a href="util_Util.js.html#source-line-8">util/<wbr>Util.<wbr>js:8</a></p>
+            <p class="source-link">Source: <a href="util_Util.js.html#source-line-15">util/<wbr>Util.<wbr>js:15</a></p>
             <div class="symbol-classdesc">
               <p>Utility methods</p>
             </div>
@@ -34,6 +34,33 @@
             </dl>
           </header>
           <section id="summary">
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Methods</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Util.html#.formatImageToWebpSticker">formatImageToWebpSticker(media)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Util.html#.formatToWebpSticker">formatToWebpSticker(media)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Util.html#.formatVideoToWebpSticker">formatVideoToWebpSticker(media)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Util.html#.setFfmpegPath">setFfmpegPath(path)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                </div>
+              </div>
+            </div>
           </section>
           <section>
             <h2 id="Util">new&nbsp;<span class="symbol-name">Util</span><span class="signature"><span class="signature-params">()</span></span></h2>
@@ -41,6 +68,159 @@
             </dl>
           </section>
           <section>
+            <h2>Methods</h2>
+            <section>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span>&nbsp;<span class="label label-static">static</span></div>
+              <h3 id=".formatImageToWebpSticker"><span class="symbol-name">formatImageToWebpSticker</span><span class="signature"><span class="signature-params">(media)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="MessageMedia.html">MessageMedia</a></span></span></h3>
+              <p>Formats a image to webp</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>media</p>
+                      </td>
+                      <td>
+                        <p><a href="MessageMedia.html">MessageMedia</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing <a href="MessageMedia.html">MessageMedia</a></code> 
+                  <p>media in webp format</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span>&nbsp;<span class="label label-static">static</span></div>
+              <h3 id=".formatToWebpSticker"><span class="symbol-name">formatToWebpSticker</span><span class="signature"><span class="signature-params">(media)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="MessageMedia.html">MessageMedia</a></span></span></h3>
+              <p>Formats a media to webp</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>media</p>
+                      </td>
+                      <td>
+                        <p><a href="MessageMedia.html">MessageMedia</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing <a href="MessageMedia.html">MessageMedia</a></code> 
+                  <p>media in webp format</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span>&nbsp;<span class="label label-static">static</span></div>
+              <h3 id=".formatVideoToWebpSticker"><span class="symbol-name">formatVideoToWebpSticker</span><span class="signature"><span class="signature-params">(media)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="MessageMedia.html">MessageMedia</a></span></span></h3>
+              <p>Formats a video to webp</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>media</p>
+                      </td>
+                      <td>
+                        <p><a href="MessageMedia.html">MessageMedia</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing <a href="MessageMedia.html">MessageMedia</a></code> 
+                  <p>media in webp format</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".setFfmpegPath"><span class="symbol-name">setFfmpegPath</span><span class="signature"><span class="signature-params">(path)</span></span></h3>
+              <p>Configure ffmpeg path</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>path</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+            </section>
           </section>
         </div>
       </div>
@@ -50,7 +230,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.6 on December 21, 2020.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.6 on December 29, 2020.
       </p>
     </div>
   </footer>

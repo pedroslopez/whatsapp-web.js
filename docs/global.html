@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.6">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.11.2 &raquo; Globals</title>
+  <title>whatsapp-web.js 1.12.0 &raquo; Globals</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>11.<wbr>2</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>12.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -64,16 +64,27 @@
               </div>
             </div>
             <div class="summary-callout">
-              <h2 class="summary-callout-heading">Abstract type</h2>
+              <h2 class="summary-callout-heading">Abstract types</h2>
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="global.html#MessageSendOptions">MessageSendOptions</a></dt>
+                    <dt><a href="global.html#ContactId">ContactId</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="global.html#GroupParticipant">GroupParticipant</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="global.html#MessageInfo">MessageInfo</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="global.html#MessageSendOptions">MessageSendOptions</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
                 </div>
                 <div class="summary-column">
                 </div>
@@ -1024,8 +1035,230 @@
               <dl class="dl-compact">
               </dl>
             </section>
-            <h2>Abstract type</h2>
+            <h2>Abstract types</h2>
             <section>
+              <h3 id="ContactId"><span class="symbol-name">ContactId</span><small class="property-type">
+                  &nbsp;Object</small></h3>
+              <p>ID that represents a contact</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>server</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>user</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>_serialized</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="GroupParticipant"><span class="symbol-name">GroupParticipant</span><small class="property-type">
+                  &nbsp;Object</small></h3>
+              <p>Group participant information</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>id</p>
+                      </td>
+                      <td>
+                        <p><a href="global.html#ContactId">ContactId</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>isAdmin</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>isSuperAdmin</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="MessageInfo"><span class="symbol-name">MessageInfo</span><small class="property-type">
+                  &nbsp;Object</small></h3>
+              <p>Message Info</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>delivery</p>
+                      </td>
+                      <td>
+                        <p>Array of {id: <a href="global.html#ContactId">ContactId</a>, t: number}</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Contacts to which the message has been delivered to</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>deliveryRemaining</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Amount of people to whom the message has not been delivered to</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>played</p>
+                      </td>
+                      <td>
+                        <p>Array of {id: <a href="global.html#ContactId">ContactId</a>, t: number}</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Contacts who have listened to the voice message</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>playedRemaining</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Amount of people who have not listened to the message</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>read</p>
+                      </td>
+                      <td>
+                        <p>Array of {id: <a href="global.html#ContactId">ContactId</a>, t: number}</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Contacts who have read the message</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>readRemaining</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Amount of people who have not read the message</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="MessageSendOptions"><span class="symbol-name">MessageSendOptions</span><small class="property-type">
                   &nbsp;Object</small></h3>
               <p>Message options.</p>
@@ -1068,6 +1301,36 @@
                       </td>
                       <td>
                         <p>Send audio as voice message</p>
+                        <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>sendMediaAsSticker</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Send media as a sticker</p>
+                        <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>sendMediaAsDocument</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Send media as a document</p>
                         <p>Defaults to <code>false</code>.</p>
                       </td>
                     </tr>
@@ -1172,7 +1435,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.6 on December 21, 2020.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.6 on December 29, 2020.
       </p>
     </div>
   </footer>

@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.6">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.12.0 &raquo; Class: Location</title>
+  <title>whatsapp-web.js 1.12.0 &raquo; Class: Label</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -25,10 +25,10 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
-            <h1><small></small><span class="symbol-name">Location</span></h1>
-            <p class="source-link">Source: <a href="structures_Location.js.html#source-line-6">structures/<wbr>Location.<wbr>js:6</a></p>
+            <h1><small></small><span class="symbol-name">Label</span></h1>
+            <p class="source-link">Source: <a href="structures_Label.js.html#source-line-10">structures/<wbr>Label.<wbr>js:10</a></p>
             <div class="symbol-classdesc">
-              <p>Location information</p>
+              <p>WhatsApp Business Label information</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -39,30 +39,46 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Location.html#description">description</a></dt>
+                    <dt><a href="Label.html#hexColor">hexColor</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Location.html#latitude">latitude</a></dt>
+                    <dt><a href="Label.html#id">id</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Location.html#longitude">longitude</a></dt>
+                    <dt><a href="Label.html#name">name</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
               </div>
             </div>
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Method</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Label.html#getChats">getChats()</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                </div>
+                <div class="summary-column">
+                </div>
+              </div>
+            </div>
           </section>
           <section>
-            <h2 id="Location">new&nbsp;<span class="symbol-name">Location</span><span class="signature"><span class="signature-params">(latitude, longitude, description)</span></span></h2>
+            <h2 id="Label">new&nbsp;<span class="symbol-name">Label</span><span class="signature"><span class="signature-params">(client, labelData)</span></span></h2>
             <section>
               <h3>Parameters</h3>
               <table class="jsdoc-details-table">
@@ -77,7 +93,7 @@
                 <tbody>
                   <tr>
                     <td>
-                      <p>latitude</p>
+                      <p>client</p>
                     </td>
                     <td>
                       <p>&nbsp;</p>
@@ -90,7 +106,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <p>longitude</p>
+                      <p>labelData</p>
                     </td>
                     <td>
                       <p>&nbsp;</p>
@@ -99,20 +115,6 @@
                       <p>&nbsp;</p>
                     </td>
                     <td>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <p>description</p>
-                    </td>
-                    <td>
-                      <p>&nbsp;</p>
-                    </td>
-                    <td>
-                      <p>&nbsp;</p>
-                    </td>
-                    <td>
-                      <p>Value can be null.</p>
                     </td>
                   </tr>
                 </tbody>
@@ -124,20 +126,32 @@
           <section>
             <h2>Properties</h2>
             <section>
-              <h3 id="description"><span class="symbol-name">description</span><small class="property-type">
-                  &nbsp;nullable string</small></h3>
-              <p>Name for the location</p>
+              <h3 id="hexColor"><span class="symbol-name">hexColor</span><small class="property-type">
+                  &nbsp;string</small></h3>
+              <p>Label hex color</p>
               <dl class="dl-compact">
               </dl>
-              <h3 id="latitude"><span class="symbol-name">latitude</span><small class="property-type">
-                  &nbsp;number</small></h3>
-              <p>Location latitude</p>
+              <h3 id="id"><span class="symbol-name">id</span><small class="property-type">
+                  &nbsp;string</small></h3>
+              <p>Label ID</p>
               <dl class="dl-compact">
               </dl>
-              <h3 id="longitude"><span class="symbol-name">longitude</span><small class="property-type">
-                  &nbsp;number</small></h3>
-              <p>Location longitude</p>
+              <h3 id="name"><span class="symbol-name">name</span><small class="property-type">
+                  &nbsp;string</small></h3>
+              <p>Label name</p>
               <dl class="dl-compact">
+              </dl>
+            </section>
+            <h2>Method</h2>
+            <section>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getChats"><span class="symbol-name">getChats</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of <a href="Chat.html">Chat</a></span></span></h3>
+              <p>Get all chats that have been assigned this Label</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing Array of <a href="Chat.html">Chat</a></code> </p>
+                </dd>
               </dl>
             </section>
           </section>
