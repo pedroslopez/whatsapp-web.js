@@ -94,6 +94,12 @@ class Message extends Base {
         this.isStatus = data.isStatusV3;
 
         /**
+         * Indicates if the message was starred
+         * @type {boolean}
+         */
+        this.isStarred = data.star;
+        
+        /**
          * Indicates if the message was a broadcast
          * @type {boolean}
          */
@@ -132,6 +138,12 @@ class Message extends Base {
         if (data.mentionedJidList) {
             this.mentionedIds = data.mentionedJidList;
         }
+
+        /**
+         * Links included in the message.
+         * @type {Array<string>}
+         */
+        this.links = data.links;
 
         return super._patch(data);
     }
@@ -271,6 +283,32 @@ class Message extends Base {
 
             return window.Store.Cmd.sendDeleteMsgs(msg.chat, [msg], true);
         }, this.id._serialized, everyone);
+    }
+
+    /**
+     * Stars this message
+     */
+    async star() {
+        await this.pupPage.evaluate((msgId) => {
+            let msg = window.Store.Msg.get(msgId);
+
+            if (msg.canStar()) {
+                return msg.chat.sendStarMsgs([msg], true);
+            }
+        }, this.id._serialized);
+    }
+
+    /**
+     * Unstars this message
+     */
+    async unstar() {
+        await this.pupPage.evaluate((msgId) => {
+            let msg = window.Store.Msg.get(msgId);
+
+            if (msg.canStar()) {
+                return msg.chat.sendStarMsgs([msg], false);
+            }
+        }, this.id._serialized);
     }
 }
 

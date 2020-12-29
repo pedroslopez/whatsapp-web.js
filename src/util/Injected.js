@@ -29,10 +29,14 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.WidFactory = window.mR.findModule('createWid')[0];
     window.Store.BlockContact = window.mR.findModule('blockContact')[0];
     window.Store.GroupMetadata = window.mR.findModule((module) => module.default && module.default.handlePendingInvite)[0].default;
+    window.Store.Sticker = window.mR.findModule('Sticker')[0].default.Sticker;
+    window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
+    window.Store.Label = window.mR.findModule('LabelCollection')[0].default;
 };
 
 exports.LoadUtils = () => {
     window.WWebJS = {};
+
     window.WWebJS.getNumberId = async (id) => {
 
         let result = await window.Store.Wap.queryExist(id);
@@ -40,6 +44,7 @@ exports.LoadUtils = () => {
             throw 'The number provided is not a registered whatsapp user';
         return result.jid;
     };
+
     window.WWebJS.sendSeen = async (chatId) => {
         let chat = window.Store.Chat.get(chatId);
         if (chat !== undefined) {
@@ -49,12 +54,21 @@ exports.LoadUtils = () => {
         return false;
 
     };
+    
     window.WWebJS.sendMessage = async (chat, content, options = {}) => {
         let attOptions = {};
         if (options.attachment) {
-            attOptions = await window.WWebJS.processMediaData(options.attachment, options.sendAudioAsVoice);
-            content = attOptions.preview;
+            attOptions = options.sendMediaAsSticker 
+                ? await window.WWebJS.processStickerData(options.attachment)
+                : await window.WWebJS.processMediaData(options.attachment, {
+                    forceVoice: options.sendAudioAsVoice, 
+                    forceDocument: options.sendMediaAsDocument 
+                });
+
+            content = options.sendMediaAsSticker ? undefined : attOptions.preview;
+
             delete options.attachment;
+            delete options.sendMediaAsSticker;
         }
 
         let quotedMsgOptions = {};
@@ -153,10 +167,37 @@ exports.LoadUtils = () => {
         return window.Store.Msg.get(newMsgId._serialized);
     };
 
-    window.WWebJS.processMediaData = async (mediaInfo, forceVoice) => {
+    window.WWebJS.processStickerData = async (mediaInfo) => {
+        if (mediaInfo.mimetype !== 'image/webp') throw new Error('Invalid media type');
+
+        const file = window.WWebJS.mediaInfoToFile(mediaInfo);
+        let filehash = await window.WWebJS.getFileHash(file);	
+        let mediaKey = await window.WWebJS.generateHash(32);
+
+        const controller = new AbortController();
+        const uploadedInfo = await window.Store.UploadUtils.encryptAndUpload({
+            blob: file,
+            type: 'sticker',
+            signal: controller.signal,
+            mediaKey
+        });
+
+        const stickerInfo = {
+            ...uploadedInfo,
+            clientUrl: uploadedInfo.url,
+            uploadhash: uploadedInfo.encFilehash,
+            size: file.size,
+            type: 'sticker',
+            filehash
+        };
+
+        return stickerInfo;
+    };
+
+    window.WWebJS.processMediaData = async (mediaInfo, { forceVoice, forceDocument }) => {
         const file = window.WWebJS.mediaInfoToFile(mediaInfo);
         const mData = await window.Store.OpaqueData.createFromData(file, file.type);
-        const mediaPrep = window.Store.MediaPrep.prepRawMedia(mData, {});
+        const mediaPrep = window.Store.MediaPrep.prepRawMedia(mData, { asDocument: forceDocument });
         const mediaData = await mediaPrep.waitForPrep();
         const mediaObject = window.Store.MediaObject.getOrCreateMediaObject(mediaData.filehash);
 
@@ -167,6 +208,10 @@ exports.LoadUtils = () => {
 
         if (forceVoice && mediaData.type === 'audio') {
             mediaData.type = 'ptt';
+        }
+
+        if (forceDocument) {
+            mediaData.type = 'document';
         }
 
         if (!(mediaData.mediaBlob instanceof window.Store.OpaqueData)) {
@@ -205,11 +250,16 @@ exports.LoadUtils = () => {
 
     window.WWebJS.getMessageModel = message => {
         const msg = message.serialize();
+        
         msg.isStatusV3 = message.isStatusV3;
+        msg.links = (message.getLinks()).map(link => link.href);
+
         if (msg.buttons) {
             msg.buttons = msg.buttons.serialize();
         }
+        
         delete msg.pendingAckUpdate;
+        
         return msg;
     };
 
@@ -327,6 +377,22 @@ exports.LoadUtils = () => {
         });
     };
 
+    window.WWebJS.getFileHash = async (data) => {                  
+        let buffer = await data.arrayBuffer();
+        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+        return btoa(String.fromCharCode(...new Uint8Array(hashBuffer)));
+    };
+
+    window.WWebJS.generateHash = async (length) => {
+        var result = '';
+        var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        var charactersLength = characters.length;
+        for ( var i = 0; i < length; i++ ) {
+            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+        return result;
+    };
+
     window.WWebJS.sendClearChat = async (chatId) => {
         let chat = window.Store.Chat.get(chatId);
         if (chat !== undefined) {
@@ -363,6 +429,27 @@ exports.LoadUtils = () => {
         return true;
     };
 
+    window.WWebJS.getLabelModel = label => {
+        let res = label.serialize();
+        res.hexColor = label.hexColor;
+        
+        return res;
+    };
+
+    window.WWebJS.getLabels = () => {
+        const labels = window.Store.Label.models;
+        return labels.map(label => window.WWebJS.getLabelModel(label));
+    };
+
+    window.WWebJS.getLabel = (labelId) => {
+        const label = window.Store.Label.get(labelId);
+        return window.WWebJS.getLabelModel(label);
+    };
+
+    window.WWebJS.getChatLabels = async (chatId) => {
+        const chat = await window.WWebJS.getChat(chatId);
+        return (chat.labels || []).map(id => window.WWebJS.getLabel(id));
+    };
 };
 
 exports.MarkAllRead = () => {
