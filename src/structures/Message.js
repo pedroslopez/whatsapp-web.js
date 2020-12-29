@@ -88,6 +88,12 @@ class Message extends Base {
         this.isForwarded = data.isForwarded;
 
         /**
+         * Indicates if the message is a status update
+         * @type {boolean}
+         */
+        this.isStatus = data.isStatusV3;
+
+        /**
          * Indicates if the message was a broadcast
          * @type {boolean}
          */
@@ -110,6 +116,12 @@ class Message extends Base {
          * @type {Location}
          */
         this.location = data.type === MessageTypes.LOCATION ? new Location(data.lat, data.lng, data.loc) : undefined;
+
+        /**
+         * List of vCards contained in the message.
+         * @type {Array<string>}
+         */
+        this.vCards = data.type === MessageTypes.CONTACT_CARD_MULTI ? data.vcardList.map((c) => c.vcard) : data.type === MessageTypes.CONTACT_CARD ? [data.body] : [];
 
         /**
          * Indicates the mentions in the message body.
