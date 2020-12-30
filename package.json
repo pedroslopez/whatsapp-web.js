@@ -33,7 +33,8 @@
     "jsqr": "^1.3.1",
     "mime": "^2.4.5",
     "puppeteer": "^5.2.1",
-    "sharp": "^0.26.3"
+    "libvips": "0.0.2",
+    "sharp": "^0.27.0"
   },
   "devDependencies": {
     "eslint": "^6.8.0",
