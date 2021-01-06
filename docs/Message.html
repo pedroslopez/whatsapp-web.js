@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.6">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.11.2 &raquo; Class: Message</title>
+  <title>whatsapp-web.js 1.12.0 &raquo; Class: Message</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>11.<wbr>2</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>12.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -57,13 +57,13 @@
                     <dt><a href="Message.html#fromMe">fromMe</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Message.html#hasMedia">hasMedia</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Message.html#hasMedia">hasMedia</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="Message.html#hasQuotedMsg">hasQuotedMsg</a></dt>
                     <dd>
                     </dd>
@@ -73,7 +73,13 @@
                     <dt><a href="Message.html#isForwarded">isForwarded</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Message.html#isStarred">isStarred</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Message.html#isStatus">isStatus</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Message.html#links">links</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Message.html#location">location</a></dt>
@@ -119,27 +125,36 @@
                     <dt><a href="Message.html#forward">forward(chat)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Message.html#getChat">getChat()</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Message.html#getChat">getChat()</a></dt>
+                    <dt><a href="Message.html#getContact">getContact()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Message.html#getContact">getContact()</a></dt>
+                    <dt><a href="Message.html#getInfo">getInfo()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Message.html#getMentions">getMentions()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Message.html#getQuotedMessage">getQuotedMessage()</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Message.html#getQuotedMessage">getQuotedMessage()</a></dt>
+                    <dt><a href="Message.html#reply">reply(content[, chatId][, options])</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Message.html#reply">reply(content[, chatId][, options])</a></dt>
+                    <dt><a href="Message.html#star">star()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Message.html#unstar">unstar()</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -207,9 +222,19 @@
               <p>Indicates if the message was forwarded</p>
               <dl class="dl-compact">
               </dl>
+              <h3 id="isStarred"><span class="symbol-name">isStarred</span><small class="property-type">
+                  &nbsp;boolean</small></h3>
+              <p>Indicates if the message was starred</p>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="isStatus"><span class="symbol-name">isStatus</span><small class="property-type">
                   &nbsp;boolean</small></h3>
               <p>Indicates if the message is a status update</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="links"><span class="symbol-name">links</span><small class="property-type">
+                  &nbsp;Array of string</small></h3>
+              <p>Links included in the message.</p>
               <dl class="dl-compact">
               </dl>
               <h3 id="location"><span class="symbol-name">location</span><small class="property-type">
@@ -351,6 +376,15 @@
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getInfo"><span class="symbol-name">getInfo</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing nullable <a href="global.html#MessageInfo">MessageInfo</a></span></span></h3>
+              <p>Get information about message delivery status. May return null if the message does not exist or is not sent by you.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing nullable <a href="global.html#MessageInfo">MessageInfo</a></code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="getMentions"><span class="symbol-name">getMentions</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of <a href="Contact.html">Contact</a></span></span></h3>
               <p>Returns the Contacts mentioned in this message</p>
               <dl class="dl-compact">
@@ -433,6 +467,16 @@
                   <p><code>Promise containing <a href="Message.html">Message</a></code> </p>
                 </dd>
               </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="star"><span class="symbol-name">star</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Stars this message</p>
+              <dl class="dl-compact">
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="unstar"><span class="symbol-name">unstar</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Unstars this message</p>
+              <dl class="dl-compact">
+              </dl>
             </section>
           </section>
         </div>
@@ -443,7 +487,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.6 on December 21, 2020.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.6 on December 29, 2020.
       </p>
     </div>
   </footer>

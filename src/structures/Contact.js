@@ -3,6 +3,14 @@
 const Base = require('./Base');
 
 /**
+ * ID that represents a contact
+ * @typedef {Object} ContactId
+ * @property {string} server
+ * @property {string} user
+ * @property {string} _serialized
+ */
+
+/**
  * Represents a Contact on WhatsApp
  * @extends {Base}
  */
@@ -16,7 +24,7 @@ class Contact extends Base {
     _patch(data) {
         /**
          * ID that represents the contact
-         * @type {object}
+         * @type {ContactId}
          */
         this.id = data.id;
 
@@ -151,6 +159,21 @@ class Contact extends Base {
         }, this.id._serialized);
 
         return true;
+    }
+
+    /**
+     * Gets the Contact's current "about" info. Returns null if you don't have permission to read their status.
+     * @returns {Promise<?string>}
+     */
+    async getAbout() {
+        const about = await this.client.pupPage.evaluate(async (contactId) => {
+            return window.Store.Wap.statusFind(contactId);
+        }, this.id._serialized);
+
+        if (typeof about.status !== 'string')
+            return null;
+
+        return about.status;
     }
     
 }

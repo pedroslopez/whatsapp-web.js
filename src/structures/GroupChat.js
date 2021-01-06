@@ -3,6 +3,14 @@
 const Chat = require('./Chat');
 
 /**
+ * Group participant information
+ * @typedef {Object} GroupParticipant
+ * @property {ContactId} id
+ * @property {boolean} isAdmin
+ * @property {boolean} isSuperAdmin
+ */
+
+/**
  * Represents a Group Chat on WhatsApp
  * @extends {Chat}
  */
@@ -15,6 +23,7 @@ class GroupChat extends Chat {
 
     /**
      * Gets the group owner
+     * @type {ContactId}
      */
     get owner() {
         return this.groupMetadata.owner;
@@ -38,7 +47,7 @@ class GroupChat extends Chat {
 
     /**
      * Gets the group participants
-     * @type {array}
+     * @type {Array<GroupParticipant>}
      */
     get participants() {
         return this.groupMetadata.participants;
@@ -47,6 +56,7 @@ class GroupChat extends Chat {
     /**
      * Adds a list of participants by ID to the group
      * @param {Array<string>} participantIds 
+     * @returns {Promise<Object>}
      */
     async addParticipants(participantIds) {
         return await this.client.pupPage.evaluate((chatId, participantIds) => {
@@ -57,6 +67,7 @@ class GroupChat extends Chat {
     /**
      * Removes a list of participants by ID to the group
      * @param {Array<string>} participantIds 
+     * @returns {Promise<Object>}
      */
     async removeParticipants(participantIds) {
         return await this.client.pupPage.evaluate((chatId, participantIds) => {
@@ -67,6 +78,7 @@ class GroupChat extends Chat {
     /**
      * Promotes participants by IDs to admins
      * @param {Array<string>} participantIds 
+     * @returns {Promise<{ status: number }>} Object with status code indicating if the operation was successful
      */
     async promoteParticipants(participantIds) {
         return await this.client.pupPage.evaluate((chatId, participantIds) => {
@@ -77,6 +89,7 @@ class GroupChat extends Chat {
     /**
      * Demotes participants by IDs to regular users
      * @param {Array<string>} participantIds 
+     * @returns {Promise<{ status: number }>} Object with status code indicating if the operation was successful
      */
     async demoteParticipants(participantIds) {
         return await this.client.pupPage.evaluate((chatId, participantIds) => {
@@ -87,6 +100,7 @@ class GroupChat extends Chat {
     /**
      * Updates the group subject
      * @param {string} subject 
+     * @returns {Promise} 
      */
     async setSubject(subject) {
         let res = await this.client.pupPage.evaluate((chatId, subject) => {
@@ -101,6 +115,7 @@ class GroupChat extends Chat {
     /**
      * Updates the group description
      * @param {string} description 
+     * @returns {Promise} 
      */
     async setDescription(description) {
         let res = await this.client.pupPage.evaluate((chatId, description) => {
@@ -147,6 +162,7 @@ class GroupChat extends Chat {
 
     /**
      * Gets the invite code for a specific group
+     * @returns {Promise<string>} Group's invite code
      */
     async getInviteCode() {
         let res = await this.client.pupPage.evaluate(chatId => {
@@ -162,6 +178,7 @@ class GroupChat extends Chat {
     
     /**
      * Invalidates the current group invite code and generates a new one
+     * @returns {Promise}
      */
     async revokeInvite() {
         return await this.client.pupPage.evaluate(chatId => {
@@ -171,6 +188,7 @@ class GroupChat extends Chat {
 
     /**
      * Makes the bot leave the group
+     * @returns {Promise}
      */
     async leave() {
         return await this.client.pupPage.evaluate(chatId => {

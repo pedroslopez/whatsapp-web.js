@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.6">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.11.2 &raquo; Class: Client</title>
+  <title>whatsapp-web.js 1.12.0 &raquo; Class: Client</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>11.<wbr>2</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>12.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -26,7 +26,7 @@
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
             <h1><small></small><span class="symbol-name">Client</span></h1>
-            <p class="source-link">Source: <a href="Client.js.html#source-line-50">Client.<wbr>js:50</a></p>
+            <p class="source-link">Source: <a href="Client.js.html#source-line-51">Client.<wbr>js:51</a></p>
             <div class="symbol-classdesc">
               <p>Starting point for interacting with the WhatsApp Web API</p>
             </div>
@@ -70,7 +70,13 @@
                     <dt><a href="Client.html#getChatById">getChatById(chatId)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Client.html#getChatLabels">getChatLabels(chatId)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#getChats">getChats()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#getChatsByLabelId">getChatsByLabelId(labelId)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Client.html#getContactById">getContactById(contactId)</a></dt>
@@ -86,6 +92,15 @@
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Client.html#getLabelById">getLabelById(labelId)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#getLabels">getLabels()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#getNumberId">getNumberId(number)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#getProfilePicUrl">getProfilePicUrl(contactId)</a></dt>
                     <dd>
                     </dd>
@@ -104,19 +119,22 @@
                     <dt><a href="Client.html#logout">logout()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Client.html#markChatUnread">markChatUnread(chatId)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#muteChat">muteChat(chatId, unmuteDate)</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="Client.html#pinChat">pinChat()</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="Client.html#resetState">resetState()</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Client.html#pinChat">pinChat()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#resetState">resetState()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#sendMessage">sendMessage(chatId, content[, options])</a></dt>
                     <dd>
                     </dd>
@@ -426,6 +444,20 @@
                               <p>User agent to use in puppeteer</p>
                             </td>
                           </tr>
+                          <tr>
+                            <td>
+                              <p>ffmpegPath</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>Ffmpeg path to use when formating videos to webp while sending stickers</p>
+                            </td>
+                          </tr>
                         </tbody>
                       </table>
                     </td>
@@ -616,8 +648,82 @@
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getChatLabels"><span class="symbol-name">getChatLabels</span><span class="signature"><span class="signature-params">(chatId)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of <a href="Label.html">Label</a></span></span></h3>
+              <p>Get all Labels assigned to a chat</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>chatId</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing Array of <a href="Label.html">Label</a></code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="getChats"><span class="symbol-name">getChats</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of <a href="Chat.html">Chat</a></span></span></h3>
               <p>Get all current chat instances</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing Array of <a href="Chat.html">Chat</a></code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getChatsByLabelId"><span class="symbol-name">getChatsByLabelId</span><span class="signature"><span class="signature-params">(labelId)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of <a href="Chat.html">Chat</a></span></span></h3>
+              <p>Get all Chats for a specific Label</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>labelId</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
@@ -707,6 +813,91 @@
                   <p><code>Promise containing object</code> 
                   <p>Invite information</p>
                   </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getLabelById"><span class="symbol-name">getLabelById</span><span class="signature"><span class="signature-params">(labelId)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="Label.html">Label</a></span></span></h3>
+              <p>Get Label instance by ID</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>labelId</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing <a href="Label.html">Label</a></code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getLabels"><span class="symbol-name">getLabels</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of <a href="Label.html">Label</a></span></span></h3>
+              <p>Get all current Labels</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing Array of <a href="Label.html">Label</a></code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getNumberId"><span class="symbol-name">getNumberId</span><span class="signature"><span class="signature-params">(number)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing (Object or null)</span></span></h3>
+              <p>Get the registered WhatsApp ID for a number.
+                Will return null if the number is not registered on WhatsApp.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Number or ID (&quot;@c.us&quot; will be automatically appended if not specified)</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing (Object or null)</code> </p>
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
@@ -811,6 +1002,40 @@
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="logout"><span class="symbol-name">logout</span><span class="signature"><span class="signature-params">()</span></span></h3>
               <p>Logs out the client, closing the current session</p>
+              <dl class="dl-compact">
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="markChatUnread"><span class="symbol-name">markChatUnread</span><span class="signature"><span class="signature-params">(chatId)</span></span></h3>
+              <p>Mark the Chat as unread</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>chatId</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>ID of the chat that will be marked as unread</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
               <dl class="dl-compact">
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
@@ -1756,7 +1981,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.6 on December 21, 2020.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.6 on December 29, 2020.
       </p>
     </div>
   </footer>

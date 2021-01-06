@@ -162,6 +162,13 @@ class Chat extends Base {
     }
 
     /**
+     * Mark this chat as unread
+     */
+    async markUnread(){
+        return this.client.markChatUnread(this.id._serialized);
+    }
+
+    /**
      * Loads chat messages, sorted from earliest to latest.
      * @param {Object} searchOptions Options for searching messages. Right now only limit is supported.
      * @param {Number} [searchOptions.limit=50] The amount of messages to return. Note that the actual number of returned messages may be smaller if there aren't enough messages in the conversation. Set this to Infinity to load all messages.
@@ -228,6 +235,14 @@ class Chat extends Base {
      */
     async getContact() {
         return await this.client.getContactById(this.id._serialized);
+    }
+
+    /**
+     * Returns array of all Labels assigned to this Chat
+     * @returns {Promise<Array<Label>>}
+     */
+    async getLabels() {
+        return this.client.getChatLabels(this.id._serialized);
     }
 }
 

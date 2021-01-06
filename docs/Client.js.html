@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.6">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.11.2 &raquo; Source: Client.js</title>
+  <title>whatsapp-web.js 1.12.0 &raquo; Source: Client.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>11.<wbr>2</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>12.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -42,7 +42,7 @@ const { WhatsWebURL, DefaultOptions, Events, WAState } &#x3D; require(&#x27;./ut
 const { ExposeStore, LoadUtils } &#x3D; require(&#x27;./util/Injected&#x27;);
 const ChatFactory &#x3D; require(&#x27;./factories/ChatFactory&#x27;);
 const ContactFactory &#x3D; require(&#x27;./factories/ContactFactory&#x27;);
-const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification } &#x3D; require(&#x27;./structures&#x27;);
+const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification , Label } &#x3D; require(&#x27;./structures&#x27;);
 /**
  * Starting point for interacting with the WhatsApp Web API
  * @extends {EventEmitter}
@@ -60,6 +60,7 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @param {number} options.takeoverOnConflict - If another whatsapp web session is detected (another browser), take over the session in the current browser
  * @param {number} options.takeoverTimeoutMs - How much time to wait before taking over the session
  * @param {string} options.userAgent - User agent to use in puppeteer
+ * @param {string} options.ffmpegPath - Ffmpeg path to use when formating videos to webp while sending stickers 
  * 
  * @fires Client#qr
  * @fires Client#authenticated
@@ -86,6 +87,8 @@ class Client extends EventEmitter {
 
         this.pupBrowser &#x3D; null;
         this.pupPage &#x3D; null;
+
+        Util.setFfmpegPath(this.options.ffmpegPath);
     }
 
     /**
@@ -451,6 +454,8 @@ class Client extends EventEmitter {
      * @typedef {Object} MessageSendOptions
      * @property {boolean} [linkPreview&#x3D;true] - Show links preview
      * @property {boolean} [sendAudioAsVoice&#x3D;false] - Send audio as voice message
+     * @property {boolean} [sendMediaAsSticker&#x3D;false] - Send media as a sticker
+     * @property {boolean} [sendMediaAsDocument&#x3D;false] - Send media as a document
      * @property {boolean} [parseVCards&#x3D;true] - Automatically parse vCards and send them as contacts
      * @property {string} [caption] - Image or video caption
      * @property {string} [quotedMessageId] - Id of the message that is being quoted (or replied to)
@@ -471,6 +476,8 @@ class Client extends EventEmitter {
         let internalOptions &#x3D; {
             linkPreview: options.linkPreview &#x3D;&#x3D;&#x3D; false ? undefined : true,
             sendAudioAsVoice: options.sendAudioAsVoice,
+            sendMediaAsSticker: options.sendMediaAsSticker,
+            sendMediaAsDocument: options.sendMediaAsDocument,
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
             parseVCards: options.parseVCards &#x3D;&#x3D;&#x3D; false ? false : true,
@@ -495,6 +502,10 @@ class Client extends EventEmitter {
         } else if(Array.isArray(content) &amp;amp;&amp;amp; content.length &gt; 0 &amp;amp;&amp;amp; content[0] instanceof Contact) {
             internalOptions.contactCardList &#x3D; content.map(contact &#x3D;&gt; contact.id._serialized);
             content &#x3D; &#x27;&#x27;;
+        }
+
+        if (internalOptions.sendMediaAsSticker &amp;amp;&amp;amp; internalOptions.attachment) {
+            internalOptions.attachment &#x3D; await Util.formatToWebpSticker(internalOptions.attachment);
         }
 
         const newMessage &#x3D; await this.pupPage.evaluate(async (chatId, message, options, sendSeen) &#x3D;&gt; {
@@ -710,6 +721,17 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Mark the Chat as unread
+     * @param {string} chatId ID of the chat that will be marked as unread
+     */
+    async markChatUnread(chatId) {
+        await this.pupPage.evaluate(async chatId &#x3D;&gt; {
+            let chat &#x3D; await window.Store.Chat.get(chatId);
+            await window.Store.Cmd.markChatUnread(chat, true);
+        }, chatId);
+    }
+
+    /**
      * Returns the contact ID&#x27;s profile picture URL, if privacy settings allow it
      * @param {string} contactId the whatsapp user&#x27;s ID
      * @returns {Promise&amp;lt;string&gt;}
@@ -741,6 +763,26 @@ class Client extends EventEmitter {
             let result &#x3D; await window.Store.Wap.queryExist(id);
             return result.jid !&#x3D;&#x3D; undefined;
         }, id);
+    }
+
+    /**
+     * Get the registered WhatsApp ID for a number. 
+     * Will return null if the number is not registered on WhatsApp.
+     * @param {string} number Number or ID (&quot;@c.us&quot; will be automatically appended if not specified)
+     * @returns {Promise&amp;lt;Object|null&gt;}
+     */
+    async getNumberId(number) {
+        if(!number.endsWith(&#x27;@c.us&#x27;)) {
+            number +&#x3D; &#x27;@c.us&#x27;;
+        }
+
+        try {
+            return await this.pupPage.evaluate(async numberId &#x3D;&gt; {
+                return window.WWebJS.getNumberId(numberId);
+            }, number);
+        } catch(_) {
+            return null;
+        }
     }
 
     /**
@@ -780,6 +822,63 @@ class Client extends EventEmitter {
         return { gid: createRes.gid, missingParticipants };
     }
 
+    /**
+     * Get all current Labels
+     * @returns {Promise&amp;lt;Array&amp;lt;Label&gt;&gt;}
+     */
+    async getLabels() {
+        const labels &#x3D; await this.pupPage.evaluate(async () &#x3D;&gt; {
+            return window.WWebJS.getLabels();
+        }); 
+
+        return labels.map(data &#x3D;&gt; new Label(this , data));
+    }
+
+    /**
+     * Get Label instance by ID
+     * @param {string} labelId
+     * @returns {Promise&amp;lt;Label&gt;}
+     */
+    async getLabelById(labelId) {
+        const label &#x3D; await this.pupPage.evaluate(async (labelId) &#x3D;&gt; {
+            return window.WWebJS.getLabel(labelId);
+        }, labelId); 
+
+        return new Label(this, label);
+    }
+
+    /**
+     * Get all Labels assigned to a chat 
+     * @param {string} chatId
+     * @returns {Promise&amp;lt;Array&amp;lt;Label&gt;&gt;}
+     */
+    async getChatLabels(chatId){
+        const labels &#x3D; await this.pupPage.evaluate(async (chatId) &#x3D;&gt; {
+            return window.WWebJS.getChatLabels(chatId);
+        }, chatId);
+
+        return labels.map(data &#x3D;&gt; new Label(this, data)); 
+    }
+
+    /**
+     * Get all Chats for a specific Label
+     * @param {string} labelId
+     * @returns {Promise&amp;lt;Array&amp;lt;Chat&gt;&gt;}
+     */
+    async getChatsByLabelId(labelId){
+        const chatIds &#x3D; await this.pupPage.evaluate(async (labelId) &#x3D;&gt; {
+            const label &#x3D; window.Store.Label.get(labelId);
+            const labelItems &#x3D; label.labelItemCollection.models;
+            return labelItems.reduce((result, item) &#x3D;&gt; {
+                if(item.parentType &#x3D;&#x3D;&#x3D; &#x27;Chat&#x27;){  
+                    result.push(item.parentId);
+                }
+                return result;
+            },[]);
+        }, labelId);
+
+        return Promise.all(chatIds.map(id &#x3D;&gt; this.getChatById(id)));
+    }
 }
 
 module.exports &#x3D; Client;
@@ -793,7 +892,7 @@ module.exports &#x3D; Client;
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.6 on December 21, 2020.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.6 on December 29, 2020.
       </p>
     </div>
   </footer>
