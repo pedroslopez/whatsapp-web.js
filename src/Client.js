@@ -47,6 +47,7 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @fires Client#disconnected
  * @fires Client#change_state
  * @fires Client#change_battery
+ * @fires Client#chat_delete
  */
 class Client extends EventEmitter {
     constructor(options = {}) {
@@ -357,6 +358,18 @@ class Client extends EventEmitter {
             this.emit(Events.BATTERY_CHANGED, { battery, plugged });
         });
 
+        await page.exposeFunction('onRemoveChatEvent', (chat) => {
+
+            /**
+             * Emitted when a chat is deleted
+             * @event Client#chat_delete
+             * @param {object} batteryInfo
+             * @param {number} batteryInfo.battery - The current battery percentage
+             * @param {boolean} batteryInfo.plugged - Indicates if the phone is plugged in (true) or not (false)
+             */
+            this.emit(Events.CHAT_DELETE, chat)
+        });
+
         await page.evaluate(() => {
             window.Store.Msg.on('add', (msg) => { if (msg.isNewMsg) window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
@@ -366,6 +379,7 @@ class Client extends EventEmitter {
             window.Store.Msg.on('remove', (msg) => { if (msg.isNewMsg) window.onRemoveMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
             window.Store.Conn.on('change:battery', (state) => { window.onBatteryStateChangedEvent(state); });
+            window.Store.Chat.on('remove', async (chat) => window.onRemoveChatEvent(await window.WWebJS.getChatModel(chat)))
         });
 
         /**
