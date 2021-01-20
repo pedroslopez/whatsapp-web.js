@@ -177,6 +177,12 @@ declare namespace WAWebJS {
             message: Message
         ) => void): this
 
+        /** Emitted when a chat is deleted */
+        on(event: 'chat_delete', listener: (
+            /** The message that was received */
+            chat: Chat
+        ) => void): this
+
         /** Emitted when an ack event occurrs on message type */
         on(event: 'message_ack', listener: (
             /** The message that was affected */
@@ -369,6 +375,7 @@ declare namespace WAWebJS {
         DISCONNECTED = 'disconnected',
         STATE_CHANGED = 'change_state',
         BATTERY_CHANGED = 'change_battery',
+        CHAT_DELETE = 'chat_delete'
     }
 
     /** Group notification types */
@@ -434,11 +441,11 @@ declare namespace WAWebJS {
     }
 
     export type MessageInfo = {
-        delivery: Array<{id: ContactId, t: number}>,
+        delivery: Array<{ id: ContactId, t: number }>,
         deliveryRemaining: number,
-        played: Array<{id: ContactId, t: number}>,
+        played: Array<{ id: ContactId, t: number }>,
         playedRemaining: number,
-        read: Array<{id: ContactId, t: number}>,
+        read: Array<{ id: ContactId, t: number }>,
         readRemaining: number
     }
 
@@ -846,11 +853,11 @@ declare namespace WAWebJS {
     }
 
     /** Promotes or demotes participants by IDs to regular users or admins */
-    export type ChangeParticipantsPermisions = 
+    export type ChangeParticipantsPermisions =
         (participantIds: Array<string>) => Promise<{ status: number }>
 
     /** Adds or removes a list of participants by ID to the group */
-    export type ChangeGroupParticipants = 
+    export type ChangeGroupParticipants =
         (participantIds: Array<string>) => Promise<{
             status: number;
             participants: Array<{
@@ -858,9 +865,9 @@ declare namespace WAWebJS {
                     code: number
                 }
             }>
-         } & {
-             [key: string]: number;
-         }>
+        } & {
+            [key: string]: number;
+        }>
 
     export interface GroupChat extends Chat {
         /** Group owner */
