@@ -445,7 +445,7 @@ class Client extends EventEmitter {
      */
 
     
-    async sendMessage(chatId, content, options = {}) {
+     async sendMessage(chatId, content, options = {}) {
         let internalOptions = {
             linkPreview: options.linkPreview === false ? undefined : true,
             sendAudioAsVoice: options.sendAudioAsVoice,
@@ -484,9 +484,10 @@ class Client extends EventEmitter {
                 const resultPath = 'sticker.webp';
                 internalOptions.attachment = await Util.formatToWebpSticker(internalOptions.attachment);
                 fs.writeFileSync(resultPath, internalOptions.attachment.data, 'base64');
-                const stickerpackid = "com.marsvard.stickermakerforwhatsapp.stickercontentprovider 15745273889";
-                const packname = options.name || "undefined";
-                const author = options.author || "undefined";
+                const random_id = Math.floor(Math.random() * (9999999999 - 1000000000) + 1000000000);
+                const stickerpackid = "com.marsvard.stickermakerforwhatsapp.stickercontentprovider "+ random_id;
+                const packname = options.stickerName || "undefined";
+                const author = options.stickerAuthor || "undefined";
                 const googlelink = "https://play.google.com/store/apps/details?id=com.marsvard.stickermakerforwhatsapp";
                 const applelink = "https://itunes.apple.com/app/sticker-maker-studio/id1443326857";
             
@@ -500,6 +501,21 @@ class Client extends EventEmitter {
                 internalOptions.attachment = await MessageMedia.fromFilePath(resultPath);
             }
         }
+
+        const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = await window.Store.Chat.find(chatWid);
+
+            if (sendSeen) {
+                window.WWebJS.sendSeen(chatId);
+            }
+
+            const msg = await window.WWebJS.sendMessage(chat, message, options, sendSeen);
+            return msg.serialize();
+        }, chatId, content, internalOptions, sendSeen);
+
+        return new Message(this, newMessage);
+    }
 
         const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
