@@ -4,7 +4,7 @@ const EventEmitter = require('events');
 const puppeteer = require('puppeteer');
 const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
 const jsQR = require('jsqr');
-
+const webp = require("webp-converter");
 const Util = require('./util/Util');
 const InterfaceController = require('./util/InterfaceController');
 const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constants');
@@ -430,6 +430,8 @@ class Client extends EventEmitter {
      * @property {string} [quotedMessageId] - Id of the message that is being quoted (or replied to)
      * @property {Contact[]} [mentions] - Contacts that are being mentioned in the message
      * @property {boolean} [sendSeen=true] - Mark the conversation as seen after sending the message
+     * @property {string} [stickerAuthor=undefined] - Sets the author of the sticker, (if sendMediaAsSticker is true).
+     * @property {string} [stickerName=undefined] - Sets the name of the sticker, (if sendMediaAsSticker is true).
      * @property {boolean} [media] - Media to be sent
      */
 
@@ -441,6 +443,8 @@ class Client extends EventEmitter {
      * 
      * @returns {Promise<Message>} Message that was just sent
      */
+
+    
     async sendMessage(chatId, content, options = {}) {
         let internalOptions = {
             linkPreview: options.linkPreview === false ? undefined : true,
@@ -475,6 +479,26 @@ class Client extends EventEmitter {
 
         if (internalOptions.sendMediaAsSticker && internalOptions.attachment) {
             internalOptions.attachment = await Util.formatToWebpSticker(internalOptions.attachment);
+            if (options.stickerName || options.stickerAuthor) {
+                const exifPath = 'data.exif';
+                const resultPath = 'sticker.webp';
+                internalOptions.attachment = await Util.formatToWebpSticker(internalOptions.attachment);
+                fs.writeFileSync(resultPath, internalOptions.attachment.data, 'base64');
+                const stickerpackid = "com.marsvard.stickermakerforwhatsapp.stickercontentprovider 15745273889";
+                const packname = options.name || "undefined";
+                const author = options.author || "undefined";
+                const googlelink = "https://play.google.com/store/apps/details?id=com.marsvard.stickermakerforwhatsapp";
+                const applelink = "https://itunes.apple.com/app/sticker-maker-studio/id1443326857";
+            
+                const json = { "sticker-pack-id": stickerpackid, "sticker-pack-name": packname, "sticker-pack-publisher": author, "android-app-store-link": googlelink, "ios-app-store-link": applelink };
+                let exifAttr = Buffer.from([0x49, 0x49, 0x2A, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01, 0x00, 0x41, 0x57, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0x00, 0x00, 0x00]);
+                let jsonBuffer = Buffer.from(JSON.stringify(json), 'utf8');
+                let exif = Buffer.concat([exifAttr, jsonBuffer]);
+                exif.writeUIntLE(jsonBuffer.length, 14, 4);
+                fs.writeFileSync(exifPath, exif);
+                const result = await webp.webpmux_add(resultPath, resultPath, exifPath, "exif");
+                internalOptions.attachment = await MessageMedia.fromFilePath(resultPath);
+            }
         }
 
         const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
@@ -491,7 +515,7 @@ class Client extends EventEmitter {
 
         return new Message(this, newMessage);
     }
-
+    
     /**
      * Get all current chat instances
      * @returns {Promise<Array<Chat>>}
