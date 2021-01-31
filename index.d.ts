@@ -10,6 +10,12 @@ declare namespace WAWebJS {
         /** Current connection information */
         public info: ClientInfo
 
+        /** Puppeteer page running WhatsApp Web */
+        pupPage?: puppeteer.Page
+
+        /** Puppeteer browser running WhatsApp Web */
+        pupBrowser?: puppeteer.Browser
+
         /**Accepts an invitation to join a group */
         acceptInvite(inviteCode: string): Promise<void>
 
