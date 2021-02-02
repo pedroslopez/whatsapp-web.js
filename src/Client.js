@@ -456,7 +456,7 @@ class Client extends EventEmitter {
             quotedMessageId: options.quotedMessageId,
             parseVCards: options.parseVCards === false ? false : true,
             mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact => contact.id._serialized) : []
-          };
+        };
 
         const sendSeen = typeof options.sendSeen === 'undefined' ? true : options.sendSeen;
 
