@@ -5,7 +5,7 @@ const path = require('path');
 const Crypto = require('crypto');
 const { tmpdir } = require('os');
 const ffmpeg = require('fluent-ffmpeg');
-const webp = req
+const webp = requrie("webp-converter");
 const fs = require('fs').promises;
 
 const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
