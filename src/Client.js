@@ -4,8 +4,9 @@ const EventEmitter = require('events');
 const puppeteer = require('puppeteer');
 const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
 const jsQR = require('jsqr');
-const webp = require("webp-converter");
+const webp = require('webp-converter');
 const Util = require('./util/Util');
+const fs = require('fs');
 const InterfaceController = require('./util/InterfaceController');
 const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constants');
 const { ExposeStore, LoadUtils } = require('./util/Injected');
@@ -445,16 +446,16 @@ class Client extends EventEmitter {
      */
 
     
-     async sendMessage(chatId, content, options = {}) {
-        let internalOptions = {
-            linkPreview: options.linkPreview === false ? undefined : true,
-            sendAudioAsVoice: options.sendAudioAsVoice,
-            sendMediaAsSticker: options.sendMediaAsSticker,
-            sendMediaAsDocument: options.sendMediaAsDocument,
-            caption: options.caption,
-            quotedMessageId: options.quotedMessageId,
-            parseVCards: options.parseVCards === false ? false : true,
-            mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact => contact.id._serialized) : []
+    async sendMessage(chatId, content, options = {}) {
+       let internalOptions = {
+           linkPreview: options.linkPreview === false ? undefined : true,
+           sendAudioAsVoice: options.sendAudioAsVoice,
+           sendMediaAsSticker: options.sendMediaAsSticker,
+           sendMediaAsDocument: options.sendMediaAsDocument,
+           caption: options.caption,
+           quotedMessageId: options.quotedMessageId,
+           parseVCards: options.parseVCards === false ? false : true,
+           mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact => contact.id._serialized) : []
         };
 
         const sendSeen = typeof options.sendSeen === 'undefined' ? true : options.sendSeen;
@@ -485,19 +486,18 @@ class Client extends EventEmitter {
                 internalOptions.attachment = await Util.formatToWebpSticker(internalOptions.attachment);
                 fs.writeFileSync(resultPath, internalOptions.attachment.data, 'base64');
                 const random_id = Math.floor(Math.random() * (9999999999 - 1000000000) + 1000000000);
-                const stickerpackid = "com.marsvard.stickermakerforwhatsapp.stickercontentprovider "+ random_id;
-                const packname = options.stickerName || "undefined";
-                const author = options.stickerAuthor || "undefined";
-                const googlelink = "https://play.google.com/store/apps/details?id=com.marsvard.stickermakerforwhatsapp";
-                const applelink = "https://itunes.apple.com/app/sticker-maker-studio/id1443326857";
-            
-                const json = { "sticker-pack-id": stickerpackid, "sticker-pack-name": packname, "sticker-pack-publisher": author, "android-app-store-link": googlelink, "ios-app-store-link": applelink };
+                const stickerpackid = 'com.marsvard.stickermakerforwhatsapp.stickercontentprovider '+ random_id;
+                const packname = options.stickerName || 'undefined';
+                const author = options.stickerAuthor || 'undefined';
+                const googlelink = 'https://play.google.com/store/apps/details?id=com.marsvard.stickermakerforwhatsapp';
+                const applelink = 'https://itunes.apple.com/app/sticker-maker-studio/id1443326857';
+                const json = { 'sticker-pack-id': stickerpackid, 'sticker-pack-name': packname, 'sticker-pack-publisher': author, 'android-app-store-link': googlelink, 'ios-app-store-link': applelink };
                 let exifAttr = Buffer.from([0x49, 0x49, 0x2A, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01, 0x00, 0x41, 0x57, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0x00, 0x00, 0x00]);
                 let jsonBuffer = Buffer.from(JSON.stringify(json), 'utf8');
                 let exif = Buffer.concat([exifAttr, jsonBuffer]);
                 exif.writeUIntLE(jsonBuffer.length, 14, 4);
                 fs.writeFileSync(exifPath, exif);
-                const result = await webp.webpmux_add(resultPath, resultPath, exifPath, "exif");
+                webp.webpmux_add(resultPath, resultPath, exifPath, 'exif');
                 internalOptions.attachment = await MessageMedia.fromFilePath(resultPath);
             }
         }
