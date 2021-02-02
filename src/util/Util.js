@@ -5,9 +5,10 @@ const path = require('path');
 const Crypto = require('crypto');
 const { tmpdir } = require('os');
 const ffmpeg = require('fluent-ffmpeg');
-const {MessageMedia} = require('../Client.js');
 const webp = require('webp-converter');
 const fs = require('fs').promises;
+const MessageMedia = require('../structures/MessageMedia');
+const os = require('os');
 
 const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
 
@@ -18,6 +19,16 @@ class Util {
 
     constructor() {
         throw new Error(`The ${this.constructor.name} class may not be instantiated.`);
+    }
+
+    static generateHash(length) {
+        var result = '';
+        var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        var charactersLength = characters.length;
+        for ( var i = 0; i < length; i++ ) {
+            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+        return result;
     }
 
     /**
@@ -163,23 +174,29 @@ class Util {
 
 
         if (metadata.name || metadata.author) {
-            const exifPath = 'data.exif';
-            const resultPath = 'sticker.webp';
-            fs.writeFileSync(resultPath, webpMedia.data, 'base64');
-            const random_id = Math.floor(Math.random() * (9999999999 - 1000000000) + 1000000000);
-            const stickerpackid = random_id;
-            const packname = metadata.name || 'undefined';
-            const author = metadata.author || 'undefined';
-            const json = { 'sticker-pack-id': stickerpackid, 'sticker-pack-name': packname, 'sticker-pack-publisher': author};
-            let exifAttr = Buffer.from([0x49, 0x49, 0x2A, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01, 0x00, 0x41, 0x57, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0x00, 0x00, 0x00]);
-            let jsonBuffer = Buffer.from(JSON.stringify(json), 'utf8');
-            let exif = Buffer.concat([exifAttr, jsonBuffer]);
-            exif.writeUIntLE(jsonBuffer.length, 14, 4);
-            fs.writeFileSync(exifPath, exif);
-            await webp.webpmux_add(resultPath, resultPath, exifPath, 'exif');
-            webpMedia = await MessageMedia.fromFilePath(resultPath);
-            fs.unlinkSync(resultPath);
-            fs.unlinkSync(exifPath);
+            const tempPath = os.tmpdir();
+            const hash = Util.generateHash(32);
+            const exifPath = `${tempPath}/${hash}.exif`;
+            const resultPath = `${tempPath}/${hash}.webp`;
+            try {
+                await fs.writeFile(resultPath, webpMedia.data, 'base64');
+                const stickerpackid = hash;
+                const packname = metadata.name || 'undefined';
+                const author = metadata.author || 'undefined';
+                const json = { 'sticker-pack-id': stickerpackid, 'sticker-pack-name': packname, 'sticker-pack-publisher': author };
+                let exifAttr = Buffer.from([0x49, 0x49, 0x2A, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01, 0x00, 0x41, 0x57, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0x00, 0x00, 0x00]);
+                let jsonBuffer = Buffer.from(JSON.stringify(json), 'utf8');
+                let exif = Buffer.concat([exifAttr, jsonBuffer]);
+                exif.writeUIntLE(jsonBuffer.length, 14, 4);
+                await fs.writeFile(exifPath, exif);
+                await webp.webpmux_add(resultPath, resultPath, exifPath, 'exif');
+                webpMedia = MessageMedia.fromFilePath(resultPath);
+            } finally {
+                //TODO: check if file exists before deleting
+                await fs.unlink(exifPath);
+                //TODO: check if file exists before deleting
+                await fs.unlink(resultPath);
+            }
         }
 
         return webpMedia;
