@@ -5,6 +5,7 @@ const path = require('path');
 const Crypto = require('crypto');
 const { tmpdir } = require('os');
 const ffmpeg = require('fluent-ffmpeg');
+const webp = req
 const fs = require('fs').promises;
 
 const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
@@ -165,19 +166,19 @@ class Util {
             const resultPath = 'sticker.webp';
             fs.writeFileSync(resultPath, webpMedia.data, 'base64');
             const random_id = Math.floor(Math.random() * (9999999999 - 1000000000) + 1000000000);
-            const stickerpackid = 'com.marsvard.stickermakerforwhatsapp.stickercontentprovider '+ random_id;
+            const stickerpackid = random_id;
             const packname = metadata.name || 'undefined';
             const author = metadata.author || 'undefined';
-            const googlelink = 'https://play.google.com/store/apps/details?id=com.marsvard.stickermakerforwhatsapp';
-            const applelink = 'https://itunes.apple.com/app/sticker-maker-studio/id1443326857';
-            const json = { 'sticker-pack-id': stickerpackid, 'sticker-pack-name': packname, 'sticker-pack-publisher': author, 'android-app-store-link': googlelink, 'ios-app-store-link': applelink };
+            const json = { 'sticker-pack-id': stickerpackid, 'sticker-pack-name': packname, 'sticker-pack-publisher': author};
             let exifAttr = Buffer.from([0x49, 0x49, 0x2A, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01, 0x00, 0x41, 0x57, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0x00, 0x00, 0x00]);
             let jsonBuffer = Buffer.from(JSON.stringify(json), 'utf8');
             let exif = Buffer.concat([exifAttr, jsonBuffer]);
             exif.writeUIntLE(jsonBuffer.length, 14, 4);
             fs.writeFileSync(exifPath, exif);
-            webp.webpmux_add(resultPath, resultPath, exifPath, 'exif');
+            let result = await webp.webpmux_add(resultPath, resultPath, exifPath, 'exif');
             webpMedia = await MessageMedia.fromFilePath(resultPath);
+            fs.unlinkSync(resultPath);
+            fs.unlinkSync(exifPath);
         }
 
         return webpMedia
