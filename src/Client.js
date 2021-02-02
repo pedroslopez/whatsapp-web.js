@@ -501,22 +501,6 @@ class Client extends EventEmitter {
                 internalOptions.attachment = await MessageMedia.fromFilePath(resultPath);
             }
         }
-
-        const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
-            const chat = await window.Store.Chat.find(chatWid);
-
-            if (sendSeen) {
-                window.WWebJS.sendSeen(chatId);
-            }
-
-            const msg = await window.WWebJS.sendMessage(chat, message, options, sendSeen);
-            return msg.serialize();
-        }, chatId, content, internalOptions, sendSeen);
-
-        return new Message(this, newMessage);
-    }
-
         const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             const chat = await window.Store.Chat.find(chatWid);
