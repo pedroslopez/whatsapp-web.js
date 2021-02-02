@@ -479,28 +479,13 @@ class Client extends EventEmitter {
         }
 
         if (internalOptions.sendMediaAsSticker && internalOptions.attachment) {
-            internalOptions.attachment = await Util.formatToWebpSticker(internalOptions.attachment);
-            if (options.stickerName || options.stickerAuthor) {
-                const exifPath = 'data.exif';
-                const resultPath = 'sticker.webp';
-                internalOptions.attachment = await Util.formatToWebpSticker(internalOptions.attachment);
-                fs.writeFileSync(resultPath, internalOptions.attachment.data, 'base64');
-                const random_id = Math.floor(Math.random() * (9999999999 - 1000000000) + 1000000000);
-                const stickerpackid = 'com.marsvard.stickermakerforwhatsapp.stickercontentprovider '+ random_id;
-                const packname = options.stickerName || 'undefined';
-                const author = options.stickerAuthor || 'undefined';
-                const googlelink = 'https://play.google.com/store/apps/details?id=com.marsvard.stickermakerforwhatsapp';
-                const applelink = 'https://itunes.apple.com/app/sticker-maker-studio/id1443326857';
-                const json = { 'sticker-pack-id': stickerpackid, 'sticker-pack-name': packname, 'sticker-pack-publisher': author, 'android-app-store-link': googlelink, 'ios-app-store-link': applelink };
-                let exifAttr = Buffer.from([0x49, 0x49, 0x2A, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01, 0x00, 0x41, 0x57, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0x00, 0x00, 0x00]);
-                let jsonBuffer = Buffer.from(JSON.stringify(json), 'utf8');
-                let exif = Buffer.concat([exifAttr, jsonBuffer]);
-                exif.writeUIntLE(jsonBuffer.length, 14, 4);
-                fs.writeFileSync(exifPath, exif);
-                webp.webpmux_add(resultPath, resultPath, exifPath, 'exif');
-                internalOptions.attachment = await MessageMedia.fromFilePath(resultPath);
-            }
+            internalOptions.attachment = 
+                await Util.formatToWebpSticker(internalOptions.attachment, {
+                    name: options.stickerName,
+                    author: options.stickerAuthor
+                });
         }
+        
         const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             const chat = await window.Store.Chat.find(chatWid);
