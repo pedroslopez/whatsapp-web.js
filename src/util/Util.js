@@ -6,7 +6,7 @@ const Crypto = require('crypto');
 const { tmpdir } = require('os');
 const ffmpeg = require('fluent-ffmpeg');
 const {MessageMedia} = require('../Client.js');
-const webp = requrie('webp-converter');
+const webp = require('webp-converter');
 const fs = require('fs').promises;
 
 const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
@@ -157,7 +157,7 @@ class Util {
         if (media.mimetype.includes('image')) 
             webpMedia = this.formatImageToWebpSticker(media);
         else if (media.mimetype.includes('video')) 
-            webMedia = this.formatVideoToWebpSticker(media);
+            webpMedia = this.formatVideoToWebpSticker(media);
         else 
             throw new Error('Invalid media format');
 
@@ -176,7 +176,7 @@ class Util {
             let exif = Buffer.concat([exifAttr, jsonBuffer]);
             exif.writeUIntLE(jsonBuffer.length, 14, 4);
             fs.writeFileSync(exifPath, exif);
-            let result = await webp.webpmux_add(resultPath, resultPath, exifPath, 'exif');
+            await webp.webpmux_add(resultPath, resultPath, exifPath, 'exif');
             webpMedia = await MessageMedia.fromFilePath(resultPath);
             fs.unlinkSync(resultPath);
             fs.unlinkSync(exifPath);
