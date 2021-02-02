@@ -5,7 +5,8 @@ const path = require('path');
 const Crypto = require('crypto');
 const { tmpdir } = require('os');
 const ffmpeg = require('fluent-ffmpeg');
-const webp = requrie("webp-converter");
+const {MessageMedia} = require('../Client.js');
+const webp = requrie('webp-converter');
 const fs = require('fs').promises;
 
 const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
@@ -151,7 +152,7 @@ class Util {
      * @returns {Promise<MessageMedia>} media in webp format
      */
     static async formatToWebpSticker(media, metadata) {
-        let webpMedia
+        let webpMedia;
 
         if (media.mimetype.includes('image')) 
             webpMedia = this.formatImageToWebpSticker(media);
