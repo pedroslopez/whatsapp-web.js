@@ -182,7 +182,7 @@ class Util {
             fs.unlinkSync(exifPath);
         }
 
-        return webpMedia
+        return webpMedia;
     }
 
     /**
