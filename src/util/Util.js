@@ -7,6 +7,7 @@ const { tmpdir } = require('os');
 const ffmpeg = require('fluent-ffmpeg');
 const webp = require('webp-converter');
 const fs = require('fs').promises;
+const exists = require('fs').existsSync;
 const MessageMedia = require('../structures/MessageMedia');
 const os = require('os');
 
@@ -166,16 +167,16 @@ class Util {
         let webpMedia;
 
         if (media.mimetype.includes('image')) 
-            webpMedia = this.formatImageToWebpSticker(media);
+            webpMedia = await this.formatImageToWebpSticker(media);
         else if (media.mimetype.includes('video')) 
-            webpMedia = this.formatVideoToWebpSticker(media);
+            webpMedia = await this.formatVideoToWebpSticker(media);
         else 
             throw new Error('Invalid media format');
 
 
         if (metadata.name || metadata.author) {
             const tempPath = os.tmpdir();
-            const hash = Util.generateHash(32);
+            const hash = this.generateHash(32);
             const exifPath = `${tempPath}/${hash}.exif`;
             const resultPath = `${tempPath}/${hash}.webp`;
             try {
@@ -192,10 +193,8 @@ class Util {
                 await webp.webpmux_add(resultPath, resultPath, exifPath, 'exif');
                 webpMedia = MessageMedia.fromFilePath(resultPath);
             } finally {
-                //TODO: check if file exists before deleting
-                await fs.unlink(exifPath);
-                //TODO: check if file exists before deleting
-                await fs.unlink(resultPath);
+                if (exists(exifPath)) await fs.unlink(exifPath);
+                if (exists(resultPath)) await fs.unlink(resultPath);
             }
         }
 
