@@ -17,7 +17,7 @@ declare namespace WAWebJS {
         pupBrowser?: puppeteer.Browser
 
         /**Accepts an invitation to join a group */
-        acceptInvite(inviteCode: string): Promise<void>
+        acceptInvite(inviteCode: string): Promise<string>
 
         /**Returns an object with information about the invite code's group */
         getInviteInfo(inviteCode: string): Promise<object>
