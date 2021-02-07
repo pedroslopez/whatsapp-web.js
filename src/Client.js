@@ -4,6 +4,7 @@ const EventEmitter = require('events');
 const puppeteer = require('puppeteer');
 const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
 const jsQR = require('jsqr');
+
 const Util = require('./util/Util');
 const InterfaceController = require('./util/InterfaceController');
 const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constants');
@@ -442,8 +443,6 @@ class Client extends EventEmitter {
      * 
      * @returns {Promise<Message>} Message that was just sent
      */
-
-    
     async sendMessage(chatId, content, options = {}) {
         let internalOptions = {
             linkPreview: options.linkPreview === false ? undefined : true,
@@ -483,7 +482,7 @@ class Client extends EventEmitter {
                     author: options.stickerAuthor
                 });
         }
-        
+
         const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             const chat = await window.Store.Chat.find(chatWid);
@@ -498,7 +497,7 @@ class Client extends EventEmitter {
 
         return new Message(this, newMessage);
     }
-    
+
     /**
      * Get all current chat instances
      * @returns {Promise<Array<Chat>>}
