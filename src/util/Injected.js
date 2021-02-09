@@ -235,10 +235,12 @@ exports.LoadUtils = () => {
 
         mediaData.set({
             clientUrl: mediaEntry.mmsUrl,
+            deprecatedMms3Url: mediaEntry.deprecatedMms3Url,
             directPath: mediaEntry.directPath,
             mediaKey: mediaEntry.mediaKey,
             mediaKeyTimestamp: mediaEntry.mediaKeyTimestamp,
             filehash: mediaObject.filehash,
+            encFilehash: mediaEntry.encFilehash,
             uploadhash: mediaEntry.uploadHash,
             size: mediaObject.size,
             streamingSidecar: mediaEntry.sidecar,

@@ -556,6 +556,7 @@ class Client extends EventEmitter {
     /**
      * Accepts an invitation to join a group
      * @param {string} inviteCode Invitation code
+     * @returns {Promise<string>} Id of the joined Chat
      */
     async acceptInvite(inviteCode) {
         const chatId = await this.pupPage.evaluate(async inviteCode => {
