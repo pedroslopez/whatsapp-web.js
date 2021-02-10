@@ -10,8 +10,14 @@ declare namespace WAWebJS {
         /** Current connection information */
         public info: ClientInfo
 
+        /** Puppeteer page running WhatsApp Web */
+        pupPage?: puppeteer.Page
+
+        /** Puppeteer browser running WhatsApp Web */
+        pupBrowser?: puppeteer.Browser
+
         /**Accepts an invitation to join a group */
-        acceptInvite(inviteCode: string): Promise<void>
+        acceptInvite(inviteCode: string): Promise<string>
 
         /**Returns an object with information about the invite code's group */
         getInviteInfo(inviteCode: string): Promise<object>
@@ -78,7 +84,7 @@ declare namespace WAWebJS {
         isRegisteredUser(contactId: string): Promise<boolean>
 
         /** Get the registered WhatsApp ID for a number. Returns null if the number is not registered on WhatsApp. */
-        getNumberId(number: string): Promise<ContactId?>
+        getNumberId(number: string): Promise<ContactId | null>
 
         /**
          * Mutes the Chat until a specified date
