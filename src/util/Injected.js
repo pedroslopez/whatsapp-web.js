@@ -185,6 +185,7 @@ exports.LoadUtils = () => {
         const stickerInfo = {
             ...uploadedInfo,
             clientUrl: uploadedInfo.url,
+            deprecatedMms3Url: uploadedInfo.url,
             uploadhash: uploadedInfo.encFilehash,
             size: file.size,
             type: 'sticker',
