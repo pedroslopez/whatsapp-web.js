@@ -181,7 +181,7 @@ class Util {
             const resultPath = `${tempPath}/${hash}.webp`;
             try {
                 await fs.writeFile(resultPath, webpMedia.data, 'base64');
-                const stickerpackid = hash;
+                const stickerPackId = hash;
                 const packname = metadata.name || 'undefined';
                 const author = metadata.author || 'undefined';
                 const json = { 'sticker-pack-id': stickerpackid, 'sticker-pack-name': packname, 'sticker-pack-publisher': author };
