@@ -40,11 +40,11 @@ client.on('ready', () => {
 client.on('message', async msg => {
     console.log('MESSAGE RECEIVED', msg);
 
-    if (msg.body == '!ping reply') {
+    if (msg.body === '!ping reply') {
         // Send a new message as a reply to the current one
         msg.reply('pong');
 
-    } else if (msg.body == '!ping') {
+    } else if (msg.body === '!ping') {
         // Send a new message to the same chat
         client.sendMessage(msg.from, 'pong');
 
@@ -79,7 +79,7 @@ client.on('message', async msg => {
         } else {
             msg.reply('This command can only be used in a group!');
         }
-    } else if (msg.body == '!leave') {
+    } else if (msg.body === '!leave') {
         // Leave the group
         let chat = await msg.getChat();
         if (chat.isGroup) {
@@ -95,7 +95,7 @@ client.on('message', async msg => {
         } catch (e) {
             msg.reply('That invite code seems to be invalid.');
         }
-    } else if (msg.body == '!groupinfo') {
+    } else if (msg.body === '!groupinfo') {
         let chat = await msg.getChat();
         if (chat.isGroup) {
             msg.reply(`
@@ -109,10 +109,10 @@ client.on('message', async msg => {
         } else {
             msg.reply('This command can only be used in a group!');
         }
-    } else if (msg.body == '!chats') {
+    } else if (msg.body === '!chats') {
         const chats = await client.getChats();
         client.sendMessage(msg.from, `The bot has ${chats.length} chats open.`);
-    } else if (msg.body == '!info') {
+    } else if (msg.body === '!info') {
         let info = client.info;
         client.sendMessage(msg.from, `
             *Connection info*
@@ -121,7 +121,7 @@ client.on('message', async msg => {
             Platform: ${info.platform}
             WhatsApp version: ${info.phone.wa_version}
         `);
-    } else if (msg.body == '!mediainfo' && msg.hasMedia) {
+    } else if (msg.body === '!mediainfo' && msg.hasMedia) {
         const attachmentData = await msg.downloadMedia();
         msg.reply(`
             *Media info*
@@ -129,7 +129,7 @@ client.on('message', async msg => {
             Filename: ${attachmentData.filename}
             Data (length): ${attachmentData.data.length}
         `);
-    } else if (msg.body == '!quoteinfo' && msg.hasQuotedMsg) {
+    } else if (msg.body === '!quoteinfo' && msg.hasQuotedMsg) {
         const quotedMsg = await msg.getQuotedMessage();
 
         quotedMsg.reply(`
@@ -139,13 +139,13 @@ client.on('message', async msg => {
             Timestamp: ${quotedMsg.timestamp}
             Has Media? ${quotedMsg.hasMedia}
         `);
-    } else if (msg.body == '!resendmedia' && msg.hasQuotedMsg) {
+    } else if (msg.body === '!resendmedia' && msg.hasQuotedMsg) {
         const quotedMsg = await msg.getQuotedMessage();
         if (quotedMsg.hasMedia) {
             const attachmentData = await quotedMsg.downloadMedia();
             client.sendMessage(msg.from, attachmentData, { caption: 'Here\'s your requested media.' });
         }
-    } else if (msg.body == '!location') {
+    } else if (msg.body === '!location') {
         msg.reply(new Location(37.422, -122.084, 'Googleplex\nGoogle Headquarters'));
     } else if (msg.location) {
         msg.reply(msg.location);
@@ -153,18 +153,20 @@ client.on('message', async msg => {
         const newStatus = msg.body.split(' ')[1];
         await client.setStatus(newStatus);
         msg.reply(`Status was updated to *${newStatus}*`);
-    } else if (msg.body == '!mention') {
+    } else if (msg.body === '!mention') {
         const contact = await msg.getContact();
         const chat = await msg.getChat();
         chat.sendMessage(`Hi @${contact.number}!`, {
             mentions: [contact]
         });
-    } else if (msg.body == '!delete' && msg.hasQuotedMsg) {
-        const quotedMsg = await msg.getQuotedMessage();
-        if (quotedMsg.fromMe) {
-            quotedMsg.delete(true);
-        } else {
-            msg.reply('I can only delete my own messages');
+    } else if (msg.body === '!delete') {
+        if (msg.hasQuotedMsg) {
+            const quotedMsg = await msg.getQuotedMessage();
+            if (quotedMsg.fromMe) {
+                quotedMsg.delete(true);
+            } else {
+                msg.reply('I can only delete my own messages');
+            }
         }
     } else if (msg.body === '!pin') {
         const chat = await msg.getChat();
@@ -181,15 +183,20 @@ client.on('message', async msg => {
     } else if (msg.body === '!typing') {
         const chat = await msg.getChat();
         // simulates typing in the chat
-        chat.sendStateTyping();        
+        chat.sendStateTyping();
     } else if (msg.body === '!recording') {
         const chat = await msg.getChat();
         // simulates recording audio in the chat
-        chat.sendStateRecording();        
+        chat.sendStateRecording();
     } else if (msg.body === '!clearstate') {
         const chat = await msg.getChat();
         // stops typing or recording in the chat
-        chat.clearState();        
+        chat.clearState();
+    } else if (msg.body === 'jumpto') {
+        if (msg.hasQuotedMsg) {
+            const quotedMsg = await msg.getQuotedMessage();
+            client.interface.openChatWindowAt(quotedMsg.id._serialized);
+        }
     }
 });
 
