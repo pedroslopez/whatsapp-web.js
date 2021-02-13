@@ -192,11 +192,19 @@ client.on('message', async msg => {
         const chat = await msg.getChat();
         // stops typing or recording in the chat
         chat.clearState();
-    } else if (msg.body === 'jumpto') {
+    } else if (msg.body === '!jumpto') {
         if (msg.hasQuotedMsg) {
             const quotedMsg = await msg.getQuotedMessage();
             client.interface.openChatWindowAt(quotedMsg.id._serialized);
         }
+    } else if (msg.body === '!getFeatures') {
+        console.log(await client.interface.getFeatures());
+    } else if (msg.body === '!checkStarredGifsStatus') {
+        await msg.reply('Starred Gif Feature Status: ' + await client.interface.checkFeatureStatus('STARRED_GIFS'));
+    } else if (msg.body === '!disableStarredGifs') {
+        await client.interface.disableFeatures(['STARRED_GIFS']);
+    } else if (msg.body === '!enableStarredGifs') {
+        await client.interface.enableFeatures(['STARRED_GIFS']);
     }
 });
 
