@@ -543,6 +543,19 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Get message instance by ID
+     * @param {string} msgId
+     * @returns {Promise<Contact>}
+     */
+    async getMessageById(msgId) {
+        let msg = await this.pupPage.evaluate(msgId => {
+            return window.WWebJS.getMessage(msgId);
+        }, msgId);
+
+        return new Message(this, msg);
+    }
+
+    /**
      * Returns an object with information about the invite code's group
      * @param {string} inviteCode 
      * @returns {Promise<object>} Invite information

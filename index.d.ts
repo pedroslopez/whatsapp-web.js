@@ -56,6 +56,9 @@ declare namespace WAWebJS {
         /** Get all current contact instances */
         getContacts(): Promise<Contact[]>
 
+        /** Get message instance by ID */
+        getMessageById(msgId: string): Promise<Message>
+
         /** Get all current Labels  */
         getLabels(): Promise<Label[]>
 

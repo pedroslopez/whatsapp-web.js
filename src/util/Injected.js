@@ -266,6 +266,11 @@ exports.LoadUtils = () => {
         return msg;
     };
 
+    window.WWebJS.getMessage = async msgId => {
+        const msg = window.Store.Msg.get(msgId);
+        return await window.WWebJS.getMessageModel(msg);
+    };
+
     window.WWebJS.getChatModel = async chat => {
         let res = chat.serialize();
         res.isGroup = chat.isGroup;
