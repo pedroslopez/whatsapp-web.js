@@ -801,6 +801,8 @@ declare namespace WAWebJS {
         markUnread: () => Promise<void>
         /** Returns array of all Labels assigned to this Chat */
         getLabels: () => Promise<Label[]>
+        /** Returns Unix timestamp for when the user was last seen. */
+        getLastSeen: () => Promise<number>
     }
 
     export interface MessageSearchOptions {
