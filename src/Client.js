@@ -543,6 +543,31 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Get message instance by ID
+     * @param {string} msgId
+     * @returns {Promise<Message>}
+     */
+    async getMessageById(msgId) {
+        const chatId = msgId.split('_')[1];
+        const msg = await this.pupPage.evaluate(async (chatId, msgId) => {
+            const msgFilter = m => m.id._serialized === msgId;
+
+            const chat = window.Store.Chat.get(chatId);
+            let msg = chat.msgs.models.find(msgFilter);
+
+            while (!msg) {
+                const loadedMessages = await chat.loadEarlierMsgs();
+                if (!loadedMessages) break;
+                msg = loadedMessages.find(msgFilter);
+            }
+
+            return  window.WWebJS.getMessageModel(msg);
+        }, chatId, msgId);
+
+        return new Message(this, msg);
+    }
+
+    /**
      * Returns an object with information about the invite code's group
      * @param {string} inviteCode 
      * @returns {Promise<object>} Invite information
