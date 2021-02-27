@@ -433,6 +433,7 @@ class Client extends EventEmitter {
      * @property {string} [stickerAuthor=undefined] - Sets the author of the sticker, (if sendMediaAsSticker is true).
      * @property {string} [stickerName=undefined] - Sets the name of the sticker, (if sendMediaAsSticker is true).
      * @property {boolean} [media] - Media to be sent
+     * @property {MessageMedia} [media] - Media to be sent
      */
 
     /**
