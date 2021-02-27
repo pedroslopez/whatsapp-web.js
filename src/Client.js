@@ -430,7 +430,7 @@ class Client extends EventEmitter {
      * @property {string} [quotedMessageId] - Id of the message that is being quoted (or replied to)
      * @property {Contact[]} [mentions] - Contacts that are being mentioned in the message
      * @property {boolean} [sendSeen=true] - Mark the conversation as seen after sending the message
-     * @property {boolean} [media] - Media to be sent
+     * @property {MessageMedia} [media] - Media to be sent
      */
 
     /**

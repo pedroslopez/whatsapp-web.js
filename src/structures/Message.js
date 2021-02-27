@@ -291,7 +291,7 @@ class Message extends Base {
      * Stars this message
      */
     async star() {
-        await this.pupPage.evaluate((msgId) => {
+        await this.client.pupPage.evaluate((msgId) => {
             let msg = window.Store.Msg.get(msgId);
 
             if (msg.canStar()) {
@@ -304,7 +304,7 @@ class Message extends Base {
      * Unstars this message
      */
     async unstar() {
-        await this.pupPage.evaluate((msgId) => {
+        await this.client.pupPage.evaluate((msgId) => {
             let msg = window.Store.Msg.get(msgId);
 
             if (msg.canStar()) {
