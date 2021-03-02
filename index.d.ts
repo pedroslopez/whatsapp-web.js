@@ -584,6 +584,8 @@ declare namespace WAWebJS {
         linkPreview?: boolean
         /** Send audio as voice message */
         sendAudioAsVoice?: boolean
+        /** Send video as gif */
+        sendVideoAsGif?: boolean
         /** Send media as sticker */
         sendMediaAsSticker?: boolean
         /** Send media as document */
