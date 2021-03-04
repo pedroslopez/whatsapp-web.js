@@ -495,10 +495,10 @@ class Client extends EventEmitter {
     /**
      * Searches for messages
      * @param {string} query
-     * @param {Object} options
-     * @param {number} options.page
-     * @param {number} options.limit
-     * @param {string} options.chatId
+     * @param {Object} [options]
+     * @param {number} [options.page]
+     * @param {number} [options.limit]
+     * @param {string} [options.chatId]
      * @returns {Promise<Message[]>}
      */
     async searchMessages(query, options = {}) {
