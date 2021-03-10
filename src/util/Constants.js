@@ -34,6 +34,7 @@ exports.Status = {
  * @enum {string}
  */
 exports.Events = {
+    ENOTFOUND:'endpoint_not_found',
     AUTHENTICATED: 'authenticated',
     AUTHENTICATION_FAILURE: 'auth_failure',
     READY: 'ready',
