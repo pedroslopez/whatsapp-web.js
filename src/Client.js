@@ -61,15 +61,35 @@ class Client extends EventEmitter {
     }
 
     /**
+     * This function can be called to start a WS connection
+     * options:{
+     *     ...
+     *     puppeteer: { 
+     *         browserWSEndpoint: `ws://localhost:5001`
+     *         ...
+     *    }
+     * }
+     */
+    async connect(){
+        try {
+            this.pupBrowser = await puppeteer.connect(this.options.puppeteer);
+        } catch (err) {
+            throw err;
+        }
+        await this.initialize();
+    }
+
+    /**
      * Sets up events and requirements, kicks off authentication request
      */
     async initialize() {
-        const browser = await puppeteer.launch(this.options.puppeteer);
-        const page = (await browser.pages())[0];
+        //set browser if is already started from connect function
+        const browser   = this.pupBrowser || await puppeteer.launch(this.options.puppeteer);
+        const page      = (await browser.pages())[0];
         page.setUserAgent(this.options.userAgent);
 
         this.pupBrowser = browser;
-        this.pupPage = page;
+        this.pupPage    = page;
 
         if (this.options.session) {
             await page.evaluateOnNewDocument(
