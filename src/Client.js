@@ -12,7 +12,6 @@ const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
 const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification , Label } = require('./structures');
-const { exit } = require('process');
 /**
  * Starting point for interacting with the WhatsApp Web API
  * @extends {EventEmitter}
@@ -77,7 +76,7 @@ class Client extends EventEmitter {
             this.pupBrowser = await puppeteer.connect(this.options.puppeteer);
         } catch (err) {
             this.emit(Events.ENOTFOUND, err.message);
-		    return false;
+            return false;
         }
         await this.initialize();
     }

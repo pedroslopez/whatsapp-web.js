@@ -7,7 +7,7 @@ if (fs.existsSync(SESSION_FILE_PATH)) {
     sessionCfg = require(SESSION_FILE_PATH);
 }
 
-const client = new Client({ puppeteer: { headless: true,browserWSEndpoint: `ws://localhost:5001` }, session: sessionCfg });
+const client = new Client({ puppeteer: { headless: true,browserWSEndpoint: 'ws://localhost:5001' }, session: sessionCfg });
 // You can use an existing session and avoid scanning a QR code by adding a "session" object to the client options.
 // This object must include WABrowserId, WASecretBundle, WAToken1 and WAToken2.
 
