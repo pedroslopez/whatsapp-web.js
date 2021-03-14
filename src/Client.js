@@ -62,10 +62,16 @@ class Client extends EventEmitter {
 
     /**
      * Sets up events and requirements, kicks off authentication request
+     * @param {object} credentials - Auth credentials for proxy
+     * @param {string} credentials.username - Username
+     * @param {string} credentials.password - Password
      */
-    async initialize() {
+    async initialize(credentials) {
         const browser = await puppeteer.launch(this.options.puppeteer);
         const page = (await browser.pages())[0];
+
+        await page.authenticate(credentials);
+
         page.setUserAgent(this.options.userAgent);
 
         this.pupBrowser = browser;
