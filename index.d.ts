@@ -78,7 +78,7 @@ declare namespace WAWebJS {
         getWWebVersion(): Promise<string>
 
         /** Sets up events and requirements, kicks off authentication request */
-        initialize(): Promise<void>
+        initialize(credentials?:{ username:string, password:string }): Promise<void>
 
         /** Check if a given ID is registered in whatsapp */
         isRegisteredUser(contactId: string): Promise<boolean>
