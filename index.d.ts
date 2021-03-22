@@ -600,6 +600,8 @@ declare namespace WAWebJS {
         sendSeen?: boolean
         /** Media to be sent */
         media?: MessageMedia
+        /** Extra options */
+        extra?: any
     }
 
     /** Media attached to a message */
