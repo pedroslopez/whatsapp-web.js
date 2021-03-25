@@ -65,8 +65,7 @@ class Client extends EventEmitter {
      */
     async initialize() {
         const browser = await puppeteer.launch(this.options.puppeteer);
-        browser.on('disconnected', (r) => {
-            console.log(r, 'disconnected');
+        browser.on('disconnected', () => {
             this.pupBrowser = null;
         });
         const page = (await browser.pages())[0];
