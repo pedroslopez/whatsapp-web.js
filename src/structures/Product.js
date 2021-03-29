@@ -24,7 +24,7 @@ class Product extends Base {
          * Price
          * @type {string}
          */
-        this.price = data.price ? data.price : "";
+        this.price = data.price ? data.price : '';
         /**
          * Product Thumbnail
          * @type {string}

@@ -387,7 +387,7 @@ class Message extends Base {
             if (!result) return undefined;
             return new Order(this.client, result);
         }
-        return undefined
+        return undefined;
     }
 }
 

@@ -1,4 +1,4 @@
-const Base = require("./Base");
+const Base = require('./Base');
 
 class ProductMetadata extends Base {
     constructor(client, data) {

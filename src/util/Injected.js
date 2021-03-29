@@ -461,7 +461,7 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getOrderDetail = async (orderid, token) => {
-        if (Store.QueryOrder !== undefined) {
+        if (window.Store.QueryOrder !== undefined) {
             return await window.Store.QueryOrder.queryOrder(orderid, 80, 80, token);
         }
         return undefined;
@@ -469,7 +469,7 @@ exports.LoadUtils = () => {
 
     window.WWebJS.getProductMetadata = async (productId) => {
         try {
-            if (Store.QueryProduct !== undefined) {
+            if (window.Store.QueryProduct !== undefined) {
                 let sellerId = Store.Conn.wid;
                 let product = await window.Store.QueryProduct.queryProduct(sellerId, productId);
                 if (product && product.data) {
