@@ -468,15 +468,12 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getProductMetadata = async (productId) => {
-        try {
-            if (window.Store.QueryProduct !== undefined) {
-                let sellerId = Store.Conn.wid;
-                let product = await window.Store.QueryProduct.queryProduct(sellerId, productId);
-                if (product && product.data) {
-                    return product.data;
-                }
+        if (window.Store.QueryProduct !== undefined) {
+            let sellerId = window.Store.Conn.wid;
+            let product = await window.Store.QueryProduct.queryProduct(sellerId, productId);
+            if (product && product.data) {
+                return product.data;
             }
-        } catch (e) {
         }
         return undefined;
     };
