@@ -1,7 +1,7 @@
 'use strict';
 
 const Base = require('./Base');
-const ProductMetadata = require("./ProductMetadata");
+const ProductMetadata = require('./ProductMetadata');
 
 /**
  * Represents a Product on WhatsAppBusiness

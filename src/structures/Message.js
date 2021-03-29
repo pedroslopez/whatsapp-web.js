@@ -3,6 +3,7 @@
 const Base = require('./Base');
 const MessageMedia = require('./MessageMedia');
 const Location = require('./Location');
+const Order = require('./Order');
 const { MessageTypes } = require('../util/Constants');
 
 /**
