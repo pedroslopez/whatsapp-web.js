@@ -32,6 +32,12 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Sticker = window.mR.findModule('Sticker')[0].default.Sticker;
     window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
     window.Store.Label = window.mR.findModule('LabelCollection')[0].default;
+    try {
+        window.Store.QueryOrder = window.mR.findModule('queryOrder')[0];
+        window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
+    } catch (e) {
+        console.log(e);
+    }
 };
 
 exports.LoadUtils = () => {
@@ -452,6 +458,27 @@ exports.LoadUtils = () => {
     window.WWebJS.getChatLabels = async (chatId) => {
         const chat = await window.WWebJS.getChat(chatId);
         return (chat.labels || []).map(id => window.WWebJS.getLabel(id));
+    };
+
+    window.WWebJS.getOrderDetail = async (orderid, token) => {
+        if (Store.QueryOrder !== undefined) {
+            return await window.Store.QueryOrder.queryOrder(orderid, 80, 80, token);
+        }
+        return undefined;
+    };
+
+    window.WWebJS.getProductMetadata = async (productId) => {
+        try {
+            if (Store.QueryProduct !== undefined) {
+                let sellerId = Store.Conn.wid;
+                let product = await window.Store.QueryProduct.queryProduct(sellerId, productId);
+                if (product && product.data) {
+                    return product.data;
+                }
+            }
+        } catch (e) {
+        }
+        return undefined;
     };
 };
 
