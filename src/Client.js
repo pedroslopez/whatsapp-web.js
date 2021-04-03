@@ -335,9 +335,8 @@ class Client extends EventEmitter {
                 /**
                  * Emitted when the client has been disconnected
                  * @event Client#disconnected
-                 * @param {WAState} reason state that caused the disconnect
                  */
-                this.emit(Events.DISCONNECTED, state);
+                this.emit(Events.DISCONNECTED);
                 this.destroy();
             }
         });
