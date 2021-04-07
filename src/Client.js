@@ -499,6 +499,8 @@ class Client extends EventEmitter {
             internalOptions.attachment = await Util.formatToWebpSticker(internalOptions.attachment);
         }
 
+        if(options.messageId) internalOptions.messageId = options.messageId;
+
         const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             const chat = await window.Store.Chat.find(chatWid);
@@ -870,6 +872,17 @@ class Client extends EventEmitter {
         }, labelId);
 
         return Promise.all(chatIds.map(id => this.getChatById(id)));
+    }
+
+    /**
+     * Generate a New Id. 
+     * Its may userfull in message Id option into sendMessage method. 
+     * Can send and controller a message with this generated id
+     */
+    async getNewId(){
+        return await this.pupPage.evaluate(async () => {
+            return window.WWebJS.getNewId();
+        });
     }
 }
 
