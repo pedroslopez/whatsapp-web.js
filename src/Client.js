@@ -30,6 +30,7 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @param {number} options.takeoverTimeoutMs - How much time to wait before taking over the session
  * @param {string} options.userAgent - User agent to use in puppeteer
  * @param {string} options.ffmpegPath - Ffmpeg path to use when formating videos to webp while sending stickers 
+ * @param {boolean} options.bypassCSP - Sets bypassing of page's Content-Security-Policy.
  * 
  * @fires Client#qr
  * @fires Client#authenticated
@@ -80,6 +81,10 @@ class Client extends EventEmitter {
                     localStorage.setItem('WAToken1', session.WAToken1);
                     localStorage.setItem('WAToken2', session.WAToken2);
                 }, this.options.session);
+        }
+
+        if(this.options.bypassCSP) {
+            await page.setBypassCSP(true);
         }
 
         await page.goto(WhatsWebURL, {
