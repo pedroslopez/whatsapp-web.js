@@ -345,7 +345,7 @@ declare namespace WAWebJS {
     }
     
 
-    interface linkStructure {
+    export interface linkStructure {
         link: string,
         isSus: boolean
     }
