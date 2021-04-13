@@ -263,7 +263,7 @@ exports.LoadUtils = () => {
                 links.push({link: link.href, isSus: isSus});
             }
             return links;
-            };
+        };
         msg.links = getlinks();
         if (msg.buttons) {
             msg.buttons = msg.buttons.serialize();
