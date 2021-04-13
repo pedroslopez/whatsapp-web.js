@@ -343,7 +343,12 @@ declare namespace WAWebJS {
         reply: (content: MessageContent, options?: MessageSendOptions) => Promise<Message>,
 
     }
+    
 
+    interface linkStructure {
+        link: string,
+        isSus: boolean
+    }
     /** whatsapp web url */
     export const WhatsWebURL: string
 
@@ -520,7 +525,7 @@ declare namespace WAWebJS {
         /** Message type */
         type: MessageTypes,
         /** Links included in the message. */
-        links: string[],
+        links: Array<linkStructure>,
 
         /** Deletes the message from the chat */
         delete: (everyone?: boolean) => Promise<void>,
