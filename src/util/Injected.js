@@ -255,7 +255,7 @@ exports.LoadUtils = () => {
         const msg = message.serialize();
         
         msg.isStatusV3 = message.isStatusV3;
-        msg.links = () => {
+        let links = () => {
             let all_links = message.getLinks();
             let links = [];
             for (let link of all_links) {
@@ -272,6 +272,8 @@ exports.LoadUtils = () => {
         
         return msg;
     };
+
+    msg.links = links();
 
     window.WWebJS.getChatModel = async chat => {
         let res = chat.serialize();
