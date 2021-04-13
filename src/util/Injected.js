@@ -264,6 +264,7 @@ exports.LoadUtils = () => {
             }
             return links;
         };
+        msg.links = links();
         if (msg.buttons) {
             msg.buttons = msg.buttons.serialize();
         }
@@ -273,7 +274,6 @@ exports.LoadUtils = () => {
         return msg;
     };
 
-    msg.links = links();
 
     window.WWebJS.getChatModel = async chat => {
         let res = chat.serialize();
