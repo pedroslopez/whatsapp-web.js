@@ -32,7 +32,7 @@
     "fluent-ffmpeg": "^2.1.2",
     "jsqr": "^1.3.1",
     "mime": "^2.4.5",
-    "webp-converter": "^2.3.1",
+    "node-webpmux":"^1.1.6",
     "puppeteer": "^5.2.1",
     "sharp": "^0.26.3"
   },
