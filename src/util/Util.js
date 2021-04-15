@@ -192,9 +192,9 @@ class Util {
                 await img.load(resultPath);
                 img.exif = exif;
                 if (img.hasAnim) {
-                    await img.muxAnim({ path: './sticker.webp' })
+                    await img.muxAnim({ path: resultPath });
                 } else {
-                    await img.save('./sticker.webp')
+                    await img.save(resultPath);
                 }
                 webpMedia = MessageMedia.fromFilePath(resultPath);
             } finally {
