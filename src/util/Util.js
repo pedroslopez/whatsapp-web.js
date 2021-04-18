@@ -7,9 +7,6 @@ const { tmpdir } = require('os');
 const ffmpeg = require('fluent-ffmpeg');
 const webp = require('node-webpmux').default;
 const fs = require('fs').promises;
-const exists = require('fs').existsSync;
-const MessageMedia = require('../structures/MessageMedia');
-const os = require('os');
 
 const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
 
@@ -187,7 +184,7 @@ class Util {
             exif.writeUIntLE(jsonBuffer.length, 14, 4);
             await img.loadBuffer((webpMedia.data).toBuffer());
             img.exif = exif;
-            webpMedia.data = (await img.saveBuffer()).toString("base64");
+            webpMedia.data = (await img.saveBuffer()).toString('base64');
         }
 
         return webpMedia;
