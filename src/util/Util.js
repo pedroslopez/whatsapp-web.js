@@ -5,7 +5,7 @@ const path = require('path');
 const Crypto = require('crypto');
 const { tmpdir } = require('os');
 const ffmpeg = require('fluent-ffmpeg');
-const webp = require('node-webpmux-commonjs').default;
+const webp = require('node-webpmux').default;
 const fs = require('fs').promises;
 const exists = require('fs').existsSync;
 const MessageMedia = require('../structures/MessageMedia');
@@ -176,11 +176,8 @@ class Util {
 
         if (metadata.name || metadata.author) {
             const img = new webp.Image();
-            const tempPath = os.tmpdir();
             const hash = this.generateHash(32);
-            const resultPath = `${tempPath}/${hash}.webp`;
             try {
-                await fs.writeFile(resultPath, webpMedia.data, 'base64');
                 const stickerPackId = hash;
                 const packname = metadata.name || 'undefined';
                 const author = metadata.author || 'undefined';
@@ -189,17 +186,10 @@ class Util {
                 let jsonBuffer = Buffer.from(JSON.stringify(json), 'utf8');
                 let exif = Buffer.concat([exifAttr, jsonBuffer]);
                 exif.writeUIntLE(jsonBuffer.length, 14, 4);
-                await img.load(resultPath);
+                await img.loadBuffer((webpMedia.data).toBuffer());
                 img.exif = exif;
-                if (img.hasAnim) {
-                    await img.muxAnim({ path: resultPath });
-                } else {
-                    await img.save(resultPath);
-                }
-                webpMedia = MessageMedia.fromFilePath(resultPath);
-            } finally {
-                if (exists(resultPath)) await fs.unlink(resultPath);
-            }
+                webpMedia.data = (await img.saveBuffer()).toString("base64");
+            } 
         }
 
         return webpMedia;
