@@ -5,7 +5,7 @@ const path = require('path');
 const Crypto = require('crypto');
 const { tmpdir } = require('os');
 const ffmpeg = require('fluent-ffmpeg');
-const webp = require('node-webpmux').default;
+const webp = require('node-webpmux');
 const fs = require('fs').promises;
 
 const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
@@ -183,8 +183,7 @@ class Util {
             let exif = Buffer.concat([exifAttr, jsonBuffer]);
             exif.writeUIntLE(jsonBuffer.length, 14, 4);
             await img.loadBuffer(Buffer.from(webpMedia.data, "base64"));
-            img.exif = exif;
-            webpMedia.data = (await img.saveBuffer()).toString('base64');
+            webpMedia.data = (await img.saveBuffer({exif})).toString('base64');
         }
 
         return webpMedia;
