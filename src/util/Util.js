@@ -182,7 +182,7 @@ class Util {
             let jsonBuffer = Buffer.from(JSON.stringify(json), 'utf8');
             let exif = Buffer.concat([exifAttr, jsonBuffer]);
             exif.writeUIntLE(jsonBuffer.length, 14, 4);
-            await img.loadBuffer(Buffer.from(webpMedia.data, "base64"));
+            await img.loadBuffer(Buffer.from(webpMedia.data, 'base64'));
             img.exif = exif;
             webpMedia.data = (await img.saveBuffer()).toString('base64');
         }
