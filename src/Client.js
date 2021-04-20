@@ -326,7 +326,7 @@ class Client extends EventEmitter {
              */
             this.emit(Events.STATE_CHANGED, state);
 
-            const ACCEPTED_STATES = [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING, WAState.TIMEOUT];
+            const ACCEPTED_STATES = [WAState.CONNECTED, WAState.PAIRING, WAState.TIMEOUT];
 
             if (this.options.takeoverOnConflict) {
                 ACCEPTED_STATES.push(WAState.CONFLICT);
@@ -342,9 +342,8 @@ class Client extends EventEmitter {
                 /**
                  * Emitted when the client has been disconnected
                  * @event Client#disconnected
-                 * @param {WAState} reason state that caused the disconnect
                  */
-                this.emit(Events.DISCONNECTED, state);
+                this.emit(Events.DISCONNECTED);
                 this.destroy();
             }
         });
