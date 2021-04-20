@@ -94,7 +94,7 @@ class Client extends EventEmitter {
             timeout: 0,
         });
 
-        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
+        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = 'div[role=button] + div[role=button]';
 
         if (this.options.session) {
             // Check if session restore was successfull 
@@ -108,7 +108,7 @@ class Client extends EventEmitter {
                      * @param {string} message
                      */
                     this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in. Are the session details valid?');
-                    browser.close();
+                    // browser.close();
                     if (this.options.restartOnAuthFail) {
                         // session restore failed so try again but without session to force new authentication
                         this.options.session = null;
