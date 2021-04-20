@@ -123,7 +123,7 @@ class Client extends EventEmitter {
         } else {
             const getQrCode = async () => {
                 // Check if retry button is present
-                var QR_RETRY_SELECTOR = 'div[data-ref] > span > div';
+                var QR_RETRY_SELECTOR = 'div[data-ref] > span > button';
                 var qrRetry = await page.$(QR_RETRY_SELECTOR);
                 if (qrRetry) {
                     await qrRetry.click();
