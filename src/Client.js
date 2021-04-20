@@ -94,12 +94,17 @@ class Client extends EventEmitter {
             timeout: 0,
         });
 
-        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = 'div[role=button] + div[role=button]';
+        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
+        const PHONE_IS_NOT_CONNECTED_SELECTOR = 'div[role=button] + div[role=button]';
 
         if (this.options.session) {
             // Check if session restore was successfull 
             try {
-                await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: this.options.authTimeoutMs });
+                await Promise.race(
+                    await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: this.options.authTimeoutMs }), 
+                    await page.waitForSelector(PHONE_IS_NOT_CONNECTED_SELECTOR, { timeout: this.options.authTimeoutMs })
+                );
+                
             } catch (err) {
                 if (err.name === 'TimeoutError') {
                     /**
