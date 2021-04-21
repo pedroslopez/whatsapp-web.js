@@ -259,6 +259,10 @@ client.on('change_battery', (batteryInfo) => {
     console.log(`Battery: ${battery}% - Charging? ${plugged}`);
 });
 
+client.on('change_state', state => {
+    console.log('CHANGE STATE', state );
+});
+
 client.on('disconnected', (reason) => {
     console.log('Client was logged out', reason);
 });
