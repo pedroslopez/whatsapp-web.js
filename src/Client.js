@@ -104,7 +104,7 @@ class Client extends EventEmitter {
         });
 
         if (response.status() !== 200) {
-            throw Error('Failed to load page - status  ' + response.status())
+            throw Error('Failed to load page - status ' + response.status())
         }
 
         const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
@@ -162,8 +162,16 @@ class Client extends EventEmitter {
                 */
                 this.emit(Events.QR_RECEIVED, qr);
             };
-            getQrCode();
-            this._qrRefreshInterval = setInterval(getQrCode, this.options.qrRefreshIntervalMs);
+            const safeGetQrCode = async () => {
+                try {
+                    await getQrCode()
+                }
+                catch (e) {
+                    console.log('get qr code error ' + e.message)
+                }
+            }
+            safeGetQrCode();
+            this._qrRefreshInterval = setInterval(safeGetQrCode, this.options.qrRefreshIntervalMs);
 
             // Wait for code scan
             await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 0 });
