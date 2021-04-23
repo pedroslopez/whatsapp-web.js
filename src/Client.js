@@ -68,6 +68,11 @@ class Client extends EventEmitter {
      */
     async initialize(credentials) {
         const browser = await puppeteer.launch(this.options.puppeteer);
+
+        browser.on('disconnected', () => {
+            this.emit(Events.BROWSER_CLOSED)
+        })
+
         const page = (await browser.pages())[0];
 
         if (credentials)
@@ -89,10 +94,18 @@ class Client extends EventEmitter {
                 }, this.options.session);
         }
 
-        await page.goto(WhatsWebURL, {
+        page.on('close', () => {
+            this.emit(Events.PAGE_CLOSED)
+        })
+
+        const response = await page.goto(WhatsWebURL, {
             waitUntil: 'load',
             timeout: 0,
         });
+
+        if (response.status !== 200) {
+            throw Error('Failed to load page - status  ' + response.status)
+        }
 
         const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
         const PHONE_IS_NOT_CONNECTED_SELECTOR = 'div[role=button] + div[role=button]';
