@@ -103,8 +103,8 @@ class Client extends EventEmitter {
             timeout: 0,
         });
 
-        if (response.status !== 200) {
-            throw Error('Failed to load page - status  ' + response.status)
+        if (response.status() !== 200) {
+            throw Error('Failed to load page - status  ' + response.status())
         }
 
         const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
