@@ -153,6 +153,12 @@ declare namespace WAWebJS {
             reason: WAState
         ) => void): this
 
+        /** Emitted when browser has been disconnected */
+        on(event: 'browser_closed', listener: () => void)
+
+        /** Emitted when page has been closed */
+        on(event: 'page_closed', listener: () => void)
+
         /** Emitted when a user joins the chat via invite link or is added by an admin */
         on(event: 'group_join', listener: (
             /** GroupNotification with more information about the action */
