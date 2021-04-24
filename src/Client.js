@@ -1,3 +1,4 @@
+/* eslint-disable linebreak-style */
 'use strict';
 
 const EventEmitter = require('events');
@@ -70,8 +71,8 @@ class Client extends EventEmitter {
         const browser = await puppeteer.launch(this.options.puppeteer);
 
         browser.on('disconnected', () => {
-            this.emit(Events.BROWSER_CLOSED)
-        })
+            this.emit(Events.BROWSER_CLOSED);
+        });
 
         const page = (await browser.pages())[0];
 
@@ -95,8 +96,8 @@ class Client extends EventEmitter {
         }
 
         page.on('close', () => {
-            this.emit(Events.PAGE_CLOSED)
-        })
+            this.emit(Events.PAGE_CLOSED);
+        });
 
         const response = await page.goto(WhatsWebURL, {
             waitUntil: 'load',
@@ -104,7 +105,7 @@ class Client extends EventEmitter {
         });
 
         if (response.status() !== 200) {
-            throw Error('Failed to load page - status ' + response.status())
+            throw Error('Failed to load page - status ' + response.status());
         }
 
         const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
@@ -121,23 +122,22 @@ class Client extends EventEmitter {
                 );
                 
             } catch (err) {
-                if (err.name === 'TimeoutError') {
-                    /**
-                     * Emitted when there has been an error while trying to restore an existing session
-                     * @event Client#auth_failure
-                     * @param {string} message
-                     */
-                    this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in. Are the session details valid?');
-                    // browser.close();
-                    if (this.options.restartOnAuthFail) {
-                        // session restore failed so try again but without session to force new authentication
-                        this.options.session = null;
-                        this.initialize();
-                    }
-                    return;
+                // if (err.name === 'TimeoutError') {
+                if (err.name !== 'TimeoutError') {
+                    console.log('error ' + err.name + ' ' + err.message);
+                }    
+                /**
+                 * Emitted when there has been an error while trying to restore an existing session
+                 * @event Client#auth_failure
+                 * @param {string} message
+                 */
+                this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in. Are the session details valid?');
+                // browser.close();
+                if (this.options.restartOnAuthFail) {
+                    // session restore failed so try again but without session to force new authentication
+                    this.options.session = null;
+                    this.initialize();
                 }
-
-                throw err;
             }
 
         } else {
@@ -164,12 +164,12 @@ class Client extends EventEmitter {
             };
             const safeGetQrCode = async () => {
                 try {
-                    await getQrCode()
+                    await getQrCode();
                 }
                 catch (e) {
-                    console.log('get qr code error ' + e.message)
+                    console.log('get qr code error ' + e.message);
                 }
-            }
+            };
             safeGetQrCode();
             this._qrRefreshInterval = setInterval(safeGetQrCode, this.options.qrRefreshIntervalMs);
 
