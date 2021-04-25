@@ -770,7 +770,7 @@ class Client extends EventEmitter {
      */
      async getFormattedNumber(number) {
         if(!number.endsWith('@s.whatsapp.net')) {
-            number = number.replace("c.us", "");
+            number = number.replace('c.us', '');
             number += 's.whatsapp.net';
         }
 
@@ -790,8 +790,8 @@ class Client extends EventEmitter {
      * @returns {Promise<string|null>}
      */
      async getCountryCode(number) {
-        number = number.includes(" ") ? number.replace(" ", "") : number;
-        number = number.includes("+") ? number.replace("+", "") : number;
+        number = number.includes(' ') ? number.replace(' ', '') : number;
+        number = number.includes('+') ? number.replace('+', '') : number;
         try {
             return await this.pupPage.evaluate(async numberId => {
                 return window.NumberInfo.findCC(numberId);
