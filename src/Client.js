@@ -763,6 +763,45 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Get the formatted number of a WhatsApp ID. 
+     * Will return null if the number is not registered on WhatsApp.
+     * @param {string} number Number or ID ("@c.us" will be automatically appended if not specified)
+     * @returns {Promise<string|null>}
+     */
+     async getFormattedNumber(number) {
+        if(!number.endsWith('@s.whatsapp.net')) {
+            number = number.replace("c.us", "");
+            number += 's.whatsapp.net';
+        }
+
+        try {
+            return await this.pupPage.evaluate(async numberId => {
+                return window.NumberInfo.formattedPhoneNumber(numberId);
+            }, number);
+        } catch(_) {
+            return null;
+        }
+    }
+    
+    /**
+     * Get the formatted number of a WhatsApp ID. 
+     * Will return null if the number is not registered on WhatsApp.
+     * @param {string} number Number or ID ("@c.us" will be automatically appended if not specified)
+     * @returns {Promise<string|null>}
+     */
+     async getCountryCode(number) {
+        number = number.includes(" ") ? number.replace(" ", "") : number;
+        number = number.includes("+") ? number.replace("+", "") : number;
+        try {
+            return await this.pupPage.evaluate(async numberId => {
+                return window.NumberInfo.findCC(numberId);
+            }, number);
+        } catch(_) {
+            return null;
+        }
+    }
+    
+    /**
      * Create a new group
      * @param {string} name group title
      * @param {Array<Contact|string>} participants an array of Contacts or contact IDs to add to the group
