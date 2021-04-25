@@ -768,7 +768,7 @@ class Client extends EventEmitter {
      * @param {string} number Number or ID ("@c.us" will be automatically appended if not specified)
      * @returns {Promise<string|null>}
      */
-     async getFormattedNumber(number) {
+     async getFormattedId(number) {
         if(!number.endsWith('@s.whatsapp.net')) {
             number = number.replace('c.us', '');
             number += 's.whatsapp.net';
