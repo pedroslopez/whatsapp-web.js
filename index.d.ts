@@ -37,6 +37,21 @@ declare namespace WAWebJS {
          * @param participants an array of Contacts or contact IDs to add to the group
          */
         createGroup(name: string, participants: Contact[] | string[]): Promise<CreateGroupResult>
+            
+        /**
+         * Set the profile picture of a chat, or you.
+        * @param {string} id The chat ID to set the picture to. (yours or a group)
+        * @param {MessageMedia} picture The picture to set. 
+        * @returns {Promise<String | false>} The url of the image / false if you can't set the profile picture
+        */
+        setProfilePicture(id: string, picture): Promise<String | false>
+            
+        /**
+         * Deletes the profile picture of a chat, or you.
+         * @param {string} id The chat ID to delete the the picture from. (yours or a group)
+         * @returns {Promise<Boolean>} True / false if you can / can't delete the profile picture
+        */
+        deleteProfilePicture(id: string): Promise<String | false>
 
         /** Closes the client */
         destroy(): Promise<void>
@@ -70,6 +85,7 @@ declare namespace WAWebJS {
 
         /** Returns the contact ID's profile picture URL, if privacy settings allow it */
         getProfilePicUrl(contactId: string): Promise<string>
+            
 
         /** Gets the current connection state for the client */
         getState(): Promise<WAState>
