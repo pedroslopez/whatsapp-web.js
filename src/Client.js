@@ -779,7 +779,7 @@ class Client extends EventEmitter {
 
             }, id, imgs);
         } catch(_) {
-            return false;
+            return null;
         }
     }
 
