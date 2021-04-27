@@ -42,16 +42,16 @@ declare namespace WAWebJS {
          * Set the profile picture of a chat, or you.
         * @param {string} id The chat ID to set the picture to. (yours or a group)
         * @param {MessageMedia} picture The picture to set. 
-        * @returns {Promise<String | false>} The url of the image / false if you can't set the profile picture
+        * @returns {Promise<String | false>} The url of the image / null if you can't set the profile picture
         */
-        setProfilePicture(id: string, picture: MessageMedia): Promise<String | false>
+        setProfilePicture(id: string, picture: MessageMedia): Promise<String | null>
             
         /**
          * Deletes the profile picture of a chat, or you.
          * @param {string} id The chat ID to delete the the picture from. (yours or a group)
          * @returns {Promise<Boolean>} true / false if you can / can't delete the profile picture
         */
-        deleteProfilePicture(id: string): Promise<true | false>
+        deleteProfilePicture(id: string): Promise<boolean>
 
         /** Closes the client */
         destroy(): Promise<void>
@@ -920,15 +920,15 @@ declare namespace WAWebJS {
         /**
         * Set the profile picture of the group chat.
         * @param {MessageMedia} picture The picture to set. 
-        * @returns {Promise<String | false>} The url of the image / false if you can't set the profile picture
+        * @returns {Promise<String | false>} The url of the image / null if you can't set the profile picture
         */
-        setProfilePicture: (picture: MessageMedia) => Promise<String | false>;
+        setProfilePicture: (picture: MessageMedia) => Promise<String | null>;
             
         /**
          * Deletes the profile picture of the group chat.
-         * @returns {Promise<Boolean>} True / false if you can / can't delete the profile picture
+         * @returns {Promise<Boolean>} true / false if you can / can't delete the profile picture
         */
-        deleteProfilePicture: () => Promise<true | false>;
+        deleteProfilePicture: () => Promise<boolean>;
             
         /** Gets the invite code for a specific group */
         getInviteCode: () => Promise<string>;
