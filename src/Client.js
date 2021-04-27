@@ -766,7 +766,7 @@ class Client extends EventEmitter {
      * Set the profile picture of a chat, or you.
      * @param {string} id The chat ID to set the picture to. (yours or a group)
      * @param {MessageMedia} picture The picture to set. 
-     * @returns {Promise<String | null>} The url of the image / null if you can't set the profile picture
+     * @returns {Promise<String | false>} The url of the image / false if you can't set the profile picture
      */
     async setProfilePicture(id, picture) {
         const imgs = await Util.formatImageToProfilePic(picture);
@@ -779,7 +779,7 @@ class Client extends EventEmitter {
 
             }, id, imgs);
         } catch(_) {
-            return null;
+            return false;
         }
     }
 
