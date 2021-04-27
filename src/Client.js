@@ -763,6 +763,45 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Set the profile picture of a chat, or you.
+     * @param {string} id The chat ID to set the picture to. (yours or a group)
+     * @param {MessageMedia} picture The picture to set. 
+     * @returns {Promise<String | null>} The url of the image / null if you can't set the profile picture
+     */
+    async setProfilePicture(id, picture) {
+        const imgs = await Util.formatImageToProfilePic(picture);
+        try {
+            return await this.pupPage.evaluate(async (id, imgs) => {
+                let model = window.Store.ProfilePicThumb._index[id];
+                console.log(window.Store.ProfilePicThumb, model);
+                await window.Store.ProfilePicture.setProfilePic(model, imgs.preview, imgs.img);
+                return window.Store.ProfilePicThumb._index[id].eurl;
+
+            }, id, imgs);
+        } catch(_) {
+            return null;
+        }
+    }
+
+    /**
+     * Deletes the profile picture of a chat, or you.
+     * @param {string} id The chat ID to delete the the picture from. (yours or a group)
+     * @returns {Promise<Boolean>} True / false if you can / can't delete the profile picture
+     */
+    async deleteProfilePicture(id) {
+        try {
+            return await this.pupPage.evaluate(async (id) => {
+                let model = window.Store.ProfilePicThumb._index[id];
+                await window.Store.ProfilePicture.deleteProfilePic(model);
+                return true;
+
+            }, id);
+        } catch(_) {
+            return false;
+        }
+    }
+    
+    /**
      * Create a new group
      * @param {string} name group title
      * @param {Array<Contact|string>} participants an array of Contacts or contact IDs to add to the group
