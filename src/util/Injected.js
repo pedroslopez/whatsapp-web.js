@@ -32,6 +32,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Sticker = window.mR.findModule('Sticker')[0].default.Sticker;
     window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
     window.Store.Label = window.mR.findModule('LabelCollection')[0].default;
+    window.Store.ProfilePicture = window.mR.findModule("setProfilePic")[0];
 };
 
 exports.LoadUtils = () => {
