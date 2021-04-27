@@ -44,14 +44,14 @@ declare namespace WAWebJS {
         * @param {MessageMedia} picture The picture to set. 
         * @returns {Promise<String | false>} The url of the image / false if you can't set the profile picture
         */
-        setProfilePicture(id: string, picture): Promise<String | false>
+        setProfilePicture(id: string, picture: MessageMedia): Promise<String | false>
             
         /**
          * Deletes the profile picture of a chat, or you.
          * @param {string} id The chat ID to delete the the picture from. (yours or a group)
-         * @returns {Promise<Boolean>} True / false if you can / can't delete the profile picture
+         * @returns {Promise<Boolean>} true / false if you can / can't delete the profile picture
         */
-        deleteProfilePicture(id: string): Promise<String | false>
+        deleteProfilePicture(id: string): Promise<true | false>
 
         /** Closes the client */
         destroy(): Promise<void>
@@ -916,6 +916,20 @@ declare namespace WAWebJS {
          * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
          */
         setInfoAdminsOnly: (adminsOnly?: boolean) => Promise<boolean>;
+        
+        /**
+        * Set the profile picture of the group chat.
+        * @param {MessageMedia} picture The picture to set. 
+        * @returns {Promise<String | false>} The url of the image / false if you can't set the profile picture
+        */
+        setProfilePicture: (picture: MessageMedia) => Promise<String | false>;
+            
+        /**
+         * Deletes the profile picture of the group chat.
+         * @returns {Promise<Boolean>} True / false if you can / can't delete the profile picture
+        */
+        deleteProfilePicture: () => Promise<true | false>;
+            
         /** Gets the invite code for a specific group */
         getInviteCode: () => Promise<string>;
         /** Invalidates the current group invite code and generates a new one */
