@@ -76,6 +76,23 @@ class GroupChat extends Chat {
     }
 
     /**
+     * Set the profile picture of a group chat.
+     * @param {MessageMedia} picture The picture to set. 
+     * @returns {Promise<String | null>} The url of the image / null if you can't set the profile picture
+     */
+    async setProfilePicture(picture) {
+        return await this.client.setProfilePicture(this.id._serialized, picture);
+    }
+
+    /**
+     * Deletes the profile picture of a group chat.
+     * @returns {Promise<Boolean>} true if it succeeded / false if it didn't delete the profile picture.
+     */
+    async deleteProfilePicture() {
+        return await this.client.setProfilePicture(this.id._serialized);
+    }
+
+    /**
      * Promotes participants by IDs to admins
      * @param {Array<string>} participantIds 
      * @returns {Promise<{ status: number }>} Object with status code indicating if the operation was successful
