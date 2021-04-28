@@ -773,7 +773,6 @@ class Client extends EventEmitter {
         try {
             return await this.pupPage.evaluate(async (id, imgs) => {
                 let model = window.Store.ProfilePicThumb._index[id];
-                console.log(window.Store.ProfilePicThumb, model);
                 await window.Store.ProfilePicture.setProfilePic(model, imgs.preview, imgs.img);
                 return window.Store.ProfilePicThumb._index[id].eurl;
 
