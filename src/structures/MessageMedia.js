@@ -32,7 +32,7 @@ class MessageMedia {
 
         /**
          * Size of the file in bytes
-         * @type {number}
+         * @type {?number}
          */
         this.filesize = filesize;
     }
