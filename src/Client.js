@@ -114,12 +114,15 @@ class Client extends EventEmitter {
         if (this.options.session) {
             // Check if session restore was successfull 
             try {
-                await Promise.race(
+                let isConnected;
+                isConnected = await Promise.race(
                     [
-                        page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: this.options.authTimeoutMs }),
-                        page.waitForSelector(PHONE_IS_NOT_CONNECTED_SELECTOR, { timeout: this.options.authTimeoutMs })
+                        page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: this.options.authTimeoutMs }).then(() => true),
+                        page.waitForSelector(PHONE_IS_NOT_CONNECTED_SELECTOR, { timeout: this.options.authTimeoutMs }).then(() => false)
                     ]
                 );
+                if (!isConnected)
+                    this.emit(Events.TIMEOUT);
                 
             } catch (err) {
                 // if (err.name === 'TimeoutError') {
