@@ -111,18 +111,17 @@ class Client extends EventEmitter {
         const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
         const PHONE_IS_NOT_CONNECTED_SELECTOR = 'div[role=button] + div[role=button]';
 
+        var loggedAndTimeouted = false;
+
         if (this.options.session) {
             // Check if session restore was successfull 
             try {
-                let isConnected;
-                isConnected = await Promise.race(
+                loggedAndTimeouted = await Promise.race(
                     [
-                        page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: this.options.authTimeoutMs }).then(() => true),
-                        page.waitForSelector(PHONE_IS_NOT_CONNECTED_SELECTOR, { timeout: this.options.authTimeoutMs }).then(() => false)
+                        page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: this.options.authTimeoutMs }).then(() => false),
+                        page.waitForSelector(PHONE_IS_NOT_CONNECTED_SELECTOR, { timeout: this.options.authTimeoutMs }).then(() => true)
                     ]
                 );
-                if (!isConnected)
-                    this.emit(Events.TIMEOUT);
                 
             } catch (err) {
                 // if (err.name === 'TimeoutError') {
@@ -410,7 +409,7 @@ class Client extends EventEmitter {
          * Emitted when the client has initialized and is ready to receive messages.
          * @event Client#ready
          */
-        this.emit(Events.READY);
+        this.emit(Events.READY, loggedAndTimeouted);
     }
 
     /**

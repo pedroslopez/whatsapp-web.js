@@ -228,7 +228,7 @@ declare namespace WAWebJS {
         ) => void): this
 
         /** Emitted when the client has initialized and is ready to receive messages */
-        on(event: 'ready', listener: () => void): this
+        on(event: 'ready', listener: (loggedAndTimeouted:boolean) => void): this
     }
 
     /** Current connection information */
