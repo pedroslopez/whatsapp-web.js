@@ -604,8 +604,8 @@ declare namespace WAWebJS {
         stickerName?: string
         /** Sticker author, if sendMediaAsSticker is true */
         stickerAuthor?: string
-        /** Sticker author, if sendMediaAsSticker is true */
-        stickerCategory?: string
+        /** Sticker categories, if sendMediaAsSticker is true */
+        stickerCategories?: string
     }
 
     /** Media attached to a message */
