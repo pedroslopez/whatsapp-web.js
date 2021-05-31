@@ -602,6 +602,8 @@ declare namespace WAWebJS {
         sendSeen?: boolean
         /** Media to be sent */
         media?: MessageMedia
+        /** Extra options */
+        extra?: any
         /** Sticker name, if sendMediaAsSticker is true */
         stickerName?: string
         /** Sticker author, if sendMediaAsSticker is true */
