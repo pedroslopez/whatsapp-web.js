@@ -63,7 +63,8 @@ exports.LoadUtils = () => {
                 ? await window.WWebJS.processStickerData(options.attachment)
                 : await window.WWebJS.processMediaData(options.attachment, {
                     forceVoice: options.sendAudioAsVoice, 
-                    forceDocument: options.sendMediaAsDocument 
+                    forceDocument: options.sendMediaAsDocument,
+                    forceGif: options.sendVideoAsGif
                 });
 
             content = options.sendMediaAsSticker ? undefined : attOptions.preview;
@@ -196,7 +197,7 @@ exports.LoadUtils = () => {
         return stickerInfo;
     };
 
-    window.WWebJS.processMediaData = async (mediaInfo, { forceVoice, forceDocument }) => {
+    window.WWebJS.processMediaData = async (mediaInfo, { forceVoice, forceDocument, forceGif }) => {
         const file = window.WWebJS.mediaInfoToFile(mediaInfo);
         const mData = await window.Store.OpaqueData.createFromData(file, file.type);
         const mediaPrep = window.Store.MediaPrep.prepRawMedia(mData, { asDocument: forceDocument });
@@ -210,6 +211,10 @@ exports.LoadUtils = () => {
 
         if (forceVoice && mediaData.type === 'audio') {
             mediaData.type = 'ptt';
+        }
+
+        if (forceGif && mediaData.type === 'video') {
+            mediaData.isGif = true;
         }
 
         if (forceDocument) {

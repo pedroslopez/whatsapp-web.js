@@ -149,8 +149,8 @@ declare namespace WAWebJS {
 
         /** Emitted when the client has been disconnected */
         on(event: 'disconnected', listener: (
-            /** state that caused the disconnect */
-            reason: WAState
+            /** reason that caused the disconnect */
+            reason: WAState | "NAVIGATED"
         ) => void): this
 
         /** Emitted when a user joins the chat via invite link or is added by an admin */
@@ -584,6 +584,8 @@ declare namespace WAWebJS {
         linkPreview?: boolean
         /** Send audio as voice message */
         sendAudioAsVoice?: boolean
+        /** Send video as gif */
+        sendVideoAsGif?: boolean
         /** Send media as sticker */
         sendMediaAsSticker?: boolean
         /** Send media as document */
@@ -600,6 +602,14 @@ declare namespace WAWebJS {
         sendSeen?: boolean
         /** Media to be sent */
         media?: MessageMedia
+        /** Extra options */
+        extra?: any
+        /** Sticker name, if sendMediaAsSticker is true */
+        stickerName?: string
+        /** Sticker author, if sendMediaAsSticker is true */
+        stickerAuthor?: string
+        /** Sticker categories, if sendMediaAsSticker is true */
+        stickerCategories?: string[]
     }
 
     /** Media attached to a message */
