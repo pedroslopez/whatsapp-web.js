@@ -430,6 +430,7 @@ class Client extends EventEmitter {
      * @typedef {Object} MessageSendOptions
      * @property {boolean} [linkPreview=true] - Show links preview
      * @property {boolean} [sendAudioAsVoice=false] - Send audio as voice message
+     * @property {boolean} [sendVideoAsGif=false] - Send video as gif
      * @property {boolean} [sendMediaAsSticker=false] - Send media as a sticker
      * @property {boolean} [sendMediaAsDocument=false] - Send media as a document
      * @property {boolean} [parseVCards=true] - Automatically parse vCards and send them as contacts
@@ -455,6 +456,7 @@ class Client extends EventEmitter {
         let internalOptions = {
             linkPreview: options.linkPreview === false ? undefined : true,
             sendAudioAsVoice: options.sendAudioAsVoice,
+            sendVideoAsGif: options.sendVideoAsGif,
             sendMediaAsSticker: options.sendMediaAsSticker,
             sendMediaAsDocument: options.sendMediaAsDocument,
             caption: options.caption,
