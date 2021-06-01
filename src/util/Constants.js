@@ -68,7 +68,9 @@ exports.MessageTypes = {
     LOCATION: 'location',
     CONTACT_CARD: 'vcard',
     CONTACT_CARD_MULTI: 'multi_vcard',
+    ORDER: 'order',
     REVOKED: 'revoked',
+    PRODUCT: 'product',
     UNKNOWN: 'unknown'
 };
 
