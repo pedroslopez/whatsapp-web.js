@@ -83,6 +83,12 @@ class Message extends Base {
         this.author = (typeof (data.author) === 'object' && data.author !== null) ? data.author._serialized : data.author;
 
         /**
+         * String that represents from which device type the message was sent
+         * @type {string}
+         */
+        this.deviceType = data.id.id.length > 21 ? 'android' : data.id.id.substring(0,2) =='3A' ? 'ios' : 'web';
+        
+        /**
          * Indicates if the message was forwarded
          * @type {boolean}
          */
