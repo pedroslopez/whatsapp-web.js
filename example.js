@@ -197,14 +197,6 @@ client.on('message', async msg => {
             const quotedMsg = await msg.getQuotedMessage();
             client.interface.openChatWindowAt(quotedMsg.id._serialized);
         }
-    } else if (msg.body === '!getFeatures') {
-        console.log(await client.interface.getFeatures());
-    } else if (msg.body === '!checkStarredGifsStatus') {
-        await msg.reply('Starred Gif Feature Status: ' + await client.interface.checkFeatureStatus('STARRED_GIFS'));
-    } else if (msg.body === '!disableStarredGifs') {
-        await client.interface.disableFeatures(['STARRED_GIFS']);
-    } else if (msg.body === '!enableStarredGifs') {
-        await client.interface.enableFeatures(['STARRED_GIFS']);
     }
 });
 
