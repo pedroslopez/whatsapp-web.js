@@ -599,6 +599,8 @@ declare namespace WAWebJS {
         linkPreview?: boolean
         /** Send audio as voice message */
         sendAudioAsVoice?: boolean
+        /** Send video as gif */
+        sendVideoAsGif?: boolean
         /** Send media as sticker */
         sendMediaAsSticker?: boolean
         /** Send media as document */
@@ -615,6 +617,14 @@ declare namespace WAWebJS {
         sendSeen?: boolean
         /** Media to be sent */
         media?: MessageMedia
+        /** Extra options */
+        extra?: any
+        /** Sticker name, if sendMediaAsSticker is true */
+        stickerName?: string
+        /** Sticker author, if sendMediaAsSticker is true */
+        stickerAuthor?: string
+        /** Sticker categories, if sendMediaAsSticker is true */
+        stickerCategories?: string[]
     }
 
     /** Media attached to a message */
