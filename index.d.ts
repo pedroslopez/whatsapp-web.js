@@ -413,6 +413,8 @@ declare namespace WAWebJS {
         CONTACT_CARD = 'vcard',
         CONTACT_CARD_MULTI = 'multi_vcard',
         REVOKED = 'revoked',
+        ORDER = 'order',
+        PRODUCT = 'product',
         UNKNOWN = 'unknown',
     }
 
@@ -521,7 +523,16 @@ declare namespace WAWebJS {
         type: MessageTypes,
         /** Links included in the message. */
         links: string[],
-
+        /** Order ID */
+        orderId: string,
+        /** title */
+        title?: string,
+        /** description*/
+        description?: string,
+        /** Business Owner JID */
+        businessOwnerJid?: string,
+        /** Product JID */
+        productId?: string,
         /** Deletes the message from the chat */
         delete: (everyone?: boolean) => Promise<void>,
         /** Downloads and returns the attatched message media */
@@ -549,7 +560,11 @@ declare namespace WAWebJS {
         /** Unstar this message */
         unstar: () => Promise<void>,
         /** Get information about message delivery statuso */
-        getInfo: () => Promise<MessageInfo | null>
+        getInfo: () => Promise<MessageInfo | null>,
+        /**
+         * Gets the order associated with a given message
+         */
+        getOrder: () => Order,
     }
 
     /** ID that represents a message */
@@ -916,6 +931,87 @@ declare namespace WAWebJS {
         revokeInvite: () => Promise<void>;
         /** Makes the bot leave the group */
         leave: () => Promise<void>;
+    }
+
+    /**
+     * Represents the metadata associated with a given product
+     *
+     */
+    export interface ProductMetadata {
+        /** Product Id */
+        id: string,
+        /** Product Name */
+        name: string,
+        /** Product Description */
+        description: string,
+        /** Retailer ID */
+        retailer_id?: string
+    }
+
+    /**
+     * Represents a Product on Whatsapp
+     * @example
+     * {
+     * "id": "123456789",
+     * "price": "150000",
+     * "thumbnailId": "123456789",
+     * "thumbnailUrl": "https://mmg.whatsapp.net",
+     * "currency": "GTQ",
+     * "name": "Store Name",
+     * "quantity": 1
+     * }
+     */
+    export interface Product {
+        /** Product Id */
+        id: string,
+        /** Price */
+        price?: string,
+        /** Product Thumbnail*/
+        thumbnailUrl: string,
+        /** Currency */
+        currency: string,
+        /** Product Name */
+        name: string,
+        /** Product Quantity*/
+        quantity: number,
+        /** Gets the Product metadata */
+        getData: () => Promise<ProductMetadata>
+    }
+
+    /**
+     * Represents a Order on WhatsApp
+     *
+     * @example
+     * {
+     * "products": [
+     * {
+     * "id": "123456789",
+     * "price": "150000",
+     * "thumbnailId": "123456789",
+     * "thumbnailUrl": "https://mmg.whatsapp.net",
+     * "currency": "GTQ",
+     * "name": "Store Name",
+     * "quantity": 1
+     * }
+     * ],
+     * "subtotal": "150000",
+     * "total": "150000",
+     * "currency": "GTQ",
+     * "createdAt": 1610136796,
+     * "sellerJid": "55555555@s.whatsapp.net"
+     * }
+     */
+    export interface Order {
+        /** List of products*/
+        products: Array<Product>,
+        /** Order Subtotal */
+        subtotal: string,
+        /** Order Total */
+        total: string,
+        /** Order Currency */
+        currency: string,
+        /** Order Created At*/
+        createdAt: number;
     }
 }
 
