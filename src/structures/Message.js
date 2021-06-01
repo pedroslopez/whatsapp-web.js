@@ -3,6 +3,7 @@
 const Base = require('./Base');
 const MessageMedia = require('./MessageMedia');
 const Location = require('./Location');
+const Order = require('./Order');
 const { MessageTypes } = require('../util/Constants');
 
 /**
@@ -40,7 +41,7 @@ class Message extends Base {
          * Indicates if the message has media available for download
          * @type {boolean}
          */
-        this.hasMedia = data.clientUrl || data.deprecatedMms3Url ? true : false;
+        this.hasMedia = data.clientUrl || data.deprecatedMms3Url;
 
         /**
          * Message content
@@ -137,6 +138,37 @@ class Message extends Base {
 
         if (data.mentionedJidList) {
             this.mentionedIds = data.mentionedJidList;
+        }
+
+        /**
+         * Order ID for message type ORDER
+         * @type {string}
+         */
+        this.orderId = data.orderId ? data.orderId : undefined;
+        /**
+         * Order Token for message type ORDER
+         * @type {string}
+         */
+        this.token = data.token ? data.token : undefined;
+
+        /** Title */
+        if (data.title) {
+            this.title = data.title;
+        }
+
+        /** Description */
+        if (data.description) {
+            this.description = data.description;
+        }
+
+        /** Business Owner JID */
+        if (data.businessOwnerJid) {
+            this.businessOwnerJid = data.businessOwnerJid;
+        }
+
+        /** Product ID */
+        if (data.productId) {
+            this.productId = data.productId;
         }
 
         /**
@@ -341,6 +373,21 @@ class Message extends Base {
         }
 
         return info;
+    }
+
+    /**
+     * Gets the order associated with a given message
+     * @return {Promise<Order>}
+     */
+    async getOrder() {
+        if (this.type === MessageTypes.ORDER) {
+            const result = await this.client.pupPage.evaluate((orderId, token) => {
+                return window.WWebJS.getOrderDetail(orderId, token);
+            }, this.orderId, this.token);
+            if (!result) return undefined;
+            return new Order(this.client, result);
+        }
+        return undefined;
     }
 }
 

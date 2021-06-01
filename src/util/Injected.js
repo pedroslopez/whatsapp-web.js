@@ -32,6 +32,9 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Sticker = window.mR.findModule('Sticker')[0].default.Sticker;
     window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
     window.Store.Label = window.mR.findModule('LabelCollection')[0].default;
+    window.Store.QueryOrder = window.mR.findModule('queryOrder')[0];
+    window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
+
 };
 
 exports.LoadUtils = () => {
@@ -457,6 +460,20 @@ exports.LoadUtils = () => {
     window.WWebJS.getChatLabels = async (chatId) => {
         const chat = await window.WWebJS.getChat(chatId);
         return (chat.labels || []).map(id => window.WWebJS.getLabel(id));
+    };
+
+    window.WWebJS.getOrderDetail = async (orderId, token) => {
+        return window.Store.QueryOrder.queryOrder(orderId, 80, 80, token);
+    };
+
+    window.WWebJS.getProductMetadata = async (productId) => {
+        let sellerId = window.Store.Conn.wid;
+        let product = await window.Store.QueryProduct.queryProduct(sellerId, productId);
+        if (product && product.data) {
+            return product.data;
+        }
+
+        return undefined;
     };
 };
 
