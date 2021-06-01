@@ -32,12 +32,9 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Sticker = window.mR.findModule('Sticker')[0].default.Sticker;
     window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
     window.Store.Label = window.mR.findModule('LabelCollection')[0].default;
-    try {
-        window.Store.QueryOrder = window.mR.findModule('queryOrder')[0];
-        window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
-    } catch (e) {
-        console.log(e);
-    }
+    window.Store.QueryOrder = window.mR.findModule('queryOrder')[0];
+    window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
+
 };
 
 exports.LoadUtils = () => {
@@ -460,21 +457,17 @@ exports.LoadUtils = () => {
         return (chat.labels || []).map(id => window.WWebJS.getLabel(id));
     };
 
-    window.WWebJS.getOrderDetail = async (orderid, token) => {
-        if (window.Store.QueryOrder !== undefined) {
-            return await window.Store.QueryOrder.queryOrder(orderid, 80, 80, token);
-        }
-        return undefined;
+    window.WWebJS.getOrderDetail = async (orderId, token) => {
+        return window.Store.QueryOrder.queryOrder(orderId, 80, 80, token);
     };
 
     window.WWebJS.getProductMetadata = async (productId) => {
-        if (window.Store.QueryProduct !== undefined) {
-            let sellerId = window.Store.Conn.wid;
-            let product = await window.Store.QueryProduct.queryProduct(sellerId, productId);
-            if (product && product.data) {
-                return product.data;
-            }
+        let sellerId = window.Store.Conn.wid;
+        let product = await window.Store.QueryProduct.queryProduct(sellerId, productId);
+        if (product && product.data) {
+            return product.data;
         }
+
         return undefined;
     };
 };
