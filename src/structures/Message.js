@@ -266,6 +266,14 @@ class Message extends Base {
     }
 
     /**
+     * Accept Group V4 Invite
+     * @returns {Promise<Object>}
+     */
+    async acceptGroupV4Invite() {
+        return await this.client.acceptGroupV4Invite(this.invite)
+    }
+    
+    /**
      * Forwards this message to another chat
      * 
      * @param {string|Chat} chat Chat model or chat ID to which the message will be forwarded
