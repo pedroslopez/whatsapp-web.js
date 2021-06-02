@@ -140,7 +140,7 @@ class Message extends Base {
          * Group Invite Data
          * @type {object}
          */
-         this.invite = data.type === MessageTypes.GROUP_INVITE ? {
+         this.inviteV4 = data.type === MessageTypes.GROUP_INVITE ? {
             inviteCode: data.inviteCode,
             inviteCodeExp: data.inviteCodeExp,
             inviteGrp: data.inviteGrp,
