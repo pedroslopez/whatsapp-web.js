@@ -546,6 +546,8 @@ declare namespace WAWebJS {
         businessOwnerJid?: string,
         /** Product JID */
         productId?: string,
+        /** Accept the Group V4 Invite in message*/
+        acceptGroupV4Invite: () => Promise<Object>,
         /** Deletes the message from the chat */
         delete: (everyone?: boolean) => Promise<void>,
         /** Downloads and returns the attatched message media */
