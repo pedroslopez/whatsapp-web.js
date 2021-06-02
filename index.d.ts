@@ -347,11 +347,6 @@ declare namespace WAWebJS {
 
     }
     
-
-    export interface linkStructure {
-        link: string,
-        isSus: boolean
-    }
     /** whatsapp web url */
     export const WhatsWebURL: string
 
