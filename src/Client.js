@@ -502,8 +502,6 @@ class Client extends EventEmitter {
      * @returns {Promise<Message[]>}
      */
     async searchMessages(query, options = {}) {
-        if (!options.page) { options.page = 0; }
-
         const messages = await this.pupPage.evaluate(async (query, page, count, remote) => {
             const { messages } = await window.Store.Msg.search(query, page, count, remote);
             return messages.map(msg => window.WWebJS.getMessageModel(msg));
