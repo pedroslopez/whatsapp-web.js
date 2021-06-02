@@ -137,6 +137,19 @@ class Message extends Base {
         this.vCards = data.type === MessageTypes.CONTACT_CARD_MULTI ? data.vcardList.map((c) => c.vcard) : data.type === MessageTypes.CONTACT_CARD ? [data.body] : [];
 
         /**
+         * Group Invite Data
+         * @type {object}
+         */
+         this.invite = data.type === MessageTypes.GROUP_INVITE ? {
+            inviteCode: data.inviteCode,
+            inviteCodeExp: data.inviteCodeExp,
+            inviteGrp: data.inviteGrp,
+            inviteGrpName: data.inviteGrpName,
+            inviteFrom: data.from._serialized,
+            inviteTo: data.to._serialized
+         } : undefined
+         
+        /**
          * Indicates the mentions in the message body.
          * @type {Array<string>}
          */

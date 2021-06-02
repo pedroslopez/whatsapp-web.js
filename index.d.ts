@@ -416,6 +416,7 @@ declare namespace WAWebJS {
         ORDER = 'order',
         PRODUCT = 'product',
         UNKNOWN = 'unknown',
+        GROUP_INVITE = 'groups_v4_invite',
     }
 
     /** Client status */
@@ -507,6 +508,8 @@ declare namespace WAWebJS {
         location: Location,
         /** List of vCards contained in the message */
         vCards: string[],
+        /** Invite v4 info */
+        invite: object
         /** MediaKey that represents the sticker 'ID' */
         mediaKey?: string,
         /** Indicates the mentions in the message body. */
