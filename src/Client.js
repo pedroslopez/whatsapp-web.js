@@ -511,6 +511,24 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Searches for messages
+     * @param {string} query
+     * @param {Object} [options]
+     * @param {number} [options.page]
+     * @param {number} [options.limit]
+     * @param {string} [options.chatId]
+     * @returns {Promise<Message[]>}
+     */
+    async searchMessages(query, options = {}) {
+        const messages = await this.pupPage.evaluate(async (query, page, count, remote) => {
+            const { messages } = await window.Store.Msg.search(query, page, count, remote);
+            return messages.map(msg => window.WWebJS.getMessageModel(msg));
+        }, query, options.page, options.limit, options.chatId);
+
+        return messages.map(msg => new Message(this, msg));
+    }
+
+    /**
      * Get all current chat instances
      * @returns {Promise<Array<Chat>>}
      */
