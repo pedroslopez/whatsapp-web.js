@@ -192,7 +192,7 @@ client.on('message', async msg => {
         const chat = await msg.getChat();
         // stops typing or recording in the chat
         chat.clearState();
-    } else if (msg.body === 'jumpto') {
+    } else if (msg.body === '!jumpto') {
         if (msg.hasQuotedMsg) {
             const quotedMsg = await msg.getQuotedMessage();
             client.interface.openChatWindowAt(quotedMsg.id._serialized);
@@ -257,6 +257,10 @@ client.on('change_battery', (batteryInfo) => {
     // Battery percentage for attached device has changed
     const { battery, plugged } = batteryInfo;
     console.log(`Battery: ${battery}% - Charging? ${plugged}`);
+});
+
+client.on('change_state', state => {
+    console.log('CHANGE STATE', state );
 });
 
 client.on('disconnected', (reason) => {
