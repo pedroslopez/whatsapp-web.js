@@ -590,8 +590,8 @@ class Client extends EventEmitter {
      * @returns {Promise<Object>}
      */
      async acceptGroupV4Invite(inviteInfo) {
-        if(!inviteInfo.inviteCodeV4) throw 'Invalid invite code, try passing the message.inviteV4 object'
-        if (inviteInfo.inviteCodeExpV4 == 0) throw 'Expired invite code'
+        if(!inviteInfo.inviteCode) throw 'Invalid invite code, try passing the message.inviteV4 object'
+        if (inviteInfo.inviteCodeExp == 0) throw 'Expired invite code'
         return await this.pupPage.evaluate(async inviteInfo => {
             let { inviteGrp, inviteFrom, inviteCode, inviteCodeExp, inviteTo } = inviteInfo
             return await window.Store.Wap.acceptGroupV4Invite(inviteGrp, inviteFrom, inviteCode, String(inviteCodeExp), inviteTo)
