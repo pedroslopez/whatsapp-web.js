@@ -30,6 +30,7 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @param {number} options.takeoverTimeoutMs - How much time to wait before taking over the session
  * @param {string} options.userAgent - User agent to use in puppeteer
  * @param {string} options.ffmpegPath - Ffmpeg path to use when formating videos to webp while sending stickers 
+ * @param {boolean} options.bypassCSP - Sets bypassing of page's Content-Security-Policy.
  * 
  * @fires Client#qr
  * @fires Client#authenticated
@@ -80,6 +81,10 @@ class Client extends EventEmitter {
                     localStorage.setItem('WAToken1', session.WAToken1);
                     localStorage.setItem('WAToken2', session.WAToken2);
                 }, this.options.session);
+        }
+
+        if(this.options.bypassCSP) {
+            await page.setBypassCSP(true);
         }
 
         await page.goto(WhatsWebURL, {
@@ -508,6 +513,24 @@ class Client extends EventEmitter {
         }, chatId, content, internalOptions, sendSeen);
 
         return new Message(this, newMessage);
+    }
+
+    /**
+     * Searches for messages
+     * @param {string} query
+     * @param {Object} [options]
+     * @param {number} [options.page]
+     * @param {number} [options.limit]
+     * @param {string} [options.chatId]
+     * @returns {Promise<Message[]>}
+     */
+    async searchMessages(query, options = {}) {
+        const messages = await this.pupPage.evaluate(async (query, page, count, remote) => {
+            const { messages } = await window.Store.Msg.search(query, page, count, remote);
+            return messages.map(msg => window.WWebJS.getMessageModel(msg));
+        }, query, options.page, options.limit, options.chatId);
+
+        return messages.map(msg => new Message(this, msg));
     }
 
     /**
