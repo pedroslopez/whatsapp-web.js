@@ -18,6 +18,6 @@ module.exports = {
     BusinessContact: require('./src/structures/BusinessContact'),
     ClientInfo: require('./src/structures/ClientInfo'),
     Location: require('./src/structures/Location'),
-    
+    ProductMetadata: require('./src/structures/ProductMetadata'),
     ...Constants
 };
