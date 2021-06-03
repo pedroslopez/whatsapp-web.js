@@ -6,11 +6,11 @@ on:
 
 jobs:
   eslint:
-    name: eslint
+    name: ESLint
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: install node v14
+    - name: Install node v14
       uses: actions/setup-node@v2
       with:
         node-version: '14'
