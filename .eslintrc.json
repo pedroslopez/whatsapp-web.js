@@ -13,6 +13,7 @@
     "parserOptions": {
         "ecmaVersion": 2018
     },
+    "ignorePatterns": ["docs"],
     "rules": {
         "indent": [
             "error",
