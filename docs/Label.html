@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.6">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.12.6 &raquo; Class: MessageMedia</title>
+  <title>whatsapp-web.js 1.12.6 &raquo; Class: Label</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -25,10 +25,10 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
-            <h1><small></small><span class="symbol-name">MessageMedia</span></h1>
-            <p class="source-link">Source: <a href="structures_MessageMedia.js.html#source-line-13">structures/<wbr>MessageMedia.<wbr>js:13</a></p>
+            <h1><small></small><span class="symbol-name">Label</span></h1>
+            <p class="source-link">Source: <a href="structures_Label.js.html#source-line-10">structures/<wbr>Label.<wbr>js:10</a></p>
             <div class="symbol-classdesc">
-              <p>Media attached to a message</p>
+              <p>WhatsApp Business Label information</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -39,21 +39,21 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="MessageMedia.html#data">data</a></dt>
+                    <dt><a href="Label.html#hexColor">hexColor</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="MessageMedia.html#filename">filename</a></dt>
+                    <dt><a href="Label.html#id">id</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="MessageMedia.html#mimetype">mimetype</a></dt>
+                    <dt><a href="Label.html#name">name</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -65,7 +65,7 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="MessageMedia.html#.fromFilePath">fromFilePath(filePath)</a></dt>
+                    <dt><a href="Label.html#getChats">getChats()</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -78,7 +78,7 @@
             </div>
           </section>
           <section>
-            <h2 id="MessageMedia">new&nbsp;<span class="symbol-name">MessageMedia</span><span class="signature"><span class="signature-params">(mimetype, data, filename)</span></span></h2>
+            <h2 id="Label">new&nbsp;<span class="symbol-name">Label</span><span class="signature"><span class="signature-params">(client, labelData)</span></span></h2>
             <section>
               <h3>Parameters</h3>
               <table class="jsdoc-details-table">
@@ -93,7 +93,7 @@
                 <tbody>
                   <tr>
                     <td>
-                      <p>mimetype</p>
+                      <p>client</p>
                     </td>
                     <td>
                       <p>&nbsp;</p>
@@ -102,12 +102,11 @@
                       <p>&nbsp;</p>
                     </td>
                     <td>
-                      <p>MIME type of the attachment</p>
                     </td>
                   </tr>
                   <tr>
                     <td>
-                      <p>data</p>
+                      <p>labelData</p>
                     </td>
                     <td>
                       <p>&nbsp;</p>
@@ -116,22 +115,6 @@
                       <p>&nbsp;</p>
                     </td>
                     <td>
-                      <p>Base64-encoded data of the file</p>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <p>filename</p>
-                    </td>
-                    <td>
-                      <p>&nbsp;</p>
-                    </td>
-                    <td>
-                      <p>&nbsp;</p>
-                    </td>
-                    <td>
-                      <p>Document file name</p>
-                      <p>Value can be null.</p>
                     </td>
                   </tr>
                 </tbody>
@@ -143,59 +126,31 @@
           <section>
             <h2>Properties</h2>
             <section>
-              <h3 id="data"><span class="symbol-name">data</span><small class="property-type">
+              <h3 id="hexColor"><span class="symbol-name">hexColor</span><small class="property-type">
                   &nbsp;string</small></h3>
-              <p>Base64 encoded data that represents the file</p>
+              <p>Label hex color</p>
               <dl class="dl-compact">
               </dl>
-              <h3 id="filename"><span class="symbol-name">filename</span><small class="property-type">
-                  &nbsp;nullable string</small></h3>
-              <p>Name of the file (for documents)</p>
+              <h3 id="id"><span class="symbol-name">id</span><small class="property-type">
+                  &nbsp;string</small></h3>
+              <p>Label ID</p>
               <dl class="dl-compact">
               </dl>
-              <h3 id="mimetype"><span class="symbol-name">mimetype</span><small class="property-type">
+              <h3 id="name"><span class="symbol-name">name</span><small class="property-type">
                   &nbsp;string</small></h3>
-              <p>MIME type of the attachment</p>
+              <p>Label name</p>
               <dl class="dl-compact">
               </dl>
             </section>
             <h2>Method</h2>
             <section>
-              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
-              <h3 id=".fromFilePath"><span class="symbol-name">fromFilePath</span><span class="signature"><span class="signature-params">(filePath)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="MessageMedia.html">MessageMedia</a></span></span></h3>
-              <p>Creates a MessageMedia instance from a local file path</p>
-              <section>
-                <h4>Parameter</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>filePath</p>
-                      </td>
-                      <td>
-                        <p>string</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getChats"><span class="symbol-name">getChats</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of <a href="Chat.html">Chat</a></span></span></h3>
+              <p>Get all chats that have been assigned this Label</p>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="MessageMedia.html">MessageMedia</a></code> </p>
+                  <p><code>Promise containing Array of <a href="Chat.html">Chat</a></code> </p>
                 </dd>
               </dl>
             </section>

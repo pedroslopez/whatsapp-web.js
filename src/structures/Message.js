@@ -3,6 +3,7 @@
 const Base = require('./Base');
 const MessageMedia = require('./MessageMedia');
 const Location = require('./Location');
+const Order = require('./Order');
 const { MessageTypes } = require('../util/Constants');
 
 /**
@@ -40,7 +41,7 @@ class Message extends Base {
          * Indicates if the message has media available for download
          * @type {boolean}
          */
-        this.hasMedia = data.clientUrl ? true : false;
+        this.hasMedia = data.clientUrl || data.deprecatedMms3Url;
 
         /**
          * Message content
@@ -82,6 +83,12 @@ class Message extends Base {
         this.author = (typeof (data.author) === 'object' && data.author !== null) ? data.author._serialized : data.author;
 
         /**
+         * String that represents from which device type the message was sent
+         * @type {string}
+         */
+        this.deviceType = data.id.id.length > 21 ? 'android' : data.id.id.substring(0,2) =='3A' ? 'ios' : 'web';
+        
+        /**
          * Indicates if the message was forwarded
          * @type {boolean}
          */
@@ -93,6 +100,12 @@ class Message extends Base {
          */
         this.isStatus = data.isStatusV3;
 
+        /**
+         * Indicates if the message was starred
+         * @type {boolean}
+         */
+        this.isStarred = data.star;
+        
         /**
          * Indicates if the message was a broadcast
          * @type {boolean}
@@ -132,6 +145,43 @@ class Message extends Base {
         if (data.mentionedJidList) {
             this.mentionedIds = data.mentionedJidList;
         }
+
+        /**
+         * Order ID for message type ORDER
+         * @type {string}
+         */
+        this.orderId = data.orderId ? data.orderId : undefined;
+        /**
+         * Order Token for message type ORDER
+         * @type {string}
+         */
+        this.token = data.token ? data.token : undefined;
+
+        /** Title */
+        if (data.title) {
+            this.title = data.title;
+        }
+
+        /** Description */
+        if (data.description) {
+            this.description = data.description;
+        }
+
+        /** Business Owner JID */
+        if (data.businessOwnerJid) {
+            this.businessOwnerJid = data.businessOwnerJid;
+        }
+
+        /** Product ID */
+        if (data.productId) {
+            this.productId = data.productId;
+        }
+
+        /**
+         * Links included in the message.
+         * @type {Array<string>}
+         */
+        this.links = data.links;
 
         return super._patch(data);
     }
@@ -241,7 +291,9 @@ class Message extends Base {
                 return undefined;
             }
 
-            const buffer = await window.WWebJS.downloadBuffer(msg.clientUrl);
+            const mediaUrl = msg.clientUrl || msg.deprecatedMms3Url;
+
+            const buffer = await window.WWebJS.downloadBuffer(mediaUrl);
             const decrypted = await window.Store.CryptoLib.decryptE2EMedia(msg.type, buffer, msg.mediaKey, msg.mimetype);
             const data = await window.WWebJS.readBlobAsync(decrypted._blob);
 
@@ -271,6 +323,77 @@ class Message extends Base {
 
             return window.Store.Cmd.sendDeleteMsgs(msg.chat, [msg], true);
         }, this.id._serialized, everyone);
+    }
+
+    /**
+     * Stars this message
+     */
+    async star() {
+        await this.client.pupPage.evaluate((msgId) => {
+            let msg = window.Store.Msg.get(msgId);
+
+            if (msg.canStar()) {
+                return msg.chat.sendStarMsgs([msg], true);
+            }
+        }, this.id._serialized);
+    }
+
+    /**
+     * Unstars this message
+     */
+    async unstar() {
+        await this.client.pupPage.evaluate((msgId) => {
+            let msg = window.Store.Msg.get(msgId);
+
+            if (msg.canStar()) {
+                return msg.chat.sendStarMsgs([msg], false);
+            }
+        }, this.id._serialized);
+    }
+
+    /**
+     * Message Info
+     * @typedef {Object} MessageInfo
+     * @property {Array<{id: ContactId, t: number}>} delivery Contacts to which the message has been delivered to
+     * @property {number} deliveryRemaining Amount of people to whom the message has not been delivered to
+     * @property {Array<{id: ContactId, t: number}>} played Contacts who have listened to the voice message
+     * @property {number} playedRemaining Amount of people who have not listened to the message
+     * @property {Array<{id: ContactId, t: number}>} read Contacts who have read the message
+     * @property {number} readRemaining Amount of people who have not read the message
+     */
+
+    /**
+     * Get information about message delivery status. May return null if the message does not exist or is not sent by you.
+     * @returns {Promise<?MessageInfo>}
+     */
+    async getInfo() {
+        const info = await this.client.pupPage.evaluate(async (msgId) => {
+            const msg = window.Store.Msg.get(msgId);
+            if(!msg) return null;
+            
+            return await window.Store.Wap.queryMsgInfo(msg.id);
+        }, this.id._serialized);
+
+        if(info.status) {
+            return null;
+        }
+
+        return info;
+    }
+
+    /**
+     * Gets the order associated with a given message
+     * @return {Promise<Order>}
+     */
+    async getOrder() {
+        if (this.type === MessageTypes.ORDER) {
+            const result = await this.client.pupPage.evaluate((orderId, token) => {
+                return window.WWebJS.getOrderDetail(orderId, token);
+            }, this.orderId, this.token);
+            if (!result) return undefined;
+            return new Order(this.client, result);
+        }
+        return undefined;
     }
 }
 

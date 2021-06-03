@@ -10,8 +10,14 @@ declare namespace WAWebJS {
         /** Current connection information */
         public info: ClientInfo
 
+        /** Puppeteer page running WhatsApp Web */
+        pupPage?: puppeteer.Page
+
+        /** Puppeteer browser running WhatsApp Web */
+        pupBrowser?: puppeteer.Browser
+
         /**Accepts an invitation to join a group */
-        acceptInvite(inviteCode: string): Promise<void>
+        acceptInvite(inviteCode: string): Promise<string>
 
         /**Returns an object with information about the invite code's group */
         getInviteInfo(inviteCode: string): Promise<object>
@@ -50,6 +56,18 @@ declare namespace WAWebJS {
         /** Get all current contact instances */
         getContacts(): Promise<Contact[]>
 
+        /** Get all current Labels  */
+        getLabels(): Promise<Label[]>
+
+        /** Get Label instance by ID */
+        getLabelById(labelId: string): Promise<Label>
+
+        /** Get all Labels assigned to a Chat */
+        getChatLabels(chatId: string): Promise<Label[]>
+
+        /** Get all Chats for a specific Label */
+        getChatsByLabelId(labelId: string): Promise<Chat[]>
+
         /** Returns the contact ID's profile picture URL, if privacy settings allow it */
         getProfilePicUrl(contactId: string): Promise<string>
 
@@ -65,6 +83,9 @@ declare namespace WAWebJS {
         /** Check if a given ID is registered in whatsapp */
         isRegisteredUser(contactId: string): Promise<boolean>
 
+        /** Get the registered WhatsApp ID for a number. Returns null if the number is not registered on WhatsApp. */
+        getNumberId(number: string): Promise<ContactId | null>
+
         /**
          * Mutes the Chat until a specified date
          * @param chatId ID of the chat that will be muted
@@ -78,11 +99,17 @@ declare namespace WAWebJS {
         /** Send a message to a specific chatId */
         sendMessage(chatId: string, content: MessageContent, options?: MessageSendOptions): Promise<Message>
 
+        /** Searches for messages */
+        searchMessages(query: string, options?: { chatId?: string, page?: number, limit?: number }): Promise<Message[]>
+
         /** Marks the client as online */
         sendPresenceAvailable(): Promise<void>
 
         /** Mark as seen for the Chat */
         sendSeen(chatId: string): Promise<boolean>
+
+        /** Mark the Chat as unread */
+        markChatUnread(chatId: string): Promise<void>
 
         /** 
          * Sets the current user's status message
@@ -125,8 +152,8 @@ declare namespace WAWebJS {
 
         /** Emitted when the client has been disconnected */
         on(event: 'disconnected', listener: (
-            /** state that caused the disconnect */
-            reason: WAState
+            /** reason that caused the disconnect */
+            reason: WAState | "NAVIGATED"
         ) => void): this
 
         /** Emitted when a user joins the chat via invite link or is added by an admin */
@@ -262,6 +289,9 @@ declare namespace WAWebJS {
         /** User agent to use in puppeteer.
          * @default 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36' */
         userAgent?: string
+        /** Ffmpeg path to use when formating videos to webp while sending stickers 
+         * @default 'ffmpeg' */
+        ffmpegPath?: string
     }
 
     /** Represents a Whatsapp client session */
@@ -386,6 +416,8 @@ declare namespace WAWebJS {
         CONTACT_CARD = 'vcard',
         CONTACT_CARD_MULTI = 'multi_vcard',
         REVOKED = 'revoked',
+        ORDER = 'order',
+        PRODUCT = 'product',
         UNKNOWN = 'unknown',
     }
 
@@ -410,6 +442,15 @@ declare namespace WAWebJS {
         UNLAUNCHED = 'UNLAUNCHED',
         UNPAIRED = 'UNPAIRED',
         UNPAIRED_IDLE = 'UNPAIRED_IDLE',
+    }
+
+    export type MessageInfo = {
+        delivery: Array<{id: ContactId, t: number}>,
+        deliveryRemaining: number,
+        played: Array<{id: ContactId, t: number}>,
+        playedRemaining: number,
+        read: Array<{id: ContactId, t: number}>,
+        readRemaining: number
     }
 
     /**
@@ -463,6 +504,8 @@ declare namespace WAWebJS {
         id: MessageId,
         /** Indicates if the message was forwarded */
         isForwarded: boolean,
+        /** Indicates if the message was starred */
+        isStarred: boolean,
         /** Location information contained in the message, if the message is type "location" */
         location: Location,
         /** List of vCards contained in the message */
@@ -481,7 +524,18 @@ declare namespace WAWebJS {
         to: string,
         /** Message type */
         type: MessageTypes,
-
+        /** Links included in the message. */
+        links: string[],
+        /** Order ID */
+        orderId: string,
+        /** title */
+        title?: string,
+        /** description*/
+        description?: string,
+        /** Business Owner JID */
+        businessOwnerJid?: string,
+        /** Product JID */
+        productId?: string,
         /** Deletes the message from the chat */
         delete: (everyone?: boolean) => Promise<void>,
         /** Downloads and returns the attatched message media */
@@ -504,6 +558,16 @@ declare namespace WAWebJS {
          * Forwards this message to another chat
          */
         forward: (chat: Chat | string) => Promise<void>,
+        /** Star this message */
+        star: () => Promise<void>,
+        /** Unstar this message */
+        unstar: () => Promise<void>,
+        /** Get information about message delivery statuso */
+        getInfo: () => Promise<MessageInfo | null>,
+        /**
+         * Gets the order associated with a given message
+         */
+        getOrder: () => Order,
     }
 
     /** ID that represents a message */
@@ -520,12 +584,30 @@ declare namespace WAWebJS {
         longitude: string,
     }
 
+    export interface Label {
+        /** Label name */
+        name: string,
+        /** Label ID */
+        id: string,
+        /** Color assigned to the label */
+        hexColor: string,
+
+        /** Get all chats that have been assigned this Label */
+        getChats: () => Promise<Chat[]>
+    }
+
     /** Options for sending a message */
     export interface MessageSendOptions {
         /** Show links preview */
         linkPreview?: boolean
         /** Send audio as voice message */
         sendAudioAsVoice?: boolean
+        /** Send video as gif */
+        sendVideoAsGif?: boolean
+        /** Send media as sticker */
+        sendMediaAsSticker?: boolean
+        /** Send media as document */
+        sendMediaAsDocument?: boolean
         /** Automatically parse vCards and send them as contacts */
         parseVCards?: boolean
         /** Image or videos caption */
@@ -538,6 +620,14 @@ declare namespace WAWebJS {
         sendSeen?: boolean
         /** Media to be sent */
         media?: MessageMedia
+        /** Extra options */
+        extra?: any
+        /** Sticker name, if sendMediaAsSticker is true */
+        stickerName?: string
+        /** Sticker author, if sendMediaAsSticker is true */
+        stickerAuthor?: string
+        /** Sticker categories, if sendMediaAsSticker is true */
+        stickerCategories?: string[]
     }
 
     /** Media attached to a message */
@@ -643,6 +733,10 @@ declare namespace WAWebJS {
         block: () => Promise<boolean>,
         /** Unlocks this contact from WhatsApp */
         unblock: () => Promise<boolean>,
+
+        /** Gets the Contact's current "about" info. Returns null if you don't have permission to read their status.  */
+        getAbout: () => Promise<string | null>,
+
     }
 
     export interface ContactId {
@@ -731,6 +825,10 @@ declare namespace WAWebJS {
         unmute: () => Promise<void>,
         /** Returns the Contact that corresponds to this Chat. */
         getContact: () => Promise<Contact>,
+        /** Marks this Chat as unread */
+        markUnread: () => Promise<void>
+        /** Returns array of all Labels assigned to this Chat */
+        getLabels: () => Promise<Label[]>
     }
 
     export interface MessageSearchOptions {
@@ -773,6 +871,150 @@ declare namespace WAWebJS {
 
     export interface PrivateChat extends Chat {
 
+    }
+
+    export type GroupParticipant = {
+        id: ContactId,
+        isAdmin: boolean
+        isSuperAdmin: boolean
+    }
+
+    /** Promotes or demotes participants by IDs to regular users or admins */
+    export type ChangeParticipantsPermisions = 
+        (participantIds: Array<string>) => Promise<{ status: number }>
+
+    /** Adds or removes a list of participants by ID to the group */
+    export type ChangeGroupParticipants = 
+        (participantIds: Array<string>) => Promise<{
+            status: number;
+            participants: Array<{
+                [key: string]: {
+                    code: number
+                }
+            }>
+         } & {
+             [key: string]: number;
+         }>
+
+    export interface GroupChat extends Chat {
+        /** Group owner */
+        owner: ContactId;
+        /** Date at which the group was created */
+        createdAt: Date;
+        /** Group description */
+        description: string;
+        /** Group participants */
+        participants: Array<GroupParticipant>;
+        /** Adds a list of participants by ID to the group */
+        addParticipants: ChangeGroupParticipants;
+        /** Removes a list of participants by ID to the group */
+        removeParticipants: ChangeGroupParticipants;
+        /** Promotes participants by IDs to admins */
+        promoteParticipants: ChangeParticipantsPermisions;
+        /** Demotes participants by IDs to regular users */
+        demoteParticipants: ChangeParticipantsPermisions;
+        /** Updates the group subject */
+        setSubject: (subject: string) => Promise<void>;
+        /** Updates the group description */
+        setDescription: (description: string) => Promise<void>;
+        /** Updates the group settings to only allow admins to send messages 
+         * @param {boolean} [adminsOnly=true] Enable or disable this option 
+         * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
+         */
+        setMessagesAdminsOnly: (adminsOnly?: boolean) => Promise<boolean>;
+        /**
+         * Updates the group settings to only allow admins to edit group info (title, description, photo).
+         * @param {boolean} [adminsOnly=true] Enable or disable this option 
+         * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
+         */
+        setInfoAdminsOnly: (adminsOnly?: boolean) => Promise<boolean>;
+        /** Gets the invite code for a specific group */
+        getInviteCode: () => Promise<string>;
+        /** Invalidates the current group invite code and generates a new one */
+        revokeInvite: () => Promise<void>;
+        /** Makes the bot leave the group */
+        leave: () => Promise<void>;
+    }
+
+    /**
+     * Represents the metadata associated with a given product
+     *
+     */
+    export interface ProductMetadata {
+        /** Product Id */
+        id: string,
+        /** Product Name */
+        name: string,
+        /** Product Description */
+        description: string,
+        /** Retailer ID */
+        retailer_id?: string
+    }
+
+    /**
+     * Represents a Product on Whatsapp
+     * @example
+     * {
+     * "id": "123456789",
+     * "price": "150000",
+     * "thumbnailId": "123456789",
+     * "thumbnailUrl": "https://mmg.whatsapp.net",
+     * "currency": "GTQ",
+     * "name": "Store Name",
+     * "quantity": 1
+     * }
+     */
+    export interface Product {
+        /** Product Id */
+        id: string,
+        /** Price */
+        price?: string,
+        /** Product Thumbnail*/
+        thumbnailUrl: string,
+        /** Currency */
+        currency: string,
+        /** Product Name */
+        name: string,
+        /** Product Quantity*/
+        quantity: number,
+        /** Gets the Product metadata */
+        getData: () => Promise<ProductMetadata>
+    }
+
+    /**
+     * Represents a Order on WhatsApp
+     *
+     * @example
+     * {
+     * "products": [
+     * {
+     * "id": "123456789",
+     * "price": "150000",
+     * "thumbnailId": "123456789",
+     * "thumbnailUrl": "https://mmg.whatsapp.net",
+     * "currency": "GTQ",
+     * "name": "Store Name",
+     * "quantity": 1
+     * }
+     * ],
+     * "subtotal": "150000",
+     * "total": "150000",
+     * "currency": "GTQ",
+     * "createdAt": 1610136796,
+     * "sellerJid": "55555555@s.whatsapp.net"
+     * }
+     */
+    export interface Order {
+        /** List of products*/
+        products: Array<Product>,
+        /** Order Subtotal */
+        subtotal: string,
+        /** Order Total */
+        total: string,
+        /** Order Currency */
+        currency: string,
+        /** Order Created At*/
+        createdAt: number;
     }
 }
 
