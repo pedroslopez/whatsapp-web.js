@@ -31,6 +31,7 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @param {string} options.userAgent - User agent to use in puppeteer
  * @param {string} options.ffmpegPath - Ffmpeg path to use when formating videos to webp while sending stickers 
  * @param {boolean} options.bypassCSP - Sets bypassing of page's Content-Security-Policy.
+ * @param {number} options.memoryOptimizationMs - Interval to run the pseudo garbage collector, 0 to disabled
  * 
  * @fires Client#qr
  * @fires Client#authenticated
@@ -65,6 +66,16 @@ class Client extends EventEmitter {
      * Sets up events and requirements, kicks off authentication request
      */
     async initialize() {
+        if (this.options.memoryOptimizationMs != 0) {
+            //exposes browser gc before launching puppeteer
+            if(typeof this.options.puppeteer.args !== 'undefined') {
+                if (this.options.puppeteer.args.indexOf('--js-flags=--expose-gc') < 0){
+                    this.options.puppeteer.args.push('--js-flags=--expose-gc');
+                }
+            }else{
+                this.options.puppeteer.args=['--js-flags=--expose-gc'];
+            }
+        }
         const browser = await puppeteer.launch(this.options.puppeteer);
         const page = (await browser.pages())[0];
         page.setUserAgent(this.options.userAgent);
@@ -181,6 +192,11 @@ class Client extends EventEmitter {
         //Load util functions (serializers, helper functions)
         await page.evaluate(LoadUtils);
 
+        // Fire garbage collector interval
+        if (this.options.memoryOptimizationMs != 0) {
+            setInterval(()=>{this.garbageCollect();}, this.options.memoryOptimizationMs);
+        }
+        
         // Expose client info
         /**
          * Current connection information
@@ -889,6 +905,22 @@ class Client extends EventEmitter {
         }, labelId);
 
         return Promise.all(chatIds.map(id => this.getChatById(id)));
+    }
+    /**
+     * Run garbage collector functions
+     * @returns {Boolean}
+     */
+    async garbageCollect(){
+        try {
+            await this.pupPage.evaluate("window.Store.Chat.delete();");
+            await this.pupPage.evaluate("window.Store.Msg.delete();");
+            await this.pupPage.evaluate("gc();");
+            //await this.pupPage.evaluate("console.clear()");
+            return true;
+        }catch(err){
+            throw err;
+        }
+        return false;
     }
 }
 
