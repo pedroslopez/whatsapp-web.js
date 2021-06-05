@@ -182,6 +182,18 @@ class Message extends Base {
          * @type {Array<string>}
          */
         this.links = data.links;
+        
+        /**
+         * Payment amount from message. 1000 BRL = R$ 1.00
+         * @type {string}
+         */
+        this.paymentAmount = data.paymentAmount1000;
+
+        /**
+         * Payment currency from message
+         * @type {string}
+         */
+        this.paymentCurrency = data.paymentCurrency;
 
         return super._patch(data);
     }
