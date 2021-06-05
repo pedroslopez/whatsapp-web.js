@@ -19,6 +19,14 @@ class Message extends Base {
 
     _patch(data) {
         /**
+         * All message data
+         * @type {object}
+         */
+        this.data = ()=>{
+            return data
+        };
+
+        /**
          * MediaKey that represents the sticker 'ID'
          * @type {string}
          */
@@ -273,25 +281,14 @@ class Message extends Base {
      * Downloads and returns the attatched message media
      * @returns {Promise<MessageMedia>}
      */
-    async downloadMedia() {
+     async downloadMedia() {
         if (!this.hasMedia) {
             return undefined;
         }
-
-        const result = await this.client.pupPage.evaluate(async (msgId) => {
-            const msg = window.Store.Msg.get(msgId);
-
-            if (msg.mediaData.mediaStage != 'RESOLVED') {
-                // try to resolve media
-                await msg.downloadMedia(true, 1);
-            }
-
-            if (msg.mediaData.mediaStage.includes('ERROR')) {
-                // media could not be downloaded
-                return undefined;
-            }
-
+        const msg = this.data()
+        const result = await this.client.pupPage.evaluate(async (msg) => {
             const mediaUrl = msg.clientUrl || msg.deprecatedMms3Url;
+            if (!mediaUrl) return undefined
 
             const buffer = await window.WWebJS.downloadBuffer(mediaUrl);
             const decrypted = await window.Store.CryptoLib.decryptE2EMedia(msg.type, buffer, msg.mediaKey, msg.mimetype);
@@ -300,13 +297,14 @@ class Message extends Base {
             return {
                 data: data.split(',')[1],
                 mimetype: msg.mimetype,
-                filename: msg.filename
+                filename: msg.filename,
+                filesize: msg.size
             };
 
-        }, this.id._serialized);
+        }, msg);
 
         if (!result) return undefined;
-        return new MessageMedia(result.mimetype, result.data, result.filename);
+        return new MessageMedia(result.mimetype, result.data, result.filename, result.filesize);
     }
 
     /**
