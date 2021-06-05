@@ -140,14 +140,14 @@ class Message extends Base {
          * Group Invite Data
          * @type {object}
          */
-         this.inviteV4 = data.type === MessageTypes.GROUP_INVITE ? {
+        this.inviteV4 = data.type === MessageTypes.GROUP_INVITE ? {
             inviteCode: data.inviteCode,
             inviteCodeExp: data.inviteCodeExp,
-            inviteGrp: data.inviteGrp,
-            inviteGrpName: data.inviteGrpName,
-            inviteFrom: data.from._serialized,
-            inviteTo: data.to._serialized
-         } : undefined
+            groupId: data.inviteGrp,
+            groupName: data.inviteGrpName,
+            fromId: data.from._serialized,
+            toId: data.to._serialized
+        } : undefined;
          
         /**
          * Indicates the mentions in the message body.
@@ -270,7 +270,7 @@ class Message extends Base {
      * @returns {Promise<Object>}
      */
     async acceptGroupV4Invite() {
-        return await this.client.acceptGroupV4Invite(this.invite)
+        return await this.client.acceptGroupV4Invite(this.inviteV4);
     }
     
     /**

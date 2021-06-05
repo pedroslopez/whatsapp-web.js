@@ -19,6 +19,9 @@ declare namespace WAWebJS {
         /**Accepts an invitation to join a group */
         acceptInvite(inviteCode: string): Promise<string>
 
+        /** Accepts a private invitation to join a group (v4 invite) */
+        acceptGroupV4Invite: (inviteV4: InviteV4Data) => Promise<{status: number}>
+
         /**Returns an object with information about the invite code's group */
         getInviteInfo(inviteCode: string): Promise<object>
 
@@ -454,6 +457,15 @@ declare namespace WAWebJS {
         readRemaining: number
     }
 
+    export type InviteV4Data = {
+        inviteCode: string,
+        inviteCodeExp: number,
+        groupId: string,
+        groupName?: string,
+        fromId: string,
+        toId: string
+    }
+
     /**
      * Represents a Message on WhatsApp
      * 
@@ -511,15 +523,8 @@ declare namespace WAWebJS {
         location: Location,
         /** List of vCards contained in the message */
         vCards: string[],
-        /**
-         * inviteCode
-         * inviteExp - Code expiration time
-         * inviteGrp - Invite group Jid
-         * inviteGrpName - Group name
-         * inviteFrom - User who sent the invitation
-         * inviteTo - User who received the invitation
-         */
-        inviteV4: object
+        /** Invite v4 info */
+        inviteV4?: InviteV4Data,
         /** MediaKey that represents the sticker 'ID' */
         mediaKey?: string,
         /** Indicates the mentions in the message body. */
@@ -546,8 +551,8 @@ declare namespace WAWebJS {
         businessOwnerJid?: string,
         /** Product JID */
         productId?: string,
-        /** Accept the Group V4 Invite in message*/
-        acceptGroupV4Invite: () => Promise<Object>,
+        /** Accept the Group V4 Invite in message */
+        acceptGroupV4Invite: () => Promise<{status: number}>,
         /** Deletes the message from the chat */
         delete: (everyone?: boolean) => Promise<void>,
         /** Downloads and returns the attatched message media */
