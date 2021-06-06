@@ -523,8 +523,17 @@ declare namespace WAWebJS {
         location: Location,
         /** List of vCards contained in the message */
         vCards: string[],
-        /** Invite v4 info */
-        inviteV4?: InviteV4Data,
+         /**
+         * inviteCode
+         * inviteExp - Code expiration time
+         * inviteGrp - Invite group Jid
+         * inviteGrpName - Group name
+         * inviteFrom - User who sent the invitation
+         * inviteTo - User who received the invitation
+         */
+        inviteV4: object
+        /** All Message Data values*/
+        data(): object
         /** MediaKey that represents the sticker 'ID' */
         mediaKey?: string,
         /** Indicates the mentions in the message body. */
