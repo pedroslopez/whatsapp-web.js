@@ -31,8 +31,5 @@
             "error",
             "always"
         ]
-    },
-    "options": {
-        "fix": true
     }
 }
