@@ -525,6 +525,8 @@ declare namespace WAWebJS {
         vCards: string[],
         /** Invite v4 info */
         inviteV4?: InviteV4Data,
+        /** All Message Data values*/
+        data(): object
         /** MediaKey that represents the sticker 'ID' */
         mediaKey?: string,
         /** Indicates the mentions in the message body. */
