@@ -294,7 +294,8 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getChat = async chatId => {
-        const chat = window.Store.Chat.get(chatId);
+        const chatWid = window.Store.WidFactory.createWid(chatId);
+        const chat = await window.Store.Chat.find(chatWid);
         return await window.WWebJS.getChatModel(chat);
     };
 
@@ -324,8 +325,9 @@ exports.LoadUtils = () => {
         return res;
     };
 
-    window.WWebJS.getContact = contactId => {
-        const contact = window.Store.Contact.get(contactId);
+    window.WWebJS.getContact = async contactId => {
+        const wid = window.Store.WidFactory.createWid(contactId);
+        const contact = await window.Store.Contact.find(wid);
         return window.WWebJS.getContactModel(contact);
     };
 
