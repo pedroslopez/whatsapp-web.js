@@ -302,7 +302,7 @@ class Message extends Base {
      * Downloads and returns the attatched message media
      * @returns {Promise<MessageMedia>}
      */
-     async downloadMedia(){
+    async downloadMedia() {
         if (!this.hasMedia) {
             return undefined;
         }
