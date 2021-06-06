@@ -23,7 +23,7 @@ class Message extends Base {
          * @type {object}
          */
         this.data = ()=>{
-            return data
+            return data;
         };
 
         /**
@@ -302,14 +302,14 @@ class Message extends Base {
      * Downloads and returns the attatched message media
      * @returns {Promise<MessageMedia>}
      */
-     async downloadMedia() {
+     async downloadMedia(){
         if (!this.hasMedia) {
             return undefined;
         }
-        const msg = this.data()
+        const msg = this.data();
         const result = await this.client.pupPage.evaluate(async (msg) => {
             const mediaUrl = msg.clientUrl || msg.deprecatedMms3Url;
-            if (!mediaUrl) return undefined
+            if (!mediaUrl) return undefined;
 
             const buffer = await window.WWebJS.downloadBuffer(mediaUrl);
             const decrypted = await window.Store.CryptoLib.decryptE2EMedia(msg.type, buffer, msg.mediaKey, msg.mimetype);
