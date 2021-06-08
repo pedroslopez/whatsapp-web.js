@@ -933,9 +933,9 @@ class Client extends EventEmitter {
      */
     async garbageCollect(){
         try {
-            await this.pupPage.evaluate("window.Store.Chat.delete();");
-            await this.pupPage.evaluate("window.Store.Msg.delete();");
-            await this.pupPage.evaluate("gc();");
+            await this.pupPage.evaluate('window.Store.Chat.delete();');
+            await this.pupPage.evaluate('window.Store.Msg.delete();');
+            await this.pupPage.evaluate('gc();');
             //await this.pupPage.evaluate("console.clear()");
             return true;
         }catch(err){
