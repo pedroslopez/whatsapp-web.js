@@ -198,6 +198,15 @@ class Util {
     static setFfmpegPath(path) {
         ffmpeg.setFfmpegPath(path);
     }
+    
+    /**
+     * Append log to file
+     * @param {string} logFile
+     * @param {string} logLine
+     */
+    static async appendToLog(logFile, logLine) {
+        await fs.appendFile(logFile, logLine, function (err) { if (err) throw err;});
+    }
 }
 
 module.exports = Util;
