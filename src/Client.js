@@ -32,6 +32,7 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @param {string} options.ffmpegPath - Ffmpeg path to use when formating videos to webp while sending stickers 
  * @param {boolean} options.bypassCSP - Sets bypassing of page's Content-Security-Policy.
  * @param {number} options.memoryOptimizationMs - Interval to run the pseudo garbage collector, 0 to disabled
+ * @param {string} options.memoryLogPath - File to log memory usage
  * 
  * @fires Client#qr
  * @fires Client#authenticated
@@ -74,6 +75,16 @@ class Client extends EventEmitter {
                 }
             }else{
                 this.options.puppeteer.args=['--js-flags=--expose-gc'];
+            }
+        }
+        if (this.options.memoryLogPath) {
+            //enable precise memory info before launching puppeteer
+            if(typeof this.options.puppeteer.args !== 'undefined') {
+                if (this.options.puppeteer.args.indexOf('--enable-precise-memory-info') < 0){
+                    this.options.puppeteer.args.push('--enable-precise-memory-info');
+                }
+            }else{
+                this.options.puppeteer.args=['--enable-precise-memory-info'];
             }
         }
         const browser = await puppeteer.launch(this.options.puppeteer);
@@ -186,6 +197,16 @@ class Client extends EventEmitter {
          */
         this.emit(Events.AUTHENTICATED, session);
 
+        //Fire memory log interval
+        if (this.options.memoryLogPath) {
+            setInterval(async ()=>{
+                let memoryLine = await page.evaluate(() => {
+                    return Math.floor(Date.now() / 1000) + "," + window.performance.memory.totalJSHeapSize + "," + window.performance.memory.usedJSHeapSize + "\n";
+                });
+                Util.appendToLog(this.options.memoryLogPath,memoryLine); //this needs to be on Util because fs isn't here
+                }, 60000); // lets do each minute
+        }
+        
         // Check window.Store Injection
         await page.waitForFunction('window.Store != undefined');
 
