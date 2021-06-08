@@ -201,10 +201,10 @@ class Client extends EventEmitter {
         if (this.options.memoryLogPath) {
             setInterval(async ()=>{
                 let memoryLine = await page.evaluate(() => {
-                    return Math.floor(Date.now() / 1000) + "," + window.performance.memory.totalJSHeapSize + "," + window.performance.memory.usedJSHeapSize + "\n";
+                    return Math.floor(Date.now() / 1000) + ',' + window.performance.memory.totalJSHeapSize + ',' + window.performance.memory.usedJSHeapSize + '\n';
                 });
                 Util.appendToLog(this.options.memoryLogPath,memoryLine); //this needs to be on Util because fs isn't here
-                }, 60000); // lets do each minute
+            }, 60000); // lets do each minute
         }
         
         // Check window.Store Injection
