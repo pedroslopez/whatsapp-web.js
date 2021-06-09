@@ -199,13 +199,13 @@ class Client extends EventEmitter {
 
         //Fire memory log interval
         if (this.options.memoryLogPath) {
-            Util.appendToLog(this.options.memoryLogPath,Math.floor(Date.now() / 1000) + ",0,0\n"); //so we can know when the client Authenticated
+            Util.appendToLog(this.options.memoryLogPath,Math.floor(Date.now() / 1000) + ',0,0\n'); //so we can know when the client Authenticated
             setInterval(async ()=>{
                 let memoryLine = await page.evaluate(() => {
-                    return Math.floor(Date.now() / 1000) + "," + window.performance.memory.totalJSHeapSize + "," + window.performance.memory.usedJSHeapSize + "\n";
+                    return Math.floor(Date.now() / 1000) + ',' + window.performance.memory.totalJSHeapSize + ',' + window.performance.memory.usedJSHeapSize + '\n';
                 });
                 Util.appendToLog(this.options.memoryLogPath,memoryLine); //this needs to be on Util because fs isn't here
-                }, 10000); // lets do each ten seconds for more precise info
+            }, 10000); // lets do each ten seconds for more precise info
         }
         
         // Check window.Store Injection
@@ -934,7 +934,7 @@ class Client extends EventEmitter {
      */
     async garbageCollect(){
         await Promise.all([this.pupPage.evaluate('window.Store.Chat.delete();'), this.pupPage.evaluate('window.Store.Msg.delete();'), this.pupPage.evaluate('window.gc();')]).catch((err) =>{throw err;});
-        //console.log("gc");
+        //console.log('gc');
         return true;
     }
 }
