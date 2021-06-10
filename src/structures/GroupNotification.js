@@ -69,7 +69,7 @@ class GroupNotification extends Base {
      * @returns {Promise<Chat>}
      */
     getChat() {
-        return this.client.getChatById(this.chatId);
+        return this.client.getChatById(this.id._serialized);
     }
 
     /**
