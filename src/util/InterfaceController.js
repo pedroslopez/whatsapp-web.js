@@ -15,7 +15,8 @@ class InterfaceController {
      */
     async openChatWindow(chatId) {
         await this.pupPage.evaluate(async chatId => {
-            let chat = await window.Store.Chat.get(chatId);
+            let chatWid = window.Store.WidFactory.createWid(chatId);
+            let chat = await window.Store.Chat.find(chatWid);
             await window.Store.Cmd.openChatAt(chat);
         }, chatId);
     }
@@ -72,7 +73,49 @@ class InterfaceController {
             await window.Store.Cmd.closeDrawerRight();
         });
     }
-    
+
+    /**
+     * Get all Features
+     */
+    async getFeatures() {
+        return await this.pupPage.evaluate(() => {
+            return window.Store.Features.F;
+        });
+    }
+
+    /**
+     * Check if Feature is enabled
+     * @param {string} feature status to check
+     */
+    async checkFeatureStatus(feature) {
+        return await this.pupPage.evaluate((feature) => {
+            return window.Store.Features.supportsFeature(feature);
+        }, feature);
+    }
+
+    /**
+     * Enable Features
+     * @param {string[]} features to be enabled
+     */
+    async enableFeatures(features) {
+        await this.pupPage.evaluate((features) => {
+            for (const feature in features) {
+                window.Store.Features.setFeature(features[feature], true);
+            }
+        }, features);
+    }
+
+    /**
+     * Disable Features
+     * @param {string[]} features to be disabled
+     */
+    async disableFeatures(features) {
+        await this.pupPage.evaluate((features) => {
+            for (const feature in features) {
+                window.Store.Features.setFeature(features[feature], false);
+            }
+        }, features);
+    }
 }
 
 module.exports = InterfaceController;

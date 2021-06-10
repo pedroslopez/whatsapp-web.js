@@ -13,7 +13,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.SendSeen = window.mR.findModule('sendSeen')[0];
     window.Store.SendClear = window.mR.findModule('sendClear')[0];
     window.Store.SendDelete = window.mR.findModule('sendDelete')[0];
-    window.Store.genId = window.mR.findModule((module) => module.default && typeof module.default === 'function' && module.default.toString().match(/crypto/))[0].default;
+    window.Store.genId = window.mR.findModule('randomId')[0].default;
     window.Store.SendMessage = window.mR.findModule('addAndSendMsgToChat')[0];
     window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
     window.Store.Invite = window.mR.findModule('sendJoinGroupViaInvite')[0];
@@ -32,6 +32,9 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Sticker = window.mR.findModule('Sticker')[0].default.Sticker;
     window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
     window.Store.Label = window.mR.findModule('LabelCollection')[0].default;
+    window.Store.Features = window.mR.findModule('FEATURE_CHANGE_EVENT')[0].default;
+    window.Store.QueryOrder = window.mR.findModule('queryOrder')[0];
+    window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
 };
 
 exports.LoadUtils = () => {
@@ -62,7 +65,8 @@ exports.LoadUtils = () => {
                 ? await window.WWebJS.processStickerData(options.attachment)
                 : await window.WWebJS.processMediaData(options.attachment, {
                     forceVoice: options.sendAudioAsVoice, 
-                    forceDocument: options.sendMediaAsDocument 
+                    forceDocument: options.sendMediaAsDocument,
+                    forceGif: options.sendVideoAsGif
                 });
 
             content = options.sendMediaAsSticker ? undefined : attOptions.preview;
@@ -195,7 +199,7 @@ exports.LoadUtils = () => {
         return stickerInfo;
     };
 
-    window.WWebJS.processMediaData = async (mediaInfo, { forceVoice, forceDocument }) => {
+    window.WWebJS.processMediaData = async (mediaInfo, { forceVoice, forceDocument, forceGif }) => {
         const file = window.WWebJS.mediaInfoToFile(mediaInfo);
         const mData = await window.Store.OpaqueData.createFromData(file, file.type);
         const mediaPrep = window.Store.MediaPrep.prepRawMedia(mData, { asDocument: forceDocument });
@@ -209,6 +213,10 @@ exports.LoadUtils = () => {
 
         if (forceVoice && mediaData.type === 'audio') {
             mediaData.type = 'ptt';
+        }
+
+        if (forceGif && mediaData.type === 'video') {
+            mediaData.isGif = true;
         }
 
         if (forceDocument) {
@@ -452,6 +460,20 @@ exports.LoadUtils = () => {
     window.WWebJS.getChatLabels = async (chatId) => {
         const chat = await window.WWebJS.getChat(chatId);
         return (chat.labels || []).map(id => window.WWebJS.getLabel(id));
+    };
+
+    window.WWebJS.getOrderDetail = async (orderId, token) => {
+        return window.Store.QueryOrder.queryOrder(orderId, 80, 80, token);
+    };
+
+    window.WWebJS.getProductMetadata = async (productId) => {
+        let sellerId = window.Store.Conn.wid;
+        let product = await window.Store.QueryProduct.queryProduct(sellerId, productId);
+        if (product && product.data) {
+            return product.data;
+        }
+
+        return undefined;
     };
 };
 

@@ -6,19 +6,15 @@ on:
 
 jobs:
   eslint:
-    name: eslint
+    name: ESLint
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-    - name: install node v12
-      uses: actions/setup-node@v1
+    - uses: actions/checkout@v2
+    - name: Install node v14
+      uses: actions/setup-node@v2
       with:
-        node-version: 12
-    - name: npm install
+        node-version: '14'
+    - name: Install dependencies
       run: npm install
-    - name: eslint
-      uses: icrawl/action-eslint@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        job-name: eslint
+    - name: Run ESLint
+      run: ./node_modules/.bin/eslint .
