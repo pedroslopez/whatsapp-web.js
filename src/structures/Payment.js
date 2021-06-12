@@ -28,7 +28,7 @@ class Payment extends Base {
 
         /**
          * The payment receiver
-         * @type {string}
+         * @type {object}
          */
         this.paymentMessageReceiverJid = data.paymentMessageReceiverJid;
 
