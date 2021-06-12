@@ -417,7 +417,7 @@ class Message extends Base {
         }
         return undefined;
     }
-	/**
+    /**
      * Gets the payment details associated with a given message
      * @return {Promise<Order>}
      */
