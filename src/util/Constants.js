@@ -72,6 +72,7 @@ exports.MessageTypes = {
     ORDER: 'order',
     REVOKED: 'revoked',
     PRODUCT: 'product',
+    PAYMENT: 'payment',
     UNKNOWN: 'unknown'
 };
 
