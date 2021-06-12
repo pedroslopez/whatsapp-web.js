@@ -10,7 +10,7 @@ class Payment extends Base {
     _patch(data) {
         /**
          * The payment Id
-         * @type {string}
+         * @type {object}
          */
         this.id = data.id;
 
@@ -21,14 +21,8 @@ class Payment extends Base {
         this.paymentCurrency = data.paymentCurrency;
 
         /**
-         * The payment currency
-         * @type {string}
-         */
-        this.paymentCurrency = data.paymentCurrency;
-
-        /**
          * The payment ammount ( R$ 1.00 = 1000 )
-         * @type {string}
+         * @type {number}
          */
         this.paymentAmount1000 = data.paymentAmount1000;
 
@@ -40,13 +34,13 @@ class Payment extends Base {
 
         /**
          * The payment transaction timestamp
-         * @type {string}
+         * @type {number}
          */
         this.paymentTransactionTimestamp = data.paymentTransactionTimestamp;
 
         /**
          * The paymentStatus
-         * @type {string}
+         * @type {number}
          *
          * Possible Status
          * 0:UNKNOWN_STATUS
@@ -66,7 +60,7 @@ class Payment extends Base {
 
         /**
          * Integer that represents the payment Text
-         * @type {string}
+         * @type {number}
          */
         this.paymentTxnStatus = data.paymentTxnStatus;
 
