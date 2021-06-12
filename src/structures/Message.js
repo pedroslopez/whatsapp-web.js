@@ -419,7 +419,7 @@ class Message extends Base {
     }
     /**
      * Gets the payment details associated with a given message
-     * @return {Promise<Order>}
+     * @return {Promise<Payment>}
      */
     async getPayment() {
         if (this.type === MessageTypes.PAYMENT) {
