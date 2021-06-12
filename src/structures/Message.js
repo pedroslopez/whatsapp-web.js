@@ -183,7 +183,7 @@ class Message extends Base {
          * @type {Array<string>}
          */
         this.links = data.links;
-        
+
         return super._patch(data);
     }
 
