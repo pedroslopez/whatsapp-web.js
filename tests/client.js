@@ -1,16 +1,13 @@
 const {expect} = require('chai');
 const sinon = require('sinon');
 
-const Client = require('../src/Client');
 const helper = require('./helper');
-
 const Message = require('../src/structures/Message');
 const MessageMedia = require('../src/structures/MessageMedia');
 const Location = require('../src/structures/Location');
 const { MessageTypes } = require('../src/util/Constants');
 
-const session = require('../___session.json');
-const remoteId = process.env.WWEBJS_TEST_REMOTEID;
+const remoteId = helper.remoteId;
 
 describe('Client initialization', function() {
     describe('Authentication', function() {
@@ -18,7 +15,7 @@ describe('Client initialization', function() {
             this.timeout(25000);
             const callback = sinon.spy();
 
-            const client = new Client();
+            const client = helper.createClient();
             client.on('qr', callback);
             client.initialize();
 
@@ -37,15 +34,17 @@ describe('Client initialization', function() {
             const qrCallback = sinon.spy();
             const readyCallback = sinon.spy();
 
-            const client = new Client({
-                session: {
-                    WABrowserId: 'invalid', 
-                    WASecretBundle: 'invalid', 
-                    WAToken1: 'invalid', 
-                    WAToken2: 'invalid'
-                },
-                authTimeoutMs: 10000,
-                restartOnAuthFail: false
+            const client = helper.createClient({
+                options: {
+                    session: {
+                        WABrowserId: 'invalid', 
+                        WASecretBundle: 'invalid', 
+                        WAToken1: 'invalid', 
+                        WAToken2: 'invalid'
+                    },
+                    authTimeoutMs: 10000,
+                    restartOnAuthFail: false
+                }
             });
 
             client.on('qr', qrCallback);
@@ -71,15 +70,17 @@ describe('Client initialization', function() {
             const authFailCallback = sinon.spy();
             const qrCallback = sinon.spy();
 
-            const client = new Client({
-                session: {
-                    WABrowserId: 'invalid', 
-                    WASecretBundle: 'invalid', 
-                    WAToken1: 'invalid', 
-                    WAToken2: 'invalid'
-                },
-                authTimeoutMs: 10000,
-                restartOnAuthFail: true
+            const client = helper.createClient({
+                options:{
+                    session: {
+                        WABrowserId: 'invalid', 
+                        WASecretBundle: 'invalid', 
+                        WAToken1: 'invalid', 
+                        WAToken2: 'invalid'
+                    },
+                    authTimeoutMs: 10000,
+                    restartOnAuthFail: true
+                }
             });
 
             client.on('auth_failure', authFailCallback);
@@ -103,7 +104,7 @@ describe('Client initialization', function() {
             const qrCallback = sinon.spy();
             const readyCallback = sinon.spy();
 
-            const client = new Client({session});
+            const client = helper.createClient({withSession: true});
             client.on('qr', qrCallback);
             client.on('authenticated', authenticatedCallback);
             client.on('ready', readyCallback);
@@ -131,7 +132,7 @@ describe('Client initialization', function() {
 
         before(async function() {
             this.timeout(35000);
-            client = new Client({session});
+            client = helper.createClient({withSession: true});
             await client.initialize();
         });
 
@@ -195,9 +196,8 @@ describe('Client initialization', function() {
         let client;
 
         before(async function() {
-            expect(remoteId).to.not.eql(undefined, 'WWEBJS_TEST_REMOTEID not set');
             this.timeout(35000);
-            client = new Client({session});
+            client = helper.createClient({withSession: true});
             await client.initialize();
         });
 
