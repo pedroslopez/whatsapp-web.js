@@ -5,7 +5,7 @@
   "main": "./index.js",
   "typings": "./index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha tests",
     "shell": "node --experimental-repl-await ./shell.js",
     "generate-docs": "node_modules/.bin/jsdoc --configure .jsdoc.json --verbose"
   },
@@ -37,8 +37,12 @@
     "sharp": "^0.26.3"
   },
   "devDependencies": {
+    "chai": "^4.3.4",
     "eslint": "^7.27.0",
+    "eslint-plugin-mocha": "^9.0.0",
     "jsdoc": "^3.6.4",
-    "jsdoc-baseline": "^0.1.5"
+    "jsdoc-baseline": "^0.1.5",
+    "mocha": "^8.4.0",
+    "sinon": "^11.1.1"
   }
 }
