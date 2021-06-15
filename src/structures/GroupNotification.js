@@ -96,7 +96,7 @@ class GroupNotification extends Base {
      * @returns {Promise<Message>}
      */
     async reply(content, options={}) {
-        return this.client.sendMessage(this.chatId, content, options);
+        return this.client.sendMessage(this.id._serialized, content, options);
     }
     
 }
