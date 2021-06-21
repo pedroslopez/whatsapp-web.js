@@ -92,6 +92,8 @@ class Client extends EventEmitter {
             timeout: 0,
         });
 
+        this.emit(Events.PAGE_LOADED, page);
+
         const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
 
         if (this.options.session) {
