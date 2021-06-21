@@ -20,7 +20,7 @@ client.on('page_loaded', async (page) => {
         const newDiv = document.createElement('div');
         newDiv.setAttribute('id', 'div_id');
         newDiv.innerHTML = 'div_content';
-        document.querySelector("body").appendChild(newDiv);
+        document.querySelector('body').appendChild(newDiv);
     });
 });
 
