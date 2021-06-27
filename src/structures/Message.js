@@ -95,6 +95,14 @@ class Message extends Base {
         this.isForwarded = data.isForwarded;
 
         /**
+         * Indicates how many times the message was forwarded.
+         *
+         * The maximum value is 127.
+         * @type {number}
+         */
+        this.forwardingScore = data.forwardingScore || 0;
+
+        /**
          * Indicates if the message is a status update
          * @type {boolean}
          */
