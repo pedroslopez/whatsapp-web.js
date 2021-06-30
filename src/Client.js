@@ -374,14 +374,14 @@ class Client extends EventEmitter {
              */
             switch (state.type)
             {
-                case "composing":
-                    this.emit(Events.CONTACT_STATE_CHANGED, "COMPOSING", state.id);
+                case 'composing':
+                    this.emit(Events.CONTACT_STATE_CHANGED, 'COMPOSING', state.id);
                     break;
-                case "recording":
-                    this.emit(Events.CONTACT_STATE_CHANGED, "RECORDING", state.id);
+                case 'recording':
+                    this.emit(Events.CONTACT_STATE_CHANGED, 'RECORDING', state.id);
                     break;
-                case "available":
-                    this.emit(Events.CONTACT_STATE_CHANGED, "AVAILABLE", state.id);
+                case 'available':
+                    this.emit(Events.CONTACT_STATE_CHANGED, 'AVAILABLE', state.id);
                     break;
             }
         });
