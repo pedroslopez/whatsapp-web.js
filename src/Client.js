@@ -608,6 +608,20 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Accepts a private invitation to join a group
+     * @param {object} inviteV4 Invite V4 Info
+     * @returns {Promise<Object>}
+     */
+    async acceptGroupV4Invite(inviteInfo) {
+        if(!inviteInfo.inviteCode) throw 'Invalid invite code, try passing the message.inviteV4 object';
+        if (inviteInfo.inviteCodeExp == 0) throw 'Expired invite code';
+        return await this.pupPage.evaluate(async inviteInfo => {
+            let { groupId, fromId, inviteCode, inviteCodeExp, toId } = inviteInfo;
+            return await window.Store.Wap.acceptGroupV4Invite(groupId, fromId, inviteCode, String(inviteCodeExp), toId);
+        }, inviteInfo);
+    }
+    
+    /**
      * Sets the current user's status message
      * @param {string} status New status message
      */

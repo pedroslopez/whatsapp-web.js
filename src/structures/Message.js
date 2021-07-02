@@ -137,6 +137,19 @@ class Message extends Base {
         this.vCards = data.type === MessageTypes.CONTACT_CARD_MULTI ? data.vcardList.map((c) => c.vcard) : data.type === MessageTypes.CONTACT_CARD ? [data.body] : [];
 
         /**
+         * Group Invite Data
+         * @type {object}
+         */
+        this.inviteV4 = data.type === MessageTypes.GROUP_INVITE ? {
+            inviteCode: data.inviteCode,
+            inviteCodeExp: data.inviteCodeExp,
+            groupId: data.inviteGrp,
+            groupName: data.inviteGrpName,
+            fromId: data.from._serialized,
+            toId: data.to._serialized
+        } : undefined;
+         
+        /**
          * Indicates the mentions in the message body.
          * @type {Array<string>}
          */
@@ -252,6 +265,14 @@ class Message extends Base {
         return this.client.sendMessage(chatId, content, options);
     }
 
+    /**
+     * Accept Group V4 Invite
+     * @returns {Promise<Object>}
+     */
+    async acceptGroupV4Invite() {
+        return await this.client.acceptGroupV4Invite(this.inviteV4);
+    }
+    
     /**
      * Forwards this message to another chat
      * 
