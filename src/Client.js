@@ -816,7 +816,7 @@ class Client extends EventEmitter {
      * @param {string} number Number or ID ("@c.us" will be automatically appended if not specified)
      * @returns {Promise<string|null>}
      */
-     async getFormattedId(number) {
+    async getFormattedId(number) {
         if(!number.endsWith('@s.whatsapp.net')) {
             number = number.replace('c.us', '');
             number += 's.whatsapp.net';
@@ -837,7 +837,7 @@ class Client extends EventEmitter {
      * @param {string} number Number or ID ("@c.us" will be automatically appended if not specified)
      * @returns {Promise<string|null>}
      */
-     async getCountryCode(number) {
+    async getCountryCode(number) {
         number = number.includes(' ') ? number.replace(' ', '') : number;
         number = number.includes('+') ? number.replace('+', '') : number;
         try {
