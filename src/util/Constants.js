@@ -14,7 +14,8 @@ exports.DefaultOptions = {
     takeoverOnConflict: false,
     takeoverTimeoutMs: 0,
     userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36',
-    ffmpegPath: 'ffmpeg'
+    ffmpegPath: 'ffmpeg',
+    bypassCSP: false
 };
 
 /**
@@ -68,8 +69,11 @@ exports.MessageTypes = {
     LOCATION: 'location',
     CONTACT_CARD: 'vcard',
     CONTACT_CARD_MULTI: 'multi_vcard',
+    ORDER: 'order',
     REVOKED: 'revoked',
-    UNKNOWN: 'unknown'
+    PRODUCT: 'product',
+    UNKNOWN: 'unknown',
+    GROUP_INVITE: 'groups_v4_invite'
 };
 
 /**
