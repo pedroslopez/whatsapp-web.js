@@ -140,7 +140,7 @@ class Client extends EventEmitter {
                     * @param {string} qr QR Code
                     */
                     this.emit(Events.QR_RECEIVED, qr);
-                } catch(e) {
+                } catch(err) {
                     if (err.name === 'TimeoutError') return;
                 }
             };
