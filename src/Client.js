@@ -120,25 +120,29 @@ class Client extends EventEmitter {
 
         } else {
             const getQrCode = async () => {
-                // Check if retry button is present
-                var QR_RETRY_SELECTOR = 'div[data-ref] > span > button';
-                var qrRetry = await page.$(QR_RETRY_SELECTOR);
-                if (qrRetry) {
-                    await qrRetry.click();
-                }
+                try {
+                    // Check if retry button is present
+                    var QR_RETRY_SELECTOR = 'div[data-ref] > span > button';
+                    var qrRetry = await page.$(QR_RETRY_SELECTOR);
+                    if (qrRetry) {
+                        await qrRetry.click();
+                    }
 
-                // Wait for QR Code
-                const QR_CANVAS_SELECTOR = 'canvas';
-                await page.waitForSelector(QR_CANVAS_SELECTOR, { timeout: this.options.qrTimeoutMs });
-                const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0, 0, 264, 264).data));
-                const qr = jsQR(qrImgData, 264, 264).data;
-                
-                /**
-                * Emitted when the QR code is received
-                * @event Client#qr
-                * @param {string} qr QR Code
-                */
-                this.emit(Events.QR_RECEIVED, qr);
+                    // Wait for QR Code
+                    const QR_CANVAS_SELECTOR = 'canvas';
+                    await page.waitForSelector(QR_CANVAS_SELECTOR, { timeout: this.options.qrTimeoutMs });
+                    const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0, 0, 264, 264).data));
+                    const qr = jsQR(qrImgData, 264, 264).data;
+
+                    /**
+                    * Emitted when the QR code is received
+                    * @event Client#qr
+                    * @param {string} qr QR Code
+                    */
+                    this.emit(Events.QR_RECEIVED, qr);
+                } catch(e) {
+                    if (err.name === 'TimeoutError') return;
+                }
             };
             getQrCode();
             this._qrRefreshInterval = setInterval(getQrCode, this.options.qrRefreshIntervalMs);
