@@ -797,7 +797,8 @@ class Client extends EventEmitter {
      * @returns {Promise<Object|null>}
      */
     async getNumberId(number) {
-        if(!number.endsWith('@c.us')) number += '@c.us';
+        if (!number.endsWith('@c.us')) number += '@c.us';
+        try {
             return await this.pupPage.evaluate(async numberId => {
                 return window.WWebJS.getNumberId(numberId);
             }, number);
