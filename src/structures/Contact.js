@@ -121,7 +121,7 @@ class Contact extends Base {
     }
 
     /**
-     * Returns the contact's formatted phone number, (+1 (234) 5678-901)
+     * Returns the contact's formatted phone number, (12345678901@c.us) => (+1 (234) 5678-901)
      * @returns {Promise<string>}
      */
     async getFormattedNumber() {
@@ -129,7 +129,7 @@ class Contact extends Base {
     }
     
     /**
-     * Returns the contact's countrycode, (+1541859685) => (1)
+     * Returns the contact's countrycode, (1541859685@c.us) => (1)
      * @returns {Promise<string>}
      */
     async getCountryCode() {
