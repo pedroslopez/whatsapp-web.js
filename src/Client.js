@@ -815,9 +815,9 @@ class Client extends EventEmitter {
     async getFormattedNumber(number) {
         if(!number.endsWith('@s.whatsapp.net')) number = number.replace('c.us', 's.whatsapp.net');
 
-            return await this.pupPage.evaluate(async numberId => {
-                return window.NumberInfo.formattedPhoneNumber(numberId);
-            }, number);
+        return await this.pupPage.evaluate(async numberId => {
+            return window.NumberInfo.formattedPhoneNumber(numberId);
+        }, number);
     }
     
     /**
@@ -829,7 +829,7 @@ class Client extends EventEmitter {
         number = number.replace(' ', '').replace('+', '').replace('@c.us', '');
 
         return await this.pupPage.evaluate(async numberId => {
-                return window.NumberInfo.findCC(numberId);
+            return window.NumberInfo.findCC(numberId);
         }, number);
     }
     
