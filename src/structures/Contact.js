@@ -125,7 +125,7 @@ class Contact extends Base {
      * @returns {Promise<string>}
      */
     async getFormattedNumber() {
-        return await this.client.getContactId(this.id._serialized);
+        return await this.client.getFormattedNumber(this.id._serialized);
     }
     
     /**
