@@ -124,7 +124,7 @@ class Contact extends Base {
      * Returns the contact's formatted phone number, (+1 (234) 5678-901)
      * @returns {Promise<string>}
      */
-    async getFormattedId() {
+    async getFormattedNumber() {
         return await this.client.getContactId(this.id._serialized);
     }
     
