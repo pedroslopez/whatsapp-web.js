@@ -797,11 +797,7 @@ class Client extends EventEmitter {
      * @returns {Promise<Object|null>}
      */
     async getNumberId(number) {
-        if(!number.endsWith('@c.us')) {
-            number += '@c.us';
-        }
-
-        try {
+        if(!number.endsWith('@c.us')) number += '@c.us';
             return await this.pupPage.evaluate(async numberId => {
                 return window.WWebJS.getNumberId(numberId);
             }, number);
@@ -811,42 +807,29 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Get the formatted number of a WhatsApp ID. 
-     * Will return null if the number is not registered on WhatsApp.
-     * @param {string} number Number or ID ("@c.us" will be automatically appended if not specified)
-     * @returns {Promise<string|null>}
+     * Get the formatted number of a WhatsApp ID.
+     * @param {string} number Number or ID
+     * @returns {Promise<string>}
      */
-    async getFormattedId(number) {
-        if(!number.endsWith('@s.whatsapp.net')) {
-            number = number.replace('c.us', '');
-            number += 's.whatsapp.net';
-        }
+    async getFormattedNumber(number) {
+        if(!number.endsWith('@s.whatsapp.net')) number = number.replace('c.us', 's.whatsapp.net');
 
-        try {
             return await this.pupPage.evaluate(async numberId => {
                 return window.NumberInfo.formattedPhoneNumber(numberId);
             }, number);
-        } catch(_) {
-            return null;
-        }
     }
     
     /**
-     * Get the formatted number of a WhatsApp ID. 
-     * Will return null if the number is not registered on WhatsApp.
-     * @param {string} number Number or ID ("@c.us" will be automatically appended if not specified)
-     * @returns {Promise<string|null>}
+     * Get the country code of a WhatsApp ID.
+     * @param {string} number Number or ID
+     * @returns {Promise<string>}
      */
     async getCountryCode(number) {
-        number = number.includes(' ') ? number.replace(' ', '') : number;
-        number = number.includes('+') ? number.replace('+', '') : number;
-        try {
-            return await this.pupPage.evaluate(async numberId => {
+        number = number.replace(' ', '').replace('+', '').replace('@c.us', '');
+
+        return await this.pupPage.evaluate(async numberId => {
                 return window.NumberInfo.findCC(numberId);
-            }, number);
-        } catch(_) {
-            return null;
-        }
+        }, number);
     }
     
     /**
