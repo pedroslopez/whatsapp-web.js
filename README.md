@@ -13,11 +13,30 @@ The module is now available on npm! `npm i whatsapp-web.js`
 
 Please note that Node v10.18.1+ is required due to Puppeteer.
 
+## Requirements
+
+You need to connect to any previously existing browser instance, and you can do this through two ways:
+
+1) Installing browserless using docker:
+https://docs.browserless.io/docs/docker-quickstart.html
+
+Install browserless exposing port 3000 to localhost and your **webSocketDebuggerUrl** = ws://localhost:3000
+
+2) Running a browser with websocket remote debugging enabled:
+> chrome.exe --remote-debugging-port=9222
+
+After that check the following webpage and check http://127.0.0.1:9220/json and get the **webSocketDebuggerUrl**
+
 ## Example usage
 
 ```js
 const { Client } = require('whatsapp-web.js');
-const client = new Client();
+
+const client = new Client({ 
+    puppeteer: {
+        browserWSEndpoint: `ws://<webSocketDebuggerUrl>`
+    }
+});
 
 client.on('qr', (qr) => {
     // Generate and scan this code with your phone
