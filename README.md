@@ -18,9 +18,16 @@ Please note that Node v10.18.1+ is required due to Puppeteer.
 You need to connect to any previously existing browser instance, and you can do this through two ways:
 
 1) Installing browserless using docker:
-https://docs.browserless.io/docs/docker-quickstart.html
 
-Install browserless exposing port 3000 to localhost and your **webSocketDebuggerUrl** = ws://localhost:3000
+```
+docker run \
+  --rm \
+  -p 3000:3000 \
+  -e "MAX_CONCURRENT_SESSIONS=1" \
+  browserless/chrome:latest
+```
+
+Reference: https://docs.browserless.io/docs/docker-quickstart.html
 
 2) Running a browser with websocket remote debugging enabled:
 > chrome.exe --remote-debugging-port=9222
@@ -34,7 +41,7 @@ const { Client } = require('whatsapp-web.js');
 
 const client = new Client({ 
     puppeteer: {
-        browserWSEndpoint: `ws://<webSocketDebuggerUrl>`
+        browserWSEndpoint: `ws://localhost:3000`
     }
 });
 
