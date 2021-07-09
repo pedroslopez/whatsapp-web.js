@@ -350,7 +350,7 @@ exports.LoadUtils = () => {
         });
     };
 
-    window.WWebJS.arrayBufferToBase64 = async (arrayBuffer) => {
+    window.WWebJS.arrayBufferToBase64 = (arrayBuffer) => {
         let binary = '';
         const bytes = new Uint8Array( arrayBuffer );
         const len = bytes.byteLength;
