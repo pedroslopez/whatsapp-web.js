@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.13.0 &raquo; Source: structures/MessageMedia.js</title>
+  <title>whatsapp-web.js 1.13.0 &raquo; Source: structures/Order.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -26,57 +26,61 @@
         </div>
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1>Source: structures/MessageMedia.js</h1>
+            <h1>Source: structures/Order.js</h1>
           </header>
           <article>
             <pre class="prettyprint linenums"><code>&#x27;use strict&#x27;;
 
-const fs &#x3D; require(&#x27;fs&#x27;);
-const path &#x3D; require(&#x27;path&#x27;);
-const mime &#x3D; require(&#x27;mime&#x27;);
+const Base &#x3D; require(&#x27;./Base&#x27;);
+const Product &#x3D; require(&#x27;./Product&#x27;);
 
 /**
- * Media attached to a message
- * @param {string} mimetype MIME type of the attachment
- * @param {string} data Base64-encoded data of the file
- * @param {?string} filename Document file name
+ * Represents a Order on WhatsApp
+ * @extends {Base}
  */
-class MessageMedia {
-    constructor(mimetype, data, filename) {
-        /**
-         * MIME type of the attachment
-         * @type {string}
-         */
-        this.mimetype &#x3D; mimetype;
+class Order extends Base {
+    constructor(client, data) {
+        super(client);
 
-        /**
-         * Base64 encoded data that represents the file
-         * @type {string}
-         */
-        this.data &#x3D; data;
-
-        /**
-         * Name of the file (for documents)
-         * @type {?string}
-         */
-        this.filename &#x3D; filename;
+        if (data) this._patch(data);
     }
 
-    /**
-     * Creates a MessageMedia instance from a local file path
-     * @param {string} filePath 
-     * @returns {MessageMedia}
-     */
-    static fromFilePath(filePath) {
-        const b64data &#x3D; fs.readFileSync(filePath, {encoding: &#x27;base64&#x27;});
-        const mimetype &#x3D; mime.getType(filePath); 
-        const filename &#x3D; path.basename(filePath);
+    _patch(data) {
+        /**
+         * List of products
+         * @type {Array&amp;lt;Product&gt;}
+         */
+        if (data.products) {
+            this.products &#x3D; data.products.map(product &#x3D;&gt; new Product(this.client, product));
+        }
+        /**
+         * Order Subtotal
+         * @type {string}
+         */
+        this.subtotal &#x3D; data.subtotal;
+        /**
+         * Order Total
+         * @type {string}
+         */
+        this.total &#x3D; data.total;
+        /**
+         * Order Currency
+         * @type {string}
+         */
+        this.currency &#x3D; data.currency;
+        /**
+         * Order Created At
+         * @type {number}
+         */
+        this.createdAt &#x3D; data.createdAt;
 
-        return new MessageMedia(mimetype, b64data, filename);
+        return super._patch(data);
     }
+
+
 }
 
-module.exports &#x3D; MessageMedia;</code></pre>
+module.exports &#x3D; Order;</code></pre>
           </article>
         </div>
       </div>
