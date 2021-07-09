@@ -31,6 +31,8 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @param {string} options.userAgent - User agent to use in puppeteer
  * @param {string} options.ffmpegPath - Ffmpeg path to use when formating videos to webp while sending stickers 
  * @param {boolean} options.bypassCSP - Sets bypassing of page's Content-Security-Policy.
+ * @param {number} options.memoryOptimizationMs - Interval to run the pseudo garbage collector, 0 to disabled
+ * @param {string} options.memoryLogPath - File to log memory usage
  * 
  * @fires Client#qr
  * @fires Client#authenticated
@@ -65,6 +67,26 @@ class Client extends EventEmitter {
      * Sets up events and requirements, kicks off authentication request
      */
     async initialize() {
+        if (this.options.memoryOptimizationMs != 0) {
+            //exposes browser gc before launching puppeteer
+            if(typeof this.options.puppeteer.args !== 'undefined') {
+                if (this.options.puppeteer.args.indexOf('--js-flags=--expose-gc') < 0){
+                    this.options.puppeteer.args.push('--js-flags=--expose-gc');
+                }
+            }else{
+                this.options.puppeteer.args=['--js-flags=--expose-gc'];
+            }
+        }
+        if (this.options.memoryLogPath) {
+            //enable precise memory info before launching puppeteer
+            if(typeof this.options.puppeteer.args !== 'undefined') {
+                if (this.options.puppeteer.args.indexOf('--enable-precise-memory-info') < 0){
+                    this.options.puppeteer.args.push('--enable-precise-memory-info');
+                }
+            }else{
+                this.options.puppeteer.args=['--enable-precise-memory-info'];
+            }
+        }
         const browser = await puppeteer.launch(this.options.puppeteer);
         const page = (await browser.pages())[0];
         page.setUserAgent(this.options.userAgent);
@@ -175,12 +197,28 @@ class Client extends EventEmitter {
          */
         this.emit(Events.AUTHENTICATED, session);
 
+        //Fire memory log interval
+        if (this.options.memoryLogPath) {
+            Util.appendToLog(this.options.memoryLogPath,Math.floor(Date.now() / 1000) + ',0,0\n'); //so we can know when the client Authenticated
+            setInterval(async ()=>{
+                let memoryLine = await page.evaluate(() => {
+                    return Math.floor(Date.now() / 1000) + ',' + window.performance.memory.totalJSHeapSize + ',' + window.performance.memory.usedJSHeapSize + '\n';
+                });
+                Util.appendToLog(this.options.memoryLogPath,memoryLine); //this needs to be on Util because fs isn't here
+            }, 10000); // lets do each ten seconds for more precise info
+        }
+        
         // Check window.Store Injection
         await page.waitForFunction('window.Store != undefined');
 
         //Load util functions (serializers, helper functions)
         await page.evaluate(LoadUtils);
 
+        // Fire garbage collector interval
+        if (this.options.memoryOptimizationMs != 0) {
+            setInterval(()=>{this.garbageCollect();}, this.options.memoryOptimizationMs);
+        }
+        
         // Expose client info
         /**
          * Current connection information
@@ -903,6 +941,15 @@ class Client extends EventEmitter {
         }, labelId);
 
         return Promise.all(chatIds.map(id => this.getChatById(id)));
+    }
+    /**
+     * Run garbage collector functions
+     * @returns {Boolean}
+     */
+    async garbageCollect(){
+        await Promise.all([this.pupPage.evaluate('window.Store.Chat.delete();'), this.pupPage.evaluate('window.Store.Msg.delete();'), this.pupPage.evaluate('window.gc();')]).catch((err) =>{throw err;});
+        //console.log('gc');
+        return true;
     }
 }
 
