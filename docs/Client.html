@@ -2,9 +2,9 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.6.6">
+  <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.12.6 &raquo; Class: Client</title>
+  <title>whatsapp-web.js 1.13.2 &raquo; Class: Client</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>12.<wbr>6</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>13.<wbr>2</a>
       </div>
     </div>
   </nav>
@@ -26,7 +26,7 @@
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
             <h1><small></small><span class="symbol-name">Client</span></h1>
-            <p class="source-link">Source: <a href="Client.js.html#source-line-51">Client.<wbr>js:51</a></p>
+            <p class="source-link">Source: <a href="Client.js.html#source-line-52">Client.<wbr>js:52</a></p>
             <div class="symbol-classdesc">
               <p>Starting point for interacting with the WhatsApp Web API</p>
             </div>
@@ -55,6 +55,9 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Client.html#acceptGroupV4Invite">acceptGroupV4Invite(inviteV4)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#acceptInvite">acceptInvite(inviteCode)</a></dt>
                     <dd>
                     </dd>
@@ -125,14 +128,17 @@
                     <dt><a href="Client.html#muteChat">muteChat(chatId, unmuteDate)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Client.html#pinChat">pinChat()</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Client.html#pinChat">pinChat()</a></dt>
+                    <dt><a href="Client.html#resetState">resetState()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Client.html#resetState">resetState()</a></dt>
+                    <dt><a href="Client.html#searchMessages">searchMessages(query[, options])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Client.html#sendMessage">sendMessage(chatId, content[, options])</a></dt>
@@ -458,6 +464,20 @@
                               <p>Ffmpeg path to use when formating videos to webp while sending stickers</p>
                             </td>
                           </tr>
+                          <tr>
+                            <td>
+                              <p>bypassCSP</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>Sets bypassing of page's Content-Security-Policy.</p>
+                            </td>
+                          </tr>
                         </tbody>
                       </table>
                     </td>
@@ -498,6 +518,44 @@
             </section>
             <h2>Methods</h2>
             <section>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="acceptGroupV4Invite"><span class="symbol-name">acceptGroupV4Invite</span><span class="signature"><span class="signature-params">(inviteV4)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Object</span></span></h3>
+              <p>Accepts a private invitation to join a group</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>inviteV4</p>
+                      </td>
+                      <td>
+                        <p>object</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Invite V4 Info</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing Object</code> </p>
+                </dd>
+              </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="acceptInvite"><span class="symbol-name">acceptInvite</span><span class="signature"><span class="signature-params">(inviteCode)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing string</span></span></h3>
               <p>Accepts an invitation to join a group</p>
@@ -1101,6 +1159,108 @@
               <h3 id="resetState"><span class="symbol-name">resetState</span><span class="signature"><span class="signature-params">()</span></span></h3>
               <p>Force reset of connection state for the client</p>
               <dl class="dl-compact">
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="searchMessages"><span class="symbol-name">searchMessages</span><span class="signature"><span class="signature-params">(query[, options])</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of <a href="Message.html">Message</a></span></span></h3>
+              <p>Searches for messages</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>query</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>options</p>
+                      </td>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Values in <code>options</code> have the following properties:</p>
+                        <table class="jsdoc-details-table">
+                          <thead>
+                            <tr>
+                              <th>Name</th>
+                              <th>Type</th>
+                              <th>Optional</th>
+                              <th>Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>
+                                <p>page</p>
+                              </td>
+                              <td>
+                                <p>number</p>
+                              </td>
+                              <td>
+                                <p>Yes</p>
+                              </td>
+                              <td>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>limit</p>
+                              </td>
+                              <td>
+                                <p>number</p>
+                              </td>
+                              <td>
+                                <p>Yes</p>
+                              </td>
+                              <td>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>chatId</p>
+                              </td>
+                              <td>
+                                <p>string</p>
+                              </td>
+                              <td>
+                                <p>Yes</p>
+                              </td>
+                              <td>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing Array of <a href="Message.html">Message</a></code> </p>
+                </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="sendMessage"><span class="symbol-name">sendMessage</span><span class="signature"><span class="signature-params">(chatId, content[, options])</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="Message.html">Message</a></span></span></h3>
@@ -1978,7 +2138,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.6 on April 20, 2021.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on July 9, 2021.
       </p>
     </div>
   </footer>
