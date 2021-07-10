@@ -2,9 +2,9 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.6.6">
+  <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.12.6 &raquo; Home</title>
+  <title>whatsapp-web.js 1.13.2 &raquo; Home</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>12.<wbr>6</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>13.<wbr>2</a>
       </div>
     </div>
   </nav>
@@ -27,18 +27,18 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1>
-              whatsapp-web.js 1.12.6
+              whatsapp-web.js 1.13.2
             </h1>
           </header>
           <article>
-            <p><a href="https://www.npmjs.com/package/whatsapp-web.js"><img src="https://img.shields.io/npm/v/whatsapp-web.js.svg" alt="npm"></a> <a href="https://depfu.com/github/pedroslopez/whatsapp-web.js?project_id=9765"><img src="https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg" alt="Depfu"></a> <img src="https://img.shields.io/badge/WhatsApp_Web-2.2106.5-brightgreen.svg" alt="WhatsApp_Web 2.2106.5"> <a href="https://discord.gg/H7DqQs4"><img src="https://img.shields.io/discord/698610475432411196.svg?logo=discord" alt="Discord Chat"></a></p>
+            <p><a href="https://www.npmjs.com/package/whatsapp-web.js"><img src="https://img.shields.io/npm/v/whatsapp-web.js.svg" alt="npm"></a> <a href="https://depfu.com/github/pedroslopez/whatsapp-web.js?project_id=9765"><img src="https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg" alt="Depfu"></a> <img src="https://img.shields.io/badge/WhatsApp_Web-2.2126.10-brightgreen.svg" alt="WhatsApp_Web 2.2126.10"> <a href="https://discord.gg/H7DqQs4"><img src="https://img.shields.io/discord/698610475432411196.svg?logo=discord" alt="Discord Chat"></a></p>
             <h1>whatsapp-web.js</h1>
             <p>A WhatsApp API client that connects through the WhatsApp Web browser app</p>
             <p>It uses Puppeteer to run a real instance of Whatsapp Web to avoid getting blocked.</p>
             <p><strong>NOTE:</strong> I can't guarantee you will not be blocked by using this method, although it has worked for me. WhatsApp does not allow bots or unofficial clients on their platform, so this shouldn't be considered totally safe.</p>
             <h2>Installation</h2>
             <p>The module is now available on npm! <code>npm i whatsapp-web.js</code></p>
-            <p>Please note that Node v10.18.1+ is required due to Puppeteer.</p>
+            <p>Please note that Node v14+ is required.</p>
             <h2>Example usage</h2>
             <pre class="prettyprint source lang-js"><code>const { Client } = require('whatsapp-web.js');
 const client = new Client();
@@ -538,6 +538,11 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="Client.html#acceptGroupV4Invite" class="!symbol-index-name">Client#<wbr>acceptGroupV4Invite(inviteV4)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="Client.html#acceptInvite" class="!symbol-index-name">Client#<wbr>acceptInvite(inviteCode)</a>
                       </dt>
                       <dd>
@@ -706,15 +711,15 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Client.html#info" class="!symbol-index-name">Client#<wbr>info</a>
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Client.html#initialize" class="!symbol-index-name">Client#<wbr>initialize()</a>
                       </dt>
@@ -747,6 +752,11 @@ client.initialize();
                       </dd>
                       <dt class="symbol-index-name">
                         <a href="Client.html#resetState" class="!symbol-index-name">Client#<wbr>resetState()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Client.html#searchMessages" class="!symbol-index-name">Client#<wbr>searchMessages(query[, options])</a>
                       </dt>
                       <dd>
                       </dd>
@@ -1451,12 +1461,17 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="InterfaceController.html#checkFeatureStatus" class="!symbol-index-name">InterfaceController#<wbr>checkFeatureStatus(feature)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="InterfaceController.html#closeRightDrawer" class="!symbol-index-name">InterfaceController#<wbr>closeRightDrawer()</a>
                       </dt>
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
-                        <a href="InterfaceController.html#openChatDrawer" class="!symbol-index-name">InterfaceController#<wbr>openChatDrawer(chatId)</a>
+                        <a href="InterfaceController.html#disableFeatures" class="!symbol-index-name">InterfaceController#<wbr>disableFeatures(features)</a>
                       </dt>
                       <dd>
                       </dd>
@@ -1465,10 +1480,29 @@ client.initialize();
                   <div class="symbol-index-column">
                     <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
+                        <a href="InterfaceController.html#enableFeatures" class="!symbol-index-name">InterfaceController#<wbr>enableFeatures(features)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="InterfaceController.html#getFeatures" class="!symbol-index-name">InterfaceController#<wbr>getFeatures()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="InterfaceController.html#openChatDrawer" class="!symbol-index-name">InterfaceController#<wbr>openChatDrawer(chatId)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="InterfaceController.html#openChatSearch" class="!symbol-index-name">InterfaceController#<wbr>openChatSearch(chatId)</a>
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="InterfaceController.html#openChatWindow" class="!symbol-index-name">InterfaceController#<wbr>openChatWindow(chatId)</a>
                       </dt>
@@ -1479,10 +1513,6 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="InterfaceController.html#openMessageDrawer" class="!symbol-index-name">InterfaceController#<wbr>openMessageDrawer(msgId)</a>
                       </dt>
@@ -1588,6 +1618,11 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="Message.html#acceptGroupV4Invite" class="!symbol-index-name">Message#<wbr>acceptGroupV4Invite()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="Message.html#ack" class="!symbol-index-name">Message#<wbr>ack</a>
                       </dt>
                       <dd>
@@ -1609,6 +1644,11 @@ client.initialize();
                       </dd>
                       <dt class="symbol-index-name">
                         <a href="Message.html#delete" class="!symbol-index-name">Message#<wbr>delete(everyone)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Message.html#deviceType" class="!symbol-index-name">Message#<wbr>deviceType</a>
                       </dt>
                       <dd>
                       </dd>
@@ -1657,6 +1697,11 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="Message.html#getOrder" class="!symbol-index-name">Message#<wbr>getOrder()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="Message.html#getQuotedMessage" class="!symbol-index-name">Message#<wbr>getQuotedMessage()</a>
                       </dt>
                       <dd>
@@ -1673,6 +1718,11 @@ client.initialize();
                       </dd>
                       <dt class="symbol-index-name">
                         <a href="Message.html#id" class="!symbol-index-name">Message#<wbr>id</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Message.html#inviteV4" class="!symbol-index-name">Message#<wbr>inviteV4</a>
                       </dt>
                       <dd>
                       </dd>
@@ -1716,6 +1766,11 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="Message.html#orderId" class="!symbol-index-name">Message#<wbr>orderId</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="Message.html#reply" class="!symbol-index-name">Message#<wbr>reply(content[, chatId][, options])</a>
                       </dt>
                       <dd>
@@ -1732,6 +1787,11 @@ client.initialize();
                       </dd>
                       <dt class="symbol-index-name">
                         <a href="Message.html#to" class="!symbol-index-name">Message#<wbr>to</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Message.html#token" class="!symbol-index-name">Message#<wbr>token</a>
                       </dt>
                       <dd>
                       </dd>
@@ -1874,6 +1934,11 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
+                      <dt class="symbol-index-name">
+                        <a href="global.html#MessageTypes#.GROUP_INVITE" class="!symbol-index-name">MessageTypes.<wbr>GROUP_INVITE</a>
+                      </dt>
+                      <dd>
+                      </dd>
                     </dl>
                   </div>
                   <div class="symbol-index-column">
@@ -1889,12 +1954,17 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
-                        <a href="global.html#MessageTypes#.REVOKED" class="!symbol-index-name">MessageTypes.<wbr>REVOKED</a>
+                        <a href="global.html#MessageTypes#.ORDER" class="!symbol-index-name">MessageTypes.<wbr>ORDER</a>
                       </dt>
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
-                        <a href="global.html#MessageTypes#.STICKER" class="!symbol-index-name">MessageTypes.<wbr>STICKER</a>
+                        <a href="global.html#MessageTypes#.PRODUCT" class="!symbol-index-name">MessageTypes.<wbr>PRODUCT</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="global.html#MessageTypes#.REVOKED" class="!symbol-index-name">MessageTypes.<wbr>REVOKED</a>
                       </dt>
                       <dd>
                       </dd>
@@ -1902,6 +1972,11 @@ client.initialize();
                   </div>
                   <div class="symbol-index-column">
                     <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="global.html#MessageTypes#.STICKER" class="!symbol-index-name">MessageTypes.<wbr>STICKER</a>
+                      </dt>
+                      <dd>
+                      </dd>
                       <dt class="symbol-index-name">
                         <a href="global.html#MessageTypes#.TEXT" class="!symbol-index-name">MessageTypes.<wbr>TEXT</a>
                       </dt>
@@ -1919,6 +1994,50 @@ client.initialize();
                       </dd>
                       <dt class="symbol-index-name">
                         <a href="global.html#MessageTypes#.VOICE" class="!symbol-index-name">MessageTypes.<wbr>VOICE</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section>
+              <div class="symbol-index-content">
+                <h2 id="Order">Order</h2>
+                <div class="symbol-index-section">
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="Order.html" class="!symbol-index-name">Order()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Order.html#createdAt" class="!symbol-index-name">Order#<wbr>createdAt</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="Order.html#currency" class="!symbol-index-name">Order#<wbr>currency</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Order.html#subtotal" class="!symbol-index-name">Order#<wbr>subtotal</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="Order.html#total" class="!symbol-index-name">Order#<wbr>total</a>
                       </dt>
                       <dd>
                       </dd>
@@ -2202,6 +2321,104 @@ client.initialize();
             </section>
             <section>
               <div class="symbol-index-content">
+                <h2 id="Product">Product</h2>
+                <div class="symbol-index-section">
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="Product.html" class="!symbol-index-name">Product()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Product.html#currency" class="!symbol-index-name">Product#<wbr>currency</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Product.html#data" class="!symbol-index-name">Product#<wbr>data</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="Product.html#id" class="!symbol-index-name">Product#<wbr>id</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Product.html#name" class="!symbol-index-name">Product#<wbr>name</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Product.html#price" class="!symbol-index-name">Product#<wbr>price</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="Product.html#quantity" class="!symbol-index-name">Product#<wbr>quantity</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Product.html#thumbnailUrl" class="!symbol-index-name">Product#<wbr>thumbnailUrl</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section>
+              <div class="symbol-index-content">
+                <h2 id="ProductMetadata">ProductMetadata</h2>
+                <div class="symbol-index-section">
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="ProductMetadata.html#description" class="!symbol-index-name">ProductMetadata#<wbr>description</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="ProductMetadata.html#id" class="!symbol-index-name">ProductMetadata#<wbr>id</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="ProductMetadata.html#name" class="!symbol-index-name">ProductMetadata#<wbr>name</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="ProductMetadata.html#retailer_id" class="!symbol-index-name">ProductMetadata#<wbr>retailer_id</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section>
+              <div class="symbol-index-content">
                 <h2 id="Status">Status</h2>
                 <div class="symbol-index-section">
                   <div class="symbol-index-column">
@@ -2255,7 +2472,7 @@ client.initialize();
                   <div class="symbol-index-column">
                     <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
-                        <a href="Util.html#.formatToWebpSticker" class="!symbol-index-name">Util.<wbr>formatToWebpSticker(media)</a>
+                        <a href="Util.html#.formatToWebpSticker" class="!symbol-index-name">Util.<wbr>formatToWebpSticker(media, metadata)</a>
                       </dt>
                       <dd>
                       </dd>
@@ -2366,7 +2583,7 @@ client.initialize();
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.6 on April 20, 2021.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on July 9, 2021.
       </p>
     </div>
   </footer>

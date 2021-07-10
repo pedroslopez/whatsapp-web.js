@@ -2,9 +2,9 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.6.6">
+  <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.12.6 &raquo; Class: Message</title>
+  <title>whatsapp-web.js 1.13.2 &raquo; Class: Message</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>12.<wbr>6</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>13.<wbr>2</a>
       </div>
     </div>
   </nav>
@@ -26,7 +26,7 @@
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
             <h1><small></small><span class="symbol-name">Message</span></h1>
-            <p class="source-link">Source: <a href="structures_Message.js.html#source-line-12">structures/<wbr>Message.<wbr>js:12</a></p>
+            <p class="source-link">Source: <a href="structures_Message.js.html#source-line-13">structures/<wbr>Message.<wbr>js:13</a></p>
             <div class="symbol-classdesc">
               <p>Represents a Message on WhatsApp</p>
             </div>
@@ -51,6 +51,9 @@
                     <dt><a href="Message.html#broadcast">broadcast</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Message.html#deviceType">deviceType</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Message.html#from">from</a></dt>
                     <dd>
                     </dd>
@@ -68,6 +71,9 @@
                     <dd>
                     </dd>
                     <dt><a href="Message.html#id">id</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Message.html#inviteV4">inviteV4</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Message.html#isForwarded">isForwarded</a></dt>
@@ -95,10 +101,16 @@
                     <dt><a href="Message.html#mentionedIds">mentionedIds</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Message.html#orderId">orderId</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Message.html#timestamp">timestamp</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Message.html#to">to</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Message.html#token">token</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Message.html#type">type</a></dt>
@@ -116,6 +128,9 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Message.html#acceptGroupV4Invite">acceptGroupV4Invite()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Message.html#delete">delete(everyone)</a></dt>
                     <dd>
                     </dd>
@@ -139,6 +154,9 @@
                     <dd>
                     </dd>
                     <dt><a href="Message.html#getMentions">getMentions()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Message.html#getOrder">getOrder()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Message.html#getQuotedMessage">getQuotedMessage()</a></dt>
@@ -192,6 +210,11 @@
               <p>Indicates if the message was a broadcast</p>
               <dl class="dl-compact">
               </dl>
+              <h3 id="deviceType"><span class="symbol-name">deviceType</span><small class="property-type">
+                  &nbsp;string</small></h3>
+              <p>String that represents from which device type the message was sent</p>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="from"><span class="symbol-name">from</span><small class="property-type">
                   &nbsp;string</small></h3>
               <p>ID for the Chat that this message was sent to, except if the message was sent by the current user.</p>
@@ -215,6 +238,11 @@
               <h3 id="id"><span class="symbol-name">id</span><small class="property-type">
                   &nbsp;object</small></h3>
               <p>ID that represents the message</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="inviteV4"><span class="symbol-name">inviteV4</span><small class="property-type">
+                  &nbsp;object</small></h3>
+              <p>Group Invite Data</p>
               <dl class="dl-compact">
               </dl>
               <h3 id="isForwarded"><span class="symbol-name">isForwarded</span><small class="property-type">
@@ -252,6 +280,11 @@
               <p>Indicates the mentions in the message body.</p>
               <dl class="dl-compact">
               </dl>
+              <h3 id="orderId"><span class="symbol-name">orderId</span><small class="property-type">
+                  &nbsp;string</small></h3>
+              <p>Order ID for message type ORDER</p>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="timestamp"><span class="symbol-name">timestamp</span><small class="property-type">
                   &nbsp;number</small></h3>
               <p>Unix timestamp for when the message was created</p>
@@ -262,6 +295,11 @@
               <p>ID for who this message is for.</p>
               <p>If the message is sent by the current user, it will be the Chat to which the message is being sent.
                 If the message is sent by another user, it will be the ID for the current user.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="token"><span class="symbol-name">token</span><small class="property-type">
+                  &nbsp;string</small></h3>
+              <p>Order Token for message type ORDER</p>
               <dl class="dl-compact">
               </dl>
               <h3 id="type"><span class="symbol-name">type</span><small class="property-type">
@@ -277,6 +315,15 @@
             </section>
             <h2>Methods</h2>
             <section>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="acceptGroupV4Invite"><span class="symbol-name">acceptGroupV4Invite</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Object</span></span></h3>
+              <p>Accept Group V4 Invite</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing Object</code> </p>
+                </dd>
+              </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="delete"><span class="symbol-name">delete</span><span class="signature"><span class="signature-params">(everyone)</span></span></h3>
               <p>Deletes a message from the chat</p>
@@ -394,6 +441,15 @@
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getOrder"><span class="symbol-name">getOrder</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="Order.html">Order</a></span></span></h3>
+              <p>Gets the order associated with a given message</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing <a href="Order.html">Order</a></code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="getQuotedMessage"><span class="symbol-name">getQuotedMessage</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="Message.html">Message</a></span></span></h3>
               <p>Returns the quoted message, if any</p>
               <dl class="dl-compact">
@@ -487,7 +543,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.6 on April 20, 2021.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on July 9, 2021.
       </p>
     </div>
   </footer>

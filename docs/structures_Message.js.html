@@ -2,9 +2,9 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.6.6">
+  <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.12.6 &raquo; Source: structures/Message.js</title>
+  <title>whatsapp-web.js 1.13.2 &raquo; Source: structures/Message.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>12.<wbr>6</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>13.<wbr>2</a>
       </div>
     </div>
   </nav>
@@ -34,6 +34,7 @@
 const Base &#x3D; require(&#x27;./Base&#x27;);
 const MessageMedia &#x3D; require(&#x27;./MessageMedia&#x27;);
 const Location &#x3D; require(&#x27;./Location&#x27;);
+const Order &#x3D; require(&#x27;./Order&#x27;);
 const { MessageTypes } &#x3D; require(&#x27;../util/Constants&#x27;);
 
 /**
@@ -71,7 +72,7 @@ class Message extends Base {
          * Indicates if the message has media available for download
          * @type {boolean}
          */
-        this.hasMedia &#x3D; data.clientUrl || data.deprecatedMms3Url ? true : false;
+        this.hasMedia &#x3D; Boolean(data.mediaKey &amp;amp;&amp;amp; data.directPath);
 
         /**
          * Message content
@@ -112,6 +113,12 @@ class Message extends Base {
          */
         this.author &#x3D; (typeof (data.author) &#x3D;&#x3D;&#x3D; &#x27;object&#x27; &amp;amp;&amp;amp; data.author !&#x3D;&#x3D; null) ? data.author._serialized : data.author;
 
+        /**
+         * String that represents from which device type the message was sent
+         * @type {string}
+         */
+        this.deviceType &#x3D; data.id.id.length &gt; 21 ? &#x27;android&#x27; : data.id.id.substring(0,2) &#x3D;&#x3D;&#x27;3A&#x27; ? &#x27;ios&#x27; : &#x27;web&#x27;;
+        
         /**
          * Indicates if the message was forwarded
          * @type {boolean}
@@ -161,6 +168,19 @@ class Message extends Base {
         this.vCards &#x3D; data.type &#x3D;&#x3D;&#x3D; MessageTypes.CONTACT_CARD_MULTI ? data.vcardList.map((c) &#x3D;&gt; c.vcard) : data.type &#x3D;&#x3D;&#x3D; MessageTypes.CONTACT_CARD ? [data.body] : [];
 
         /**
+         * Group Invite Data
+         * @type {object}
+         */
+        this.inviteV4 &#x3D; data.type &#x3D;&#x3D;&#x3D; MessageTypes.GROUP_INVITE ? {
+            inviteCode: data.inviteCode,
+            inviteCodeExp: data.inviteCodeExp,
+            groupId: data.inviteGrp,
+            groupName: data.inviteGrpName,
+            fromId: data.from._serialized,
+            toId: data.to._serialized
+        } : undefined;
+         
+        /**
          * Indicates the mentions in the message body.
          * @type {Array&amp;lt;string&gt;}
          */
@@ -168,6 +188,37 @@ class Message extends Base {
 
         if (data.mentionedJidList) {
             this.mentionedIds &#x3D; data.mentionedJidList;
+        }
+
+        /**
+         * Order ID for message type ORDER
+         * @type {string}
+         */
+        this.orderId &#x3D; data.orderId ? data.orderId : undefined;
+        /**
+         * Order Token for message type ORDER
+         * @type {string}
+         */
+        this.token &#x3D; data.token ? data.token : undefined;
+
+        /** Title */
+        if (data.title) {
+            this.title &#x3D; data.title;
+        }
+
+        /** Description */
+        if (data.description) {
+            this.description &#x3D; data.description;
+        }
+
+        /** Business Owner JID */
+        if (data.businessOwnerJid) {
+            this.businessOwnerJid &#x3D; data.businessOwnerJid;
+        }
+
+        /** Product ID */
+        if (data.productId) {
+            this.productId &#x3D; data.productId;
         }
 
         /**
@@ -246,6 +297,14 @@ class Message extends Base {
     }
 
     /**
+     * Accept Group V4 Invite
+     * @returns {Promise&amp;lt;Object&gt;}
+     */
+    async acceptGroupV4Invite() {
+        return await this.client.acceptGroupV4Invite(this.inviteV4);
+    }
+    
+    /**
      * Forwards this message to another chat
      * 
      * @param {string|Chat} chat Chat model or chat ID to which the message will be forwarded
@@ -284,14 +343,20 @@ class Message extends Base {
                 return undefined;
             }
 
-            const mediaUrl &#x3D; msg.clientUrl || msg.deprecatedMms3Url;
+            const decryptedMedia &#x3D; await window.Store.DownloadManager.downloadAndDecrypt({
+                directPath: msg.directPath,
+                encFilehash: msg.encFilehash,
+                filehash: msg.filehash,
+                mediaKey: msg.mediaKey,
+                mediaKeyTimestamp: msg.mediaKeyTimestamp,
+                type: msg.type,
+                signal: (new AbortController).signal
+            });
 
-            const buffer &#x3D; await window.WWebJS.downloadBuffer(mediaUrl);
-            const decrypted &#x3D; await window.Store.CryptoLib.decryptE2EMedia(msg.type, buffer, msg.mediaKey, msg.mimetype);
-            const data &#x3D; await window.WWebJS.readBlobAsync(decrypted._blob);
+            const data &#x3D; window.WWebJS.arrayBufferToBase64(decryptedMedia);
 
             return {
-                data: data.split(&#x27;,&#x27;)[1],
+                data,
                 mimetype: msg.mimetype,
                 filename: msg.filename
             };
@@ -373,6 +438,21 @@ class Message extends Base {
 
         return info;
     }
+
+    /**
+     * Gets the order associated with a given message
+     * @return {Promise&amp;lt;Order&gt;}
+     */
+    async getOrder() {
+        if (this.type &#x3D;&#x3D;&#x3D; MessageTypes.ORDER) {
+            const result &#x3D; await this.client.pupPage.evaluate((orderId, token) &#x3D;&gt; {
+                return window.WWebJS.getOrderDetail(orderId, token);
+            }, this.orderId, this.token);
+            if (!result) return undefined;
+            return new Order(this.client, result);
+        }
+        return undefined;
+    }
 }
 
 module.exports &#x3D; Message;
@@ -386,7 +466,7 @@ module.exports &#x3D; Message;
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.6 on April 20, 2021.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on July 9, 2021.
       </p>
     </div>
   </footer>
