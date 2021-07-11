@@ -41,7 +41,7 @@ class Message extends Base {
          * Indicates if the message has media available for download
          * @type {boolean}
          */
-        this.hasMedia = data.clientUrl || data.deprecatedMms3Url;
+        this.hasMedia = Boolean(data.mediaKey && data.directPath);
 
         /**
          * Message content
@@ -312,14 +312,20 @@ class Message extends Base {
                 return undefined;
             }
 
-            const mediaUrl = msg.clientUrl || msg.deprecatedMms3Url;
+            const decryptedMedia = await window.Store.DownloadManager.downloadAndDecrypt({
+                directPath: msg.directPath,
+                encFilehash: msg.encFilehash,
+                filehash: msg.filehash,
+                mediaKey: msg.mediaKey,
+                mediaKeyTimestamp: msg.mediaKeyTimestamp,
+                type: msg.type,
+                signal: (new AbortController).signal
+            });
 
-            const buffer = await window.WWebJS.downloadBuffer(mediaUrl);
-            const decrypted = await window.Store.CryptoLib.decryptE2EMedia(msg.type, buffer, msg.mediaKey, msg.mimetype);
-            const data = await window.WWebJS.readBlobAsync(decrypted._blob);
+            const data = window.WWebJS.arrayBufferToBase64(decryptedMedia);
 
             return {
-                data: data.split(',')[1],
+                data,
                 mimetype: msg.mimetype,
                 filename: msg.filename
             };
