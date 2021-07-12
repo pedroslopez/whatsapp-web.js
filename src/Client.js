@@ -1,7 +1,7 @@
 'use strict';
 
 const EventEmitter = require('events');
-const puppeteer = require('puppeteer-core');
+const puppeteer = require('puppeteer');
 const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
 const jsQR = require('jsqr');
 
@@ -65,8 +65,16 @@ class Client extends EventEmitter {
      * Sets up events and requirements, kicks off authentication request
      */
     async initialize() {
-        const browser = await puppeteer.connect(this.options.puppeteer);
-        const page = await browser.newPage();
+        let [browser, page] = [null, null];
+        
+        if(this.options.puppeteer && this.options.puppeteer.browserWSEndpoint) {
+            browser = await puppeteer.connect(this.options.puppeteer);
+            page = await browser.newPage();
+        } else {
+            browser = await puppeteer.launch(this.options.puppeteer);
+            page = (await browser.pages())[0];
+        }        
+        
         page.setUserAgent(this.options.userAgent);
 
         this.pupBrowser = browser;
