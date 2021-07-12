@@ -517,6 +517,11 @@ declare namespace WAWebJS {
         id: MessageId,
         /** Indicates if the message was forwarded */
         isForwarded: boolean,
+        /**
+         * Indicates how many times the message was forwarded.
+         * The maximum value is 127.
+         */
+        forwardingScore: number,
         /** Indicates if the message was starred */
         isStarred: boolean,
         /** Location information contained in the message, if the message is type "location" */
