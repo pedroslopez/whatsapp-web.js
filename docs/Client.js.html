@@ -2,9 +2,9 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.6.6">
+  <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.12.6 &raquo; Source: Client.js</title>
+  <title>whatsapp-web.js 1.13.2 &raquo; Source: Client.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>12.<wbr>6</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>13.<wbr>2</a>
       </div>
     </div>
   </nav>
@@ -61,6 +61,7 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @param {number} options.takeoverTimeoutMs - How much time to wait before taking over the session
  * @param {string} options.userAgent - User agent to use in puppeteer
  * @param {string} options.ffmpegPath - Ffmpeg path to use when formating videos to webp while sending stickers 
+ * @param {boolean} options.bypassCSP - Sets bypassing of page&#x27;s Content-Security-Policy.
  * 
  * @fires Client#qr
  * @fires Client#authenticated
@@ -111,6 +112,10 @@ class Client extends EventEmitter {
                     localStorage.setItem(&#x27;WAToken1&#x27;, session.WAToken1);
                     localStorage.setItem(&#x27;WAToken2&#x27;, session.WAToken2);
                 }, this.options.session);
+        }
+
+        if(this.options.bypassCSP) {
+            await page.setBypassCSP(true);
         }
 
         await page.goto(WhatsWebURL, {
@@ -461,6 +466,7 @@ class Client extends EventEmitter {
      * @typedef {Object} MessageSendOptions
      * @property {boolean} [linkPreview&#x3D;true] - Show links preview
      * @property {boolean} [sendAudioAsVoice&#x3D;false] - Send audio as voice message
+     * @property {boolean} [sendVideoAsGif&#x3D;false] - Send video as gif
      * @property {boolean} [sendMediaAsSticker&#x3D;false] - Send media as a sticker
      * @property {boolean} [sendMediaAsDocument&#x3D;false] - Send media as a document
      * @property {boolean} [parseVCards&#x3D;true] - Automatically parse vCards and send them as contacts
@@ -468,6 +474,9 @@ class Client extends EventEmitter {
      * @property {string} [quotedMessageId] - Id of the message that is being quoted (or replied to)
      * @property {Contact[]} [mentions] - Contacts that are being mentioned in the message
      * @property {boolean} [sendSeen&#x3D;true] - Mark the conversation as seen after sending the message
+     * @property {string} [stickerAuthor&#x3D;undefined] - Sets the author of the sticker, (if sendMediaAsSticker is true).
+     * @property {string} [stickerName&#x3D;undefined] - Sets the name of the sticker, (if sendMediaAsSticker is true).
+     * @property {string[]} [stickerCategories&#x3D;undefined] - Sets the categories of the sticker, (if sendMediaAsSticker is true). Provide emoji char array, can be null.
      * @property {MessageMedia} [media] - Media to be sent
      */
 
@@ -483,12 +492,14 @@ class Client extends EventEmitter {
         let internalOptions &#x3D; {
             linkPreview: options.linkPreview &#x3D;&#x3D;&#x3D; false ? undefined : true,
             sendAudioAsVoice: options.sendAudioAsVoice,
+            sendVideoAsGif: options.sendVideoAsGif,
             sendMediaAsSticker: options.sendMediaAsSticker,
             sendMediaAsDocument: options.sendMediaAsDocument,
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
             parseVCards: options.parseVCards &#x3D;&#x3D;&#x3D; false ? false : true,
-            mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact &#x3D;&gt; contact.id._serialized) : []
+            mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact &#x3D;&gt; contact.id._serialized) : [],
+            ...options.extra
         };
 
         const sendSeen &#x3D; typeof options.sendSeen &#x3D;&#x3D;&#x3D; &#x27;undefined&#x27; ? true : options.sendSeen;
@@ -512,7 +523,12 @@ class Client extends EventEmitter {
         }
 
         if (internalOptions.sendMediaAsSticker &amp;amp;&amp;amp; internalOptions.attachment) {
-            internalOptions.attachment &#x3D; await Util.formatToWebpSticker(internalOptions.attachment);
+            internalOptions.attachment &#x3D; 
+                await Util.formatToWebpSticker(internalOptions.attachment, {
+                    name: options.stickerName,
+                    author: options.stickerAuthor,
+                    categories: options.stickerCategories
+                });
         }
 
         const newMessage &#x3D; await this.pupPage.evaluate(async (chatId, message, options, sendSeen) &#x3D;&gt; {
@@ -528,6 +544,24 @@ class Client extends EventEmitter {
         }, chatId, content, internalOptions, sendSeen);
 
         return new Message(this, newMessage);
+    }
+
+    /**
+     * Searches for messages
+     * @param {string} query
+     * @param {Object} [options]
+     * @param {number} [options.page]
+     * @param {number} [options.limit]
+     * @param {string} [options.chatId]
+     * @returns {Promise&amp;lt;Message[]&gt;}
+     */
+    async searchMessages(query, options &#x3D; {}) {
+        const messages &#x3D; await this.pupPage.evaluate(async (query, page, count, remote) &#x3D;&gt; {
+            const { messages } &#x3D; await window.Store.Msg.search(query, page, count, remote);
+            return messages.map(msg &#x3D;&gt; window.WWebJS.getMessageModel(msg));
+        }, query, options.page, options.limit, options.chatId);
+
+        return messages.map(msg &#x3D;&gt; new Message(this, msg));
     }
 
     /**
@@ -604,6 +638,20 @@ class Client extends EventEmitter {
         return chatId._serialized;
     }
 
+    /**
+     * Accepts a private invitation to join a group
+     * @param {object} inviteV4 Invite V4 Info
+     * @returns {Promise&amp;lt;Object&gt;}
+     */
+    async acceptGroupV4Invite(inviteInfo) {
+        if(!inviteInfo.inviteCode) throw &#x27;Invalid invite code, try passing the message.inviteV4 object&#x27;;
+        if (inviteInfo.inviteCodeExp &#x3D;&#x3D; 0) throw &#x27;Expired invite code&#x27;;
+        return await this.pupPage.evaluate(async inviteInfo &#x3D;&gt; {
+            let { groupId, fromId, inviteCode, inviteCodeExp, toId } &#x3D; inviteInfo;
+            return await window.Store.Wap.acceptGroupV4Invite(groupId, fromId, inviteCode, String(inviteCodeExp), toId);
+        }, inviteInfo);
+    }
+    
     /**
      * Sets the current user&#x27;s status message
      * @param {string} status New status message
@@ -900,7 +948,7 @@ module.exports &#x3D; Client;
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.6 on April 20, 2021.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on July 9, 2021.
       </p>
     </div>
   </footer>

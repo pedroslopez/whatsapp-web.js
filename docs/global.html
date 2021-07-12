@@ -2,9 +2,9 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.6.6">
+  <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.12.6 &raquo; Globals</title>
+  <title>whatsapp-web.js 1.13.2 &raquo; Globals</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>12.<wbr>6</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>13.<wbr>2</a>
       </div>
     </div>
   </nav>
@@ -87,6 +87,11 @@
                   </dl>
                 </div>
                 <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="global.html#StickerMetadata">StickerMetadata</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
                 </div>
               </div>
             </div>
@@ -768,6 +773,19 @@
                     </tr>
                     <tr>
                       <td>
+                        <p>ORDER</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
                         <p>REVOKED</p>
                       </td>
                       <td>
@@ -781,7 +799,33 @@
                     </tr>
                     <tr>
                       <td>
+                        <p>PRODUCT</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
                         <p>UNKNOWN</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>GROUP_INVITE</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
@@ -1306,6 +1350,21 @@
                     </tr>
                     <tr>
                       <td>
+                        <p>sendVideoAsGif</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Send video as gif</p>
+                        <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
                         <p>sendMediaAsSticker</p>
                       </td>
                       <td>
@@ -1408,6 +1467,48 @@
                     </tr>
                     <tr>
                       <td>
+                        <p>stickerAuthor</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Sets the author of the sticker, (if sendMediaAsSticker is true).</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>stickerName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Sets the name of the sticker, (if sendMediaAsSticker is true).</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>stickerCategories</p>
+                      </td>
+                      <td>
+                        <p>Array of string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Sets the categories of the sticker, (if sendMediaAsSticker is true). Provide emoji char array, can be null.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
                         <p>media</p>
                       </td>
                       <td>
@@ -1425,6 +1526,65 @@
               </section>
               <dl class="dl-compact">
               </dl>
+              <h3 id="StickerMetadata"><span class="symbol-name">StickerMetadata</span><small class="property-type">
+                  &nbsp;Object</small></h3>
+              <p>Sticker metadata.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>name</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>author</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>categories</p>
+                      </td>
+                      <td>
+                        <p>Array of string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
             </section>
           </section>
         </div>
@@ -1435,7 +1595,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.6 on April 20, 2021.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on July 9, 2021.
       </p>
     </div>
   </footer>
