@@ -600,10 +600,13 @@ declare namespace WAWebJS {
         _serialized: string,
     }
 
-    export interface Location {
-        description?: string | null,
-        latitude: string,
-        longitude: string,
+    /** Location information */
+    export class Location {
+        description?: string | null
+        latitude: string
+        longitude: string
+        
+        constructor(latitude: number, longitude: number, description?: string)
     }
 
     export interface Label {
