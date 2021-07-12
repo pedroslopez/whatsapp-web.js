@@ -264,8 +264,7 @@ exports.LoadUtils = () => {
         const msg = message.serialize();
         
         msg.isStatusV3 = message.isStatusV3;
-        msg.links = (message.getLinks()).map(link => link.href);
-
+        msg.links = (message.getLinks()).map(link => ({ link: link.href, isSuspicious: link.suspiciousCharacters?.size ? true : false}));
         if (msg.buttons) {
             msg.buttons = msg.buttons.serialize();
         }
@@ -274,6 +273,7 @@ exports.LoadUtils = () => {
         
         return msg;
     };
+
 
     window.WWebJS.getChatModel = async chat => {
         let res = chat.serialize();
