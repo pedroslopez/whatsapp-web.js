@@ -362,6 +362,19 @@ class Client extends EventEmitter {
             this.emit(Events.BATTERY_CHANGED, { battery, plugged });
         });
 
+        await page.exposeFunction('onChatStateChangedEvent', (state) => {
+            /**
+             * Emitted when the chat changes its state
+             * @event Client#contact_change_state
+             * @param {string} {COMPOSING|RECORDING|AVAILABLE} Indicates state of chat. 
+             * COMPOSING - contact composing message. 
+             * RECORDING - contact recording audio message.
+             * AVAILABLE - contact stops composing/recording and available
+             * @param {object} Object containing Contact ID
+             */
+            this.emit(Events.CONTACT_STATE_CHANGED, state.type.toUpperCase(), state.id);
+        });
+        
         await page.evaluate(() => {
             window.Store.Msg.on('add', (msg) => { if (msg.isNewMsg) window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
@@ -371,6 +384,7 @@ class Client extends EventEmitter {
             window.Store.Msg.on('remove', (msg) => { if (msg.isNewMsg) window.onRemoveMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
             window.Store.Conn.on('change:battery', (state) => { window.onBatteryStateChangedEvent(state); });
+            window.Store.Presence.on('change:chatstate.type', (state) => { window.onChatStateChangedEvent(state); });
         });
 
         /**
