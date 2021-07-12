@@ -108,7 +108,7 @@ class Contact extends Base {
          * @type {boolean}
          */
         this.isBlocked = data.isBlocked;
-
+        
         return super._patch(data);
     }
 
@@ -120,6 +120,22 @@ class Contact extends Base {
         return await this.client.getProfilePicUrl(this.id._serialized);
     }
 
+    /**
+     * Returns the contact's formatted phone number, (12345678901@c.us) => (+1 (234) 5678-901)
+     * @returns {Promise<string>}
+     */
+    async getFormattedNumber() {
+        return await this.client.getFormattedNumber(this.id._serialized);
+    }
+    
+    /**
+     * Returns the contact's countrycode, (1541859685@c.us) => (1)
+     * @returns {Promise<string>}
+     */
+    async getCountryCode() {
+        return await this.client.getCountryCode(this.id._serialized);
+    }
+    
     /**
      * Returns the Chat that corresponds to this Contact. 
      * Will return null when getting chat for currently logged in user.
