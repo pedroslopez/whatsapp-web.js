@@ -200,7 +200,8 @@ class Message extends Base {
 
         /**
          * Links included in the message.
-         * @type {Array<string>}
+         * @type {Array<{link: string, isSuspicious: boolean}>}
+         * 
          */
         this.links = data.links;
 

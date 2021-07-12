@@ -349,7 +349,7 @@ declare namespace WAWebJS {
         reply: (content: MessageContent, options?: MessageSendOptions) => Promise<Message>,
 
     }
-
+    
     /** whatsapp web url */
     export const WhatsWebURL: string
 
@@ -545,7 +545,10 @@ declare namespace WAWebJS {
         /** Message type */
         type: MessageTypes,
         /** Links included in the message. */
-        links: string[],
+        links: Array<{
+            link: string,
+            isSuspicious: boolean
+        }>,
         /** Order ID */
         orderId: string,
         /** title */
