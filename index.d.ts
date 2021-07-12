@@ -517,6 +517,11 @@ declare namespace WAWebJS {
         id: MessageId,
         /** Indicates if the message was forwarded */
         isForwarded: boolean,
+        /**
+         * Indicates how many times the message was forwarded.
+         * The maximum value is 127.
+         */
+        forwardingScore: number,
         /** Indicates if the message was starred */
         isStarred: boolean,
         /** Location information contained in the message, if the message is type "location" */
@@ -595,10 +600,13 @@ declare namespace WAWebJS {
         _serialized: string,
     }
 
-    export interface Location {
-        description?: string | null,
-        latitude: string,
-        longitude: string,
+    /** Location information */
+    export class Location {
+        description?: string | null
+        latitude: string
+        longitude: string
+        
+        constructor(latitude: number, longitude: number, description?: string)
     }
 
     export interface Label {
