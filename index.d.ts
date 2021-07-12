@@ -227,6 +227,12 @@ declare namespace WAWebJS {
             qr: string
         ) => void): this
 
+        /** Emitted when a call is received */
+        on(event: 'call', listener: (
+            /** The call that started */
+            call: Call
+        ) => void): this
+
         /** Emitted when the client has initialized and is ready to receive messages */
         on(event: 'ready', listener: () => void): this
     }
