@@ -41,6 +41,10 @@ exports.ExposeStore = (moduleRaidStr) => {
 exports.LoadUtils = () => {
     window.WWebJS = {};
 
+    window.WWebJS.getNewId = () =>{
+        return window.Store.genId();
+    };
+
     window.WWebJS.getNumberId = async (id) => {
 
         let result = await window.Store.Wap.queryExist(id);
@@ -147,7 +151,7 @@ exports.LoadUtils = () => {
         const newMsgId = new window.Store.MsgKey({
             fromMe: true,
             remote: chat.id,
-            id: window.Store.genId(),
+            id: options.messageId || window.WWebJS.getNewId(),
         });
 
         const message = {

@@ -62,15 +62,37 @@ class Client extends EventEmitter {
     }
 
     /**
+     * This function can be called to start a WS connection
+     * options:{
+     *     ...
+     *     puppeteer: { 
+     *         browserWSEndpoint: `ws://localhost:5001`
+     *         ...
+     *    }
+     * }
+     */
+    async connect(){
+
+        try {
+            this.pupBrowser = await puppeteer.connect(this.options.puppeteer);
+        } catch (err) {
+            this.emit(Events.ENOTFOUND, err.message);
+            return false;
+        }
+        await this.initialize();
+    }
+
+    /**
      * Sets up events and requirements, kicks off authentication request
      */
     async initialize() {
-        const browser = await puppeteer.launch(this.options.puppeteer);
-        const page = (await browser.pages())[0];
+        //set browser if is already started from connect function
+        const browser   = this.pupBrowser || await puppeteer.launch(this.options.puppeteer);
+        const page      = (await browser.pages())[0];
         page.setUserAgent(this.options.userAgent);
 
         this.pupBrowser = browser;
-        this.pupPage = page;
+        this.pupPage    = page;
 
         if (this.options.session) {
             await page.evaluateOnNewDocument(
@@ -500,6 +522,8 @@ class Client extends EventEmitter {
                 });
         }
 
+        if(options.messageId) internalOptions.messageId = options.messageId;
+
         const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             const chat = await window.Store.Chat.find(chatWid);
@@ -903,6 +927,17 @@ class Client extends EventEmitter {
         }, labelId);
 
         return Promise.all(chatIds.map(id => this.getChatById(id)));
+    }
+
+    /**
+     * Generate a New Id. 
+     * Its may userfull in message Id option into sendMessage method. 
+     * Can send and controller a message with this generated id
+     */
+    async getNewId(){
+        return await this.pupPage.evaluate(async () => {
+            return window.WWebJS.getNewId();
+        });
     }
 }
 
