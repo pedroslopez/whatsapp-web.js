@@ -64,7 +64,7 @@ docker run \
 
 Reference: https://docs.browserless.io/docs/docker-quickstart.html
 
-### Remote Debbuging
+### Remote Debugging
 
 2) Running a browser with websocket remote debugging enabled:
 > chrome.exe --remote-debugging-port=9222
