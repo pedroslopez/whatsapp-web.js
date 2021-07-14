@@ -11,7 +11,7 @@ const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constan
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
-const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification , Label } = require('./structures');
+const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification , Label, Buttons, List } = require('./structures');
 /**
  * Starting point for interacting with the WhatsApp Web API
  * @extends {EventEmitter}
@@ -460,7 +460,7 @@ class Client extends EventEmitter {
     /**
      * Send a message to a specific chatId
      * @param {string} chatId
-     * @param {string|MessageMedia|Location|Contact|Array<Contact>} content
+     * @param {string|MessageMedia|Location|Contact|Array<Contact>|Buttons|List} content
      * @param {MessageSendOptions} [options] - Options used when sending the message
      * 
      * @returns {Promise<Message>} Message that was just sent
@@ -496,6 +496,10 @@ class Client extends EventEmitter {
             content = '';
         } else if(Array.isArray(content) && content.length > 0 && content[0] instanceof Contact) {
             internalOptions.contactCardList = content.map(contact => contact.id._serialized);
+            content = '';
+        } else if(content instanceof Buttons){
+            if(content.type !== 'chat'){internalOptions.attachment = content.body;}
+            internalOptions.buttons = content;
             content = '';
         }
 

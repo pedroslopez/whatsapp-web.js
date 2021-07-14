@@ -12,7 +12,7 @@ class Buttons {
      * @param {string?} title
      * @param {string?} footer
      */
-    constructor(body,buttons , title, footer) {
+    constructor(body, buttons, title, footer) {
         /**
          * Message body
          * @type {string|MessageMedia}
@@ -32,7 +32,8 @@ class Buttons {
         this.footer = footer;
 
         if (body instanceof MessageMedia) {
-            this.type = 'image';
+            // throw "[BT02] MessageMedia not ready";
+            this.type = 'media';
             this.title = '';
         }else{
             this.type = 'chat';
@@ -51,6 +52,9 @@ class Buttons {
      * Creates button array from simple array
      * @param {Array<Array<string>>} buttons
      * @returns {Array<Array<string>>}
+     * @example 
+     * Input: [{body:"button1"},{body:"button2"},{body:"button3"},{body:"button4"}]
+     * Returns: [{ buttonId:'vwnhjM',buttonText:{"displayText":"button1"},type: 1 },{buttonId:'n3XKsL',buttonText:{"displayText":"button2"},type:1},{buttonId:'NDJk0a',buttonText:{"displayText":"button3"},type:1}]
      */
     _format(buttons){
         buttons = buttons.slice(0,3); // phone users can only see 3 buttons, so lets limit this

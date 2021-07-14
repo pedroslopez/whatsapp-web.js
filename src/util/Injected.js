@@ -143,7 +143,30 @@ exports.LoadUtils = () => {
                 options = { ...options, ...preview };
             }
         }
-
+        
+        let extraOptions = {};
+        if(options.buttons){
+            let caption;
+            if(options.buttons.type === 'chat') {
+                content = options.buttons.body;
+                caption = content;
+            }else{
+                caption = options.caption ? options.caption : ' ';
+            }
+            extraOptions = {
+                productHeaderImageRejected: false,
+                isFromTemplate: false,
+                isDynamicReplyButtonsMsg: true,
+                title: options.buttons.title ? options.buttons.title : undefined,
+                footer: options.buttons.footer ? options.buttons.footer : undefined,
+                dynamicReplyButtons: options.buttons.buttons,
+                replyButtons: options.buttons.buttons,
+                // type: options.buttons.type,
+                caption: caption
+            };
+            delete options.buttons;
+        }
+        
         const newMsgId = new window.Store.MsgKey({
             fromMe: true,
             remote: chat.id,
@@ -165,7 +188,8 @@ exports.LoadUtils = () => {
             ...locationOptions,
             ...attOptions,
             ...quotedMsgOptions,
-            ...vcardOptions
+            ...vcardOptions,
+            ...extraOptions
         };
 
         await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
