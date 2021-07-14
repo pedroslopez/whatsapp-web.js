@@ -58,11 +58,9 @@ class Buttons {
      */
     _format(buttons){
         buttons = buttons.slice(0,3); // phone users can only see 3 buttons, so lets limit this
-        let out = [];
-        for (let btn of buttons) { //currently only type '1' is supported so lets just create the new array
-            out.push({'buttonId':Util.generateHash(6),'buttonText':{'displayText':btn.body},'type':1});
-        }
-        return out;
+        return buttons.map((btn) => {
+            return {'buttonId':btn.id ? btn.id : Util.generateHash(6),'buttonText':{'displayText':btn.body},'type':1}
+        });
     }
     
 }
