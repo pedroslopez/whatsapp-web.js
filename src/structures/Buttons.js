@@ -32,7 +32,7 @@ class Buttons {
         this.footer = footer;
 
         if (body instanceof MessageMedia) {
-            // throw "[BT02] MessageMedia not ready";
+            // throw '[BT02] MessageMedia not ready';
             this.type = 'media';
             this.title = '';
         }else{
@@ -44,7 +44,7 @@ class Buttons {
          * @type {Array<Array<string>>}
          */
         this.buttons = this._format(buttons);
-        if(!this.buttons.length){ throw "[BT01] No buttons";}
+        if(!this.buttons.length){ throw '[BT01] No buttons';}
                 
     }
 
@@ -60,7 +60,7 @@ class Buttons {
         buttons = buttons.slice(0,3); // phone users can only see 3 buttons, so lets limit this
         let out = [];
         for (let btn of buttons) { //currently only type '1' is supported so lets just create the new array
-            out.push({"buttonId":Util.generateHash(6),"buttonText":{"displayText":btn.body},"type":1})
+            out.push({'buttonId':Util.generateHash(6),'buttonText':{'displayText':btn.body},'type':1})
         }
         return out;
     }
