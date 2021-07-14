@@ -1,16 +1,18 @@
 'use strict';
 
+const MessageMedia = require('./MessageMedia');
+
 /**
  * Message type buttons
  */
 class Buttons {
     /**
      * @param {string|MessageMedia} body
+     * @param {Array<Array<string>>} buttons
      * @param {string?} title
      * @param {string?} footer
-     * @param {Array<Array<string>>} buttons
      */
-    constructor(body, title, footer, buttons) {
+    constructor(body,buttons , title, footer) {
         /**
          * Message body
          * @type {string|MessageMedia}

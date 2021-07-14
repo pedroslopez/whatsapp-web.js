@@ -1044,6 +1044,27 @@ declare namespace WAWebJS {
         /** Order Created At*/
         createdAt: number;
     }
+
+    /** Message type List */
+    export class List {
+        body: string
+        buttonText: string
+        sections: Array<Array<string>>
+        title?: string | null
+        footer?: string | null
+        
+        constructor(body: string, buttonText: string, sections: Array<Array<string>>, title?: string | null, footer?: string | null)
+    }
+    
+    /** Message type buttons */
+    export class Buttons {
+        body: string | MessageMedia
+        buttons: Array<Array<string>>
+        title?: string | null
+        footer?: string | null
+        
+        constructor(body: string, buttons: Array<Array<string>>, title?: string | null, footer?: string | null)
+    }
 }
 
 export = WAWebJS

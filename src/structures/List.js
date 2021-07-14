@@ -7,11 +7,11 @@ class List {
     /**
      * @param {string} body
      * @param {string} buttonText
+     * @param {Array<Array<string>>} sections
      * @param {string?} title
      * @param {string?} footer
-     * @param {Array<Array<string>>} sections
      */
-    constructor(body,buttonText, title, footer, sections) {
+    constructor(body,buttonText,sections , title, footer) {
         /**
          * Message body
          * @type {string}
