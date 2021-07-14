@@ -365,7 +365,7 @@ declare namespace WAWebJS {
         reply: (content: MessageContent, options?: MessageSendOptions) => Promise<Message>,
 
     }
-
+    
     /** whatsapp web url */
     export const WhatsWebURL: string
 
@@ -533,6 +533,11 @@ declare namespace WAWebJS {
         id: MessageId,
         /** Indicates if the message was forwarded */
         isForwarded: boolean,
+        /**
+         * Indicates how many times the message was forwarded.
+         * The maximum value is 127.
+         */
+        forwardingScore: number,
         /** Indicates if the message was starred */
         isStarred: boolean,
         /** Location information contained in the message, if the message is type "location" */
@@ -556,7 +561,10 @@ declare namespace WAWebJS {
         /** Message type */
         type: MessageTypes,
         /** Links included in the message. */
-        links: string[],
+        links: Array<{
+            link: string,
+            isSuspicious: boolean
+        }>,
         /** Order ID */
         orderId: string,
         /** title */
@@ -611,10 +619,13 @@ declare namespace WAWebJS {
         _serialized: string,
     }
 
-    export interface Location {
-        description?: string | null,
-        latitude: string,
-        longitude: string,
+    /** Location information */
+    export class Location {
+        description?: string | null
+        latitude: string
+        longitude: string
+        
+        constructor(latitude: number, longitude: number, description?: string)
     }
 
     export interface Label {
