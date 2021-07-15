@@ -313,7 +313,10 @@ class Message extends Base {
 
             if (msg.mediaData.mediaStage != 'RESOLVED') {
                 // try to resolve media
-                await msg.downloadMedia(true, 1);
+                await msg.downloadMedia({
+                    downloadEvenIfExpensive: true, 
+                    rmrReason: 1
+                });
             }
 
             if (msg.mediaData.mediaStage.includes('ERROR')) {
