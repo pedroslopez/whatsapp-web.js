@@ -17,6 +17,7 @@ Please note that Node v14+ is required.
 
 ```js
 const { Client } = require('whatsapp-web.js');
+
 const client = new Client();
 
 client.on('qr', (qr) => {
@@ -36,6 +37,39 @@ client.on('message', msg => {
 
 client.initialize();
 ```
+
+## Remote Access
+
+You could also connect to any previously existing browser instance:
+
+```js
+const client = new Client({ 
+    puppeteer: {
+        browserWSEndpoint: `ws://localhost:3000`
+    }
+});
+```
+
+### Docker
+
+1) Installing a browser using browserless:
+
+```
+docker run \
+  --rm \
+  -p 3000:3000 \
+  -e "MAX_CONCURRENT_SESSIONS=1" \
+  browserless/chrome:latest
+```
+
+Reference: https://docs.browserless.io/docs/docker-quickstart.html
+
+### Remote Debugging
+
+2) Running a browser with websocket remote debugging enabled:
+> chrome.exe --remote-debugging-port=9222
+
+After that check the following webpage and check http://127.0.0.1:9220/json and get the **webSocketDebuggerUrl**
 
 Take a look at [example.js](https://github.com/pedroslopez/whatsapp-web.js/blob/master/example.js) for another example with more use cases.
 
