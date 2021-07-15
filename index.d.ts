@@ -1049,11 +1049,11 @@ declare namespace WAWebJS {
     export class List {
         body: string
         buttonText: string
-        sections: Array<Array<string>>
+        sections: Array<any>
         title?: string | null
         footer?: string | null
         
-        constructor(body: string, buttonText: string, sections: Array<Array<string>>, title?: string | null, footer?: string | null)
+        constructor(body: string, buttonText: string, sections: Array<any>, title?: string | null, footer?: string | null)
     }
     
     /** Message type buttons */

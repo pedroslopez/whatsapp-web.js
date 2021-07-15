@@ -166,7 +166,25 @@ exports.LoadUtils = () => {
             };
             delete options.buttons;
         }
-        
+
+        if(options.list){
+            if(window.Store.Conn.platform === 'smba' || window.Store.Conn.platform === 'smbi'){
+                throw '[LT01] Whatsapp business can\'t send this yet';
+            }
+            extraOptions = {
+                ...extraOptions,
+                type: 'list',
+                footer: options.list.footer,
+                list: {
+                    ...options.list,
+                    listType: 1 // maybe type 2 is for biz
+                },
+                body: options.list.description
+            };
+            delete options.list;
+            delete extraOptions.list.footer;
+        }
+                
         const newMsgId = new window.Store.MsgKey({
             fromMe: true,
             remote: chat.id,

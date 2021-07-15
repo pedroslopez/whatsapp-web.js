@@ -2,6 +2,7 @@
 
 const MessageMedia = require('./MessageMedia');
 const Util = require('../util/Util');
+
 /**
  * Message type buttons
  */

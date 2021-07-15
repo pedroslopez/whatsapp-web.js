@@ -1,5 +1,7 @@
 'use strict';
 
+const Util = require('../util/Util');
+
 /**
  * Message type List
  */
@@ -7,7 +9,7 @@ class List {
     /**
      * @param {string} body
      * @param {string} buttonText
-     * @param {Array<Array<string>>} sections
+     * @param {Array<any>} sections
      * @param {string?} title
      * @param {string?} footer
      */
@@ -16,7 +18,7 @@ class List {
          * Message body
          * @type {string}
          */
-        this.body = body;
+        this.description = body;
 
         /**
          * List button text
@@ -29,6 +31,7 @@ class List {
          * @type {string}
          */
         this.title = title;
+        
 
         /**
          * footer of message
@@ -38,12 +41,39 @@ class List {
 
         /**
          * sections of message
-         * @type {Array<Array<string>>}
+         * @type {Array<any>}
          */
-        this.sections = sections;
+        this.sections = this._format(sections);
         
-
     }
+    
+    /**
+     * Creates section array from simple array
+     * @param {Array<any>} sections
+     * @returns {Array<any>}
+     * @example
+     * Input: [{title:'sectionTitle',rows:[{id:'customId', title:'ListItem2', description: 'desc'},{title:'ListItem2'}]}}]
+     * Returns: [{'title':'sectionTitle','rows':[{'rowId':'customId','title':'ListItem1','description':'desc'},{'rowId':'oGSRoD','title':'ListItem2','description':''}]}]
+     */
+    _format(sections){
+        if(!sections.length){throw '[LT02] List without sections';}
+        if(sections.length > 1){throw '[LT05] Lists with more than one section are having problems';}
+        return sections.map( (section) =>{
+            if(!section.rows.length){throw '[LT03] Section without rows';}
+            return {
+                title: section.title ? section.title : undefined,
+                rows: section.rows.map( (row) => {
+                    if(!row.title){throw '[LT04] Row without title';}
+                    return {
+                        rowId: row.id ? row.id : Util.generateHash(6),
+                        title: row.title,
+                        description: row.description ? row.description : ''
+                    };
+                })
+            };
+        });
+    }
+    
 }
 
 module.exports = List;

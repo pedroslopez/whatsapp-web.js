@@ -502,9 +502,6 @@ class Client extends EventEmitter {
             internalOptions.buttons = content;
             content = '';
         } else if(content instanceof List){
-            if(window.Store.Conn.platform === 'smba' || window.Store.Conn.platform === 'smbi'){
-                throw '[LT01] Whatsapp business can\'t send this yet'; 
-            }
             internalOptions.list = content;
             content = '';
         }
