@@ -100,7 +100,7 @@ class Client extends EventEmitter {
             timeout: 0,
         });
 
-        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
+        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"], [data-testid="intro-md-beta-logo-dark"], [data-testid="intro-md-beta-logo-light"]';
 
         if (this.options.session) {
             // Check if session restore was successfull 
@@ -170,7 +170,7 @@ class Client extends EventEmitter {
             WASecretBundle: localStorage.WASecretBundle,
             WAToken1: localStorage.WAToken1,
             WAToken2: localStorage.WAToken2
-        };
+        }; 
 
         /**
          * Emitted when authentication is successful
