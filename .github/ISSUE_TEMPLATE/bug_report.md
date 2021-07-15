@@ -33,6 +33,7 @@ If applicable, add code snippets to help explain your problem.
  - NodeJS version (`node -v`):
  - npm or yarn version (`npm -v`):
  - whatsapp-web.js version:
+
 **Other**
  - Operating system (the one running node) [Linux / MacOS / Windows]:
  - Operating system version (ex. Windows 10):  
