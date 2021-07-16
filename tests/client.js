@@ -182,6 +182,7 @@ describe('Client initialization', function() {
                 'Features',
                 'QueryOrder',
                 'QueryProduct',
+                'DownloadManager'
             ];  
           
             const loadedModules = await client.pupPage.evaluate(() => {
