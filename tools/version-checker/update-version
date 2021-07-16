@@ -21,7 +21,7 @@ const getLatestVersion = async () => {
 const getCurrentVersion = () => {
     try {
         const versionFile = fs.readFileSync('./.version');
-        return versionFile ? versionFile.toString() : null;
+        return versionFile ? versionFile.toString().trim() : null;
     } catch(_) {
         return null;
     }
