@@ -5,6 +5,7 @@ const Util = require('../src/util/Util');
 require('dotenv').config();
 
 const remoteId = process.env.WWEBJS_TEST_REMOTE_ID;
+if(!remoteId) throw new Error('The WWEBJS_TEST_REMOTE_ID environment variable has not been set.');
 
 function getSessionFromEnv() {
     const envSession = process.env.WWEBJS_TEST_SESSION;
