@@ -2,7 +2,9 @@ const path = require('path');
 const Client = require('../src/Client');
 const Util = require('../src/util/Util');
 
-const remoteId = process.env.WWEBJS_TEST_REMOTEID;
+require('dotenv').config();
+
+const remoteId = process.env.WWEBJS_TEST_REMOTE_ID;
 
 function getSessionFromEnv() {
     const envSession = process.env.WWEBJS_TEST_SESSION;
