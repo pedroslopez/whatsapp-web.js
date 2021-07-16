@@ -385,5 +385,33 @@ END:VCARD`;
                 expect(contact).to.be.instanceOf(Contact);
             });
         });
+
+        describe('Numbers and Users', function () {
+            it('can verify that a user is registered', async function () {
+                const isRegistered = await client.isRegisteredUser(remoteId);
+                expect(isRegistered).to.be.true;
+            });
+
+            it('can verify that a user is not registered', async function () {
+                const isRegistered = await client.isRegisteredUser('9999999999@c.us');
+                expect(isRegistered).to.be.false;
+            });
+
+            it('can get a number\'s whatsapp id', async function () {
+                const number = remoteId.split('@')[0];
+                const numberId = await client.getNumberId(number);
+                expect(numberId).to.eql({
+                    server: 'c.us',
+                    user: number,
+                    _serialized: `${number}@c.us`
+                });
+            });
+
+            it('returns null when getting an unregistered number\'s whatsapp id', async function () {
+                const number = '9999999999';
+                const numberId = await client.getNumberId(number);
+                expect(numberId).to.eql(null);
+            });
+        });
     });
 });
