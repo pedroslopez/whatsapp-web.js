@@ -3,6 +3,8 @@
 const fs = require('fs');
 const path = require('path');
 const mime = require('mime');
+const fetch = require('node-fetch');
+const { URL } = require('url');
 
 /**
  * Media attached to a message
@@ -42,6 +44,35 @@ class MessageMedia {
         const filename = path.basename(filePath);
 
         return new MessageMedia(mimetype, b64data, filename);
+    }
+
+    /**
+     * Creates a MessageMedia instance from a URL
+     * @param {string} url
+     * @param {number} [sizeLimit=0]
+     * @returns {MessageMedia}
+     */
+    static fromUrl(url, sizeLimit = 0) {
+        return new Promise((resolve, reject) => {
+            const pUrl = new URL(url);
+            const mimetype = mime.getType(pUrl.pathname);
+
+            if (!mimetype) {
+                return reject(new Error('Unable to determine MIME type'));
+            }
+
+            fetch(url, { size: sizeLimit, headers: { accept: 'image/* video/* text/* audio/*' } })
+                .then(async res => {
+                    if (!res.ok) { return reject(new Error('Failed to download media')); }
+
+                    const buf = await res.buffer();
+                    const data = buf.toString('base64');
+                    const media = new MessageMedia(mimetype, data, null);
+
+                    return resolve(media);
+                })
+                .catch(err => reject(err));
+        });
     }
 }
 
