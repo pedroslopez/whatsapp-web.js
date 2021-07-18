@@ -50,7 +50,7 @@ class MessageMedia {
      * Creates a MessageMedia instance from a URL
      * @param {string} url
      * @param {number} [sizeLimit=0]
-     * @returns {MessageMedia}
+     * @returns {Promise<MessageMedia>}
      */
     static fromUrl(url, sizeLimit = 0) {
         return new Promise((resolve, reject) => {
