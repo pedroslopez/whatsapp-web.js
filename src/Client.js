@@ -931,6 +931,18 @@ class Client extends EventEmitter {
 
         return Promise.all(chatIds.map(id => this.getChatById(id)));
     }
+
+    /**
+     * Get all blocked ids by Host account
+     * @returns {Promise<Array>}
+     */
+    async getBlockedList() {
+        let chatIds = await this.pupPage.evaluate(() => {
+            return Object.keys(window.Store.Blocklist._index);
+        });
+
+        return chatIds
+    }
 }
 
 module.exports = Client;
