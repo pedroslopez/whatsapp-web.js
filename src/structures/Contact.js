@@ -143,7 +143,7 @@ class Contact extends Base {
             await window.Store.BlockContact.blockContact(contact);
         }, this.id._serialized);
 
-        return this.isBlocked ? true : false;
+        return this.isBlocked;
     }
 
     /**
