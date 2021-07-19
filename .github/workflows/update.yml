@@ -27,6 +27,7 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
         with:
+          branch: auto-wa-web-update/patch
           commit-message: Update supported WhatsApp Web version to v${{ env.WA_VERSION }}
           title: Update WhatsApp Web Version (${{ env.WA_VERSION }})
           body: |
