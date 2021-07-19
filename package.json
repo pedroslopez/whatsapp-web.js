@@ -26,7 +26,7 @@
   "bugs": {
     "url": "https://github.com/pedroslopez/whatsapp-web.js/issues"
   },
-  "homepage": "https://waguide.pedroslopez.me/",
+  "homepage": "https://guide.wwebjs.dev/",
   "dependencies": {
     "@pedroslopez/moduleraid": "^5.0.2",
     "fluent-ffmpeg": "^2.1.2",
