@@ -136,19 +136,14 @@ class Contact extends Base {
      * @returns {Promise<boolean>}
      */
     async block() {
+        if(this.isGroup) return false;
+
         await this.client.pupPage.evaluate(async (contactId) => {
             const contact = window.Store.Contact.get(contactId);
             await window.Store.BlockContact.blockContact(contact);
         }, this.id._serialized);
 
-        if(this.isBlocked)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return this.isBlocked ? true : false;
     }
 
     /**
