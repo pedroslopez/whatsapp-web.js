@@ -760,10 +760,10 @@ declare namespace WAWebJS {
          */
         getChat: () => Promise<Chat>,
         
-        /** Returns the contact's formatted phone number, (12345678901@c.us) => (+1 (234) 5678-901) */
-        getFormattedNumber(): Promise<string>,
-        
         /** Returns the contact's countrycode, (1541859685@c.us) => (1) */
+        getCountryCode(): Promise<string>,
+        
+        /** Returns the contact's formatted phone number, (12345678901@c.us) => (+1 (234) 5678-901) */
         getFormattedNumber(): Promise<string>,
         
         /** Blocks this contact from WhatsApp */
