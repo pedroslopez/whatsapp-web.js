@@ -47,6 +47,9 @@ declare namespace WAWebJS {
         /** Logs out the client, closing the current session */
         logout(): Promise<void>
 
+        /** Get all blocked ids by host account */
+        getBlockedIds(): Promise<string[]>
+
         /** Get chat instance by ID */
         getChatById(chatId: string): Promise<Chat>
 

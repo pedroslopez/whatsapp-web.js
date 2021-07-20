@@ -936,12 +936,12 @@ class Client extends EventEmitter {
      * Get all blocked ids by Host account
      * @returns {Promise<Array>}
      */
-    async getBlockedList() {
+    async getBlockedIds() {
         let chatIds = await this.pupPage.evaluate(() => {
             return Object.keys(window.Store.Blocklist._index);
         });
 
-        return chatIds
+        return chatIds;
     }
 }
 
