@@ -227,6 +227,12 @@ declare namespace WAWebJS {
             qr: string
         ) => void): this
 
+        /** Emitted when a call is received */
+        on(event: 'call', listener: (
+            /** The call that started */
+            call: Call
+        ) => void): this
+
         /** Emitted when the client has initialized and is ready to receive messages */
         on(event: 'ready', listener: () => void): this
     }
@@ -1043,6 +1049,43 @@ declare namespace WAWebJS {
         currency: string,
         /** Order Created At*/
         createdAt: number;
+    }
+    
+    /**
+     * Represents a Call on WhatsApp
+     *
+     * @example
+     * Call {
+     * id: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+     * from: '5511999999@c.us',
+     * timestamp: 1625003709,
+     * isVideo: false,
+     * isGroup: false,
+     * fromMe: false,
+     * canHandleLocally: false,
+     * webClientShouldHandle: false,
+     * participants: []
+     * }
+     */
+    export interface Call {
+        /** Call Id */
+        id: string,
+        /** from */
+        from?: string,
+        /** Unix timestamp for when the call was created*/
+        timestamp: number,
+        /** Is video */
+        isVideo: boolean,
+        /** Is Group */
+        isGroup: boolean,
+        /** Indicates if the call was sent by the current user */
+        fromMe: boolean,
+        /** indicates if the call can be handled in waweb */
+        canHandleLocally: boolean,
+        /** indicates if the call should be handled in waweb */
+        webClientShouldHandle: boolean,
+        /** Object with participants */
+        participants: object
     }
 }
 
