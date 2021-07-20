@@ -34,5 +34,8 @@ If applicable, add code snippets to help explain your problem.
  - npm or yarn version (`npm -v`):
  - whatsapp-web.js version:
 
+**Other**
+ - Operating system (the one running node) [Linux / MacOS / Windows]:
+ - Operating system version (ex. Windows 10):  
 ### Additional context
 Add any other context about the problem here.
