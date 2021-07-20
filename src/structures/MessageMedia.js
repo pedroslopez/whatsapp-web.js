@@ -49,30 +49,53 @@ class MessageMedia {
     /**
      * Creates a MessageMedia instance from a URL
      * @param {string} url
-     * @param {number} [sizeLimit=0]
+     * @param {Object} [options]
+     * @param {number} [options.unsafeMime=false]
+     * @param {object} [options.client]
+     * @param {object} [options.reqOptions]
+     * @param {number} [options.reqOptions.size=0]
      * @returns {Promise<MessageMedia>}
      */
-    static fromUrl(url, sizeLimit = 0) {
-        return new Promise((resolve, reject) => {
-            const pUrl = new URL(url);
-            const mimetype = mime.getType(pUrl.pathname);
+    static async fromUrl(url, options = {}) {
+        let mimetype;
 
-            if (!mimetype) {
-                return reject(new Error('Unable to determine MIME type'));
+        if (!options.unsafeMime) {
+            const pUrl = new URL(url);
+            mimetype = mime.getType(pUrl.pathname);
+
+            if (!mimetype)
+                throw new Error('Unable to determine MIME type');
+        }
+
+        async function fetchData (url, options) {
+            const reqOptions = Object.assign({ headers: { accept: 'image/* video/* text/* audio/*' } }, options);
+            const response = await fetch(url, reqOptions);
+            const mime = response.headers.get('Content-Type');
+            let data = '';
+
+            if (response.buffer) {
+                data = (await response.buffer()).toString('base64');
+            } else {
+                const bArray = new Uint8Array(await response.arrayBuffer());
+                bArray.forEach((b) => {
+                    data += String.fromCharCode(b);
+                });
+                data = btoa(data);
             }
 
-            fetch(url, { size: sizeLimit, headers: { accept: 'image/* video/* text/* audio/*' } })
-                .then(async res => {
-                    if (!res.ok) { return reject(new Error('Failed to download media')); }
+            console.log(mime);
 
-                    const buf = await res.buffer();
-                    const data = buf.toString('base64');
-                    const media = new MessageMedia(mimetype, data, null);
+            return { data, mime };
+        }
 
-                    return resolve(media);
-                })
-                .catch(err => reject(err));
-        });
+        const res = options.client
+            ? (await options.client.pupPage.evaluate(fetchData, url, options.reqOptions))
+            : (await fetchData(url, options.reqOptions));
+
+        if (!mimetype)
+            mimetype = res.mime;
+
+        return new MessageMedia(mimetype, res.data, null);
     }
 }
 
