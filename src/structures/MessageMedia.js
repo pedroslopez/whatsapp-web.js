@@ -82,9 +82,7 @@ class MessageMedia {
                 });
                 data = btoa(data);
             }
-
-            console.log(mime);
-
+            
             return { data, mime };
         }
 
