@@ -269,6 +269,9 @@ exports.LoadUtils = () => {
         if (msg.buttons) {
             msg.buttons = msg.buttons.serialize();
         }
+        if(msg.replyButtons) {
+            msg.replyButtons = msg.replyButtons.serialize();
+        }
         
         delete msg.pendingAckUpdate;
         
