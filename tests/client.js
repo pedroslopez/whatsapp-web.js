@@ -136,6 +136,9 @@ describe('Client', function() {
             this.timeout(35000);
             client = helper.createClient({withSession: true});
             await client.initialize();
+
+            const version = await client.getWWebVersion();
+            console.log(`WA Version: ${version}`);
         });
 
         after(async function () {
@@ -411,6 +414,49 @@ END:VCARD`;
                 const number = '9999999999';
                 const numberId = await client.getNumberId(number);
                 expect(numberId).to.eql(null);
+            });
+        });
+
+        describe('Search messages', function () {
+            it('can search for messages', async function () {
+                this.timeout(5000);
+
+                const m1 = await client.sendMessage(remoteId, 'I\'m searching for Super Mario Brothers');
+                const m2 = await client.sendMessage(remoteId, 'This also contains Mario');
+                const m3 = await client.sendMessage(remoteId, 'Nothing of interest here, just Luigi');
+                
+                // wait for search index to catch up
+                await helper.sleep(1000);
+                
+                const msgs = await client.searchMessages('Mario', {chatId: remoteId});
+                expect(msgs.length).to.be.greaterThanOrEqual(2);
+                const msgIds = msgs.map(m => m.id._serialized);
+                expect(msgIds).to.include.members([
+                    m1.id._serialized, m2.id._serialized
+                ]);
+                expect(msgIds).to.not.contain(m3.id._serialized);
+            });
+        });
+
+        describe('Status/About', function () {
+            it('can set the status text', async function () {
+                this.timeout(5000);
+
+                await client.setStatus('My shiny new status');
+
+                const me = await client.getContactById(client.info.wid._serialized);
+                const status = await me.getAbout();
+                expect(status).to.eql('My shiny new status');
+            });
+
+            it('can set the status text to something else', async function () {
+                this.timeout(5000);
+
+                await client.setStatus('Busy');
+                
+                const me = await client.getContactById(client.info.wid._serialized);
+                const status = await me.getAbout();
+                expect(status).to.eql('Busy');
             });
         });
     });
