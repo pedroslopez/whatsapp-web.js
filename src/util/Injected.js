@@ -36,6 +36,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.QueryOrder = window.mR.findModule('queryOrder')[0];
     window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
     window.Store.DownloadManager = window.mR.findModule('DownloadManager')[0].default;
+    window.Store.Call = window.mR.findModule('CallCollection')[0].default;
 };
 
 exports.LoadUtils = () => {
@@ -313,8 +314,8 @@ exports.LoadUtils = () => {
         if (msg.dynamicReplyButtons) {
             msg.dynamicReplyButtons = JSON.parse(JSON.stringify(msg.dynamicReplyButtons)); //not final version
         }
-        if (msg.replyButtons) {
-            msg.replyButtons = JSON.parse(JSON.stringify(msg.replyButtons));
+        if(msg.replyButtons) {
+            msg.replyButtons = msg.replyButtons.serialize();
         }
         
         delete msg.pendingAckUpdate;
