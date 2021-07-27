@@ -1,4 +1,4 @@
-[![npm](https://img.shields.io/npm/v/whatsapp-web.js.svg)](https://www.npmjs.com/package/whatsapp-web.js) [![Depfu](https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg)](https://depfu.com/github/pedroslopez/whatsapp-web.js?project_id=9765) ![WhatsApp_Web 2.2126.10](https://img.shields.io/badge/WhatsApp_Web-2.2126.10-brightgreen.svg) [![Discord Chat](https://img.shields.io/discord/698610475432411196.svg?logo=discord)](https://discord.gg/H7DqQs4)  
+[![npm](https://img.shields.io/npm/v/whatsapp-web.js.svg)](https://www.npmjs.com/package/whatsapp-web.js) [![Depfu](https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg)](https://depfu.com/github/pedroslopez/whatsapp-web.js?project_id=9765) ![WhatsApp_Web 2.2126.11](https://img.shields.io/badge/WhatsApp_Web-2.2126.11-brightgreen.svg) [![Discord Chat](https://img.shields.io/discord/698610475432411196.svg?logo=discord)](https://discord.gg/H7DqQs4)  
 
 # whatsapp-web.js
 A WhatsApp API client that connects through the WhatsApp Web browser app
@@ -80,7 +80,7 @@ Take a look at [example.js](https://github.com/pedroslopez/whatsapp-web.js/blob/
 | Send messages  | ✅  |
 | Receive messages  | ✅  |
 | Send media (images/audio/documents)  | ✅  |
-| Send media (video)  | ✅ [(requires google chrome)](https://waguide.pedroslopez.me/features/handling-attachments#caveat-for-sending-videos-and-gifs)  |
+| Send media (video)  | ✅ [(requires google chrome)](https://guide.wwebjs.dev/features/handling-attachments#caveat-for-sending-videos-and-gifs)  |
 | Send stickers | ✅ |
 | Receive media (images/audio/video/documents)  | ✅  |
 | Send contact cards | ✅ |
@@ -105,9 +105,10 @@ Something missing? Make an issue and let us know!
 
 ## Links
 
-* [Reference](https://pedroslopez.me/whatsapp-web.js)
-* [Guide](https://waguide.pedroslopez.me/) _(work in progress)_
+* [Reference](https://docs.wwebjs.dev/)
+* [Guide](https://guide.wwebjs.dev/) _(work in progress)_
 * [GitHub](https://github.com/pedroslopez/whatsapp-web.js)
+* [npm](https://npmjs.org/package/whatsapp-web.js)
 
 ## Contributing
 

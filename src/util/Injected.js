@@ -36,6 +36,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.QueryOrder = window.mR.findModule('queryOrder')[0];
     window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
     window.Store.DownloadManager = window.mR.findModule('DownloadManager')[0].default;
+    window.Store.Call = window.mR.findModule('CallCollection')[0].default;
 };
 
 exports.LoadUtils = () => {
@@ -267,6 +268,9 @@ exports.LoadUtils = () => {
         msg.links = (message.getLinks()).map(link => ({ link: link.href, isSuspicious: link.suspiciousCharacters?.size ? true : false}));
         if (msg.buttons) {
             msg.buttons = msg.buttons.serialize();
+        }
+        if(msg.replyButtons) {
+            msg.replyButtons = msg.replyButtons.serialize();
         }
         
         delete msg.pendingAckUpdate;
