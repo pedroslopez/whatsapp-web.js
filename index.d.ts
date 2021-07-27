@@ -559,6 +559,9 @@ declare namespace WAWebJS {
         businessOwnerJid?: string,
         /** Product JID */
         productId?: string,
+        
+        /** message buttons */
+        dynamicReplyButtons?: object,
         /** Accept the Group V4 Invite in message */
         acceptGroupV4Invite: () => Promise<{status: number}>,
         /** Deletes the message from the chat */

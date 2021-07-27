@@ -310,6 +310,12 @@ exports.LoadUtils = () => {
         if (msg.buttons) {
             msg.buttons = msg.buttons.serialize();
         }
+        if (msg.dynamicReplyButtons) {
+            msg.dynamicReplyButtons = JSON.parse(JSON.stringify(msg.dynamicReplyButtons)); //not final version
+        }
+        if (msg.replyButtons) {
+            msg.replyButtons = JSON.parse(JSON.stringify(msg.replyButtons));
+        }
         
         delete msg.pendingAckUpdate;
         

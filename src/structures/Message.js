@@ -205,6 +205,11 @@ class Message extends Base {
          */
         this.links = data.links;
 
+        /** buttons */
+        if (data.dynamicReplyButtons) {
+            this.dynamicReplyButtons = data.dynamicReplyButtons;
+        }
+        
         return super._patch(data);
     }
 
