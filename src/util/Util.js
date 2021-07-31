@@ -7,6 +7,7 @@ const { tmpdir } = require('os');
 const ffmpeg = require('fluent-ffmpeg');
 const webp = require('node-webpmux');
 const fs = require('fs').promises;
+const webp_converter = require('webp-converter');
 
 const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
 
@@ -63,18 +64,24 @@ class Util {
             return media;
         }
       
-        const buff = Buffer.from(media.data, 'base64');
+        //const buff = Buffer.from(media.data, 'base64');
       
-        let sharpImg = sharp(buff);
-        sharpImg = sharpImg.webp();
+        //let sharpImg = sharp(buff);
+        //sharpImg = sharpImg.webp();
       
-        sharpImg = sharpImg.resize(512, 512, {
-            fit: 'contain',
-            background: { r: 0, g: 0, b: 0, alpha: 0 },
-        });
+        //sharpImg = sharpImg.resize(512, 512, {
+        //    fit: 'contain',
+        //    background: { r: 0, g: 0, b: 0, alpha: 0 },
+        //});
       
-        let webpBase64 = (await sharpImg.toBuffer()).toString('base64');
+        //let webpBase64 = (await sharpImg.toBuffer()).toString('base64');
+
+		if (!(await fs.exists("./node_modules/webp-converter/temp)"))) {
+			await fs.mkdir("./node_modules/webp-converter/temp");
+		}
       
+		let webpBase64 = await webp_converter.str2webpstr(media.data, media.mimetype.split('/')[1], "-q 100 -mt -resize 512 512");
+
         return {             
             mimetype: 'image/webp',
             data: webpBase64,
