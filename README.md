@@ -38,6 +38,8 @@ client.on('message', msg => {
 client.initialize();
 ```
 
+Take a look at [example.js](https://github.com/pedroslopez/whatsapp-web.js/blob/master/example.js) for another example with more use cases.
+
 ## Remote Access
 
 You could also connect to any previously existing browser instance:
@@ -70,8 +72,6 @@ Reference: https://docs.browserless.io/docs/docker-quickstart.html
 > chrome.exe --remote-debugging-port=9222
 
 After that check the following webpage and check http://127.0.0.1:9220/json and get the **webSocketDebuggerUrl**
-
-Take a look at [example.js](https://github.com/pedroslopez/whatsapp-web.js/blob/master/example.js) for another example with more use cases.
 
 ## Supported features
 
