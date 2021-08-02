@@ -1,5 +1,6 @@
 
 import { EventEmitter } from 'events'
+import { RequestInit } from 'node-fetch'
 import puppeteer = require('puppeteer')
 
 declare namespace WAWebJS {
@@ -227,6 +228,12 @@ declare namespace WAWebJS {
             qr: string
         ) => void): this
 
+        /** Emitted when a call is received */
+        on(event: 'call', listener: (
+            /** The call that started */
+            call: Call
+        ) => void): this
+
         /** Emitted when the client has initialized and is ready to receive messages */
         on(event: 'ready', listener: () => void): this
     }
@@ -349,7 +356,7 @@ declare namespace WAWebJS {
         reply: (content: MessageContent, options?: MessageSendOptions) => Promise<Message>,
 
     }
-
+    
     /** whatsapp web url */
     export const WhatsWebURL: string
 
@@ -517,6 +524,11 @@ declare namespace WAWebJS {
         id: MessageId,
         /** Indicates if the message was forwarded */
         isForwarded: boolean,
+        /**
+         * Indicates how many times the message was forwarded.
+         * The maximum value is 127.
+         */
+        forwardingScore: number,
         /** Indicates if the message was starred */
         isStarred: boolean,
         /** Location information contained in the message, if the message is type "location" */
@@ -540,7 +552,10 @@ declare namespace WAWebJS {
         /** Message type */
         type: MessageTypes,
         /** Links included in the message. */
-        links: string[],
+        links: Array<{
+            link: string,
+            isSuspicious: boolean
+        }>,
         /** Order ID */
         orderId: string,
         /** title */
@@ -595,10 +610,13 @@ declare namespace WAWebJS {
         _serialized: string,
     }
 
-    export interface Location {
-        description?: string | null,
-        latitude: string,
-        longitude: string,
+    /** Location information */
+    export class Location {
+        description?: string | null
+        latitude: string
+        longitude: string
+        
+        constructor(latitude: number, longitude: number, description?: string)
     }
 
     export interface Label {
@@ -647,6 +665,12 @@ declare namespace WAWebJS {
         stickerCategories?: string[]
     }
 
+    export interface MediaFromURLOptions {
+        client?: Client
+        unsafeMime?: boolean
+        reqOptions?: RequestInit
+    }
+
     /** Media attached to a message */
     export class MessageMedia {
         /** MIME type of the attachment */
@@ -668,6 +692,9 @@ declare namespace WAWebJS {
 
         /** Creates a MessageMedia instance from a local file path */
         static fromFilePath: (filePath: string) => MessageMedia
+
+        /** Creates a MessageMedia instance from a URL */
+        static fromUrl: (url: string, options?: MediaFromURLOptions) => Promise<MessageMedia>
     }
 
     export type MessageContent = string | MessageMedia | Location | Contact | Contact[]
@@ -1035,6 +1062,43 @@ declare namespace WAWebJS {
         currency: string,
         /** Order Created At*/
         createdAt: number;
+    }
+    
+    /**
+     * Represents a Call on WhatsApp
+     *
+     * @example
+     * Call {
+     * id: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+     * from: '5511999999@c.us',
+     * timestamp: 1625003709,
+     * isVideo: false,
+     * isGroup: false,
+     * fromMe: false,
+     * canHandleLocally: false,
+     * webClientShouldHandle: false,
+     * participants: []
+     * }
+     */
+    export interface Call {
+        /** Call Id */
+        id: string,
+        /** from */
+        from?: string,
+        /** Unix timestamp for when the call was created*/
+        timestamp: number,
+        /** Is video */
+        isVideo: boolean,
+        /** Is Group */
+        isGroup: boolean,
+        /** Indicates if the call was sent by the current user */
+        fromMe: boolean,
+        /** indicates if the call can be handled in waweb */
+        canHandleLocally: boolean,
+        /** indicates if the call should be handled in waweb */
+        webClientShouldHandle: boolean,
+        /** Object with participants */
+        participants: object
     }
 }
 
