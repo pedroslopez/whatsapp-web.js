@@ -265,7 +265,11 @@ exports.LoadUtils = () => {
         const msg = message.serialize();
         
         msg.isStatusV3 = message.isStatusV3;
-        msg.links = (message.getLinks()).map(link => ({ link: link.href, isSuspicious: link.suspiciousCharacters?.size ? true : false}));
+        msg.links = (message.getLinks()).map(link => ({ 
+            link: link.href, 
+            isSuspicious: Boolean(link.suspiciousCharacters && link.suspiciousCharacters.size)
+        }));
+
         if (msg.buttons) {
             msg.buttons = msg.buttons.serialize();
         }

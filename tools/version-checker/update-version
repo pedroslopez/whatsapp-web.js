@@ -1,21 +1,12 @@
 #!/usr/bin/env node
 
 const fs = require('fs');
-const puppeteer = require('puppeteer');
-const { DefaultOptions } = require('../../src/util/Constants');
+const fetch = require('node-fetch');
 
-const getLatestVersion = async () => { 
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    await page.setUserAgent(DefaultOptions.userAgent);
-
-    await page.goto('https://web.whatsapp.com/', { waitUntil: 'load'});
-    await page.waitForSelector('.landing-header');
-
-    const version = await page.evaluate(() => window.Debug.VERSION);
-    await browser.close();
-
-    return version;
+const getLatestVersion = async (currentVersion) => { 
+    const res = await fetch(`https://web.whatsapp.com/check-update?version=${currentVersion}&platform=web`);
+    const data = await res.json();
+    return data.currentVersion;
 };
 
 const getCurrentVersion = () => {
@@ -40,7 +31,7 @@ const updateVersion = async (oldVersion, newVersion) => {
 
 (async () => {
     const currentVersion = getCurrentVersion();
-    const version = await getLatestVersion();
+    const version = await getLatestVersion(currentVersion);
 
     console.log(`Current version: ${currentVersion}`);
     console.log(`Latest version: ${version}`);
