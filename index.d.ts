@@ -49,7 +49,7 @@ declare namespace WAWebJS {
         logout(): Promise<void>
 
         /** Get all blocked ids by host account */
-        getBlockedIds(): Promise<string[]>
+        getBlockedContacts(): Promise<Contact[]>
 
         /** Get chat instance by ID */
         getChatById(chatId: string): Promise<Chat>
