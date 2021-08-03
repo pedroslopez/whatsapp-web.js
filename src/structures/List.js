@@ -13,7 +13,7 @@ class List {
      * @param {string?} title
      * @param {string?} footer
      */
-    constructor(body,buttonText,sections , title, footer) {
+    constructor(body, buttonText, sections, title, footer) {
         /**
          * Message body
          * @type {string}

@@ -162,7 +162,6 @@ exports.LoadUtils = () => {
                 footer: options.buttons.footer ? options.buttons.footer : undefined,
                 dynamicReplyButtons: options.buttons.buttons,
                 replyButtons: options.buttons.buttons,
-                // type: options.buttons.type,
                 caption: caption
             };
             delete options.buttons;

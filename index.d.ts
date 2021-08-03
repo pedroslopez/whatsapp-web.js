@@ -565,7 +565,6 @@ declare namespace WAWebJS {
         businessOwnerJid?: string,
         /** Product JID */
         productId?: string,
-        
         /** message buttons */
         dynamicReplyButtons?: object,
         /** Accept the Group V4 Invite in message */
