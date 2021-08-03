@@ -33,7 +33,6 @@ class Buttons {
         this.footer = footer;
 
         if (body instanceof MessageMedia) {
-            // throw '[BT02] MessageMedia not ready';
             this.type = 'media';
             this.title = '';
         }else{

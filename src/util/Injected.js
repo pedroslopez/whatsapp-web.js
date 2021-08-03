@@ -311,7 +311,7 @@ exports.LoadUtils = () => {
             msg.buttons = msg.buttons.serialize();
         }
         if (msg.dynamicReplyButtons) {
-            msg.dynamicReplyButtons = JSON.parse(JSON.stringify(msg.dynamicReplyButtons)); //not final version
+            msg.dynamicReplyButtons = JSON.parse(JSON.stringify(msg.dynamicReplyButtons));
         }
         if(msg.replyButtons) {
             msg.replyButtons = msg.replyButtons.serialize();
