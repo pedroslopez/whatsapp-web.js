@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.14.0 &raquo; Source: structures/Product.js</title>
+  <title>whatsapp-web.js 1.14.0 &raquo; Source: structures/Call.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -26,19 +26,18 @@
         </div>
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1>Source: structures/Product.js</h1>
+            <h1>Source: structures/Call.js</h1>
           </header>
           <article>
             <pre class="prettyprint linenums"><code>&#x27;use strict&#x27;;
 
 const Base &#x3D; require(&#x27;./Base&#x27;);
-const ProductMetadata &#x3D; require(&#x27;./ProductMetadata&#x27;);
 
 /**
- * Represents a Product on WhatsAppBusiness
+ * Represents a Call on WhatsApp
  * @extends {Base}
  */
-class Product extends Base {
+class Call extends Base {
     constructor(client, data) {
         super(client);
 
@@ -47,56 +46,57 @@ class Product extends Base {
 
     _patch(data) {
         /**
-         * Product ID
+         * Call ID
          * @type {string}
          */
         this.id &#x3D; data.id;
         /**
-         * Price
+         * From
          * @type {string}
          */
-        this.price &#x3D; data.price ? data.price : &#x27;&#x27;;
+        this.from &#x3D; data.peerJid;
         /**
-         * Product Thumbnail
-         * @type {string}
-         */
-        this.thumbnailUrl &#x3D; data.thumbnailUrl;
-        /**
-         * Currency
-         * @type {string}
-         */
-        this.currency &#x3D; data.currency;
-        /**
-         * Product Name
-         * @type {string}
-         */
-        this.name &#x3D; data.name;
-        /**
-         * Product Quantity
+         * Unix timestamp for when the call was created
          * @type {number}
          */
-        this.quantity &#x3D; data.quantity;
-        /** Product metadata */
-        this.data &#x3D; null;
+        this.timestamp &#x3D; data.offerTime;
+        /**
+         * Is video
+         * @type {boolean}
+         */
+        this.isVideo &#x3D; data.isVideo;
+        /**
+         * Is Group
+         * @type {boolean}
+         */
+        this.isGroup &#x3D; data.isGroup;
+        /**
+         * Indicates if the call was sent by the current user
+         * @type {boolean}
+         */
+        this.fromMe &#x3D; data.outgoing;
+        /**
+         * Indicates if the call can be handled in waweb
+         * @type {boolean}
+         */
+        this.canHandleLocally &#x3D; data.canHandleLocally;
+        /**
+         * Indicates if the call Should be handled in waweb
+         * @type {boolean}
+         */
+        this.webClientShouldHandle &#x3D; data.webClientShouldHandle;
+        /**
+         * Object with participants
+         * @type {object}
+         */
+        this.participants &#x3D; data.participants;
+        
         return super._patch(data);
     }
-
-    async getData() {
-        if (this.data &#x3D;&#x3D;&#x3D; null) {
-            let result &#x3D; await this.client.pupPage.evaluate((productId) &#x3D;&gt; {
-                return window.WWebJS.getProductMetadata(productId);
-            }, this.id);
-            if (!result) {
-                this.data &#x3D; undefined;
-            } else {
-                this.data &#x3D; new ProductMetadata(this.client, result);
-            }
-        }
-        return this.data;
-    }
+    
 }
 
-module.exports &#x3D; Product;</code></pre>
+module.exports &#x3D; Call;</code></pre>
           </article>
         </div>
       </div>
