@@ -1,5 +1,6 @@
 
 import { EventEmitter } from 'events'
+import { RequestInit } from 'node-fetch'
 import puppeteer = require('puppeteer')
 
 declare namespace WAWebJS {
@@ -669,6 +670,12 @@ declare namespace WAWebJS {
         stickerCategories?: string[]
     }
 
+    export interface MediaFromURLOptions {
+        client?: Client
+        unsafeMime?: boolean
+        reqOptions?: RequestInit
+    }
+
     /** Media attached to a message */
     export class MessageMedia {
         /** MIME type of the attachment */
@@ -687,6 +694,9 @@ declare namespace WAWebJS {
 
         /** Creates a MessageMedia instance from a local file path */
         static fromFilePath: (filePath: string) => MessageMedia
+
+        /** Creates a MessageMedia instance from a URL */
+        static fromUrl: (url: string, options?: MediaFromURLOptions) => Promise<MessageMedia>
     }
 
     export type MessageContent = string | MessageMedia | Location | Contact | Contact[]

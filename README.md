@@ -1,4 +1,4 @@
-[![npm](https://img.shields.io/npm/v/whatsapp-web.js.svg)](https://www.npmjs.com/package/whatsapp-web.js) [![Depfu](https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg)](https://depfu.com/github/pedroslopez/whatsapp-web.js?project_id=9765) ![WhatsApp_Web 2.2126.11](https://img.shields.io/badge/WhatsApp_Web-2.2126.11-brightgreen.svg) [![Discord Chat](https://img.shields.io/discord/698610475432411196.svg?logo=discord)](https://discord.gg/H7DqQs4)  
+[![npm](https://img.shields.io/npm/v/whatsapp-web.js.svg)](https://www.npmjs.com/package/whatsapp-web.js) [![Depfu](https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg)](https://depfu.com/github/pedroslopez/whatsapp-web.js?project_id=9765) ![WhatsApp_Web 2.2126.14](https://img.shields.io/badge/WhatsApp_Web-2.2126.14-brightgreen.svg) [![Discord Chat](https://img.shields.io/discord/698610475432411196.svg?logo=discord)](https://discord.gg/H7DqQs4)  
 
 # whatsapp-web.js
 A WhatsApp API client that connects through the WhatsApp Web browser app
@@ -11,7 +11,7 @@ It uses Puppeteer to run a real instance of Whatsapp Web to avoid getting blocke
 
 The module is now available on npm! `npm i whatsapp-web.js`
 
-Please note that Node v14+ is required.
+Please note that Node v12+ is required.
 
 ## Example usage
 
@@ -37,6 +37,8 @@ client.on('message', msg => {
 
 client.initialize();
 ```
+
+Take a look at [example.js](https://github.com/pedroslopez/whatsapp-web.js/blob/master/example.js) for another example with more use cases.
 
 ## Remote Access
 
@@ -70,8 +72,6 @@ Reference: https://docs.browserless.io/docs/docker-quickstart.html
 > chrome.exe --remote-debugging-port=9222
 
 After that check the following webpage and check http://127.0.0.1:9220/json and get the **webSocketDebuggerUrl**
-
-Take a look at [example.js](https://github.com/pedroslopez/whatsapp-web.js/blob/master/example.js) for another example with more use cases.
 
 ## Supported features
 
