@@ -1,5 +1,6 @@
 
 import { EventEmitter } from 'events'
+import { RequestInit } from 'node-fetch'
 import puppeteer = require('puppeteer')
 
 declare namespace WAWebJS {
@@ -241,6 +242,12 @@ declare namespace WAWebJS {
             /** qr code string
              *  @example ```1@9Q8tWf6bnezr8uVGwVCluyRuBOJ3tIglimzI5dHB0vQW2m4DQ0GMlCGf,f1/vGcW4Z3vBa1eDNl3tOjWqLL5DpYTI84DMVkYnQE8=,ZL7YnK2qdPN8vKo2ESxhOQ==``` */
             qr: string
+        ) => void): this
+
+        /** Emitted when a call is received */
+        on(event: 'call', listener: (
+            /** The call that started */
+            call: Call
         ) => void): this
 
         /** Emitted when the client has initialized and is ready to receive messages */
@@ -674,6 +681,12 @@ declare namespace WAWebJS {
         stickerCategories?: string[]
     }
 
+    export interface MediaFromURLOptions {
+        client?: Client
+        unsafeMime?: boolean
+        reqOptions?: RequestInit
+    }
+
     /** Media attached to a message */
     export class MessageMedia {
         /** MIME type of the attachment */
@@ -692,6 +705,9 @@ declare namespace WAWebJS {
 
         /** Creates a MessageMedia instance from a local file path */
         static fromFilePath: (filePath: string) => MessageMedia
+
+        /** Creates a MessageMedia instance from a URL */
+        static fromUrl: (url: string, options?: MediaFromURLOptions) => Promise<MessageMedia>
     }
 
     export type MessageContent = string | MessageMedia | Location | Contact | Contact[]
@@ -1073,6 +1089,43 @@ declare namespace WAWebJS {
         currency: string,
         /** Order Created At*/
         createdAt: number;
+    }
+    
+    /**
+     * Represents a Call on WhatsApp
+     *
+     * @example
+     * Call {
+     * id: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+     * from: '5511999999@c.us',
+     * timestamp: 1625003709,
+     * isVideo: false,
+     * isGroup: false,
+     * fromMe: false,
+     * canHandleLocally: false,
+     * webClientShouldHandle: false,
+     * participants: []
+     * }
+     */
+    export interface Call {
+        /** Call Id */
+        id: string,
+        /** from */
+        from?: string,
+        /** Unix timestamp for when the call was created*/
+        timestamp: number,
+        /** Is video */
+        isVideo: boolean,
+        /** Is Group */
+        isGroup: boolean,
+        /** Indicates if the call was sent by the current user */
+        fromMe: boolean,
+        /** indicates if the call can be handled in waweb */
+        canHandleLocally: boolean,
+        /** indicates if the call should be handled in waweb */
+        webClientShouldHandle: boolean,
+        /** Object with participants */
+        participants: object
     }
 }
 
