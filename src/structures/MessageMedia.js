@@ -50,7 +50,7 @@ class MessageMedia {
      * Creates a MessageMedia instance from a URL
      * @param {string} url
      * @param {Object} [options]
-     * @param {number} [options.unsafeMime=false]
+     * @param {boolean} [options.unsafeMime=false]
      * @param {object} [options.client]
      * @param {object} [options.reqOptions]
      * @param {number} [options.reqOptions.size=0]
