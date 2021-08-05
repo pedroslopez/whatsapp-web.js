@@ -58,6 +58,7 @@ class MessageMedia {
      */
     static async fromUrl(url, options = {}) {
         const pUrl = new URL(url);
+        let filename = pUrl.pathname.split('/').pop();
         let mimetype = mime.getType(pUrl.pathname);
 
         if (!mimetype && !options.unsafeMime)
@@ -89,7 +90,7 @@ class MessageMedia {
         if (!mimetype)
             mimetype = res.mime;
 
-        return new MessageMedia(mimetype, res.data, null);
+        return new MessageMedia(mimetype, res.data, filename);
     }
 }
 
