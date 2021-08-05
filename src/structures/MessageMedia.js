@@ -57,15 +57,11 @@ class MessageMedia {
      * @returns {Promise<MessageMedia>}
      */
     static async fromUrl(url, options = {}) {
-        let mimetype;
+        const pUrl = new URL(url);
+        let mimetype = mime.getType(pUrl.pathname);
 
-        if (!options.unsafeMime) {
-            const pUrl = new URL(url);
-            mimetype = mime.getType(pUrl.pathname);
-
-            if (!mimetype)
-                throw new Error('Unable to determine MIME type');
-        }
+        if (!mimetype && !options.unsafeMime)
+            throw new Error('Unable to determine MIME type using URL. Set unsafeMime to true to download it anyway.');
 
         async function fetchData (url, options) {
             const reqOptions = Object.assign({ headers: { accept: 'image/* video/* text/* audio/*' } }, options);
