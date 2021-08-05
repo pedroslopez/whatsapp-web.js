@@ -75,11 +75,11 @@ class Util {
       
         //let webpBase64 = (await sharpImg.toBuffer()).toString('base64');
 
-		if (!(await fs.exists("./node_modules/webp-converter/temp)"))) {
-			await fs.mkdir("./node_modules/webp-converter/temp");
-		}
-      
-		let webpBase64 = await webp_converter.str2webpstr(media.data, media.mimetype.split('/')[1], "-q 100 -mt -resize 512 512");
+        if (!(await fs.exists('./node_modules/webp-converter/temp'))) {
+            await fs.mkdir('./node_modules/webp-converter/temp');
+        }
+    
+        let webpBase64 = await webp_converter.str2webpstr(media.data, media.mimetype.split('/')[1], "-q 100 -mt -resize 512 512");
 
         return {             
             mimetype: 'image/webp',
