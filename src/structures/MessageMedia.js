@@ -50,6 +50,7 @@ class MessageMedia {
      * Creates a MessageMedia instance from a URL
      * @param {string} url
      * @param {Object} [options]
+     * @param {string} [options.filename]
      * @param {number} [options.unsafeMime=false]
      * @param {object} [options.client]
      * @param {object} [options.reqOptions]
@@ -58,6 +59,13 @@ class MessageMedia {
      */
     static async fromUrl(url, options = {}) {
         let mimetype;
+        let filename = null
+
+        if (!options.filename) {
+            filename = new URL(decodeURIComponent(url)).pathname.split('/').pop();
+        } else {
+            filename = options.filename
+        }
 
         if (!options.unsafeMime) {
             const pUrl = new URL(url);
@@ -93,7 +101,7 @@ class MessageMedia {
         if (!mimetype)
             mimetype = res.mime;
 
-        return new MessageMedia(mimetype, res.data, null);
+        return new MessageMedia(mimetype, res.data, filename);
     }
 }
 
