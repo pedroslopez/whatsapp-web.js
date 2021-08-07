@@ -318,7 +318,7 @@ exports.LoadUtils = () => {
             msg.dynamicReplyButtons = JSON.parse(JSON.stringify(msg.dynamicReplyButtons));
         }
         if(msg.replyButtons) {
-            msg.replyButtons = msg.replyButtons.serialize();
+            msg.replyButtons = JSON.parse(JSON.stringify(msg.replyButtons)); // serialize broke button message send
         }
         
         delete msg.pendingAckUpdate;
