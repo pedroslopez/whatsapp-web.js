@@ -49,7 +49,7 @@ declare namespace WAWebJS {
         logout(): Promise<void>
 
         /** Get chat instance by ID */
-        getChatById(chatId: string): Promise<Chat>
+        getChatById(chatId: string): Promise<Chat|GroupChat|PrivateChat>
 
         /** Get all current chat instances */
         getChats(): Promise<Chat[]>
