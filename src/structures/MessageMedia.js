@@ -59,13 +59,10 @@ class MessageMedia {
      */
     static async fromUrl(url, options = {}) {
         let mimetype;
-        let filename = null
 
-        if (!options.filename) {
-            filename = new URL(decodeURIComponent(url)).pathname.split('/').pop();
-        } else {
-            filename = options.filename
-        }
+        const filename = options.filename?
+            options.filename
+            : new URL(decodeURIComponent(url)).pathname.split('/').pop();
 
         if (!options.unsafeMime) {
             const pUrl = new URL(url);
