@@ -214,7 +214,7 @@ class Message extends Base {
 
     /**
      * Returns the Chat this message was sent in
-     * @returns {Promise<Chat>}
+     * @returns {Promise<Chat|GroupChat|PrivateChat>}
      */
     getChat() {
         return this.client.getChatById(this._getChatId());
