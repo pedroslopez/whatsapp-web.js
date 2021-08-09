@@ -51,6 +51,7 @@ class MessageMedia {
      * @param {string} url
      * @param {Object} [options]
      * @param {boolean} [options.unsafeMime=false]
+     * @param {string} [options.filename]
      * @param {object} [options.client]
      * @param {object} [options.reqOptions]
      * @param {number} [options.reqOptions.size=0]
@@ -58,7 +59,6 @@ class MessageMedia {
      */
     static async fromUrl(url, options = {}) {
         const pUrl = new URL(url);
-        let filename = pUrl.pathname.split('/').pop();
         let mimetype = mime.getType(pUrl.pathname);
 
         if (!mimetype && !options.unsafeMime)
@@ -68,6 +68,7 @@ class MessageMedia {
             const reqOptions = Object.assign({ headers: { accept: 'image/* video/* text/* audio/*' } }, options);
             const response = await fetch(url, reqOptions);
             const mime = response.headers.get('Content-Type');
+            const name = response.headers.get('Content-Disposition').match(/((?<=filename=")(.*)(?="))/);
             let data = '';
 
             if (response.buffer) {
@@ -80,13 +81,17 @@ class MessageMedia {
                 data = btoa(data);
             }
             
-            return { data, mime };
+            return { data, mime, name };
         }
 
         const res = options.client
             ? (await options.client.pupPage.evaluate(fetchData, url, options.reqOptions))
             : (await fetchData(url, options.reqOptions));
 
+        const filename = options.filename ?? res.name
+            ? res.name[0]
+            : pUrl.pathname.split('/').pop() || 'file';
+        
         if (!mimetype)
             mimetype = res.mime;
 
