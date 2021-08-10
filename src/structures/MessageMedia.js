@@ -68,7 +68,7 @@ class MessageMedia {
             const reqOptions = Object.assign({ headers: { accept: 'image/* video/* text/* audio/*' } }, options);
             const response = await fetch(url, reqOptions);
             const mime = response.headers.get('Content-Type');
-            const name = response.headers.get('Content-Disposition').match(/((?<=filename=")(.*)(?="))/);
+            const name = response.headers.get('Content-Disposition')?.match(/((?<=filename=")(.*)(?="))/);
             let data = '';
 
             if (response.buffer) {
