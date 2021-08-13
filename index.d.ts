@@ -648,7 +648,7 @@ declare namespace WAWebJS {
         /** Image or videos caption */
         caption?: string
         /** Image and Video thumbnails*/
-        thumbnail?: string
+        thumbnail?: MessageMedia
         /** Id of the message that is being quoted (or replied to) */
         quotedMessageId?: string
         /** Contacts that are being mentioned in the message */
