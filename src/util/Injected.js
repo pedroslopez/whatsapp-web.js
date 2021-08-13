@@ -35,6 +35,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Features = window.mR.findModule('FEATURE_CHANGE_EVENT')[0].default;
     window.Store.QueryOrder = window.mR.findModule('queryOrder')[0];
     window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
+    window.Store.DownloadManager = window.mR.findModule('DownloadManager')[0].default;
+    window.Store.Call = window.mR.findModule('CallCollection')[0].default;
 };
 
 exports.LoadUtils = () => {
@@ -266,16 +268,23 @@ exports.LoadUtils = () => {
         const msg = message.serialize();
         
         msg.isStatusV3 = message.isStatusV3;
-        msg.links = (message.getLinks()).map(link => link.href);
+        msg.links = (message.getLinks()).map(link => ({ 
+            link: link.href, 
+            isSuspicious: Boolean(link.suspiciousCharacters && link.suspiciousCharacters.size)
+        }));
 
         if (msg.buttons) {
             msg.buttons = msg.buttons.serialize();
+        }
+        if(msg.replyButtons) {
+            msg.replyButtons = msg.replyButtons.serialize();
         }
         
         delete msg.pendingAckUpdate;
         
         return msg;
     };
+
 
     window.WWebJS.getChatModel = async chat => {
         let res = chat.serialize();
@@ -296,7 +305,8 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getChat = async chatId => {
-        const chat = window.Store.Chat.get(chatId);
+        const chatWid = window.Store.WidFactory.createWid(chatId);
+        const chat = await window.Store.Chat.find(chatWid);
         return await window.WWebJS.getChatModel(chat);
     };
 
@@ -326,8 +336,9 @@ exports.LoadUtils = () => {
         return res;
     };
 
-    window.WWebJS.getContact = contactId => {
-        const contact = window.Store.Contact.get(contactId);
+    window.WWebJS.getContact = async contactId => {
+        const wid = window.Store.WidFactory.createWid(contactId);
+        const contact = await window.Store.Contact.find(wid);
         return window.WWebJS.getContactModel(contact);
     };
 
@@ -352,43 +363,14 @@ exports.LoadUtils = () => {
         });
     };
 
-    window.WWebJS.downloadBuffer = (url) => {
-        return new Promise(function (resolve, reject) {
-            let xhr = new XMLHttpRequest();
-            xhr.open('GET', url);
-            xhr.responseType = 'arraybuffer';
-            xhr.onload = function () {
-                if (xhr.status == 200) {
-                    resolve(xhr.response);
-                } else {
-                    reject({
-                        status: this.status,
-                        statusText: xhr.statusText
-                    });
-                }
-            };
-            xhr.onerror = function () {
-                reject({
-                    status: this.status,
-                    statusText: xhr.statusText
-                });
-            };
-            xhr.send(null);
-        });
-    };
-
-    window.WWebJS.readBlobAsync = (blob) => {
-        return new Promise((resolve, reject) => {
-            let reader = new FileReader();
-
-            reader.onload = () => {
-                resolve(reader.result);
-            };
-
-            reader.onerror = reject;
-
-            reader.readAsDataURL(blob);
-        });
+    window.WWebJS.arrayBufferToBase64 = (arrayBuffer) => {
+        let binary = '';
+        const bytes = new Uint8Array( arrayBuffer );
+        const len = bytes.byteLength;
+        for (let i = 0; i < len; i++) {
+            binary += String.fromCharCode( bytes[ i ] );
+        }
+        return window.btoa( binary );
     };
 
     window.WWebJS.getFileHash = async (data) => {                  
