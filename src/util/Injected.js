@@ -71,12 +71,9 @@ exports.LoadUtils = () => {
                     forceGif: options.sendVideoAsGif
                 });
 
-            if (options.thumbnail) attOptions.body = options.thumbnail.data;
-
             content = options.sendMediaAsSticker ? undefined : attOptions.preview;
 
             delete options.attachment;
-            delete options.thumbnail;
             delete options.sendMediaAsSticker;
         }
 
