@@ -69,9 +69,12 @@ exports.LoadUtils = () => {
                     forceGif: options.sendVideoAsGif
                 });
 
+            if (options.thumbnail) attOptions.body = options.thumbnail
+
             content = options.sendMediaAsSticker ? undefined : attOptions.preview;
 
             delete options.attachment;
+            delete options.thumbnail;
             delete options.sendMediaAsSticker;
         }
 
@@ -150,7 +153,6 @@ exports.LoadUtils = () => {
         });
 
         const message = {
-            ...options,
             id: newMsgId,
             ack: 0,
             body: content,
@@ -164,7 +166,8 @@ exports.LoadUtils = () => {
             ...locationOptions,
             ...attOptions,
             ...quotedMsgOptions,
-            ...vcardOptions
+            ...vcardOptions,
+            ...options
         };
 
         await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
