@@ -446,6 +446,7 @@ class Client extends EventEmitter {
      * @property {string} [stickerAuthor=undefined] - Sets the author of the sticker, (if sendMediaAsSticker is true).
      * @property {string} [stickerName=undefined] - Sets the name of the sticker, (if sendMediaAsSticker is true).
      * @property {string[]} [stickerCategories=undefined] - Sets the categories of the sticker, (if sendMediaAsSticker is true). Provide emoji char array, can be null.
+     * @property {string} [thumbnail] - Custom Thumbnail for media
      * @property {MessageMedia} [media] - Media to be sent
      */
 
@@ -465,6 +466,7 @@ class Client extends EventEmitter {
             sendMediaAsSticker: options.sendMediaAsSticker,
             sendMediaAsDocument: options.sendMediaAsDocument,
             caption: options.caption,
+            thumbnail: options.thumbnail,
             quotedMessageId: options.quotedMessageId,
             parseVCards: options.parseVCards === false ? false : true,
             mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact => contact.id._serialized) : [],
