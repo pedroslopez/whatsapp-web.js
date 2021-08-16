@@ -1,0 +1,46 @@
+#!/usr/bin/env node
+
+const fs = require('fs');
+const fetch = require('node-fetch');
+
+const getLatestVersion = async (currentVersion) => { 
+    const res = await fetch(`https://web.whatsapp.com/check-update?version=${currentVersion}&platform=web`);
+    const data = await res.json();
+    return data.currentVersion;
+};
+
+const getCurrentVersion = () => {
+    try {
+        const versionFile = fs.readFileSync('./.version');
+        return versionFile ? versionFile.toString().trim() : null;
+    } catch(_) {
+        return null;
+    }
+};
+
+const updateVersion = async (oldVersion, newVersion) => {
+    const readmePath = '../../README.md';
+  
+    const readme = fs.readFileSync(readmePath);  
+    const newReadme = readme.toString().replaceAll(oldVersion, newVersion);
+
+    fs.writeFileSync(readmePath, newReadme);
+    fs.writeFileSync('./.version', newVersion);
+    
+};
+
+(async () => {
+    const currentVersion = getCurrentVersion();
+    const version = await getLatestVersion(currentVersion);
+
+    console.log(`Current version: ${currentVersion}`);
+    console.log(`Latest version: ${version}`);
+
+    if(currentVersion !== version) {
+        console.log('Updating files...');
+        await updateVersion(currentVersion, version);
+        console.log('Updated!');
+    } else {
+        console.log('No changes.');
+    }
+})();

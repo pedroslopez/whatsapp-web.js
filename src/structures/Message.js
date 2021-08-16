@@ -95,6 +95,14 @@ class Message extends Base {
         this.isForwarded = data.isForwarded;
 
         /**
+         * Indicates how many times the message was forwarded.
+         *
+         * The maximum value is 127.
+         * @type {number}
+         */
+        this.forwardingScore = data.forwardingScore || 0;
+
+        /**
          * Indicates if the message is a status update
          * @type {boolean}
          */
@@ -192,7 +200,8 @@ class Message extends Base {
 
         /**
          * Links included in the message.
-         * @type {Array<string>}
+         * @type {Array<{link: string, isSuspicious: boolean}>}
+         * 
          */
         this.links = data.links;
 
@@ -304,32 +313,39 @@ class Message extends Base {
 
             if (msg.mediaData.mediaStage != 'RESOLVED') {
                 // try to resolve media
-                await msg.downloadMedia(true, 1);
+                await msg.downloadMedia({
+                    downloadEvenIfExpensive: true, 
+                    rmrReason: 1
+                });
             }
 
-            if (msg.mediaData.mediaStage.includes('ERROR')) {
+            if (msg.mediaData.mediaStage.includes('ERROR') || msg.mediaData.mediaStage === 'FETCHING') {
                 // media could not be downloaded
                 return undefined;
             }
 
-            const decryptedMedia = await window.Store.DownloadManager.downloadAndDecrypt({
-                directPath: msg.directPath,
-                encFilehash: msg.encFilehash,
-                filehash: msg.filehash,
-                mediaKey: msg.mediaKey,
-                mediaKeyTimestamp: msg.mediaKeyTimestamp,
-                type: msg.type,
-                signal: (new AbortController).signal
-            });
-
-            const data = window.WWebJS.arrayBufferToBase64(decryptedMedia);
-
-            return {
-                data,
-                mimetype: msg.mimetype,
-                filename: msg.filename
-            };
-
+            try {
+                const decryptedMedia = await window.Store.DownloadManager.downloadAndDecrypt({
+                    directPath: msg.directPath,
+                    encFilehash: msg.encFilehash,
+                    filehash: msg.filehash,
+                    mediaKey: msg.mediaKey,
+                    mediaKeyTimestamp: msg.mediaKeyTimestamp,
+                    type: msg.type,
+                    signal: (new AbortController).signal
+                });
+    
+                const data = window.WWebJS.arrayBufferToBase64(decryptedMedia);
+    
+                return {
+                    data,
+                    mimetype: msg.mimetype,
+                    filename: msg.filename
+                };
+            } catch (e) {
+                if(e.status && e.status === 404) return undefined;
+                throw e;
+            }
         }, this.id._serialized);
 
         if (!result) return undefined;
