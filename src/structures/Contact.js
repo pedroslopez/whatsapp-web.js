@@ -176,6 +176,13 @@ class Contact extends Base {
         return about.status;
     }
     
+    /**
+     * Returns Unix timestamp for when the user was last seen.
+     * @returns {Promise<number|undefined>}
+     */
+    getLastSeen() {
+        return this.client.getLastSeen(this.id._serialized);
+    }
 }
 
 module.exports = Contact;

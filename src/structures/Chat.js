@@ -244,17 +244,6 @@ class Chat extends Base {
     async getLabels() {
         return this.client.getChatLabels(this.id._serialized);
     }
-
-    /**
-     * Returns Unix timestamp for when the user was last seen.
-     * @returns {Promise<number>}
-     */
-    getLastSeen() {
-        return this.client.pupPage.evaluate(chatId => {
-            const chat = window.Store.Chat.get(chatId);
-            return chat.presence.chatstate.t;
-        }, this.id._serialized);
-    }
 }
 
 module.exports = Chat;

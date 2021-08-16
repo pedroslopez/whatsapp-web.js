@@ -931,6 +931,17 @@ class Client extends EventEmitter {
 
         return Promise.all(chatIds.map(id => this.getChatById(id)));
     }
+
+    /**
+     * Returns Unix timestamp for when the user was last seen.
+     * @param {string} chatId
+     * @returns {Promise<number|undefined>}
+     */
+    getLastSeen(chatId) {
+        return this.pupPage.evaluate(chatId => {
+            return window.WWebJS.getLastSeen(chatId);
+        }, chatId);
+    }
 }
 
 module.exports = Client;

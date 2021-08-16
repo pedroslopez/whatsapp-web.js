@@ -236,6 +236,9 @@ declare namespace WAWebJS {
 
         /** Emitted when the client has initialized and is ready to receive messages */
         on(event: 'ready', listener: () => void): this
+
+        /** Returns Unix timestamp for when the user was last seen. */
+        getLastSeen: (chatId: string) => Promise<number?>
     }
 
     /** Current connection information */
@@ -781,6 +784,8 @@ declare namespace WAWebJS {
         /** Gets the Contact's current "about" info. Returns null if you don't have permission to read their status.  */
         getAbout: () => Promise<string | null>,
 
+        /** Returns Unix timestamp for when the user was last seen. */
+        getLastSeen: () => Promise<number?>
     }
 
     export interface ContactId {
@@ -873,8 +878,6 @@ declare namespace WAWebJS {
         markUnread: () => Promise<void>
         /** Returns array of all Labels assigned to this Chat */
         getLabels: () => Promise<Label[]>
-        /** Returns Unix timestamp for when the user was last seen. */
-        getLastSeen: () => Promise<number>
     }
 
     export interface MessageSearchOptions {

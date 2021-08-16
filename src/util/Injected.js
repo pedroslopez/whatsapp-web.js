@@ -457,6 +457,26 @@ exports.LoadUtils = () => {
 
         return undefined;
     };
+
+    window.WWebJS.getLastSeen = (chatId) => {
+        // const chat = window.Store.Chat.get(chatId);
+        // await chat.presence.subscribe();
+        // return chat.presence.chatstate.t;
+
+        return new Promise(resolve => {
+            const chat = window.Store.Chat.get(chatId);
+            chat.presence.subscribe()
+                .then(() => {
+                    if (chat.presence.chatstate.t) {
+                        return resolve(chat.presence.chatstate.t);
+                    }
+
+                    chat.presence.chatstate.once('all', () => {
+                        resolve(chat.presence.chatstate.t);
+                    });
+                });
+        });
+    };
 };
 
 exports.MarkAllRead = () => {
