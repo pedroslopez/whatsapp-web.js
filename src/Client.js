@@ -938,9 +938,9 @@ class Client extends EventEmitter {
      * @returns {Promise<number|undefined>}
      */
     getLastSeen(chatId) {
-        return this.pupPage.evaluate(chatId => {
+        return Util.setPromiseTimeout(this.pupPage.evaluate(chatId => {
             return window.WWebJS.getLastSeen(chatId);
-        }, chatId);
+        }, chatId), 15000);
     }
 }
 
