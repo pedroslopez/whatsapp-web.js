@@ -459,10 +459,6 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getLastSeen = (chatId) => {
-        // const chat = window.Store.Chat.get(chatId);
-        // await chat.presence.subscribe();
-        // return chat.presence.chatstate.t;
-
         return new Promise(resolve => {
             const chat = window.Store.Chat.get(chatId);
             chat.presence.subscribe()
@@ -471,9 +467,18 @@ exports.LoadUtils = () => {
                         return resolve(chat.presence.chatstate.t);
                     }
 
-                    chat.presence.chatstate.once('all', () => {
+                    let timeout;
+                    const handle = () => {
+                        clearTimeout(timeout);
                         resolve(chat.presence.chatstate.t);
-                    });
+                    };
+
+                    setTimeout(() => {
+                        chat.presence.chatstate.off('all', handle);
+                        resolve(undefined);
+                    }, 15000);
+
+                    chat.presence.chatstate.once('all', handle);
                 });
         });
     };
