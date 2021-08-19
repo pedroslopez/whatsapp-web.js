@@ -198,23 +198,6 @@ class Util {
     static setFfmpegPath(path) {
         ffmpeg.setFfmpegPath(path);
     }
-
-    /**
-     * Times out a promise after a given time
-     * @param {Promise} promise
-     * @param {number} timeout
-     */
-    static setPromiseTimeout(promise, timeout) {
-        let tmo;
-        return Promise.race([
-            promise,
-            new Promise((_, reject) => {
-                tmo = setTimeout(() => {
-                    reject(new Error('Promise timed out'));
-                }, timeout);
-            })
-        ]).finally(() => { clearTimeout(tmo); });
-    }
 }
 
 module.exports = Util;
