@@ -43,7 +43,7 @@ class GroupNotification extends Base {
          * 
          * @type {string}
          */
-        this.chatId = typeof (data.from) === 'object' ? data.from._serialized : data.from;
+        this.chatId = typeof (data.to) === 'object' ? data.to._serialized : data.to;
 
         /**
          * ContactId for the user that produced the GroupNotification.
@@ -69,7 +69,7 @@ class GroupNotification extends Base {
      * @returns {Promise<Chat>}
      */
     getChat() {
-        return this.client.getChatById(this.id._serialized);
+        return this.client.getChatById(this.chatId);
     }
 
     /**
@@ -96,7 +96,7 @@ class GroupNotification extends Base {
      * @returns {Promise<Message>}
      */
     async reply(content, options={}) {
-        return this.client.sendMessage(this.id._serialized, content, options);
+        return this.client.sendMessage(this.chatId, content, options);
     }
     
 }
