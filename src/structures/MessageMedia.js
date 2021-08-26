@@ -14,7 +14,7 @@ const { URL } = require('url');
  * @param {?number} filesize Document file size in bytes. Value can be null
  */
 class MessageMedia {
-    constructor(mimetype, data, filename, filesize) {
+    constructor(mimetype, data, filename, filesize = null) {
         /**
          * MIME type of the attachment
          * @type {string}
@@ -43,9 +43,10 @@ class MessageMedia {
     /**
      * Creates a MessageMedia instance from a local file path
      * @param {string} filePath 
+     * @param {?boolean} filesize if true, gets the file size
      * @returns {MessageMedia}
      */
-    static fromFilePath(filePath) {
+    static fromFilePath(filePath, filesize = false) {
         const b64data = fs.readFileSync(filePath, {encoding: 'base64'});
         const mimetype = mime.getType(filePath); 
         const filename = path.basename(filePath);
@@ -78,6 +79,7 @@ class MessageMedia {
             const reqOptions = Object.assign({ headers: { accept: 'image/* video/* text/* audio/*' } }, options);
             const response = await fetch(url, reqOptions);
             const mime = response.headers.get('Content-Type');
+            const size = response.headers.get('Content-Length');
             let data = '';
 
             if (response.buffer) {
@@ -90,7 +92,7 @@ class MessageMedia {
                 data = btoa(data);
             }
             
-            return { data, mime };
+            return { data, mime, size };
         }
 
         const res = options.client
@@ -100,7 +102,7 @@ class MessageMedia {
         if (!mimetype)
             mimetype = res.mime;
 
-        return new MessageMedia(mimetype, res.data, null);
+        return new MessageMedia(mimetype, res.data, null, res.size || null);
     }
 }
 
