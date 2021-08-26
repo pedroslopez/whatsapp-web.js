@@ -155,7 +155,7 @@ class Client extends EventEmitter {
                     qrRetries++;
                     if (qrRetries > this.options.qrMaxRetries) {
                         this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
-                        this.destroy();
+                        await this.destroy();
                     }
                 }
             };
