@@ -43,10 +43,10 @@ class MessageMedia {
     /**
      * Creates a MessageMedia instance from a local file path
      * @param {string} filePath 
-     * @param {?boolean} filesize if true, gets the file size
+     * @param {?boolean} returnSize if true, gets the file size, defaults to false to save IO
      * @returns {MessageMedia}
      */
-    static fromFilePath(filePath, filesize = false) {
+    static fromFilePath(filePath, returnSize = false) {
         const b64data = fs.readFileSync(filePath, {encoding: 'base64'});
         const mimetype = mime.getType(filePath); 
         const filename = path.basename(filePath);
