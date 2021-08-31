@@ -278,7 +278,7 @@ declare namespace WAWebJS {
          * @default 45000 */
         authTimeoutMs?: number,
         /** Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/ */
-        puppeteer?: puppeteer.LaunchOptions
+        puppeteer?: puppeteer.LaunchOptions & puppeteer.BrowserLaunchArgumentOptions
         /** Refresh interval for qr code (how much time to wait before checking if the qr code has changed)
          * @default 20000 */
         qrRefreshIntervalMs?: number
