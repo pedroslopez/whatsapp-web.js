@@ -49,7 +49,13 @@ exports.Events = {
     GROUP_UPDATE: 'group_update',
     QR_RECEIVED: 'qr',
     DISCONNECTED: 'disconnected',
+<<<<<<< HEAD
     STATE_CHANGED: 'change_state'
+=======
+    STATE_CHANGED: 'change_state',
+    BATTERY_CHANGED: 'change_battery',
+    INCOMING_CALL: 'incoming_call'
+>>>>>>> c4e2a8ca3726eb3b5af0cf32552d05d1c580cac7
 };
 
 /**

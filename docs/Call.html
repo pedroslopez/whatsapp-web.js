@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.14.1 &raquo; Class: Product</title>
+  <title>whatsapp-web.js 1.14.1 &raquo; Class: Call</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -25,10 +25,10 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
-            <h1><small></small><span class="symbol-name">Product</span></h1>
-            <p class="source-link">Source: <a href="structures_Product.js.html#source-line-10">structures/<wbr>Product.<wbr>js:10</a></p>
+            <h1><small></small><span class="symbol-name">Call</span></h1>
+            <p class="source-link">Source: <a href="structures_Call.js.html#source-line-9">structures/<wbr>Call.<wbr>js:9</a></p>
             <div class="symbol-classdesc">
-              <p>Represents a Product on WhatsAppBusiness</p>
+              <p>Represents a Call on WhatsApp</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -39,33 +39,39 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Product.html#currency">currency</a></dt>
+                    <dt><a href="Call.html#canHandleLocally">canHandleLocally</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Product.html#data">data</a></dt>
+                    <dt><a href="Call.html#from">from</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Product.html#id">id</a></dt>
-                    <dd>
-                    </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="Product.html#name">name</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="Product.html#price">price</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="Product.html#quantity">quantity</a></dt>
+                    <dt><a href="Call.html#fromMe">fromMe</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Product.html#thumbnailUrl">thumbnailUrl</a></dt>
+                    <dt><a href="Call.html#id">id</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Call.html#isGroup">isGroup</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Call.html#isVideo">isVideo</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Call.html#participants">participants</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Call.html#timestamp">timestamp</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Call.html#webClientShouldHandle">webClientShouldHandle</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -74,7 +80,7 @@
             </div>
           </section>
           <section>
-            <h2 id="Product">new&nbsp;<span class="symbol-name">Product</span><span class="signature"><span class="signature-params">()</span></span></h2>
+            <h2 id="Call">new&nbsp;<span class="symbol-name">Call</span><span class="signature"><span class="signature-params">()</span></span></h2>
             <dl class="dl-compact">
               <dt>Extends</dt>
               <dd><a href="Base.html">Base</a></dd>
@@ -83,38 +89,49 @@
           <section>
             <h2>Properties</h2>
             <section>
-              <h3 id="currency"><span class="symbol-name">currency</span><small class="property-type">
-                  &nbsp;string</small></h3>
-              <p>Currency</p>
+              <h3 id="canHandleLocally"><span class="symbol-name">canHandleLocally</span><small class="property-type">
+                  &nbsp;boolean</small></h3>
+              <p>Indicates if the call can be handled in waweb</p>
               <dl class="dl-compact">
               </dl>
-              <h3 id="data"><span class="symbol-name">data</span></h3>
-              <p>Product metadata</p>
+              <h3 id="from"><span class="symbol-name">from</span><small class="property-type">
+                  &nbsp;string</small></h3>
+              <p>From</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="fromMe"><span class="symbol-name">fromMe</span><small class="property-type">
+                  &nbsp;boolean</small></h3>
+              <p>Indicates if the call was sent by the current user</p>
               <dl class="dl-compact">
               </dl>
               <h3 id="id"><span class="symbol-name">id</span><small class="property-type">
                   &nbsp;string</small></h3>
-              <p>Product ID</p>
+              <p>Call ID</p>
               <dl class="dl-compact">
               </dl>
-              <h3 id="name"><span class="symbol-name">name</span><small class="property-type">
-                  &nbsp;string</small></h3>
-              <p>Product Name</p>
+              <h3 id="isGroup"><span class="symbol-name">isGroup</span><small class="property-type">
+                  &nbsp;boolean</small></h3>
+              <p>Is Group</p>
               <dl class="dl-compact">
               </dl>
-              <h3 id="price"><span class="symbol-name">price</span><small class="property-type">
-                  &nbsp;string</small></h3>
-              <p>Price</p>
+              <h3 id="isVideo"><span class="symbol-name">isVideo</span><small class="property-type">
+                  &nbsp;boolean</small></h3>
+              <p>Is video</p>
               <dl class="dl-compact">
               </dl>
-              <h3 id="quantity"><span class="symbol-name">quantity</span><small class="property-type">
+              <h3 id="participants"><span class="symbol-name">participants</span><small class="property-type">
+                  &nbsp;object</small></h3>
+              <p>Object with participants</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="timestamp"><span class="symbol-name">timestamp</span><small class="property-type">
                   &nbsp;number</small></h3>
-              <p>Product Quantity</p>
+              <p>Unix timestamp for when the call was created</p>
               <dl class="dl-compact">
               </dl>
-              <h3 id="thumbnailUrl"><span class="symbol-name">thumbnailUrl</span><small class="property-type">
-                  &nbsp;string</small></h3>
-              <p>Product Thumbnail</p>
+              <h3 id="webClientShouldHandle"><span class="symbol-name">webClientShouldHandle</span><small class="property-type">
+                  &nbsp;boolean</small></h3>
+              <p>Indicates if the call Should be handled in waweb</p>
               <dl class="dl-compact">
               </dl>
             </section>

@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.14.1 &raquo; Source: structures/PrivateChat.js</title>
+  <title>whatsapp-web.js 1.14.1 &raquo; Source: structures/Call.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -26,22 +26,77 @@
         </div>
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1>Source: structures/PrivateChat.js</h1>
+            <h1>Source: structures/Call.js</h1>
           </header>
           <article>
             <pre class="prettyprint linenums"><code>&#x27;use strict&#x27;;
 
-const Chat &#x3D; require(&#x27;./Chat&#x27;);
+const Base &#x3D; require(&#x27;./Base&#x27;);
 
 /**
- * Represents a Private Chat on WhatsApp
- * @extends {Chat}
+ * Represents a Call on WhatsApp
+ * @extends {Base}
  */
-class PrivateChat extends Chat {
+class Call extends Base {
+    constructor(client, data) {
+        super(client);
 
+        if (data) this._patch(data);
+    }
+
+    _patch(data) {
+        /**
+         * Call ID
+         * @type {string}
+         */
+        this.id &#x3D; data.id;
+        /**
+         * From
+         * @type {string}
+         */
+        this.from &#x3D; data.peerJid;
+        /**
+         * Unix timestamp for when the call was created
+         * @type {number}
+         */
+        this.timestamp &#x3D; data.offerTime;
+        /**
+         * Is video
+         * @type {boolean}
+         */
+        this.isVideo &#x3D; data.isVideo;
+        /**
+         * Is Group
+         * @type {boolean}
+         */
+        this.isGroup &#x3D; data.isGroup;
+        /**
+         * Indicates if the call was sent by the current user
+         * @type {boolean}
+         */
+        this.fromMe &#x3D; data.outgoing;
+        /**
+         * Indicates if the call can be handled in waweb
+         * @type {boolean}
+         */
+        this.canHandleLocally &#x3D; data.canHandleLocally;
+        /**
+         * Indicates if the call Should be handled in waweb
+         * @type {boolean}
+         */
+        this.webClientShouldHandle &#x3D; data.webClientShouldHandle;
+        /**
+         * Object with participants
+         * @type {object}
+         */
+        this.participants &#x3D; data.participants;
+        
+        return super._patch(data);
+    }
+    
 }
 
-module.exports &#x3D; PrivateChat;</code></pre>
+module.exports &#x3D; Call;</code></pre>
           </article>
         </div>
       </div>

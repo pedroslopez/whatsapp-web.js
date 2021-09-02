@@ -37,6 +37,16 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
     window.Store.User = window.mR.findModule('getMaybeMeUser')[0];
     window.Store.DownloadManager = window.mR.findModule('DownloadManager')[0].default;
+    window.Store.Call = window.mR.findModule('CallCollection')[0].default;
+    window.Store.User = window.mR.findModule('getMaybeMeUser')[0];
+    if (!window.Store.Chat._find) {
+        window.Store.Chat._find = e => {
+            const target = window.Store.Chat.get(e);
+            return target ? Promise.resolve(target) : Promise.resolve({
+                id: e
+            });
+        };
+    }
 };
 
 exports.LoadUtils = () => {
@@ -265,9 +275,16 @@ exports.LoadUtils = () => {
         const msg = message.serialize();
         
         msg.isStatusV3 = message.isStatusV3;
-        msg.links = (message.getLinks()).map(link => ({ link: link.href, isSuspicious: link.suspiciousCharacters?.size ? true : false}));
+        msg.links = (message.getLinks()).map(link => ({ 
+            link: link.href, 
+            isSuspicious: Boolean(link.suspiciousCharacters && link.suspiciousCharacters.size)
+        }));
+
         if (msg.buttons) {
             msg.buttons = msg.buttons.serialize();
+        }
+        if(msg.replyButtons) {
+            msg.replyButtons = msg.replyButtons.serialize();
         }
         
         delete msg.pendingAckUpdate;
@@ -295,7 +312,8 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getChat = async chatId => {
-        const chat = window.Store.Chat.get(chatId);
+        const chatWid = window.Store.WidFactory.createWid(chatId);
+        const chat = await window.Store.Chat.find(chatWid);
         return await window.WWebJS.getChatModel(chat);
     };
 
@@ -325,8 +343,9 @@ exports.LoadUtils = () => {
         return res;
     };
 
-    window.WWebJS.getContact = contactId => {
-        const contact = window.Store.Contact.get(contactId);
+    window.WWebJS.getContact = async contactId => {
+        const wid = window.Store.WidFactory.createWid(contactId);
+        const contact = await window.Store.Contact.find(wid);
         return window.WWebJS.getContactModel(contact);
     };
 

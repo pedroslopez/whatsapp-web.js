@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.13.2 &raquo; Home</title>
+  <title>whatsapp-web.js 1.14.1 &raquo; Home</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>13.<wbr>2</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>14.<wbr>1</a>
       </div>
     </div>
   </nav>
@@ -27,20 +27,21 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1>
-              whatsapp-web.js 1.13.2
+              whatsapp-web.js 1.14.1
             </h1>
           </header>
           <article>
-            <p><a href="https://www.npmjs.com/package/whatsapp-web.js"><img src="https://img.shields.io/npm/v/whatsapp-web.js.svg" alt="npm"></a> <a href="https://depfu.com/github/pedroslopez/whatsapp-web.js?project_id=9765"><img src="https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg" alt="Depfu"></a> <img src="https://img.shields.io/badge/WhatsApp_Web-2.2126.10-brightgreen.svg" alt="WhatsApp_Web 2.2126.10"> <a href="https://discord.gg/H7DqQs4"><img src="https://img.shields.io/discord/698610475432411196.svg?logo=discord" alt="Discord Chat"></a></p>
+            <p><a href="https://www.npmjs.com/package/whatsapp-web.js"><img src="https://img.shields.io/npm/v/whatsapp-web.js.svg" alt="npm"></a> <a href="https://depfu.com/github/pedroslopez/whatsapp-web.js?project_id=9765"><img src="https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg" alt="Depfu"></a> <img src="https://img.shields.io/badge/WhatsApp_Web-2.2126.14-brightgreen.svg" alt="WhatsApp_Web 2.2126.14"> <a href="https://discord.gg/H7DqQs4"><img src="https://img.shields.io/discord/698610475432411196.svg?logo=discord" alt="Discord Chat"></a></p>
             <h1>whatsapp-web.js</h1>
             <p>A WhatsApp API client that connects through the WhatsApp Web browser app</p>
             <p>It uses Puppeteer to run a real instance of Whatsapp Web to avoid getting blocked.</p>
             <p><strong>NOTE:</strong> I can't guarantee you will not be blocked by using this method, although it has worked for me. WhatsApp does not allow bots or unofficial clients on their platform, so this shouldn't be considered totally safe.</p>
             <h2>Installation</h2>
             <p>The module is now available on npm! <code>npm i whatsapp-web.js</code></p>
-            <p>Please note that Node v14+ is required.</p>
+            <p>Please note that Node v12+ is required.</p>
             <h2>Example usage</h2>
             <pre class="prettyprint source lang-js"><code>const { Client } = require('whatsapp-web.js');
+
 const client = new Client();
 
 client.on('qr', (qr) => {
@@ -61,6 +62,33 @@ client.on('message', msg => {
 client.initialize();
 </code></pre>
             <p>Take a look at <a href="https://github.com/pedroslopez/whatsapp-web.js/blob/master/example.js">example.js</a> for another example with more use cases.</p>
+            <h2>Remote Access</h2>
+            <p>You could also connect to any previously existing browser instance:</p>
+            <pre class="prettyprint source lang-js"><code>const client = new Client({ 
+    puppeteer: {
+        browserWSEndpoint: `ws://localhost:3000`
+    }
+});
+</code></pre>
+            <h3>Docker</h3>
+            <ol>
+              <li>Installing a browser using browserless:</li>
+            </ol>
+            <pre class="prettyprint source"><code>docker run \
+  --rm \
+  -p 3000:3000 \
+  -e &quot;MAX_CONCURRENT_SESSIONS=1&quot; \
+  browserless/chrome:latest
+</code></pre>
+            <p>Reference: https://docs.browserless.io/docs/docker-quickstart.html</p>
+            <h3>Remote Debugging</h3>
+            <ol start="2">
+              <li>Running a browser with websocket remote debugging enabled:</li>
+            </ol>
+            <blockquote>
+              <p>chrome.exe --remote-debugging-port=9222</p>
+            </blockquote>
+            <p>After that check the following webpage and check http://127.0.0.1:9220/json and get the <strong>webSocketDebuggerUrl</strong></p>
             <h2>Supported features</h2>
             <table>
               <thead>
@@ -84,7 +112,7 @@ client.initialize();
                 </tr>
                 <tr>
                   <td>Send media (video)</td>
-                  <td>✅ <a href="https://waguide.pedroslopez.me/features/handling-attachments#caveat-for-sending-videos-and-gifs">(requires google chrome)</a></td>
+                  <td>✅ <a href="https://guide.wwebjs.dev/features/handling-attachments#caveat-for-sending-videos-and-gifs">(requires google chrome)</a></td>
                 </tr>
                 <tr>
                   <td>Send stickers</td>
@@ -167,9 +195,10 @@ client.initialize();
             <p>Something missing? Make an issue and let us know!</p>
             <h2>Links</h2>
             <ul>
-              <li><a href="https://pedroslopez.me/whatsapp-web.js">Reference</a></li>
-              <li><a href="https://waguide.pedroslopez.me/">Guide</a> <em>(work in progress)</em></li>
+              <li><a href="https://docs.wwebjs.dev/">Reference</a></li>
+              <li><a href="https://guide.wwebjs.dev/">Guide</a> <em>(work in progress)</em></li>
               <li><a href="https://github.com/pedroslopez/whatsapp-web.js">GitHub</a></li>
+              <li><a href="https://npmjs.org/package/whatsapp-web.js">npm</a></li>
             </ul>
             <h2>Contributing</h2>
             <p>Pull requests are welcome! If you see something you'd like to add, please do. For drastic changes, please open an issue first.</p>
@@ -325,6 +354,75 @@ client.initialize();
                       </dd>
                       <dt class="symbol-index-name">
                         <a href="BusinessContact.html#unblock" class="!symbol-index-name">BusinessContact#<wbr>unblock()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section>
+              <div class="symbol-index-content">
+                <h2 id="Call">Call</h2>
+                <div class="symbol-index-section">
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="Call.html" class="!symbol-index-name">Call()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Call.html#canHandleLocally" class="!symbol-index-name">Call#<wbr>canHandleLocally</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Call.html#from" class="!symbol-index-name">Call#<wbr>from</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Call.html#fromMe" class="!symbol-index-name">Call#<wbr>fromMe</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="Call.html#id" class="!symbol-index-name">Call#<wbr>id</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Call.html#isGroup" class="!symbol-index-name">Call#<wbr>isGroup</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Call.html#isVideo" class="!symbol-index-name">Call#<wbr>isVideo</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Call.html#participants" class="!symbol-index-name">Call#<wbr>participants</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="Call.html#timestamp" class="!symbol-index-name">Call#<wbr>timestamp</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Call.html#webClientShouldHandle" class="!symbol-index-name">Call#<wbr>webClientShouldHandle</a>
                       </dt>
                       <dd>
                       </dd>
@@ -603,6 +701,11 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="Client.html#event:incoming_call" class="!symbol-index-name">Client#<wbr>event:incoming_call</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="Client.html#event:media_uploaded" class="!symbol-index-name">Client#<wbr>event:media_uploaded</a>
                       </dt>
                       <dd>
@@ -617,15 +720,15 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Client.html#event:message_create" class="!symbol-index-name">Client#<wbr>event:message_create</a>
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Client.html#event:message_revoke_everyone" class="!symbol-index-name">Client#<wbr>event:message_revoke_everyone</a>
                       </dt>
@@ -711,15 +814,15 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Client.html#info" class="!symbol-index-name">Client#<wbr>info</a>
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Client.html#initialize" class="!symbol-index-name">Client#<wbr>initialize()</a>
                       </dt>
@@ -1019,6 +1122,11 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="global.html#Events#.INCOMING_CALL" class="!symbol-index-name">Events.<wbr>INCOMING_CALL</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="global.html#Events#.MEDIA_UPLOADED" class="!symbol-index-name">Events.<wbr>MEDIA_UPLOADED</a>
                       </dt>
                       <dd>
@@ -1038,15 +1146,15 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="global.html#Events#.MESSAGE_REVOKED_EVERYONE" class="!symbol-index-name">Events.<wbr>MESSAGE_REVOKED_EVERYONE</a>
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="global.html#Events#.MESSAGE_REVOKED_ME" class="!symbol-index-name">Events.<wbr>MESSAGE_REVOKED_ME</a>
                       </dt>
@@ -1663,6 +1771,11 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="Message.html#forwardingScore" class="!symbol-index-name">Message#<wbr>forwardingScore</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="Message.html#from" class="!symbol-index-name">Message#<wbr>from</a>
                       </dt>
                       <dd>
@@ -1672,15 +1785,15 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Message.html#getChat" class="!symbol-index-name">Message#<wbr>getChat()</a>
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Message.html#getContact" class="!symbol-index-name">Message#<wbr>getContact()</a>
                       </dt>
@@ -1741,15 +1854,15 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Message.html#links" class="!symbol-index-name">Message#<wbr>links</a>
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Message.html#location" class="!symbol-index-name">Message#<wbr>location</a>
                       </dt>
@@ -1885,12 +1998,12 @@ client.initialize();
                   <div class="symbol-index-column">
                     <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
-                        <a href="MessageMedia.html#data" class="!symbol-index-name">MessageMedia#<wbr>data</a>
+                        <a href="MessageMedia.html#.fromUrl" class="!symbol-index-name">MessageMedia.<wbr>fromUrl(url[, options])</a>
                       </dt>
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
-                        <a href="MessageMedia.html#filename" class="!symbol-index-name">MessageMedia#<wbr>filename</a>
+                        <a href="MessageMedia.html#data" class="!symbol-index-name">MessageMedia#<wbr>data</a>
                       </dt>
                       <dd>
                       </dd>
@@ -1898,6 +2011,11 @@ client.initialize();
                   </div>
                   <div class="symbol-index-column">
                     <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="MessageMedia.html#filename" class="!symbol-index-name">MessageMedia#<wbr>filename</a>
+                      </dt>
+                      <dd>
+                      </dd>
                       <dt class="symbol-index-name">
                         <a href="MessageMedia.html#mimetype" class="!symbol-index-name">MessageMedia#<wbr>mimetype</a>
                       </dt>
@@ -2583,7 +2701,7 @@ client.initialize();
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on July 9, 2021.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on September 1, 2021.
       </p>
     </div>
   </footer>

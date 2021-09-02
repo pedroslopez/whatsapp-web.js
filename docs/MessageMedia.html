@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.13.2 &raquo; Class: MessageMedia</title>
+  <title>whatsapp-web.js 1.14.1 &raquo; Class: MessageMedia</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>13.<wbr>2</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>14.<wbr>1</a>
       </div>
     </div>
   </nav>
@@ -26,7 +26,7 @@
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
             <h1><small></small><span class="symbol-name">MessageMedia</span></h1>
-            <p class="source-link">Source: <a href="structures_MessageMedia.js.html#source-line-13">structures/<wbr>MessageMedia.<wbr>js:13</a></p>
+            <p class="source-link">Source: <a href="structures_MessageMedia.js.html#source-line-15">structures/<wbr>MessageMedia.<wbr>js:15</a></p>
             <div class="symbol-classdesc">
               <p>Media attached to a message</p>
             </div>
@@ -61,7 +61,7 @@
               </div>
             </div>
             <div class="summary-callout">
-              <h2 class="summary-callout-heading">Method</h2>
+              <h2 class="summary-callout-heading">Methods</h2>
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
@@ -71,6 +71,11 @@
                   </dl>
                 </div>
                 <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="MessageMedia.html#.fromUrl">fromUrl(url[, options])</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
                 </div>
                 <div class="summary-column">
                 </div>
@@ -159,7 +164,7 @@
               <dl class="dl-compact">
               </dl>
             </section>
-            <h2>Method</h2>
+            <h2>Methods</h2>
             <section>
               <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
               <h3 id=".fromFilePath"><span class="symbol-name">fromFilePath</span><span class="signature"><span class="signature-params">(filePath)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="MessageMedia.html">MessageMedia</a></span></span></h3>
@@ -198,6 +203,123 @@
                   <p><code><a href="MessageMedia.html">MessageMedia</a></code> </p>
                 </dd>
               </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span>&nbsp;<span class="label label-static">static</span></div>
+              <h3 id=".fromUrl"><span class="symbol-name">fromUrl</span><span class="signature"><span class="signature-params">(url[, options])</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="MessageMedia.html">MessageMedia</a></span></span></h3>
+              <p>Creates a MessageMedia instance from a URL</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>url</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>options</p>
+                      </td>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Values in <code>options</code> have the following properties:</p>
+                        <table class="jsdoc-details-table">
+                          <thead>
+                            <tr>
+                              <th>Name</th>
+                              <th>Type</th>
+                              <th>Optional</th>
+                              <th>Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>
+                                <p>unsafeMime</p>
+                              </td>
+                              <td>
+                                <p>number</p>
+                              </td>
+                              <td>
+                                <p>Yes</p>
+                              </td>
+                              <td>
+                                <p>Defaults to <code>false</code>.</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>client</p>
+                              </td>
+                              <td>
+                                <p>object</p>
+                              </td>
+                              <td>
+                                <p>Yes</p>
+                              </td>
+                              <td>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>reqOptions</p>
+                              </td>
+                              <td>
+                                <p>object</p>
+                              </td>
+                              <td>
+                                <p>Yes</p>
+                              </td>
+                              <td>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>reqOptions.size</p>
+                              </td>
+                              <td>
+                                <p>number</p>
+                              </td>
+                              <td>
+                                <p>Yes</p>
+                              </td>
+                              <td>
+                                <p>Defaults to <code>0</code>.</p>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing <a href="MessageMedia.html">MessageMedia</a></code> </p>
+                </dd>
+              </dl>
             </section>
           </section>
         </div>
@@ -208,7 +330,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on July 9, 2021.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on September 1, 2021.
       </p>
     </div>
   </footer>
