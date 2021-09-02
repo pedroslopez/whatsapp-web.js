@@ -281,8 +281,9 @@ declare namespace WAWebJS {
         /** Restart client with a new session (i.e. use null 'session' var) if authentication fails
          * @default false */
         restartOnAuthFail?: boolean
-        /** Whatsapp session to restore. If not set, will start a new session */
-        session?: ClientSession
+        /** Client id to distinguish instances if you are using multiple, otherwise keep empty if you are using only one instance
+         * @default '' */
+        clientId: string
         /** If another whatsapp web session is detected (another browser), take over the session in the current browser
          * @default false */
         takeoverOnConflict?: boolean,

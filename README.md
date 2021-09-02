@@ -38,6 +38,9 @@ client.on('message', msg => {
 client.initialize();
 ```
 
+## Multi-device support
+So far, multi-de
+
 ## Remote Access
 
 You could also connect to any previously existing browser instance:

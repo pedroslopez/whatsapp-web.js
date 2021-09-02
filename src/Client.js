@@ -1,5 +1,7 @@
 'use strict';
 
+const path = require('path');
+const fs = require('fs');
 const EventEmitter = require('events');
 const puppeteer = require('puppeteer');
 const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
@@ -21,16 +23,13 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @param {number} options.qrRefreshIntervalMs - Refresh interval for qr code (how much time to wait before checking if the qr code has changed)
  * @param {number} options.qrTimeoutMs - Timeout for qr code selector in puppeteer
  * @param {string} options.restartOnAuthFail  - Restart client with a new session (i.e. use null 'session' var) if authentication fails
- * @param {object} options.session - Whatsapp session to restore. If not set, will start a new session
- * @param {string} options.session.WABrowserId
- * @param {string} options.session.WASecretBundle
- * @param {string} options.session.WAToken1
- * @param {string} options.session.WAToken2
  * @param {number} options.takeoverOnConflict - If another whatsapp web session is detected (another browser), take over the session in the current browser
  * @param {number} options.takeoverTimeoutMs - How much time to wait before taking over the session
+ * @param {string} options.dataPath - Change the default path for saving session files, default is: "./WWebJS/"
  * @param {string} options.userAgent - User agent to use in puppeteer
  * @param {string} options.ffmpegPath - Ffmpeg path to use when formating videos to webp while sending stickers 
  * @param {boolean} options.bypassCSP - Sets bypassing of page's Content-Security-Policy.
+ * @param {string} options.clientId - Client id to distinguish instances if you are using multiple, otherwise keep null if you are using only one instance
  * 
  * @fires Client#qr
  * @fires Client#authenticated
@@ -47,13 +46,14 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @fires Client#group_update
  * @fires Client#disconnected
  * @fires Client#change_state
- * @fires Client#change_battery
  */
 class Client extends EventEmitter {
     constructor(options = {}) {
         super();
 
         this.options = Util.mergeDefault(DefaultOptions, options);
+
+        this.id = this.options.clientId;
 
         this.pupBrowser = null;
         this.pupPage = null;
@@ -66,6 +66,13 @@ class Client extends EventEmitter {
      */
     async initialize() {
         let [browser, page] = [null, null];
+
+        if (!fs.existsSync(path.join(process.cwd(), this.options.dataPath))) {
+            //create head directory
+            const dirPath = path.join(process.cwd(), this.options.dataPath, this.id ? 'session-' + this.id : 'session');
+            await Util.createNestedDirectory(dirPath);
+            this.options.puppeteer.userDataDir = dirPath;
+        }
         
         if(this.options.puppeteer && this.options.puppeteer.browserWSEndpoint) {
             browser = await puppeteer.connect(this.options.puppeteer);
@@ -80,17 +87,6 @@ class Client extends EventEmitter {
         this.pupBrowser = browser;
         this.pupPage = page;
 
-        if (this.options.session) {
-            await page.evaluateOnNewDocument(
-                session => {
-                    localStorage.clear();
-                    localStorage.setItem('WABrowserId', session.WABrowserId);
-                    localStorage.setItem('WASecretBundle', session.WASecretBundle);
-                    localStorage.setItem('WAToken1', session.WAToken1);
-                    localStorage.setItem('WAToken2', session.WAToken2);
-                }, this.options.session);
-        }
-
         if(this.options.bypassCSP) {
             await page.setBypassCSP(true);
         }
@@ -100,12 +96,10 @@ class Client extends EventEmitter {
             timeout: 0,
         });
 
-        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"], [data-testid="intro-md-beta-logo-dark"], [data-testid="intro-md-beta-logo-light"]';
-
-        if (this.options.session) {
-            // Check if session restore was successfull 
+        const INTRO_IMG_SELECTOR = '[data-testid="intro-md-beta-logo-dark"], [data-testid="intro-md-beta-logo-light"]';
+        if (fs.existsSync(path.join(this.options.puppeteer.userDataDir, 'Default'))) {
             try {
-                await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: this.options.authTimeoutMs });
+                await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: this.options.authTimeoutMs });
             } catch (err) {
                 if (err.name === 'TimeoutError') {
                     /**
@@ -113,11 +107,11 @@ class Client extends EventEmitter {
                      * @event Client#auth_failure
                      * @param {string} message
                      */
-                    this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in. Are the session details valid?');
+                    this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in. Are the files corrupt?');
                     browser.close();
                     if (this.options.restartOnAuthFail) {
                         // session restore failed so try again but without session to force new authentication
-                        this.options.session = null;
+                        await fs.promises.rmdir(this.options.puppeteer.userDataDir);
                         this.initialize();
                     }
                     return;
@@ -152,7 +146,7 @@ class Client extends EventEmitter {
             this._qrRefreshInterval = setInterval(getQrCode, this.options.qrRefreshIntervalMs);
 
             // Wait for code scan
-            await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 0 });
+            await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: 0 });
             clearInterval(this._qrRefreshInterval);
             this._qrRefreshInterval = undefined;
 
@@ -160,28 +154,11 @@ class Client extends EventEmitter {
 
         await page.evaluate(ExposeStore, moduleRaid.toString());
 
-        // Get session tokens
-        const localStorage = JSON.parse(await page.evaluate(() => {
-            return JSON.stringify(window.localStorage);
-        }));
-
-        const session = {
-            WABrowserId: localStorage.WABrowserId,
-            WASecretBundle: localStorage.WASecretBundle,
-            WAToken1: localStorage.WAToken1,
-            WAToken2: localStorage.WAToken2
-        }; 
-
         /**
          * Emitted when authentication is successful
          * @event Client#authenticated
-         * @param {object} session Object containing session information. Can be used to restore the session.
-         * @param {string} session.WABrowserId
-         * @param {string} session.WASecretBundle
-         * @param {string} session.WAToken1
-         * @param {string} session.WAToken2
          */
-        this.emit(Events.AUTHENTICATED, session);
+        this.emit(Events.AUTHENTICATED);
 
         // Check window.Store Injection
         await page.waitForFunction('window.Store != undefined');
@@ -195,7 +172,7 @@ class Client extends EventEmitter {
          * @type {ClientInfo}
          */
         this.info = new ClientInfo(this, await page.evaluate(() => {
-            return window.Store.Conn.serialize();
+            return {...window.Store.Conn.serialize(), wid: window.Store.User.getMeUser()};
         }));
 
         // Add InterfaceController
@@ -355,21 +332,6 @@ class Client extends EventEmitter {
             }
         });
 
-        await page.exposeFunction('onBatteryStateChangedEvent', (state) => {
-            const { battery, plugged } = state;
-
-            if (battery === undefined) return;
-
-            /**
-             * Emitted when the battery percentage for the attached device changes
-             * @event Client#change_battery
-             * @param {object} batteryInfo
-             * @param {number} batteryInfo.battery - The current battery percentage
-             * @param {boolean} batteryInfo.plugged - Indicates if the phone is plugged in (true) or not (false)
-             */
-            this.emit(Events.BATTERY_CHANGED, { battery, plugged });
-        });
-
         await page.evaluate(() => {
             window.Store.Msg.on('add', (msg) => { if (msg.isNewMsg) window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
@@ -378,7 +340,6 @@ class Client extends EventEmitter {
             window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => { if (msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('remove', (msg) => { if (msg.isNewMsg) window.onRemoveMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
-            window.Store.Conn.on('change:battery', (state) => { window.onBatteryStateChangedEvent(state); });
         });
 
         /**
