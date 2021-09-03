@@ -19,14 +19,8 @@ client.on('qr', (qr) => {
     console.log('QR RECEIVED', qr);
 });
 
-client.on('authenticated', (session) => {
-    console.log('AUTHENTICATED', session);
-    sessionCfg=session;
-    fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
-        if (err) {
-            console.error(err);
-        }
-    });
+client.on('authenticated', () => {
+    console.log('AUTHENTICATED');
 });
 
 client.on('auth_failure', msg => {
@@ -118,9 +112,8 @@ client.on('message', async msg => {
         client.sendMessage(msg.from, `
             *Connection info*
             User name: ${info.pushname}
-            My number: ${info.me.user}
+            My number: ${info.wid.user}
             Platform: ${info.platform}
-            WhatsApp version: ${info.phone.wa_version}
         `);
     } else if (msg.body === '!mediainfo' && msg.hasMedia) {
         const attachmentData = await msg.downloadMedia();
@@ -252,12 +245,6 @@ client.on('group_leave', (notification) => {
 client.on('group_update', (notification) => {
     // Group picture, subject or description has been updated.
     console.log('update', notification);
-});
-
-client.on('change_battery', (batteryInfo) => {
-    // Battery percentage for attached device has changed
-    const { battery, plugged } = batteryInfo;
-    console.log(`Battery: ${battery}% - Charging? ${plugged}`);
 });
 
 client.on('change_state', state => {
