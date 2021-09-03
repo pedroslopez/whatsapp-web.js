@@ -67,12 +67,13 @@ class Client extends EventEmitter {
     async initialize() {
         let [browser, page] = [null, null];
 
-        if (!fs.existsSync(path.join(process.cwd(), this.options.dataPath))) {
-            //create head directory
-            const dirPath = path.join(process.cwd(), this.options.dataPath, this.id ? 'session-' + this.id : 'session');
+        const dirPath = path.join(process.cwd(), this.options.dataPath, this.id ? 'session-' + this.id : 'session');
+
+        if (!fs.existsSync(dirPath)) {
             await Util.createNestedDirectory(dirPath);
-            this.options.puppeteer.userDataDir = dirPath;
-        }
+        } 
+        
+        this.options.puppeteer.userDataDir = dirPath;
         
         if(this.options.puppeteer && this.options.puppeteer.browserWSEndpoint) {
             browser = await puppeteer.connect(this.options.puppeteer);
