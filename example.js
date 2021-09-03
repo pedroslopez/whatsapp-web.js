@@ -1,9 +1,6 @@
-const fs = require('fs');
 const { Client, Location } = require('./index');
 
 const client = new Client({ puppeteer: { headless: false }, clientId: 'example' });
-// You can use an existing session and avoid scanning a QR code by adding a "session" object to the client options.
-// This object must include WABrowserId, WASecretBundle, WAToken1 and WAToken2.
 
 // You also could connect to an existing instance of a browser
 // { 
