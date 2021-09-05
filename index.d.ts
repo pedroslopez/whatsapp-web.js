@@ -145,9 +145,6 @@ declare namespace WAWebJS {
             session: ClientSession
         ) => void): this
 
-        /** Emitted when the battery percentage for the attached device changes */
-        on(event: 'change_battery', listener: (batteryInfo: BatteryInfo) => void): this
-
         /** Emitted when the connection state changes */
         on(event: 'change_state', listener: (
             /** the new connection state */
@@ -240,22 +237,12 @@ declare namespace WAWebJS {
 
     /** Current connection information */
     export interface ClientInfo {
-        /** 
-         * Current user ID 
-         * @deprecated Use .wid instead 
-         */
-        me: ContactId
         /** Current user ID */
         wid: ContactId
-        /** Information about the phone this client is connected to */
-        phone: ClientInfoPhone
         /** Platform the phone is running on */
         platform: string
         /** Name configured to be shown in push notifications */
         pushname: string
-
-        /** Get current battery percentage and charging status for the attached device */
-        getBatteryStatus: () => Promise<BatteryInfo>
     }
 
     /** Information about the phone this client is connected to */
@@ -303,21 +290,6 @@ declare namespace WAWebJS {
         /** Ffmpeg path to use when formating videos to webp while sending stickers 
          * @default 'ffmpeg' */
         ffmpegPath?: string
-    }
-
-    /** Represents a Whatsapp client session */
-    export interface ClientSession {
-        WABrowserId: string,
-        WASecretBundle: string,
-        WAToken1: string,
-        WAToken2: string,
-    }
-
-    export interface BatteryInfo {
-        /** The current battery percentage */
-        battery: number,
-        /** Indicates if the phone is plugged in (true) or not (false) */
-        plugged: boolean,
     }
 
     export interface CreateGroupResult {
