@@ -66,6 +66,8 @@ class Client extends EventEmitter {
      */
     async initialize() {
         let [browser, page] = [null, null];
+        const foldernameRegex = /^(?!.{256,})(?!(aux|clock\$|con|nul|prn|com[1-9]|lpt[1-9])(?:$|\.))[^ ][ \.\w-$()+=[\];#@~,&amp;']+[^\. ]$/i;
+        if (this.id && !foldernameRegex.test(this.id)) throw TypeError('Invalid client ID. Make sure you abide by the folder naming rules of your operating system.');
 
         const dirPath = path.join(process.cwd(), this.options.dataPath, this.id ? 'session-' + this.id : 'session');
 
