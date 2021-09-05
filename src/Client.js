@@ -338,21 +338,6 @@ class Client extends EventEmitter {
             }
         });
 
-        await page.exposeFunction('onBatteryStateChangedEvent', (state) => {
-            const { battery, plugged } = state;
-
-            if (battery === undefined) return;
-
-            /**
-             * Emitted when the battery percentage for the attached device changes
-             * @event Client#change_battery
-             * @param {object} batteryInfo
-             * @param {number} batteryInfo.battery - The current battery percentage
-             * @param {boolean} batteryInfo.plugged - Indicates if the phone is plugged in (true) or not (false)
-             */
-            this.emit(Events.BATTERY_CHANGED, { battery, plugged });
-        });
-
         await page.exposeFunction('onIncomingCall', (call) => {
             /**
              * Emitted when a call is received
@@ -379,7 +364,6 @@ class Client extends EventEmitter {
             window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => { if (msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('remove', (msg) => { if (msg.isNewMsg) window.onRemoveMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
-            window.Store.Conn.on('change:battery', (state) => { window.onBatteryStateChangedEvent(state); });
             window.Store.Call.on('add', (call) => { window.onIncomingCall(call); });
         });
 
