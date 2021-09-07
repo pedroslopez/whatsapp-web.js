@@ -115,7 +115,7 @@ class MessageMedia {
             }
         } else {
             if (!filePath.includes('.')) {
-               filePath += `.${ext}`;   
+                filePath += `.${ext}`;   
             }
         }
         await fs.promises.writeFile(filePath, this.data, 'base64');
