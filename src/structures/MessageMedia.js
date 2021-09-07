@@ -106,12 +106,14 @@ class MessageMedia {
      */
     async toFilePath(filePath) {
         const ext = mime.getExtension(this.mimetype);
-        const stat = await fs.promises.stat(filePath);
-        if (stat.isDirectory()) {
-            if (this.filename){
-                filePath += this.filename;
-            } else {
-                throw Error('You passed in a directory but the filename is empty');
+        if (fs.existsSync(filePath)) {
+            const stat = await fs.promises.stat(filePath);
+            if (stat.isDirectory()) {
+                if (this.filename){
+                    filePath += this.filename;
+                } else {
+                    throw Error('You passed in a directory but the filename is empty');
+                }
             }
         } else {
             if (!filePath.includes('.')) {
