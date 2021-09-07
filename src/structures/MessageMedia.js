@@ -50,7 +50,7 @@ class MessageMedia {
         const b64data = fs.readFileSync(filePath, {encoding: 'base64'});
         const mimetype = mime.getType(filePath); 
         const filename = path.basename(filePath);
-        let filesize = null;
+        let filesize = 0;
         if (returnSize) filesize = fs.statSync(filePath).size;
         return new MessageMedia(mimetype, b64data, filename, filesize);
     }
