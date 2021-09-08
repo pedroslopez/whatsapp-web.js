@@ -115,10 +115,9 @@ class MessageMedia {
                     throw Error('You passed in a directory but the filename is empty');
                 }
             }
-        } else {
-            if (!filePath.includes('.')) {
-                filePath += `.${ext}`;   
-            }
+        }
+        if (!filePath.includes('.')) {
+            filePath += `.${ext}`;   
         }
         await fs.promises.writeFile(filePath, this.data, 'base64');
     }
