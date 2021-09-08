@@ -186,7 +186,7 @@ exports.LoadUtils = () => {
                 footer: options.list.footer,
                 list: {
                     ...options.list,
-                    listType: 1 // maybe type 2 is for biz
+                    listType: 1
                 },
                 body: options.list.description
             };
@@ -327,7 +327,7 @@ exports.LoadUtils = () => {
             msg.dynamicReplyButtons = JSON.parse(JSON.stringify(msg.dynamicReplyButtons));
         }
         if(msg.replyButtons) {
-            msg.replyButtons = JSON.parse(JSON.stringify(msg.replyButtons)); // serialize broke button message send
+            msg.replyButtons = JSON.parse(JSON.stringify(msg.replyButtons));
         }
         
         delete msg.pendingAckUpdate;
