@@ -11,10 +11,10 @@ const { URL } = require('url');
  * @param {string} mimetype MIME type of the attachment
  * @param {string} data Base64-encoded data of the file
  * @param {?string} filename Document file name. Value can be null
- * @param {?number} filesize Document file size in bytes. Value can be null
+ * @param {?number} filesize Document file size in bytes. Value can be 0
  */
 class MessageMedia {
-    constructor(mimetype, data, filename, filesize = null) {
+    constructor(mimetype, data, filename, filesize = 0) {
         /**
          * MIME type of the attachment
          * @type {string}
@@ -34,7 +34,7 @@ class MessageMedia {
         this.filename = filename;
 
         /**
-         * Document file size in bytes. Value can be null
+         * Document file size in bytes. Value can be 0
          * @type {?number}
          */
         this.filesize = filesize;
