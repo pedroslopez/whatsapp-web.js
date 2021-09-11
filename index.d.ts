@@ -566,6 +566,8 @@ declare namespace WAWebJS {
         businessOwnerJid?: string,
         /** Product JID */
         productId?: string,
+        /** message buttons */
+        dynamicReplyButtons?: object,
         /** Accept the Group V4 Invite in message */
         acceptGroupV4Invite: () => Promise<{status: number}>,
         /** Deletes the message from the chat */
@@ -1061,6 +1063,26 @@ declare namespace WAWebJS {
         createdAt: number;
     }
     
+    /** Message type List */
+    export class List {
+        body: string
+        buttonText: string
+        sections: Array<any>
+        title?: string | null
+        footer?: string | null
+
+        constructor(body: string, buttonText: string, sections: Array<any>, title?: string | null, footer?: string | null)
+    }
+
+    /** Message type buttons */
+    export class Buttons {
+        body: string | MessageMedia
+        buttons: Array<Array<string>>
+        title?: string | null
+        footer?: string | null
+
+        constructor(body: string, buttons: Array<Array<string>>, title?: string | null, footer?: string | null)
+    }
     /**
      * Represents a Call on WhatsApp
      *
