@@ -37,6 +37,15 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
     window.Store.DownloadManager = window.mR.findModule('DownloadManager')[0].default;
     window.Store.Call = window.mR.findModule('CallCollection')[0].default;
+
+    if(!window.Store.Chat._find) {
+        window.Store.Chat._find = e => {
+            const target = window.Store.Chat.get(e);
+            return target ? Promise.resolve(target) : Promise.resolve({
+                id: e
+            });
+        };
+    }
 };
 
 exports.LoadUtils = () => {
@@ -177,7 +186,7 @@ exports.LoadUtils = () => {
                 footer: options.list.footer,
                 list: {
                     ...options.list,
-                    listType: 1 // maybe type 2 is for biz
+                    listType: 1
                 },
                 body: options.list.description
             };
@@ -318,7 +327,7 @@ exports.LoadUtils = () => {
             msg.dynamicReplyButtons = JSON.parse(JSON.stringify(msg.dynamicReplyButtons));
         }
         if(msg.replyButtons) {
-            msg.replyButtons = JSON.parse(JSON.stringify(msg.replyButtons)); // serialize broke button message send
+            msg.replyButtons = JSON.parse(JSON.stringify(msg.replyButtons));
         }
         
         delete msg.pendingAckUpdate;
