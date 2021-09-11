@@ -205,9 +205,19 @@ class Message extends Base {
          */
         this.links = data.links;
 
-        /** buttons */
+        /** Buttons */
         if (data.dynamicReplyButtons) {
             this.dynamicReplyButtons = data.dynamicReplyButtons;
+        }
+        
+        /** Selected Button Id **/
+        if (data.selectedButtonId) {
+            this.selectedButtonId = data.selectedButtonId;
+        }
+
+        /** Selected List row Id **/
+        if (data.listResponse && data.listResponse.singleSelectReply.selectedRowId) {
+            this.selectedRowId = data.listResponse.singleSelectReply.selectedRowId;
         }
         
         return super._patch(data);
