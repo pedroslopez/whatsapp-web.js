@@ -74,7 +74,9 @@ exports.MessageTypes = {
     REVOKED: 'revoked',
     PRODUCT: 'product',
     UNKNOWN: 'unknown',
-    GROUP_INVITE: 'groups_v4_invite'
+    GROUP_INVITE: 'groups_v4_invite',
+    LIST: 'list',
+    BUTTONS_RESPONSE: 'buttons_response',
 };
 
 /**
