@@ -14,5 +14,6 @@ module.exports = {
     Label: require('./Label.js'),
     Order: require('./Order'),
     Product: require('./Product'),
-    Call: require('./Call')
+    Call: require('./Call'),
+    Payment: require('./Payment')
 };

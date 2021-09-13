@@ -428,6 +428,7 @@ declare namespace WAWebJS {
         REVOKED = 'revoked',
         ORDER = 'order',
         PRODUCT = 'product',
+        PAYMENT = 'payment',
         UNKNOWN = 'unknown',
         GROUP_INVITE = 'groups_v4_invite',
     }
@@ -600,6 +601,10 @@ declare namespace WAWebJS {
          * Gets the order associated with a given message
          */
         getOrder: () => Order,
+        /**
+         * Gets the payment details associated with a given message
+         */
+        getPayment: () => Payment,
     }
 
     /** ID that represents a message */
@@ -1059,6 +1064,53 @@ declare namespace WAWebJS {
         currency: string,
         /** Order Created At*/
         createdAt: number;
+    }
+
+    /**
+     * Represents a Payment on WhatsApp
+     *
+     * @example
+     * {
+     * id: {
+     * fromMe: true,
+     * remote: {
+     * server: 'c.us',
+     * user: '5511999999999',
+     * _serialized: '5511999999999@c.us'
+     * },
+     *  id: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+     * _serialized: 'true_5511999999999@c.us_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+     * },
+     * paymentCurrency: 'BRL',
+     * paymentAmount1000: 1000,
+     * paymentMessageReceiverJid: {
+     * server: 'c.us',
+     * user: '5511999999999',
+     * _serialized: '5511999999999@c.us'
+     * },
+     * paymentTransactionTimestamp: 1623463058,
+     * paymentStatus: 4,
+     * paymentTxnStatus: 4,
+     * paymentNote: 'note'
+     * }
+     */
+    export interface Payment {
+        /** Payment Id*/
+        id: object,
+        /** Payment currency */
+        paymentCurrency: string,
+        /** Payment ammount  */
+        paymentAmount1000 : number,
+        /** Payment receiver */
+        paymentMessageReceiverJid : object,
+        /** Payment transaction timestamp */
+        paymentTransactionTimestamp : number,
+        /** Payment paymentStatus */
+        paymentStatus : number,
+        /** Integer that represents the payment Text */
+        paymentTxnStatus  : number,
+        /** The note sent with the payment */
+        paymentNote  : string;
     }
     
     /**

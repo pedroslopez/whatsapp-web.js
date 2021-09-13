@@ -4,6 +4,7 @@ const Base = require('./Base');
 const MessageMedia = require('./MessageMedia');
 const Location = require('./Location');
 const Order = require('./Order');
+const Payment = require('./Payment');
 const { MessageTypes } = require('../util/Constants');
 
 /**
@@ -435,6 +436,21 @@ class Message extends Base {
             }, this.orderId, this.token);
             if (!result) return undefined;
             return new Order(this.client, result);
+        }
+        return undefined;
+    }
+    /**
+     * Gets the payment details associated with a given message
+     * @return {Promise<Payment>}
+     */
+    async getPayment() {
+        if (this.type === MessageTypes.PAYMENT) {
+            const msg = await this.client.pupPage.evaluate(async (msgId) => {
+                const msg = window.Store.Msg.get(msgId);
+                if(!msg) return null;
+                return msg.serialize();
+            }, this.id._serialized);
+            return new Payment(this.client, msg);
         }
         return undefined;
     }
