@@ -567,6 +567,12 @@ declare namespace WAWebJS {
         businessOwnerJid?: string,
         /** Product JID */
         productId?: string,
+        /** Message buttons */
+        dynamicReplyButtons?: object,
+        /** Selected button ID */
+        selectedButtonId?: string,
+        /** Selected list row ID */
+        selectedRowId?: string,
         /** Accept the Group V4 Invite in message */
         acceptGroupV4Invite: () => Promise<{status: number}>,
         /** Deletes the message from the chat */
@@ -1148,6 +1154,27 @@ declare namespace WAWebJS {
         webClientShouldHandle: boolean,
         /** Object with participants */
         participants: object
+    }
+
+    /** Message type List */
+    export class List {
+        body: string
+        buttonText: string
+        sections: Array<any>
+        title?: string | null
+        footer?: string | null
+        
+        constructor(body: string, buttonText: string, sections: Array<any>, title?: string | null, footer?: string | null)
+    }
+    
+    /** Message type buttons */
+    export class Buttons {
+        body: string | MessageMedia
+        buttons: Array<Array<string>>
+        title?: string | null
+        footer?: string | null
+        
+        constructor(body: string, buttons: Array<Array<string>>, title?: string | null, footer?: string | null)
     }
 }
 
