@@ -16,6 +16,6 @@ module.exports = {
     Product: require('./Product'),
     Call: require('./Call'),
     Buttons: require('./Buttons'),
-    List: require('./List')
+    List: require('./List'),
     Payment: require('./Payment')
 };
