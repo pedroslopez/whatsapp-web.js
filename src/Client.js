@@ -31,7 +31,7 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @param {string} options.userAgent - User agent to use in puppeteer
  * @param {string} options.ffmpegPath - Ffmpeg path to use when formating videos to webp while sending stickers 
  * @param {boolean} options.bypassCSP - Sets bypassing of page's Content-Security-Policy.
- * @param {number} options.disableLogs - Disable logs and telemetry,0- do nothing 1- disable warning logs 2- disable all Logs 3- disable all Logs and telemetry
+ * @param {number} options.disableLogs - Disable logs and telemetry,0- do nothing 1- disable logs, 2- disable telemetry, 3- disable both
  * 
  * @fires Client#qr
  * @fires Client#authenticated

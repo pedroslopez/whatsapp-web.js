@@ -302,7 +302,7 @@ declare namespace WAWebJS {
         /** Ffmpeg path to use when formating videos to webp while sending stickers 
          * @default 'ffmpeg' */
         ffmpegPath?: string
-        /** Disable logs and telemetry,0- do nothing 1- disable warning logs 2- disable all Logs 3- disable all Logs and telemetry 
+        /** Disable logs and telemetry,0- do nothing 1- disable logs, 2- disable telemetry, 3- disable both
          * @default 0 */
         disableLogs?: number
     }
