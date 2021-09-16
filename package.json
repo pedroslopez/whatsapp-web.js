@@ -5,6 +5,7 @@
   "main": "./index.js",
   "typings": "./index.d.ts",
   "scripts": {
+    "example": "node ./example.js",
     "test": "mocha tests",
     "shell": "node --experimental-repl-await ./shell.js",
     "generate-docs": "node_modules/.bin/jsdoc --configure .jsdoc.json --verbose"

@@ -35,10 +35,11 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Features = window.mR.findModule('FEATURE_CHANGE_EVENT')[0].default;
     window.Store.QueryOrder = window.mR.findModule('queryOrder')[0];
     window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
+    window.Store.User = window.mR.findModule('getMaybeMeUser')[0];
     window.Store.DownloadManager = window.mR.findModule('DownloadManager')[0].default;
     window.Store.Call = window.mR.findModule('CallCollection')[0].default;
-
-    if(!window.Store.Chat._find) {
+    window.Store.User = window.mR.findModule('getMaybeMeUser')[0];
+    if (!window.Store.Chat._find) {
         window.Store.Chat._find = e => {
             const target = window.Store.Chat.get(e);
             return target ? Promise.resolve(target) : Promise.resolve({
@@ -205,7 +206,7 @@ exports.LoadUtils = () => {
             id: newMsgId,
             ack: 0,
             body: content,
-            from: window.Store.Conn.wid,
+            from: window.Store.User.getMeUser(),
             to: chat.id,
             local: true,
             self: 'out',

@@ -87,8 +87,8 @@ class Message extends Base {
          * String that represents from which device type the message was sent
          * @type {string}
          */
-        this.deviceType = data.id.id.length > 21 ? 'android' : data.id.id.substring(0,2) =='3A' ? 'ios' : 'web';
-        
+        this.deviceType = data.id.id.length > 21 ? 'android' : data.id.id.substring(0, 2) == '3A' ? 'ios' : 'web';
+
         /**
          * Indicates if the message was forwarded
          * @type {boolean}
@@ -114,7 +114,7 @@ class Message extends Base {
          * @type {boolean}
          */
         this.isStarred = data.star;
-        
+
         /**
          * Indicates if the message was a broadcast
          * @type {boolean}
@@ -157,7 +157,7 @@ class Message extends Base {
             fromId: data.from._serialized,
             toId: data.to._serialized
         } : undefined;
-         
+
         /**
          * Indicates the mentions in the message body.
          * @type {Array<string>}
@@ -258,13 +258,13 @@ class Message extends Base {
      */
     async getQuotedMessage() {
         if (!this.hasQuotedMsg) return undefined;
-
-        const quotedMsg = await this.client.pupPage.evaluate((msgId) => {
-            let msg = window.Store.Msg.get(msgId);
-            return msg.quotedMsgObj().serialize();
-        }, this.id._serialized);
-
-        return new Message(this.client, quotedMsg);
+        try {
+            const quotedMsg = await this.client.pupPage.evaluate((msgId) => {
+                let msg = window.Store.Msg.get(msgId);
+                return msg.quotedMsgObj().serialize();
+            }, this.id._serialized);
+            return new Message(this.client, quotedMsg);
+        } catch (_) { _; }
     }
 
     /**
@@ -297,7 +297,7 @@ class Message extends Base {
     async acceptGroupV4Invite() {
         return await this.client.acceptGroupV4Invite(this.inviteV4);
     }
-    
+
     /**
      * Forwards this message to another chat
      * 
@@ -428,12 +428,12 @@ class Message extends Base {
     async getInfo() {
         const info = await this.client.pupPage.evaluate(async (msgId) => {
             const msg = window.Store.Msg.get(msgId);
-            if(!msg) return null;
-            
+            if (!msg) return null;
+
             return await window.Store.Wap.queryMsgInfo(msg.id);
         }, this.id._serialized);
 
-        if(info.status) {
+        if (info.status) {
             return null;
         }
 
