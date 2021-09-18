@@ -5,7 +5,6 @@ const fs = require('fs');
 const EventEmitter = require('events');
 const puppeteer = require('puppeteer');
 const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
-const jsQR = require('jsqr');
 
 const Util = require('./util/Util');
 const InterfaceController = require('./util/InterfaceController');
@@ -76,18 +75,19 @@ class Client extends EventEmitter {
 
         if (!fs.existsSync(dirPath)) {
             await Util.createNestedDirectory(dirPath);
-        } 
-        
-        this.options.puppeteer.userDataDir = dirPath;
-        
+        }
+
+        if (! this.options.puppeteer.userDataDir)
+            this.options.puppeteer.userDataDir = dirPath;
+
         if(this.options.puppeteer && this.options.puppeteer.browserWSEndpoint) {
             browser = await puppeteer.connect(this.options.puppeteer);
             page = await browser.newPage();
         } else {
             browser = await puppeteer.launch(this.options.puppeteer);
             page = (await browser.pages())[0];
-        }        
-        
+        }
+
         page.setUserAgent(this.options.userAgent);
 
         this.pupBrowser = browser;
@@ -102,63 +102,74 @@ class Client extends EventEmitter {
             timeout: 0,
         });
 
-        const INTRO_IMG_SELECTOR = '[data-testid="intro-md-beta-logo-dark"], [data-testid="intro-md-beta-logo-light"]';
-        if (fs.existsSync(path.join(this.options.puppeteer.userDataDir, 'Default'))) {
-            try {
-                await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: this.options.authTimeoutMs });
-            } catch (err) {
-                if (err.name === 'TimeoutError') {
-                    /**
-                     * Emitted when there has been an error while trying to restore an existing session
-                     * @event Client#auth_failure
-                     * @param {string} message
-                     */
-                    this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in. Are the files corrupt?');
-                    browser.close();
-                    if (this.options.restartOnAuthFail) {
-                        // session restore failed so try again but without session to force new authentication
-                        await fs.promises.rmdir(this.options.puppeteer.userDataDir);
-                        this.initialize();
-                    }
-                    return;
-                }
+        // deal with qr
+        let it = this;
+        page.on( 'console', async ( msg ) => {
+            for( let i = 0, j = msg.args().length; i < j; i++ ) {
+                const e = await msg.args()[i].jsonValue();
 
-                throw err;
+                switch( e.name ) {
+                    case 'QR_REFRESH':
+                        const qr = e.msg;
+                        it.emit( Events.QR_RECEIVED, qr );
+                        break;
+
+                    case 'READY':
+                        it.ready();
+                        break;
+                }
+            }
+        } );
+
+        await page.evaluate( ( QR_CANVAS_SELECTOR, PARENT_ATTRIBUTE ) => {
+            let qr = '';
+            // lookup for qr changes
+            qrInterval = setInterval( async () => {
+                const canvas = document.querySelector( QR_CANVAS_SELECTOR );
+                if ( ! canvas ) return;
+
+                const parent = canvas.parentElement;
+                const qrAttr = parent.getAttribute( PARENT_ATTRIBUTE );
+
+                if ( qr !== qrAttr ) {
+                    qr = qrAttr;
+                    console.log( {
+                        name: 'QR_REFRESH',
+                        msg: qr
+                    } );
+                }
+            }, 1000 )
+
+            // refresh qr
+            refreshInterval = setInterval( async () => {
+                const button = document.querySelector( 'button' );
+                if ( ! button ) return;
+
+                button.click();
+            }, 10000 );
+
+            // lookup for ready state
+            b = async () => {
+                const side = document.querySelector( '#side' );
+
+                if ( ! side )
+                    return setTimeout( b, 2000 );
+
+                clearInterval( qrInterval );
+                clearInterval( refreshInterval );
+
+                console.log( {
+                    name: 'READY'
+                } );
             }
 
-        } else {
-            const getQrCode = async () => {
-                // Check if retry button is present
-                var QR_RETRY_SELECTOR = 'div[data-ref] > span > button';
-                var qrRetry = await page.$(QR_RETRY_SELECTOR);
-                if (qrRetry) {
-                    await qrRetry.click();
-                }
+            b();
+        }, 'canvas', 'data-ref' );
 
-                // Wait for QR Code
-                const QR_CANVAS_SELECTOR = 'canvas';
-                await page.waitForSelector(QR_CANVAS_SELECTOR, { timeout: this.options.qrTimeoutMs });
-                const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0, 0, 264, 264).data));
-                const qr = jsQR(qrImgData, 264, 264).data;
-                
-                /**
-                * Emitted when the QR code is received
-                * @event Client#qr
-                * @param {string} qr QR Code
-                */
-                this.emit(Events.QR_RECEIVED, qr);
-            };
-            getQrCode();
-            this._qrRefreshInterval = setInterval(getQrCode, this.options.qrRefreshIntervalMs);
+    }
 
-            // Wait for code scan
-            await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: 0 });
-            clearInterval(this._qrRefreshInterval);
-            this._qrRefreshInterval = undefined;
-
-        }
-
-        await page.evaluate(ExposeStore, moduleRaid.toString());
+    async ready() {
+        await this.pupPage.evaluate(ExposeStore, moduleRaid.toString());
 
         /**
          * Emitted when authentication is successful
@@ -167,17 +178,17 @@ class Client extends EventEmitter {
         this.emit(Events.AUTHENTICATED);
 
         // Check window.Store Injection
-        await page.waitForFunction('window.Store != undefined');
+        await this.pupPage.waitForFunction('window.Store != undefined');
 
         //Load util functions (serializers, helper functions)
-        await page.evaluate(LoadUtils);
+        await this.pupPage.evaluate(LoadUtils);
 
         // Expose client info
         /**
          * Current connection information
          * @type {ClientInfo}
          */
-        this.info = new ClientInfo(this, await page.evaluate(() => {
+        this.info = new ClientInfo(this, await this.pupPage.evaluate(() => {
             return {...window.Store.Conn.serialize(), wid: window.Store.User.getMeUser()};
         }));
 
@@ -185,7 +196,7 @@ class Client extends EventEmitter {
         this.interface = new InterfaceController(this);
 
         // Register events
-        await page.exposeFunction('onAddMessageEvent', msg => {
+        await this.pupPage.exposeFunction('onAddMessageEvent', msg => {
             if (!msg.isNewMsg) return;
 
             if (msg.type === 'gp2') {
@@ -236,7 +247,7 @@ class Client extends EventEmitter {
 
         let last_message;
 
-        await page.exposeFunction('onChangeMessageTypeEvent', (msg) => {
+        await this.pupPage.exposeFunction('onChangeMessageTypeEvent', (msg) => {
 
             if (msg.type === 'revoked') {
                 const message = new Message(this, msg);
@@ -257,7 +268,7 @@ class Client extends EventEmitter {
 
         });
 
-        await page.exposeFunction('onChangeMessageEvent', (msg) => {
+        await this.pupPage.exposeFunction('onChangeMessageEvent', (msg) => {
 
             if (msg.type !== 'revoked') {
                 last_message = msg;
@@ -265,7 +276,7 @@ class Client extends EventEmitter {
 
         });
 
-        await page.exposeFunction('onRemoveMessageEvent', (msg) => {
+        await this.pupPage.exposeFunction('onRemoveMessageEvent', (msg) => {
 
             if (!msg.isNewMsg) return;
 
@@ -280,7 +291,7 @@ class Client extends EventEmitter {
 
         });
 
-        await page.exposeFunction('onMessageAckEvent', (msg, ack) => {
+        await this.pupPage.exposeFunction('onMessageAckEvent', (msg, ack) => {
 
             const message = new Message(this, msg);
 
@@ -294,7 +305,7 @@ class Client extends EventEmitter {
 
         });
 
-        await page.exposeFunction('onMessageMediaUploadedEvent', (msg) => {
+        await this.pupPage.exposeFunction('onMessageMediaUploadedEvent', (msg) => {
 
             const message = new Message(this, msg);
 
@@ -306,7 +317,7 @@ class Client extends EventEmitter {
             this.emit(Events.MEDIA_UPLOADED, message);
         });
 
-        await page.exposeFunction('onAppStateChangedEvent', (state) => {
+        await this.pupPage.exposeFunction('onAppStateChangedEvent', (state) => {
 
             /**
              * Emitted when the connection state changes
@@ -338,7 +349,7 @@ class Client extends EventEmitter {
             }
         });
 
-        await page.exposeFunction('onIncomingCall', (call) => {
+        await this.pupPage.exposeFunction('onIncomingCall', (call) => {
             /**
              * Emitted when a call is received
              * @event Client#incoming_call
@@ -356,7 +367,7 @@ class Client extends EventEmitter {
             this.emit(Events.INCOMING_CALL, cll);
         });
         
-        await page.evaluate(() => {
+        await this.pupPage.evaluate(() => {
             window.Store.Msg.on('add', (msg) => { if (msg.isNewMsg) window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
