@@ -121,7 +121,7 @@ class Client extends EventEmitter {
             }
         } );
 
-        await page.evaluate( ( QR_CANVAS_SELECTOR, PARENT_ATTRIBUTE ) => {
+        await page.evaluate( ( QR_CANVAS_SELECTOR, PARENT_ATTRIBUTE, QR_REFRESH_SELECTOR, READY_SELECTOR ) => {
             let qr = '';
             // lookup for qr changes
             qrInterval = setInterval( async () => {
@@ -142,7 +142,7 @@ class Client extends EventEmitter {
 
             // refresh qr
             refreshInterval = setInterval( async () => {
-                const button = document.querySelector( 'button' );
+                const button = document.querySelector( QR_REFRESH_SELECTOR );
                 if ( ! button ) return;
 
                 button.click();
@@ -150,7 +150,7 @@ class Client extends EventEmitter {
 
             // lookup for ready state
             b = async () => {
-                const side = document.querySelector( '#side' );
+                const side = document.querySelector( READY_SELECTOR );
 
                 if ( ! side )
                     return setTimeout( b, 2000 );
@@ -164,7 +164,7 @@ class Client extends EventEmitter {
             }
 
             b();
-        }, 'canvas', 'data-ref' );
+        }, 'canvas', 'data-ref', '[data-testid="refresh-large"]', '#side' );
 
     }
 
