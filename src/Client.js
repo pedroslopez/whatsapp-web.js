@@ -74,6 +74,8 @@ class Client extends EventEmitter {
 
         const dirPath = path.join(process.cwd(), this.options.dataPath, this.id ? 'session-' + this.id : 'session');
 
+        const sessionCheckFile = path.join(this.options.puppeteer.userDataDir, 'session.key');
+
         if (!fs.existsSync(dirPath)) {
             await Util.createNestedDirectory(dirPath);
         } 
@@ -103,11 +105,16 @@ class Client extends EventEmitter {
         });
 
         const INTRO_IMG_SELECTOR = '[data-testid="intro-md-beta-logo-dark"], [data-testid="intro-md-beta-logo-light"]';
-        if (fs.existsSync(path.join(this.options.puppeteer.userDataDir, 'Default'))) {
+        if (fs.existsSync(sessionCheckFile)) {
             try {
                 await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: this.options.authTimeoutMs });
             } catch (err) {
                 if (err.name === 'TimeoutError') {
+                    /**
+                     * Delete session checker if happened an error while trying to restore an existing session
+                     */
+                    fs.unlinkSync(sessionCheckFile);
+
                     /**
                      * Emitted when there has been an error while trying to restore an existing session
                      * @event Client#auth_failure
@@ -159,6 +166,8 @@ class Client extends EventEmitter {
         }
 
         await page.evaluate(ExposeStore, moduleRaid.toString());
+        const filePath = path.join(this.options.puppeteer.userDataDir, 'session.key')
+        fs.closeSync(fs.openSync(filePath, 'w'))
 
         /**
          * Emitted when authentication is successful
