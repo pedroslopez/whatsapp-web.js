@@ -85,6 +85,8 @@ After that check the following webpage and check http://127.0.0.1:9220/json and 
 | Receive media (images/audio/video/documents)  | ✅  |
 | Send contact cards | ✅ |
 | Send location | ✅ |
+| Send buttons | ✅ |
+| Send lists | ✅ (business accounts not supported) |
 | Receive location | ✅ | 
 | Message replies | ✅ |
 | Join groups by invite  | ✅ |
