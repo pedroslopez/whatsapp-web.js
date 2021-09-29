@@ -428,6 +428,7 @@ declare namespace WAWebJS {
         REVOKED = 'revoked',
         ORDER = 'order',
         PRODUCT = 'product',
+        PAYMENT = 'payment',
         UNKNOWN = 'unknown',
         GROUP_INVITE = 'groups_v4_invite',
     }
@@ -566,6 +567,12 @@ declare namespace WAWebJS {
         businessOwnerJid?: string,
         /** Product JID */
         productId?: string,
+        /** Message buttons */
+        dynamicReplyButtons?: object,
+        /** Selected button ID */
+        selectedButtonId?: string,
+        /** Selected list row ID */
+        selectedRowId?: string,
         /** Accept the Group V4 Invite in message */
         acceptGroupV4Invite: () => Promise<{status: number}>,
         /** Deletes the message from the chat */
@@ -600,6 +607,10 @@ declare namespace WAWebJS {
          * Gets the order associated with a given message
          */
         getOrder: () => Order,
+        /**
+         * Gets the payment details associated with a given message
+         */
+        getPayment: () => Payment,
     }
 
     /** ID that represents a message */
@@ -1060,6 +1071,53 @@ declare namespace WAWebJS {
         /** Order Created At*/
         createdAt: number;
     }
+
+    /**
+     * Represents a Payment on WhatsApp
+     *
+     * @example
+     * {
+     * id: {
+     * fromMe: true,
+     * remote: {
+     * server: 'c.us',
+     * user: '5511999999999',
+     * _serialized: '5511999999999@c.us'
+     * },
+     *  id: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+     * _serialized: 'true_5511999999999@c.us_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+     * },
+     * paymentCurrency: 'BRL',
+     * paymentAmount1000: 1000,
+     * paymentMessageReceiverJid: {
+     * server: 'c.us',
+     * user: '5511999999999',
+     * _serialized: '5511999999999@c.us'
+     * },
+     * paymentTransactionTimestamp: 1623463058,
+     * paymentStatus: 4,
+     * paymentTxnStatus: 4,
+     * paymentNote: 'note'
+     * }
+     */
+    export interface Payment {
+        /** Payment Id*/
+        id: object,
+        /** Payment currency */
+        paymentCurrency: string,
+        /** Payment ammount  */
+        paymentAmount1000 : number,
+        /** Payment receiver */
+        paymentMessageReceiverJid : object,
+        /** Payment transaction timestamp */
+        paymentTransactionTimestamp : number,
+        /** Payment paymentStatus */
+        paymentStatus : number,
+        /** Integer that represents the payment Text */
+        paymentTxnStatus  : number,
+        /** The note sent with the payment */
+        paymentNote  : string;
+    }
     
     /**
      * Represents a Call on WhatsApp
@@ -1096,6 +1154,27 @@ declare namespace WAWebJS {
         webClientShouldHandle: boolean,
         /** Object with participants */
         participants: object
+    }
+
+    /** Message type List */
+    export class List {
+        body: string
+        buttonText: string
+        sections: Array<any>
+        title?: string | null
+        footer?: string | null
+        
+        constructor(body: string, buttonText: string, sections: Array<any>, title?: string | null, footer?: string | null)
+    }
+    
+    /** Message type buttons */
+    export class Buttons {
+        body: string | MessageMedia
+        buttons: Array<Array<string>>
+        title?: string | null
+        footer?: string | null
+        
+        constructor(body: string, buttons: Array<Array<string>>, title?: string | null, footer?: string | null)
     }
 }
 
