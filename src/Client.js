@@ -98,7 +98,7 @@ class Client extends EventEmitter {
             timeout: 0,
         });
 
-        const INTRO_IMG_SELECTOR = '[data-testid="intro-md-beta-logo-dark"], [data-testid="intro-md-beta-logo-light"] [data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
+        const INTRO_IMG_SELECTOR = '[data-testid="intro-md-beta-logo-dark"], [data-testid="intro-md-beta-logo-light"], [data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
         if (fs.existsSync(path.join(this.options.puppeteer.userDataDir, 'wwebjs.json')) && JSON.parse(fs.readFileSync(path.join(this.options.puppeteer.userDataDir, 'wwebjs.json'))).authenticated) {
             try {
                 await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: this.options.authTimeoutMs });
@@ -161,7 +161,7 @@ class Client extends EventEmitter {
          * @event Client#authenticated
          */
         this.emit(Events.AUTHENTICATED);
-
+        
         await fs.promises.writeFile(path.join(this.options.puppeteer.userDataDir, 'wwebjs.json'), JSON.stringify({authenticated: true}));
 
         // Check window.Store Injection
