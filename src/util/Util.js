@@ -19,6 +19,7 @@ class Util {
         throw new Error(`The ${this.constructor.name} class may not be instantiated.`);
     }
 
+
     static generateHash(length) {
         var result = '';
         var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
