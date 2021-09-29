@@ -70,13 +70,9 @@ class Client extends EventEmitter {
         // eslint-disable-next-line no-useless-escape
         const foldernameRegex = /^(?!.{256,})(?!(aux|clock\$|con|nul|prn|com[1-9]|lpt[1-9])(?:$|\.))[^ ][ \.\w-$()+=[\];#@~,&amp;']+[^\. ]$/i;
 
-        if (this.id && !foldernameRegex.test(this.id)) throw TypeError('Invalid client ID. Make sure you abide by the folder naming rules of your operating system.');
+        if (this.id && !foldernameRegex.test(this.id)) throw Error('Invalid client ID. Make sure you abide by the folder naming rules of your operating system.');
 
-        const dirPath = path.join(process.cwd(), this.options.dataPath, this.id ? 'session-' + this.id : 'session');
-
-        if (!fs.existsSync(dirPath)) {
-            await Util.createNestedDirectory(dirPath);
-        } 
+        const dirPath = path.join(process.cwd(), this.options.dataPath, this.id ? 'session-' + this.id : 'session'); 
         
         this.options.puppeteer.userDataDir = dirPath;
         
@@ -102,8 +98,8 @@ class Client extends EventEmitter {
             timeout: 0,
         });
 
-        const INTRO_IMG_SELECTOR = '[data-testid="intro-md-beta-logo-dark"], [data-testid="intro-md-beta-logo-light"]';
-        if (fs.existsSync(path.join(this.options.puppeteer.userDataDir, 'Default'))) {
+        const INTRO_IMG_SELECTOR = '[data-testid="intro-md-beta-logo-dark"], [data-testid="intro-md-beta-logo-light"] [data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
+        if (fs.existsSync(path.join(this.options.puppeteer.userDataDir, 'wwebjs.json')) && JSON.parse(fs.readFileSync(path.join(this.options.puppeteer.userDataDir, 'wwebjs.json'))).authenticated) {
             try {
                 await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: this.options.authTimeoutMs });
             } catch (err) {
@@ -115,9 +111,9 @@ class Client extends EventEmitter {
                      */
                     this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in. Are the files corrupt?');
                     browser.close();
+
                     if (this.options.restartOnAuthFail) {
                         // session restore failed so try again but without session to force new authentication
-                        await fs.promises.rmdir(this.options.puppeteer.userDataDir);
                         this.initialize();
                     }
                     return;
@@ -165,6 +161,8 @@ class Client extends EventEmitter {
          * @event Client#authenticated
          */
         this.emit(Events.AUTHENTICATED);
+
+        await fs.promises.writeFile(path.join(this.options.puppeteer.userDataDir, 'wwebjs.json'), JSON.stringify({authenticated: true}));
 
         // Check window.Store Injection
         await page.waitForFunction('window.Store != undefined');

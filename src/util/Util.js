@@ -18,20 +18,6 @@ class Util {
     constructor() {
         throw new Error(`The ${this.constructor.name} class may not be instantiated.`);
     }
-    /**
-     * Create a nested directory
-     * @param {string} path 
-     */
-    static async createNestedDirectory(path) {
-        const directories = path.split('/');
-        if (directories[0] == '.' || directories[0] == '') directories.shift();
-
-        for (const directory in directories) {
-            const pastDir = directories.slice(0, directory).join('/');
-            if (!require('fs').existsSync(pastDir) && pastDir.length > 1) await fs.mkdir(pastDir);
-        }
-
-    }
 
     static generateHash(length) {
         var result = '';
