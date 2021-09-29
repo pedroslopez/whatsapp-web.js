@@ -8,7 +8,7 @@ exports.DefaultOptions = {
         defaultViewport: null
     },
     dataPath: './WWebJS/',
-    qrTimeoutMs: 45000,
+    qrTimeoutMs: 55000,
     qrRefreshIntervalMs: 20000,
     authTimeoutMs: 90000,
     takeoverOnConflict: false,

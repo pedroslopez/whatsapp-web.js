@@ -161,7 +161,7 @@ class Client extends EventEmitter {
          * @event Client#authenticated
          */
         this.emit(Events.AUTHENTICATED);
-        
+
         await fs.promises.writeFile(path.join(this.options.puppeteer.userDataDir, 'wwebjs.json'), JSON.stringify({authenticated: true}));
 
         // Check window.Store Injection

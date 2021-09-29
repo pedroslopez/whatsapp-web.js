@@ -1,6 +1,6 @@
 'use strict';
 
-const sharp = require('sharp');
+//const sharp = require('sharp');
 const path = require('path');
 const Crypto = require('crypto');
 const { tmpdir } = require('os');
