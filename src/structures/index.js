@@ -13,5 +13,9 @@ module.exports = {
     GroupNotification: require('./GroupNotification'),
     Label: require('./Label.js'),
     Order: require('./Order'),
-    Product: require('./Product')
+    Product: require('./Product'),
+    Call: require('./Call'),
+    Buttons: require('./Buttons'),
+    List: require('./List'),
+    Payment: require('./Payment')
 };

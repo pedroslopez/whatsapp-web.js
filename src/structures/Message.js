@@ -4,6 +4,7 @@ const Base = require('./Base');
 const MessageMedia = require('./MessageMedia');
 const Location = require('./Location');
 const Order = require('./Order');
+const Payment = require('./Payment');
 const { MessageTypes } = require('../util/Constants');
 
 /**
@@ -41,7 +42,7 @@ class Message extends Base {
          * Indicates if the message has media available for download
          * @type {boolean}
          */
-        this.hasMedia = data.clientUrl || data.deprecatedMms3Url;
+        this.hasMedia = Boolean(data.mediaKey && data.directPath);
 
         /**
          * Message content
@@ -93,6 +94,14 @@ class Message extends Base {
          * @type {boolean}
          */
         this.isForwarded = data.isForwarded;
+
+        /**
+         * Indicates how many times the message was forwarded.
+         *
+         * The maximum value is 127.
+         * @type {number}
+         */
+        this.forwardingScore = data.forwardingScore || 0;
 
         /**
          * Indicates if the message is a status update
@@ -192,10 +201,26 @@ class Message extends Base {
 
         /**
          * Links included in the message.
-         * @type {Array<string>}
+         * @type {Array<{link: string, isSuspicious: boolean}>}
+         * 
          */
         this.links = data.links;
 
+        /** Buttons */
+        if (data.dynamicReplyButtons) {
+            this.dynamicReplyButtons = data.dynamicReplyButtons;
+        }
+        
+        /** Selected Button Id **/
+        if (data.selectedButtonId) {
+            this.selectedButtonId = data.selectedButtonId;
+        }
+
+        /** Selected List row Id **/
+        if (data.listResponse && data.listResponse.singleSelectReply.selectedRowId) {
+            this.selectedRowId = data.listResponse.singleSelectReply.selectedRowId;
+        }
+        
         return super._patch(data);
     }
 
@@ -304,26 +329,39 @@ class Message extends Base {
 
             if (msg.mediaData.mediaStage != 'RESOLVED') {
                 // try to resolve media
-                await msg.downloadMedia(true, 1);
+                await msg.downloadMedia({
+                    downloadEvenIfExpensive: true, 
+                    rmrReason: 1
+                });
             }
 
-            if (msg.mediaData.mediaStage.includes('ERROR')) {
+            if (msg.mediaData.mediaStage.includes('ERROR') || msg.mediaData.mediaStage === 'FETCHING') {
                 // media could not be downloaded
                 return undefined;
             }
 
-            const mediaUrl = msg.clientUrl || msg.deprecatedMms3Url;
-
-            const buffer = await window.WWebJS.downloadBuffer(mediaUrl);
-            const decrypted = await window.Store.CryptoLib.decryptE2EMedia(msg.type, buffer, msg.mediaKey, msg.mimetype);
-            const data = await window.WWebJS.readBlobAsync(decrypted._blob);
-
-            return {
-                data: data.split(',')[1],
-                mimetype: msg.mimetype,
-                filename: msg.filename
-            };
-
+            try {
+                const decryptedMedia = await window.Store.DownloadManager.downloadAndDecrypt({
+                    directPath: msg.directPath,
+                    encFilehash: msg.encFilehash,
+                    filehash: msg.filehash,
+                    mediaKey: msg.mediaKey,
+                    mediaKeyTimestamp: msg.mediaKeyTimestamp,
+                    type: msg.type,
+                    signal: (new AbortController).signal
+                });
+    
+                const data = window.WWebJS.arrayBufferToBase64(decryptedMedia);
+    
+                return {
+                    data,
+                    mimetype: msg.mimetype,
+                    filename: msg.filename
+                };
+            } catch (e) {
+                if(e.status && e.status === 404) return undefined;
+                throw e;
+            }
         }, this.id._serialized);
 
         if (!result) return undefined;
@@ -413,6 +451,21 @@ class Message extends Base {
             }, this.orderId, this.token);
             if (!result) return undefined;
             return new Order(this.client, result);
+        }
+        return undefined;
+    }
+    /**
+     * Gets the payment details associated with a given message
+     * @return {Promise<Payment>}
+     */
+    async getPayment() {
+        if (this.type === MessageTypes.PAYMENT) {
+            const msg = await this.client.pupPage.evaluate(async (msgId) => {
+                const msg = window.Store.Msg.get(msgId);
+                if(!msg) return null;
+                return msg.serialize();
+            }, this.id._serialized);
+            return new Payment(this.client, msg);
         }
         return undefined;
     }

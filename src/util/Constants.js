@@ -51,7 +51,8 @@ exports.Events = {
     QR_RECEIVED: 'qr',
     DISCONNECTED: 'disconnected',
     STATE_CHANGED: 'change_state',
-    BATTERY_CHANGED: 'change_battery'
+    BATTERY_CHANGED: 'change_battery',
+    INCOMING_CALL: 'incoming_call'
 };
 
 /**
@@ -74,7 +75,10 @@ exports.MessageTypes = {
     REVOKED: 'revoked',
     PRODUCT: 'product',
     UNKNOWN: 'unknown',
-    GROUP_INVITE: 'groups_v4_invite'
+    GROUP_INVITE: 'groups_v4_invite',
+    LIST: 'list',
+    BUTTONS_RESPONSE: 'buttons_response',
+    PAYMENT: 'payment'
 };
 
 /**
