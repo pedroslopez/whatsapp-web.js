@@ -705,7 +705,7 @@ declare namespace WAWebJS {
         static fromUrl: (url: string, options?: MediaFromURLOptions) => Promise<MessageMedia>
     }
 
-    export type MessageContent = string | MessageMedia | Location | Contact | Contact[]
+    export type MessageContent = string | MessageMedia | Location | Contact | Contact[] | list | Buttons
 
     /**
      * Represents a Contact on WhatsApp
