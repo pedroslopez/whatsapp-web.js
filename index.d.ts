@@ -140,10 +140,7 @@ declare namespace WAWebJS {
         on(event: 'auth_failure', listener: (message: string) => void): this
 
         /** Emitted when authentication is successful */
-        on(event: 'authenticated', listener: (
-            /** Object containing session information. Can be used to restore the session */
-            session: ClientSession
-        ) => void): this
+        on(event: 'authenticated', listener: () => void): this
 
         /** Emitted when the connection state changes */
         on(event: 'change_state', listener: (
