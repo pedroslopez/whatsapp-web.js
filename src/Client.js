@@ -201,11 +201,52 @@ class Client extends EventEmitter {
 
         // Add InterfaceController
         this.interface = new InterfaceController(this);
-
         
         //disable logs
         if (this.options.disableLogs) {
-            //Magic
+            switch(this.options.disableLogs){
+                case(3):{//disable logs and telemtry
+                    
+                }
+                case(2):{ // disable Logs
+                    await this.pupPage.evaluate(() => { //remove crash urls
+                        let logObjects = window.mR.findModule('FB_CLB_URL');
+                        if (!logObjects.length) {
+                            throw('[DL02] Couldn\'t find the log FB_CLB_URL objects, set "disableLogs" to 0 or 1');//we should kill the client
+                        }
+                        for (let i = 0; i < logObjects.length; i++) {
+                            /*
+                            we should use file:// because it will trigger Content Security Policy errors
+                            but we can use other protocols, we should be careful because someone can be using the protocol
+                             */
+                            logObjects[i]['default']['FB_CLB_URL'] = 'file://1'; 
+                        }
+                        logObjects = window.mR.findModule('FB_CLB_CHECK_URL');
+                        if (!logObjects.length) {
+                            throw('[DL03] Couldn\'t find the log FB_CLB_CHECK_URL objects, set "disableLogs" to 0 or 1');
+                        }
+                        for (let i = 0; i < logObjects.length; i++) {
+                            logObjects[i]['default']['FB_CLB_CHECK_URL'] = 'file://2'; 
+                        }
+                    });
+                    //remove log functions
+                    
+                    // break;
+                }
+                case(1):{ // disable Telemetry
+                    await this.pupPage.evaluate(() => {
+                        let telemetryObjects = window.mR.findModule('WAM_URL');
+                        if(!telemetryObjects.length){
+                            throw('[DL01] Couldn\'t find the telemetry WAM objects, set "disableLogs" to 0 or 2');
+                        }
+                        for(let i =0; i< telemetryObjects.length; i++){
+                            telemetryObjects[i]['default']['WAM_URL']  = 'file://3';
+                        }
+                    });
+                                       
+                    break;
+                }
+            }
         }
         
         // Register events
