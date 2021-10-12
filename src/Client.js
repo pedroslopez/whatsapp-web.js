@@ -204,15 +204,15 @@ class Client extends EventEmitter {
         
         //disable logs
         if (this.options.disableLogs) {
-            switch(this.options.disableLogs){
-            case(3):{//disable logs and telemtry
-                    
+            switch (this.options.disableLogs) {
+            case 3: {//disable logs and telemtry
+               break;  
             }
-            case(2):{ // disable Logs
+            case 2: { // disable Logs
                 await this.pupPage.evaluate(() => { //remove crash urls
                     let logObjects = window.mR.findModule('FB_CLB_URL');
                     if (!logObjects.length) {
-                        throw('[DL02] Couldn\'t find the log FB_CLB_URL objects, set "disableLogs" to 0 or 1');//we should kill the client
+                        throw('[DL02] Couldn\'t find the log FB_CLB_URL objects, set "disableLogs" to 0 or 1'); //we should kill the client
                     }
                     for (let i = 0; i < logObjects.length; i++) {
                         /*
@@ -232,9 +232,9 @@ class Client extends EventEmitter {
                 });
                 //remove log functions
                 
-                // break;
+                break;
             }
-            case(1):{ // disable Telemetry
+            case 1: { // disable Telemetry
                 await this.pupPage.evaluate(() => {
                     let telemetryObjects = window.mR.findModule('WAM_URL');
                     if(!telemetryObjects.length){
