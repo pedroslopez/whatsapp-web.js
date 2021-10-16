@@ -358,11 +358,8 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getChat = async chatId => {
-        console.log(chatId)
         const chatWid = window.Store.WidFactory.createWid(chatId);
-        console.log(chatWid)
         const chat = await window.Store.Chat.find(chatWid);
-        console.log(chat)
         return await window.WWebJS.getChatModel(chat);
     };
 
