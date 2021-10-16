@@ -338,13 +338,15 @@ exports.LoadUtils = () => {
 
 
     window.WWebJS.getChatModel = async chat => {
+        
         let res = chat.serialize();
         res.isGroup = chat.isGroup;
         res.formattedTitle = chat.formattedTitle;
         res.isMuted = chat.mute && chat.mute.isMuted;
 
         if (chat.groupMetadata) {
-            await window.Store.GroupMetadata.update(chat.id._serialized);
+            const chatWid = window.Store.WidFactory.createWid((chat.id._serialized));
+            await window.Store.GroupMetadata.update(chatWid);
             res.groupMetadata = chat.groupMetadata.serialize();
         }
 
@@ -356,15 +358,18 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getChat = async chatId => {
+        console.log(chatId)
         const chatWid = window.Store.WidFactory.createWid(chatId);
+        console.log(chatWid)
         const chat = await window.Store.Chat.find(chatWid);
+        console.log(chat)
         return await window.WWebJS.getChatModel(chat);
     };
 
     window.WWebJS.getChats = async () => {
         const chats = window.Store.Chat.models;
 
-        const chatPromises = chats.map(chat => window.WWebJS.getChatModel(chat));
+        const chatPromises = chats.map(chat => window.WWebJS.getChatModel(chat));        
         return await Promise.all(chatPromises);
     };
 
