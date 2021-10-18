@@ -37,6 +37,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
     window.Store.User = window.mR.findModule('getMaybeMeUser')[0];
     window.Store.DownloadManager = window.mR.findModule('DownloadManager')[0].default;
+    window.Store.ProfilePicture = window.mR.findModule('getProfilePicFull')[0];
     window.Store.Call = window.mR.findModule('CallCollection')[0].default;
     window.Store.User = window.mR.findModule('getMaybeMeUser')[0];
     if (!window.Store.Chat._find) {

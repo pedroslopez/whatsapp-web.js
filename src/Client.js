@@ -790,6 +790,27 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Check if a given ID is registered in whatsapp for the Beta only
+     * @param {string} id the whatsapp user's ID
+     * @returns {Promise<Boolean>}
+     */
+     async isRegisteredUserBeta(id) {
+        if(!id.endsWith('@c.us')) {
+            id += '@c.us';
+        }
+
+        try {
+            const profilePic = await this.pupPage.evaluate(async numberId => {
+                const chatWid = window.Store.WidFactory.createWid(numberId);
+                return await window.Store.ProfilePicture.getProfilePicPreview(chatWid);
+            }, id);
+            return !!profilePic.tag;
+        } catch(_) {
+            return false;
+        }
+    }
+
+    /**
      * Get the registered WhatsApp ID for a number. 
      * Will return null if the number is not registered on WhatsApp.
      * @param {string} number Number or ID ("@c.us" will be automatically appended if not specified)
