@@ -34,6 +34,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Label = window.mR.findModule('LabelCollection')[0].default;
     window.Store.Features = window.mR.findModule('FEATURE_CHANGE_EVENT')[0].default;
     window.Store.QueryOrder = window.mR.findModule('queryOrder')[0];
+    window.Store.QueryExist = window.mR.findModule('queryExist')[0].queryExist;
     window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
     window.Store.User = window.mR.findModule('getMaybeMeUser')[0];
     window.Store.DownloadManager = window.mR.findModule('DownloadManager')[0].default;
@@ -54,10 +55,10 @@ exports.LoadUtils = () => {
 
     window.WWebJS.getNumberId = async (id) => {
 
-        let result = await window.Store.Wap.queryExist(id);
-        if (result.jid === undefined)
+        let result = await window.Store.QueryExist(id);
+        if (result.wid === undefined)
             throw 'The number provided is not a registered whatsapp user';
-        return result.jid;
+        return result.wid;
     };
 
     window.WWebJS.sendSeen = async (chatId) => {

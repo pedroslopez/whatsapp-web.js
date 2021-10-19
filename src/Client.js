@@ -783,9 +783,15 @@ class Client extends EventEmitter {
      * @returns {Promise<Boolean>}
      */
     async isRegisteredUser(id) {
+        if(!id.endsWith('@c.us')) {
+            id += '@c.us';
+        }
+        if(!id.startsWith('+')) {
+            id = '+' + id;
+        }
         return await this.pupPage.evaluate(async (id) => {
-            let result = await window.Store.Wap.queryExist(id);
-            return result.jid !== undefined;
+            let result = await window.Store.QueryExist(id);
+            return result.wid !== undefined;
         }, id);
     }
 
@@ -799,7 +805,9 @@ class Client extends EventEmitter {
         if(!number.endsWith('@c.us')) {
             number += '@c.us';
         }
-
+        if(!number.startsWith('+')) {
+            number = '+' + number;
+        }
         try {
             return await this.pupPage.evaluate(async numberId => {
                 return window.WWebJS.getNumberId(numberId);
