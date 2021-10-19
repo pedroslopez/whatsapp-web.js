@@ -783,31 +783,16 @@ class Client extends EventEmitter {
      * @returns {Promise<Boolean>}
      */
     async isRegisteredUser(id) {
-        return await this.pupPage.evaluate(async (id) => {
-            let result = await window.Store.Wap.queryExist(id);
-            return result.jid !== undefined;
-        }, id);
-    }
-
-    /**
-     * Check if a given ID is registered in whatsapp for the Beta only
-     * @param {string} id the whatsapp user's ID
-     * @returns {Promise<Boolean>}
-     */
-     async isRegisteredUserBeta(id) {
         if(!id.endsWith('@c.us')) {
             id += '@c.us';
         }
-
-        try {
-            const profilePic = await this.pupPage.evaluate(async numberId => {
-                const chatWid = window.Store.WidFactory.createWid(numberId);
-                return await window.Store.ProfilePicture.getProfilePicPreview(chatWid);
-            }, id);
-            return !!profilePic.tag;
-        } catch(_) {
-            return false;
+        if(!id.startsWith('+')) {
+            id = '+' + id;
         }
+        return await this.pupPage.evaluate(async (id) => {
+            let result = await window.Store.QueryExist(id);
+            return result.wid !== undefined;
+        }, id);
     }
 
     /**
@@ -820,7 +805,9 @@ class Client extends EventEmitter {
         if(!number.endsWith('@c.us')) {
             number += '@c.us';
         }
-
+        if(!number.startsWith('+')) {
+            number = '+' + number;
+        }
         try {
             return await this.pupPage.evaluate(async numberId => {
                 return window.WWebJS.getNumberId(numberId);
