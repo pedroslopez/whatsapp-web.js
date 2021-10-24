@@ -74,8 +74,10 @@ class Client extends EventEmitter {
 
         const dirPath = path.join(process.cwd(), this.options.dataPath, this.id ? 'session-' + this.id : 'session'); 
         
-        this.options.puppeteer.userDataDir = dirPath;
-        
+        if (fs.existsSync(dirPath)) fs.rmdirSync(path.join(dirPath, '/Default/Service\ Worker'));
+            
+        if (!this.options.puppeteer.userDataDir) this.options.puppeteer.userDataDir = dirPath;
+       
         if(this.options.puppeteer && this.options.puppeteer.browserWSEndpoint) {
             browser = await puppeteer.connect(this.options.puppeteer);
             page = await browser.newPage();
