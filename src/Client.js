@@ -75,7 +75,7 @@ class Client extends EventEmitter {
         const dirPath = path.join(process.cwd(), this.options.dataPath, this.id ? 'session-' + this.id : 'session'); 
         
         // eslint-disable-next-line no-useless-escape
-        if (fs.existsSync(dirPath)) fs.rmdirSync(path.join(dirPath, '/Default/Service\ Worker'));
+        if (fs.existsSync(dirPath)) fs.rmdirSync(path.join(dirPath, '/Default/Service\ Worker'), {recursive: true});
             
         if (!this.options.puppeteer.userDataDir) this.options.puppeteer.userDataDir = dirPath;
        
