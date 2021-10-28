@@ -40,7 +40,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Wap = window.mR.findModule('Wap')[0].default;
     window.Store.WidFactory = window.mR.findModule('createWid')[0];
     window.Store.getProfilePicFull = window.mR.findModule('getProfilePicFull')[0].getProfilePicFull;
- 
+    window.Store.Presence = window.mR.findModule('setPresenceAvailable')[0];
+	
     if (!window.Store.Chat._find) {
         window.Store.Chat._find = e => {
             const target = window.Store.Chat.get(e);
