@@ -39,6 +39,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.VCard = window.mR.findModule('vcardFromContactModel')[0];
     window.Store.Wap = window.mR.findModule('Wap')[0].default;
     window.Store.WidFactory = window.mR.findModule('createWid')[0];
+    window.Store.getProfilePicFull = window.mR.findModule("getProfilePicFull")[0].getProfilePicFull;
  
     if (!window.Store.Chat._find) {
         window.Store.Chat._find = e => {
