@@ -332,7 +332,7 @@ exports.LoadUtils = () => {
         }
 
         if(typeof msg.id.remote === 'object') {
-            msg.id.remote = msg.id.remote._serialized;
+            msg.id = Object.assign({}, msg.id, {remote: msg.id.remote._serialized});
         }
         
         delete msg.pendingAckUpdate;
