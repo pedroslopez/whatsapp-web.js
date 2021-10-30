@@ -20,6 +20,7 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @param {object} options.puppeteer - Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/
  * @param {number} options.qrRefreshIntervalMs - Refresh interval for qr code (how much time to wait before checking if the qr code has changed)
  * @param {number} options.qrTimeoutMs - Timeout for qr code selector in puppeteer
+ * @param {number} options.qrMaxRetries - How many times should the qrcode be refreshed before giving up
  * @param {string} options.restartOnAuthFail  - Restart client with a new session (i.e. use null 'session' var) if authentication fails
  * @param {object} options.session - Whatsapp session to restore. If not set, will start a new session
  * @param {string} options.session.WABrowserId
@@ -127,6 +128,8 @@ class Client extends EventEmitter {
             }
 
         } else {
+            let qrRetries = 0;
+
             const getQrCode = async () => {
                 // Check if retry button is present
                 var QR_RETRY_SELECTOR = 'div[data-ref] > span > button';
@@ -147,6 +150,14 @@ class Client extends EventEmitter {
                 * @param {string} qr QR Code
                 */
                 this.emit(Events.QR_RECEIVED, qr);
+
+                if (this.options.qrMaxRetries > 0) {
+                    qrRetries++;
+                    if (qrRetries > this.options.qrMaxRetries) {
+                        this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
+                        await this.destroy();
+                    }
+                }
             };
             getQrCode();
             this._qrRefreshInterval = setInterval(getQrCode, this.options.qrRefreshIntervalMs);

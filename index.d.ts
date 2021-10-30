@@ -294,6 +294,9 @@ declare namespace WAWebJS {
         /** Timeout for qr code selector in puppeteer
          * @default 45000 */
         qrTimeoutMs?: number,
+		/** How many times should the qrcode be refreshed before giving up
+		 * @default 0 (disabled) */
+		qrMaxRetries?: number,
         /** Restart client with a new session (i.e. use null 'session' var) if authentication fails
          * @default false */
         restartOnAuthFail?: boolean
