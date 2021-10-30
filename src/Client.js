@@ -100,7 +100,7 @@ class Client extends EventEmitter {
             timeout: 0,
         });
 
-        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
+        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-icon="intro-md-beta-logo-dark"], [data-icon="intro-md-beta-logo-light"], [data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
 
         if (this.options.session) {
             // Check if session restore was successfull 
@@ -185,6 +185,14 @@ class Client extends EventEmitter {
 
         // Check window.Store Injection
         await page.waitForFunction('window.Store != undefined');
+
+        const isMD = await page.evaluate(() => {
+            return window.Store.Features.features.MD_BACKEND;
+        });
+
+        if(isMD) {
+            throw new Error('Multi-device is not yet supported by whatsapp-web.js. Please check out https://github.com/pedroslopez/whatsapp-web.js/pull/889 to follow the progress.');
+        }
 
         //Load util functions (serializers, helper functions)
         await page.evaluate(LoadUtils);
