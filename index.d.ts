@@ -62,6 +62,12 @@ declare namespace WAWebJS {
 
         /** Get all current contact instances */
         getContacts(): Promise<Contact[]>
+        
+        /** Get the country code of a WhatsApp ID. (154185968@c.us) => (1) */
+        getCountryCode(number: string): Promise<string>
+
+        /** Get the formatted number of a WhatsApp ID. (12345678901@c.us) => (+1 (234) 5678-901) */
+        getFormattedNumber(number: string): Promise<string>
 
         /** Get all current Labels  */
         getLabels(): Promise<Label[]>
@@ -786,9 +792,16 @@ declare namespace WAWebJS {
          * Will return null when getting chat for currently logged in user.
          */
         getChat: () => Promise<Chat>,
-
+        
+        /** Returns the contact's countrycode, (1541859685@c.us) => (1) */
+        getCountryCode(): Promise<string>,
+        
+        /** Returns the contact's formatted phone number, (12345678901@c.us) => (+1 (234) 5678-901) */
+        getFormattedNumber(): Promise<string>,
+        
         /** Blocks this contact from WhatsApp */
         block: () => Promise<boolean>,
+
         /** Unlocks this contact from WhatsApp */
         unblock: () => Promise<boolean>,
 

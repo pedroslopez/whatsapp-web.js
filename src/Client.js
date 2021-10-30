@@ -840,10 +840,7 @@ class Client extends EventEmitter {
      * @returns {Promise<Object|null>}
      */
     async getNumberId(number) {
-        if(!number.endsWith('@c.us')) {
-            number += '@c.us';
-        }
-
+        if (!number.endsWith('@c.us')) number += '@c.us';
         try {
             return await this.pupPage.evaluate(async numberId => {
                 return window.WWebJS.getNumberId(numberId);
@@ -853,6 +850,32 @@ class Client extends EventEmitter {
         }
     }
 
+    /**
+     * Get the formatted number of a WhatsApp ID.
+     * @param {string} number Number or ID
+     * @returns {Promise<string>}
+     */
+    async getFormattedNumber(number) {
+        if(!number.endsWith('@s.whatsapp.net')) number = number.replace('c.us', 's.whatsapp.net');
+
+        return await this.pupPage.evaluate(async numberId => {
+            return window.NumberInfo.formattedPhoneNumber(numberId);
+        }, number);
+    }
+    
+    /**
+     * Get the country code of a WhatsApp ID.
+     * @param {string} number Number or ID
+     * @returns {Promise<string>}
+     */
+    async getCountryCode(number) {
+        number = number.replace(' ', '').replace('+', '').replace('@c.us', '');
+
+        return await this.pupPage.evaluate(async numberId => {
+            return window.NumberInfo.findCC(numberId);
+        }, number);
+    }
+    
     /**
      * Create a new group
      * @param {string} name group title
