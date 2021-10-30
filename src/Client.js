@@ -857,9 +857,10 @@ class Client extends EventEmitter {
      */
     async getFormattedNumber(number) {
         if(!number.endsWith('@s.whatsapp.net')) number = number.replace('c.us', 's.whatsapp.net');
-
+        if(!number.includes('@s.whatsapp.net')) number = `${number}@s.whatsapp.net`;
+        
         return await this.pupPage.evaluate(async numberId => {
-            return window.NumberInfo.formattedPhoneNumber(numberId);
+            return window.Store.NumberInfo.formattedPhoneNumber(numberId);
         }, number);
     }
     
@@ -872,7 +873,7 @@ class Client extends EventEmitter {
         number = number.replace(' ', '').replace('+', '').replace('@c.us', '');
 
         return await this.pupPage.evaluate(async numberId => {
-            return window.NumberInfo.findCC(numberId);
+            return window.Store.NumberInfo.findCC(numberId);
         }, number);
     }
     
