@@ -330,6 +330,10 @@ exports.LoadUtils = () => {
         if(msg.replyButtons) {
             msg.replyButtons = JSON.parse(JSON.stringify(msg.replyButtons));
         }
+
+        if(typeof msg.id.remote === 'object') {
+            msg.id.remote = msg.id.remote._serialized;
+        }
         
         delete msg.pendingAckUpdate;
         
