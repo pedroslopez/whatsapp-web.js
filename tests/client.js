@@ -29,6 +29,24 @@ describe('Client', function() {
             await client.destroy();
         });
 
+        it('should disconnect after reaching max qr retries', async function () {
+            this.timeout(50000);
+            
+            const qrCallback = sinon.spy();
+            const disconnectedCallback = sinon.spy();
+            
+            const client = helper.createClient({options: {qrMaxRetries: 2}});
+            client.on('qr', qrCallback);
+            client.on('disconnected', disconnectedCallback);
+
+            client.initialize();
+
+            await helper.sleep(45000);
+            
+            expect(qrCallback.calledThrice).to.eql(true);
+            expect(disconnectedCallback.calledOnceWith('Max qrcode retries reached')).to.eql(true);
+        });
+
         it('should fail auth if session is invalid', async function() {
             this.timeout(40000);
 
