@@ -384,6 +384,32 @@ END:VCARD`;
                 expect(contact).to.exist;
                 expect(contact).to.be.instanceOf(Contact);
             });
+
+            it('can block a contact', async function () {
+                const contact = await client.getContactById(remoteId);
+                await contact.block();
+
+                const refreshedContact = await client.getContactById(remoteId);
+                expect(refreshedContact.isBlocked).to.eql(true);
+            });
+
+            it('can get a list of blocked contacts', async function () {
+                const blockedContacts = await client.getBlockedContacts();
+                expect(blockedContacts.length).to.be.greaterThanOrEqual(1);
+
+                const contact = blockedContacts.find(c => c.id._serialized === remoteId);
+                expect(contact).to.exist;
+                expect(contact).to.be.instanceOf(Contact);
+
+            });
+
+            it('can unblock a contact', async function () {
+                const contact = await client.getContactById(remoteId);
+                await contact.unblock();
+
+                const refreshedContact = await client.getContactById(remoteId);
+                expect(refreshedContact.isBlocked).to.eql(false);
+            });
         });
 
         describe('Numbers and Users', function () {

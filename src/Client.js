@@ -11,7 +11,7 @@ const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constan
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
-const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification , Label, Call } = require('./structures');
+const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification , Label, Call, Buttons, List} = require('./structures');
 /**
  * Starting point for interacting with the WhatsApp Web API
  * @extends {EventEmitter}
@@ -100,7 +100,7 @@ class Client extends EventEmitter {
             timeout: 0,
         });
 
-        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
+        const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-icon="intro-md-beta-logo-dark"], [data-icon="intro-md-beta-logo-light"], [data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
 
         if (this.options.session) {
             // Check if session restore was successfull 
@@ -185,6 +185,14 @@ class Client extends EventEmitter {
 
         // Check window.Store Injection
         await page.waitForFunction('window.Store != undefined');
+
+        const isMD = await page.evaluate(() => {
+            return window.Store.Features.features.MD_BACKEND;
+        });
+
+        if(isMD) {
+            throw new Error('Multi-device is not yet supported by whatsapp-web.js. Please check out https://github.com/pedroslopez/whatsapp-web.js/pull/889 to follow the progress.');
+        }
 
         //Load util functions (serializers, helper functions)
         await page.evaluate(LoadUtils);
@@ -480,7 +488,7 @@ class Client extends EventEmitter {
     /**
      * Send a message to a specific chatId
      * @param {string} chatId
-     * @param {string|MessageMedia|Location|Contact|Array<Contact>} content
+     * @param {string|MessageMedia|Location|Contact|Array<Contact>|Buttons|List} content
      * @param {MessageSendOptions} [options] - Options used when sending the message
      * 
      * @returns {Promise<Message>} Message that was just sent
@@ -517,6 +525,13 @@ class Client extends EventEmitter {
             content = '';
         } else if(Array.isArray(content) && content.length > 0 && content[0] instanceof Contact) {
             internalOptions.contactCardList = content.map(contact => contact.id._serialized);
+            content = '';
+        } else if(content instanceof Buttons){
+            if(content.type !== 'chat'){internalOptions.attachment = content.body;}
+            internalOptions.buttons = content;
+            content = '';
+        } else if(content instanceof List){
+            internalOptions.list = content;
             content = '';
         }
 
@@ -932,6 +947,19 @@ class Client extends EventEmitter {
         }, labelId);
 
         return Promise.all(chatIds.map(id => this.getChatById(id)));
+    }
+
+    /**
+     * Gets all blocked contacts by host account
+     * @returns {Promise<Array<Contact>>}
+     */
+    async getBlockedContacts() {
+        const blockedContacts = await this.pupPage.evaluate(() => {
+            let chatIds = window.Store.Blocklist.models.map(a => a.id._serialized);
+            return Promise.all(chatIds.map(id => window.WWebJS.getContact(id)));            
+        });
+
+        return blockedContacts.map(contact => ContactFactory.create(this.client, contact));
     }
 }
 
