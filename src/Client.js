@@ -946,6 +946,19 @@ class Client extends EventEmitter {
 
         return Promise.all(chatIds.map(id => this.getChatById(id)));
     }
+
+    /**
+     * Gets all blocked contacts by host account
+     * @returns {Promise<Array<Contact>>}
+     */
+    async getBlockedContacts() {
+        const blockedContacts = await this.pupPage.evaluate(() => {
+            let chatIds = window.Store.Blocklist.models.map(a => a.id._serialized);
+            return Promise.all(chatIds.map(id => window.WWebJS.getContact(id)));            
+        });
+
+        return blockedContacts.map(contact => ContactFactory.create(this.client, contact));
+    }
 }
 
 module.exports = Client;
