@@ -147,8 +147,8 @@ class Chat extends Base {
     }
 
     /**
-     * Mutes this chat until a specified date
-     * @param {Date} unmuteDate Date at which the Chat will be unmuted
+     * Mutes this chat forever, unless a date is specified
+     * @param {?Date} unmuteDate Date at which the Chat will be unmuted, leave as is to mute forever
      */
     async mute(unmuteDate) {
         return this.client.muteChat(this.id._serialized, unmuteDate);

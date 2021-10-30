@@ -21,6 +21,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.MediaPrep = window.mR.findModule('MediaPrep')[0];
     window.Store.MediaObject = window.mR.findModule('getOrCreateMediaObject')[0];
     window.Store.MediaUpload = window.mR.findModule('uploadMedia')[0];
+    window.Store.NumberInfo = window.mR.findModule('formattedPhoneNumber')[0];
     window.Store.Cmd = window.mR.findModule('Cmd')[0].default;
     window.Store.MediaTypes = window.mR.findModule('msgToMediaType')[0];
     window.Store.VCard = window.mR.findModule('vcardFromContactModel')[0];
@@ -37,6 +38,15 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
     window.Store.DownloadManager = window.mR.findModule('DownloadManager')[0].default;
     window.Store.Call = window.mR.findModule('CallCollection')[0].default;
+
+    if(!window.Store.Chat._find) {
+        window.Store.Chat._find = e => {
+            const target = window.Store.Chat.get(e);
+            return target ? Promise.resolve(target) : Promise.resolve({
+                id: e
+            });
+        };
+    }
 };
 
 exports.LoadUtils = () => {
@@ -144,7 +154,47 @@ exports.LoadUtils = () => {
                 options = { ...options, ...preview };
             }
         }
+        
+        let extraOptions = {};
+        if(options.buttons){
+            let caption;
+            if(options.buttons.type === 'chat') {
+                content = options.buttons.body;
+                caption = content;
+            }else{
+                caption = options.caption ? options.caption : ' '; //Caption can't be empty
+            }
+            extraOptions = {
+                productHeaderImageRejected: false,
+                isFromTemplate: false,
+                isDynamicReplyButtonsMsg: true,
+                title: options.buttons.title ? options.buttons.title : undefined,
+                footer: options.buttons.footer ? options.buttons.footer : undefined,
+                dynamicReplyButtons: options.buttons.buttons,
+                replyButtons: options.buttons.buttons,
+                caption: caption
+            };
+            delete options.buttons;
+        }
 
+        if(options.list){
+            if(window.Store.Conn.platform === 'smba' || window.Store.Conn.platform === 'smbi'){
+                throw '[LT01] Whatsapp business can\'t send this yet';
+            }
+            extraOptions = {
+                ...extraOptions,
+                type: 'list',
+                footer: options.list.footer,
+                list: {
+                    ...options.list,
+                    listType: 1
+                },
+                body: options.list.description
+            };
+            delete options.list;
+            delete extraOptions.list.footer;
+        }
+                
         const newMsgId = new window.Store.MsgKey({
             fromMe: true,
             remote: chat.id,
@@ -166,7 +216,8 @@ exports.LoadUtils = () => {
             ...locationOptions,
             ...attOptions,
             ...quotedMsgOptions,
-            ...vcardOptions
+            ...vcardOptions,
+            ...extraOptions
         };
 
         await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
@@ -273,8 +324,15 @@ exports.LoadUtils = () => {
         if (msg.buttons) {
             msg.buttons = msg.buttons.serialize();
         }
+        if (msg.dynamicReplyButtons) {
+            msg.dynamicReplyButtons = JSON.parse(JSON.stringify(msg.dynamicReplyButtons));
+        }
         if(msg.replyButtons) {
-            msg.replyButtons = msg.replyButtons.serialize();
+            msg.replyButtons = JSON.parse(JSON.stringify(msg.replyButtons));
+        }
+
+        if(typeof msg.id.remote === 'object') {
+            msg.id = Object.assign({}, msg.id, {remote: msg.id.remote._serialized});
         }
         
         delete msg.pendingAckUpdate;
