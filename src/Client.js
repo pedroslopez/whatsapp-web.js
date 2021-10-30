@@ -944,7 +944,7 @@ class Client extends EventEmitter {
      * @returns {Promise<Array<Contact>>}
      */
     async getBlockedContacts() {
-        const blockedContacts = await this.client.pupPage.evaluate(() => {
+        const blockedContacts = await this.pupPage.evaluate(() => {
             let chatIds = window.Store.Blocklist.models.map(a => a.id._serialized);
             return Promise.all(chatIds.map(id => window.WWebJS.getContact(id)));            
         });
