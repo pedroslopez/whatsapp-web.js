@@ -384,6 +384,32 @@ END:VCARD`;
                 expect(contact).to.exist;
                 expect(contact).to.be.instanceOf(Contact);
             });
+
+            it('can block a contact', async function () {
+                const contact = await client.getContactById(remoteId);
+                await contact.block();
+
+                const refreshedContact = await client.getContactById(remoteId);
+                expect(refreshedContact.isBlocked).to.eql(true);
+            });
+
+            it('can get a list of blocked contacts', async function () {
+                const blockedContacts = await client.getBlockedContacts();
+                expect(blockedContacts.length).to.be.greaterThanOrEqual(1);
+
+                const contact = blockedContacts.find(c => c.id._serialized === remoteId);
+                expect(contact).to.exist;
+                expect(contact).to.be.instanceOf(Contact);
+
+            });
+
+            it('can unblock a contact', async function () {
+                const contact = await client.getContactById(remoteId);
+                await contact.unblock();
+
+                const refreshedContact = await client.getContactById(remoteId);
+                expect(refreshedContact.isBlocked).to.eql(false);
+            });
         });
 
         describe('Numbers and Users', function () {
@@ -411,6 +437,24 @@ END:VCARD`;
                 const number = '9999999999';
                 const numberId = await client.getNumberId(number);
                 expect(numberId).to.eql(null);
+            });
+
+            it('can get a number\'s country code', async function () {
+                const number = '18092201111';
+                const countryCode = await client.getCountryCode(number);
+                expect(countryCode).to.eql('1');
+            });
+
+            it('can get a formatted number', async function () {
+                const number = '18092201111';
+                const formatted = await client.getFormattedNumber(number);
+                expect(formatted).to.eql('+1 (809) 220-1111');
+            });
+
+            it('can get a formatted number from a serialized ID', async function () {
+                const number = '18092201111@c.us';
+                const formatted = await client.getFormattedNumber(number);
+                expect(formatted).to.eql('+1 (809) 220-1111');
             });
         });
     });
