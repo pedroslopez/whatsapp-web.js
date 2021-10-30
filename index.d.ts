@@ -94,11 +94,11 @@ declare namespace WAWebJS {
         getNumberId(number: string): Promise<ContactId | null>
 
         /**
-         * Mutes the Chat until a specified date
+         * Mutes this chat forever, unless a date is specified
          * @param chatId ID of the chat that will be muted
-         * @param unmuteDate Date when the chat will be unmuted
+         * @param unmuteDate Date when the chat will be unmuted, leave as is to mute forever
          */
-        muteChat(chatId: string, unmuteDate: Date): Promise<void>
+        muteChat(chatId: string, unmuteDate?: Date): Promise<void>
 
         /** Force reset of connection state for the client */
         resetState(): Promise<void>
@@ -867,8 +867,8 @@ declare namespace WAWebJS {
         delete: () => Promise<boolean>,
         /** Loads chat messages, sorted from earliest to latest. */
         fetchMessages: (searchOptions: MessageSearchOptions) => Promise<Message[]>,
-        /** Mutes this chat until a specified date */
-        mute: (unmuteDate: Date) => Promise<void>,
+        /** Mutes this chat forever, unless a date is specified */
+        mute: (unmuteDate?: Date) => Promise<void>,
         /** Send a message to this chat */
         sendMessage: (content: MessageContent, options?: MessageSendOptions) => Promise<Message>,
         /** Set the message as seen */

@@ -765,15 +765,16 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Mutes the Chat until a specified date
+     * Mutes this chat forever, unless a date is specified
      * @param {string} chatId ID of the chat that will be muted
-     * @param {Date} unmuteDate Date when the chat will be unmuted
+     * @param {?Date} unmuteDate Date when the chat will be unmuted, leave as is to mute forever
      */
     async muteChat(chatId, unmuteDate) {
+        unmuteDate = unmuteDate ? unmuteDate.getTime() / 1000 : -1;
         await this.pupPage.evaluate(async (chatId, timestamp) => {
             let chat = await window.Store.Chat.get(chatId);
             await chat.mute.mute(timestamp, !0);
-        }, chatId, unmuteDate.getTime() / 1000);
+        }, chatId, unmuteDate || -1);
     }
 
     /**
