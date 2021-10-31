@@ -7,6 +7,13 @@ It uses Puppeteer to run a real instance of Whatsapp Web to avoid getting blocke
 
 **NOTE:** I can't guarantee you will not be blocked by using this method, although it has worked for me. WhatsApp does not allow bots or unofficial clients on their platform, so this shouldn't be considered totally safe.
 
+## Quick Links
+
+* [Guide / Getting Started](https://wwebjs.dev/guide) _(work in progress)_
+* [Reference documentation](https://docs.wwebjs.dev/)
+* [GitHub](https://github.com/pedroslopez/whatsapp-web.js)
+* [npm](https://npmjs.org/package/whatsapp-web.js)
+
 ## Installation
 
 The module is now available on npm! `npm i whatsapp-web.js`
@@ -104,13 +111,6 @@ After that check the following webpage and check http://127.0.0.1:9220/json and 
 | Set user status message | ✅ |
 
 Something missing? Make an issue and let us know!
-
-## Links
-
-* [Reference](https://docs.wwebjs.dev/)
-* [Guide](https://wwebjs.dev/guide) _(work in progress)_
-* [GitHub](https://github.com/pedroslopez/whatsapp-web.js)
-* [npm](https://npmjs.org/package/whatsapp-web.js)
 
 ## Contributing
 
