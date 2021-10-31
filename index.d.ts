@@ -48,6 +48,9 @@ declare namespace WAWebJS {
         /** Logs out the client, closing the current session */
         logout(): Promise<void>
 
+        /** Get all blocked contacts by host account */
+        getBlockedContacts(): Promise<Contact[]>
+
         /** Get chat instance by ID */
         getChatById(chatId: string): Promise<Chat>
 
@@ -59,6 +62,12 @@ declare namespace WAWebJS {
 
         /** Get all current contact instances */
         getContacts(): Promise<Contact[]>
+        
+        /** Get the country code of a WhatsApp ID. (154185968@c.us) => (1) */
+        getCountryCode(number: string): Promise<string>
+
+        /** Get the formatted number of a WhatsApp ID. (12345678901@c.us) => (+1 (234) 5678-901) */
+        getFormattedNumber(number: string): Promise<string>
 
         /** Get all current Labels  */
         getLabels(): Promise<Label[]>
@@ -91,11 +100,11 @@ declare namespace WAWebJS {
         getNumberId(number: string): Promise<ContactId | null>
 
         /**
-         * Mutes the Chat until a specified date
+         * Mutes this chat forever, unless a date is specified
          * @param chatId ID of the chat that will be muted
-         * @param unmuteDate Date when the chat will be unmuted
+         * @param unmuteDate Date when the chat will be unmuted, leave as is to mute forever
          */
-        muteChat(chatId: string, unmuteDate: Date): Promise<void>
+        muteChat(chatId: string, unmuteDate?: Date): Promise<void>
 
         /** Force reset of connection state for the client */
         resetState(): Promise<void>
@@ -278,13 +287,16 @@ declare namespace WAWebJS {
          * @default 45000 */
         authTimeoutMs?: number,
         /** Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/ */
-        puppeteer?: puppeteer.LaunchOptions
+        puppeteer?: puppeteer.LaunchOptions & puppeteer.BrowserLaunchArgumentOptions & puppeteer.BrowserConnectOptions
         /** Refresh interval for qr code (how much time to wait before checking if the qr code has changed)
          * @default 20000 */
         qrRefreshIntervalMs?: number
         /** Timeout for qr code selector in puppeteer
          * @default 45000 */
         qrTimeoutMs?: number,
+		/** How many times should the qrcode be refreshed before giving up
+		 * @default 0 (disabled) */
+		qrMaxRetries?: number,
         /** Restart client with a new session (i.e. use null 'session' var) if authentication fails
          * @default false */
         restartOnAuthFail?: boolean
@@ -428,6 +440,7 @@ declare namespace WAWebJS {
         REVOKED = 'revoked',
         ORDER = 'order',
         PRODUCT = 'product',
+        PAYMENT = 'payment',
         UNKNOWN = 'unknown',
         GROUP_INVITE = 'groups_v4_invite',
     }
@@ -566,6 +579,12 @@ declare namespace WAWebJS {
         businessOwnerJid?: string,
         /** Product JID */
         productId?: string,
+        /** Message buttons */
+        dynamicReplyButtons?: object,
+        /** Selected button ID */
+        selectedButtonId?: string,
+        /** Selected list row ID */
+        selectedRowId?: string,
         /** Accept the Group V4 Invite in message */
         acceptGroupV4Invite: () => Promise<{status: number}>,
         /** Deletes the message from the chat */
@@ -600,6 +619,10 @@ declare namespace WAWebJS {
          * Gets the order associated with a given message
          */
         getOrder: () => Order,
+        /**
+         * Gets the payment details associated with a given message
+         */
+        getPayment: () => Payment,
     }
 
     /** ID that represents a message */
@@ -694,7 +717,7 @@ declare namespace WAWebJS {
         static fromUrl: (url: string, options?: MediaFromURLOptions) => Promise<MessageMedia>
     }
 
-    export type MessageContent = string | MessageMedia | Location | Contact | Contact[]
+    export type MessageContent = string | MessageMedia | Location | Contact | Contact[] | List | Buttons
 
     /**
      * Represents a Contact on WhatsApp
@@ -772,9 +795,16 @@ declare namespace WAWebJS {
          * Will return null when getting chat for currently logged in user.
          */
         getChat: () => Promise<Chat>,
-
+        
+        /** Returns the contact's countrycode, (1541859685@c.us) => (1) */
+        getCountryCode(): Promise<string>,
+        
+        /** Returns the contact's formatted phone number, (12345678901@c.us) => (+1 (234) 5678-901) */
+        getFormattedNumber(): Promise<string>,
+        
         /** Blocks this contact from WhatsApp */
         block: () => Promise<boolean>,
+
         /** Unlocks this contact from WhatsApp */
         unblock: () => Promise<boolean>,
 
@@ -853,8 +883,8 @@ declare namespace WAWebJS {
         delete: () => Promise<boolean>,
         /** Loads chat messages, sorted from earliest to latest. */
         fetchMessages: (searchOptions: MessageSearchOptions) => Promise<Message[]>,
-        /** Mutes this chat until a specified date */
-        mute: (unmuteDate: Date) => Promise<void>,
+        /** Mutes this chat forever, unless a date is specified */
+        mute: (unmuteDate?: Date) => Promise<void>,
         /** Send a message to this chat */
         sendMessage: (content: MessageContent, options?: MessageSendOptions) => Promise<Message>,
         /** Set the message as seen */
@@ -1060,6 +1090,53 @@ declare namespace WAWebJS {
         /** Order Created At*/
         createdAt: number;
     }
+
+    /**
+     * Represents a Payment on WhatsApp
+     *
+     * @example
+     * {
+     * id: {
+     * fromMe: true,
+     * remote: {
+     * server: 'c.us',
+     * user: '5511999999999',
+     * _serialized: '5511999999999@c.us'
+     * },
+     *  id: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+     * _serialized: 'true_5511999999999@c.us_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+     * },
+     * paymentCurrency: 'BRL',
+     * paymentAmount1000: 1000,
+     * paymentMessageReceiverJid: {
+     * server: 'c.us',
+     * user: '5511999999999',
+     * _serialized: '5511999999999@c.us'
+     * },
+     * paymentTransactionTimestamp: 1623463058,
+     * paymentStatus: 4,
+     * paymentTxnStatus: 4,
+     * paymentNote: 'note'
+     * }
+     */
+    export interface Payment {
+        /** Payment Id*/
+        id: object,
+        /** Payment currency */
+        paymentCurrency: string,
+        /** Payment ammount  */
+        paymentAmount1000 : number,
+        /** Payment receiver */
+        paymentMessageReceiverJid : object,
+        /** Payment transaction timestamp */
+        paymentTransactionTimestamp : number,
+        /** Payment paymentStatus */
+        paymentStatus : number,
+        /** Integer that represents the payment Text */
+        paymentTxnStatus  : number,
+        /** The note sent with the payment */
+        paymentNote  : string;
+    }
     
     /**
      * Represents a Call on WhatsApp
@@ -1096,6 +1173,27 @@ declare namespace WAWebJS {
         webClientShouldHandle: boolean,
         /** Object with participants */
         participants: object
+    }
+
+    /** Message type List */
+    export class List {
+        body: string
+        buttonText: string
+        sections: Array<any>
+        title?: string | null
+        footer?: string | null
+        
+        constructor(body: string, buttonText: string, sections: Array<any>, title?: string | null, footer?: string | null)
+    }
+    
+    /** Message type buttons */
+    export class Buttons {
+        body: string | MessageMedia
+        buttons: Array<Array<string>>
+        title?: string | null
+        footer?: string | null
+        
+        constructor(body: string, buttons: Array<Array<string>>, title?: string | null, footer?: string | null)
     }
 }
 
