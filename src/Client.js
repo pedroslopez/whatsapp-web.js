@@ -159,7 +159,12 @@ class Client extends EventEmitter {
         }
 
         await page.evaluate(ExposeStore, moduleRaid.toString());
-
+        
+        // remember me
+        await page.evaluateOnNewDocument(() => {
+            localStorage.setItem('remember-me', 'true');
+        });
+        
         // Get session tokens
         const localStorage = JSON.parse(await page.evaluate(() => {
             return JSON.stringify(window.localStorage);
