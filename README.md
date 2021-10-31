@@ -80,7 +80,7 @@ After that check the following webpage and check http://127.0.0.1:9220/json and 
 | Send messages  | ✅  |
 | Receive messages  | ✅  |
 | Send media (images/audio/documents)  | ✅  |
-| Send media (video)  | ✅ [(requires google chrome)](https://guide.wwebjs.dev/features/handling-attachments#caveat-for-sending-videos-and-gifs)  |
+| Send media (video)  | ✅ [(requires google chrome)](https://wwebjs.dev/guide/handling-attachments.html#caveat-for-sending-videos-and-gifs)  |
 | Send stickers | ✅ |
 | Receive media (images/audio/video/documents)  | ✅  |
 | Send contact cards | ✅ |
@@ -108,7 +108,7 @@ Something missing? Make an issue and let us know!
 ## Links
 
 * [Reference](https://docs.wwebjs.dev/)
-* [Guide](https://guide.wwebjs.dev/) _(work in progress)_
+* [Guide](https://wwebjs.dev/guide) _(work in progress)_
 * [GitHub](https://github.com/pedroslopez/whatsapp-web.js)
 * [npm](https://npmjs.org/package/whatsapp-web.js)
 
