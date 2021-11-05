@@ -659,7 +659,16 @@ class Client extends EventEmitter {
      */
     async sendPresenceAvailable() {
         return await this.pupPage.evaluate(() => {
-            return window.Store.Wap.sendPresenceAvailable();
+            return window.Store.Presence.setPresenceAvailable();
+        });
+    }
+
+    /**
+     * Marks the client as unavailable
+     */
+    async sendPresenceUnavailable() {
+        return await this.pupPage.evaluate(() => {
+            return window.Store.Presence.setPresenceUnavailable();
         });
     }
 
