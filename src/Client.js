@@ -618,8 +618,8 @@ class Client extends EventEmitter {
         if(!inviteInfo.inviteCode) throw 'Invalid invite code, try passing the message.inviteV4 object';
         if (inviteInfo.inviteCodeExp == 0) throw 'Expired invite code';
         return await this.pupPage.evaluate(async inviteInfo => {
-             let { groupId, fromId, inviteCode, inviteCodeExp, toId } = inviteInfo;
-             return await window.Store.Wap.acceptGroupV4Invite(groupId, fromId, inviteCode, String(inviteCodeExp), toId);
+            let { groupId, fromId, inviteCode, inviteCodeExp, toId } = inviteInfo;
+            return await window.Store.Wap.acceptGroupV4Invite(groupId, fromId, inviteCode, String(inviteCodeExp), toId);
         }, inviteInfo);
     }
     
@@ -659,14 +659,14 @@ class Client extends EventEmitter {
      */
     async sendPresenceAvailable() {
         return await this.pupPage.evaluate(() => {
-           return window.Store.Presence.setPresenceAvailable();
+            return window.Store.Presence.setPresenceAvailable();
         });
     }
 
     /**
      * Marks the client as unavailable
      */
-	 async sendPresenceUnavailable() {
+    async sendPresenceUnavailable() {
         return await this.pupPage.evaluate(() => {
             return window.Store.Presence.setPresenceUnavailable();
         });
