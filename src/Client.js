@@ -75,7 +75,9 @@ class Client extends EventEmitter {
         const dirPath = path.join(process.cwd(), this.options.dataPath, this.id ? 'session-' + this.id : 'session'); 
         
         // eslint-disable-next-line no-useless-escape
-        if (fs.existsSync(dirPath)) fs.rmdirSync(path.join(dirPath, '/Default/Service\ Worker'), {recursive: true});
+        const swPath = path.join(dirPath, '/Default/Service\ Worker');
+        
+        if (fs.existsSync(swPath)) fs.rmdirSync(swPath, { recursive: true });
             
         if (!this.options.puppeteer.userDataDir) this.options.puppeteer.userDataDir = dirPath;
        
@@ -113,7 +115,10 @@ class Client extends EventEmitter {
                      * @param {string} message
                      */
                     this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in. Are the files corrupt?');
+                    
                     browser.close();
+
+                    fs.rmdirSync(this.options.userDataDir, {recursive: true});
 
                     if (this.options.restartOnAuthFail) {
                         // session restore failed so try again but without session to force new authentication
@@ -396,9 +401,11 @@ class Client extends EventEmitter {
      * Logs out the client, closing the current session
      */
     async logout() {
-        return await this.pupPage.evaluate(() => {
+        await this.pupPage.evaluate(() => {
             return window.Store.AppState.logout();
         });
+
+        return fs.rmdirSync(this.options.userDataDir, {recursive: true});
     }
 
     /**
