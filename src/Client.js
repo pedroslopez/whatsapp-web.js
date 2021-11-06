@@ -882,8 +882,8 @@ class Client extends EventEmitter {
                 let result = await handler.execute();
                 return result.list[0].contact.type == 'in';
             }else{
-                let result = await window.Store.QueryExist(id);
-                return result.wid !== undefined;
+                let result = await window.Store.Wap.queryExist(id);
+                return result.jid !== undefined;
             }
         }, id);
     }

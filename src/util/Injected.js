@@ -69,10 +69,10 @@ exports.LoadUtils = () => {
             }
             throw 'The number provided is not a registered whatsapp user';
         }else{
-            let result = await window.Store.QueryExist(id);
-            if (result.wid === undefined)
+            let result = await window.Store.Wap.queryExist(id);
+            if (result.jid === undefined)
                 throw 'The number provided is not a registered whatsapp user';
-            return result.wid;
+            return result.jid;
         }
     };
 
