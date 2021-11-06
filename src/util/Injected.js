@@ -20,6 +20,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Label = window.mR.findModule('LabelCollection')[0].default;
     window.Store.MediaPrep = window.mR.findModule('MediaPrep')[0];
     window.Store.MediaObject = window.mR.findModule('getOrCreateMediaObject')[0];
+    window.Store.NumberInfo = window.mR.findModule('formattedPhoneNumber')[0];
     window.Store.MediaTypes = window.mR.findModule('msgToMediaType')[0];
     window.Store.MediaUpload = window.mR.findModule('uploadMedia')[0];
     window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
@@ -333,6 +334,10 @@ exports.LoadUtils = () => {
         }
         if(msg.replyButtons) {
             msg.replyButtons = JSON.parse(JSON.stringify(msg.replyButtons));
+        }
+
+        if(typeof msg.id.remote === 'object') {
+            msg.id = Object.assign({}, msg.id, {remote: msg.id.remote._serialized});
         }
         
         delete msg.pendingAckUpdate;
