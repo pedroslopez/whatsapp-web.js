@@ -258,13 +258,13 @@ class Message extends Base {
      */
     async getQuotedMessage() {
         if (!this.hasQuotedMsg) return undefined;
-        try {
-            const quotedMsg = await this.client.pupPage.evaluate((msgId) => {
-                let msg = window.Store.Msg.get(msgId);
-                return msg.quotedMsgObj().serialize();
-            }, this.id._serialized);
-            return new Message(this.client, quotedMsg);
-        } catch (_) { _; }
+
+        const quotedMsg = await this.client.pupPage.evaluate((msgId) => {
+            let msg = window.Store.Msg.get(msgId);
+            return msg.quotedMsgObj().serialize();
+        }, this.id._serialized);
+        
+        return new Message(this.client, quotedMsg);
     }
 
     /**
