@@ -75,6 +75,20 @@ class Client extends EventEmitter {
 
         if (this.id && !foldernameRegex.test(this.id)) throw Error('Invalid client ID. Make sure you abide by the folder naming rules of your operating system.');
         
+        let isPreAuthenticated = false;
+        if(!this.options.useDeprecatedSessionAuth) {
+            const dirPath = path.join(process.cwd(), this.options.dataPath, this.id ? 'session-' + this.id : 'session'); 
+            if (!this.options.puppeteer.userDataDir) this.options.puppeteer.userDataDir = dirPath;
+        
+            // eslint-disable-next-line no-useless-escape
+            const swPath = path.join(dirPath, '/Default/Service\ Worker');
+            if (fs.existsSync(swPath)) fs.rmdirSync(swPath, { recursive: true });
+
+            const authJsonPath = path.join(this.options.puppeteer.userDataDir, 'wwebjs.json');
+            const authJson = fs.existsSync(authJsonPath) && JSON.parse(fs.readFileSync(authJsonPath));
+            isPreAuthenticated = authJson ? authJson.authenticated : false;
+        }
+
         if(this.options.puppeteer && this.options.puppeteer.browserWSEndpoint) {
             browser = await puppeteer.connect(this.options.puppeteer);
             page = await browser.newPage();
@@ -88,7 +102,6 @@ class Client extends EventEmitter {
         this.pupBrowser = browser;
         this.pupPage = page;
 
-        let isPreAuthenticated = false;
         if (this.options.useDeprecatedSessionAuth && this.options.session) {
             isPreAuthenticated = true;
             await page.evaluateOnNewDocument(
@@ -99,18 +112,7 @@ class Client extends EventEmitter {
                     localStorage.setItem('WAToken1', session.WAToken1);
                     localStorage.setItem('WAToken2', session.WAToken2);
                 }, this.options.session);
-        } else if(!this.options.useDeprecatedSessionAuth) {
-            const dirPath = path.join(process.cwd(), this.options.dataPath, this.id ? 'session-' + this.id : 'session'); 
-            if (!this.options.puppeteer.userDataDir) this.options.puppeteer.userDataDir = dirPath;
-        
-            // eslint-disable-next-line no-useless-escape
-            const swPath = path.join(dirPath, '/Default/Service\ Worker');
-            if (fs.existsSync(swPath)) fs.rmdirSync(swPath, { recursive: true });
-
-            const authJsonPath = path.join(this.options.puppeteer.userDataDir, 'wwebjs.json');
-            const authJson = fs.existsSync(authJsonPath) && JSON.parse(fs.readFileSync(authJsonPath));
-            isPreAuthenticated = authJson ? authJson.authenticated : false;
-        }
+        } 
 
         if(this.options.bypassCSP) {
             await page.setBypassCSP(true);
