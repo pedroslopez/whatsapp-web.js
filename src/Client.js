@@ -100,8 +100,8 @@ class Client extends EventEmitter {
                     localStorage.setItem('WAToken2', session.WAToken2);
                 }, this.options.session);
         } else if(!this.options.useDeprecatedSessionAuth) {
-            if (!this.options.puppeteer.userDataDir) this.options.puppeteer.userDataDir = dirPath;
             const dirPath = path.join(process.cwd(), this.options.dataPath, this.id ? 'session-' + this.id : 'session'); 
+            if (!this.options.puppeteer.userDataDir) this.options.puppeteer.userDataDir = dirPath;
         
             // eslint-disable-next-line no-useless-escape
             const swPath = path.join(dirPath, '/Default/Service\ Worker');
