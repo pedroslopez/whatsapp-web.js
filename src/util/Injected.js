@@ -43,6 +43,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.getProfilePicFull = window.mR.findModule('getProfilePicFull')[0].getProfilePicFull;
     window.Store.PresenceUtils = window.mR.findModule('sendPresenceAvailable')[0];
     window.Store.ChatState = window.mR.findModule('sendChatStateComposing')[0];
+    window.Store.USyncQuery = window.mR.findModule('USyncQuery')[0].USyncQuery;
+    window.Store.USyncUser = window.mR.findModule('USyncUser')[0].USyncUser;
 
     if (!window.Store.Chat._find) {
         window.Store.Chat._find = e => {
@@ -58,11 +60,20 @@ exports.LoadUtils = () => {
     window.WWebJS = {};
 
     window.WWebJS.getNumberId = async (id) => {
-
-        let result = await window.Store.QueryExist(id);
-        if (result.wid === undefined)
+        if(window.Store.Features.features.MD_BACKEND){
+            let handler = (new window.Store.USyncQuery).withContactProtocol();
+            handler = handler.withUser( (new window.Store.USyncUser).withPhone(id),  handler.withBusinessProtocol(), 1 );
+            let result = await handler.execute();
+            if(result.list[0].contact.type == 'in'){
+                return result.list[0].id;
+            }
             throw 'The number provided is not a registered whatsapp user';
-        return result.wid;
+        }else{
+            let result = await window.Store.QueryExist(id);
+            if (result.wid === undefined)
+                throw 'The number provided is not a registered whatsapp user';
+            return result.wid;
+        }
     };
 
     window.WWebJS.sendSeen = async (chatId) => {
