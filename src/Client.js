@@ -5,7 +5,6 @@ const fs = require('fs');
 const EventEmitter = require('events');
 const puppeteer = require('puppeteer');
 const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
-const jsQR = require('jsqr');
 
 const Util = require('./util/Util');
 const InterfaceController = require('./util/InterfaceController');
@@ -20,7 +19,6 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @param {object} options - Client options
  * @param {number} options.authTimeoutMs - Timeout for authentication selector in puppeteer
  * @param {object} options.puppeteer - Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/
- * @param {number} options.qrRefreshIntervalMs - Refresh interval for qr code (how much time to wait before checking if the qr code has changed)
  * @param {number} options.qrTimeoutMs - Timeout for qr code selector in puppeteer
  * @param {number} options.qrMaxRetries - How many times should the qrcode be refreshed before giving up
  * @param {string} options.restartOnAuthFail  - Restart client with a new session (i.e. use null 'session' var) if authentication fails
@@ -161,50 +159,54 @@ class Client extends EventEmitter {
             }
 
         } else {
+            const QR_CONTAINER = 'div[data-ref]';
+            const QR_RETRY_BUTTON = 'div[data-ref] > span > button';
+
             let qrRetries = 0;
-
-            const getQrCode = async () => {
-                // Check if retry button is present
-                var QR_RETRY_SELECTOR = 'div[data-ref] > span > button';
-                var qrRetry = await page.$(QR_RETRY_SELECTOR);
-                if (qrRetry) {
-                    await qrRetry.click();
-                }
-
-                try {
-                    // Wait for QR Code
-                    const QR_CANVAS_SELECTOR = 'canvas';
-                    await page.waitForSelector(QR_CANVAS_SELECTOR, { timeout: this.options.qrTimeoutMs });
-                    const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0, 0, 264, 264).data));
-                    const qr = jsQR(qrImgData, 264, 264).data;
-                    
-                    /**
-                    * Emitted when the QR code is received
-                    * @event Client#qr
-                    * @param {string} qr QR Code
-                    */
-                    this.emit(Events.QR_RECEIVED, qr);
-                  
-                    if (this.options.qrMaxRetries > 0) {
-                        qrRetries++;
-                        if (qrRetries > this.options.qrMaxRetries) {
-                            this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
-                            await this.destroy();
-                        }
+            await page.exposeFunction('qrChanged', async (qr) => {
+                this.emit(Events.QR_RECEIVED, qr);
+                if (this.options.qrMaxRetries > 0) {
+                    qrRetries++;
+                    if (qrRetries > this.options.qrMaxRetries) {
+                        this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
+                        await this.destroy();
                     }
-                } catch (err) {
-                    if (err.name === 'TimeoutError') return;
-                    throw err;
                 }
-            };
-            getQrCode();
-            this._qrRefreshInterval = setInterval(getQrCode, this.options.qrRefreshIntervalMs);
+            });
+
+            // Waits for qrcode container
+            await page.waitForSelector(QR_CONTAINER, { timeout: this.options.qrTimeoutMs });
+
+            await page.evaluate(function(selectors) {
+                const qr_container = document.querySelector(selectors.QR_CONTAINER);
+                window.qrChanged(qr_container.dataset.ref);
+
+                const obs = new MutationObserver((muts) => {
+                    muts.forEach(mut => {
+                        // Listens to qr token change
+                        if (mut.type === 'attributes' && mut.attributeName === 'data-ref') {
+                            window.qrChanged(mut.target.dataset.ref);
+                        } else
+                        // Listens to retry button, when found, click it
+                        if (mut.type === 'childList') {
+                            const retry_button = document.querySelector(selectors.QR_RETRY_BUTTON);
+                            if (retry_button) retry_button.click();
+                        }
+                    });
+                });
+                obs.observe(qr_container.parentElement, {
+                    subtree: true,
+                    childList: true,
+                    attributes: true,
+                    attributeFilter: ['data-ref'],
+                });
+            }, { 
+                QR_CONTAINER, 
+                QR_RETRY_BUTTON 
+            });
 
             // Wait for code scan
             await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: 0 });
-            clearInterval(this._qrRefreshInterval);
-            this._qrRefreshInterval = undefined;
-
         }
 
         await page.evaluate(ExposeStore, moduleRaid.toString());
@@ -462,9 +464,6 @@ class Client extends EventEmitter {
      * Closes the client
      */
     async destroy() {
-        if (this._qrRefreshInterval) {
-            clearInterval(this._qrRefreshInterval);
-        }
         await this.pupBrowser.close();
     }
 

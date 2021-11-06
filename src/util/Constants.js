@@ -10,7 +10,6 @@ exports.DefaultOptions = {
     dataPath: './WWebJS/',
     useDeprecatedSessionAuth: false,
     qrTimeoutMs: 55000,
-    qrRefreshIntervalMs: 20000,
     authTimeoutMs: 90000,
     qrMaxRetries: 0,
     takeoverOnConflict: false,
