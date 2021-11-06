@@ -5,7 +5,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     eval('var moduleRaid = ' + moduleRaidStr);
     // eslint-disable-next-line no-undef
     window.mR = moduleRaid();
-    window.Store = window.mR.findModule('Chat')[0].default;
+    window.Store = Object.assign({}, window.mR.findModule('Chat')[0].default);
     window.Store.AppState = window.mR.findModule('STREAM')[0].default;
     window.Store.BlockContact = window.mR.findModule('blockContact')[0];
     window.Store.Call = window.mR.findModule('CallCollection')[0].default;
@@ -40,8 +40,9 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Wap = window.mR.findModule('Wap')[0].default;
     window.Store.WidFactory = window.mR.findModule('createWid')[0];
     window.Store.getProfilePicFull = window.mR.findModule('getProfilePicFull')[0].getProfilePicFull;
-    window.Store.Presence = window.mR.findModule('setPresenceAvailable')[0];
-	
+    window.Store.PresenceUtils = window.mR.findModule('sendPresenceAvailable')[0];
+    window.Store.ChatState = window.mR.findModule('sendChatStateComposing')[0];
+
     if (!window.Store.Chat._find) {
         window.Store.Chat._find = e => {
             const target = window.Store.Chat.get(e);
@@ -464,15 +465,18 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.sendChatstate = async (state, chatId) => {
+        if(window.Store.Features.features.MD_BACKEND) {
+            chatId = window.Store.WidFactory.createWid(chatId);
+        }
         switch (state) {
         case 'typing':
-            await window.Store.Wap.sendChatstateComposing(chatId);
+            await window.Store.ChatState.sendChatStateComposing(chatId);
             break;
         case 'recording':
-            await window.Store.Wap.sendChatstateRecording(chatId);
+            await window.Store.ChatState.sendChatStateRecording(chatId);
             break;
         case 'stop':
-            await window.Store.Wap.sendChatstatePaused(chatId);
+            await window.Store.ChatState.sendChatStatePaused(chatId);
             break;
         default:
             throw 'Invalid chatstate';
