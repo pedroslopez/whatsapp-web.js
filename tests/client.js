@@ -120,7 +120,7 @@ describe('Client', function() {
                 await client.destroy();
             });
             
-            it.only('should authenticate with existing session', async function() {
+            it('should authenticate with existing session', async function() {
                 this.timeout(40000);
     
                 const authenticatedCallback = sinon.spy();
