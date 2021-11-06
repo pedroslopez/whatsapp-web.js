@@ -60,7 +60,9 @@ class GroupChat extends Chat {
      */
     async addParticipants(participantIds) {
         return await this.client.pupPage.evaluate((chatId, participantIds) => {
-            return window.Store.Wap.addParticipants(chatId, participantIds);
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const participantWids = participantIds.map(p => window.Store.WidFactory.createWid(p));
+            return window.Store.GroupParticipants.sendAddParticipants(chatWid, participantWids);
         }, this.id._serialized, participantIds);
     }
 
@@ -71,7 +73,9 @@ class GroupChat extends Chat {
      */
     async removeParticipants(participantIds) {
         return await this.client.pupPage.evaluate((chatId, participantIds) => {
-            return window.Store.Wap.removeParticipants(chatId, participantIds);
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const participantWids = participantIds.map(p => window.Store.WidFactory.createWid(p));
+            return window.Store.GroupParticipants.sendRemoveParticipants(chatWid, participantWids);
         }, this.id._serialized, participantIds);
     }
 
@@ -82,7 +86,9 @@ class GroupChat extends Chat {
      */
     async promoteParticipants(participantIds) {
         return await this.client.pupPage.evaluate((chatId, participantIds) => {
-            return window.Store.Wap.promoteParticipants(chatId, participantIds);
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const participantWids = participantIds.map(p => window.Store.WidFactory.createWid(p));
+            return window.Store.GroupParticipants.sendPromoteParticipants(chatWid, participantWids);
         }, this.id._serialized, participantIds);
     }
 
@@ -93,7 +99,9 @@ class GroupChat extends Chat {
      */
     async demoteParticipants(participantIds) {
         return await this.client.pupPage.evaluate((chatId, participantIds) => {
-            return window.Store.Wap.demoteParticipants(chatId, participantIds);
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const participantWids = participantIds.map(p => window.Store.WidFactory.createWid(p));
+            return window.Store.GroupParticipants.sendDemoteParticipants(chatWid, participantWids);
         }, this.id._serialized, participantIds);
     }
 

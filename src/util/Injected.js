@@ -43,6 +43,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.getProfilePicFull = window.mR.findModule('getProfilePicFull')[0].getProfilePicFull;
     window.Store.PresenceUtils = window.mR.findModule('sendPresenceAvailable')[0];
     window.Store.ChatState = window.mR.findModule('sendChatStateComposing')[0];
+    window.Store.GroupParticipants = window.mR.findModule('sendPromoteParticipants')[0];
+    window.Store.GroupUtils = window.mR.findModule('sendCreateGroup')[0];
 
     if (!window.Store.Chat._find) {
         window.Store.Chat._find = e => {
