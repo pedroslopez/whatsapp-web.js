@@ -528,20 +528,3 @@ exports.LoadUtils = () => {
         return undefined;
     };
 };
-
-exports.MarkAllRead = () => {
-    let Chats = window.Store.Chat.models;
-
-    for (let chatIndex in Chats) {
-        if (isNaN(chatIndex)) {
-            continue;
-        }
-
-        let chat = Chats[chatIndex];
-
-        if (chat.unreadCount > 0) {
-            chat.markSeen();
-            window.Store.Wap.sendConversationSeen(chat.id, chat.getLastMsgKeyForAction(), chat.unreadCount - chat.pendingSeenCount);
-        }
-    }
-};
