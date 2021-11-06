@@ -12,9 +12,7 @@ const { Client } = require('./index');
 
 const client = new Client({
     puppeteer: { headless: false }, 
-    useDeprecatedSessionAuth: true
-    // clientId: 'no-md'
-    // clientId: 'example'
+    clientId: 'shell'
 });
 
 console.log('Initializing...');
