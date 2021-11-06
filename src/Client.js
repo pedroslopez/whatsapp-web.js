@@ -500,7 +500,7 @@ class Client extends EventEmitter {
     /**
      * Message options.
      * @typedef {Object} MessageSendOptions
-     * @property {boolean} [linkPreview=true] - Show links preview
+     * @property {boolean} [linkPreview=false] - Show links preview.
      * @property {boolean} [sendAudioAsVoice=false] - Send audio as voice message
      * @property {boolean} [sendVideoAsGif=false] - Send video as gif
      * @property {boolean} [sendMediaAsSticker=false] - Send media as a sticker
@@ -526,7 +526,7 @@ class Client extends EventEmitter {
      */
     async sendMessage(chatId, content, options = {}) {
         let internalOptions = {
-            linkPreview: options.linkPreview === false ? undefined : true,
+            linkPreview: options.linkPreview ? true : undefined,
             sendAudioAsVoice: options.sendAudioAsVoice,
             sendVideoAsGif: options.sendVideoAsGif,
             sendMediaAsSticker: options.sendMediaAsSticker,
