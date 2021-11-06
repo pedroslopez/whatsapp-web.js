@@ -76,7 +76,7 @@ describe('Client', function() {
             await helper.sleep(25000);
 
             expect(authFailCallback.called).to.equal(true);
-            expect(authFailCallback.args[0][0]).to.equal('Unable to log in. Are the session details valid?');
+            expect(authFailCallback.args[0][0]).to.equal('Unable to log in');
 
             expect(readyCallback.called).to.equal(false);
             expect(qrCallback.called).to.equal(false);
@@ -84,7 +84,7 @@ describe('Client', function() {
             await client.destroy();
         });
 
-        it('can restart without a session if session was invalid and restartOnAuthFail=true', async function() {
+        it.only('can restart without a session if session was invalid and restartOnAuthFail=true', async function() {
             this.timeout(40000);
 
             const authFailCallback = sinon.spy();

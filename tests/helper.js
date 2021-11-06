@@ -21,12 +21,16 @@ function getSessionFromEnv() {
 }
 
 function createClient({withSession, options: additionalOpts}={}) {
-    const options = {};
+    const options = {
+        useDeprecatedSessionAuth: true
+    };
+
     if(withSession) {
         options.session = getSessionFromEnv();
     }
 
-    return new Client(Util.mergeDefault(options, additionalOpts || {}));
+    const allOpts = Util.mergeDefault(options, additionalOpts || {});
+    return new Client(allOpts);
 }
 
 function sleep(ms) {

@@ -149,7 +149,13 @@ declare namespace WAWebJS {
         on(event: 'auth_failure', listener: (message: string) => void): this
 
         /** Emitted when authentication is successful */
-        on(event: 'authenticated', listener: () => void): this
+        on(event: 'authenticated', listener: (
+            /** 
+             * Object containing session information. Can be used to restore the session
+             * @deprecated
+             */
+            session?: ClientSession
+        ) => void): this
 
         /** Emitted when the connection state changes */
         on(event: 'change_state', listener: (
@@ -284,6 +290,16 @@ declare namespace WAWebJS {
         /** Restart client with a new session (i.e. use null 'session' var) if authentication fails
          * @default false */
         restartOnAuthFail?: boolean
+        /**
+         * Enable authentication via a `session` option.
+         * @deprecated Will be removed in a future release
+         */
+        useDeprecatedSessionAuth?: boolean
+        /** 
+         * WhatsApp session to restore. If not set, will start a new session
+         * @deprecated Set `useDeprecatedSessionAuth: true` to enable. This auth method is not supported by MultiDevice and will be removed in a future release. 
+         */
+        session?: ClientSession
         /** Client id to distinguish instances if you are using multiple, otherwise keep empty if you are using only one instance
          * @default '' */
         clientId: string
@@ -299,6 +315,17 @@ declare namespace WAWebJS {
         /** Ffmpeg path to use when formating videos to webp while sending stickers 
          * @default 'ffmpeg' */
         ffmpegPath?: string
+    }
+
+    /** 
+     * Represents a WhatsApp client session
+     * @deprecated
+     */
+    export interface ClientSession {
+        WABrowserId: string,
+        WASecretBundle: string,
+        WAToken1: string,
+        WAToken2: string,
     }
 
     export interface CreateGroupResult {

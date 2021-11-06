@@ -12,7 +12,9 @@ const { Client } = require('./index');
 
 const client = new Client({
     puppeteer: { headless: false }, 
-    clientId: 'shell'
+    useDeprecatedSessionAuth: true
+    // clientId: 'no-md'
+    // clientId: 'example'
 });
 
 console.log('Initializing...');
@@ -21,6 +23,10 @@ client.initialize();
 
 client.on('qr', () => {
     console.log('Please scan the QR code on the browser.');
+});
+
+client.on('authenticated', (session) => {
+    console.log(JSON.stringify(session));
 });
 
 client.on('ready', () => {

@@ -24,6 +24,8 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @param {number} options.qrTimeoutMs - Timeout for qr code selector in puppeteer
  * @param {number} options.qrMaxRetries - How many times should the qrcode be refreshed before giving up
  * @param {string} options.restartOnAuthFail  - Restart client with a new session (i.e. use null 'session' var) if authentication fails
+ * @param {boolean} options.useDeprecatedSessionAuth - Enable JSON-based authentication. This is deprecated due to not being supported by MultiDevice, and will be removed in a future version.
+ * @param {object} options.session - This is deprecated due to not being supported by MultiDevice, and will be removed in a future version.
  * @param {number} options.takeoverOnConflict - If another whatsapp web session is detected (another browser), take over the session in the current browser
  * @param {number} options.takeoverTimeoutMs - How much time to wait before taking over the session
  * @param {string} options.dataPath - Change the default path for saving session files, default is: "./WWebJS/"
@@ -72,16 +74,7 @@ class Client extends EventEmitter {
         const foldernameRegex = /^(?!.{256,})(?!(aux|clock\$|con|nul|prn|com[1-9]|lpt[1-9])(?:$|\.))[^ ][ \.\w-$()+=[\];#@~,&amp;']+[^\. ]$/i;
 
         if (this.id && !foldernameRegex.test(this.id)) throw Error('Invalid client ID. Make sure you abide by the folder naming rules of your operating system.');
-
-        const dirPath = path.join(process.cwd(), this.options.dataPath, this.id ? 'session-' + this.id : 'session'); 
         
-        // eslint-disable-next-line no-useless-escape
-        const swPath = path.join(dirPath, '/Default/Service\ Worker');
-        
-        if (fs.existsSync(swPath)) fs.rmdirSync(swPath, { recursive: true });
-            
-        if (!this.options.puppeteer.userDataDir) this.options.puppeteer.userDataDir = dirPath;
-       
         if(this.options.puppeteer && this.options.puppeteer.browserWSEndpoint) {
             browser = await puppeteer.connect(this.options.puppeteer);
             page = await browser.newPage();
@@ -95,6 +88,30 @@ class Client extends EventEmitter {
         this.pupBrowser = browser;
         this.pupPage = page;
 
+        let isPreAuthenticated = false;
+        if (this.options.useDeprecatedSessionAuth && this.options.session) {
+            isPreAuthenticated = true;
+            await page.evaluateOnNewDocument(
+                session => {
+                    localStorage.clear();
+                    localStorage.setItem('WABrowserId', session.WABrowserId);
+                    localStorage.setItem('WASecretBundle', session.WASecretBundle);
+                    localStorage.setItem('WAToken1', session.WAToken1);
+                    localStorage.setItem('WAToken2', session.WAToken2);
+                }, this.options.session);
+        } else if(!this.options.useDeprecatedSessionAuth) {
+            if (!this.options.puppeteer.userDataDir) this.options.puppeteer.userDataDir = dirPath;
+            const dirPath = path.join(process.cwd(), this.options.dataPath, this.id ? 'session-' + this.id : 'session'); 
+        
+            // eslint-disable-next-line no-useless-escape
+            const swPath = path.join(dirPath, '/Default/Service\ Worker');
+            if (fs.existsSync(swPath)) fs.rmdirSync(swPath, { recursive: true });
+
+            const authJsonPath = path.join(this.options.puppeteer.userDataDir, 'wwebjs.json');
+            const authJson = fs.existsSync(authJsonPath) && JSON.parse(fs.readFileSync(authJsonPath));
+            isPreAuthenticated = authJson ? authJson.authenticated : false;
+        }
+
         if(this.options.bypassCSP) {
             await page.setBypassCSP(true);
         }
@@ -105,7 +122,8 @@ class Client extends EventEmitter {
         });
 
         const INTRO_IMG_SELECTOR = '[data-testid="intro-md-beta-logo-dark"], [data-testid="intro-md-beta-logo-light"], [data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
-        if (fs.existsSync(path.join(this.options.puppeteer.userDataDir, 'wwebjs.json')) && JSON.parse(fs.readFileSync(path.join(this.options.puppeteer.userDataDir, 'wwebjs.json'))).authenticated) {
+        
+        if (isPreAuthenticated) {
             try {
                 await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: this.options.authTimeoutMs });
             } catch (err) {
@@ -115,14 +133,17 @@ class Client extends EventEmitter {
                      * @event Client#auth_failure
                      * @param {string} message
                      */
-                    this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in. Are the files corrupt?');
+                    this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in');
                     
                     browser.close();
 
-                    fs.rmdirSync(this.options.userDataDir, {recursive: true});
+                    if(this.options.puppeteer.userDataDir) {
+                        fs.rmdirSync(this.options.puppeteer.userDataDir, {recursive: true});
+                    }
 
                     if (this.options.restartOnAuthFail) {
                         // session restore failed so try again but without session to force new authentication
+                        this.options.session = null;
                         this.initialize();
                     }
                     return;
@@ -180,13 +201,31 @@ class Client extends EventEmitter {
 
         await page.evaluate(ExposeStore, moduleRaid.toString());
 
+        let authEventPayload = undefined;
+        if(this.options.useDeprecatedSessionAuth) {
+            // Get session tokens
+            const localStorage = JSON.parse(await page.evaluate(() => {
+                return JSON.stringify(window.localStorage);
+            }));
+    
+            authEventPayload = {
+                WABrowserId: localStorage.WABrowserId,
+                WASecretBundle: localStorage.WASecretBundle,
+                WAToken1: localStorage.WAToken1,
+                WAToken2: localStorage.WAToken2
+            };
+        }
+
         /**
          * Emitted when authentication is successful
          * @event Client#authenticated
          */
-        this.emit(Events.AUTHENTICATED);
+        this.emit(Events.AUTHENTICATED, authEventPayload);
 
-        await fs.promises.writeFile(path.join(this.options.puppeteer.userDataDir, 'wwebjs.json'), JSON.stringify({authenticated: true}));
+        if(!this.options.useDeprecatedSessionAuth) {
+            const authJsonPath = path.join(this.options.puppeteer.userDataDir, 'wwebjs.json');
+            await fs.promises.writeFile(authJsonPath, JSON.stringify({authenticated: true}));
+        }
 
         // Check window.Store Injection
         await page.waitForFunction('window.Store != undefined');
@@ -195,8 +234,8 @@ class Client extends EventEmitter {
             return window.Store.Features.features.MD_BACKEND;
         });
 
-        if(isMD) {
-            throw new Error('Multi-device is not yet supported by whatsapp-web.js. Please check out https://github.com/pedroslopez/whatsapp-web.js/pull/889 to follow the progress.');
+        if(this.options.useDeprecatedSessionAuth && isMD) {
+            throw new Error('Authenticating via JSON session is not supported for MultiDevice-enabled WhatsApp accounts.');
         }
 
         //Load util functions (serializers, helper functions)
@@ -908,7 +947,6 @@ class Client extends EventEmitter {
 
         const createRes = await this.pupPage.evaluate(async (name, participantIds) => {
             const res = await window.Store.Wap.createGroup(name, participantIds);
-            console.log(res);
             if (!res.status === 200) {
                 throw 'An error occurred while creating the group!';
             }
