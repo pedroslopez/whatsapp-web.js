@@ -157,11 +157,11 @@ class Client extends EventEmitter {
                     this.emit(Events.QR_RECEIVED, qr);
                   
                     if (this.options.qrMaxRetries > 0) {
-                      qrRetries++;
-                      if (qrRetries > this.options.qrMaxRetries) {
-                          this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
-                          await this.destroy();
-                      }
+                        qrRetries++;
+                        if (qrRetries > this.options.qrMaxRetries) {
+                            this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
+                            await this.destroy();
+                        }
                     }
                 } catch (err) {
                     if (err.name === 'TimeoutError') return;
