@@ -21,71 +21,87 @@ describe('Group', function() {
         expect(group).to.exist;
     });
 
-    it('can promote a user to admin', async function () {
-        let participant = group.participants.find(p => p.id._serialized === remoteId);
-        expect(participant).to.exist;
-        expect(participant.isAdmin).to.equal(false);
+    describe('Settings', function () {
+        it('can change the group subject', async function () {
+            expect(group.name).to.equal('My Awesome Group');
+            await group.setSubject('My Amazing Group');
 
-        const res = await group.promoteParticipants([remoteId]);
-        expect(res.status).to.be.greaterThanOrEqual(200);
+            // reload
+            group = await client.getChatById(group.id._serialized); 
 
-        await helper.sleep(1000);
-
-        // reload and check
-        group = await client.getChatById(group.id._serialized);
-        participant = group.participants.find(p => p.id._serialized=== remoteId);
-        expect(participant).to.exist;
-        expect(participant.isAdmin).to.equal(true);
+            expect(group.name).to.equal('My Amazing Group');
+        });
     });
 
-    it('can demote a user', async function () {
-        let participant = group.participants.find(p => p.id._serialized=== remoteId);
-        expect(participant).to.exist;
-        expect(participant.isAdmin).to.equal(true);
+    describe('Participants', function () {
+        it('can promote a user to admin', async function () {
+            let participant = group.participants.find(p => p.id._serialized === remoteId);
+            expect(participant).to.exist;
+            expect(participant.isAdmin).to.equal(false);
 
-        const res = await group.demoteParticipants([remoteId]);
-        expect(res.status).to.be.greaterThanOrEqual(200);
+            const res = await group.promoteParticipants([remoteId]);
+            expect(res.status).to.be.greaterThanOrEqual(200);
 
-        await helper.sleep(1000);
+            await helper.sleep(1000);
 
-        // reload and check
-        group = await client.getChatById(group.id._serialized);
-        participant = group.participants.find(p => p.id._serialized=== remoteId);
-        expect(participant).to.exist;
-        expect(participant.isAdmin).to.equal(false);
-    });
+            // reload and check
+            group = await client.getChatById(group.id._serialized);
+            participant = group.participants.find(p => p.id._serialized=== remoteId);
+            expect(participant).to.exist;
+            expect(participant.isAdmin).to.equal(true);
+        });
 
-    it('can remove a user from the group', async function () {
-        let participant = group.participants.find(p => p.id._serialized=== remoteId);
-        expect(participant).to.exist;
+        it('can demote a user', async function () {
+            let participant = group.participants.find(p => p.id._serialized=== remoteId);
+            expect(participant).to.exist;
+            expect(participant.isAdmin).to.equal(true);
 
-        const res = await group.removeParticipants([remoteId]);
-        expect(res.status).to.be.greaterThanOrEqual(200);
+            const res = await group.demoteParticipants([remoteId]);
+            expect(res.status).to.be.greaterThanOrEqual(200);
 
-        await helper.sleep(1000);
+            await helper.sleep(1000);
 
-        // reload and check
-        group = await client.getChatById(group.id._serialized);
-        participant = group.participants.find(p => p.id._serialized=== remoteId);
-        expect(participant).to.not.exist;
-    });
+            // reload and check
+            group = await client.getChatById(group.id._serialized);
+            participant = group.participants.find(p => p.id._serialized=== remoteId);
+            expect(participant).to.exist;
+            expect(participant.isAdmin).to.equal(false);
+        });
 
-    it('can add back a user to the group', async function () {
-        let participant = group.participants.find(p => p.id._serialized=== remoteId);
-        expect(participant).to.not.exist;
+        it('can remove a user from the group', async function () {
+            let participant = group.participants.find(p => p.id._serialized=== remoteId);
+            expect(participant).to.exist;
 
-        const res = await group.addParticipants([remoteId]);
-        expect(res.status).to.be.greaterThanOrEqual(200);
+            const res = await group.removeParticipants([remoteId]);
+            expect(res.status).to.be.greaterThanOrEqual(200);
 
-        await helper.sleep(1000);
+            await helper.sleep(1000);
 
-        // reload and check
-        group = await client.getChatById(group.id._serialized);
-        participant = group.participants.find(p => p.id._serialized=== remoteId);
-        expect(participant).to.exist;
+            // reload and check
+            group = await client.getChatById(group.id._serialized);
+            participant = group.participants.find(p => p.id._serialized=== remoteId);
+            expect(participant).to.not.exist;
+        });
+
+        it('can add back a user to the group', async function () {
+            let participant = group.participants.find(p => p.id._serialized=== remoteId);
+            expect(participant).to.not.exist;
+
+            const res = await group.addParticipants([remoteId]);
+            expect(res.status).to.be.greaterThanOrEqual(200);
+
+            await helper.sleep(1000);
+
+            // reload and check
+            group = await client.getChatById(group.id._serialized);
+            participant = group.participants.find(p => p.id._serialized=== remoteId);
+            expect(participant).to.exist;
+        });
     });
 
     after(async function () {
+        const otherParticipants = group.participants.filter(p => !p.isSuperAdmin).map(p => p.id._serialized);
+        await group.removeParticipants(otherParticipants);
         await client.destroy();
     });
 

@@ -112,7 +112,7 @@ class GroupChat extends Chat {
      */
     async setSubject(subject) {
         let res = await this.client.pupPage.evaluate((chatId, subject) => {
-            return window.Store.Wap.changeSubject(chatId, subject);
+            return window.Store.GroupUtils.sendSetSubject(chatId, subject);
         }, this.id._serialized, subject);
 
         if(res.status == 200) {
