@@ -19,7 +19,6 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @param {object} options - Client options
  * @param {number} options.authTimeoutMs - Timeout for authentication selector in puppeteer
  * @param {object} options.puppeteer - Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/
- * @param {number} options.qrTimeoutMs - Timeout for qr code selector in puppeteer
  * @param {number} options.qrMaxRetries - How many times should the qrcode be refreshed before giving up
  * @param {string} options.restartOnAuthFail  - Restart client with a new session (i.e. use null 'session' var) if authentication fails
  * @param {boolean} options.useDeprecatedSessionAuth - Enable JSON-based authentication. This is deprecated due to not being supported by MultiDevice, and will be removed in a future version.
@@ -78,13 +77,6 @@ class Client extends EventEmitter {
     async initialize() {
         let [browser, page] = [null, null];
         
-        let isPreAuthenticated = false;
-        if(!this.options.useDeprecatedSessionAuth) {
-            const authJsonPath = path.join(this.dataDir, 'wwebjs.json');
-            const authJson = fs.existsSync(authJsonPath) && JSON.parse(fs.readFileSync(authJsonPath));
-            isPreAuthenticated = authJson ? authJson.authenticated : false;
-        }
-
         const puppeteerOpts = {
             ...this.options.puppeteer,
             userDataDir: this.options.useDeprecatedSessionAuth ? undefined : this.dataDir
@@ -103,7 +95,6 @@ class Client extends EventEmitter {
         this.pupPage = page;
 
         if (this.options.useDeprecatedSessionAuth && this.options.session) {
-            isPreAuthenticated = true;
             await page.evaluateOnNewDocument(
                 session => {
                     localStorage.clear();
@@ -124,37 +115,27 @@ class Client extends EventEmitter {
         });
 
         const INTRO_IMG_SELECTOR = '[data-testid="intro-md-beta-logo-dark"], [data-testid="intro-md-beta-logo-light"], [data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
-        
-        if (isPreAuthenticated) {
-            try {
-                await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: this.options.authTimeoutMs });
-            } catch (err) {
-                if (err.name === 'TimeoutError') {
-                    /**
-                     * Emitted when there has been an error while trying to restore an existing session
-                     * @event Client#auth_failure
-                     * @param {string} message
-                     */
-                    this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in');
-                    
-                    browser.close();
+        const INTRO_QRCODE_SELECTOR = 'div[data-ref] canvas';
 
-                    if(this.dataDir) {
-                        fs.rmdirSync(this.dataDir, {recursive: true});
-                    }
+        // Checks which selector appears first
+        const needAuthentication = await Promise.race([
+            new Promise(resolve => {
+                page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: this.options.authTimeoutMs })
+                    .then(() => resolve(false))
+                    .catch((err) => resolve(err));
+            }),
+            new Promise(resolve => {
+                page.waitForSelector(INTRO_QRCODE_SELECTOR, { timeout: this.options.authTimeoutMs })
+                    .then(() => resolve(true))
+                    .catch((err) => resolve(err));
+            })
+        ]);
 
-                    if (this.options.restartOnAuthFail) {
-                        // session restore failed so try again but without session to force new authentication
-                        this.options.session = null;
-                        this.initialize();
-                    }
-                    return;
-                }
+        // Checks if an error ocurred on the first found selector. The second will be discarted and ignored by .race;
+        if (needAuthentication instanceof Error) throw needAuthentication;
 
-                throw err;
-            }
-
-        } else {
+        // Scan-qrcode selector was found. Needs authentication
+        if (needAuthentication) {
             const QR_CONTAINER = 'div[data-ref]';
             const QR_RETRY_BUTTON = 'div[data-ref] > span > button';
 
@@ -169,9 +150,6 @@ class Client extends EventEmitter {
                     }
                 }
             });
-
-            // Waits for qrcode container
-            await page.waitForSelector(QR_CONTAINER, { timeout: this.options.qrTimeoutMs });
 
             await page.evaluate(function(selectors) {
                 const qr_container = document.querySelector(selectors.QR_CONTAINER);
@@ -227,11 +205,6 @@ class Client extends EventEmitter {
          * @event Client#authenticated
          */
         this.emit(Events.AUTHENTICATED, authEventPayload);
-
-        if(!this.options.useDeprecatedSessionAuth) {
-            const authJsonPath = path.join(this.dataDir, 'wwebjs.json');
-            await fs.promises.writeFile(authJsonPath, JSON.stringify({authenticated: true}));
-        }
 
         // Check window.Store Injection
         await page.waitForFunction('window.Store != undefined');
