@@ -43,6 +43,11 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.getProfilePicFull = window.mR.findModule('getProfilePicFull')[0].getProfilePicFull;
     window.Store.PresenceUtils = window.mR.findModule('sendPresenceAvailable')[0];
     window.Store.ChatState = window.mR.findModule('sendChatStateComposing')[0];
+    window.Store.GroupParticipants = window.mR.findModule('sendPromoteParticipants')[0];
+    window.Store.GroupUtils = {
+        ...window.mR.findModule('sendCreateGroup')[0], 
+        ...window.mR.findModule('sendSetGroupSubject')[0]
+    };
 
     if (!window.Store.Chat._find) {
         window.Store.Chat._find = e => {
@@ -525,21 +530,4 @@ exports.LoadUtils = () => {
 
         return undefined;
     };
-};
-
-exports.MarkAllRead = () => {
-    let Chats = window.Store.Chat.models;
-
-    for (let chatIndex in Chats) {
-        if (isNaN(chatIndex)) {
-            continue;
-        }
-
-        let chat = Chats[chatIndex];
-
-        if (chat.unreadCount > 0) {
-            chat.markSeen();
-            window.Store.Wap.sendConversationSeen(chat.id, chat.getLastMsgKeyForAction(), chat.unreadCount - chat.pendingSeenCount);
-        }
-    }
 };

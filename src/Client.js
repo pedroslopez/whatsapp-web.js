@@ -80,10 +80,6 @@ class Client extends EventEmitter {
         
         let isPreAuthenticated = false;
         if(!this.options.useDeprecatedSessionAuth) {
-            // eslint-disable-next-line no-useless-escape
-            const swPath = path.join(this.dataDir, '/Default/Service\ Worker');
-            if (fs.existsSync(swPath)) fs.rmdirSync(swPath, { recursive: true });
-
             const authJsonPath = path.join(this.dataDir, 'wwebjs.json');
             const authJson = fs.existsSync(authJsonPath) && JSON.parse(fs.readFileSync(authJsonPath));
             isPreAuthenticated = authJson ? authJson.authenticated : false;
@@ -955,14 +951,12 @@ class Client extends EventEmitter {
         }
 
         const createRes = await this.pupPage.evaluate(async (name, participantIds) => {
-            const res = await window.Store.Wap.createGroup(name, participantIds);
-            if (!res.status === 200) {
-                throw 'An error occurred while creating the group!';
-            }
-
+            const participantWIDs = participantIds.map(p => window.Store.WidFactory.createWid(p));
+            const id = window.Store.genId();
+            const res = await window.Store.GroupUtils.sendCreateGroup(name, participantWIDs, undefined, id);
             return res;
         }, name, participants);
-
+        
         const missingParticipants = createRes.participants.reduce(((missing, c) => {
             const id = Object.keys(c)[0];
             const statusCode = c[id].code;
