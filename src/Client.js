@@ -58,6 +58,16 @@ class Client extends EventEmitter {
 
         this.id = this.options.clientId;
 
+        // eslint-disable-next-line no-useless-escape
+        const foldernameRegex = /^(?!.{256,})(?!(aux|clock\$|con|nul|prn|com[1-9]|lpt[1-9])(?:$|\.))[^ ][ \.\w-$()+=[\];#@~,&amp;']+[^\. ]$/i;
+        if (this.id && !foldernameRegex.test(this.id)) throw Error('Invalid client ID. Make sure you abide by the folder naming rules of your operating system.');
+        
+        if(!this.options.useDeprecatedSessionAuth) {
+            this.dataDir = this.options.puppeteer.userDataDir;
+            const dirPath = path.join(process.cwd(), this.options.dataPath, this.id ? 'session-' + this.id : 'session'); 
+            if (!this.dataDir) this.dataDir = dirPath;
+        }
+
         this.pupBrowser = null;
         this.pupPage = null;
 
@@ -70,30 +80,22 @@ class Client extends EventEmitter {
     async initialize() {
         let [browser, page] = [null, null];
         
-        // eslint-disable-next-line no-useless-escape
-        const foldernameRegex = /^(?!.{256,})(?!(aux|clock\$|con|nul|prn|com[1-9]|lpt[1-9])(?:$|\.))[^ ][ \.\w-$()+=[\];#@~,&amp;']+[^\. ]$/i;
-
-        if (this.id && !foldernameRegex.test(this.id)) throw Error('Invalid client ID. Make sure you abide by the folder naming rules of your operating system.');
-        
         let isPreAuthenticated = false;
         if(!this.options.useDeprecatedSessionAuth) {
-            const dirPath = path.join(process.cwd(), this.options.dataPath, this.id ? 'session-' + this.id : 'session'); 
-            if (!this.options.puppeteer.userDataDir) this.options.puppeteer.userDataDir = dirPath;
-        
-            // eslint-disable-next-line no-useless-escape
-            const swPath = path.join(dirPath, '/Default/Service\ Worker');
-            if (fs.existsSync(swPath)) fs.rmdirSync(swPath, { recursive: true });
-
-            const authJsonPath = path.join(this.options.puppeteer.userDataDir, 'wwebjs.json');
+            const authJsonPath = path.join(this.dataDir, 'wwebjs.json');
             const authJson = fs.existsSync(authJsonPath) && JSON.parse(fs.readFileSync(authJsonPath));
             isPreAuthenticated = authJson ? authJson.authenticated : false;
         }
 
-        if(this.options.puppeteer && this.options.puppeteer.browserWSEndpoint) {
-            browser = await puppeteer.connect(this.options.puppeteer);
+        const puppeteerOpts = {
+            ...this.options.puppeteer,
+            userDataDir: this.options.useDeprecatedSessionAuth ? undefined : this.dataDir
+        };
+        if(puppeteerOpts && puppeteerOpts.browserWSEndpoint) {
+            browser = await puppeteer.connect(puppeteerOpts);
             page = await browser.newPage();
         } else {
-            browser = await puppeteer.launch(this.options.puppeteer);
+            browser = await puppeteer.launch(puppeteerOpts);
             page = (await browser.pages())[0];
         }        
         
@@ -139,8 +141,8 @@ class Client extends EventEmitter {
                     
                     browser.close();
 
-                    if(this.options.puppeteer.userDataDir) {
-                        fs.rmdirSync(this.options.puppeteer.userDataDir, {recursive: true});
+                    if(this.dataDir) {
+                        fs.rmdirSync(this.dataDir, {recursive: true});
                     }
 
                     if (this.options.restartOnAuthFail) {
@@ -225,7 +227,7 @@ class Client extends EventEmitter {
         this.emit(Events.AUTHENTICATED, authEventPayload);
 
         if(!this.options.useDeprecatedSessionAuth) {
-            const authJsonPath = path.join(this.options.puppeteer.userDataDir, 'wwebjs.json');
+            const authJsonPath = path.join(this.dataDir, 'wwebjs.json');
             await fs.promises.writeFile(authJsonPath, JSON.stringify({authenticated: true}));
         }
 
@@ -470,7 +472,9 @@ class Client extends EventEmitter {
             return window.Store.AppState.logout();
         });
 
-        return fs.rmdirSync(this.options.userDataDir, {recursive: true});
+        if(this.dataDir) {
+            return fs.rmdirSync(this.dataDir, {recursive: true});
+        }
     }
 
     /**
@@ -955,14 +959,12 @@ class Client extends EventEmitter {
         }
 
         const createRes = await this.pupPage.evaluate(async (name, participantIds) => {
-            const res = await window.Store.Wap.createGroup(name, participantIds);
-            if (!res.status === 200) {
-                throw 'An error occurred while creating the group!';
-            }
-
+            const participantWIDs = participantIds.map(p => window.Store.WidFactory.createWid(p));
+            const id = window.Store.genId();
+            const res = await window.Store.GroupUtils.sendCreateGroup(name, participantWIDs, undefined, id);
             return res;
         }, name, participants);
-
+        
         const missingParticipants = createRes.participants.reduce(((missing, c) => {
             const id = Object.keys(c)[0];
             const statusCode = c[id].code;
