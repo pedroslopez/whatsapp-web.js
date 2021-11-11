@@ -81,6 +81,11 @@ class Client extends EventEmitter {
         this.pupBrowser = browser;
         this.pupPage = page;
 
+        // remember me
+        await page.evaluateOnNewDocument(() => {
+            localStorage.setItem('remember-me', 'true');
+        });
+
         if (this.options.session) {
             await page.evaluateOnNewDocument(
                 session => {
@@ -170,11 +175,6 @@ class Client extends EventEmitter {
         }
 
         await page.evaluate(ExposeStore, moduleRaid.toString());
-        
-        // remember me
-        await page.evaluateOnNewDocument(() => {
-            localStorage.setItem('remember-me', 'true');
-        });
         
         // Get session tokens
         const localStorage = JSON.parse(await page.evaluate(() => {
