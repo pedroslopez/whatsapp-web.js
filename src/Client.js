@@ -205,6 +205,10 @@ class Client extends EventEmitter {
 
         await page.evaluate(ExposeStore, moduleRaid.toString());
 
+        // Fix queryLinkPreview
+        await page.exposeFunction('queryLinkPreview', Util.queryLinkPreview);
+        await page.evaluate(() => window.Store.Wap.queryLinkPreview = window.queryLinkPreview);
+                
         let authEventPayload = undefined;
         if(this.options.useDeprecatedSessionAuth) {
             // Get session tokens
@@ -504,7 +508,7 @@ class Client extends EventEmitter {
     /**
      * Message options.
      * @typedef {Object} MessageSendOptions
-     * @property {boolean} [linkPreview=false] - Show links preview.
+     * @property {boolean} [linkPreview=true] - Show links preview.
      * @property {boolean} [sendAudioAsVoice=false] - Send audio as voice message
      * @property {boolean} [sendVideoAsGif=false] - Send video as gif
      * @property {boolean} [sendMediaAsSticker=false] - Send media as a sticker
@@ -530,7 +534,7 @@ class Client extends EventEmitter {
      */
     async sendMessage(chatId, content, options = {}) {
         let internalOptions = {
-            linkPreview: options.linkPreview ? true : undefined,
+            linkPreview: options.linkPreview === false ? undefined : true,
             sendAudioAsVoice: options.sendAudioAsVoice,
             sendVideoAsGif: options.sendVideoAsGif,
             sendMediaAsSticker: options.sendMediaAsSticker,

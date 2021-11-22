@@ -7,8 +7,11 @@ const { tmpdir } = require('os');
 const ffmpeg = require('fluent-ffmpeg');
 const webp = require('node-webpmux');
 const fs = require('fs').promises;
+const fetch = require('node-fetch');
+const cheerio = require('cheerio');
 
 const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+const queryLinkPreviewCache = {};
 
 /**
  * Utility methods
@@ -198,6 +201,46 @@ class Util {
      */
     static setFfmpegPath(path) {
         ffmpeg.setFfmpegPath(path);
+    }
+
+    /**
+     * Configure url
+     * @param {string} url
+    */
+    static async queryLinkPreview(url) {
+        return new Promise((resolve, reject) => {
+            if (queryLinkPreviewCache[url]) return resolve(queryLinkPreviewCache[url]);
+
+            fetch(url)
+                .then((response) => response.text())
+                .then(async (html) => {
+                    const $ = cheerio.load(html);
+                    const title = $('title').text();
+                    const description = $('meta[name=description],meta[property="og:description"]').attr('content');
+                    const canonicalUrl = $('link[rel=canonical]').attr('href');
+                    const faviconUrl = new URL(url); faviconUrl.pathname = '/favicon.ico';
+                    const iconUrl = $('link[rel*=icon]').attr('href') || faviconUrl;
+
+                    const previewData = {
+                        title: title,
+                        description: description,
+                        doNotPlayInline: false,
+                        canonicalUrl: canonicalUrl || undefined,
+                        matchedText: url,
+                        preview: undefined,
+                        thumbnail: undefined,
+                    };
+
+                    fetch(iconUrl)
+                        .then(response => response.buffer())
+                        .then(buffer => {
+                            previewData.thumbnail = buffer.toString('base64');
+                            queryLinkPreviewCache[url] = previewData;
+                            resolve(previewData);
+                        })
+                        .catch(reject);
+                }).catch(reject);
+        });
     }
 }
 
