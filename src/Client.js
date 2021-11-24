@@ -30,10 +30,10 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @param {number} options.takeoverOnConflict - If another whatsapp web session is detected (another browser), take over the session in the current browser
  * @param {number} options.takeoverTimeoutMs - How much time to wait before taking over the session
  * @param {string} options.userAgent - User agent to use in puppeteer
- * @param {string} options.ffmpegPath - Ffmpeg path to use when formating videos to webp while sending stickers 
+ * @param {string} options.ffmpegPath - Ffmpeg path to use when formating videos to webp while sending stickers
  * @param {boolean} options.bypassCSP - Sets bypassing of page's Content-Security-Policy.
  * @param {number} options.disableLogs - Disable logs and telemetry,0- do nothing 1- disable logs, 2- disable telemetry, 3- disable both
- * 
+ *
  * @fires Client#qr
  * @fires Client#authenticated
  * @fires Client#auth_failure
@@ -68,15 +68,15 @@ class Client extends EventEmitter {
      */
     async initialize() {
         let [browser, page] = [null, null];
-        
+
         if(this.options.puppeteer && this.options.puppeteer.browserWSEndpoint) {
             browser = await puppeteer.connect(this.options.puppeteer);
             page = await browser.newPage();
         } else {
             browser = await puppeteer.launch(this.options.puppeteer);
             page = (await browser.pages())[0];
-        }        
-        
+        }
+
         page.setUserAgent(this.options.userAgent);
 
         this.pupBrowser = browser;
@@ -105,7 +105,7 @@ class Client extends EventEmitter {
         const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-icon="intro-md-beta-logo-dark"], [data-icon="intro-md-beta-logo-light"], [data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
 
         if (this.options.session) {
-            // Check if session restore was successfull 
+            // Check if session restore was successfull
             try {
                 await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: this.options.authTimeoutMs });
             } catch (err) {
@@ -144,12 +144,12 @@ class Client extends EventEmitter {
                 await page.waitForSelector(QR_CANVAS_SELECTOR, { timeout: this.options.qrTimeoutMs });
                 const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0, 0, 264, 264).data));
                 const qr = jsQR(qrImgData, 264, 264).data;
-                
+
                 /**
-                * Emitted when the QR code is received
-                * @event Client#qr
-                * @param {string} qr QR Code
-                */
+                 * Emitted when the QR code is received
+                 * @event Client#qr
+                 * @param {string} qr QR Code
+                 */
                 this.emit(Events.QR_RECEIVED, qr);
 
                 if (this.options.qrMaxRetries > 0) {
@@ -220,55 +220,51 @@ class Client extends EventEmitter {
 
         // Add InterfaceController
         this.interface = new InterfaceController(this);
-        
+
         //disable logs
         if (this.options.disableLogs) {
             switch (this.options.disableLogs) {
-            case 3: {//disable logs and telemtry
-               break;  
-            }
-            case 2: { // disable Logs
-                await this.pupPage.evaluate(() => { //remove crash urls
-                    let logObjects = window.mR.findModule('FB_CLB_URL');
-                    if (!logObjects.length) {
-                        throw('[DL02] Couldn\'t find the log FB_CLB_URL objects, set "disableLogs" to 0 or 1'); //we should kill the client
-                    }
-                    for (let i = 0; i < logObjects.length; i++) {
-                        /*
-                        We will use https://127.0.0.i where i > 1, because it fails CSP rule 127.0.0.1:* (127.0.0.x == 127.0.0.1)
-                        We need to remove the function, not replace the string
-                        :29192 so we don't trigger default ports  
-                         */
-                        logObjects[i]['default']['FB_CLB_URL'] = 'https://127.0.0.2:29192'; 
-                    }
-                    logObjects = window.mR.findModule('FB_CLB_CHECK_URL');
-                    if (!logObjects.length) {
-                        throw('[DL03] Couldn\'t find the log FB_CLB_CHECK_URL objects, set "disableLogs" to 0 or 1');
-                    }
-                    for (let i = 0; i < logObjects.length; i++) {
-                        logObjects[i]['default']['FB_CLB_CHECK_URL'] = 'https://127.0.0.3:29192'; 
-                    }
-                });
-                //remove log functions
-                
-                break;
-            }
-            case 1: { // disable Telemetry
-                await this.pupPage.evaluate(() => {
-                    let telemetryObjects = window.mR.findModule('WAM_URL');
-                    if(!telemetryObjects.length){
-                        throw('[DL01] Couldn\'t find the telemetry WAM objects, set "disableLogs" to 0 or 2');
-                    }
-                    for(let i =0; i< telemetryObjects.length; i++){
-                        telemetryObjects[i]['default']['WAM_URL']  = 'https://127.0.0.4:29192';
-                    }
-                });
-                break;
-            }
-            
+                case 3: //disable logs and telemtry
+                case 2: { // disable Logs
+                    await this.pupPage.evaluate(() => { //remove crash urls
+                        let logObjects = window.mR.findModule('FB_CLB_URL');
+                        if (!logObjects.length) {
+                            throw('[DL02] Couldn\'t find the log FB_CLB_URL objects, set "disableLogs" to 0 or 1'); //we should kill the client
+                        }
+                        for (let i = 0; i < logObjects.length; i++) {
+                            /*
+                            We will use https://127.0.0.i where i > 1, because it fails CSP rule 127.0.0.1:* (127.0.0.x == 127.0.0.1)
+                            We need to remove the function, not replace the string
+                            :29192 so we don't trigger default ports
+                             */
+                            logObjects[i]['default']['FB_CLB_URL'] = 'https://127.0.0.2:29192';
+                        }
+                        logObjects = window.mR.findModule('FB_CLB_CHECK_URL');
+                        if (!logObjects.length) {
+                            throw('[DL03] Couldn\'t find the log FB_CLB_CHECK_URL objects, set "disableLogs" to 0 or 1');
+                        }
+                        for (let i = 0; i < logObjects.length; i++) {
+                            logObjects[i]['default']['FB_CLB_CHECK_URL'] = 'https://127.0.0.3:29192';
+                        }
+                    });
+                    if(this.options.disableLogs === 2) break;
+                }
+                case 1: { // disable Telemetry
+                    await this.pupPage.evaluate(() => {
+                        let telemetryObjects = window.mR.findModule('WAM_URL');
+                        if(!telemetryObjects.length){
+                            throw('[DL01] Couldn\'t find the telemetry WAM objects, set "disableLogs" to 0 or 2');
+                        }
+                        for(let i =0; i< telemetryObjects.length; i++){
+                            telemetryObjects[i]['default']['WAM_URL']  = 'https://127.0.0.4:29192';
+                        }
+                    });
+                    break;
+                }
+
             }
         }
-        
+
         // Register events
         await page.exposeFunction('onAddMessageEvent', msg => {
             if (!msg.isNewMsg) return;
@@ -334,7 +330,7 @@ class Client extends EventEmitter {
                  * Emitted when a message is deleted for everyone in the chat.
                  * @event Client#message_revoke_everyone
                  * @param {Message} message The message that was revoked, in its current state. It will not contain the original message's data.
-                 * @param {?Message} revoked_msg The message that was revoked, before it was revoked. It will contain the message's original data. 
+                 * @param {?Message} revoked_msg The message that was revoked, before it was revoked. It will contain the message's original data.
                  * Note that due to the way this data is captured, it may be possible that this param will be undefined.
                  */
                 this.emit(Events.MESSAGE_REVOKED_EVERYONE, message, revoked_msg);
@@ -455,7 +451,7 @@ class Client extends EventEmitter {
             const cll = new Call(this,call);
             this.emit(Events.INCOMING_CALL, cll);
         });
-        
+
         await page.evaluate(() => {
             window.Store.Msg.on('add', (msg) => { if (msg.isNewMsg) window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
@@ -515,7 +511,7 @@ class Client extends EventEmitter {
      * Mark as seen for the Chat
      *  @param {string} chatId
      *  @returns {Promise<boolean>} result
-     * 
+     *
      */
     async sendSeen(chatId) {
         const result = await this.pupPage.evaluate(async (chatId) => {
@@ -549,7 +545,7 @@ class Client extends EventEmitter {
      * @param {string} chatId
      * @param {string|MessageMedia|Location|Contact|Array<Contact>|Buttons|List} content
      * @param {MessageSendOptions} [options] - Options used when sending the message
-     * 
+     *
      * @returns {Promise<Message>} Message that was just sent
      */
     async sendMessage(chatId, content, options = {}) {
@@ -594,7 +590,7 @@ class Client extends EventEmitter {
         }
 
         if (internalOptions.sendMediaAsSticker && internalOptions.attachment) {
-            internalOptions.attachment = 
+            internalOptions.attachment =
                 await Util.formatToWebpSticker(internalOptions.attachment, {
                     name: options.stickerName,
                     author: options.stickerAuthor,
@@ -649,7 +645,7 @@ class Client extends EventEmitter {
 
     /**
      * Get chat instance by ID
-     * @param {string} chatId 
+     * @param {string} chatId
      * @returns {Promise<Chat>}
      */
     async getChatById(chatId) {
@@ -687,7 +683,7 @@ class Client extends EventEmitter {
 
     /**
      * Returns an object with information about the invite code's group
-     * @param {string} inviteCode 
+     * @param {string} inviteCode
      * @returns {Promise<object>} Invite information
      */
     async getInviteInfo(inviteCode) {
@@ -722,7 +718,7 @@ class Client extends EventEmitter {
             return await window.Store.Wap.acceptGroupV4Invite(groupId, fromId, inviteCode, String(inviteCodeExp), toId);
         }, inviteInfo);
     }
-    
+
     /**
      * Sets the current user's status message
      * @param {string} status New status message
@@ -734,7 +730,7 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Sets the current user's display name. 
+     * Sets the current user's display name.
      * This is the name shown to WhatsApp users that have not added you as a contact beside your number in groups and in your profile.
      * @param {string} displayName New display name
      */
@@ -746,7 +742,7 @@ class Client extends EventEmitter {
 
     /**
      * Gets the current connection state for the client
-     * @returns {WAState} 
+     * @returns {WAState}
      */
     async getState() {
         return await this.pupPage.evaluate(() => {
@@ -874,7 +870,7 @@ class Client extends EventEmitter {
 
     /**
      * Force reset of connection state for the client
-    */
+     */
     async resetState() {
         await this.pupPage.evaluate(() => {
             window.Store.AppState.phoneWatchdog.shiftTimer.forceRunNow();
@@ -894,7 +890,7 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Get the registered WhatsApp ID for a number. 
+     * Get the registered WhatsApp ID for a number.
      * Will return null if the number is not registered on WhatsApp.
      * @param {string} number Number or ID ("@c.us" will be automatically appended if not specified)
      * @returns {Promise<Object|null>}
@@ -918,12 +914,12 @@ class Client extends EventEmitter {
     async getFormattedNumber(number) {
         if(!number.endsWith('@s.whatsapp.net')) number = number.replace('c.us', 's.whatsapp.net');
         if(!number.includes('@s.whatsapp.net')) number = `${number}@s.whatsapp.net`;
-        
+
         return await this.pupPage.evaluate(async numberId => {
             return window.Store.NumberInfo.formattedPhoneNumber(numberId);
         }, number);
     }
-    
+
     /**
      * Get the country code of a WhatsApp ID.
      * @param {string} number Number or ID
@@ -936,7 +932,7 @@ class Client extends EventEmitter {
             return window.Store.NumberInfo.findCC(numberId);
         }, number);
     }
-    
+
     /**
      * Create a new group
      * @param {string} name group title
@@ -981,7 +977,7 @@ class Client extends EventEmitter {
     async getLabels() {
         const labels = await this.pupPage.evaluate(async () => {
             return window.WWebJS.getLabels();
-        }); 
+        });
 
         return labels.map(data => new Label(this , data));
     }
@@ -994,13 +990,13 @@ class Client extends EventEmitter {
     async getLabelById(labelId) {
         const label = await this.pupPage.evaluate(async (labelId) => {
             return window.WWebJS.getLabel(labelId);
-        }, labelId); 
+        }, labelId);
 
         return new Label(this, label);
     }
 
     /**
-     * Get all Labels assigned to a chat 
+     * Get all Labels assigned to a chat
      * @param {string} chatId
      * @returns {Promise<Array<Label>>}
      */
@@ -1009,7 +1005,7 @@ class Client extends EventEmitter {
             return window.WWebJS.getChatLabels(chatId);
         }, chatId);
 
-        return labels.map(data => new Label(this, data)); 
+        return labels.map(data => new Label(this, data));
     }
 
     /**
@@ -1022,7 +1018,7 @@ class Client extends EventEmitter {
             const label = window.Store.Label.get(labelId);
             const labelItems = label.labelItemCollection.models;
             return labelItems.reduce((result, item) => {
-                if(item.parentType === 'Chat'){  
+                if(item.parentType === 'Chat'){
                     result.push(item.parentId);
                 }
                 return result;
@@ -1039,7 +1035,7 @@ class Client extends EventEmitter {
     async getBlockedContacts() {
         const blockedContacts = await this.pupPage.evaluate(() => {
             let chatIds = window.Store.Blocklist.models.map(a => a.id._serialized);
-            return Promise.all(chatIds.map(id => window.WWebJS.getContact(id)));            
+            return Promise.all(chatIds.map(id => window.WWebJS.getContact(id)));
         });
 
         return blockedContacts.map(contact => ContactFactory.create(this.client, contact));
