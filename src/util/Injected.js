@@ -7,7 +7,9 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.mR = moduleRaid();
     window.Store = Object.assign({}, window.mR.findModule('Chat')[0].default);
     window.Store.AppState = window.mR.findModule('STREAM')[0].Socket;
-    window.Store.Conn = window.mR.findModule('Conn').find(a => typeof a.Conn != 'undefined');
+    window.Store.Conn = window.mR.findModule('Conn');
+    if (window.Store.Conn[0].Conn) window.Store.Conn = window.mR.findModule('Conn')[0];
+    else if (window.Store.Conn[1].Conn) window.Store.Conn = window.mR.findModule('Conn')[1];
     window.Store.BlockContact = window.mR.findModule('blockContact')[0];
     window.Store.Call = window.mR.findModule('CallCollection')[0].CallCollection;
     window.Store.Cmd = window.mR.findModule('Cmd')[0].default;
