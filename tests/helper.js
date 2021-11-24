@@ -1,4 +1,5 @@
 const path = require('path');
+const crypto = require('crypto');
 const Client = require('../src/Client');
 const Util = require('../src/util/Util');
 
@@ -20,13 +21,21 @@ function getSessionFromEnv() {
     throw new Error('No session found in environment.');
 }
 
-function createClient({withSession, options: additionalOpts}={}) {
+function createClient({authenticated, options: additionalOpts}={}) {
     const options = {};
-    if(withSession) {
-        options.session = getSessionFromEnv();
+
+    if(authenticated) {
+        if(additionalOpts && additionalOpts.useDeprecatedSessionAuth) {
+            options.session = getSessionFromEnv();
+        } else {
+            options.clientId = process.env.WWEBJS_TEST_CLIENT_ID;
+        }
+    } else {
+        options.clientId = crypto.randomBytes(5).toString('hex');
     }
 
-    return new Client(Util.mergeDefault(options, additionalOpts || {}));
+    const allOpts = Util.mergeDefault(options, additionalOpts || {});
+    return new Client(allOpts);
 }
 
 function sleep(ms) {
