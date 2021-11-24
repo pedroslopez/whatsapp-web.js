@@ -6,15 +6,23 @@ exports.ExposeStore = (moduleRaidStr) => {
     // eslint-disable-next-line no-undef
     window.mR = moduleRaid();
     window.Store = Object.assign({}, window.mR.findModule('Chat')[0].default);
-    window.Store.AppState = window.mR.findModule('STREAM')[0].default;
+    window.Store.AppState = window.mR.findModule('STREAM')[0].Socket;
+    if( window.mR.findModule('Conn').length > 1){
+        if(typeof window.mR.findModule('Conn')[0].Conn != 'undefined'){
+            window.Store.Conn = window.mR.findModule('Conn')[0].Conn;
+        }else{
+            window.Store.Conn = window.mR.findModule('Conn')[1].Conn;
+        }
+    }else{
+        window.Store.Conn = window.mR.findModule('Conn')[0].Conn;
+    }
     window.Store.BlockContact = window.mR.findModule('blockContact')[0];
-    window.Store.Call = window.mR.findModule('CallCollection')[0].default;
+    window.Store.Call = window.mR.findModule('CallCollection')[0].CallCollection;
     window.Store.Cmd = window.mR.findModule('Cmd')[0].default;
-    window.Store.Conn = window.mR.findModule('Conn')[0].default;
     window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
-    window.Store.DownloadManager = window.mR.findModule('DownloadManager')[0].default;
+    window.Store.DownloadManager = window.mR.findModule('downloadManager')[0].downloadManager;
     window.Store.Features = window.mR.findModule('FEATURE_CHANGE_EVENT')[0].default;
-    window.Store.genId = window.mR.findModule('randomId')[0].default;
+    window.Store.genId = window.mR.findModule('randomId')[0].randomId;
     window.Store.GroupMetadata = window.mR.findModule((module) => module.default && module.default.handlePendingInvite)[0].default;
     window.Store.Invite = window.mR.findModule('sendJoinGroupViaInvite')[0];
     window.Store.Label = window.mR.findModule('LabelCollection')[0].default;

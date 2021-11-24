@@ -5,7 +5,6 @@ const fs = require('fs');
 const EventEmitter = require('events');
 const puppeteer = require('puppeteer');
 const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
-const jsQR = require('jsqr');
 
 const Util = require('./util/Util');
 const InterfaceController = require('./util/InterfaceController');
@@ -20,8 +19,6 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @param {object} options - Client options
  * @param {number} options.authTimeoutMs - Timeout for authentication selector in puppeteer
  * @param {object} options.puppeteer - Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/
- * @param {number} options.qrRefreshIntervalMs - Refresh interval for qr code (how much time to wait before checking if the qr code has changed)
- * @param {number} options.qrTimeoutMs - Timeout for qr code selector in puppeteer
  * @param {number} options.qrMaxRetries - How many times should the qrcode be refreshed before giving up
  * @param {string} options.restartOnAuthFail  - Restart client with a new session (i.e. use null 'session' var) if authentication fails
  * @param {boolean} options.useDeprecatedSessionAuth - Enable JSON-based authentication. This is deprecated due to not being supported by MultiDevice, and will be removed in a future version.
@@ -80,13 +77,6 @@ class Client extends EventEmitter {
     async initialize() {
         let [browser, page] = [null, null];
         
-        let isPreAuthenticated = false;
-        if(!this.options.useDeprecatedSessionAuth) {
-            const authJsonPath = path.join(this.dataDir, 'wwebjs.json');
-            const authJson = fs.existsSync(authJsonPath) && JSON.parse(fs.readFileSync(authJsonPath));
-            isPreAuthenticated = authJson ? authJson.authenticated : false;
-        }
-
         const puppeteerOpts = {
             ...this.options.puppeteer,
             userDataDir: this.options.useDeprecatedSessionAuth ? undefined : this.dataDir
@@ -105,7 +95,6 @@ class Client extends EventEmitter {
         this.pupPage = page;
 
         if (this.options.useDeprecatedSessionAuth && this.options.session) {
-            isPreAuthenticated = true;
             await page.evaluateOnNewDocument(
                 session => {
                     localStorage.clear();
@@ -126,81 +115,72 @@ class Client extends EventEmitter {
         });
 
         const INTRO_IMG_SELECTOR = '[data-testid="intro-md-beta-logo-dark"], [data-testid="intro-md-beta-logo-light"], [data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
-        
-        if (isPreAuthenticated) {
-            try {
-                await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: this.options.authTimeoutMs });
-            } catch (err) {
-                if (err.name === 'TimeoutError') {
-                    /**
-                     * Emitted when there has been an error while trying to restore an existing session
-                     * @event Client#auth_failure
-                     * @param {string} message
-                     */
-                    this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in');
-                    
-                    browser.close();
+        const INTRO_QRCODE_SELECTOR = 'div[data-ref] canvas';
 
-                    if(this.dataDir) {
-                        fs.rmdirSync(this.dataDir, {recursive: true});
-                    }
+        // Checks which selector appears first
+        const needAuthentication = await Promise.race([
+            new Promise(resolve => {
+                page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: this.options.authTimeoutMs })
+                    .then(() => resolve(false))
+                    .catch((err) => resolve(err));
+            }),
+            new Promise(resolve => {
+                page.waitForSelector(INTRO_QRCODE_SELECTOR, { timeout: this.options.authTimeoutMs })
+                    .then(() => resolve(true))
+                    .catch((err) => resolve(err));
+            })
+        ]);
 
-                    if (this.options.restartOnAuthFail) {
-                        // session restore failed so try again but without session to force new authentication
-                        this.options.session = null;
-                        this.initialize();
-                    }
-                    return;
-                }
+        // Checks if an error ocurred on the first found selector. The second will be discarted and ignored by .race;
+        if (needAuthentication instanceof Error) throw needAuthentication;
 
-                throw err;
-            }
+        // Scan-qrcode selector was found. Needs authentication
+        if (needAuthentication) {
+            const QR_CONTAINER = 'div[data-ref]';
+            const QR_RETRY_BUTTON = 'div[data-ref] > span > button';
 
-        } else {
             let qrRetries = 0;
-
-            const getQrCode = async () => {
-                // Check if retry button is present
-                var QR_RETRY_SELECTOR = 'div[data-ref] > span > button';
-                var qrRetry = await page.$(QR_RETRY_SELECTOR);
-                if (qrRetry) {
-                    await qrRetry.click();
-                }
-
-                try {
-                    // Wait for QR Code
-                    const QR_CANVAS_SELECTOR = 'canvas';
-                    await page.waitForSelector(QR_CANVAS_SELECTOR, { timeout: this.options.qrTimeoutMs });
-                    const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0, 0, 264, 264).data));
-                    const qr = jsQR(qrImgData, 264, 264).data;
-                    
-                    /**
-                    * Emitted when the QR code is received
-                    * @event Client#qr
-                    * @param {string} qr QR Code
-                    */
-                    this.emit(Events.QR_RECEIVED, qr);
-                  
-                    if (this.options.qrMaxRetries > 0) {
-                        qrRetries++;
-                        if (qrRetries > this.options.qrMaxRetries) {
-                            this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
-                            await this.destroy();
-                        }
+            await page.exposeFunction('qrChanged', async (qr) => {
+                this.emit(Events.QR_RECEIVED, qr);
+                if (this.options.qrMaxRetries > 0) {
+                    qrRetries++;
+                    if (qrRetries > this.options.qrMaxRetries) {
+                        this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
+                        await this.destroy();
                     }
-                } catch (err) {
-                    if (err.name === 'TimeoutError') return;
-                    throw err;
                 }
-            };
-            getQrCode();
-            this._qrRefreshInterval = setInterval(getQrCode, this.options.qrRefreshIntervalMs);
+            });
+
+            await page.evaluate(function(selectors) {
+                const qr_container = document.querySelector(selectors.QR_CONTAINER);
+                window.qrChanged(qr_container.dataset.ref);
+
+                const obs = new MutationObserver((muts) => {
+                    muts.forEach(mut => {
+                        // Listens to qr token change
+                        if (mut.type === 'attributes' && mut.attributeName === 'data-ref') {
+                            window.qrChanged(mut.target.dataset.ref);
+                        } else
+                        // Listens to retry button, when found, click it
+                        if (mut.type === 'childList') {
+                            const retry_button = document.querySelector(selectors.QR_RETRY_BUTTON);
+                            if (retry_button) retry_button.click();
+                        }
+                    });
+                });
+                obs.observe(qr_container.parentElement, {
+                    subtree: true,
+                    childList: true,
+                    attributes: true,
+                    attributeFilter: ['data-ref'],
+                });
+            }, { 
+                QR_CONTAINER, 
+                QR_RETRY_BUTTON 
+            });
 
             // Wait for code scan
             await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: 0 });
-            clearInterval(this._qrRefreshInterval);
-            this._qrRefreshInterval = undefined;
-
         }
 
         await page.evaluate(ExposeStore, moduleRaid.toString());
@@ -225,11 +205,6 @@ class Client extends EventEmitter {
          * @event Client#authenticated
          */
         this.emit(Events.AUTHENTICATED, authEventPayload);
-
-        if(!this.options.useDeprecatedSessionAuth) {
-            const authJsonPath = path.join(this.dataDir, 'wwebjs.json');
-            await fs.promises.writeFile(authJsonPath, JSON.stringify({authenticated: true}));
-        }
 
         // Check window.Store Injection
         await page.waitForFunction('window.Store != undefined');
@@ -458,9 +433,6 @@ class Client extends EventEmitter {
      * Closes the client
      */
     async destroy() {
-        if (this._qrRefreshInterval) {
-            clearInterval(this._qrRefreshInterval);
-        }
         await this.pupBrowser.close();
     }
 
