@@ -57,7 +57,7 @@ class List {
      */
     _format(sections){
         if(!sections.length){throw '[LT02] List without sections';}
-        if(sections.length > 1){throw '[LT05] Lists with more than one section are having problems';}
+        if(sections.length > 1){if(sections.find(s => typeof s.title == "undefined")){throw '[LT05] You can\'t have empty section titles if you have more than one section';}}
         return sections.map( (section) =>{
             if(!section.rows.length){throw '[LT03] Section without rows';}
             return {
