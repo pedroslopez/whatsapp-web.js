@@ -223,46 +223,47 @@ class Client extends EventEmitter {
 
         //disable logs
         if (this.options.disableLogs) {
+            /*eslint-disable */
             switch (this.options.disableLogs) {
-                case 3: //disable logs and telemtry
-                case 2: { // disable Logs
-                    await this.pupPage.evaluate(() => { //remove crash urls
-                        let logObjects = window.mR.findModule('FB_CLB_URL');
-                        if (!logObjects.length) {
-                            throw('[DL02] Couldn\'t find the log FB_CLB_URL objects, set "disableLogs" to 0 or 1'); //we should kill the client
-                        }
-                        for (let i = 0; i < logObjects.length; i++) {
-                            /*
-                            We will use https://127.0.0.i where i > 1, because it fails CSP rule 127.0.0.1:* (127.0.0.x == 127.0.0.1)
-                            We need to remove the function, not replace the string
-                            :29192 so we don't trigger default ports
-                             */
-                            logObjects[i]['default']['FB_CLB_URL'] = 'https://127.0.0.2:29192';
-                        }
-                        logObjects = window.mR.findModule('FB_CLB_CHECK_URL');
-                        if (!logObjects.length) {
-                            throw('[DL03] Couldn\'t find the log FB_CLB_CHECK_URL objects, set "disableLogs" to 0 or 1');
-                        }
-                        for (let i = 0; i < logObjects.length; i++) {
-                            logObjects[i]['default']['FB_CLB_CHECK_URL'] = 'https://127.0.0.3:29192';
-                        }
-                    });
-                    if(this.options.disableLogs === 2) break;
-                }
-                case 1: { // disable Telemetry
-                    await this.pupPage.evaluate(() => {
-                        let telemetryObjects = window.mR.findModule('WAM_URL');
-                        if(!telemetryObjects.length){
-                            throw('[DL01] Couldn\'t find the telemetry WAM objects, set "disableLogs" to 0 or 2');
-                        }
-                        for(let i =0; i< telemetryObjects.length; i++){
-                            telemetryObjects[i]['default']['WAM_URL']  = 'https://127.0.0.4:29192';
-                        }
-                    });
-                    break;
-                }
-
+            case 3: //disable logs and telemtry
+            case 2: { // disable Logs
+                await this.pupPage.evaluate(() => { //remove crash urls
+                    let logObjects = window.mR.findModule('FB_CLB_URL');
+                    if (!logObjects.length) {
+                        throw('[DL02] Couldn\'t find the log FB_CLB_URL objects, set "disableLogs" to 0 or 1'); //we should kill the client
+                    }
+                    for (let i = 0; i < logObjects.length; i++) {
+                        /*
+                        We will use https://127.0.0.i where i > 1, because it fails CSP rule 127.0.0.1:* (127.0.0.x == 127.0.0.1)
+                        We need to remove the function, not replace the string
+                        :29192 so we don't trigger default ports
+                         */
+                        logObjects[i]['default']['FB_CLB_URL'] = 'https://127.0.0.2:29192';
+                    }
+                    logObjects = window.mR.findModule('FB_CLB_CHECK_URL');
+                    if (!logObjects.length) {
+                        throw('[DL03] Couldn\'t find the log FB_CLB_CHECK_URL objects, set "disableLogs" to 0 or 1');
+                    }
+                    for (let i = 0; i < logObjects.length; i++) {
+                        logObjects[i]['default']['FB_CLB_CHECK_URL'] = 'https://127.0.0.3:29192';
+                    }
+                });
+                if(this.options.disableLogs === 2) break;
             }
+            case 1: { // disable Telemetry
+                await this.pupPage.evaluate(() => {
+                    let telemetryObjects = window.mR.findModule('WAM_URL');
+                    if(!telemetryObjects.length){
+                        throw('[DL01] Couldn\'t find the telemetry WAM objects, set "disableLogs" to 0 or 2');
+                    }
+                    for(let i =0; i< telemetryObjects.length; i++){
+                        telemetryObjects[i]['default']['WAM_URL']  = 'https://127.0.0.4:29192';
+                    }
+                });
+                break;
+            }
+            }
+            /*eslint-enable */
         }
 
         // Register events
