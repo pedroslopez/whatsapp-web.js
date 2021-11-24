@@ -8,7 +8,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store = window.mR.findModule('Chat')[0].default;
     window.Store.AppState = window.mR.findModule('STREAM')[0].Socket;
     if( window.mR.findModule('Conn').lengh > 1){
-        if(typeof window.mR.findModule('Conn')[0].Conn != "undefined"){
+        if(typeof window.mR.findModule('Conn')[0].Conn != 'undefined'){
             window.Store.Conn = window.mR.findModule('Conn')[0].Conn;
         }else{
             window.Store.Conn = window.mR.findModule('Conn')[1].Conn;
