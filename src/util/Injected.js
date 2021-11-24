@@ -7,15 +7,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.mR = moduleRaid();
     window.Store = Object.assign({}, window.mR.findModule('Chat')[0].default);
     window.Store.AppState = window.mR.findModule('STREAM')[0].Socket;
-    if( window.mR.findModule('Conn').length > 1){
-        if(typeof window.mR.findModule('Conn')[0].Conn != 'undefined'){
-            window.Store.Conn = window.mR.findModule('Conn')[0].Conn;
-        }else{
-            window.Store.Conn = window.mR.findModule('Conn')[1].Conn;
-        }
-    }else{
-        window.Store.Conn = window.mR.findModule('Conn')[0].Conn;
-    }
+    window.Store.Conn = window.mR.findModule('Conn').find(a => typeof a.Conn != 'undefined');
     window.Store.BlockContact = window.mR.findModule('blockContact')[0];
     window.Store.Call = window.mR.findModule('CallCollection')[0].CallCollection;
     window.Store.Cmd = window.mR.findModule('Cmd')[0].default;
@@ -51,14 +43,11 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.getProfilePicFull = window.mR.findModule('getProfilePicFull')[0].getProfilePicFull;
     window.Store.PresenceUtils = window.mR.findModule('sendPresenceAvailable')[0];
     window.Store.ChatState = window.mR.findModule('sendChatStateComposing')[0];
-    window.Store.USyncQuery = window.mR.findModule('USyncQuery')[0].USyncQuery;
-    window.Store.USyncUser = window.mR.findModule('USyncUser')[0].USyncUser;
     window.Store.GroupParticipants = window.mR.findModule('sendPromoteParticipants')[0];
     window.Store.GroupUtils = {
         ...window.mR.findModule('sendCreateGroup')[0], 
         ...window.mR.findModule('sendSetGroupSubject')[0]
     };
-
 
     if (!window.Store.Chat._find) {
         window.Store.Chat._find = e => {
@@ -74,20 +63,11 @@ exports.LoadUtils = () => {
     window.WWebJS = {};
 
     window.WWebJS.getNumberId = async (id) => {
-        if(window.Store.Features.features.MD_BACKEND){
-            let handler = (new window.Store.USyncQuery).withContactProtocol();
-            handler = handler.withUser( (new window.Store.USyncUser).withPhone(id),  handler.withBusinessProtocol(), 1 );
-            let result = await handler.execute();
-            if(result.list[0].contact.type == 'in'){
-                return result.list[0].id;
-            }
+
+        let result = await window.Store.QueryExist(id);
+        if (result.wid === undefined)
             throw 'The number provided is not a registered whatsapp user';
-        }else{
-            let result = await window.Store.Wap.queryExist(id);
-            if (result.jid === undefined)
-                throw 'The number provided is not a registered whatsapp user';
-            return result.jid;
-        }
+        return result.wid;
     };
 
     window.WWebJS.sendSeen = async (chatId) => {
