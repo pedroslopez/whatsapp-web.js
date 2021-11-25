@@ -605,7 +605,7 @@ declare namespace WAWebJS {
          /**
           * Returns message in a raw format
           */
-        raw: () => Object,
+        raw: () => unknown,
         /** 
          * Forwards this message to another chat
          */
