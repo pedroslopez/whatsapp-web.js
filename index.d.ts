@@ -602,6 +602,10 @@ declare namespace WAWebJS {
          * If not, it will send the message in the same Chat as the original message was sent. 
          */
         reply: (content: MessageContent, chatId?: string, options?: MessageSendOptions) => Promise<Message>,
+         /**
+          * Returns message in a raw format
+          */
+        raw: () => Object,
         /** 
          * Forwards this message to another chat
          */
