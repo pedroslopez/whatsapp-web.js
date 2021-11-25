@@ -21,7 +21,7 @@ class Message extends Base {
     _patch(data) {
         /**
          * Raw message data
-         * @type {Object}
+         * @type {unknown}
          */
         this.data = data;
         
