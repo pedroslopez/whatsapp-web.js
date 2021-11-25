@@ -23,7 +23,7 @@ class Message extends Base {
          * Raw message data
          * @type {Object}
          */
-        this.raw = data;
+        this.data = data;
         
         /**
          * MediaKey that represents the sticker 'ID'
