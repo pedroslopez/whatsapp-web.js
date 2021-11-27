@@ -838,9 +838,22 @@ class Client extends EventEmitter {
      * @returns {Promise<Boolean>}
      */
     async isRegisteredUser(id) {
+        if(!id.endsWith('@c.us')) {
+            id += '@c.us';
+        }
+        if(!id.startsWith('+')) {
+            id = '+' + id;
+        }
         return await this.pupPage.evaluate(async (id) => {
-            let result = await window.Store.Wap.queryExist(id);
-            return result.jid !== undefined;
+            if(window.Store.Features.features.MD_BACKEND){
+                let handler = (new window.Store.USyncQuery).withContactProtocol();
+                handler = handler.withUser( (new window.Store.USyncUser).withPhone(id),  handler.withBusinessProtocol(), 1 );
+                let result = await handler.execute();
+                return result.list[0].contact.type == 'in';
+            }else{
+                let result = await window.Store.Wap.queryExist(id);
+                return result.jid !== undefined;
+            }
         }, id);
     }
 
