@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.14.1 &raquo; Class: Client</title>
+  <title>whatsapp-web.js 1.15.2 &raquo; Class: Client</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>14.<wbr>1</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>15.<wbr>2</a>
       </div>
     </div>
   </nav>
@@ -26,7 +26,7 @@
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
             <h1><small></small><span class="symbol-name">Client</span></h1>
-            <p class="source-link">Source: <a href="Client.js.html#source-line-52">Client.<wbr>js:52</a></p>
+            <p class="source-link">Source: <a href="Client.js.html#source-line-53">Client.<wbr>js:53</a></p>
             <div class="symbol-classdesc">
               <p>Starting point for interacting with the WhatsApp Web API</p>
             </div>
@@ -70,6 +70,9 @@
                     <dt><a href="Client.html#destroy">destroy()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Client.html#getBlockedContacts">getBlockedContacts()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#getChatById">getChatById(chatId)</a></dt>
                     <dd>
                     </dd>
@@ -88,13 +91,19 @@
                     <dt><a href="Client.html#getContacts">getContacts()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Client.html#getInviteInfo">getInviteInfo(inviteCode)</a></dt>
+                    <dt><a href="Client.html#getCountryCode">getCountryCode(number)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Client.html#getFormattedNumber">getFormattedNumber(number)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#getInviteInfo">getInviteInfo(inviteCode)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#getLabelById">getLabelById(labelId)</a></dt>
                     <dd>
                     </dd>
@@ -128,13 +137,13 @@
                     <dt><a href="Client.html#muteChat">muteChat(chatId, unmuteDate)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Client.html#pinChat">pinChat()</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Client.html#pinChat">pinChat()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#resetState">resetState()</a></dt>
                     <dd>
                     </dd>
@@ -329,6 +338,20 @@
                             </td>
                             <td>
                               <p>Timeout for qr code selector in puppeteer</p>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <p>qrMaxRetries</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>How many times should the qrcode be refreshed before giving up</p>
                             </td>
                           </tr>
                           <tr>
@@ -674,6 +697,15 @@
               <dl class="dl-compact">
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getBlockedContacts"><span class="symbol-name">getBlockedContacts</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of <a href="Contact.html">Contact</a></span></span></h3>
+              <p>Gets all blocked contacts by host account</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing Array of <a href="Contact.html">Contact</a></code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="getChatById"><span class="symbol-name">getChatById</span><span class="signature"><span class="signature-params">(chatId)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="Chat.html">Chat</a></span></span></h3>
               <p>Get chat instance by ID</p>
               <section>
@@ -837,6 +869,82 @@
                 <dt>Returns</dt>
                 <dd>
                   <p><code>Promise containing Array of <a href="Contact.html">Contact</a></code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getCountryCode"><span class="symbol-name">getCountryCode</span><span class="signature"><span class="signature-params">(number)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing string</span></span></h3>
+              <p>Get the country code of a WhatsApp ID.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Number or ID</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing string</code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getFormattedNumber"><span class="symbol-name">getFormattedNumber</span><span class="signature"><span class="signature-params">(number)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing string</span></span></h3>
+              <p>Get the formatted number of a WhatsApp ID.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Number or ID</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing string</code> </p>
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
@@ -1102,7 +1210,7 @@
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="muteChat"><span class="symbol-name">muteChat</span><span class="signature"><span class="signature-params">(chatId, unmuteDate)</span></span></h3>
-              <p>Mutes the Chat until a specified date</p>
+              <p>Mutes this chat forever, unless a date is specified</p>
               <section>
                 <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
@@ -1140,7 +1248,8 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Date when the chat will be unmuted</p>
+                        <p>Date when the chat will be unmuted, leave as is to mute forever</p>
+                        <p>Value can be null.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -1298,7 +1407,7 @@
                         <p>content</p>
                       </td>
                       <td>
-                        <p>(string, <a href="MessageMedia.html">MessageMedia</a>, <a href="Location.html">Location</a>, <a href="Contact.html">Contact</a>, or Array of <a href="Contact.html">Contact</a>)</p>
+                        <p>(string, <a href="MessageMedia.html">MessageMedia</a>, <a href="Location.html">Location</a>, <a href="Contact.html">Contact</a>, Array of <a href="Contact.html">Contact</a>, <a href="Buttons.html">Buttons</a>, or <a href="List.html">List</a>)</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
@@ -2298,7 +2407,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on September 1, 2021.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on November 24, 2021.
       </p>
     </div>
   </footer>
