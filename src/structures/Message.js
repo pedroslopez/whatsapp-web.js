@@ -20,12 +20,17 @@ class Message extends Base {
 
     _patch(data) {
         /**
+         * Raw message data
+         * @type {unknown}
+         */
+        this.data = data;
+        
+        /**
          * MediaKey that represents the sticker 'ID'
          * @type {string}
          */
         this.mediaKey = data.mediaKey;
-
-
+        
         /**
          * ID that represents the message
          * @type {object}
@@ -50,7 +55,7 @@ class Message extends Base {
          */
         this.body = this.hasMedia ? data.caption || '' : data.body || '';
 
-        /** 
+        /**
          * Message type
          * @type {MessageTypes}
          */
@@ -70,9 +75,9 @@ class Message extends Base {
 
         /**
          * ID for who this message is for.
-         * 
+         *
          * If the message is sent by the current user, it will be the Chat to which the message is being sent.
-         * If the message is sent by another user, it will be the ID for the current user. 
+         * If the message is sent by another user, it will be the ID for the current user.
          * @type {string}
          */
         this.to = (typeof (data.to) === 'object' && data.to !== null) ? data.to._serialized : data.to;
@@ -121,7 +126,7 @@ class Message extends Base {
          */
         this.broadcast = data.broadcast;
 
-        /** 
+        /**
          * Indicates if the message was sent by the current user
          * @type {boolean}
          */
@@ -202,7 +207,7 @@ class Message extends Base {
         /**
          * Links included in the message.
          * @type {Array<{link: string, isSuspicious: boolean}>}
-         * 
+         *
          */
         this.links = data.links;
 
@@ -210,7 +215,7 @@ class Message extends Base {
         if (data.dynamicReplyButtons) {
             this.dynamicReplyButtons = data.dynamicReplyButtons;
         }
-        
+
         /** Selected Button Id **/
         if (data.selectedButtonId) {
             this.selectedButtonId = data.selectedButtonId;
@@ -220,7 +225,7 @@ class Message extends Base {
         if (data.listResponse && data.listResponse.singleSelectReply.selectedRowId) {
             this.selectedRowId = data.listResponse.singleSelectReply.selectedRowId;
         }
-        
+
         return super._patch(data);
     }
 
@@ -228,6 +233,14 @@ class Message extends Base {
         return this.fromMe ? this.to : this.from;
     }
 
+    /**
+     * Returns message in a raw format
+     * @returns {Object}
+     */
+    raw() {
+        return this.data;
+    }
+    
     /**
      * Returns the Chat this message was sent in
      * @returns {Promise<Chat>}
@@ -263,17 +276,17 @@ class Message extends Base {
             let msg = window.Store.Msg.get(msgId);
             return msg.quotedMsgObj().serialize();
         }, this.id._serialized);
-        
+
         return new Message(this.client, quotedMsg);
     }
 
     /**
-     * Sends a message as a reply to this message. If chatId is specified, it will be sent 
-     * through the specified Chat. If not, it will send the message 
+     * Sends a message as a reply to this message. If chatId is specified, it will be sent
+     * through the specified Chat. If not, it will send the message
      * in the same Chat as the original message was sent.
-     * 
-     * @param {string|MessageMedia|Location} content 
-     * @param {string} [chatId] 
+     *
+     * @param {string|MessageMedia|Location} content
+     * @param {string} [chatId]
      * @param {MessageSendOptions} [options]
      * @returns {Promise<Message>}
      */
@@ -300,7 +313,7 @@ class Message extends Base {
 
     /**
      * Forwards this message to another chat
-     * 
+     *
      * @param {string|Chat} chat Chat model or chat ID to which the message will be forwarded
      * @returns {Promise}
      */
@@ -330,7 +343,7 @@ class Message extends Base {
             if (msg.mediaData.mediaStage != 'RESOLVED') {
                 // try to resolve media
                 await msg.downloadMedia({
-                    downloadEvenIfExpensive: true, 
+                    downloadEvenIfExpensive: true,
                     rmrReason: 1
                 });
             }
@@ -350,9 +363,9 @@ class Message extends Base {
                     type: msg.type,
                     signal: (new AbortController).signal
                 });
-    
+
                 const data = window.WWebJS.arrayBufferToBase64(decryptedMedia);
-    
+
                 return {
                     data,
                     mimetype: msg.mimetype,
