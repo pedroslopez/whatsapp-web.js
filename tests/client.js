@@ -29,6 +29,24 @@ describe('Client', function() {
             await client.destroy();
         });
 
+        it('should disconnect after reaching max qr retries', async function () {
+            this.timeout(50000);
+            
+            const qrCallback = sinon.spy();
+            const disconnectedCallback = sinon.spy();
+            
+            const client = helper.createClient({options: {qrMaxRetries: 2}});
+            client.on('qr', qrCallback);
+            client.on('disconnected', disconnectedCallback);
+
+            client.initialize();
+
+            await helper.sleep(45000);
+            
+            expect(qrCallback.calledThrice).to.eql(true);
+            expect(disconnectedCallback.calledOnceWith('Max qrcode retries reached')).to.eql(true);
+        });
+
         it('should fail auth if session is invalid', async function() {
             this.timeout(40000);
 
@@ -384,6 +402,32 @@ END:VCARD`;
                 expect(contact).to.exist;
                 expect(contact).to.be.instanceOf(Contact);
             });
+
+            it('can block a contact', async function () {
+                const contact = await client.getContactById(remoteId);
+                await contact.block();
+
+                const refreshedContact = await client.getContactById(remoteId);
+                expect(refreshedContact.isBlocked).to.eql(true);
+            });
+
+            it('can get a list of blocked contacts', async function () {
+                const blockedContacts = await client.getBlockedContacts();
+                expect(blockedContacts.length).to.be.greaterThanOrEqual(1);
+
+                const contact = blockedContacts.find(c => c.id._serialized === remoteId);
+                expect(contact).to.exist;
+                expect(contact).to.be.instanceOf(Contact);
+
+            });
+
+            it('can unblock a contact', async function () {
+                const contact = await client.getContactById(remoteId);
+                await contact.unblock();
+
+                const refreshedContact = await client.getContactById(remoteId);
+                expect(refreshedContact.isBlocked).to.eql(false);
+            });
         });
 
         describe('Numbers and Users', function () {
@@ -411,6 +455,24 @@ END:VCARD`;
                 const number = '9999999999';
                 const numberId = await client.getNumberId(number);
                 expect(numberId).to.eql(null);
+            });
+
+            it('can get a number\'s country code', async function () {
+                const number = '18092201111';
+                const countryCode = await client.getCountryCode(number);
+                expect(countryCode).to.eql('1');
+            });
+
+            it('can get a formatted number', async function () {
+                const number = '18092201111';
+                const formatted = await client.getFormattedNumber(number);
+                expect(formatted).to.eql('+1 (809) 220-1111');
+            });
+
+            it('can get a formatted number from a serialized ID', async function () {
+                const number = '18092201111@c.us';
+                const formatted = await client.getFormattedNumber(number);
+                expect(formatted).to.eql('+1 (809) 220-1111');
             });
         });
     });

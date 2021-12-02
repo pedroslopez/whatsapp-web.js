@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.14.1 &raquo; Home</title>
+  <title>whatsapp-web.js 1.15.2 &raquo; Home</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>14.<wbr>1</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>15.<wbr>2</a>
       </div>
     </div>
   </nav>
@@ -27,15 +27,22 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1>
-              whatsapp-web.js 1.14.1
+              whatsapp-web.js 1.15.2
             </h1>
           </header>
           <article>
-            <p><a href="https://www.npmjs.com/package/whatsapp-web.js"><img src="https://img.shields.io/npm/v/whatsapp-web.js.svg" alt="npm"></a> <a href="https://depfu.com/github/pedroslopez/whatsapp-web.js?project_id=9765"><img src="https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg" alt="Depfu"></a> <img src="https://img.shields.io/badge/WhatsApp_Web-2.2126.14-brightgreen.svg" alt="WhatsApp_Web 2.2126.14"> <a href="https://discord.gg/H7DqQs4"><img src="https://img.shields.io/discord/698610475432411196.svg?logo=discord" alt="Discord Chat"></a></p>
+            <p><a href="https://www.npmjs.com/package/whatsapp-web.js"><img src="https://img.shields.io/npm/v/whatsapp-web.js.svg" alt="npm"></a> <a href="https://depfu.com/github/pedroslopez/whatsapp-web.js?project_id=9765"><img src="https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg" alt="Depfu"></a> <img src="https://img.shields.io/badge/WhatsApp_Web-2.2146.9-brightgreen.svg" alt="WhatsApp_Web 2.2146.9"> <a href="https://discord.gg/H7DqQs4"><img src="https://img.shields.io/discord/698610475432411196.svg?logo=discord" alt="Discord Chat"></a></p>
             <h1>whatsapp-web.js</h1>
             <p>A WhatsApp API client that connects through the WhatsApp Web browser app</p>
             <p>It uses Puppeteer to run a real instance of Whatsapp Web to avoid getting blocked.</p>
             <p><strong>NOTE:</strong> I can't guarantee you will not be blocked by using this method, although it has worked for me. WhatsApp does not allow bots or unofficial clients on their platform, so this shouldn't be considered totally safe.</p>
+            <h2>Quick Links</h2>
+            <ul>
+              <li><a href="https://wwebjs.dev/guide">Guide / Getting Started</a> <em>(work in progress)</em></li>
+              <li><a href="https://docs.wwebjs.dev/">Reference documentation</a></li>
+              <li><a href="https://github.com/pedroslopez/whatsapp-web.js">GitHub</a></li>
+              <li><a href="https://npmjs.org/package/whatsapp-web.js">npm</a></li>
+            </ul>
             <h2>Installation</h2>
             <p>The module is now available on npm! <code>npm i whatsapp-web.js</code></p>
             <p>Please note that Node v12+ is required.</p>
@@ -112,7 +119,7 @@ client.initialize();
                 </tr>
                 <tr>
                   <td>Send media (video)</td>
-                  <td>✅ <a href="https://guide.wwebjs.dev/features/handling-attachments#caveat-for-sending-videos-and-gifs">(requires google chrome)</a></td>
+                  <td>✅ <a href="https://wwebjs.dev/guide/handling-attachments.html#caveat-for-sending-videos-and-gifs">(requires google chrome)</a></td>
                 </tr>
                 <tr>
                   <td>Send stickers</td>
@@ -129,6 +136,14 @@ client.initialize();
                 <tr>
                   <td>Send location</td>
                   <td>✅</td>
+                </tr>
+                <tr>
+                  <td>Send buttons</td>
+                  <td>✅</td>
+                </tr>
+                <tr>
+                  <td>Send lists</td>
+                  <td>✅ (business accounts not supported)</td>
                 </tr>
                 <tr>
                   <td>Receive location</td>
@@ -193,13 +208,6 @@ client.initialize();
               </tbody>
             </table>
             <p>Something missing? Make an issue and let us know!</p>
-            <h2>Links</h2>
-            <ul>
-              <li><a href="https://docs.wwebjs.dev/">Reference</a></li>
-              <li><a href="https://guide.wwebjs.dev/">Guide</a> <em>(work in progress)</em></li>
-              <li><a href="https://github.com/pedroslopez/whatsapp-web.js">GitHub</a></li>
-              <li><a href="https://npmjs.org/package/whatsapp-web.js">npm</a></li>
-            </ul>
             <h2>Contributing</h2>
             <p>Pull requests are welcome! If you see something you'd like to add, please do. For drastic changes, please open an issue first.</p>
             <h2>Donating</h2>
@@ -275,12 +283,17 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
-                        <a href="BusinessContact.html#getProfilePicUrl" class="!symbol-index-name">BusinessContact#<wbr>getProfilePicUrl()</a>
+                        <a href="BusinessContact.html#getCountryCode" class="!symbol-index-name">BusinessContact#<wbr>getCountryCode()</a>
                       </dt>
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
-                        <a href="BusinessContact.html#id" class="!symbol-index-name">BusinessContact#<wbr>id</a>
+                        <a href="BusinessContact.html#getFormattedNumber" class="!symbol-index-name">BusinessContact#<wbr>getFormattedNumber()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="BusinessContact.html#getProfilePicUrl" class="!symbol-index-name">BusinessContact#<wbr>getProfilePicUrl()</a>
                       </dt>
                       <dd>
                       </dd>
@@ -288,6 +301,11 @@ client.initialize();
                   </div>
                   <div class="symbol-index-column">
                     <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="BusinessContact.html#id" class="!symbol-index-name">BusinessContact#<wbr>id</a>
+                      </dt>
+                      <dd>
+                      </dd>
                       <dt class="symbol-index-name">
                         <a href="BusinessContact.html#isBlocked" class="!symbol-index-name">BusinessContact#<wbr>isBlocked</a>
                       </dt>
@@ -354,6 +372,55 @@ client.initialize();
                       </dd>
                       <dt class="symbol-index-name">
                         <a href="BusinessContact.html#unblock" class="!symbol-index-name">BusinessContact#<wbr>unblock()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section>
+              <div class="symbol-index-content">
+                <h2 id="Buttons">Buttons</h2>
+                <div class="symbol-index-section">
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="Buttons.html" class="!symbol-index-name">Buttons(body, buttons, title, footer)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Buttons.html#_format" class="!symbol-index-name">Buttons#<wbr>_format(buttons)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="Buttons.html#body" class="!symbol-index-name">Buttons#<wbr>body</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Buttons.html#buttons" class="!symbol-index-name">Buttons#<wbr>buttons</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="Buttons.html#footer" class="!symbol-index-name">Buttons#<wbr>footer</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Buttons.html#title" class="!symbol-index-name">Buttons#<wbr>title</a>
                       </dt>
                       <dd>
                       </dd>
@@ -720,15 +787,15 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Client.html#event:message_create" class="!symbol-index-name">Client#<wbr>event:message_create</a>
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Client.html#event:message_revoke_everyone" class="!symbol-index-name">Client#<wbr>event:message_revoke_everyone</a>
                       </dt>
@@ -746,6 +813,11 @@ client.initialize();
                       </dd>
                       <dt class="symbol-index-name">
                         <a href="Client.html#event:ready" class="!symbol-index-name">Client#<wbr>event:ready</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Client.html#getBlockedContacts" class="!symbol-index-name">Client#<wbr>getBlockedContacts()</a>
                       </dt>
                       <dd>
                       </dd>
@@ -780,6 +852,16 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="Client.html#getCountryCode" class="!symbol-index-name">Client#<wbr>getCountryCode(number)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Client.html#getFormattedNumber" class="!symbol-index-name">Client#<wbr>getFormattedNumber(number)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="Client.html#getInviteInfo" class="!symbol-index-name">Client#<wbr>getInviteInfo(inviteCode)</a>
                       </dt>
                       <dd>
@@ -809,15 +891,15 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Client.html#getWWebVersion" class="!symbol-index-name">Client#<wbr>getWWebVersion()</a>
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Client.html#info" class="!symbol-index-name">Client#<wbr>info</a>
                       </dt>
@@ -989,10 +1071,24 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="Contact.html#getCountryCode" class="!symbol-index-name">Contact#<wbr>getCountryCode()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Contact.html#getFormattedNumber" class="!symbol-index-name">Contact#<wbr>getFormattedNumber()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="Contact.html#getProfilePicUrl" class="!symbol-index-name">Contact#<wbr>getProfilePicUrl()</a>
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Contact.html#id" class="!symbol-index-name">Contact#<wbr>id</a>
                       </dt>
@@ -1003,10 +1099,6 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Contact.html#isBusiness" class="!symbol-index-name">Contact#<wbr>isBusiness</a>
                       </dt>
@@ -1032,6 +1124,10 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Contact.html#isUser" class="!symbol-index-name">Contact#<wbr>isUser</a>
                       </dt>
@@ -1042,10 +1138,6 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Contact.html#name" class="!symbol-index-name">Contact#<wbr>name</a>
                       </dt>
@@ -1677,6 +1769,60 @@ client.initialize();
             </section>
             <section>
               <div class="symbol-index-content">
+                <h2 id="List">List</h2>
+                <div class="symbol-index-section">
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="List.html" class="!symbol-index-name">List(body, buttonText, sections, title, footer)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="List.html#_format" class="!symbol-index-name">List#<wbr>_format(sections)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="List.html#buttonText" class="!symbol-index-name">List#<wbr>buttonText</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="List.html#description" class="!symbol-index-name">List#<wbr>description</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="List.html#footer" class="!symbol-index-name">List#<wbr>footer</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="List.html#sections" class="!symbol-index-name">List#<wbr>sections</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="List.html#title" class="!symbol-index-name">List#<wbr>title</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section>
+              <div class="symbol-index-content">
                 <h2 id="Location">Location</h2>
                 <div class="symbol-index-section">
                   <div class="symbol-index-column">
@@ -1785,15 +1931,15 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Message.html#getChat" class="!symbol-index-name">Message#<wbr>getChat()</a>
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Message.html#getContact" class="!symbol-index-name">Message#<wbr>getContact()</a>
                       </dt>
@@ -1811,6 +1957,11 @@ client.initialize();
                       </dd>
                       <dt class="symbol-index-name">
                         <a href="Message.html#getOrder" class="!symbol-index-name">Message#<wbr>getOrder()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Message.html#getPayment" class="!symbol-index-name">Message#<wbr>getPayment()</a>
                       </dt>
                       <dd>
                       </dd>
@@ -1854,15 +2005,15 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Message.html#links" class="!symbol-index-name">Message#<wbr>links</a>
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Message.html#location" class="!symbol-index-name">Message#<wbr>location</a>
                       </dt>
@@ -2038,6 +2189,11 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="global.html#MessageTypes#.BUTTONS_RESPONSE" class="!symbol-index-name">MessageTypes.<wbr>BUTTONS_RESPONSE</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="global.html#MessageTypes#.CONTACT_CARD" class="!symbol-index-name">MessageTypes.<wbr>CONTACT_CARD</a>
                       </dt>
                       <dd>
@@ -2067,6 +2223,11 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="global.html#MessageTypes#.LIST" class="!symbol-index-name">MessageTypes.<wbr>LIST</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="global.html#MessageTypes#.LOCATION" class="!symbol-index-name">MessageTypes.<wbr>LOCATION</a>
                       </dt>
                       <dd>
@@ -2077,12 +2238,12 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
-                        <a href="global.html#MessageTypes#.PRODUCT" class="!symbol-index-name">MessageTypes.<wbr>PRODUCT</a>
+                        <a href="global.html#MessageTypes#.PAYMENT" class="!symbol-index-name">MessageTypes.<wbr>PAYMENT</a>
                       </dt>
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
-                        <a href="global.html#MessageTypes#.REVOKED" class="!symbol-index-name">MessageTypes.<wbr>REVOKED</a>
+                        <a href="global.html#MessageTypes#.PRODUCT" class="!symbol-index-name">MessageTypes.<wbr>PRODUCT</a>
                       </dt>
                       <dd>
                       </dd>
@@ -2090,6 +2251,11 @@ client.initialize();
                   </div>
                   <div class="symbol-index-column">
                     <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="global.html#MessageTypes#.REVOKED" class="!symbol-index-name">MessageTypes.<wbr>REVOKED</a>
+                      </dt>
+                      <dd>
+                      </dd>
                       <dt class="symbol-index-name">
                         <a href="global.html#MessageTypes#.STICKER" class="!symbol-index-name">MessageTypes.<wbr>STICKER</a>
                       </dt>
@@ -2156,6 +2322,65 @@ client.initialize();
                     <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Order.html#total" class="!symbol-index-name">Order#<wbr>total</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section>
+              <div class="symbol-index-content">
+                <h2 id="Payment">Payment</h2>
+                <div class="symbol-index-section">
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="Payment.html#id" class="!symbol-index-name">Payment#<wbr>id</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Payment.html#paymentAmount1000" class="!symbol-index-name">Payment#<wbr>paymentAmount1000</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Payment.html#paymentCurrency" class="!symbol-index-name">Payment#<wbr>paymentCurrency</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="Payment.html#paymentMessageReceiverJid" class="!symbol-index-name">Payment#<wbr>paymentMessageReceiverJid</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Payment.html#paymentNote" class="!symbol-index-name">Payment#<wbr>paymentNote</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Payment.html#paymentStatus" class="!symbol-index-name">Payment#<wbr>paymentStatus</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="Payment.html#paymentTransactionTimestamp" class="!symbol-index-name">Payment#<wbr>paymentTransactionTimestamp</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Payment.html#paymentTxnStatus" class="!symbol-index-name">Payment#<wbr>paymentTxnStatus</a>
                       </dt>
                       <dd>
                       </dd>
@@ -2350,10 +2575,24 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="PrivateContact.html#getCountryCode" class="!symbol-index-name">PrivateContact#<wbr>getCountryCode()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="PrivateContact.html#getFormattedNumber" class="!symbol-index-name">PrivateContact#<wbr>getFormattedNumber()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="PrivateContact.html#getProfilePicUrl" class="!symbol-index-name">PrivateContact#<wbr>getProfilePicUrl()</a>
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="PrivateContact.html#id" class="!symbol-index-name">PrivateContact#<wbr>id</a>
                       </dt>
@@ -2364,10 +2603,6 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="PrivateContact.html#isBusiness" class="!symbol-index-name">PrivateContact#<wbr>isBusiness</a>
                       </dt>
@@ -2393,6 +2628,10 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="PrivateContact.html#isUser" class="!symbol-index-name">PrivateContact#<wbr>isUser</a>
                       </dt>
@@ -2403,10 +2642,6 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="PrivateContact.html#name" class="!symbol-index-name">PrivateContact#<wbr>name</a>
                       </dt>
@@ -2701,7 +2936,7 @@ client.initialize();
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on September 1, 2021.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on November 24, 2021.
       </p>
     </div>
   </footer>

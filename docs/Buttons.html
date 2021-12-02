@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.15.2 &raquo; Class: Label</title>
+  <title>whatsapp-web.js 1.15.2 &raquo; Class: Buttons</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -25,10 +25,10 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
-            <h1><small></small><span class="symbol-name">Label</span></h1>
-            <p class="source-link">Source: <a href="structures_Label.js.html#source-line-10">structures/<wbr>Label.<wbr>js:10</a></p>
+            <h1><small></small><span class="symbol-name">Buttons</span></h1>
+            <p class="source-link">Source: <a href="structures_Buttons.js.html#source-line-9">structures/<wbr>Buttons.<wbr>js:9</a></p>
             <div class="symbol-classdesc">
-              <p>WhatsApp Business Label information</p>
+              <p>Message type buttons</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -39,24 +39,25 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Label.html#hexColor">hexColor</a></dt>
+                    <dt><a href="Buttons.html#body">body</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Buttons.html#buttons">buttons</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Label.html#id">id</a></dt>
+                    <dt><a href="Buttons.html#footer">footer</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Buttons.html#title">title</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="Label.html#name">name</a></dt>
-                    <dd>
-                    </dd>
-                  </dl>
                 </div>
               </div>
             </div>
@@ -65,7 +66,7 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Label.html#getChats">getChats()</a></dt>
+                    <dt><a href="Buttons.html#_format">_format(buttons)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -78,7 +79,7 @@
             </div>
           </section>
           <section>
-            <h2 id="Label">new&nbsp;<span class="symbol-name">Label</span><span class="signature"><span class="signature-params">(client, labelData)</span></span></h2>
+            <h2 id="Buttons">new&nbsp;<span class="symbol-name">Buttons</span><span class="signature"><span class="signature-params">(body, buttons, title, footer)</span></span></h2>
             <section>
               <h3>Parameters</h3>
               <table class="jsdoc-details-table">
@@ -93,7 +94,7 @@
                 <tbody>
                   <tr>
                     <td>
-                      <p>client</p>
+                      <p>body</p>
                     </td>
                     <td>
                       <p>&nbsp;</p>
@@ -106,7 +107,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <p>labelData</p>
+                      <p>buttons</p>
                     </td>
                     <td>
                       <p>&nbsp;</p>
@@ -115,6 +116,34 @@
                       <p>&nbsp;</p>
                     </td>
                     <td>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p>title</p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                      <p>Value can be null.</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p>footer</p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                      <p>Value can be null.</p>
                     </td>
                   </tr>
                 </tbody>
@@ -126,31 +155,72 @@
           <section>
             <h2>Properties</h2>
             <section>
-              <h3 id="hexColor"><span class="symbol-name">hexColor</span><small class="property-type">
-                  &nbsp;string</small></h3>
-              <p>Label hex color</p>
+              <h3 id="body"><span class="symbol-name">body</span><small class="property-type">
+                  &nbsp;(string or <a href="MessageMedia.html">MessageMedia</a>)</small></h3>
+              <p>Message body</p>
               <dl class="dl-compact">
               </dl>
-              <h3 id="id"><span class="symbol-name">id</span><small class="property-type">
-                  &nbsp;string</small></h3>
-              <p>Label ID</p>
+              <h3 id="buttons"><span class="symbol-name">buttons</span><small class="property-type">
+                  &nbsp;Array of Array of string</small></h3>
+              <p>buttons of message</p>
               <dl class="dl-compact">
               </dl>
-              <h3 id="name"><span class="symbol-name">name</span><small class="property-type">
+              <h3 id="footer"><span class="symbol-name">footer</span><small class="property-type">
                   &nbsp;string</small></h3>
-              <p>Label name</p>
+              <p>footer of message</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="title"><span class="symbol-name">title</span><small class="property-type">
+                  &nbsp;string</small></h3>
+              <p>title of message</p>
               <dl class="dl-compact">
               </dl>
             </section>
             <h2>Method</h2>
             <section>
-              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
-              <h3 id="getChats"><span class="symbol-name">getChats</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of <a href="Chat.html">Chat</a></span></span></h3>
-              <p>Get all chats that have been assigned this Label</p>
+              <h3 id="_format"><span class="symbol-name">_format</span><span class="signature"><span class="signature-params">(buttons)</span>&nbsp;&rarr; <span class="signature-returns"> Array of Array of string</span></span></h3>
+              <p>Creates button array from simple array</p>
+              <section>
+                <h4>
+                  Example
+                </h4>
+                <div>
+                  <pre class="prettyprint"><code>Input: [{id:&#x27;customId&#x27;,body:&#x27;button1&#x27;},{body:&#x27;button2&#x27;},{body:&#x27;button3&#x27;},{body:&#x27;button4&#x27;}]
+Returns: [{ buttonId:&#x27;customId&#x27;,buttonText:{&#x27;displayText&#x27;:&#x27;button1&#x27;},type: 1 },{buttonId:&#x27;n3XKsL&#x27;,buttonText:{&#x27;displayText&#x27;:&#x27;button2&#x27;},type:1},{buttonId:&#x27;NDJk0a&#x27;,buttonText:{&#x27;displayText&#x27;:&#x27;button3&#x27;},type:1}]</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>buttons</p>
+                      </td>
+                      <td>
+                        <p>Array of Array of string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Promise containing Array of <a href="Chat.html">Chat</a></code> </p>
+                  <p><code>Array of Array of string</code> </p>
                 </dd>
               </dl>
             </section>

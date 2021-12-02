@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.15.2 &raquo; Source: structures/Order.js</title>
+  <title>whatsapp-web.js 1.15.2 &raquo; Source: structures/Payment.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -26,19 +26,12 @@
         </div>
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1>Source: structures/Order.js</h1>
+            <h1>Source: structures/Payment.js</h1>
           </header>
           <article>
-            <pre class="prettyprint linenums"><code>&#x27;use strict&#x27;;
+            <pre class="prettyprint linenums"><code>const Base &#x3D; require(&#x27;./Base&#x27;);
 
-const Base &#x3D; require(&#x27;./Base&#x27;);
-const Product &#x3D; require(&#x27;./Product&#x27;);
-
-/**
- * Represents a Order on WhatsApp
- * @extends {Base}
- */
-class Order extends Base {
+class Payment extends Base {
     constructor(client, data) {
         super(client);
 
@@ -47,40 +40,74 @@ class Order extends Base {
 
     _patch(data) {
         /**
-         * List of products
-         * @type {Array&amp;lt;Product&gt;}
+         * The payment Id
+         * @type {object}
          */
-        if (data.products) {
-            this.products &#x3D; data.products.map(product &#x3D;&gt; new Product(this.client, product));
-        }
+        this.id &#x3D; data.id;
+
         /**
-         * Order Subtotal
+         * The payment currency
          * @type {string}
          */
-        this.subtotal &#x3D; data.subtotal;
+        this.paymentCurrency &#x3D; data.paymentCurrency;
+
         /**
-         * Order Total
-         * @type {string}
-         */
-        this.total &#x3D; data.total;
-        /**
-         * Order Currency
-         * @type {string}
-         */
-        this.currency &#x3D; data.currency;
-        /**
-         * Order Created At
+         * The payment ammount ( R$ 1.00 &#x3D; 1000 )
          * @type {number}
          */
-        this.createdAt &#x3D; data.createdAt;
+        this.paymentAmount1000 &#x3D; data.paymentAmount1000;
+
+        /**
+         * The payment receiver
+         * @type {object}
+         */
+        this.paymentMessageReceiverJid &#x3D; data.paymentMessageReceiverJid;
+
+        /**
+         * The payment transaction timestamp
+         * @type {number}
+         */
+        this.paymentTransactionTimestamp &#x3D; data.paymentTransactionTimestamp;
+
+        /**
+         * The paymentStatus
+         * @type {number}
+         *
+         * Possible Status
+         * 0:UNKNOWN_STATUS
+         * 1:PROCESSING
+         * 2:SENT
+         * 3:NEED_TO_ACCEPT
+         * 4:COMPLETE
+         * 5:COULD_NOT_COMPLETE
+         * 6:REFUNDED
+         * 7:EXPIRED
+         * 8:REJECTED
+         * 9:CANCELLED
+         * 10:WAITING_FOR_PAYER
+         * 11:WAITING
+         */
+        this.paymentStatus &#x3D; data.paymentStatus;
+
+        /**
+         * Integer that represents the payment Text
+         * @type {number}
+         */
+        this.paymentTxnStatus &#x3D; data.paymentTxnStatus;
+
+        /**
+         * The note sent with the payment
+         * @type {string}
+         */
+        this.paymentNote &#x3D; !data.paymentNoteMsg ? undefined : data.paymentNoteMsg.body ?  data.paymentNoteMsg.body : undefined ;
 
         return super._patch(data);
     }
 
-
 }
 
-module.exports &#x3D; Order;</code></pre>
+module.exports &#x3D; Payment;
+</code></pre>
           </article>
         </div>
       </div>
