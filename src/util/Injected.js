@@ -35,6 +35,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Sticker = window.mR.findModule('Sticker')[0].default.Sticker;
     window.Store.User = window.mR.findModule('getMaybeMeUser')[0];
     window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
+    window.Store.USyncQuery = window.mR.findModule('USyncQuery')[0].USyncQuery;
+    window.Store.USyncUser = window.mR.findModule('USyncUser')[0].USyncUser;
     window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default;
     window.Store.Validators = window.mR.findModule('findLinks')[0];   
     window.Store.VCard = window.mR.findModule('vcardFromContactModel')[0];
@@ -48,7 +50,7 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('sendCreateGroup')[0], 
         ...window.mR.findModule('sendSetGroupSubject')[0]
     };
-
+  
     if (!window.Store.Chat._find) {
         window.Store.Chat._find = e => {
             const target = window.Store.Chat.get(e);
@@ -64,10 +66,20 @@ exports.LoadUtils = () => {
 
     window.WWebJS.getNumberId = async (id) => {
 
-        let result = await window.Store.QueryExist(id);
-        if (result.wid === undefined)
+        if(window.Store.Features.features.MD_BACKEND){
+            let handler = (new window.Store.USyncQuery).withContactProtocol();
+            handler = handler.withUser( (new window.Store.USyncUser).withPhone(id),  handler.withBusinessProtocol(), 1 );
+            let result = await handler.execute();
+            if(result.list[0].contact.type == 'in'){
+                return result.list[0].id;
+            }
             throw 'The number provided is not a registered whatsapp user';
-        return result.wid;
+        } else{
+            let result = await window.Store.Wap.queryExist(id);
+            if (result.jid === undefined)
+                throw 'The number provided is not a registered whatsapp user';
+            return result.jid;
+        }
     };
 
     window.WWebJS.sendSeen = async (chatId) => {
