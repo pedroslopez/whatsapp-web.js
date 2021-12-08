@@ -15,9 +15,10 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification,
 /**
  * Starting point for interacting with the WhatsApp Web API
  * @extends {EventEmitter}
+ * @param {object} puppeteerBrowser - Puppeteer browser instance
+ * @param {object} browserWindow - Electron browser window instance
  * @param {object} options - Client options
  * @param {number} options.authTimeoutMs - Timeout for authentication selector in puppeteer
- * @param {object} options.puppeteer - Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/
  * @param {number} options.qrRefreshIntervalMs - Refresh interval for qr code (how much time to wait before checking if the qr code has changed)
  * @param {number} options.qrTimeoutMs - Timeout for qr code selector in puppeteer
  * @param {number} options.qrMaxRetries - How many times should the qrcode be refreshed before giving up
