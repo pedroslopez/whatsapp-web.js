@@ -710,7 +710,7 @@ class Client extends EventEmitter {
      */
     async sendPresenceAvailable() {
         return await this.pupPage.evaluate(() => {
-            return window.Store.Status.sendPresenceAvailable();
+            return window.Store.Wap.sendPresenceAvailable();
         });
     }
 
@@ -817,7 +817,7 @@ class Client extends EventEmitter {
      */
     async getProfilePicUrl(contactId) {
         const profilePic = await this.pupPage.evaluate((contactId) => {
-            return window.Store.ProfilePic.profilePicFind(contactId);
+            return window.Store.Wap.profilePicFind(contactId);
         }, contactId);
 
         return profilePic ? profilePic.eurl : undefined;

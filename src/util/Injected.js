@@ -9,11 +9,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.AppState = window.mR.findModule('STREAM')[0].Socket;
     window.Store.Conn = window.mR.findModule('Conn')[0].Conn;
     window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
-    window.Store.Wap = window.mR.findModule('wap')[0].default;
-    window.Store.ProfilePic = window.mR.findModule('profilePicFind')[0];
-    window.Store.Status = window.mR.findModule('sendPresenceAvailable')[0];
-    window.Store.Query = window.mR.findModule('queryLinkPreview')[0].default; //we have a lot of new functions here
-    
+    window.Store.Wap = window.mR.findModule('queryLinkPreview')[0].default;
     window.Store.SendSeen = window.mR.findModule('sendSeen')[0];
     window.Store.SendClear = window.mR.findModule('sendClear')[0];
     window.Store.SendDelete = window.mR.findModule('sendDelete')[0];
@@ -152,7 +148,7 @@ exports.LoadUtils = () => {
             delete options.linkPreview;
             const link = window.Store.Validators.findLink(content);
             if (link) {
-                const preview = await window.Store.Query.queryLinkPreview(link.url);
+                const preview = await window.Store.Wap.queryLinkPreview(link.url);
                 preview.preview = true;
                 preview.subtype = 'url';
                 options = { ...options, ...preview };
