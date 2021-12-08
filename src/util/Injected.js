@@ -10,7 +10,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Conn = window.mR.findModule('Conn')[0].Conn;
     window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
     window.Store.Wap = window.mR.findModule('wap')[0].default;
-    window.Store.profilePic = window.mR.findModule('profilePicFind')[0];
+    window.Store.ProfilePic = window.mR.findModule('profilePicFind')[0];
+    window.Store.Status = window.mR.findModule('sendPresenceAvailable')[0];
     window.Store.SendSeen = window.mR.findModule('sendSeen')[0];
     window.Store.SendClear = window.mR.findModule('sendClear')[0];
     window.Store.SendDelete = window.mR.findModule('sendDelete')[0];
