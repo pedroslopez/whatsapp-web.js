@@ -26,7 +26,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.MediaObject = window.mR.findModule('getOrCreateMediaObject')[0];
     window.Store.MediaUpload = window.mR.findModule('uploadMedia')[0];
     window.Store.NumberInfo = window.mR.findModule('formattedPhoneNumber')[0];
-    window.Store.Cmd = window.mR.findModule('Cmd')[0].default;
+    window.Store.Cmd = window.mR.findModule('Cmd')[0].Cmd;
     window.Store.MediaTypes = window.mR.findModule('msgToMediaType')[0];
     window.Store.VCard = window.mR.findModule('vcardFromContactModel')[0];
     window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default;
