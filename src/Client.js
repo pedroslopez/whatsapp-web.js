@@ -1,9 +1,9 @@
 'use strict';
 
 const EventEmitter = require('events');
-const puppeteer = require('puppeteer');
 const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
 const jsQR = require('jsqr');
+const pie = require('puppeteer-in-electron');
 
 const Util = require('./util/Util');
 const InterfaceController = require('./util/InterfaceController');
@@ -11,7 +11,7 @@ const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constan
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
-const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification , Label, Call, Buttons, List} = require('./structures');
+const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List } = require('./structures');
 /**
  * Starting point for interacting with the WhatsApp Web API
  * @extends {EventEmitter}
@@ -66,19 +66,9 @@ class Client extends EventEmitter {
      * Sets up events and requirements, kicks off authentication request
      */
     async initialize() {
-        let [browser, page] = [null, null];
-        
-        if(this.options.puppeteer && this.options.puppeteer.browserWSEndpoint) {
-            browser = await puppeteer.connect(this.options.puppeteer);
-            page = await browser.newPage();
-        } else {
-            browser = await puppeteer.launch(this.options.puppeteer);
-            page = (await browser.pages())[0];
-        }        
-        
+        const page = await pie.getPage(this.pupBrowser, this.browserWindow);
         page.setUserAgent(this.options.userAgent);
 
-        this.pupBrowser = browser;
         this.pupPage = page;
 
         if (this.options.session) {
@@ -91,8 +81,7 @@ class Client extends EventEmitter {
                     localStorage.setItem('WAToken2', session.WAToken2);
                 }, this.options.session);
         }
-
-        if(this.options.bypassCSP) {
+        if (this.options.bypassCSP) {
             await page.setBypassCSP(true);
         }
 
@@ -130,7 +119,7 @@ class Client extends EventEmitter {
         } else {
             let qrRetries = 0;
 
-            const getQrCode = async () => {
+            const getQrCode = async() => {
                 // Check if retry button is present
                 var QR_RETRY_SELECTOR = 'div[data-ref] > span > button';
                 var qrRetry = await page.$(QR_RETRY_SELECTOR);
@@ -143,12 +132,12 @@ class Client extends EventEmitter {
                 await page.waitForSelector(QR_CANVAS_SELECTOR, { timeout: this.options.qrTimeoutMs });
                 const qrImgData = await page.$eval(QR_CANVAS_SELECTOR, canvas => [].slice.call(canvas.getContext('2d').getImageData(0, 0, 264, 264).data));
                 const qr = jsQR(qrImgData, 264, 264).data;
-                
+
                 /**
-                * Emitted when the QR code is received
-                * @event Client#qr
-                * @param {string} qr QR Code
-                */
+                 * Emitted when the QR code is received
+                 * @event Client#qr
+                 * @param {string} qr QR Code
+                 */
                 this.emit(Events.QR_RECEIVED, qr);
 
                 if (this.options.qrMaxRetries > 0) {
@@ -201,7 +190,7 @@ class Client extends EventEmitter {
             return window.Store.Features.features.MD_BACKEND;
         });
 
-        if(isMD) {
+        if (isMD) {
             throw new Error('Multi-device is not yet supported by whatsapp-web.js. Please check out https://github.com/pedroslopez/whatsapp-web.js/pull/889 to follow the progress.');
         }
 
@@ -403,15 +392,15 @@ class Client extends EventEmitter {
              * @param {boolean} call.webClientShouldHandle - If Waweb should handle
              * @param {object} call.participants - Participants
              */
-            const cll = new Call(this,call);
+            const cll = new Call(this, call);
             this.emit(Events.INCOMING_CALL, cll);
         });
-        
+
         await page.evaluate(() => {
             window.Store.Msg.on('add', (msg) => { if (msg.isNewMsg) window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
-            window.Store.Msg.on('change:ack', (msg,ack) => { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
+            window.Store.Msg.on('change:ack', (msg, ack) => { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
             window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => { if (msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('remove', (msg) => { if (msg.isNewMsg) window.onRemoveMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
@@ -427,7 +416,7 @@ class Client extends EventEmitter {
 
         // Disconnect when navigating away
         // Because WhatsApp Web now reloads when logging out from the device, this also covers that case
-        this.pupPage.on('framenavigated', async () => {
+        this.pupPage.on('framenavigated', async() => {
             this.emit(Events.DISCONNECTED, 'NAVIGATION');
             await this.destroy();
         });
@@ -469,7 +458,7 @@ class Client extends EventEmitter {
      * 
      */
     async sendSeen(chatId) {
-        const result = await this.pupPage.evaluate(async (chatId) => {
+        const result = await this.pupPage.evaluate(async(chatId) => {
             return window.WWebJS.sendSeen(chatId);
 
         }, chatId);
@@ -529,23 +518,23 @@ class Client extends EventEmitter {
         } else if (content instanceof Location) {
             internalOptions.location = content;
             content = '';
-        } else if(content instanceof Contact) {
+        } else if (content instanceof Contact) {
             internalOptions.contactCard = content.id._serialized;
             content = '';
-        } else if(Array.isArray(content) && content.length > 0 && content[0] instanceof Contact) {
+        } else if (Array.isArray(content) && content.length > 0 && content[0] instanceof Contact) {
             internalOptions.contactCardList = content.map(contact => contact.id._serialized);
             content = '';
-        } else if(content instanceof Buttons){
-            if(content.type !== 'chat'){internalOptions.attachment = content.body;}
+        } else if (content instanceof Buttons) {
+            if (content.type !== 'chat') { internalOptions.attachment = content.body; }
             internalOptions.buttons = content;
             content = '';
-        } else if(content instanceof List){
+        } else if (content instanceof List) {
             internalOptions.list = content;
             content = '';
         }
 
         if (internalOptions.sendMediaAsSticker && internalOptions.attachment) {
-            internalOptions.attachment = 
+            internalOptions.attachment =
                 await Util.formatToWebpSticker(internalOptions.attachment, {
                     name: options.stickerName,
                     author: options.stickerAuthor,
@@ -553,7 +542,7 @@ class Client extends EventEmitter {
                 });
         }
 
-        const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
+        const newMessage = await this.pupPage.evaluate(async(chatId, message, options, sendSeen) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             const chat = await window.Store.Chat.find(chatWid);
 
@@ -578,7 +567,7 @@ class Client extends EventEmitter {
      * @returns {Promise<Message[]>}
      */
     async searchMessages(query, options = {}) {
-        const messages = await this.pupPage.evaluate(async (query, page, count, remote) => {
+        const messages = await this.pupPage.evaluate(async(query, page, count, remote) => {
             const { messages } = await window.Store.Msg.search(query, page, count, remote);
             return messages.map(msg => window.WWebJS.getMessageModel(msg));
         }, query, options.page, options.limit, options.chatId);
@@ -591,7 +580,7 @@ class Client extends EventEmitter {
      * @returns {Promise<Array<Chat>>}
      */
     async getChats() {
-        let chats = await this.pupPage.evaluate(async () => {
+        let chats = await this.pupPage.evaluate(async() => {
             return await window.WWebJS.getChats();
         });
 
@@ -666,14 +655,14 @@ class Client extends EventEmitter {
      * @returns {Promise<Object>}
      */
     async acceptGroupV4Invite(inviteInfo) {
-        if(!inviteInfo.inviteCode) throw 'Invalid invite code, try passing the message.inviteV4 object';
+        if (!inviteInfo.inviteCode) throw 'Invalid invite code, try passing the message.inviteV4 object';
         if (inviteInfo.inviteCodeExp == 0) throw 'Expired invite code';
         return await this.pupPage.evaluate(async inviteInfo => {
             let { groupId, fromId, inviteCode, inviteCodeExp, toId } = inviteInfo;
             return await window.Store.Wap.acceptGroupV4Invite(groupId, fromId, inviteCode, String(inviteCodeExp), toId);
         }, inviteInfo);
     }
-    
+
     /**
      * Sets the current user's status message
      * @param {string} status New status message
@@ -782,7 +771,7 @@ class Client extends EventEmitter {
      */
     async muteChat(chatId, unmuteDate) {
         unmuteDate = unmuteDate ? unmuteDate.getTime() / 1000 : -1;
-        await this.pupPage.evaluate(async (chatId, timestamp) => {
+        await this.pupPage.evaluate(async(chatId, timestamp) => {
             let chat = await window.Store.Chat.get(chatId);
             await chat.mute.mute(timestamp, !0);
         }, chatId, unmuteDate || -1);
@@ -825,7 +814,7 @@ class Client extends EventEmitter {
 
     /**
      * Force reset of connection state for the client
-    */
+     */
     async resetState() {
         await this.pupPage.evaluate(() => {
             window.Store.AppState.phoneWatchdog.shiftTimer.forceRunNow();
@@ -838,7 +827,7 @@ class Client extends EventEmitter {
      * @returns {Promise<Boolean>}
      */
     async isRegisteredUser(id) {
-        return await this.pupPage.evaluate(async (id) => {
+        return await this.pupPage.evaluate(async(id) => {
             let result = await window.Store.Wap.queryExist(id);
             return result.jid !== undefined;
         }, id);
@@ -856,7 +845,7 @@ class Client extends EventEmitter {
             return await this.pupPage.evaluate(async numberId => {
                 return window.WWebJS.getNumberId(numberId);
             }, number);
-        } catch(_) {
+        } catch (_) {
             return null;
         }
     }
@@ -867,14 +856,14 @@ class Client extends EventEmitter {
      * @returns {Promise<string>}
      */
     async getFormattedNumber(number) {
-        if(!number.endsWith('@s.whatsapp.net')) number = number.replace('c.us', 's.whatsapp.net');
-        if(!number.includes('@s.whatsapp.net')) number = `${number}@s.whatsapp.net`;
-        
+        if (!number.endsWith('@s.whatsapp.net')) number = number.replace('c.us', 's.whatsapp.net');
+        if (!number.includes('@s.whatsapp.net')) number = `${number}@s.whatsapp.net`;
+
         return await this.pupPage.evaluate(async numberId => {
             return window.Store.NumberInfo.formattedPhoneNumber(numberId);
         }, number);
     }
-    
+
     /**
      * Get the country code of a WhatsApp ID.
      * @param {string} number Number or ID
@@ -887,7 +876,26 @@ class Client extends EventEmitter {
             return window.Store.NumberInfo.findCC(numberId);
         }, number);
     }
-    
+
+    /**
+     * Set the profile picture of a chat, or you.
+     * @param {string} id The chat ID to set the picture to. (yours or a group)
+     * @param {MessageMedia} picture The picture to set. 
+     * @returns {Promise<String | false>} The url of the image / false if you can't set the profile picture
+     */
+    async setProfilePicture(id, picture) {
+        const imgs = await Util.formatImageToProfilePic(picture);
+        try {
+            return await this.pupPage.evaluate(async(id, imgs) => {
+                let model = window.Store.ProfilePicThumb._index[id];
+                await window.Store.ProfilePicture.setProfilePic(model, imgs.preview, imgs.img);
+                return window.Store.ProfilePicThumb._index[id].eurl;
+            }, id, imgs);
+        } catch (_) {
+            return null;
+        }
+    }
+
     /**
      * Create a new group
      * @param {string} name group title
@@ -905,7 +913,7 @@ class Client extends EventEmitter {
             participants = participants.map(c => c.id._serialized);
         }
 
-        const createRes = await this.pupPage.evaluate(async (name, participantIds) => {
+        const createRes = await this.pupPage.evaluate(async(name, participantIds) => {
             const res = await window.Store.Wap.createGroup(name, participantIds);
             console.log(res);
             if (!res.status === 200) {
@@ -918,7 +926,9 @@ class Client extends EventEmitter {
         const missingParticipants = createRes.participants.reduce(((missing, c) => {
             const id = Object.keys(c)[0];
             const statusCode = c[id].code;
-            if (statusCode != 200) return Object.assign(missing, { [id]: statusCode });
+            if (statusCode != 200) return Object.assign(missing, {
+                [id]: statusCode
+            });
             return missing;
         }), {});
 
@@ -930,11 +940,11 @@ class Client extends EventEmitter {
      * @returns {Promise<Array<Label>>}
      */
     async getLabels() {
-        const labels = await this.pupPage.evaluate(async () => {
+        const labels = await this.pupPage.evaluate(async() => {
             return window.WWebJS.getLabels();
-        }); 
+        });
 
-        return labels.map(data => new Label(this , data));
+        return labels.map(data => new Label(this, data));
     }
 
     /**
@@ -943,9 +953,9 @@ class Client extends EventEmitter {
      * @returns {Promise<Label>}
      */
     async getLabelById(labelId) {
-        const label = await this.pupPage.evaluate(async (labelId) => {
+        const label = await this.pupPage.evaluate(async(labelId) => {
             return window.WWebJS.getLabel(labelId);
-        }, labelId); 
+        }, labelId);
 
         return new Label(this, label);
     }
@@ -955,12 +965,12 @@ class Client extends EventEmitter {
      * @param {string} chatId
      * @returns {Promise<Array<Label>>}
      */
-    async getChatLabels(chatId){
-        const labels = await this.pupPage.evaluate(async (chatId) => {
+    async getChatLabels(chatId) {
+        const labels = await this.pupPage.evaluate(async(chatId) => {
             return window.WWebJS.getChatLabels(chatId);
         }, chatId);
 
-        return labels.map(data => new Label(this, data)); 
+        return labels.map(data => new Label(this, data));
     }
 
     /**
@@ -968,16 +978,16 @@ class Client extends EventEmitter {
      * @param {string} labelId
      * @returns {Promise<Array<Chat>>}
      */
-    async getChatsByLabelId(labelId){
-        const chatIds = await this.pupPage.evaluate(async (labelId) => {
+    async getChatsByLabelId(labelId) {
+        const chatIds = await this.pupPage.evaluate(async(labelId) => {
             const label = window.Store.Label.get(labelId);
             const labelItems = label.labelItemCollection.models;
             return labelItems.reduce((result, item) => {
-                if(item.parentType === 'Chat'){  
+                if (item.parentType === 'Chat') {
                     result.push(item.parentId);
                 }
                 return result;
-            },[]);
+            }, []);
         }, labelId);
 
         return Promise.all(chatIds.map(id => this.getChatById(id)));
@@ -990,7 +1000,7 @@ class Client extends EventEmitter {
     async getBlockedContacts() {
         const blockedContacts = await this.pupPage.evaluate(() => {
             let chatIds = window.Store.Blocklist.models.map(a => a.id._serialized);
-            return Promise.all(chatIds.map(id => window.WWebJS.getContact(id)));            
+            return Promise.all(chatIds.map(id => window.WWebJS.getContact(id)));
         });
 
         return blockedContacts.map(contact => ContactFactory.create(this.client, contact));

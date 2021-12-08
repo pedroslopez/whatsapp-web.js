@@ -38,8 +38,9 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
     window.Store.DownloadManager = window.mR.findModule('downloadManager')[0].downloadManager;
     window.Store.Call = window.mR.findModule('CallCollection')[0].CallCollection;
+    window.Store.ProfilePicture = window.mR.findModule('setProfilePic')[0];
 
-    if(!window.Store.Chat._find) {
+    if (!window.Store.Chat._find) {
         window.Store.Chat._find = e => {
             const target = window.Store.Chat.get(e);
             return target ? Promise.resolve(target) : Promise.resolve({
@@ -52,7 +53,7 @@ exports.ExposeStore = (moduleRaidStr) => {
 exports.LoadUtils = () => {
     window.WWebJS = {};
 
-    window.WWebJS.getNumberId = async (id) => {
+    window.WWebJS.getNumberId = async(id) => {
 
         let result = await window.Store.Wap.queryExist(id);
         if (result.jid === undefined)
@@ -60,7 +61,7 @@ exports.LoadUtils = () => {
         return result.jid;
     };
 
-    window.WWebJS.sendSeen = async (chatId) => {
+    window.WWebJS.sendSeen = async(chatId) => {
         let chat = window.Store.Chat.get(chatId);
         if (chat !== undefined) {
             await window.Store.SendSeen.sendSeen(chat, false);
@@ -69,14 +70,14 @@ exports.LoadUtils = () => {
         return false;
 
     };
-    
-    window.WWebJS.sendMessage = async (chat, content, options = {}) => {
+
+    window.WWebJS.sendMessage = async(chat, content, options = {}) => {
         let attOptions = {};
         if (options.attachment) {
-            attOptions = options.sendMediaAsSticker 
-                ? await window.WWebJS.processStickerData(options.attachment)
-                : await window.WWebJS.processMediaData(options.attachment, {
-                    forceVoice: options.sendAudioAsVoice, 
+            attOptions = options.sendMediaAsSticker ?
+                await window.WWebJS.processStickerData(options.attachment) :
+                await window.WWebJS.processMediaData(options.attachment, {
+                    forceVoice: options.sendAudioAsVoice,
                     forceDocument: options.sendMediaAsDocument,
                     forceGif: options.sendVideoAsGif
                 });
@@ -129,7 +130,7 @@ exports.LoadUtils = () => {
                 body: undefined
             };
             delete options.contactCardList;
-        } else if (options.parseVCards && typeof (content) === 'string' && content.startsWith('BEGIN:VCARD')) {
+        } else if (options.parseVCards && typeof(content) === 'string' && content.startsWith('BEGIN:VCARD')) {
             delete options.parseVCards;
             try {
                 const parsed = window.Store.VCard.parseVcard(content);
@@ -151,17 +152,17 @@ exports.LoadUtils = () => {
                 const preview = await window.Store.Wap.queryLinkPreview(link.url);
                 preview.preview = true;
                 preview.subtype = 'url';
-                options = { ...options, ...preview };
+                options = {...options, ...preview };
             }
         }
-        
+
         let extraOptions = {};
-        if(options.buttons){
+        if (options.buttons) {
             let caption;
-            if(options.buttons.type === 'chat') {
+            if (options.buttons.type === 'chat') {
                 content = options.buttons.body;
                 caption = content;
-            }else{
+            } else {
                 caption = options.caption ? options.caption : ' '; //Caption can't be empty
             }
             extraOptions = {
@@ -177,8 +178,8 @@ exports.LoadUtils = () => {
             delete options.buttons;
         }
 
-        if(options.list){
-            if(window.Store.Conn.platform === 'smba' || window.Store.Conn.platform === 'smbi'){
+        if (options.list) {
+            if (window.Store.Conn.platform === 'smba' || window.Store.Conn.platform === 'smbi') {
                 throw '[LT01] Whatsapp business can\'t send this yet';
             }
             extraOptions = {
@@ -194,7 +195,7 @@ exports.LoadUtils = () => {
             delete options.list;
             delete extraOptions.list.footer;
         }
-                
+
         const newMsgId = new window.Store.MsgKey({
             fromMe: true,
             remote: chat.id,
@@ -224,11 +225,11 @@ exports.LoadUtils = () => {
         return window.Store.Msg.get(newMsgId._serialized);
     };
 
-    window.WWebJS.processStickerData = async (mediaInfo) => {
+    window.WWebJS.processStickerData = async(mediaInfo) => {
         if (mediaInfo.mimetype !== 'image/webp') throw new Error('Invalid media type');
 
         const file = window.WWebJS.mediaInfoToFile(mediaInfo);
-        let filehash = await window.WWebJS.getFileHash(file);	
+        let filehash = await window.WWebJS.getFileHash(file);
         let mediaKey = await window.WWebJS.generateHash(32);
 
         const controller = new AbortController();
@@ -252,7 +253,7 @@ exports.LoadUtils = () => {
         return stickerInfo;
     };
 
-    window.WWebJS.processMediaData = async (mediaInfo, { forceVoice, forceDocument, forceGif }) => {
+    window.WWebJS.processMediaData = async(mediaInfo, { forceVoice, forceDocument, forceGif }) => {
         const file = window.WWebJS.mediaInfoToFile(mediaInfo);
         const mData = await window.Store.OpaqueData.createFromData(file, file.type);
         const mediaPrep = window.Store.MediaPrep.prepRawMedia(mData, { asDocument: forceDocument });
@@ -314,10 +315,10 @@ exports.LoadUtils = () => {
 
     window.WWebJS.getMessageModel = message => {
         const msg = message.serialize();
-        
+
         msg.isStatusV3 = message.isStatusV3;
-        msg.links = (message.getLinks()).map(link => ({ 
-            link: link.href, 
+        msg.links = (message.getLinks()).map(link => ({
+            link: link.href,
             isSuspicious: Boolean(link.suspiciousCharacters && link.suspiciousCharacters.size)
         }));
 
@@ -327,16 +328,16 @@ exports.LoadUtils = () => {
         if (msg.dynamicReplyButtons) {
             msg.dynamicReplyButtons = JSON.parse(JSON.stringify(msg.dynamicReplyButtons));
         }
-        if(msg.replyButtons) {
+        if (msg.replyButtons) {
             msg.replyButtons = JSON.parse(JSON.stringify(msg.replyButtons));
         }
 
-        if(typeof msg.id.remote === 'object') {
-            msg.id = Object.assign({}, msg.id, {remote: msg.id.remote._serialized});
+        if (typeof msg.id.remote === 'object') {
+            msg.id = Object.assign({}, msg.id, { remote: msg.id.remote._serialized });
         }
-        
+
         delete msg.pendingAckUpdate;
-        
+
         return msg;
     };
 
@@ -365,7 +366,7 @@ exports.LoadUtils = () => {
         return await window.WWebJS.getChatModel(chat);
     };
 
-    window.WWebJS.getChats = async () => {
+    window.WWebJS.getChats = async() => {
         const chats = window.Store.Chat.models;
 
         const chatPromises = chats.map(chat => window.WWebJS.getChatModel(chat));
@@ -420,31 +421,31 @@ exports.LoadUtils = () => {
 
     window.WWebJS.arrayBufferToBase64 = (arrayBuffer) => {
         let binary = '';
-        const bytes = new Uint8Array( arrayBuffer );
+        const bytes = new Uint8Array(arrayBuffer);
         const len = bytes.byteLength;
         for (let i = 0; i < len; i++) {
-            binary += String.fromCharCode( bytes[ i ] );
+            binary += String.fromCharCode(bytes[i]);
         }
-        return window.btoa( binary );
+        return window.btoa(binary);
     };
 
-    window.WWebJS.getFileHash = async (data) => {                  
+    window.WWebJS.getFileHash = async(data) => {
         let buffer = await data.arrayBuffer();
         const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
         return btoa(String.fromCharCode(...new Uint8Array(hashBuffer)));
     };
 
-    window.WWebJS.generateHash = async (length) => {
+    window.WWebJS.generateHash = async(length) => {
         var result = '';
         var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         var charactersLength = characters.length;
-        for ( var i = 0; i < length; i++ ) {
+        for (var i = 0; i < length; i++) {
             result += characters.charAt(Math.floor(Math.random() * charactersLength));
         }
         return result;
     };
 
-    window.WWebJS.sendClearChat = async (chatId) => {
+    window.WWebJS.sendClearChat = async(chatId) => {
         let chat = window.Store.Chat.get(chatId);
         if (chat !== undefined) {
             await window.Store.SendClear.sendClear(chat, false);
@@ -453,7 +454,7 @@ exports.LoadUtils = () => {
         return false;
     };
 
-    window.WWebJS.sendDeleteChat = async (chatId) => {
+    window.WWebJS.sendDeleteChat = async(chatId) => {
         let chat = window.Store.Chat.get(chatId);
         if (chat !== undefined) {
             await window.Store.SendDelete.sendDelete(chat);
@@ -462,19 +463,19 @@ exports.LoadUtils = () => {
         return false;
     };
 
-    window.WWebJS.sendChatstate = async (state, chatId) => {
+    window.WWebJS.sendChatstate = async(state, chatId) => {
         switch (state) {
-        case 'typing':
-            await window.Store.Wap.sendChatstateComposing(chatId);
-            break;
-        case 'recording':
-            await window.Store.Wap.sendChatstateRecording(chatId);
-            break;
-        case 'stop':
-            await window.Store.Wap.sendChatstatePaused(chatId);
-            break;
-        default:
-            throw 'Invalid chatstate';
+            case 'typing':
+                await window.Store.Wap.sendChatstateComposing(chatId);
+                break;
+            case 'recording':
+                await window.Store.Wap.sendChatstateRecording(chatId);
+                break;
+            case 'stop':
+                await window.Store.Wap.sendChatstatePaused(chatId);
+                break;
+            default:
+                throw 'Invalid chatstate';
         }
 
         return true;
@@ -483,7 +484,7 @@ exports.LoadUtils = () => {
     window.WWebJS.getLabelModel = label => {
         let res = label.serialize();
         res.hexColor = label.hexColor;
-        
+
         return res;
     };
 
@@ -497,16 +498,16 @@ exports.LoadUtils = () => {
         return window.WWebJS.getLabelModel(label);
     };
 
-    window.WWebJS.getChatLabels = async (chatId) => {
+    window.WWebJS.getChatLabels = async(chatId) => {
         const chat = await window.WWebJS.getChat(chatId);
         return (chat.labels || []).map(id => window.WWebJS.getLabel(id));
     };
 
-    window.WWebJS.getOrderDetail = async (orderId, token) => {
+    window.WWebJS.getOrderDetail = async(orderId, token) => {
         return window.Store.QueryOrder.queryOrder(orderId, 80, 80, token);
     };
 
-    window.WWebJS.getProductMetadata = async (productId) => {
+    window.WWebJS.getProductMetadata = async(productId) => {
         let sellerId = window.Store.Conn.wid;
         let product = await window.Store.QueryProduct.queryProduct(sellerId, productId);
         if (product && product.data) {

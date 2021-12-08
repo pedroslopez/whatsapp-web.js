@@ -23,7 +23,7 @@ class Util {
         var result = '';
         var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         var charactersLength = characters.length;
-        for ( var i = 0; i < length; i++ ) {
+        for (var i = 0; i < length; i++) {
             result += characters.charAt(Math.floor(Math.random() * charactersLength));
         }
         return result;
@@ -58,30 +58,30 @@ class Util {
     static async formatImageToWebpSticker(media) {
         if (!media.mimetype.includes('image'))
             throw new Error('media is not a image');
-      
+
         if (media.mimetype.includes('webp')) {
             return media;
         }
-      
+
         const buff = Buffer.from(media.data, 'base64');
-      
+
         let sharpImg = sharp(buff);
         sharpImg = sharpImg.webp();
-      
+
         sharpImg = sharpImg.resize(512, 512, {
             fit: 'contain',
             background: { r: 0, g: 0, b: 0, alpha: 0 },
         });
-      
+
         let webpBase64 = (await sharpImg.toBuffer()).toString('base64');
-      
-        return {             
+
+        return {
             mimetype: 'image/webp',
             data: webpBase64,
             filename: media.filename,
         };
     }
-      
+
     /**
      * Formats a video to webp
      * @param {MessageMedia} media
@@ -91,15 +91,15 @@ class Util {
     static async formatVideoToWebpSticker(media) {
         if (!media.mimetype.includes('video'))
             throw new Error('media is not a video');
-      
+
         const videoType = media.mimetype.split('/')[1];
 
         const tempFile = path.join(
             tmpdir(),
             `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`
         );
-      
-        const stream = new (require('stream').Readable)();
+
+        const stream = new(require('stream').Readable)();
         const buffer = Buffer.from(
             media.data.replace(`data:${media.mimetype};base64,`, ''),
             'base64'
@@ -135,17 +135,44 @@ class Util {
                 .toFormat('webp')
                 .save(tempFile);
         });
-      
+
         const data = await fs.readFile(tempFile, 'base64');
         await fs.unlink(tempFile);
-      
-        return {             
+
+        return {
             mimetype: 'image/webp',
             data: data,
             filename: media.filename,
         };
     }
-      
+
+    /**
+     * Formats a image to profilePicture
+     * @param {MessageMedia} media
+     * 
+     * @returns {Promise<MessageMedia>} media in profilePicture format
+     */
+    static async formatImageToProfilePic(media) {
+        if (!media.mimetype.includes('image')) { throw new Error('media is not a image') };
+        const buff = Buffer.from(media.data, 'base64');
+
+        let sharpImg = sharp(buff);
+
+        sharpImg = sharpImg.jpeg();
+
+        let meta = await sharpImg.metadata();
+
+        const min = Math.min(meta.width, meta.height);
+
+        sharpImg = sharpImg.extract({ left: 0, top: 0, width: min, height: min });
+
+        return {
+            img: (await (sharpImg.resize(640, 640, {})).toBuffer()).toString("base64"),
+            preview: (await (sharpImg.resize(96, 96, {})).toBuffer()).toString("base64"),
+
+        }
+    };
+
     /**
      * Sticker metadata.
      * @typedef {Object} StickerMetadata
@@ -164,11 +191,11 @@ class Util {
     static async formatToWebpSticker(media, metadata) {
         let webpMedia;
 
-        if (media.mimetype.includes('image')) 
+        if (media.mimetype.includes('image'))
             webpMedia = await this.formatImageToWebpSticker(media);
-        else if (media.mimetype.includes('video')) 
+        else if (media.mimetype.includes('video'))
             webpMedia = await this.formatVideoToWebpSticker(media);
-        else 
+        else
             throw new Error('Invalid media format');
 
         if (metadata.name || metadata.author) {

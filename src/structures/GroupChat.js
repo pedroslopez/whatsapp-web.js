@@ -28,7 +28,7 @@ class GroupChat extends Chat {
     get owner() {
         return this.groupMetadata.owner;
     }
-    
+
     /**
      * Gets the date at which the group was created
      * @type {date}
@@ -98,6 +98,15 @@ class GroupChat extends Chat {
     }
 
     /**
+     * Set the profile picture of a group chat.
+     * @param {MessageMedia} picture The picture to set. 
+     * @returns {Promise<String | null>} The url of the image / null if you can't set the profile picture
+     */
+    async setProfilePicture(picture) {
+        return await this.client.setProfilePicture(this.id._serialized, picture);
+    }
+
+    /**
      * Updates the group subject
      * @param {string} subject 
      * @returns {Promise} 
@@ -107,7 +116,7 @@ class GroupChat extends Chat {
             return window.Store.Wap.changeSubject(chatId, subject);
         }, this.id._serialized, subject);
 
-        if(res.status == 200) {
+        if (res.status == 200) {
             this.name = subject;
         }
     }
@@ -133,13 +142,13 @@ class GroupChat extends Chat {
      * @param {boolean} [adminsOnly=true] Enable or disable this option 
      * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
      */
-    async setMessagesAdminsOnly(adminsOnly=true) {
+    async setMessagesAdminsOnly(adminsOnly = true) {
         let res = await this.client.pupPage.evaluate((chatId, value) => {
             return window.Store.Wap.setGroupProperty(chatId, 'announcement', value);
         }, this.id._serialized, adminsOnly);
 
         if (res.status !== 200) return false;
-        
+
         this.groupMetadata.announce = adminsOnly;
         return true;
     }
@@ -149,13 +158,13 @@ class GroupChat extends Chat {
      * @param {boolean} [adminsOnly=true] Enable or disable this option 
      * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
      */
-    async setInfoAdminsOnly(adminsOnly=true) {
+    async setInfoAdminsOnly(adminsOnly = true) {
         let res = await this.client.pupPage.evaluate((chatId, value) => {
             return window.Store.Wap.setGroupProperty(chatId, 'restrict', value);
         }, this.id._serialized, adminsOnly);
 
         if (res.status !== 200) return false;
-        
+
         this.groupMetadata.restrict = adminsOnly;
         return true;
     }
@@ -171,11 +180,11 @@ class GroupChat extends Chat {
 
         if (res.status == 200) {
             return res.code;
-        } 
+        }
 
         throw new Error('Not authorized');
     }
-    
+
     /**
      * Invalidates the current group invite code and generates a new one
      * @returns {Promise}
