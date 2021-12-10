@@ -28,7 +28,7 @@ class InterfaceController {
     async openChatDrawer(chatId) {
         await this.pupPage.evaluate(async chatId => {
             let chat = await window.Store.Chat.get(chatId);
-            await window.Store.Cmd.chatInfoDrawer(chat);
+            await window.Store.Cmd.openDrawerMid(chat);
         }, chatId);
     }
 
