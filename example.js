@@ -1,6 +1,6 @@
 const { Client, Location, List, Buttons } = require('./index');
 
-const client = new Client({ puppeteer: { headless: false, args: ['--no-sandbox'] }, clientId: 'example', disableMessageHistory: true });
+const client = new Client({ puppeteer: { headless: false, args: ['--no-sandbox'] }, clientId: 'example', disableMessageHistory: false });
 
 // You also could connect to an existing instance of a browser
 // { 
