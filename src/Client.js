@@ -199,12 +199,6 @@ class Client extends EventEmitter {
                 WAToken1: localStorage.WAToken1,
                 WAToken2: localStorage.WAToken2
             };
-        } else {
-            const localStorage = JSON.parse(await page.evaluate(() => {
-                return JSON.stringify(window.localStorage);
-            }));
-
-            console.log(localStorage);
         }
 
         /**
