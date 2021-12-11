@@ -30,6 +30,7 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @param {string} options.ffmpegPath - Ffmpeg path to use when formating videos to webp while sending stickers 
  * @param {boolean} options.bypassCSP - Sets bypassing of page's Content-Security-Policy.
  * @param {string} options.clientId - Client id to distinguish instances if you are using multiple, otherwise keep null if you are using only one instance
+ * @param {boolean} options.disableMessageHistory - Remove message history thus saving you a lot of storage space.
  * 
  * @fires Client#qr
  * @fires Client#authenticated
@@ -181,7 +182,7 @@ class Client extends EventEmitter {
 
             // Wait for code scan
             await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: 0 });
-        }
+        } 
 
         await page.evaluate(ExposeStore, moduleRaid.toString());
 
@@ -198,6 +199,12 @@ class Client extends EventEmitter {
                 WAToken1: localStorage.WAToken1,
                 WAToken2: localStorage.WAToken2
             };
+        } else {
+            const localStorage = JSON.parse(await page.evaluate(() => {
+                return JSON.stringify(window.localStorage);
+            }));
+
+            console.log(localStorage);
         }
 
         /**
@@ -211,6 +218,15 @@ class Client extends EventEmitter {
 
         const isMD = await page.evaluate(() => {
             return window.Store.Features.features.MD_BACKEND;
+        });
+
+        await page.evaluate(async () => {
+            // safely unregister service workers
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (let registration of registrations) { 
+                registration.unregister();
+            }
+
         });
 
         if(this.options.useDeprecatedSessionAuth && isMD) {
