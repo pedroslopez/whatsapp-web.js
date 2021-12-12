@@ -37,7 +37,7 @@
     "sharp": "^0.28.3"
   },
   "devDependencies": {
-    "@types/node-fetch": "^2.5.11",
+    "@types/node-fetch": "^3.0.3",
     "chai": "^4.3.4",
     "dotenv": "^10.0.0",
     "eslint": "^7.27.0",
