@@ -572,8 +572,7 @@ class Client extends EventEmitter {
         const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             const chat = await window.Store.Chat.find(chatWid);
-
-            if (window.Store.Features.features.MD_BACKEND) options.linkPreview = false;
+            
 
             if (sendSeen) {
                 window.WWebJS.sendSeen(chatId);
