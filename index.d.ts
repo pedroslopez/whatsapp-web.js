@@ -525,6 +525,8 @@ declare namespace WAWebJS {
         broadcast: boolean,
         /** Indicates if the message was a status update */
         isStatus: boolean,
+        /** Indicates if the message is a Gif */
+        isGif: boolean,
         /** ID for the Chat that this message was sent to, except if the message was sent by the current user */
         from: string,
         /** Indicates if the message was sent by the current user */
