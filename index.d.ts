@@ -521,6 +521,8 @@ declare namespace WAWebJS {
         author?: string,
         /** Message content */
         body: string,
+        /** Media Placeholder */
+        mediaPlaceholder: string;
         /** Indicates if the message was a broadcast */
         broadcast: boolean,
         /** Indicates if the message was a status update */
