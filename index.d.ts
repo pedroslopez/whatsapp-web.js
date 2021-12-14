@@ -115,6 +115,9 @@ declare namespace WAWebJS {
         /** Searches for messages */
         searchMessages(query: string, options?: { chatId?: string, page?: number, limit?: number }): Promise<Message[]>
 
+        /** Download message media for cached messages only */
+        downloadMedia(mediaInfo: MediaInfo): Promise<MessageMedia>;
+
         /** Marks the client as online */
         sendPresenceAvailable(): Promise<void>
 
@@ -625,6 +628,18 @@ declare namespace WAWebJS {
          * Gets the payment details associated with a given message
          */
         getPayment: () => Payment,
+    }
+
+    /** Media Info that represent information about media for later use */
+    export interface MediaInfo {
+        directPath: string;
+        encFilehash: string;
+        filehash: string;
+        mediaKey: string;
+        mediaKeyTimestamp: number;
+        type: string;
+        mimetype: string;
+        filename?: string;
     }
 
     /** ID that represents a message */

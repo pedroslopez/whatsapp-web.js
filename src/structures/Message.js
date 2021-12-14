@@ -50,6 +50,20 @@ class Message extends Base {
          */
         this.body = this.hasMedia ? data.caption || '' : data.body || '';
 
+        /**
+         * Media info to download media later
+         */
+        this.mediaInfo = {
+            directPath: data.directPath,
+            encFilehash: data.encFilehash,
+            filehash: data.filehash,
+            mediaKey: data.mediaKey,
+            mediaKeyTimestamp: data.mediaKeyTimestamp,
+            type: data.type,
+            mimetype: data.mimetype,
+            filename: data.filename
+        };
+
         /** 
          * Message type
          * @type {MessageTypes}

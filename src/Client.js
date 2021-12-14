@@ -587,6 +587,49 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Downloads and returns the attatched message media
+     * @param {Object} [mediaInfo]
+     * @param {string} [mediaInfo.directPath]
+     * @param {string} [mediaInfo.encFilehash]
+     * @param {string} [mediaInfo.filehash]
+     * @param {string} [mediaInfo.mediaKey]
+     * @param {number} [mediaInfo.mediaKeyTimestamp]
+     * @param {string} [mediaInfo.type]
+     * @param {string} [mediaInfo.mimetype]
+     * @param {string} [mediaInfo.filename]
+     * @returns {Promise<MessageMedia>}
+     */
+    async downloadMedia(mediaInfo) {
+        const result = await this.pupPage.evaluate(async (mediaInfo) => {
+
+            try {
+                const decryptedMedia = await window.Store.DownloadManager.downloadAndDecrypt({
+                    directPath: mediaInfo.directPath,
+                    encFilehash: mediaInfo.encFilehash,
+                    filehash: mediaInfo.filehash,
+                    mediaKey: mediaInfo.mediaKey,
+                    mediaKeyTimestamp: mediaInfo.mediaKeyTimestamp,
+                    type: mediaInfo.type,
+                    signal: (new AbortController).signal
+                });
+    
+                const data = window.WWebJS.arrayBufferToBase64(decryptedMedia);
+                return {
+                    data,
+                    mimetype: mediaInfo.mimetype,
+                    filename: mediaInfo.filename
+                };
+            } catch (e) {
+                if(e.status && e.status === 404) return undefined;
+                throw e;
+            }
+        }, mediaInfo);
+
+        if (!result) return undefined;
+        return new MessageMedia(result.mimetype, result.data, result.filename);
+    }
+
+    /**
      * Get all current chat instances
      * @returns {Promise<Array<Chat>>}
      */
