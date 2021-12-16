@@ -348,7 +348,7 @@ exports.LoadUtils = () => {
         res.isMuted = chat.mute && chat.mute.isMuted;
 
         if (chat.groupMetadata) {
-            await window.Store.GroupMetadata.update(chat.id._serialized);
+            await window.Store.GroupMetadata.update((window.Store.WidFactory.createWid(chat.id._serialized)));
             res.groupMetadata = chat.groupMetadata.serialize();
         }
 
