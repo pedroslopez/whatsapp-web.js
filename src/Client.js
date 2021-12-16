@@ -588,51 +588,64 @@ class Client extends EventEmitter {
 
     /**
      * Downloads and returns the attatched message media
-     * @param {string} [msgId] Serialized message id
+     * @param {Object} [mediaInfo]
+     * @param {string} [mediaInfo.serializedId]
+     * @param {string} [mediaInfo.directPath]
+     * @param {string} [mediaInfo.encFilehash]
+     * @param {string} [mediaInfo.filehash]
+     * @param {string} [mediaInfo.mediaKey]
+     * @param {number} [mediaInfo.mediaKeyTimestamp]
+     * @param {string} [mediaInfo.type]
+     * @param {string} [mediaInfo.mimetype]
+     * @param {string} [mediaInfo.filename]
      * @returns {Promise<MessageMedia>}
      */
-    async downloadMedia(msgId) {
-        const result = await this.pupPage.evaluate(async (msgId) => {
-            const msg = window.Store.Msg.get(msgId);
+    async downloadMedia(mediaInfo) {
+        const result = await this.pupPage.evaluate(async (mediaInfo) => {
 
-            if(!(msg.mediaKey && msg.directPath)) return undefined;
+            const msg = window.Store.Msg.get(mediaInfo.serializedId);
 
-            if (msg.mediaData.mediaStage != 'RESOLVED') {
-                // try to resolve media
-                await msg.downloadMedia({
-                    downloadEvenIfExpensive: true, 
-                    rmrReason: 1
-                });
-            }
+            if(msg) {
+                if(!(msg.mediaKey && msg.directPath)) return undefined;
 
-            if (msg.mediaData.mediaStage.includes('ERROR') || msg.mediaData.mediaStage === 'FETCHING') {
-                // media could not be downloaded
-                return undefined;
+                if (msg.mediaData.mediaStage != 'RESOLVED') {
+                    // try to resolve media
+                    await msg.downloadMedia({
+                        downloadEvenIfExpensive: true, 
+                        rmrReason: 1
+                    });
+                }
+
+                mediaInfo.directPath = msg.directPath;
+                mediaInfo.encFilehash = msg.encFilehash;
+                mediaInfo.filehash = msg.filehash;
+                mediaInfo.mediaKey = msg.mediaKey;
+                mediaInfo.mediaKeyTimestamp = msg.mediaKeyTimestamp;
+                mediaInfo.type = msg.type;
             }
 
             try {
                 const decryptedMedia = await window.Store.DownloadManager.downloadAndDecrypt({
-                    directPath: msg.directPath,
-                    encFilehash: msg.encFilehash,
-                    filehash: msg.filehash,
-                    mediaKey: msg.mediaKey,
-                    mediaKeyTimestamp: msg.mediaKeyTimestamp,
-                    type: msg.type,
+                    directPath: mediaInfo.directPath,
+                    encFilehash: mediaInfo.encFilehash,
+                    filehash: mediaInfo.filehash,
+                    mediaKey: mediaInfo.mediaKey,
+                    mediaKeyTimestamp: mediaInfo.mediaKeyTimestamp,
+                    type: mediaInfo.type,
                     signal: (new AbortController).signal
                 });
     
                 const data = window.WWebJS.arrayBufferToBase64(decryptedMedia);
-    
                 return {
                     data,
-                    mimetype: msg.mimetype,
-                    filename: msg.filename
+                    mimetype: mediaInfo.mimetype,
+                    filename: mediaInfo.filename
                 };
             } catch (e) {
                 if(e.status && e.status === 404) return undefined;
                 throw e;
             }
-        }, msgId);
+        }, mediaInfo);
 
         if (!result) return undefined;
         return new MessageMedia(result.mimetype, result.data, result.filename);

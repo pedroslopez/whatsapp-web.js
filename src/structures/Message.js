@@ -1,6 +1,7 @@
 'use strict';
 
 const Base = require('./Base');
+const MessageMedia = require('./MessageMedia');
 const Location = require('./Location');
 const Order = require('./Order');
 const Payment = require('./Payment');
@@ -48,6 +49,29 @@ class Message extends Base {
          * @type {string}
          */
         this.body = this.hasMedia ? data.caption || '' : data.body || '';
+
+        /**
+         * Media Placeholder for Image and Video types
+         * @type {string}
+         */
+        if(this.hasMedia && (data.type == MessageTypes.IMAGE || data.type == MessageTypes.VIDEO)) {
+            this.mediaPlaceholder = data.body;
+        }
+
+        /**
+         * Media info to download media later
+         */
+        this.mediaInfo = {
+            serializedId: data.id._serialized,
+            directPath: data.directPath,
+            encFilehash: data.encFilehash,
+            filehash: data.filehash,
+            mediaKey: data.mediaKey,
+            mediaKeyTimestamp: data.mediaKeyTimestamp,
+            type: data.type,
+            mimetype: data.mimetype,
+            filename: data.filename
+        };
 
         /** 
          * Message type
@@ -325,7 +349,52 @@ class Message extends Base {
      * @returns {Promise<MessageMedia>}
      */
     async downloadMedia() {
-        return await this.client.downloadMedia(this.id._serialized);
+        if(!this.hasMedia){
+            return undefined;
+        }
+
+        const result = await this.pupPage.evaluate(async (msgId) => {
+            const msg = window.Store.Msg.get(msgId);
+
+            if (msg.mediaData.mediaStage != 'RESOLVED') {
+                // try to resolve media
+                await msg.downloadMedia({
+                    downloadEvenIfExpensive: true, 
+                    rmrReason: 1
+                });
+            }
+
+            if (msg.mediaData.mediaStage.includes('ERROR') || msg.mediaData.mediaStage === 'FETCHING') {
+                // media could not be downloaded
+                return undefined;
+            }
+
+            try {
+                const decryptedMedia = await window.Store.DownloadManager.downloadAndDecrypt({
+                    directPath: msg.directPath,
+                    encFilehash: msg.encFilehash,
+                    filehash: msg.filehash,
+                    mediaKey: msg.mediaKey,
+                    mediaKeyTimestamp: msg.mediaKeyTimestamp,
+                    type: msg.type,
+                    signal: (new AbortController).signal
+                });
+    
+                const data = window.WWebJS.arrayBufferToBase64(decryptedMedia);
+    
+                return {
+                    data,
+                    mimetype: msg.mimetype,
+                    filename: msg.filename
+                };
+            } catch (e) {
+                if(e.status && e.status === 404) return undefined;
+                throw e;
+            }
+        }, this.id._serialized);
+
+        if (!result) return undefined;
+        return new MessageMedia(result.mimetype, result.data, result.filename);
     }
 
     /**
