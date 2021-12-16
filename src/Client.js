@@ -587,6 +587,58 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Downloads and returns the attatched message media
+     * @param {string} [msgId] Serialized message id
+     * @returns {Promise<MessageMedia>}
+     */
+    async downloadMedia(msgId) {
+        const result = await this.pupPage.evaluate(async (msgId) => {
+            const msg = window.Store.Msg.get(msgId);
+
+            if(!(msg.mediaKey && msg.directPath)) return undefined;
+
+            if (msg.mediaData.mediaStage != 'RESOLVED') {
+                // try to resolve media
+                await msg.downloadMedia({
+                    downloadEvenIfExpensive: true, 
+                    rmrReason: 1
+                });
+            }
+
+            if (msg.mediaData.mediaStage.includes('ERROR') || msg.mediaData.mediaStage === 'FETCHING') {
+                // media could not be downloaded
+                return undefined;
+            }
+
+            try {
+                const decryptedMedia = await window.Store.DownloadManager.downloadAndDecrypt({
+                    directPath: msg.directPath,
+                    encFilehash: msg.encFilehash,
+                    filehash: msg.filehash,
+                    mediaKey: msg.mediaKey,
+                    mediaKeyTimestamp: msg.mediaKeyTimestamp,
+                    type: msg.type,
+                    signal: (new AbortController).signal
+                });
+    
+                const data = window.WWebJS.arrayBufferToBase64(decryptedMedia);
+    
+                return {
+                    data,
+                    mimetype: msg.mimetype,
+                    filename: msg.filename
+                };
+            } catch (e) {
+                if(e.status && e.status === 404) return undefined;
+                throw e;
+            }
+        }, msgId);
+
+        if (!result) return undefined;
+        return new MessageMedia(result.mimetype, result.data, result.filename);
+    }
+
+    /**
      * Get all current chat instances
      * @returns {Promise<Array<Chat>>}
      */
