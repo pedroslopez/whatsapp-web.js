@@ -341,11 +341,11 @@ class Message extends Base {
      * @returns {Promise<MessageMedia>}
      */
     async downloadMedia() {
-        if(!this.hasMedia){
+        if (!this.hasMedia) {
             return undefined;
         }
 
-        const result = await this.pupPage.evaluate(async (msgId) => {
+        const result = await this.client.pupPage.evaluate(async (msgId) => {
             const msg = window.Store.Msg.get(msgId);
 
             if (msg.mediaData.mediaStage != 'RESOLVED') {
