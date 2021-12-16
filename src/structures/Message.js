@@ -51,14 +51,6 @@ class Message extends Base {
         this.body = this.hasMedia ? data.caption || '' : data.body || '';
 
         /**
-         * Media Placeholder for Image and Video types
-         * @type {string}
-         */
-        if(this.hasMedia && (data.type == MessageTypes.IMAGE || data.type == MessageTypes.VIDEO)) {
-            this.mediaPlaceholder = data.body;
-        }
-
-        /**
          * Media info to download media later
          */
         this.mediaInfo = {
