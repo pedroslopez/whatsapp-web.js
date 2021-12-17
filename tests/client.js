@@ -238,6 +238,17 @@ describe('Client', function() {
                 expect(msg.body).to.equal('here\'s my media');
                 expect(msg.to).to.equal(remoteId);
             });
+
+            it('can send a media message from URL', async function() {
+                const media = await MessageMedia.fromUrl('https://via.placeholder.com/350x150.png');
+    
+                const msg = await client.sendMessage(remoteId, media);
+                expect(msg).to.be.instanceOf(Message);
+                expect(msg.type).to.equal(MessageTypes.IMAGE);
+                expect(msg.fromMe).to.equal(true);
+                expect(msg.hasMedia).to.equal(true);
+                expect(msg.to).to.equal(remoteId);
+            });
     
             it('can send a media message as a document', async function() {
                 const media = new MessageMedia(

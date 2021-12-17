@@ -59,7 +59,7 @@ class Buttons {
     _format(buttons){
         buttons = buttons.slice(0,3); // phone users can only see 3 buttons, so lets limit this
         return buttons.map((btn) => {
-            return {'buttonId':btn.id ? btn.id : Util.generateHash(6),'buttonText':{'displayText':btn.body},'type':1};
+            return {'buttonId':btn.id ? String(btn.id) : Util.generateHash(6),'buttonText':{'displayText':btn.body},'type':1};
         });
     }
     
