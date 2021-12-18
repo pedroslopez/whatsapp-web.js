@@ -9,7 +9,7 @@ const Util = require('../util/Util');
 class Buttons {
     /**
      * @param {string|MessageMedia} body
-     * @param {Array<Array<string>>} buttons
+     * @param {Array<{ id?: string; body: string }>} buttons
      * @param {string?} title
      * @param {string?} footer
      */

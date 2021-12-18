@@ -1191,11 +1191,11 @@ declare namespace WAWebJS {
     /** Message type buttons */
     export class Buttons {
         body: string | MessageMedia
-        buttons: Array<Array<string>>
+        buttons: Array<{ buttonId: string; buttonText: string; type: number }>
         title?: string | null
         footer?: string | null
         
-        constructor(body: string, buttons: Array<Array<string>>, title?: string | null, footer?: string | null)
+        constructor(body: string, buttons: Array<{ id?: string; body: string }>, title?: string | null, footer?: string | null)
     }
 }
 
