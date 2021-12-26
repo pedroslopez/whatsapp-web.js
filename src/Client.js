@@ -20,6 +20,7 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @param {object} options.puppeteer - Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/
  * @param {number} options.qrRefreshIntervalMs - Refresh interval for qr code (how much time to wait before checking if the qr code has changed)
  * @param {number} options.qrTimeoutMs - Timeout for qr code selector in puppeteer
+ * @param {number} options.qrMaxRetries - How many times should the qrcode be refreshed before giving up
  * @param {string} options.restartOnAuthFail  - Restart client with a new session (i.e. use null 'session' var) if authentication fails
  * @param {object} options.session - Whatsapp session to restore. If not set, will start a new session
  * @param {string} options.session.WABrowserId
@@ -80,6 +81,11 @@ class Client extends EventEmitter {
         this.pupBrowser = browser;
         this.pupPage = page;
 
+        // remember me
+        await page.evaluateOnNewDocument(() => {
+            localStorage.setItem('remember-me', 'true');
+        });
+
         if (this.options.session) {
             await page.evaluateOnNewDocument(
                 session => {
@@ -127,6 +133,8 @@ class Client extends EventEmitter {
             }
 
         } else {
+            let qrRetries = 0;
+
             const getQrCode = async () => {
                 // Check if retry button is present
                 var QR_RETRY_SELECTOR = 'div[data-ref] > span > button';
@@ -147,6 +155,14 @@ class Client extends EventEmitter {
                 * @param {string} qr QR Code
                 */
                 this.emit(Events.QR_RECEIVED, qr);
+
+                if (this.options.qrMaxRetries > 0) {
+                    qrRetries++;
+                    if (qrRetries > this.options.qrMaxRetries) {
+                        this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
+                        await this.destroy();
+                    }
+                }
             };
             getQrCode();
             this._qrRefreshInterval = setInterval(getQrCode, this.options.qrRefreshIntervalMs);
@@ -159,7 +175,7 @@ class Client extends EventEmitter {
         }
 
         await page.evaluate(ExposeStore, moduleRaid.toString());
-
+        
         // Get session tokens
         const localStorage = JSON.parse(await page.evaluate(() => {
             return JSON.stringify(window.localStorage);
@@ -767,15 +783,16 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Mutes the Chat until a specified date
+     * Mutes this chat forever, unless a date is specified
      * @param {string} chatId ID of the chat that will be muted
-     * @param {Date} unmuteDate Date when the chat will be unmuted
+     * @param {?Date} unmuteDate Date when the chat will be unmuted, leave as is to mute forever
      */
     async muteChat(chatId, unmuteDate) {
+        unmuteDate = unmuteDate ? unmuteDate.getTime() / 1000 : -1;
         await this.pupPage.evaluate(async (chatId, timestamp) => {
             let chat = await window.Store.Chat.get(chatId);
             await chat.mute.mute(timestamp, !0);
-        }, chatId, unmuteDate.getTime() / 1000);
+        }, chatId, unmuteDate || -1);
     }
 
     /**
@@ -841,10 +858,7 @@ class Client extends EventEmitter {
      * @returns {Promise<Object|null>}
      */
     async getNumberId(number) {
-        if(!number.endsWith('@c.us')) {
-            number += '@c.us';
-        }
-
+        if (!number.endsWith('@c.us')) number += '@c.us';
         try {
             return await this.pupPage.evaluate(async numberId => {
                 return window.WWebJS.getNumberId(numberId);
@@ -854,6 +868,33 @@ class Client extends EventEmitter {
         }
     }
 
+    /**
+     * Get the formatted number of a WhatsApp ID.
+     * @param {string} number Number or ID
+     * @returns {Promise<string>}
+     */
+    async getFormattedNumber(number) {
+        if(!number.endsWith('@s.whatsapp.net')) number = number.replace('c.us', 's.whatsapp.net');
+        if(!number.includes('@s.whatsapp.net')) number = `${number}@s.whatsapp.net`;
+        
+        return await this.pupPage.evaluate(async numberId => {
+            return window.Store.NumberInfo.formattedPhoneNumber(numberId);
+        }, number);
+    }
+    
+    /**
+     * Get the country code of a WhatsApp ID.
+     * @param {string} number Number or ID
+     * @returns {Promise<string>}
+     */
+    async getCountryCode(number) {
+        number = number.replace(' ', '').replace('+', '').replace('@c.us', '');
+
+        return await this.pupPage.evaluate(async numberId => {
+            return window.Store.NumberInfo.findCC(numberId);
+        }, number);
+    }
+    
     /**
      * Create a new group
      * @param {string} name group title

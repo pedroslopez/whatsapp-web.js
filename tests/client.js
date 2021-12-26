@@ -29,6 +29,24 @@ describe('Client', function() {
             await client.destroy();
         });
 
+        it('should disconnect after reaching max qr retries', async function () {
+            this.timeout(50000);
+            
+            const qrCallback = sinon.spy();
+            const disconnectedCallback = sinon.spy();
+            
+            const client = helper.createClient({options: {qrMaxRetries: 2}});
+            client.on('qr', qrCallback);
+            client.on('disconnected', disconnectedCallback);
+
+            client.initialize();
+
+            await helper.sleep(45000);
+            
+            expect(qrCallback.calledThrice).to.eql(true);
+            expect(disconnectedCallback.calledOnceWith('Max qrcode retries reached')).to.eql(true);
+        });
+
         it('should fail auth if session is invalid', async function() {
             this.timeout(40000);
 
@@ -218,6 +236,17 @@ describe('Client', function() {
                 expect(msg.fromMe).to.equal(true);
                 expect(msg.hasMedia).to.equal(true);
                 expect(msg.body).to.equal('here\'s my media');
+                expect(msg.to).to.equal(remoteId);
+            });
+
+            it('can send a media message from URL', async function() {
+                const media = await MessageMedia.fromUrl('https://via.placeholder.com/350x150.png');
+    
+                const msg = await client.sendMessage(remoteId, media);
+                expect(msg).to.be.instanceOf(Message);
+                expect(msg.type).to.equal(MessageTypes.IMAGE);
+                expect(msg.fromMe).to.equal(true);
+                expect(msg.hasMedia).to.equal(true);
                 expect(msg.to).to.equal(remoteId);
             });
     
@@ -437,6 +466,24 @@ END:VCARD`;
                 const number = '9999999999';
                 const numberId = await client.getNumberId(number);
                 expect(numberId).to.eql(null);
+            });
+
+            it('can get a number\'s country code', async function () {
+                const number = '18092201111';
+                const countryCode = await client.getCountryCode(number);
+                expect(countryCode).to.eql('1');
+            });
+
+            it('can get a formatted number', async function () {
+                const number = '18092201111';
+                const formatted = await client.getFormattedNumber(number);
+                expect(formatted).to.eql('+1 (809) 220-1111');
+            });
+
+            it('can get a formatted number from a serialized ID', async function () {
+                const number = '18092201111@c.us';
+                const formatted = await client.getFormattedNumber(number);
+                expect(formatted).to.eql('+1 (809) 220-1111');
             });
         });
     });

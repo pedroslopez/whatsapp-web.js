@@ -5,15 +5,15 @@ exports.ExposeStore = (moduleRaidStr) => {
     eval('var moduleRaid = ' + moduleRaidStr);
     // eslint-disable-next-line no-undef
     window.mR = moduleRaid();
-    window.Store = window.mR.findModule('Chat')[0].default;
-    window.Store.AppState = window.mR.findModule('STREAM')[0].default;
-    window.Store.Conn = window.mR.findModule('Conn')[0].default;
+    window.Store = Object.assign({}, window.mR.findModule('Chat')[0].default);
+    window.Store.AppState = window.mR.findModule('STREAM')[0].Socket;
+    window.Store.Conn = window.mR.findModule('Conn')[0].Conn;
     window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
-    window.Store.Wap = window.mR.findModule('Wap')[0].default;
+    window.Store.Wap = window.mR.findModule('queryLinkPreview')[0].default;
     window.Store.SendSeen = window.mR.findModule('sendSeen')[0];
     window.Store.SendClear = window.mR.findModule('sendClear')[0];
     window.Store.SendDelete = window.mR.findModule('sendDelete')[0];
-    window.Store.genId = window.mR.findModule('randomId')[0].default;
+    window.Store.genId = window.mR.findModule('randomId')[0].randomId;
     window.Store.SendMessage = window.mR.findModule('addAndSendMsgToChat')[0];
     window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
     window.Store.Invite = window.mR.findModule('sendJoinGroupViaInvite')[0];
@@ -21,7 +21,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.MediaPrep = window.mR.findModule('MediaPrep')[0];
     window.Store.MediaObject = window.mR.findModule('getOrCreateMediaObject')[0];
     window.Store.MediaUpload = window.mR.findModule('uploadMedia')[0];
-    window.Store.Cmd = window.mR.findModule('Cmd')[0].default;
+    window.Store.NumberInfo = window.mR.findModule('formattedPhoneNumber')[0];
+    window.Store.Cmd = window.mR.findModule('Cmd')[0].Cmd;
     window.Store.MediaTypes = window.mR.findModule('msgToMediaType')[0];
     window.Store.VCard = window.mR.findModule('vcardFromContactModel')[0];
     window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default;
@@ -32,11 +33,11 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Sticker = window.mR.findModule('Sticker')[0].default.Sticker;
     window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
     window.Store.Label = window.mR.findModule('LabelCollection')[0].default;
-    window.Store.Features = window.mR.findModule('FEATURE_CHANGE_EVENT')[0].default;
+    window.Store.Features = window.mR.findModule('FEATURE_CHANGE_EVENT')[0].GK;
     window.Store.QueryOrder = window.mR.findModule('queryOrder')[0];
     window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
-    window.Store.DownloadManager = window.mR.findModule('DownloadManager')[0].default;
-    window.Store.Call = window.mR.findModule('CallCollection')[0].default;
+    window.Store.DownloadManager = window.mR.findModule('downloadManager')[0].downloadManager;
+    window.Store.Call = window.mR.findModule('CallCollection')[0].CallCollection;
 
     if(!window.Store.Chat._find) {
         window.Store.Chat._find = e => {
@@ -331,6 +332,10 @@ exports.LoadUtils = () => {
         }
         if(msg.replyButtons) {
             msg.replyButtons = JSON.parse(JSON.stringify(msg.replyButtons));
+        }
+
+        if(typeof msg.id.remote === 'object') {
+            msg.id = Object.assign({}, msg.id, {remote: msg.id.remote._serialized});
         }
         
         delete msg.pendingAckUpdate;
