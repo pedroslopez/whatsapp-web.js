@@ -179,6 +179,12 @@ class Message extends Base {
          */
         this.token = data.token ? data.token : undefined;
 
+        /** 
+         * Indicates whether the message is a Gif
+         * @type {boolean}
+         */
+        this.isGif = Boolean(data.isGif);
+
         /** Title */
         if (data.title) {
             this.title = data.title;
