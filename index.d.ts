@@ -21,7 +21,7 @@ declare namespace WAWebJS {
         acceptInvite(inviteCode: string): Promise<string>
 
         /** Accepts a private invitation to join a group (v4 invite) */
-        acceptGroupV4Invite: (inviteV4: InviteV4Data) => Promise<{status: number}>
+        acceptGroupV4Invite: (inviteV4: InviteV4Data) => Promise<{ status: number }>
 
         /**Returns an object with information about the invite code's group */
         getInviteInfo(inviteCode: string): Promise<object>
@@ -62,7 +62,7 @@ declare namespace WAWebJS {
 
         /** Get all current contact instances */
         getContacts(): Promise<Contact[]>
-        
+
         /** Get the country code of a WhatsApp ID. (154185968@c.us) => (1) */
         getCountryCode(number: string): Promise<string>
 
@@ -284,9 +284,9 @@ declare namespace WAWebJS {
         /** Timeout for qr code selector in puppeteer
          * @default 45000 */
         qrTimeoutMs?: number,
-		/** How many times should the qrcode be refreshed before giving up
-		 * @default 0 (disabled) */
-		qrMaxRetries?: number,
+        /** How many times should the qrcode be refreshed before giving up
+         * @default 0 (disabled) */
+        qrMaxRetries?: number,
         /** Restart client with a new session (i.e. use null 'session' var) if authentication fails
          * @default false */
         restartOnAuthFail?: boolean
@@ -368,7 +368,7 @@ declare namespace WAWebJS {
         reply: (content: MessageContent, options?: MessageSendOptions) => Promise<Message>,
 
     }
-    
+
     /** whatsapp web url */
     export const WhatsWebURL: string
 
@@ -469,11 +469,11 @@ declare namespace WAWebJS {
     }
 
     export type MessageInfo = {
-        delivery: Array<{id: ContactId, t: number}>,
+        delivery: Array<{ id: ContactId, t: number }>,
         deliveryRemaining: number,
-        played: Array<{id: ContactId, t: number}>,
+        played: Array<{ id: ContactId, t: number }>,
         playedRemaining: number,
-        read: Array<{id: ContactId, t: number}>,
+        read: Array<{ id: ContactId, t: number }>,
         readRemaining: number
     }
 
@@ -586,7 +586,7 @@ declare namespace WAWebJS {
         /** Selected list row ID */
         selectedRowId?: string,
         /** Accept the Group V4 Invite in message */
-        acceptGroupV4Invite: () => Promise<{status: number}>,
+        acceptGroupV4Invite: () => Promise<{ status: number }>,
         /** Deletes the message from the chat */
         delete: (everyone?: boolean) => Promise<void>,
         /** Downloads and returns the attatched message media */
@@ -605,9 +605,9 @@ declare namespace WAWebJS {
          * If not, it will send the message in the same Chat as the original message was sent. 
          */
         reply: (content: MessageContent, chatId?: string, options?: MessageSendOptions) => Promise<Message>,
-         /**
-          * Returns message in a raw format
-          */
+        /**
+         * Returns message in a raw format
+         */
         raw: () => unknown,
         /** 
          * Forwards this message to another chat
@@ -642,7 +642,7 @@ declare namespace WAWebJS {
         description?: string | null
         latitude: string
         longitude: string
-        
+
         constructor(latitude: number, longitude: number, description?: string)
     }
 
@@ -721,7 +721,7 @@ declare namespace WAWebJS {
         static fromUrl: (url: string, options?: MediaFromURLOptions) => Promise<MessageMedia>
     }
 
-    export type MessageContent = string | MessageMedia | Location | Contact | Contact[] | List | Buttons 
+    export type MessageContent = string | MessageMedia | Location | Contact | Contact[] | List | Buttons
 
     /**
      * Represents a Contact on WhatsApp
@@ -799,13 +799,13 @@ declare namespace WAWebJS {
          * Will return null when getting chat for currently logged in user.
          */
         getChat: () => Promise<Chat>,
-        
+
         /** Returns the contact's countrycode, (1541859685@c.us) => (1) */
         getCountryCode(): Promise<string>,
-        
+
         /** Returns the contact's formatted phone number, (12345678901@c.us) => (+1 (234) 5678-901) */
         getFormattedNumber(): Promise<string>,
-        
+
         /** Blocks this contact from WhatsApp */
         block: () => Promise<boolean>,
 
@@ -834,7 +834,37 @@ declare namespace WAWebJS {
     export interface PrivateContact extends Contact {
 
     }
+    export interface ChatState {
+        id: ChatId,
+        type: string | undefined
+    }
 
+    /**
+     * Represents a Presense on WhatsApp
+     * 
+     * @example
+     * {
+     *   "id": {
+     *       "server": "g.us",
+     *       "user": "999999999-1625280275",
+     *       "_serialized": "99999999999-1625280275@g.us"
+     *   },
+     *   "chatstates": [
+     *      {
+     *           "id": {
+     *               "server": "c.us",
+     *               "user": "55999999999",
+     *               "_serialized": "55999999999@c.us"
+     *           },
+     *           "type": "available"
+     *       }
+     *   ]
+     * }
+     */
+    export interface Presence {
+        id: ChatId,
+        chatstates: ChatState[]
+    }
     /**
      * Represents a Chat on WhatsApp
      *
@@ -907,6 +937,8 @@ declare namespace WAWebJS {
         markUnread: () => Promise<void>
         /** Returns array of all Labels assigned to this Chat */
         getLabels: () => Promise<Label[]>
+        /** Get all presences of the group */
+        getPresences: () => Promise<Presence>
     }
 
     export interface MessageSearchOptions {
@@ -958,11 +990,11 @@ declare namespace WAWebJS {
     }
 
     /** Promotes or demotes participants by IDs to regular users or admins */
-    export type ChangeParticipantsPermisions = 
+    export type ChangeParticipantsPermisions =
         (participantIds: Array<string>) => Promise<{ status: number }>
 
     /** Adds or removes a list of participants by ID to the group */
-    export type ChangeGroupParticipants = 
+    export type ChangeGroupParticipants =
         (participantIds: Array<string>) => Promise<{
             status: number;
             participants: Array<{
@@ -970,9 +1002,9 @@ declare namespace WAWebJS {
                     code: number
                 }
             }>
-         } & {
-             [key: string]: number;
-         }>
+        } & {
+            [key: string]: number;
+        }>
 
     export interface GroupChat extends Chat {
         /** Group owner */
@@ -1129,19 +1161,19 @@ declare namespace WAWebJS {
         /** Payment currency */
         paymentCurrency: string,
         /** Payment ammount  */
-        paymentAmount1000 : number,
+        paymentAmount1000: number,
         /** Payment receiver */
-        paymentMessageReceiverJid : object,
+        paymentMessageReceiverJid: object,
         /** Payment transaction timestamp */
-        paymentTransactionTimestamp : number,
+        paymentTransactionTimestamp: number,
         /** Payment paymentStatus */
-        paymentStatus : number,
+        paymentStatus: number,
         /** Integer that represents the payment Text */
-        paymentTxnStatus  : number,
+        paymentTxnStatus: number,
         /** The note sent with the payment */
-        paymentNote  : string;
+        paymentNote: string;
     }
-    
+
     /**
      * Represents a Call on WhatsApp
      *
@@ -1186,17 +1218,17 @@ declare namespace WAWebJS {
         sections: Array<any>
         title?: string | null
         footer?: string | null
-        
+
         constructor(body: string, buttonText: string, sections: Array<any>, title?: string | null, footer?: string | null)
     }
-    
+
     /** Message type buttons */
     export class Buttons {
         body: string | MessageMedia
         buttons: Array<Array<string>>
         title?: string | null
         footer?: string | null
-        
+
         constructor(body: string, buttons: Array<Array<string>>, title?: string | null, footer?: string | null)
     }
 }
