@@ -579,4 +579,8 @@ exports.LoadUtils = () => {
 
         return undefined;
     };
+    window.WWebJS.getPresences = async (chatId) => {
+        const presence = window.Store.Presence._index[chatId].serialize()
+        return presence
+    }
 };
