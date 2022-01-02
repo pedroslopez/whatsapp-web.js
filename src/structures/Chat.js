@@ -164,7 +164,7 @@ class Chat extends Base {
     /**
      * Mark this chat as unread
      */
-    async markUnread(){
+    async markUnread() {
         return this.client.markChatUnread(this.id._serialized);
     }
 
@@ -243,6 +243,15 @@ class Chat extends Base {
      */
     async getLabels() {
         return this.client.getChatLabels(this.id._serialized);
+    }
+    /**
+     * Returns presences.
+     * @returns {Promise<Presence>}
+     */
+    getPresences() {
+        return this.client.pupPage.evaluate(chatId => {
+            return window.WWebJS.getPresences(chatId);
+        }, this.id._serialized);
     }
 }
 
