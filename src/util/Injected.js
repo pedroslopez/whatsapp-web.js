@@ -38,6 +38,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
     window.Store.DownloadManager = window.mR.findModule('downloadManager')[0].downloadManager;
     window.Store.Call = window.mR.findModule('CallCollection')[0].CallCollection;
+    window.Store.JoinInviteV4 = window.mR.findModule('sendJoinGroupViaInviteV4')[0];
 
     if(!window.Store.Chat._find) {
         window.Store.Chat._find = e => {
