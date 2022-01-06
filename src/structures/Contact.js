@@ -197,7 +197,7 @@ class Contact extends Base {
      * @returns {Promise<WAWebJS.ChatId[]>}
      */
     async getCommonGroups() {
-        return await this.client.getCommonGroups(this.id._serialized)
+        return await this.client.getCommonGroups(this.id._serialized);
     }
     
 }
