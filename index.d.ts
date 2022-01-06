@@ -87,9 +87,6 @@ declare namespace WAWebJS {
         /** Gets the Contact's common groups with you. Returns empty array if you don't have any common group. */
         getCommonGroups(contactId: string): Promise<ChatId[]>
 
-        /** Gets the Contact's common groups with you. Returns empty array if you don't have any common group. */
-        getCommonGroups(contactId: string): Promise<ChatId[]>
-
         /** Gets the current connection state for the client */
         getState(): Promise<WAState>
 
