@@ -686,7 +686,7 @@ class Client extends EventEmitter {
         if(!inviteInfo.inviteCode) throw 'Invalid invite code, try passing the message.inviteV4 object';
         if (inviteInfo.inviteCodeExp == 0) throw 'Expired invite code';
         return this.pupPage.evaluate(async inviteInfo => {
-            let { groupId, fromId, inviteCode, inviteCodeExp, toId } = inviteInfo;
+            let { groupId, fromId, inviteCode, inviteCodeExp} = inviteInfo;
             return await window.Store.JoinInviteV4.sendJoinGroupViaInviteV4(inviteCode, String(inviteCodeExp), groupId, fromId);
         }, inviteInfo);
     }
@@ -848,6 +848,18 @@ class Client extends EventEmitter {
         }, contactId);
 
         return profilePic ? profilePic.eurl : undefined;
+    }
+
+    /**
+     * Gets the Contact's common groups with you. Returns empty array if you don't have any common group.
+     * @param {string} contactId the whatsapp user's ID (_serialized format)
+     * @returns {Promise<WAWebJS.ChatId[]>}
+     */
+    async getCommonGroups(contactId) {
+        return await this.client.pupPage.evaluate(async (contactId) => {
+            const contact = window.Store.Contact.get(contactId);
+            return await window.Store.findCommonGroups(contact);
+        }, contactId);
     }
 
     /**
