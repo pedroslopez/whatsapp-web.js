@@ -202,7 +202,6 @@ exports.LoadUtils = () => {
         });
 
         const message = {
-            ...options,
             id: newMsgId,
             ack: 0,
             body: content,
@@ -213,6 +212,7 @@ exports.LoadUtils = () => {
             t: parseInt(new Date().getTime() / 1000),
             isNewMsg: true,
             type: 'chat',
+            ...options,
             ...locationOptions,
             ...attOptions,
             ...quotedMsgOptions,
