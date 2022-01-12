@@ -101,6 +101,7 @@ class Client extends EventEmitter {
             timeout: 0,
         });
 
+        await page.waitForSelector('[class=web]');
         this.emit(Events.PAGE_LOADED, page);
 
         const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-icon="intro-md-beta-logo-dark"], [data-icon="intro-md-beta-logo-light"], [data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
