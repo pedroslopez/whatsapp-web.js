@@ -212,12 +212,12 @@ exports.LoadUtils = () => {
             t: parseInt(new Date().getTime() / 1000),
             isNewMsg: true,
             type: 'chat',
-            ...options,
             ...locationOptions,
             ...attOptions,
             ...quotedMsgOptions,
             ...vcardOptions,
             ...extraOptions
+            ...options
         };
 
         await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
