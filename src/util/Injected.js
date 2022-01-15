@@ -216,7 +216,7 @@ exports.LoadUtils = () => {
             ...attOptions,
             ...quotedMsgOptions,
             ...vcardOptions,
-            ...extraOptions
+            ...extraOptions,
             ...options
         };
 
