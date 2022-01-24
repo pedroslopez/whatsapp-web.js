@@ -827,7 +827,26 @@ class Client extends EventEmitter {
 
         return profilePic ? profilePic.eurl : undefined;
     }
-
+    
+    /**
+     * Gets the Contact's common groups with you. Returns empty array if you don't have any common group.
+     * @param {string} contactId the whatsapp user's ID (_serialized format)
+     * @returns {Promise<object[]>}
+     */
+    async getCommonGroups(contactId) {
+        return await this.client.pupPage.evaluate(async (contactId) => {
+            const contact = window.Store.Contact.get(contactId);
+            if(contact.commonGroups){
+                return contact.commonGroups.serialize();
+            }
+            const status = await window.Store.findCommonGroups(contact);
+            if (status){
+                return contact.commonGroups.serialize();
+            }
+            
+            return [];
+        }, contactId);
+    }
     /**
      * Force reset of connection state for the client
     */
