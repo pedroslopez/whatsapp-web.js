@@ -856,10 +856,22 @@ class Client extends EventEmitter {
      * @returns {Promise<WAWebJS.ChatId[]>}
      */
     async getCommonGroups(contactId) {
-        return await this.client.pupPage.evaluate(async (contactId) => {
+        const commonGroups = await this.client.pupPage.evaluate(async (contactId) => {
             const contact = window.Store.Contact.get(contactId);
-            return await window.Store.findCommonGroups(contact);
+            if(contact.commonGroups){
+                return contact.commonGroups.serialize();
+            }
+            const status = await window.Store.findCommonGroups(contact);
+            if (status){
+                return contact.commonGroups.serialize();
+            }
+            return [];
         }, contactId);
+        const chats = [];
+        for (const group of commonGroups) {
+            chats.push(group.id);
+        }
+        return chats;
     }
 
     /**
