@@ -38,7 +38,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
     window.Store.DownloadManager = window.mR.findModule('downloadManager')[0].downloadManager;
     window.Store.Call = window.mR.findModule('CallCollection')[0].CallCollection;
-    window.Store.findCommonGroups = window.mR.findModule('findCommonGroups')[0].findCommonGroups;
 
     if(!window.Store.Chat._find) {
         window.Store.Chat._find = e => {
