@@ -1,7 +1,7 @@
 
 import { EventEmitter } from 'events'
 import { RequestInit } from 'node-fetch'
-import puppeteer = require('puppeteer')
+import puppeteer from 'puppeteer'
 
 declare namespace WAWebJS {
 
@@ -528,6 +528,8 @@ declare namespace WAWebJS {
         broadcast: boolean,
         /** Indicates if the message was a status update */
         isStatus: boolean,
+        /** Indicates if the message is a Gif */
+        isGif: boolean,
         /** ID for the Chat that this message was sent to, except if the message was sent by the current user */
         from: string,
         /** Indicates if the message was sent by the current user */
@@ -697,6 +699,7 @@ declare namespace WAWebJS {
 
     export interface MediaFromURLOptions {
         client?: Client
+        filename?: string
         unsafeMime?: boolean
         reqOptions?: RequestInit
     }

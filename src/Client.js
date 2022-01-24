@@ -95,7 +95,14 @@ class Client extends EventEmitter {
         this.pupBrowser = browser;
         this.pupPage = page;
 
+
         if (this.options.useDeprecatedSessionAuth && this.options.session) {
+        // remember me
+        await page.evaluateOnNewDocument(() => {
+            localStorage.setItem('remember-me', 'true');
+        });
+
+        if (this.options.session) {
             await page.evaluateOnNewDocument(
                 session => {
                     localStorage.clear();
@@ -185,7 +192,6 @@ class Client extends EventEmitter {
         } 
 
         await page.evaluate(ExposeStore, moduleRaid.toString());
-
         let authEventPayload = undefined;
         if(this.options.useDeprecatedSessionAuth) {
             // Get session tokens
