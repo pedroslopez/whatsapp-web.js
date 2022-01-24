@@ -834,22 +834,9 @@ class Client extends EventEmitter {
      * @returns {Promise<WAWebJS.ChatId[]>}
      */
     async getCommonGroups(contactId) {
-        const commonGroups = await this.client.pupPage.evaluate(async (contactId) => {
-            const contact = window.Store.Contact.get(contactId);
-            if(contact.commonGroups){
-                return contact.commonGroups.serialize();
-            }
-            const status = await window.Store.findCommonGroups(contact);
-            if (status){
-                return contact.commonGroups.serialize();
-            }
-            return [];
+        return await this.client.pupPage.evaluate(async (contactId) => {
+            return await window.Store.Wap.commonGroupsFind(contactId);
         }, contactId);
-        const chats = [];
-        for (const group of commonGroups) {
-            chats.push(group.id);
-        }
-        return chats;
     }
     /**
      * Force reset of connection state for the client
