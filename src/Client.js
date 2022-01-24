@@ -831,10 +831,10 @@ class Client extends EventEmitter {
     /**
      * Gets the Contact's common groups with you. Returns empty array if you don't have any common group.
      * @param {string} contactId the whatsapp user's ID (_serialized format)
-     * @returns {Promise<object[]>}
+     * @returns {Promise<WAWebJS.ChatId[]>}
      */
     async getCommonGroups(contactId) {
-        return await this.client.pupPage.evaluate(async (contactId) => {
+        const commonGroups = await this.client.pupPage.evaluate(async (contactId) => {
             const contact = window.Store.Contact.get(contactId);
             if(contact.commonGroups){
                 return contact.commonGroups.serialize();
@@ -843,9 +843,13 @@ class Client extends EventEmitter {
             if (status){
                 return contact.commonGroups.serialize();
             }
-            
             return [];
         }, contactId);
+        const chats = [];
+        for (const group of commonGroups) {
+            chats.push(group.id);
+        }
+        return chats;
     }
     /**
      * Force reset of connection state for the client
