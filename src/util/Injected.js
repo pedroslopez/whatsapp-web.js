@@ -30,7 +30,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.WidFactory = window.mR.findModule('createWid')[0];
     window.Store.BlockContact = window.mR.findModule('blockContact')[0];
     window.Store.GroupMetadata = window.mR.findModule((module) => module.default && module.default.handlePendingInvite)[0].default;
-    window.Store.Sticker = window.mR.findModule('Sticker')[0].default.Sticker;
+    window.Store.Sticker = window.mR.findModule('Sticker')[0].Sticker;
     window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
     window.Store.Label = window.mR.findModule('LabelCollection')[0].default;
     window.Store.Features = window.mR.findModule('FEATURE_CHANGE_EVENT')[0].GK;
