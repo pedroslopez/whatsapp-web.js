@@ -97,21 +97,22 @@ class Client extends EventEmitter {
 
 
         if (this.options.useDeprecatedSessionAuth && this.options.session) {
-        // remember me
-        await page.evaluateOnNewDocument(() => {
-            localStorage.setItem('remember-me', 'true');
-        });
+            // remember me
+            await page.evaluateOnNewDocument(() => {
+                localStorage.setItem('remember-me', 'true');
+            });
 
-        if (this.options.session) {
-            await page.evaluateOnNewDocument(
-                session => {
-                    localStorage.clear();
-                    localStorage.setItem('WABrowserId', session.WABrowserId);
-                    localStorage.setItem('WASecretBundle', session.WASecretBundle);
-                    localStorage.setItem('WAToken1', session.WAToken1);
-                    localStorage.setItem('WAToken2', session.WAToken2);
-                }, this.options.session);
-        } 
+            if (this.options.session) {
+                await page.evaluateOnNewDocument(
+                    session => {
+                        localStorage.clear();
+                        localStorage.setItem('WABrowserId', session.WABrowserId);
+                        localStorage.setItem('WASecretBundle', session.WASecretBundle);
+                        localStorage.setItem('WAToken1', session.WAToken1);
+                        localStorage.setItem('WAToken2', session.WAToken2);
+                    }, this.options.session);
+            } 
+        }
 
         if(this.options.bypassCSP) {
             await page.setBypassCSP(true);
