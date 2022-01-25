@@ -5,7 +5,7 @@ const path = require('path');
 const mime = require('mime');
 const fetch = require('node-fetch');
 const { URL } = require('url');
-const { Client } = require('whatsapp-web.js'); // eslint-disable-line no-unused-vars
+
 /**
  * Media attached to a message
  * @param {string} mimetype MIME type of the attachment
@@ -52,7 +52,7 @@ class MessageMedia {
      * @param {Object} [options]
      * @param {boolean} [options.unsafeMime=false]
      * @param {string} [options.filename]
-     * @param {Client} [options.client]
+     * @param {object} [options.client]
      * @param {object} [options.reqOptions]
      * @param {number} [options.reqOptions.size=0]
      * @returns {Promise<MessageMedia>}
