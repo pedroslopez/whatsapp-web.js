@@ -321,6 +321,9 @@ declare namespace WAWebJS {
         /** Remove message history thus saving you a lot of storage space.
          @default false */
         disableMessageHistory?: boolean
+        /** Path to place session objects in
+         @default './WWebJS'   */
+        dataPath?: string
     }
 
     /** 
