@@ -68,9 +68,11 @@ class MessageMedia {
             const reqOptions = Object.assign({ headers: { accept: 'image/* video/* text/* audio/*' } }, options);
             const response = await fetch(url, reqOptions);
             const mime = response.headers.get('Content-Type');
-            const name = response.headers.get('Content-Disposition')?.match(/((?<=filename=")(.*)(?="))/);
-            let data = '';
 
+            const contentDisposition = response.headers.get('Content-Disposition');
+            const name = contentDisposition ? contentDisposition.match(/((?<=filename=")(.*)(?="))/) : null;
+
+            let data = '';
             if (response.buffer) {
                 data = (await response.buffer()).toString('base64');
             } else {
@@ -88,7 +90,7 @@ class MessageMedia {
             ? (await options.client.pupPage.evaluate(fetchData, url, options.reqOptions))
             : (await fetchData(url, options.reqOptions));
 
-        const filename = options.filename ??
+        const filename = options.filename ||
             (res.name ? res.name[0] : (pUrl.pathname.split('/').pop() || 'file'));
         
         if (!mimetype)
