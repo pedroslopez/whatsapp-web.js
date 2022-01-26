@@ -648,13 +648,10 @@ class Client extends EventEmitter {
             const params = messageId.split('_');
             if(params.length !== 3) throw new Error('Invalid serialized message id specified');
 
-            const [fromMe, chatId, id] = params;
+            const chatId = params[1];
             const chat = window.Store.Chat.get(chatId);
-            while (true) {
+            while (chat.msgs._models.find(msg => msg.id._serialized === messageId)) {
                 await chat.loadEarlierMsgs();
-                if (chat.msgs._models.find(msg => msg.id._serialized === messageId)) {
-                    break
-                }
             }
             msg = window.Store.Msg.get(messageId);
             if(msg) return window.WWebJS.getMessageModel(msg);
