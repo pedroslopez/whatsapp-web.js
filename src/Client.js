@@ -642,6 +642,36 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Returns an object with information about the message
+     * @param {string} messageId
+     * @returns {Promise<object>} message information
+     */
+    async getMessageInfo(messageId) {
+        return await this.pupPage.evaluate(async messageId => {
+            const msgExist = await window.Store.MsgInfo._find(messageId);
+            if (typeof msgExist._value === "string") {
+                throw msgExist._value;
+            }
+            const msgInfo = await window.Store.MsgInfo.get(messageId).serialize();
+
+            return {
+                delivery: msgInfo.delivery.map(chat => {
+                    return {id : chat.id, timestamp: chat.t}
+                }),
+                deliveryRemaining: msgInfo.deliveryRemaining,
+                read: msgInfo.read.map(chat => {
+                    return {id : chat.id, timestamp: chat.t}
+                }),
+                readRemaining: msgInfo.readRemaining,
+                played: msgInfo.played.map(chat => {
+                    return {id : chat.id, timestamp: chat.t}
+                }),
+                playedRemaining: msgInfo.playedRemaining
+            };
+        }, messageId);
+    }
+    
+    /**
      * Returns an object with information about the invite code's group
      * @param {string} inviteCode 
      * @returns {Promise<object>} Invite information
