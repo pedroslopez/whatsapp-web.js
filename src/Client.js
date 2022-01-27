@@ -64,6 +64,7 @@ class Client extends EventEmitter {
             this.dataDir = this.options.puppeteer.userDataDir;
             const dirPath = path.join(process.cwd(), this.options.dataPath, this.id ? 'session-' + this.id : 'session'); 
             if (!this.dataDir) this.dataDir = dirPath;
+            fs.mkdirSync(this.dataDir, {recursive: true})
         }
 
         this.pupBrowser = null;
