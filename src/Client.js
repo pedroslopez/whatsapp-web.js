@@ -908,7 +908,7 @@ class Client extends EventEmitter {
                 let handler = (new window.Store.USyncQuery).withContactProtocol();
                 handler = handler.withUser((new window.Store.USyncUser).withId(id), handler.withDeviceProtocol(), 1);
                 let result = await handler.execute();
-                return result.list[0].devices.deviceList.length>0;
+                return result.list[0].devices.deviceList.length > 0;
             }else{
                 let result = await window.Store.Wap.queryExist(id);
                 return result.jid !== undefined;

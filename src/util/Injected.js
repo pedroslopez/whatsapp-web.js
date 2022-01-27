@@ -79,7 +79,7 @@ exports.LoadUtils = () => {
             handler = handler.withUser((new window.Store.USyncUser).withId(id), handler.withDeviceProtocol(), 1);
             let result = await handler.execute();
             if (result.list[0].devices.deviceList.length>0) {
-                return id
+                return id;
             }
             throw 'The number provided is not a registered whatsapp user';
         } else {
