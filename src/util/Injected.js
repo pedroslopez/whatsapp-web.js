@@ -74,11 +74,12 @@ exports.LoadUtils = () => {
     window.WWebJS.getNumberId = async (id) => {
 
         if (window.Store.Features.features.MD_BACKEND) {
+            id = window.Store.WidFactory.createWid(id);
             let handler = (new window.Store.USyncQuery).withContactProtocol();
-            handler = handler.withUser((new window.Store.USyncUser).withPhone(id), handler.withBusinessProtocol(), 1);
+            handler = handler.withUser((new window.Store.USyncUser).withId(id), handler.withDeviceProtocol(), 1);
             let result = await handler.execute();
-            if (result.list[0].contact.type == 'in') {
-                return result.list[0].id;
+            if (result.list[0].devices.deviceList.length>0) {
+                return id
             }
             throw 'The number provided is not a registered whatsapp user';
         } else {
