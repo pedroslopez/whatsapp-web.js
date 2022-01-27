@@ -305,6 +305,14 @@ class Message extends Base {
     }
     
     /**
+     * Get the message info
+     * @returns {Promise<Object>}
+     */
+    async getInfo() {
+        return await this.client.getMessageInfo(this.id._serialized);   
+    }
+    
+    /**
      * Forwards this message to another chat
      * 
      * @param {string|Chat} chat Chat model or chat ID to which the message will be forwarded
