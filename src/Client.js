@@ -904,10 +904,11 @@ class Client extends EventEmitter {
         }
         return await this.pupPage.evaluate(async (id) => {
             if(window.Store.Features.features.MD_BACKEND){
+                id = window.Store.WidFactory.createWid(id);
                 let handler = (new window.Store.USyncQuery).withContactProtocol();
-                handler = handler.withUser( (new window.Store.USyncUser).withPhone(id),  handler.withBusinessProtocol(), 1 );
+                handler = handler.withUser((new window.Store.USyncUser).withId(id), handler.withDeviceProtocol(), 1);
                 let result = await handler.execute();
-                return result.list[0].contact.type == 'in';
+                return result.list[0].devices.deviceList.length > 0;
             }else{
                 let result = await window.Store.Wap.queryExist(id);
                 return result.jid !== undefined;
