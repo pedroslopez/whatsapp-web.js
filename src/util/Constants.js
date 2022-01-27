@@ -78,7 +78,8 @@ exports.MessageTypes = {
     GROUP_INVITE: 'groups_v4_invite',
     LIST: 'list',
     BUTTONS_RESPONSE: 'buttons_response',
-    PAYMENT: 'payment'
+    PAYMENT: 'payment',
+    NOTIFICATION: 'notification'
 };
 
 /**
