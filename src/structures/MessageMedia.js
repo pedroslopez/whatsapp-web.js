@@ -50,29 +50,29 @@ class MessageMedia {
      * Creates a MessageMedia instance from a URL
      * @param {string} url
      * @param {Object} [options]
-     * @param {number} [options.unsafeMime=false]
+     * @param {boolean} [options.unsafeMime=false]
+     * @param {string} [options.filename]
      * @param {object} [options.client]
      * @param {object} [options.reqOptions]
      * @param {number} [options.reqOptions.size=0]
      * @returns {Promise<MessageMedia>}
      */
     static async fromUrl(url, options = {}) {
-        let mimetype;
+        const pUrl = new URL(url);
+        let mimetype = mime.getType(pUrl.pathname);
 
-        if (!options.unsafeMime) {
-            const pUrl = new URL(url);
-            mimetype = mime.getType(pUrl.pathname);
-
-            if (!mimetype)
-                throw new Error('Unable to determine MIME type');
-        }
+        if (!mimetype && !options.unsafeMime)
+            throw new Error('Unable to determine MIME type using URL. Set unsafeMime to true to download it anyway.');
 
         async function fetchData (url, options) {
             const reqOptions = Object.assign({ headers: { accept: 'image/* video/* text/* audio/*' } }, options);
             const response = await fetch(url, reqOptions);
             const mime = response.headers.get('Content-Type');
-            let data = '';
 
+            const contentDisposition = response.headers.get('Content-Disposition');
+            const name = contentDisposition ? contentDisposition.match(/((?<=filename=")(.*)(?="))/) : null;
+
+            let data = '';
             if (response.buffer) {
                 data = (await response.buffer()).toString('base64');
             } else {
@@ -83,17 +83,20 @@ class MessageMedia {
                 data = btoa(data);
             }
             
-            return { data, mime };
+            return { data, mime, name };
         }
 
         const res = options.client
             ? (await options.client.pupPage.evaluate(fetchData, url, options.reqOptions))
             : (await fetchData(url, options.reqOptions));
 
+        const filename = options.filename ||
+            (res.name ? res.name[0] : (pUrl.pathname.split('/').pop() || 'file'));
+        
         if (!mimetype)
             mimetype = res.mime;
 
-        return new MessageMedia(mimetype, res.data, null);
+        return new MessageMedia(mimetype, res.data, filename);
     }
 }
 
