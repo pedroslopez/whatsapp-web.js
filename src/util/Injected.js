@@ -240,7 +240,7 @@ exports.LoadUtils = () => {
             to: chat.id,
             local: true,
             self: 'out',
-            t: parseInt(new Date().getTime() / 1000),
+            t: parseInt(Date.now() / 1000),
             isNewMsg: true,
             type: 'chat',
             ...locationOptions,
