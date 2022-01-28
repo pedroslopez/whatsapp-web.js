@@ -429,12 +429,19 @@ class Client extends EventEmitter {
          * @event Client#ready
          */
         this.emit(Events.READY);
-
         // Disconnect when navigating away
         // Because WhatsApp Web now reloads when logging out from the device, this also covers that case
         this.pupPage.on('framenavigated', async () => {
-            this.emit(Events.DISCONNECTED, 'NAVIGATION');
-            await this.destroy();
+            const logoutToken = await this.pupPage.evaluate(() => localStorage['logout-token']);
+            // HACK: 
+            // WhatsApp reloads on login, which triggers `destroy` method
+            // that causes an immediate stop after login.
+            // Adding the if statement below to look for `logoutToken` in localStorage,
+            // which should present after logged in to prevent the bug.
+            if (!logoutToken) {
+                this.emit(Events.DISCONNECTED, 'NAVIGATION');
+                await this.destroy();
+            }
         });
     }
 
