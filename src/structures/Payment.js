@@ -40,7 +40,6 @@ class Payment extends Base {
 
         /**
          * The paymentStatus
-         * @type {number}
          *
          * Possible Status
          * 0:UNKNOWN_STATUS
@@ -55,6 +54,8 @@ class Payment extends Base {
          * 9:CANCELLED
          * 10:WAITING_FOR_PAYER
          * 11:WAITING
+         * 
+         * @type {number}
          */
         this.paymentStatus = data.paymentStatus;
 

@@ -692,6 +692,7 @@ declare namespace WAWebJS {
 
     export interface MediaFromURLOptions {
         client?: Client
+        filename?: string
         unsafeMime?: boolean
         reqOptions?: RequestInit
     }
