@@ -822,7 +822,7 @@ class Client extends EventEmitter {
      */
     async getProfilePicUrl(contactId) {
         const profilePic = await this.pupPage.evaluate((contactId) => {
-            return window.Store.Wap.profilePicFind(contactId);
+            return window.Store.ProfilePicThumb.find(contactId);
         }, contactId);
 
         return profilePic ? profilePic.eurl : undefined;
