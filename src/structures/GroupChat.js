@@ -60,10 +60,10 @@ class GroupChat extends Chat {
      */
     async addParticipants(participantIds) {
         let data = [];
-        for (let participantId of participantIds){
+        for (let participantId of participantIds) {
             data.push(await this.client.pupPage.evaluate((chatId, participantIds) => {
                 return window.Store.Wap.addParticipants(chatId, participantIds);
-            }, this.id._serialized, participantIds));
+            }, this.id._serialized, [participantId]));
         }
         return data;
     }
@@ -75,10 +75,10 @@ class GroupChat extends Chat {
      */
     async removeParticipants(participantIds) {
         let data = [];
-        for (let participantId of participantIds){
+        for (let participantId of participantIds) {
             data.push(await this.client.pupPage.evaluate((chatId, participantIds) => {
                 return window.Store.Wap.removeParticipants(chatId, participantIds);
-            }, this.id._serialized, participantIds));
+            }, this.id._serialized, [participantId]));
         }
         return data;
     }
@@ -93,7 +93,7 @@ class GroupChat extends Chat {
         for (let participantId of participantIds){
             data.push(await this.client.pupPage.evaluate((chatId, participantIds) => {
                 return window.Store.Wap.promoteParticipants(chatId, participantIds);
-            }, this.id._serialized, participantIds));
+            }, this.id._serialized, [participantId]));
         }
         return data;
     }
@@ -108,7 +108,7 @@ class GroupChat extends Chat {
         for (let participantId of participantIds){
             data.push(await this.client.pupPage.evaluate((chatId, participantIds) => {
                 return window.Store.Wap.demoteParticipants(chatId, participantIds);
-            }, this.id._serialized, participantIds));
+            }, this.id._serialized, [participantId]));
         }
         return data;
     }
