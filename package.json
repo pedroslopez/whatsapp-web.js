@@ -1,5 +1,5 @@
 {
-  "name": "whatsapp-web.js",
+  "name": "@juzibot/whatsapp-web.js",
   "version": "1.15.4",
   "description": "Library for interacting with the WhatsApp Web API ",
   "main": "./index.js",
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pedroslopez/whatsapp-web.js.git"
+    "url": "git+https://github.com/juzibot/whatsapp-web.js.git"
   },
   "keywords": [
     "whatsapp",
@@ -24,7 +24,7 @@
   "author": "Pedro Lopez",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/pedroslopez/whatsapp-web.js/issues"
+    "url": "https://github.com/juzibot/whatsapp-web.js/issues"
   },
   "homepage": "https://wwebjs.dev/",
   "dependencies": {
