@@ -446,7 +446,7 @@ exports.LoadUtils = () => {
     window.WWebJS.sendClearChat = async (chatId) => {
         let chat = window.Store.Chat.get(chatId);
         if (chat !== undefined) {
-            await window.Store.SendClear.sendClear(chat, false);
+            await chat.deleteMsgs();
             return true;
         }
         return false;
