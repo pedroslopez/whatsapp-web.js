@@ -64,7 +64,7 @@ class Client extends EventEmitter {
             this.dataDir = this.options.puppeteer.userDataDir;
             const dirPath = path.join(process.cwd(), this.options.dataPath, this.id ? 'session-' + this.id : 'session');
             if (!this.dataDir) this.dataDir = dirPath;
-            fs.mkdirSync(this.dataDir, { recursive: true })
+            fs.mkdirSync(this.dataDir, { recursive: true });
         }
 
         this.pupBrowser = null;
@@ -171,11 +171,11 @@ class Client extends EventEmitter {
                         if (mut.type === 'attributes' && mut.attributeName === 'data-ref') {
                             window.qrChanged(mut.target.dataset.ref);
                         } else
-                            // Listens to retry button, when found, click it
-                            if (mut.type === 'childList') {
-                                const retry_button = document.querySelector(selectors.QR_RETRY_BUTTON);
-                                if (retry_button) retry_button.click();
-                            }
+                        // Listens to retry button, when found, click it
+                        if (mut.type === 'childList') {
+                            const retry_button = document.querySelector(selectors.QR_RETRY_BUTTON);
+                            if (retry_button) retry_button.click();
+                        }
                     });
                 });
                 obs.observe(qr_container.parentElement, {
