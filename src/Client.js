@@ -76,7 +76,7 @@ class Client extends EventEmitter {
             page = (await browser.pages())[0];
         }        
         
-        page.setUserAgent(this.options.userAgent);
+        await page.setUserAgent(this.options.userAgent);
 
         this.pupBrowser = browser;
         this.pupPage = page;
