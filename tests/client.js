@@ -211,46 +211,46 @@ describe('Client', function() {
     
             it('exposes all required WhatsApp Web internal models', async function() {
                 const expectedModules = [
-                    'Chat',
-                    'Msg',
-                    'Contact',
-                    'Conn', 
                     'AppState',
-                    'CryptoLib', 
-                    'Wap', 
-                    'SendSeen', 
-                    'SendClear', 
-                    'SendDelete', 
-                    'genId', 
-                    'SendMessage', 
-                    'MsgKey', 
-                    'Invite', 
-                    'OpaqueData', 
-                    'MediaPrep', 
-                    'MediaObject', 
-                    'MediaUpload',
-                    'Cmd',
-                    'MediaTypes',
-                    'VCard',
-                    'UserConstructor',
-                    'Validators',
-                    'WidFactory',
                     'BlockContact',
-                    'GroupMetadata',
-                    'Sticker',
-                    'UploadUtils',
-                    'Label',
+                    'Call',
+                    'Chat',
+                    'Cmd',
+                    'Conn',
+                    'Contact',
+                    'DownloadManager',
                     'Features',
+                    'GroupMetadata',
+                    'Invite',
+                    'Label',
+                    'MediaObject',
+                    'MediaPrep',
+                    'MediaTypes',
+                    'MediaUpload',
+                    'Msg',
+                    'MsgKey',
+                    'OpaqueData',
                     'QueryOrder',
                     'QueryProduct',
-                    'DownloadManager'
-                ];  
+                    'SendClear',
+                    'SendDelete',
+                    'SendMessage',
+                    'SendSeen',
+                    'Sticker',
+                    'UploadUtils',
+                    'UserConstructor',
+                    'VCard',
+                    'Validators',
+                    'Wap',
+                    'WidFactory',
+                    'genId'
+                ];
               
-                const loadedModules = await client.pupPage.evaluate(() => {
-                    return Object.keys(window.Store);
-                });
+                const loadedModules = await client.pupPage.evaluate((expectedModules) => {
+                    return expectedModules.filter(m => Boolean(window.Store[m]));
+                }, expectedModules);
     
-                expect(loadedModules).to.include.members(expectedModules);
+                expect(loadedModules).to.have.members(expectedModules);
             });
         });
     

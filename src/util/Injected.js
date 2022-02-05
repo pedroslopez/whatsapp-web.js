@@ -8,7 +8,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store = Object.assign({}, window.mR.findModule(m => m.default && m.default.Chat)[0].default);
     window.Store.AppState = window.mR.findModule('STREAM')[0].Socket;
     window.Store.Conn = window.mR.findModule('Conn')[0].Conn;
-    window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
     window.Store.Wap = window.mR.findModule('queryLinkPreview')[0].default;
     window.Store.SendSeen = window.mR.findModule('sendSeen')[0];
     window.Store.SendClear = window.mR.findModule('sendClear')[0];
