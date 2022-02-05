@@ -430,11 +430,13 @@ class Client extends EventEmitter {
          */
         this.emit(Events.READY);
 
-        // Disconnect when navigating away
-        // Because WhatsApp Web now reloads when logging out from the device, this also covers that case
+        // Disconnect when navigating away when in PAIRING state (detect logout)
         this.pupPage.on('framenavigated', async () => {
-            this.emit(Events.DISCONNECTED, 'NAVIGATION');
-            await this.destroy();
+            const appState = await this.getState();
+            if(appState === WAState.PAIRING) {
+                this.emit(Events.DISCONNECTED, 'NAVIGATION');
+                await this.destroy();
+            }
         });
     }
 
