@@ -239,8 +239,6 @@ class Client extends EventEmitter {
 
         // Register events
         await page.exposeFunction('onAddMessageEvent', msg => {
-            if (!msg.isNewMsg) return;
-
             if (msg.type === 'gp2') {
                 const notification = new GroupNotification(this, msg);
                 if (msg.subtype === 'add' || msg.subtype === 'invite') {
@@ -425,7 +423,6 @@ class Client extends EventEmitter {
         });
         
         await page.evaluate(() => {
-            window.Store.Msg.on('add', (msg) => { if (msg.isNewMsg) window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:ack', (msg,ack) => { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
@@ -434,6 +431,16 @@ class Client extends EventEmitter {
             window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
             window.Store.Conn.on('change:battery', (state) => { window.onBatteryStateChangedEvent(state); });
             window.Store.Call.on('add', (call) => { window.onIncomingCall(call); });
+            window.Store.Msg.on('add', (msg) => { 
+                if (msg.isNewMsg) {
+                    if(msg.type === 'ciphertext') {
+                        // defer message event until ciphertext is resolved (type changed)
+                        msg.once('change:type', (_msg) => window.onAddMessageEvent(window.WWebJS.getMessageModel(_msg)));
+                    } else {
+                        window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); 
+                    }
+                }
+            });
         });
 
         /**
