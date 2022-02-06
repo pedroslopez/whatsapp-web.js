@@ -729,7 +729,7 @@ class Client extends EventEmitter {
         return await this.pupPage.evaluate(async chatId => {
             let chat = await window.Store.Chat.get(chatId);
             await window.Store.Cmd.archiveChat(chat, true);
-            return chat.archive;
+            return true;
         }, chatId);
     }
 
@@ -741,7 +741,7 @@ class Client extends EventEmitter {
         return await this.pupPage.evaluate(async chatId => {
             let chat = await window.Store.Chat.get(chatId);
             await window.Store.Cmd.archiveChat(chat, false);
-            return chat.archive;
+            return false;
         }, chatId);
     }
 
