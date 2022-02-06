@@ -930,10 +930,9 @@ declare namespace WAWebJS {
 
     export interface MessageSearchOptions {
         /**
-         * The amount of messages to return.
+         * The amount of messages to return. If no limit is specified, the available messages will be returned.
          * Note that the actual number of returned messages may be smaller if there aren't enough messages in the conversation. 
          * Set this to Infinity to load all messages.
-         * @default 50
          */
         limit?: number
     }

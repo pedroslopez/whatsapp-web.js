@@ -181,7 +181,7 @@ class Chat extends Base {
             const chat = window.Store.Chat.get(chatId);
             let msgs = chat.msgs.models.filter(msgFilter);
 
-            if (searchOptions && searchOptions.limit) {
+            if (searchOptions && searchOptions.limit > 0) {
                 while (msgs.length < searchOptions.limit) {
                     const loadedMessages = await chat.loadEarlierMsgs();
                     if (!loadedMessages) break;
