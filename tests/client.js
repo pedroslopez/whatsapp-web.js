@@ -194,13 +194,16 @@ describe('Client', function() {
             this.timeout(35000);
             client = helper.createClient({withSession: true});
             await client.initialize();
-
-            const version = await client.getWWebVersion();
-            console.log(`WA Version: ${version}`);
         });
 
         after(async function () {
             await client.destroy();
+        });
+
+        it('can get current WhatsApp Web version', async function () {
+            const version = await client.getWWebVersion();
+            expect(typeof version).to.equal('string');
+            console.log(`WA Version: ${version}`);
         });
 
         describe('Expose Store', function() {
