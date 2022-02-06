@@ -166,6 +166,7 @@ describe('Chat', function () {
         });
     });
   
+    // eslint-disable-next-line mocha/no-skipped-tests
     describe.skip('Destructive operations', function () {
         it('can clear all messages from chat', async function () {
             this.timeout(5000);
