@@ -18,6 +18,10 @@ describe('Chat', function () {
         chat = await client.getChatById(remoteId);
     });
 
+    after(async function () {
+        await client.destroy();
+    });
+
     it('can send a message to a chat', async function () {
         const msg = await chat.sendMessage('hello world');
         expect(msg).to.be.instanceOf(Message);
@@ -179,10 +183,5 @@ describe('Chat', function () {
             const res = await chat.delete();
             expect(res).to.equal(true);
         });
-    });
-
-
-    after(async function () {
-        await client.destroy();
     });
 });
