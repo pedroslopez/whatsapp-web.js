@@ -153,7 +153,7 @@ exports.LoadUtils = () => {
             }
         }
         
-        let extraOptions = {};
+        let buttonOptions = {};
         if(options.buttons){
             let caption;
             if(options.buttons.type === 'chat') {
@@ -162,7 +162,7 @@ exports.LoadUtils = () => {
             }else{
                 caption = options.caption ? options.caption : ' '; //Caption can't be empty
             }
-            extraOptions = {
+            buttonOptions = {
                 productHeaderImageRejected: false,
                 isFromTemplate: false,
                 isDynamicReplyButtonsMsg: true,
@@ -175,12 +175,12 @@ exports.LoadUtils = () => {
             delete options.buttons;
         }
 
+        let listOptions = {};
         if(options.list){
             if(window.Store.Conn.platform === 'smba' || window.Store.Conn.platform === 'smbi'){
                 throw '[LT01] Whatsapp business can\'t send this yet';
             }
-            extraOptions = {
-                ...extraOptions,
+            listOptions = {
                 type: 'list',
                 footer: options.list.footer,
                 list: {
@@ -190,7 +190,7 @@ exports.LoadUtils = () => {
                 body: options.list.description
             };
             delete options.list;
-            delete extraOptions.list.footer;
+            delete listOptions.list.footer;
         }
                 
         const newMsgId = new window.Store.MsgKey({
@@ -199,7 +199,11 @@ exports.LoadUtils = () => {
             id: window.Store.genId(),
         });
 
+        const extraOptions = options.extraOptions || {};
+        delete options.extraOptions;
+
         const message = {
+            ...options,
             id: newMsgId,
             ack: 0,
             body: content,
@@ -214,8 +218,9 @@ exports.LoadUtils = () => {
             ...attOptions,
             ...quotedMsgOptions,
             ...vcardOptions,
-            ...extraOptions,
-            ...options
+            ...buttonOptions,
+            ...listOptions,
+            ...extraOptions
         };
 
         await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
