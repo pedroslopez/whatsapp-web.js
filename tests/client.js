@@ -547,27 +547,32 @@ END:VCARD`;
                 expect(msgIds).to.include.members([
                     m1.id._serialized, m2.id._serialized
                 ]);
-                expect(msgIds).to.not.contain(m3.id._serialized);
+                expect(msgIds).to.not.include.members([m3.id._serialized]);
             });
         });
 
         describe('Status/About', function () {
-            it('can set the status text', async function () {
-                this.timeout(5000);
+            let me, previousStatus;
 
+            before(async function () {
+                me = await client.getContactById(client.info.wid._serialized);
+                previousStatus = await me.getAbout();
+            });
+
+            after(async function () {
+                await client.setStatus(previousStatus);
+            });
+            
+            it('can set the status text', async function () {
                 await client.setStatus('My shiny new status');
 
-                const me = await client.getContactById(client.info.wid._serialized);
                 const status = await me.getAbout();
                 expect(status).to.eql('My shiny new status');
             });
 
             it('can set the status text to something else', async function () {
-                this.timeout(5000);
-
                 await client.setStatus('Busy');
                 
-                const me = await client.getContactById(client.info.wid._serialized);
                 const status = await me.getAbout();
                 expect(status).to.eql('Busy');
             });
