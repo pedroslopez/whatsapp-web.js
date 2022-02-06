@@ -443,6 +443,7 @@ declare namespace WAWebJS {
         PAYMENT = 'payment',
         UNKNOWN = 'unknown',
         GROUP_INVITE = 'groups_v4_invite',
+        BUTTONS_RESPONSE = 'buttons_response'
     }
 
     /** Client status */

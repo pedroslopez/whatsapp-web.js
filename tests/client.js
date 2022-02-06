@@ -7,7 +7,7 @@ const Contact = require('../src/structures/Contact');
 const Message = require('../src/structures/Message');
 const MessageMedia = require('../src/structures/MessageMedia');
 const Location = require('../src/structures/Location');
-const { MessageTypes } = require('../src/util/Constants');
+const { MessageTypes, WAState } = require('../src/util/Constants');
 
 const remoteId = helper.remoteId;
 
@@ -145,6 +145,46 @@ describe('Client', function() {
 
             await client.destroy();
         });   
+
+        it('can take over if client was logged in somewhere else with takeoverOnConflict=true', async function() {
+            this.timeout(40000);
+
+            const readyCallback1 = sinon.spy();
+            const readyCallback2 = sinon.spy();
+            const disconnectedCallback1 = sinon.spy();
+            const disconnectedCallback2 = sinon.spy();
+
+            const client1 = helper.createClient({
+                withSession: true, 
+                options: { takeoverOnConflict: true, takeoverTimeoutMs: 5000 }
+            });
+            const client2 = helper.createClient({withSession: true});
+
+            client1.on('ready', readyCallback1);
+            client2.on('ready', readyCallback2);
+            client1.on('disconnected', disconnectedCallback1);
+            client2.on('disconnected', disconnectedCallback2);
+
+            await client1.initialize();
+            expect(readyCallback1.called).to.equal(true);
+            expect(readyCallback2.called).to.equal(false);
+            expect(disconnectedCallback1.called).to.equal(false);
+            expect(disconnectedCallback2.called).to.equal(false);
+
+            await client2.initialize();
+            expect(readyCallback2.called).to.equal(true);
+            expect(disconnectedCallback1.called).to.equal(false);
+            expect(disconnectedCallback2.called).to.equal(false);
+
+            // wait for takeoverTimeoutMs to kick in
+            await helper.sleep(5200);
+            expect(disconnectedCallback1.called).to.equal(false);
+            expect(disconnectedCallback2.called).to.equal(true);
+            expect(disconnectedCallback2.calledWith(WAState.CONFLICT)).to.equal(true);
+
+            await client1.destroy();
+
+        });
     });
 
     describe('Authenticated', function() {
@@ -160,6 +200,12 @@ describe('Client', function() {
             await client.destroy();
         });
 
+        it('can get current WhatsApp Web version', async function () {
+            const version = await client.getWWebVersion();
+            expect(typeof version).to.equal('string');
+            console.log(`WA Version: ${version}`);
+        });
+
         describe('Expose Store', function() {
             it('exposes the store', async function() {
                 const exposed = await client.pupPage.evaluate(() => {
@@ -171,46 +217,46 @@ describe('Client', function() {
     
             it('exposes all required WhatsApp Web internal models', async function() {
                 const expectedModules = [
-                    'Chat',
-                    'Msg',
-                    'Contact',
-                    'Conn', 
                     'AppState',
-                    'CryptoLib', 
-                    'Wap', 
-                    'SendSeen', 
-                    'SendClear', 
-                    'SendDelete', 
-                    'genId', 
-                    'SendMessage', 
-                    'MsgKey', 
-                    'Invite', 
-                    'OpaqueData', 
-                    'MediaPrep', 
-                    'MediaObject', 
-                    'MediaUpload',
-                    'Cmd',
-                    'MediaTypes',
-                    'VCard',
-                    'UserConstructor',
-                    'Validators',
-                    'WidFactory',
                     'BlockContact',
-                    'GroupMetadata',
-                    'Sticker',
-                    'UploadUtils',
-                    'Label',
+                    'Call',
+                    'Chat',
+                    'Cmd',
+                    'Conn',
+                    'Contact',
+                    'DownloadManager',
                     'Features',
+                    'GroupMetadata',
+                    'Invite',
+                    'Label',
+                    'MediaObject',
+                    'MediaPrep',
+                    'MediaTypes',
+                    'MediaUpload',
+                    'Msg',
+                    'MsgKey',
+                    'OpaqueData',
                     'QueryOrder',
                     'QueryProduct',
-                    'DownloadManager'
-                ];  
+                    'SendClear',
+                    'SendDelete',
+                    'SendMessage',
+                    'SendSeen',
+                    'Sticker',
+                    'UploadUtils',
+                    'UserConstructor',
+                    'VCard',
+                    'Validators',
+                    'Wap',
+                    'WidFactory',
+                    'genId'
+                ];
               
-                const loadedModules = await client.pupPage.evaluate(() => {
-                    return Object.keys(window.Store);
-                });
+                const loadedModules = await client.pupPage.evaluate((expectedModules) => {
+                    return expectedModules.filter(m => Boolean(window.Store[m]));
+                }, expectedModules);
     
-                expect(loadedModules).to.include.members(expectedModules);
+                expect(loadedModules).to.have.members(expectedModules);
             });
         });
     
@@ -484,6 +530,54 @@ END:VCARD`;
                 const number = '18092201111@c.us';
                 const formatted = await client.getFormattedNumber(number);
                 expect(formatted).to.eql('+1 (809) 220-1111');
+            });
+        });
+
+        describe('Search messages', function () {
+            it('can search for messages', async function () {
+                this.timeout(5000);
+
+                const m1 = await client.sendMessage(remoteId, 'I\'m searching for Super Mario Brothers');
+                const m2 = await client.sendMessage(remoteId, 'This also contains Mario');
+                const m3 = await client.sendMessage(remoteId, 'Nothing of interest here, just Luigi');
+                
+                // wait for search index to catch up
+                await helper.sleep(1000);
+                
+                const msgs = await client.searchMessages('Mario', {chatId: remoteId});
+                expect(msgs.length).to.be.greaterThanOrEqual(2);
+                const msgIds = msgs.map(m => m.id._serialized);
+                expect(msgIds).to.include.members([
+                    m1.id._serialized, m2.id._serialized
+                ]);
+                expect(msgIds).to.not.include.members([m3.id._serialized]);
+            });
+        });
+
+        describe('Status/About', function () {
+            let me, previousStatus;
+
+            before(async function () {
+                me = await client.getContactById(client.info.wid._serialized);
+                previousStatus = await me.getAbout();
+            });
+
+            after(async function () {
+                await client.setStatus(previousStatus);
+            });
+            
+            it('can set the status text', async function () {
+                await client.setStatus('My shiny new status');
+
+                const status = await me.getAbout();
+                expect(status).to.eql('My shiny new status');
+            });
+
+            it('can set the status text to something else', async function () {
+                await client.setStatus('Busy');
+                
+                const status = await me.getAbout();
+                expect(status).to.eql('Busy');
             });
         });
     });

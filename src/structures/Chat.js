@@ -65,7 +65,7 @@ class Chat extends Base {
 
         /**
          * Indicates if the chat is muted or not
-         * @type {number}
+         * @type {boolean}
          */
         this.isMuted = data.isMuted;
 
