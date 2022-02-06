@@ -461,7 +461,6 @@ declare namespace WAWebJS {
         NOTIFICATION_TEMPLATE = 'notification_template',
         OVERSIZED = 'oversized',
         PROTOCOL = 'protocol',
-        PTT = 'ptt',
         REACTION = 'reaction',
         TEMPLATE_BUTTON_REPLY = 'template_button_reply',
     }
