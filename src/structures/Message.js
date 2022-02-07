@@ -185,6 +185,12 @@ class Message extends Base {
          */
         this.isGif = Boolean(data.isGif);
 
+        /**
+         * Indicates if the message will disappear after it expires
+         * @type {boolean}
+         */
+        this.isEphemeral = data.isEphemeral;
+
         /** Title */
         if (data.title) {
             this.title = data.title;
