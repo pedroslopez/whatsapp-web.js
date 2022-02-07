@@ -187,11 +187,13 @@ class Chat extends Base {
                     if (!loadedMessages) break;
                     msgs = [...loadedMessages.filter(msgFilter), ...msgs];
                 }
-                if (msgs.length > searchOptions.limit)
+                
+                if (msgs.length > searchOptions.limit) {
+                    msgs.sort((a, b) => (a.t > b.t) ? 1 : -1);
                     msgs = msgs.splice(msgs.length - searchOptions.limit);
+                }
             }
 
-            msgs.sort((a, b) => (a.t > b.t) ? 1 : -1);
             return msgs.map(m => window.WWebJS.getMessageModel(m));
 
         }, this.id._serialized, searchOptions);
