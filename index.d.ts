@@ -1191,7 +1191,7 @@ declare namespace WAWebJS {
     /** Message type buttons */
     export class Buttons {
         body: string | MessageMedia
-        buttons: Array<{ buttonId: string; buttonText: string; type: number }>
+        buttons: Array<{ buttonId: string; buttonText: {displayText: string}; type: number }>
         title?: string | null
         footer?: string | null
         
