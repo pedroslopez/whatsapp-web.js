@@ -202,6 +202,12 @@ exports.LoadUtils = () => {
         const extraOptions = options.extraOptions || {};
         delete options.extraOptions;
 
+        const ephemeralSettings = {
+            ephemeralDuration: chat.isEphemeralSettingOn() ? chat.getEphemeralSetting() : undefined,
+            ephemeralSettingTimestamp: chat.getEphemeralSettingTimestamp() || undefined,
+            disappearingModeInitiator: chat.getDisappearingModeInitiator() || undefined,
+        };
+
         const message = {
             ...options,
             id: newMsgId,
@@ -214,6 +220,7 @@ exports.LoadUtils = () => {
             t: parseInt(new Date().getTime() / 1000),
             isNewMsg: true,
             type: 'chat',
+            ...ephemeralSettings,
             ...locationOptions,
             ...attOptions,
             ...quotedMsgOptions,
@@ -318,6 +325,7 @@ exports.LoadUtils = () => {
     window.WWebJS.getMessageModel = message => {
         const msg = message.serialize();
         
+        msg.isEphemeral = message.isEphemeral;
         msg.isStatusV3 = message.isStatusV3;
         msg.links = (message.getLinks()).map(link => ({ 
             link: link.href, 

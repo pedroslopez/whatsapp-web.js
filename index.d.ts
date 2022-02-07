@@ -547,6 +547,8 @@ declare namespace WAWebJS {
         isStatus: boolean,
         /** Indicates if the message is a Gif */
         isGif: boolean,
+        /** Indicates if the message will disappear after it expires */
+        isEphemeral: boolean,
         /** ID for the Chat that this message was sent to, except if the message was sent by the current user */
         from: string,
         /** Indicates if the message was sent by the current user */
