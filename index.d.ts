@@ -443,6 +443,26 @@ declare namespace WAWebJS {
         PAYMENT = 'payment',
         UNKNOWN = 'unknown',
         GROUP_INVITE = 'groups_v4_invite',
+        LIST = 'list',
+        LIST_RESPONSE = 'list_response',
+        BUTTONS_RESPONSE = 'buttons_response',
+        PAYMENT = 'payment',
+        BROADCAST_NOTIFICATION = 'broadcast_notification',
+        CALL_LOG = 'call_log',
+        CIPHERTEXT = 'ciphertext',
+        DEBUG = 'debug',
+        E2E_NOTIFICATION = 'e2e_notification',
+        GP2 = 'gp2',
+        GROUP_NOTIFICATION = 'group_notification',
+        HSM = 'hsm',
+        INTERACTIVE = 'interactive',
+        NATIVE_FLOW = 'native_flow',
+        NOTIFICATION = 'notification',
+        NOTIFICATION_TEMPLATE = 'notification_template',
+        OVERSIZED = 'oversized',
+        PROTOCOL = 'protocol',
+        REACTION = 'reaction',
+        TEMPLATE_BUTTON_REPLY = 'template_button_reply',
     }
 
     /** Client status */
@@ -692,6 +712,7 @@ declare namespace WAWebJS {
 
     export interface MediaFromURLOptions {
         client?: Client
+        filename?: string
         unsafeMime?: boolean
         reqOptions?: RequestInit
     }
@@ -909,10 +930,9 @@ declare namespace WAWebJS {
 
     export interface MessageSearchOptions {
         /**
-         * The amount of messages to return.
+         * The amount of messages to return. If no limit is specified, the available messages will be returned.
          * Note that the actual number of returned messages may be smaller if there aren't enough messages in the conversation. 
          * Set this to Infinity to load all messages.
-         * @default 50
          */
         limit?: number
     }
