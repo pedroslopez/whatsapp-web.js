@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.15.4 &raquo; Source: Client.js</title>
+  <title>whatsapp-web.js 1.15.5 &raquo; Source: Client.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>15.<wbr>4</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>15.<wbr>5</a>
       </div>
     </div>
   </nav>
@@ -107,7 +107,7 @@ class Client extends EventEmitter {
             page &#x3D; (await browser.pages())[0];
         }        
         
-        page.setUserAgent(this.options.userAgent);
+        await page.setUserAgent(this.options.userAgent);
 
         this.pupBrowser &#x3D; browser;
         this.pupPage &#x3D; page;
@@ -140,7 +140,7 @@ class Client extends EventEmitter {
         const KEEP_PHONE_CONNECTED_IMG_SELECTOR &#x3D; &#x27;[data-icon&#x3D;&quot;intro-md-beta-logo-dark&quot;], [data-icon&#x3D;&quot;intro-md-beta-logo-light&quot;], [data-asset-intro-image-light&#x3D;&quot;true&quot;], [data-asset-intro-image-dark&#x3D;&quot;true&quot;]&#x27;;
 
         if (this.options.session) {
-            // Check if session restore was successfull 
+            // Check if session restore was successful
             try {
                 await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: this.options.authTimeoutMs });
             } catch (err) {
@@ -199,10 +199,22 @@ class Client extends EventEmitter {
             this._qrRefreshInterval &#x3D; setInterval(getQrCode, this.options.qrRefreshIntervalMs);
 
             // Wait for code scan
-            await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 0 });
-            clearInterval(this._qrRefreshInterval);
-            this._qrRefreshInterval &#x3D; undefined;
+            try {
+                await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 0 });
+                clearInterval(this._qrRefreshInterval);
+                this._qrRefreshInterval &#x3D; undefined;
+            } catch(error) {
+                if (
+                    error.name &#x3D;&#x3D;&#x3D; &#x27;ProtocolError&#x27; &amp;amp;&amp;amp; 
+                    error.message &amp;amp;&amp;amp; 
+                    error.message.match(/Target closed/)
+                ) {
+                    // something has called .destroy() while waiting
+                    return;
+                }
 
+                throw error;
+            }
         }
 
         await page.evaluate(ExposeStore, moduleRaid.toString());
@@ -258,8 +270,6 @@ class Client extends EventEmitter {
 
         // Register events
         await page.exposeFunction(&#x27;onAddMessageEvent&#x27;, msg &#x3D;&gt; {
-            if (!msg.isNewMsg) return;
-
             if (msg.type &#x3D;&#x3D;&#x3D; &#x27;gp2&#x27;) {
                 const notification &#x3D; new GroupNotification(this, msg);
                 if (msg.subtype &#x3D;&#x3D;&#x3D; &#x27;add&#x27; || msg.subtype &#x3D;&#x3D;&#x3D; &#x27;invite&#x27;) {
@@ -444,7 +454,6 @@ class Client extends EventEmitter {
         });
         
         await page.evaluate(() &#x3D;&gt; {
-            window.Store.Msg.on(&#x27;add&#x27;, (msg) &#x3D;&gt; { if (msg.isNewMsg) window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on(&#x27;change&#x27;, (msg) &#x3D;&gt; { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on(&#x27;change:type&#x27;, (msg) &#x3D;&gt; { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on(&#x27;change:ack&#x27;, (msg,ack) &#x3D;&gt; { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
@@ -453,6 +462,16 @@ class Client extends EventEmitter {
             window.Store.AppState.on(&#x27;change:state&#x27;, (_AppState, state) &#x3D;&gt; { window.onAppStateChangedEvent(state); });
             window.Store.Conn.on(&#x27;change:battery&#x27;, (state) &#x3D;&gt; { window.onBatteryStateChangedEvent(state); });
             window.Store.Call.on(&#x27;add&#x27;, (call) &#x3D;&gt; { window.onIncomingCall(call); });
+            window.Store.Msg.on(&#x27;add&#x27;, (msg) &#x3D;&gt; { 
+                if (msg.isNewMsg) {
+                    if(msg.type &#x3D;&#x3D;&#x3D; &#x27;ciphertext&#x27;) {
+                        // defer message event until ciphertext is resolved (type changed)
+                        msg.once(&#x27;change:type&#x27;, (_msg) &#x3D;&gt; window.onAddMessageEvent(window.WWebJS.getMessageModel(_msg)));
+                    } else {
+                        window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); 
+                    }
+                }
+            });
         });
 
         /**
@@ -461,11 +480,13 @@ class Client extends EventEmitter {
          */
         this.emit(Events.READY);
 
-        // Disconnect when navigating away
-        // Because WhatsApp Web now reloads when logging out from the device, this also covers that case
+        // Disconnect when navigating away when in PAIRING state (detect logout)
         this.pupPage.on(&#x27;framenavigated&#x27;, async () &#x3D;&gt; {
-            this.emit(Events.DISCONNECTED, &#x27;NAVIGATION&#x27;);
-            await this.destroy();
+            const appState &#x3D; await this.getState();
+            if(appState &#x3D;&#x3D;&#x3D; WAState.PAIRING) {
+                this.emit(Events.DISCONNECTED, &#x27;NAVIGATION&#x27;);
+                await this.destroy();
+            }
         });
     }
 
@@ -550,7 +571,7 @@ class Client extends EventEmitter {
             quotedMessageId: options.quotedMessageId,
             parseVCards: options.parseVCards &#x3D;&#x3D;&#x3D; false ? false : true,
             mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact &#x3D;&gt; contact.id._serialized) : [],
-            ...options.extra
+            extraOptions: options.extra
         };
 
         const sendSeen &#x3D; typeof options.sendSeen &#x3D;&#x3D;&#x3D; &#x27;undefined&#x27; ? true : options.sendSeen;
@@ -758,7 +779,7 @@ class Client extends EventEmitter {
         return await this.pupPage.evaluate(async chatId &#x3D;&gt; {
             let chat &#x3D; await window.Store.Chat.get(chatId);
             await window.Store.Cmd.archiveChat(chat, true);
-            return chat.archive;
+            return true;
         }, chatId);
     }
 
@@ -770,7 +791,7 @@ class Client extends EventEmitter {
         return await this.pupPage.evaluate(async chatId &#x3D;&gt; {
             let chat &#x3D; await window.Store.Chat.get(chatId);
             await window.Store.Cmd.archiveChat(chat, false);
-            return chat.archive;
+            return false;
         }, chatId);
     }
 
@@ -1044,7 +1065,7 @@ module.exports &#x3D; Client;
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on January 25, 2022.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on February 6, 2022.
       </p>
     </div>
   </footer>
