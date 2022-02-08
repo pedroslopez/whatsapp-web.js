@@ -1,5 +1,6 @@
 'use strict';
 
+const crypto = require('crypto');
 const EventEmitter = require('events');
 const puppeteer = require('puppeteer');
 const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
@@ -74,7 +75,7 @@ class Client extends EventEmitter {
         } else {
             browser = await puppeteer.launch(this.options.puppeteer);
             page = (await browser.pages())[0];
-        }        
+        }
         
         await page.setUserAgent(this.options.userAgent);
 
@@ -87,14 +88,19 @@ class Client extends EventEmitter {
         });
 
         if (this.options.session) {
+            const storageKey = crypto.randomBytes(20).toString('hex');
             await page.evaluateOnNewDocument(
                 session => {
-                    localStorage.clear();
-                    localStorage.setItem('WABrowserId', session.WABrowserId);
-                    localStorage.setItem('WASecretBundle', session.WASecretBundle);
-                    localStorage.setItem('WAToken1', session.WAToken1);
-                    localStorage.setItem('WAToken2', session.WAToken2);
-                }, this.options.session);
+                    const didSetSession = Boolean(localStorage.getItem(storageKey));
+                    if(!didSetSession) {
+                        localStorage.clear();
+                        localStorage.setItem('WABrowserId', session.WABrowserId);
+                        localStorage.setItem('WASecretBundle', session.WASecretBundle);
+                        localStorage.setItem('WAToken1', session.WAToken1);
+                        localStorage.setItem('WAToken2', session.WAToken2);
+                        localStorage.setItem(storageKey, true);
+                    }
+                }, this.options.session, storageKey);
         }
 
         if(this.options.bypassCSP) {
@@ -382,7 +388,7 @@ class Client extends EventEmitter {
                 /**
                  * Emitted when the client has been disconnected
                  * @event Client#disconnected
-                 * @param {WAState|"NAVIGATION"} reason reason that caused the disconnect
+                 * @param {WAState} reason reason that caused the disconnect
                  */
                 this.emit(Events.DISCONNECTED, state);
                 this.destroy();
@@ -448,15 +454,6 @@ class Client extends EventEmitter {
          * @event Client#ready
          */
         this.emit(Events.READY);
-
-        // Disconnect when navigating away when in PAIRING state (detect logout)
-        this.pupPage.on('framenavigated', async () => {
-            const appState = await this.getState();
-            if(appState === WAState.PAIRING) {
-                this.emit(Events.DISCONNECTED, 'NAVIGATION');
-                await this.destroy();
-            }
-        });
     }
 
     /**
