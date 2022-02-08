@@ -114,7 +114,7 @@ class Client extends EventEmitter {
         if (this.options.session) {
             // Check if session restore was successful
             try {
-                await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 0 });
+                await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: this.options.authTimeoutMs });
             } catch (err) {
                 if (err.name === 'TimeoutError') {
                     /**
@@ -385,7 +385,7 @@ class Client extends EventEmitter {
                 /**
                  * Emitted when the client has been disconnected
                  * @event Client#disconnected
-                 * @param {WAState} reason state that caused the disconnect
+                 * @param {WAState|"NAVIGATION"} reason reason that caused the disconnect
                  */
                 this.emit(Events.DISCONNECTED, state);
                 this.destroy();
@@ -458,7 +458,6 @@ class Client extends EventEmitter {
             if(!appState || appState === WAState.PAIRING) {
                 this.emit(Events.DISCONNECTED, 'NAVIGATION');
                 await this.destroy();
-                console.log('WOULD DESTROY bc nav');
             }
         });
     }
