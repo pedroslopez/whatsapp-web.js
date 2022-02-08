@@ -165,7 +165,7 @@ declare namespace WAWebJS {
 
         /** Emitted when the client has been disconnected */
         on(event: 'disconnected', listener: (
-            /** reason that caused the disconnect */
+            /** state that caused the disconnect */
             reason: WAState
         ) => void): this
 
