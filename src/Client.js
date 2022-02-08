@@ -389,7 +389,6 @@ class Client extends EventEmitter {
                  */
                 this.emit(Events.DISCONNECTED, state);
                 this.destroy();
-                // console.log('would destroy');
             }
         });
 
@@ -452,6 +451,16 @@ class Client extends EventEmitter {
          * @event Client#ready
          */
         this.emit(Events.READY);
+
+        // Disconnect when navigating away when in PAIRING state (detect logout)
+        this.pupPage.on('framenavigated', async () => {
+            const appState = await this.getState();
+            if(!appState || appState === WAState.PAIRING) {
+                this.emit(Events.DISCONNECTED, 'NAVIGATION');
+                await this.destroy();
+                console.log('WOULD DESTROY bc nav');
+            }
+        });
     }
 
     /**
@@ -722,6 +731,7 @@ class Client extends EventEmitter {
      */
     async getState() {
         return await this.pupPage.evaluate(() => {
+            if(!window.Store) return null;
             return window.Store.AppState.state;
         });
     }
