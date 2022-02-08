@@ -1,6 +1,5 @@
 'use strict';
 
-const crypto = require('crypto');
 const EventEmitter = require('events');
 const puppeteer = require('puppeteer');
 const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
@@ -88,19 +87,16 @@ class Client extends EventEmitter {
         });
 
         if (this.options.session) {
-            const storageKey = crypto.randomBytes(20).toString('hex');
             await page.evaluateOnNewDocument(
                 session => {
-                    const didSetSession = Boolean(localStorage.getItem(storageKey));
-                    if(!didSetSession) {
+                    if(document.referrer === 'https://whatsapp.com/') {
                         localStorage.clear();
                         localStorage.setItem('WABrowserId', session.WABrowserId);
                         localStorage.setItem('WASecretBundle', session.WASecretBundle);
                         localStorage.setItem('WAToken1', session.WAToken1);
                         localStorage.setItem('WAToken2', session.WAToken2);
-                        localStorage.setItem(storageKey, true);
                     }
-                }, this.options.session, storageKey);
+                }, this.options.session);
         }
 
         if(this.options.bypassCSP) {
@@ -110,6 +106,7 @@ class Client extends EventEmitter {
         await page.goto(WhatsWebURL, {
             waitUntil: 'load',
             timeout: 0,
+            referer: 'https://whatsapp.com/'
         });
 
         const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-icon="intro-md-beta-logo-dark"], [data-icon="intro-md-beta-logo-light"], [data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
@@ -117,7 +114,7 @@ class Client extends EventEmitter {
         if (this.options.session) {
             // Check if session restore was successful
             try {
-                await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: this.options.authTimeoutMs });
+                await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 0 });
             } catch (err) {
                 if (err.name === 'TimeoutError') {
                     /**
@@ -392,6 +389,7 @@ class Client extends EventEmitter {
                  */
                 this.emit(Events.DISCONNECTED, state);
                 this.destroy();
+                // console.log('would destroy');
             }
         });
 
