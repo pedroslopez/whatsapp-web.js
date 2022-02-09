@@ -1,7 +1,7 @@
 'use strict';
 
-const PrivateChat = require('../structures/PrivateChat');
-const GroupChat = require('../structures/GroupChat');
+const PrivateChat = require(`${__dirname}/structures/PrivateChat`);
+const GroupChat = require(`${__dirname}/structures/GroupChat`);
 
 class ChatFactory {
     static create(client, data) {
