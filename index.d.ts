@@ -166,7 +166,7 @@ declare namespace WAWebJS {
         /** Emitted when the client has been disconnected */
         on(event: 'disconnected', listener: (
             /** reason that caused the disconnect */
-            reason: WAState | "NAVIGATED"
+            reason: WAState | "NAVIGATION"
         ) => void): this
 
         /** Emitted when a user joins the chat via invite link or is added by an admin */
