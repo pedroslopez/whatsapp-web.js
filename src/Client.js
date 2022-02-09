@@ -74,7 +74,7 @@ class Client extends EventEmitter {
         } else {
             browser = await puppeteer.launch(this.options.puppeteer);
             page = (await browser.pages())[0];
-        }        
+        }
         
         await page.setUserAgent(this.options.userAgent);
 
@@ -89,11 +89,13 @@ class Client extends EventEmitter {
         if (this.options.session) {
             await page.evaluateOnNewDocument(
                 session => {
-                    localStorage.clear();
-                    localStorage.setItem('WABrowserId', session.WABrowserId);
-                    localStorage.setItem('WASecretBundle', session.WASecretBundle);
-                    localStorage.setItem('WAToken1', session.WAToken1);
-                    localStorage.setItem('WAToken2', session.WAToken2);
+                    if(document.referrer === 'https://whatsapp.com/') {
+                        localStorage.clear();
+                        localStorage.setItem('WABrowserId', session.WABrowserId);
+                        localStorage.setItem('WASecretBundle', session.WASecretBundle);
+                        localStorage.setItem('WAToken1', session.WAToken1);
+                        localStorage.setItem('WAToken2', session.WAToken2);
+                    }
                 }, this.options.session);
         }
 
@@ -104,6 +106,7 @@ class Client extends EventEmitter {
         await page.goto(WhatsWebURL, {
             waitUntil: 'load',
             timeout: 0,
+            referer: 'https://whatsapp.com/'
         });
 
         const KEEP_PHONE_CONNECTED_IMG_SELECTOR = '[data-icon="intro-md-beta-logo-dark"], [data-icon="intro-md-beta-logo-light"], [data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
@@ -239,8 +242,6 @@ class Client extends EventEmitter {
 
         // Register events
         await page.exposeFunction('onAddMessageEvent', msg => {
-            if (!msg.isNewMsg) return;
-
             if (msg.type === 'gp2') {
                 const notification = new GroupNotification(this, msg);
                 if (msg.subtype === 'add' || msg.subtype === 'invite') {
@@ -425,7 +426,6 @@ class Client extends EventEmitter {
         });
         
         await page.evaluate(() => {
-            window.Store.Msg.on('add', (msg) => { if (msg.isNewMsg) window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:ack', (msg,ack) => { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
@@ -434,6 +434,16 @@ class Client extends EventEmitter {
             window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
             window.Store.Conn.on('change:battery', (state) => { window.onBatteryStateChangedEvent(state); });
             window.Store.Call.on('add', (call) => { window.onIncomingCall(call); });
+            window.Store.Msg.on('add', (msg) => { 
+                if (msg.isNewMsg) {
+                    if(msg.type === 'ciphertext') {
+                        // defer message event until ciphertext is resolved (type changed)
+                        msg.once('change:type', (_msg) => window.onAddMessageEvent(window.WWebJS.getMessageModel(_msg)));
+                    } else {
+                        window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); 
+                    }
+                }
+            });
         });
 
         /**
@@ -445,7 +455,7 @@ class Client extends EventEmitter {
         // Disconnect when navigating away when in PAIRING state (detect logout)
         this.pupPage.on('framenavigated', async () => {
             const appState = await this.getState();
-            if(appState === WAState.PAIRING) {
+            if(!appState || appState === WAState.PAIRING) {
                 this.emit(Events.DISCONNECTED, 'NAVIGATION');
                 await this.destroy();
             }
@@ -533,7 +543,7 @@ class Client extends EventEmitter {
             quotedMessageId: options.quotedMessageId,
             parseVCards: options.parseVCards === false ? false : true,
             mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact => contact.id._serialized) : [],
-            ...options.extra
+            extraOptions: options.extra
         };
 
         const sendSeen = typeof options.sendSeen === 'undefined' ? true : options.sendSeen;
@@ -720,6 +730,7 @@ class Client extends EventEmitter {
      */
     async getState() {
         return await this.pupPage.evaluate(() => {
+            if(!window.Store) return null;
             return window.Store.AppState.state;
         });
     }

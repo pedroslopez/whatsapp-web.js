@@ -4,12 +4,26 @@ const MessageMedia = require('./MessageMedia');
 const Util = require('../util/Util');
 
 /**
+ * Button spec used in Buttons constructor
+ * @typedef {Object} ButtonSpec
+ * @property {string=} id - Custom ID to set on the button. A random one will be generated if one is not passed.
+ * @property {string} body - The text to show on the button.
+ */
+
+/**
+ * @typedef {Object} FormattedButtonSpec
+ * @property {string} buttonId
+ * @property {number} type
+ * @property {Object} buttonText
+ */
+
+/**
  * Message type buttons
  */
 class Buttons {
     /**
      * @param {string|MessageMedia} body
-     * @param {Array<Array<string>>} buttons
+     * @param {ButtonSpec[]} buttons - See {@link ButtonSpec}
      * @param {string?} title
      * @param {string?} footer
      */
@@ -41,7 +55,7 @@ class Buttons {
 
         /**
          * buttons of message
-         * @type {Array<Array<string>>}
+         * @type {FormattedButtonSpec[]}
          */
         this.buttons = this._format(buttons);
         if(!this.buttons.length){ throw '[BT01] No buttons';}
@@ -50,8 +64,8 @@ class Buttons {
 
     /**
      * Creates button array from simple array
-     * @param {Array<Array<string>>} buttons
-     * @returns {Array<Array<string>>}
+     * @param {ButtonSpec[]} buttons
+     * @returns {FormattedButtonSpec[]}
      * @example 
      * Input: [{id:'customId',body:'button1'},{body:'button2'},{body:'button3'},{body:'button4'}]
      * Returns: [{ buttonId:'customId',buttonText:{'displayText':'button1'},type: 1 },{buttonId:'n3XKsL',buttonText:{'displayText':'button2'},type:1},{buttonId:'NDJk0a',buttonText:{'displayText':'button3'},type:1}]
