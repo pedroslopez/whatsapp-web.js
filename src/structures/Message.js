@@ -20,6 +20,12 @@ class Message extends Base {
 
     _patch(data) {
         /**
+         * raw that represents all the message data
+         * @type {object}
+         */
+        this.raw = data;
+        
+        /**
          * MediaKey that represents the sticker 'ID'
          * @type {string}
          */
