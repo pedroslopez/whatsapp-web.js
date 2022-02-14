@@ -112,6 +112,7 @@ class Client extends EventEmitter {
                           localStorage.setItem('WAToken2', session.WAToken2);
                       }
                 }, this.options.session);
+            }
         }
 
         if (this.options.bypassCSP) {
