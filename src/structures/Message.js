@@ -185,6 +185,12 @@ class Message extends Base {
          */
         this.isGif = Boolean(data.isGif);
 
+        /**
+         * Indicates if the message will disappear after it expires
+         * @type {boolean}
+         */
+        this.isEphemeral = data.isEphemeral;
+
         /** Title */
         if (data.title) {
             this.title = data.title;
@@ -382,7 +388,7 @@ class Message extends Base {
         await this.client.pupPage.evaluate((msgId, everyone) => {
             let msg = window.Store.Msg.get(msgId);
 
-            if (everyone && msg.id.fromMe && msg.canRevoke()) {
+            if (everyone && msg.id.fromMe && msg._canRevoke()) {
                 return window.Store.Cmd.sendRevokeMsgs(msg.chat, [msg], true);
             }
 
