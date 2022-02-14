@@ -75,6 +75,14 @@ class Client extends EventEmitter {
             browser = await puppeteer.launch(this.options.puppeteer);
             page = (await browser.pages())[0];
         }
+        if (browser && page){
+            try{
+                const _pid = browser.process().pid;
+                this.emit(Events.BROWSER_INIT, _pid);
+            } catch (e){
+                this.emit(Events.BROWSER_INIT, null, e)
+            }
+        }
         
         await page.setUserAgent(this.options.userAgent);
 
