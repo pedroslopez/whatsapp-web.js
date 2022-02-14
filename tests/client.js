@@ -156,66 +156,66 @@ describe('Client', function() {
 
         describe('dataDir auth', function() {
             it('should authenticate with existing session', async function() {
-            this.timeout(40000);
+                this.timeout(40000);
 
-            const authenticatedCallback = sinon.spy();
-            const qrCallback = sinon.spy();
-            const readyCallback = sinon.spy();
+                const authenticatedCallback = sinon.spy();
+                const qrCallback = sinon.spy();
+                const readyCallback = sinon.spy();
 
-            const client = helper.createClient({withSession: true});
-            client.on('qr', qrCallback);
-            client.on('authenticated', authenticatedCallback);
-            client.on('ready', readyCallback);
+                const client = helper.createClient({withSession: true});
+                client.on('qr', qrCallback);
+                client.on('authenticated', authenticatedCallback);
+                client.on('ready', readyCallback);
 
-            await client.initialize();
+                await client.initialize();
 
-            expect(authenticatedCallback.called).to.equal(true);
-            expect(authenticatedCallback.called).to.equal(true);
-            expect(readyCallback.called).to.equal(true);
-            expect(qrCallback.called).to.equal(false);
+                expect(authenticatedCallback.called).to.equal(true);
+                expect(authenticatedCallback.called).to.equal(true);
+                expect(readyCallback.called).to.equal(true);
+                expect(qrCallback.called).to.equal(false);
 
-            await client.destroy();
-        });   
+                await client.destroy();
+            });   
 
-        it('can take over if client was logged in somewhere else with takeoverOnConflict=true', async function() {
-            this.timeout(40000);
+            it('can take over if client was logged in somewhere else with takeoverOnConflict=true', async function() {
+                this.timeout(40000);
 
-            const readyCallback1 = sinon.spy();
-            const readyCallback2 = sinon.spy();
-            const disconnectedCallback1 = sinon.spy();
-            const disconnectedCallback2 = sinon.spy();
+                const readyCallback1 = sinon.spy();
+                const readyCallback2 = sinon.spy();
+                const disconnectedCallback1 = sinon.spy();
+                const disconnectedCallback2 = sinon.spy();
 
-            const client1 = helper.createClient({
-                withSession: true, 
-                options: { takeoverOnConflict: true, takeoverTimeoutMs: 5000 }
+                const client1 = helper.createClient({
+                    withSession: true, 
+                    options: { takeoverOnConflict: true, takeoverTimeoutMs: 5000 }
+                });
+                const client2 = helper.createClient({withSession: true});
+
+                client1.on('ready', readyCallback1);
+                client2.on('ready', readyCallback2);
+                client1.on('disconnected', disconnectedCallback1);
+                client2.on('disconnected', disconnectedCallback2);
+
+                await client1.initialize();
+                expect(readyCallback1.called).to.equal(true);
+                expect(readyCallback2.called).to.equal(false);
+                expect(disconnectedCallback1.called).to.equal(false);
+                expect(disconnectedCallback2.called).to.equal(false);
+
+                await client2.initialize();
+                expect(readyCallback2.called).to.equal(true);
+                expect(disconnectedCallback1.called).to.equal(false);
+                expect(disconnectedCallback2.called).to.equal(false);
+
+                // wait for takeoverTimeoutMs to kick in
+                await helper.sleep(5200);
+                expect(disconnectedCallback1.called).to.equal(false);
+                expect(disconnectedCallback2.called).to.equal(true);
+                expect(disconnectedCallback2.calledWith(WAState.CONFLICT)).to.equal(true);
+
+                await client1.destroy();
+
             });
-            const client2 = helper.createClient({withSession: true});
-
-            client1.on('ready', readyCallback1);
-            client2.on('ready', readyCallback2);
-            client1.on('disconnected', disconnectedCallback1);
-            client2.on('disconnected', disconnectedCallback2);
-
-            await client1.initialize();
-            expect(readyCallback1.called).to.equal(true);
-            expect(readyCallback2.called).to.equal(false);
-            expect(disconnectedCallback1.called).to.equal(false);
-            expect(disconnectedCallback2.called).to.equal(false);
-
-            await client2.initialize();
-            expect(readyCallback2.called).to.equal(true);
-            expect(disconnectedCallback1.called).to.equal(false);
-            expect(disconnectedCallback2.called).to.equal(false);
-
-            // wait for takeoverTimeoutMs to kick in
-            await helper.sleep(5200);
-            expect(disconnectedCallback1.called).to.equal(false);
-            expect(disconnectedCallback2.called).to.equal(true);
-            expect(disconnectedCallback2.calledWith(WAState.CONFLICT)).to.equal(true);
-
-            await client1.destroy();
-
-        });
             
             
         });
