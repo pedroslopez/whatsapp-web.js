@@ -90,12 +90,11 @@ class Client extends EventEmitter {
             browser = await puppeteer.launch(puppeteerOpts);
             page = (await browser.pages())[0];
         }
-
-        page.setUserAgent(this.options.userAgent);
+      
+        await page.setUserAgent(this.options.userAgent);
 
         this.pupBrowser = browser;
         this.pupPage = page;
-
 
         if (this.options.useDeprecatedSessionAuth && this.options.session) {
             // remember me
@@ -104,15 +103,15 @@ class Client extends EventEmitter {
             });
 
             if (this.options.session) {
-                await page.evaluateOnNewDocument(
-                    session => {
-                        localStorage.clear();
-                        localStorage.setItem('WABrowserId', session.WABrowserId);
-                        localStorage.setItem('WASecretBundle', session.WASecretBundle);
-                        localStorage.setItem('WAToken1', session.WAToken1);
-                        localStorage.setItem('WAToken2', session.WAToken2);
-                    }, this.options.session);
-            }
+                await page.evaluateOnNewDocument(session => {
+                      if (document.referrer === 'https://whatsapp.com/') {
+                          localStorage.clear();
+                          localStorage.setItem('WABrowserId', session.WABrowserId);
+                          localStorage.setItem('WASecretBundle', session.WASecretBundle);
+                          localStorage.setItem('WAToken1', session.WAToken1);
+                          localStorage.setItem('WAToken2', session.WAToken2);
+                      }
+                }, this.options.session);
         }
 
         if (this.options.bypassCSP) {
@@ -122,6 +121,7 @@ class Client extends EventEmitter {
         await page.goto(WhatsWebURL, {
             waitUntil: 'load',
             timeout: 0,
+            referer: 'https://whatsapp.com/'
         });
 
         const INTRO_IMG_SELECTOR = '[data-testid="intro-md-beta-logo-dark"], [data-testid="intro-md-beta-logo-light"], [data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
@@ -148,7 +148,6 @@ class Client extends EventEmitter {
         if (needAuthentication) {
             const QR_CONTAINER = 'div[data-ref]';
             const QR_RETRY_BUTTON = 'div[data-ref] > span > button';
-
             let qrRetries = 0;
             await page.exposeFunction('qrChanged', async (qr) => {
                 this.emit(Events.QR_RECEIVED, qr);
@@ -190,7 +189,23 @@ class Client extends EventEmitter {
             });
 
             // Wait for code scan
-            await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: 0 });
+            try {
+               await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: 0 });
+                clearInterval(this._qrRefreshInterval);
+                this._qrRefreshInterval = undefined;
+            } catch(error) {
+                if (
+                    error.name === 'ProtocolError' && 
+                    error.message && 
+                    error.message.match(/Target closed/)
+                ) {
+                    // something has called .destroy() while waiting
+                    return;
+                }
+
+                throw error;
+            }
+
         }
 
         await page.evaluate(ExposeStore, moduleRaid.toString());
@@ -252,8 +267,6 @@ class Client extends EventEmitter {
 
         // Register events
         await page.exposeFunction('onAddMessageEvent', msg => {
-            if (!msg.isNewMsg) return;
-
             if (msg.type === 'gp2') {
                 const notification = new GroupNotification(this, msg);
                 if (msg.subtype === 'add' || msg.subtype === 'invite') {
@@ -423,7 +436,6 @@ class Client extends EventEmitter {
         });
 
         await page.evaluate(() => {
-            window.Store.Msg.on('add', (msg) => { if (msg.isNewMsg) window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:ack', (msg, ack) => { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
@@ -431,6 +443,16 @@ class Client extends EventEmitter {
             window.Store.Msg.on('remove', (msg) => { if (msg.isNewMsg) window.onRemoveMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
             window.Store.Call.on('add', (call) => { window.onIncomingCall(call); });
+            window.Store.Msg.on('add', (msg) => { 
+                if (msg.isNewMsg) {
+                    if(msg.type === 'ciphertext') {
+                        // defer message event until ciphertext is resolved (type changed)
+                        msg.once('change:type', (_msg) => window.onAddMessageEvent(window.WWebJS.getMessageModel(_msg)));
+                    } else {
+                        window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); 
+                    }
+                }
+            });
         });
 
         /**
@@ -439,11 +461,13 @@ class Client extends EventEmitter {
          */
         this.emit(Events.READY);
 
-        // Disconnect when navigating away
-        // Because WhatsApp Web now reloads when logging out from the device, this also covers that case
+        // Disconnect when navigating away when in PAIRING state (detect logout)
         this.pupPage.on('framenavigated', async () => {
-            this.emit(Events.DISCONNECTED, 'NAVIGATION');
-            await this.destroy();
+            const appState = await this.getState();
+            if(!appState || appState === WAState.PAIRING) {
+                this.emit(Events.DISCONNECTED, 'NAVIGATION');
+                await this.destroy();
+            }
         });
     }
 
@@ -529,7 +553,7 @@ class Client extends EventEmitter {
             quotedMessageId: options.quotedMessageId,
             parseVCards: options.parseVCards === false ? false : true,
             mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact => contact.id._serialized) : [],
-            ...options.extra
+            extraOptions: options.extra
         };
 
         const sendSeen = typeof options.sendSeen === 'undefined' ? true : options.sendSeen;
@@ -726,6 +750,7 @@ class Client extends EventEmitter {
      */
     async getState() {
         return await this.pupPage.evaluate(() => {
+            if(!window.Store) return null;
             return window.Store.AppState.state;
         });
     }
@@ -756,7 +781,7 @@ class Client extends EventEmitter {
         return await this.pupPage.evaluate(async chatId => {
             let chat = await window.Store.Chat.get(chatId);
             await window.Store.Cmd.archiveChat(chat, true);
-            return chat.archive;
+            return true;
         }, chatId);
     }
 
@@ -768,7 +793,7 @@ class Client extends EventEmitter {
         return await this.pupPage.evaluate(async chatId => {
             let chat = await window.Store.Chat.get(chatId);
             await window.Store.Cmd.archiveChat(chat, false);
-            return chat.archive;
+            return false;
         }, chatId);
     }
 
