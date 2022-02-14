@@ -184,7 +184,7 @@ exports.LoadUtils = () => {
                 options = { ...options, ...preview };
             }
         }
-        let extraOptions = {};
+        
         let buttonOptions = {};
         if(options.buttons){
             let caption;
