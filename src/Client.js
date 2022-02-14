@@ -469,7 +469,7 @@ class Client extends EventEmitter {
                 await this.destroy();
             }
         });
-    }
+    }}
 
     /**
      * Closes the client
