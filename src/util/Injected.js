@@ -8,7 +8,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store = Object.assign({}, window.mR.findModule(m => m.default && m.default.Chat)[0].default);
     window.Store.AppState = window.mR.findModule('STREAM')[0].Socket;
     window.Store.Conn = window.mR.findModule('Conn')[0].Conn;
-    window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
     window.Store.Wap = window.mR.findModule('queryLinkPreview')[0].default;
     window.Store.SendSeen = window.mR.findModule('sendSeen')[0];
     window.Store.SendClear = window.mR.findModule('sendClear')[0];
@@ -31,7 +30,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.BlockContact = window.mR.findModule('blockContact')[0];
     window.Store.GroupMetadata = window.mR.findModule((module) => module.default && module.default.handlePendingInvite)[0].default;
     window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
-    window.Store.Label = window.mR.findModule('LabelCollection')[0].default;
+    window.Store.Label = window.mR.findModule('LabelCollection')[0].LabelCollection;
     window.Store.Features = window.mR.findModule('FEATURE_CHANGE_EVENT')[0].GK;
     window.Store.QueryOrder = window.mR.findModule('queryOrder')[0];
     window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
@@ -154,7 +153,7 @@ exports.LoadUtils = () => {
             }
         }
         
-        let extraOptions = {};
+        let buttonOptions = {};
         if(options.buttons){
             let caption;
             if(options.buttons.type === 'chat') {
@@ -163,7 +162,7 @@ exports.LoadUtils = () => {
             }else{
                 caption = options.caption ? options.caption : ' '; //Caption can't be empty
             }
-            extraOptions = {
+            buttonOptions = {
                 productHeaderImageRejected: false,
                 isFromTemplate: false,
                 isDynamicReplyButtonsMsg: true,
@@ -176,12 +175,12 @@ exports.LoadUtils = () => {
             delete options.buttons;
         }
 
+        let listOptions = {};
         if(options.list){
             if(window.Store.Conn.platform === 'smba' || window.Store.Conn.platform === 'smbi'){
                 throw '[LT01] Whatsapp business can\'t send this yet';
             }
-            extraOptions = {
-                ...extraOptions,
+            listOptions = {
                 type: 'list',
                 footer: options.list.footer,
                 list: {
@@ -191,7 +190,7 @@ exports.LoadUtils = () => {
                 body: options.list.description
             };
             delete options.list;
-            delete extraOptions.list.footer;
+            delete listOptions.list.footer;
         }
                 
         const newMsgId = new window.Store.MsgKey({
@@ -199,6 +198,15 @@ exports.LoadUtils = () => {
             remote: chat.id,
             id: window.Store.genId(),
         });
+
+        const extraOptions = options.extraOptions || {};
+        delete options.extraOptions;
+
+        const ephemeralSettings = {
+            ephemeralDuration: chat.isEphemeralSettingOn() ? chat.getEphemeralSetting() : undefined,
+            ephemeralSettingTimestamp: chat.getEphemeralSettingTimestamp() || undefined,
+            disappearingModeInitiator: chat.getDisappearingModeInitiator() || undefined,
+        };
 
         const message = {
             ...options,
@@ -212,10 +220,13 @@ exports.LoadUtils = () => {
             t: parseInt(new Date().getTime() / 1000),
             isNewMsg: true,
             type: 'chat',
+            ...ephemeralSettings,
             ...locationOptions,
             ...attOptions,
             ...quotedMsgOptions,
             ...vcardOptions,
+            ...buttonOptions,
+            ...listOptions,
             ...extraOptions
         };
 
@@ -314,6 +325,7 @@ exports.LoadUtils = () => {
     window.WWebJS.getMessageModel = message => {
         const msg = message.serialize();
         
+        msg.isEphemeral = message.isEphemeral;
         msg.isStatusV3 = message.isStatusV3;
         msg.links = (message.getLinks()).map(link => ({ 
             link: link.href, 
