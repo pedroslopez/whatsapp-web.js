@@ -531,7 +531,8 @@ declare namespace WAWebJS {
      *   fromMe: false,
      *   hasQuotedMsg: false,
      *   location: undefined,
-     *   mentionedIds: []
+     *   mentionedIds: [],
+     *   raw: {}
      * }
      */
     export interface Message {
@@ -576,6 +577,8 @@ declare namespace WAWebJS {
         inviteV4?: InviteV4Data,
         /** MediaKey that represents the sticker 'ID' */
         mediaKey?: string,
+        /** Containing all the message data. */
+        raw: object,
         /** Indicates the mentions in the message body. */
         mentionedIds: [],
         /** Unix timestamp for when the message was created */
