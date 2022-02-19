@@ -7,7 +7,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.mR = moduleRaid();
     window.Store = Object.assign({}, window.mR.findModule(m => m.default && m.default.Chat)[0].default);
     window.Store.AppState = window.mR.findModule('STREAM')[0].Socket;
-    window.Store.Conn = window.mR.findModule('Conn').find(a => typeof a.Conn != 'undefined').Conn;
+    window.Store.Conn = window.mR.findModule('Conn')[0].Conn;
     window.Store.BlockContact = window.mR.findModule('blockContact')[0];
     window.Store.Call = window.mR.findModule('CallCollection')[0].CallCollection;
     window.Store.Cmd = window.mR.findModule('Cmd')[0].Cmd;
@@ -17,7 +17,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.genId = window.mR.findModule('randomId')[0].randomId;
     window.Store.GroupMetadata = window.mR.findModule((module) => module.default && module.default.handlePendingInvite)[0].default;
     window.Store.Invite = window.mR.findModule('sendJoinGroupViaInvite')[0];
-    window.Store.Label = window.mR.findModule('LabelCollection')[0].default;
+    window.Store.Label = window.mR.findModule('LabelCollection')[0].LabelCollection;
     window.Store.MediaPrep = window.mR.findModule('MediaPrep')[0];
     window.Store.MediaObject = window.mR.findModule('getOrCreateMediaObject')[0];
     window.Store.NumberInfo = window.mR.findModule('formattedPhoneNumber')[0];
