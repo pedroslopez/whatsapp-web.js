@@ -26,9 +26,10 @@ describe('Group', function() {
             expect(group.name).to.equal('My Awesome Group');
             await group.setSubject('My Amazing Group');
 
+            await helper.sleep(1000);
+
             // reload
             group = await client.getChatById(group.id._serialized); 
-
             expect(group.name).to.equal('My Amazing Group');
         });
     });
