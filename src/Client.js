@@ -97,22 +97,18 @@ class Client extends EventEmitter {
         this.pupPage = page;
 
         if (this.options.useDeprecatedSessionAuth && this.options.session) {
-            // remember me
-            await page.evaluateOnNewDocument(() => {
+            await page.evaluateOnNewDocument(session => {
+                // remember me
                 localStorage.setItem('remember-me', 'true');
-            });
 
-            if (this.options.session) {
-                await page.evaluateOnNewDocument(session => {
-                    if (document.referrer === 'https://whatsapp.com/') {
-                        localStorage.clear();
-                        localStorage.setItem('WABrowserId', session.WABrowserId);
-                        localStorage.setItem('WASecretBundle', session.WASecretBundle);
-                        localStorage.setItem('WAToken1', session.WAToken1);
-                        localStorage.setItem('WAToken2', session.WAToken2);
-                    }
-                }, this.options.session);
-            }
+                if (document.referrer === 'https://whatsapp.com/') {
+                    localStorage.clear();
+                    localStorage.setItem('WABrowserId', session.WABrowserId);
+                    localStorage.setItem('WASecretBundle', session.WASecretBundle);
+                    localStorage.setItem('WAToken1', session.WAToken1);
+                    localStorage.setItem('WAToken2', session.WAToken2);
+                }
+            }, this.options.session);
         }
 
         if (this.options.bypassCSP) {
@@ -142,11 +138,28 @@ class Client extends EventEmitter {
             })
         ]);
 
-        // Checks if an error ocurred on the first found selector. The second will be discarted and ignored by .race;
+        // Checks if an error ocurred on the first found selector. The second will be discarded and ignored by .race;
         if (needAuthentication instanceof Error) throw needAuthentication;
 
         // Scan-qrcode selector was found. Needs authentication
         if (needAuthentication) {
+            if(this.options.session) {
+                /**
+                 * Emitted when there has been an error while trying to restore an existing session
+                 * @event Client#auth_failure
+                 * @param {string} message
+                 * @deprecated
+                 */
+                this.emit(Events.AUTHENTICATION_FAILURE, 'Unable to log in. Are the session details valid?');
+                await this.destroy();
+                if (this.options.restartOnAuthFail) {
+                    // session restore failed so try again but without session to force new authentication
+                    this.options.session = null;
+                    return this.initialize();
+                }
+                return;
+            }
+
             const QR_CONTAINER = 'div[data-ref]';
             const QR_RETRY_BUTTON = 'div[data-ref] > span > button';
             let qrRetries = 0;

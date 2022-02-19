@@ -13,7 +13,7 @@ describe('Chat', function () {
 
     before(async function() {
         this.timeout(35000);
-        client = helper.createClient({ withSession: true });
+        client = helper.createClient({ authenticated: true });
         await client.initialize();
         chat = await client.getChatById(remoteId);
     });
