@@ -104,13 +104,13 @@ class Client extends EventEmitter {
 
             if (this.options.session) {
                 await page.evaluateOnNewDocument(session => {
-                      if (document.referrer === 'https://whatsapp.com/') {
-                          localStorage.clear();
-                          localStorage.setItem('WABrowserId', session.WABrowserId);
-                          localStorage.setItem('WASecretBundle', session.WASecretBundle);
-                          localStorage.setItem('WAToken1', session.WAToken1);
-                          localStorage.setItem('WAToken2', session.WAToken2);
-                      }
+                    if (document.referrer === 'https://whatsapp.com/') {
+                        localStorage.clear();
+                        localStorage.setItem('WABrowserId', session.WABrowserId);
+                        localStorage.setItem('WASecretBundle', session.WASecretBundle);
+                        localStorage.setItem('WAToken1', session.WAToken1);
+                        localStorage.setItem('WAToken2', session.WAToken2);
+                    }
                 }, this.options.session);
             }
         }
@@ -191,7 +191,7 @@ class Client extends EventEmitter {
 
             // Wait for code scan
             try {
-               await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: 0 });
+                await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: 0 });
                 clearInterval(this._qrRefreshInterval);
                 this._qrRefreshInterval = undefined;
             } catch(error) {
