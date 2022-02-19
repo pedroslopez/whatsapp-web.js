@@ -446,7 +446,6 @@ declare namespace WAWebJS {
         LIST = 'list',
         LIST_RESPONSE = 'list_response',
         BUTTONS_RESPONSE = 'buttons_response',
-        PAYMENT = 'payment',
         BROADCAST_NOTIFICATION = 'broadcast_notification',
         CALL_LOG = 'call_log',
         CIPHERTEXT = 'ciphertext',
