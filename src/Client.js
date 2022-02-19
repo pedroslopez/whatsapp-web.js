@@ -98,9 +98,6 @@ class Client extends EventEmitter {
 
         if (this.options.useDeprecatedSessionAuth && this.options.session) {
             await page.evaluateOnNewDocument(session => {
-                // remember me
-                localStorage.setItem('remember-me', 'true');
-
                 if (document.referrer === 'https://whatsapp.com/') {
                     localStorage.clear();
                     localStorage.setItem('WABrowserId', session.WABrowserId);
@@ -108,6 +105,8 @@ class Client extends EventEmitter {
                     localStorage.setItem('WAToken1', session.WAToken1);
                     localStorage.setItem('WAToken2', session.WAToken2);
                 }
+
+                localStorage.setItem('remember-me', 'true');
             }, this.options.session);
         }
 
