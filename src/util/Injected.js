@@ -14,7 +14,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
     window.Store.DownloadManager = window.mR.findModule('downloadManager')[0].downloadManager;
     window.Store.Features = window.mR.findModule('FEATURE_CHANGE_EVENT')[0].GK;
-    window.Store.genId = window.mR.findModule('randomId')[0].randomId;
+    window.Store.genId = window.mR.findModule('newTag')[0].newTag;
     window.Store.GroupMetadata = window.mR.findModule((module) => module.default && module.default.handlePendingInvite)[0].default;
     window.Store.Invite = window.mR.findModule('sendJoinGroupViaInvite')[0];
     window.Store.Label = window.mR.findModule('LabelCollection')[0].LabelCollection;
@@ -225,10 +225,15 @@ exports.LoadUtils = () => {
             delete listOptions.list.footer;
         }
 
+        const meUser = window.Store.User.getMaybeMeUser();
+        const isMD = window.Store.Features.features.MD_BACKEND;
+
         const newMsgId = new window.Store.MsgKey({
-            fromMe: true,
-            remote: chat.id,
+            from: meUser,
+            to: chat.id,
             id: window.Store.genId(),
+            participant: isMD && chat.id.isGroup() ? meUser : undefined,
+            selfDir: 'out',
         });
 
         const extraOptions = options.extraOptions || {};
@@ -245,7 +250,7 @@ exports.LoadUtils = () => {
             id: newMsgId,
             ack: 0,
             body: content,
-            from: window.Store.User.getMeUser(),
+            from: meUser,
             to: chat.id,
             local: true,
             self: 'out',
