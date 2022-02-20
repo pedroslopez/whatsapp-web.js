@@ -252,6 +252,7 @@ describe('Client', function() {
                     'MediaPrep',
                     'MediaTypes',
                     'MediaUpload',
+                    'MessageInfo',
                     'Msg',
                     'MsgKey',
                     'OpaqueData',
