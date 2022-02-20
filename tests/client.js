@@ -265,6 +265,7 @@ describe('Client', function() {
                     'SendDelete',
                     'SendMessage',
                     'SendSeen',
+                    'StatusUtils',
                     'Sticker',
                     'UploadUtils',
                     'UserConstructor',

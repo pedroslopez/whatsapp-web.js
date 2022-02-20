@@ -183,7 +183,8 @@ class Contact extends Base {
      */
     async getAbout() {
         const about = await this.client.pupPage.evaluate(async (contactId) => {
-            return window.Store.Wap.statusFind(contactId);
+            const wid = window.Store.WidFactory.createWid(contactId);
+            return window.Store.StatusUtils.getStatus(wid);
         }, this.id._serialized);
 
         if (typeof about.status !== 'string')

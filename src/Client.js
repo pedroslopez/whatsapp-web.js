@@ -742,7 +742,7 @@ class Client extends EventEmitter {
      */
     async setStatus(status) {
         await this.pupPage.evaluate(async status => {
-            return await window.Store.Wap.sendSetStatus(status);
+            return await window.Store.StatusUtils.setMyStatus(status);
         }, status);
     }
 
