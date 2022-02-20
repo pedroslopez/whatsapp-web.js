@@ -197,25 +197,25 @@ class GroupChat extends Chat {
      * @returns {Promise<string>} Group's invite code
      */
     async getInviteCode() {
-        let res = await this.client.pupPage.evaluate(chatId => {
-            return window.Store.Wap.groupInviteCode(chatId);
+        const code = await this.client.pupPage.evaluate(async chatId => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            return window.Store.Invite.sendQueryGroupInviteCode(chatWid);
         }, this.id._serialized);
 
-        if (res.status == 200) {
-            return res.code;
-        } 
-
-        throw new Error('Not authorized');
+        return code;
     }
     
     /**
      * Invalidates the current group invite code and generates a new one
-     * @returns {Promise}
+     * @returns {Promise<string>} New invite code
      */
     async revokeInvite() {
-        return await this.client.pupPage.evaluate(chatId => {
-            return window.Store.Wap.revokeGroupInvite(chatId);
+        const code = await this.client.pupPage.evaluate(chatId => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            return window.Store.Invite.sendRevokeGroupInviteCode(chatWid);
         }, this.id._serialized);
+        
+        return code;
     }
 
     /**

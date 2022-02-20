@@ -92,6 +92,20 @@ describe('Group', function() {
         });
     });
 
+    describe('Invites', function () {
+        it('can get the invite code', async function () {
+            const code = await group.getInviteCode();
+            expect(typeof code).to.equal('string');
+        });
+
+        it('can revoke the invite code', async function () {
+            const code = await group.getInviteCode();
+            const newCode = await group.revokeInvite();
+            expect(typeof newCode).to.equal('string');
+            expect(newCode).to.not.equal(code);
+        });
+    });
+
     describe('Participants', function () {
         it('can promote a user to admin', async function () {
             let participant = group.participants.find(p => p.id._serialized === remoteId);
