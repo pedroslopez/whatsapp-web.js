@@ -21,6 +21,10 @@ describe('Group', function() {
         expect(group).to.exist;
     });
 
+    beforeEach(async function () {
+        await helper.sleep(500);
+    });
+
     describe('Settings', function () {
         it('can change the group subject', async function () {
             expect(group.name).to.equal('My Awesome Group');
@@ -53,6 +57,8 @@ describe('Group', function() {
             expect(res).to.equal(true);
             expect(group.groupMetadata.announce).to.equal(true);
 
+            await helper.sleep(1000);
+
             // reload
             group = await client.getChatById(group.id._serialized);
             expect(group.groupMetadata.announce).to.equal(true);
@@ -63,6 +69,8 @@ describe('Group', function() {
             const res = await group.setMessagesAdminsOnly(false);
             expect(res).to.equal(true);
             expect(group.groupMetadata.announce).to.equal(false);
+
+            await helper.sleep(1000);
 
             // reload
             group = await client.getChatById(group.id._serialized);
@@ -75,6 +83,8 @@ describe('Group', function() {
             expect(res).to.equal(true);
             expect(group.groupMetadata.restrict).to.equal(true);
 
+            await helper.sleep(1000);
+
             // reload
             group = await client.getChatById(group.id._serialized);
             expect(group.groupMetadata.restrict).to.equal(true);
@@ -85,6 +95,8 @@ describe('Group', function() {
             const res = await group.setInfoAdminsOnly(false);
             expect(res).to.equal(true);
             expect(group.groupMetadata.restrict).to.equal(false);
+
+            await helper.sleep(1000);
 
             // reload
             group = await client.getChatById(group.id._serialized);
@@ -172,9 +184,34 @@ describe('Group', function() {
         });
     });
 
+    describe('Leave / re-join', function () {
+        let code;
+        before(async function () {
+            code = await group.getInviteCode();
+        });
+
+        it('can leave the group', async function () {
+            expect(group.isReadOnly).to.equal(false);
+            await group.leave();
+
+            // reload and check
+            group = await client.getChatById(group.id._serialized);
+            expect(group.isReadOnly).to.equal(true);
+        });
+
+        it('can join a group via invite code', async function () {
+            const chatId = await client.acceptInvite(code);
+            expect(chatId).to.equal(group.id._serialized);
+
+            await helper.sleep(1000);
+
+            // reload and check
+            group = await client.getChatById(group.id._serialized);
+            expect(group.isReadOnly).to.equal(false);
+        });
+    });
+
     after(async function () {
-        // const otherParticipants = group.participants.filter(p => !p.isSuperAdmin).map(p => p.id._serialized);
-        // await group.removeParticipants(otherParticipants);
         await client.destroy();
     });
 

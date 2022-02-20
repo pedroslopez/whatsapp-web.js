@@ -57,7 +57,8 @@ exports.ExposeStore = (moduleRaidStr) => {
   
     window.Store.GroupUtils = {
         ...window.mR.findModule('sendCreateGroup')[0],
-        ...window.mR.findModule('sendSetGroupSubject')[0]
+        ...window.mR.findModule('sendSetGroupSubject')[0],
+        ...window.mR.findModule('markExited')[0]
     };
 
     if (!window.Store.Chat._find) {

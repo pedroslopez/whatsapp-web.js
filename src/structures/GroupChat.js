@@ -18,6 +18,12 @@ class GroupChat extends Chat {
     _patch(data) {
         this.groupMetadata = data.groupMetadata;
 
+        /**
+         * Indicates if the Group Chat is read only, such as when the user is no longer a participant
+         * @type {boolean}
+         */
+        this.isReadOnly = data.isReadOnly;
+
         return super._patch(data);
     }
 
@@ -214,7 +220,7 @@ class GroupChat extends Chat {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             return window.Store.Invite.sendRevokeGroupInviteCode(chatWid);
         }, this.id._serialized);
-        
+
         return code;
     }
 
@@ -223,8 +229,9 @@ class GroupChat extends Chat {
      * @returns {Promise}
      */
     async leave() {
-        return await this.client.pupPage.evaluate(chatId => {
-            return window.Store.Wap.leaveGroup(chatId);
+        await this.client.pupPage.evaluate(chatId => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            return window.Store.GroupUtils.sendExitGroup(chatWid);
         }, this.id._serialized);
     }
 
