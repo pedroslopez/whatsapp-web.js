@@ -32,6 +32,50 @@ describe('Group', function() {
             group = await client.getChatById(group.id._serialized); 
             expect(group.name).to.equal('My Amazing Group');
         });
+
+        it('can set only admins able to send messages', async function () {
+            expect(group.groupMetadata.announce).to.equal(false);
+            const res = await group.setMessagesAdminsOnly();
+            expect(res).to.equal(true);
+            expect(group.groupMetadata.announce).to.equal(true);
+
+            // reload
+            group = await client.getChatById(group.id._serialized);
+            expect(group.groupMetadata.announce).to.equal(true);
+        });
+
+        it('can set all participants able to send messages', async function () {
+            expect(group.groupMetadata.announce).to.equal(true);
+            const res = await group.setMessagesAdminsOnly(false);
+            expect(res).to.equal(true);
+            expect(group.groupMetadata.announce).to.equal(false);
+
+            // reload
+            group = await client.getChatById(group.id._serialized);
+            expect(group.groupMetadata.announce).to.equal(false);
+        });
+
+        it('can set only admins able to set group info', async function () {
+            expect(group.groupMetadata.restrict).to.equal(false);
+            const res = await group.setInfoAdminsOnly();
+            expect(res).to.equal(true);
+            expect(group.groupMetadata.restrict).to.equal(true);
+
+            // reload
+            group = await client.getChatById(group.id._serialized);
+            expect(group.groupMetadata.restrict).to.equal(true);
+        });
+
+        it('can set all participants able to set group info', async function () {
+            expect(group.groupMetadata.restrict).to.equal(true);
+            const res = await group.setInfoAdminsOnly(false);
+            expect(res).to.equal(true);
+            expect(group.groupMetadata.restrict).to.equal(false);
+
+            // reload
+            group = await client.getChatById(group.id._serialized);
+            expect(group.groupMetadata.restrict).to.equal(false);
+        });
     });
 
     describe('Participants', function () {
@@ -101,8 +145,8 @@ describe('Group', function() {
     });
 
     after(async function () {
-        const otherParticipants = group.participants.filter(p => !p.isSuperAdmin).map(p => p.id._serialized);
-        await group.removeParticipants(otherParticipants);
+        // const otherParticipants = group.participants.filter(p => !p.isSuperAdmin).map(p => p.id._serialized);
+        // await group.removeParticipants(otherParticipants);
         await client.destroy();
     });
 

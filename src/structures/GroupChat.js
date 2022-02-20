@@ -112,7 +112,8 @@ class GroupChat extends Chat {
      */
     async setSubject(subject) {
         let res = await this.client.pupPage.evaluate((chatId, subject) => {
-            return window.Store.GroupUtils.sendSetGroupSubject(chatId, subject);
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            return window.Store.GroupUtils.sendSetGroupSubject(chatWid, subject);
         }, this.id._serialized, subject);
 
         if(res.status == 200) {
@@ -128,7 +129,7 @@ class GroupChat extends Chat {
     async setDescription(description) {
         let res = await this.client.pupPage.evaluate((chatId, description) => {
             let descId = window.Store.GroupMetadata.get(chatId).descId;
-            return window.Store.Wap.setGroupDescription(chatId, description, window.Store.genId(), descId);
+            return window.Store.GroupUtils.sendSetGroupDescription(chatId, description, window.Store.genId(), descId);
         }, this.id._serialized, description);
 
         if (res.status == 200) {
@@ -142,12 +143,18 @@ class GroupChat extends Chat {
      * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
      */
     async setMessagesAdminsOnly(adminsOnly=true) {
-        let res = await this.client.pupPage.evaluate((chatId, value) => {
-            return window.Store.Wap.setGroupProperty(chatId, 'announcement', value);
+        const success = await this.client.pupPage.evaluate(async (chatId, adminsOnly) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            try {
+                return await window.Store.GroupUtils.sendSetGroupProperty(chatWid, 'announcement', adminsOnly ? 1 : 0);
+            } catch (err) {
+                if(err.name === 'ServerStatusCodeError') return false;
+                throw err;
+            }
         }, this.id._serialized, adminsOnly);
 
-        if (res.status !== 200) return false;
-        
+        if(!success) return false;
+
         this.groupMetadata.announce = adminsOnly;
         return true;
     }
@@ -158,11 +165,17 @@ class GroupChat extends Chat {
      * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
      */
     async setInfoAdminsOnly(adminsOnly=true) {
-        let res = await this.client.pupPage.evaluate((chatId, value) => {
-            return window.Store.Wap.setGroupProperty(chatId, 'restrict', value);
+        const success = await this.client.pupPage.evaluate(async (chatId, adminsOnly) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            try {
+                return await window.Store.GroupUtils.sendSetGroupProperty(chatWid, 'restrict', adminsOnly ? 1 : 0);
+            } catch (err) {
+                if(err.name === 'ServerStatusCodeError') return false;
+                throw err;
+            }
         }, this.id._serialized, adminsOnly);
 
-        if (res.status !== 200) return false;
+        if(!success) return false;
         
         this.groupMetadata.restrict = adminsOnly;
         return true;

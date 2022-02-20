@@ -245,6 +245,7 @@ describe('Client', function() {
                     'Features',
                     'GroupMetadata',
                     'GroupParticipants',
+                    'GroupUtils',
                     'Invite',
                     'JoinInviteV4',
                     'Label',
