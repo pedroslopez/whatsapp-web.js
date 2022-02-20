@@ -24,13 +24,27 @@ describe('Group', function() {
     describe('Settings', function () {
         it('can change the group subject', async function () {
             expect(group.name).to.equal('My Awesome Group');
-            await group.setSubject('My Amazing Group');
+            const res = await group.setSubject('My Amazing Group');
+            expect(res).to.equal(true);
 
             await helper.sleep(1000);
 
             // reload
             group = await client.getChatById(group.id._serialized); 
             expect(group.name).to.equal('My Amazing Group');
+        });
+
+        it('can change the group description', async function () {
+            expect(group.description).to.equal(undefined);
+            const res = await group.setDescription('some description');
+            expect(res).to.equal(true);
+            expect(group.description).to.equal('some description');
+
+            await helper.sleep(1000);
+
+            // reload
+            group = await client.getChatById(group.id._serialized); 
+            expect(group.description).to.equal('some description');
         });
 
         it('can set only admins able to send messages', async function () {

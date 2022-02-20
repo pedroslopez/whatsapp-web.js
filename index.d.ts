@@ -1024,9 +1024,9 @@ declare namespace WAWebJS {
         /** Demotes participants by IDs to regular users */
         demoteParticipants: ChangeParticipantsPermisions;
         /** Updates the group subject */
-        setSubject: (subject: string) => Promise<void>;
+        setSubject: (subject: string) => Promise<boolean>;
         /** Updates the group description */
-        setDescription: (description: string) => Promise<void>;
+        setDescription: (description: string) => Promise<boolean>;
         /** Updates the group settings to only allow admins to send messages 
          * @param {boolean} [adminsOnly=true] Enable or disable this option 
          * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.

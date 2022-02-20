@@ -108,33 +108,44 @@ class GroupChat extends Chat {
     /**
      * Updates the group subject
      * @param {string} subject 
-     * @returns {Promise} 
+     * @returns {Promise<boolean>} Returns true if the subject was properly updated. This can return false if the user does not have the necessary permissions.
      */
     async setSubject(subject) {
-        let res = await this.client.pupPage.evaluate((chatId, subject) => {
+        const success = await this.client.pupPage.evaluate(async (chatId, subject) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            return window.Store.GroupUtils.sendSetGroupSubject(chatWid, subject);
+            try {
+                return await window.Store.GroupUtils.sendSetGroupSubject(chatWid, subject);
+            } catch (err) {
+                if(err.name === 'ServerStatusCodeError') return false;
+                throw err;
+            }
         }, this.id._serialized, subject);
 
-        if(res.status == 200) {
-            this.name = subject;
-        }
+        if(!success) return false;
+        this.name = subject;
+        return true;
     }
 
     /**
      * Updates the group description
      * @param {string} description 
-     * @returns {Promise} 
+     * @returns {Promise<boolean>} Returns true if the description was properly updated. This can return false if the user does not have the necessary permissions.
      */
     async setDescription(description) {
-        let res = await this.client.pupPage.evaluate((chatId, description) => {
-            let descId = window.Store.GroupMetadata.get(chatId).descId;
-            return window.Store.GroupUtils.sendSetGroupDescription(chatId, description, window.Store.genId(), descId);
+        const success = await this.client.pupPage.evaluate(async (chatId, description) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            let descId = window.Store.GroupMetadata.get(chatWid).descId;
+            try {
+                return await window.Store.GroupUtils.sendSetGroupDescription(chatWid, description, window.Store.genId(), descId);
+            } catch (err) {
+                if(err.name === 'ServerStatusCodeError') return false;
+                throw err;
+            }
         }, this.id._serialized, description);
 
-        if (res.status == 200) {
-            this.groupMetadata.desc = description;
-        }
+        if(!success) return false;
+        this.groupMetadata.desc = description;
+        return true;
     }
 
     /**
