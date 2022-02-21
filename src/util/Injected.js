@@ -26,7 +26,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
     window.Store.MessageInfo = window.mR.findModule('sendQueryMsgInfo')[0];
     window.Store.OpaqueData = window.mR.findModule(module => module.default && module.default.createFromData)[0].default;
-    window.Store.QueryExist = window.mR.findModule('queryExist')[0].queryExist;
+    window.Store.QueryExist = window.mR.findModule(module => typeof module.default === 'function' && module.default.toString().includes('Should not reach queryExists MD'))[0].default;
     window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
     window.Store.QueryOrder = window.mR.findModule('queryOrder')[0];
     window.Store.SendClear = window.mR.findModule('sendClear')[0];
@@ -73,25 +73,6 @@ exports.ExposeStore = (moduleRaidStr) => {
 
 exports.LoadUtils = () => {
     window.WWebJS = {};
-
-    window.WWebJS.getNumberId = async (id) => {
-
-        if (window.Store.Features.features.MD_BACKEND) {
-            id = window.Store.WidFactory.createWid(id);
-            let handler = (new window.Store.USyncQuery).withContactProtocol();
-            handler = handler.withUser((new window.Store.USyncUser).withId(id), handler.withDeviceProtocol(), 1);
-            let result = await handler.execute();
-            if (result.list[0].devices.deviceList.length > 0) {
-                return id;
-            }
-            throw 'The number provided is not a registered whatsapp user';
-        } else {
-            let result = await window.Store.Wap.queryExist(id);
-            if (result.jid === undefined)
-                throw 'The number provided is not a registered whatsapp user';
-            return result.jid;
-        }
-    };
 
     window.WWebJS.sendSeen = async (chatId) => {
         let chat = window.Store.Chat.get(chatId);

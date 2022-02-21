@@ -946,21 +946,7 @@ class Client extends EventEmitter {
      * @returns {Promise<Boolean>}
      */
     async isRegisteredUser(id) {
-        if (!id.endsWith('@c.us')) {
-            id += '@c.us';
-        }
-        return await this.pupPage.evaluate(async (id) => {
-            if (window.Store.Features.features.MD_BACKEND) {
-                id = window.Store.WidFactory.createWid(id);
-                let handler = (new window.Store.USyncQuery).withContactProtocol();
-                handler = handler.withUser((new window.Store.USyncUser).withId(id), handler.withDeviceProtocol(), 1);
-                let result = await handler.execute();
-                return result.list[0].devices.deviceList.length > 0;
-            } else {
-                let result = await window.Store.Wap.queryExist(id);
-                return result.jid !== undefined;
-            }
-        }, id);
+        return Boolean(await this.getNumberId(id));
     }
 
     /**
@@ -973,13 +959,12 @@ class Client extends EventEmitter {
         if (!number.endsWith('@c.us')) {
             number += '@c.us';
         }
-        try {
-            return await this.pupPage.evaluate(async numberId => {
-                return window.WWebJS.getNumberId(numberId);
-            }, number);
-        } catch (_) {
-            return null;
-        }
+
+        return await this.pupPage.evaluate(async number => {
+            const result = await window.Store.QueryExist(number);
+            if (!result || result.wid === undefined) return null;
+            return result.wid;
+        }, number);
     }
 
     /**
