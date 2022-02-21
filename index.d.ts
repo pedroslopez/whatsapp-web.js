@@ -638,6 +638,8 @@ declare namespace WAWebJS {
         selectedButtonId?: string,
         /** Selected list row ID */
         selectedRowId?: string,
+        /** Returns message in a raw format */
+        rawData: object,
         /** Accept the Group V4 Invite in message */
         acceptGroupV4Invite: () => Promise<{status: number}>,
         /** Deletes the message from the chat */
@@ -658,10 +660,6 @@ declare namespace WAWebJS {
          * If not, it will send the message in the same Chat as the original message was sent. 
          */
         reply: (content: MessageContent, chatId?: string, options?: MessageSendOptions) => Promise<Message>,
-         /**
-          * Returns message in a raw format
-          */
-        raw: () => unknown,
         /** 
          * Forwards this message to another chat
          */

@@ -19,11 +19,7 @@ class Message extends Base {
     }
 
     _patch(data) {
-        /**
-         * Raw message data
-         * @type {unknown}
-         */
-        this.data = data;
+        this._data = data;
         
         /**
          * MediaKey that represents the sticker 'ID'
@@ -260,10 +256,10 @@ class Message extends Base {
 
     /**
      * Returns message in a raw format
-     * @returns {Object}
+     * @type {Object}
      */
-    raw() {
-        return this.data;
+    get rawData() {
+        return this._data;
     }
     
     /**
