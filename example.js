@@ -1,7 +1,7 @@
-const { Client, Location, List, Buttons } = require('./index');
+const { Client, Location, List, Buttons, LocalAuth } = require('./index');
 
 const client = new Client({ 
-    clientId: 'example',
+    authStrategy: new LocalAuth({ clientId: 'example' }),
     puppeteer: { headless: false }
 });
 

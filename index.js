@@ -21,5 +21,10 @@ module.exports = {
     ProductMetadata: require('./src/structures/ProductMetadata'),
     List: require('./src/structures/List'),
     Buttons: require('./src/structures/Buttons'),
+    
+    // Auth Strategies
+    LocalAuth: require('./src/authStrategies/LocalAuth'),
+    LegacySessionAuth: require('./src/authStrategies/LegacySessionAuth'),
+    
     ...Constants
 };
