@@ -761,11 +761,22 @@ class Client extends EventEmitter {
      * Sets the current user's display name. 
      * This is the name shown to WhatsApp users that have not added you as a contact beside your number in groups and in your profile.
      * @param {string} displayName New display name
+     * @returns {Promise<Boolean>}
      */
     async setDisplayName(displayName) {
-        await this.pupPage.evaluate(async displayName => {
-            return await window.Store.Wap.setPushname(displayName);
+        const couldSet = await this.pupPage.evaluate(async displayName => {
+            if(!window.Store.Conn.canSetMyPushname()) return false;
+
+            if(window.Store.Features.features.MD_BACKEND) {
+                // TODO
+                return false;
+            } else {
+                const res = await window.Store.Wap.setPushname(displayName);
+                return !res.status || res.status === 200;
+            }
         }, displayName);
+
+        return couldSet;
     }
 
     /**
