@@ -162,6 +162,11 @@ class Client extends EventEmitter {
             const QR_RETRY_BUTTON = 'div[data-ref] > span > button';
             let qrRetries = 0;
             await page.exposeFunction('qrChanged', async (qr) => {
+                /**
+                * Emitted when a QR code is received
+                * @event Client#qr
+                * @param {string} qr QR Code
+                */
                 this.emit(Events.QR_RECEIVED, qr);
                 if (this.options.qrMaxRetries > 0) {
                     qrRetries++;
