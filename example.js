@@ -1,6 +1,9 @@
 const { Client, Location, List, Buttons } = require('./index');
 
-const client = new Client({ puppeteer: { headless: false, args: ['--no-sandbox'] }, clientId: 'example', disableMessageHistory: false });
+const client = new Client({ 
+    clientId: 'example',
+    puppeteer: { headless: false }
+});
 
 // You also could connect to an existing instance of a browser
 // { 
@@ -21,7 +24,7 @@ client.on('authenticated', () => {
 });
 
 client.on('auth_failure', msg => {
-    // Fired if session restore was unsuccessfull
+    // Fired if session restore was unsuccessful
     console.error('AUTHENTICATION FAILURE', msg);
 });
 

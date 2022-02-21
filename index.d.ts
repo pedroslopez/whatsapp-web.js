@@ -160,6 +160,12 @@ declare namespace WAWebJS {
             session?: ClientSession
         ) => void): this
 
+        /** 
+         * Emitted when the battery percentage for the attached device changes
+         * @deprecated 
+         */
+        on(event: 'change_battery', listener: (batteryInfo: BatteryInfo) => void): this
+
         /** Emitted when the connection state changes */
         on(event: 'change_state', listener: (
             /** the new connection state */
@@ -254,13 +260,24 @@ declare namespace WAWebJS {
     export interface ClientInfo {
         /** Current user ID */
         wid: ContactId
+        /** 
+         * Information about the phone this client is connected to.  Not available in multi-device. 
+         * @deprecated 
+         */
+        phone: ClientInfoPhone
         /** Platform the phone is running on */
         platform: string
         /** Name configured to be shown in push notifications */
         pushname: string
+
+        /** Get current battery percentage and charging status for the attached device */
+        getBatteryStatus: () => Promise<BatteryInfo>
     }
 
-    /** Information about the phone this client is connected to */
+    /** 
+     * Information about the phone this client is connected to 
+     * @deprecated
+     */
     export interface ClientInfoPhone {
         /** WhatsApp Version running on the phone */
         wa_version: string
@@ -318,9 +335,6 @@ declare namespace WAWebJS {
         /** Ffmpeg path to use when formating videos to webp while sending stickers 
          * @default 'ffmpeg' */
         ffmpegPath?: string
-        /** Remove message history thus saving you a lot of storage space.
-         @default false */
-        disableMessageHistory?: boolean
         /** Path to place session objects in
          @default './WWebJS'   */
         dataPath?: string
@@ -335,6 +349,16 @@ declare namespace WAWebJS {
         WASecretBundle: string,
         WAToken1: string,
         WAToken2: string,
+    }
+
+    /** 
+     * @deprecated
+     */
+    export interface BatteryInfo {
+        /** The current battery percentage */
+        battery: number,
+        /** Indicates if the phone is plugged in (true) or not (false) */
+        plugged: boolean,
     }
 
     export interface CreateGroupResult {

@@ -30,7 +30,6 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification,
  * @param {string} options.ffmpegPath - Ffmpeg path to use when formating videos to webp while sending stickers 
  * @param {boolean} options.bypassCSP - Sets bypassing of page's Content-Security-Policy.
  * @param {string} options.clientId - Client id to distinguish instances if you are using multiple, otherwise keep null if you are using only one instance
- * @param {boolean} options.disableMessageHistory - Remove message history thus saving you a lot of storage space.
  * 
  * @fires Client#qr
  * @fires Client#authenticated
@@ -204,8 +203,6 @@ class Client extends EventEmitter {
             // Wait for code scan
             try {
                 await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: 0 });
-                clearInterval(this._qrRefreshInterval);
-                this._qrRefreshInterval = undefined;
             } catch(error) {
                 if (
                     error.name === 'ProtocolError' && 
