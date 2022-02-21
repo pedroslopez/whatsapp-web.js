@@ -274,31 +274,13 @@ exports.LoadUtils = () => {
         return window.Store.Msg.get(newMsgId._serialized);
     };
 
-    window.WWebJS.toStickerData = async ({ data, mimetype }, { name, author, categories }) => {
+    window.WWebJS.toStickerData = async (mediaInfo) => {
+        if (mediaInfo.mimetype == 'image/webp') return mediaInfo;
 
-        if (mimetype == 'image/webp') return {data, mimetype};
-
-
-        const binaryData = atob(data);
-
-        const buffer = new ArrayBuffer(binaryData.length);
-        const view = new Uint8Array(buffer);
-        for (let i = 0; i < binaryData.length; i++) {
-            view[i] = binaryData.charCodeAt(i);
-        }
-
-        const array = await (await window.Store.StickerTools.toWebpSticker(new Blob([buffer], { type: mimetype }))).arrayBuffer();
-
-        const webpBuffer = await window.Store.StickerTools.addWebpMetadata(array, {
-            emojis: categories || [],
-            stickerPackPublisher: author || 'WhatsApp Sticker Maker',
-            stickerPackName: name || ''
-        });
-
-
-        let TYPED_ARRAY = new Uint8Array(webpBuffer);
-        const STRING_CHAR = String.fromCharCode.apply(null, TYPED_ARRAY);
-        data = btoa(STRING_CHAR);
+        const file = window.WWebJS.mediaInfoToFile(mediaInfo);
+        const webpSticker = await window.Store.StickerTools.toWebpSticker(file);
+        const webpBuffer = await webpSticker.arrayBuffer();
+        const data = window.WWebJS.arrayBufferToBase64(webpBuffer);
 
         return {
             mimetype: 'image/webp',
@@ -488,7 +470,7 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.mediaInfoToFile = ({ data, mimetype, filename }) => {
-        const binaryData = atob(data);
+        const binaryData = window.atob(data);
 
         const buffer = new ArrayBuffer(binaryData.length);
         const view = new Uint8Array(buffer);

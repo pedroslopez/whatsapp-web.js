@@ -616,21 +616,13 @@ class Client extends EventEmitter {
         }
 
         if (internalOptions.sendMediaAsSticker && internalOptions.attachment) {
-            if (internalOptions.attachment.mimetype.startsWith('image')) {
-                internalOptions.attachment = await this.pupPage.evaluate(async (attachment, metadata) => {
-                    return await window.WWebJS.toStickerData(attachment, metadata);
-                }, internalOptions.attachment, {
+            internalOptions.attachment = await Util.formatToWebpSticker(
+                internalOptions.attachment, {
                     name: options.stickerName,
                     author: options.stickerAuthor,
                     categories: options.stickerCategories
-                });
-            } else {
-                internalOptions.attachment = await Util.formatToWebpSticker(internalOptions.attachment, {
-                    name: options.stickerName,
-                    author: options.stickerAuthor,
-                    categories: options.stickerCategories
-                });
-            }
+                }, this.pupPage
+            );
         }
 
         const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {

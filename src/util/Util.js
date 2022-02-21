@@ -13,11 +13,9 @@ const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
  * Utility methods
  */
 class Util {
-
     constructor() {
         throw new Error(`The ${this.constructor.name} class may not be instantiated.`);
     }
-
 
     static generateHash(length) {
         var result = '';
@@ -47,6 +45,25 @@ class Util {
         }
 
         return given;
+    }
+
+    /**
+     * Formats a image to webp
+     * @param {MessageMedia} media
+     * 
+     * @returns {Promise<MessageMedia>} media in webp format
+     */
+    static async formatImageToWebpSticker(media, pupPage) {
+        if (!media.mimetype.includes('image'))
+            throw new Error('media is not a image');
+
+        if (media.mimetype.includes('webp')) {
+            return media;
+        }
+
+        return pupPage.evaluate((media) => {
+            return window.WWebJS.toStickerData(media);
+        }, media);
     }
 
     /**
@@ -128,11 +145,11 @@ class Util {
      * 
      * @returns {Promise<MessageMedia>} media in webp format
      */
-    static async formatToWebpSticker(media, metadata) {
+    static async formatToWebpSticker(media, metadata, pupPage) {
         let webpMedia;
 
         if (media.mimetype.includes('image'))
-            return media;
+            webpMedia = await this.formatImageToWebpSticker(media, pupPage);
         else if (media.mimetype.includes('video'))
             webpMedia = await this.formatVideoToWebpSticker(media);
         else
