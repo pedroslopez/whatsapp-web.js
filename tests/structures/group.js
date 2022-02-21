@@ -110,6 +110,13 @@ describe('Group', function() {
             expect(typeof code).to.equal('string');
         });
 
+        it('can get invite info', async function () {
+            const code = await group.getInviteCode();
+            const info = await client.getInviteInfo(code);
+            expect(info.id._serialized).to.equal(group.id._serialized);
+            expect(info.participants.length).to.equal(2);
+        });
+
         it('can revoke the invite code', async function () {
             const code = await group.getInviteCode();
             const newCode = await group.revokeInvite();

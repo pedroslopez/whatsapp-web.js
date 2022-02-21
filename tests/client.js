@@ -247,6 +247,7 @@ describe('Client', function() {
                     'GroupParticipants',
                     'GroupUtils',
                     'Invite',
+                    'InviteInfo',
                     'JoinInviteV4',
                     'Label',
                     'MediaObject',

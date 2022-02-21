@@ -716,7 +716,7 @@ class Client extends EventEmitter {
      */
     async getInviteInfo(inviteCode) {
         return await this.pupPage.evaluate(inviteCode => {
-            return window.Store.Wap.groupInviteInfo(inviteCode);
+            return window.Store.InviteInfo.sendQueryGroupInvite(inviteCode);
         }, inviteCode);
     }
 
