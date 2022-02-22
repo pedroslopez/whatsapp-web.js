@@ -834,7 +834,9 @@ declare namespace WAWebJS {
 
         /** Gets the Contact's current "about" info. Returns null if you don't have permission to read their status.  */
         getAbout: () => Promise<string | null>,
-
+        
+        /** Gets the online status of the contact. Returns true if the user is online. */
+        getOnlineStatus(): () => Promise<boolean>,
     }
 
     export interface ContactId {
