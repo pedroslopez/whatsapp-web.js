@@ -117,6 +117,12 @@ class Message extends Base {
         this.isStarred = data.star;
 
         /**
+         * Indicates the duration of the message in seconds
+         * @type {string}
+         */
+        this.duration = data.duration ? data.duration : undefined;
+
+        /**
          * Indicates if the message was a broadcast
          * @type {boolean}
          */
