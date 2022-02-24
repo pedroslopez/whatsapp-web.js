@@ -48,6 +48,9 @@ declare namespace WAWebJS {
         /** Logs out the client, closing the current session */
         logout(): Promise<void>
 
+        /* Check whatsapp is beta */
+        isMd(): Promise<Boolean>
+
         /** Get all blocked contacts by host account */
         getBlockedContacts(): Promise<Contact[]>
 

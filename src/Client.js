@@ -441,7 +441,7 @@ class Client extends EventEmitter {
             window.Store.Msg.on('change:ack', (msg, ack) => { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
             window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => { if (msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('remove', (msg) => { if (msg.isNewMsg) window.onRemoveMessageEvent(window.WWebJS.getMessageModel(msg)); });
-            window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
+            window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state);});
             window.Store.Conn.on('change:battery', (state) => { window.onBatteryStateChangedEvent(state); });
             window.Store.Call.on('add', (call) => { window.onIncomingCall(call); });
             window.Store.Msg.on('add', (msg) => { 
@@ -477,6 +477,15 @@ class Client extends EventEmitter {
      */
     async destroy() {
         await this.pupBrowser.close();
+    }
+
+    /* Check is Beta */
+    async isMd(){
+        const isMD = await this.pupPage.evaluate(() => 
+            window.Store?.Features?.features?.MD_BACKEND || false
+        );
+
+        return isMD || false;
     }
 
     /**
