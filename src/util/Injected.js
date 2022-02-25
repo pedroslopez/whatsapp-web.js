@@ -6,7 +6,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     // eslint-disable-next-line no-undef
     window.mR = moduleRaid();
     window.Store = Object.assign({}, window.mR.findModule('Chat')[0].default);
-    window.Store.AppState = window.mR.findModule('STREAM')[0].Socket;
+    window.Store.AppState = window.mR.findModule('Socket')[0].Socket;
     window.Store.Conn = window.mR.findModule('Conn')[0].Conn;
     window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
     window.Store.Wap = window.mR.findModule('queryLinkPreview')[0].default;
