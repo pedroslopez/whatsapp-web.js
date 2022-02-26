@@ -38,6 +38,7 @@ exports.Status = {
 exports.Events = {
     AUTHENTICATED: 'authenticated',
     AUTHENTICATION_FAILURE: 'auth_failure',
+    BROWSER_INIT: 'browser_init',
     READY: 'ready',
     MESSAGE_RECEIVED: 'message',
     MESSAGE_CREATE: 'message_create',
