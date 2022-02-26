@@ -1,6 +1,6 @@
 {
   "name": "whatsapp-web.js",
-  "version": "1.15.7",
+  "version": "1.15.8",
   "description": "Library for interacting with the WhatsApp Web API ",
   "main": "./index.js",
   "typings": "./index.d.ts",
