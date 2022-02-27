@@ -6,6 +6,7 @@ const BaseAuthStrategy = require('./BaseAuthStrategy');
  * Legacy session auth strategy
  * Not compatible with multi-device accounts.
  * @param {object} options - options
+ * @param {string} options.restartOnAuthFail - Restart client with a new session (i.e. use null 'session' var) if authentication fails
  * @param {object} options.session - Whatsapp session to restore. If not set, will start a new session
  * @param {string} options.session.WABrowserId
  * @param {string} options.session.WASecretBundle
@@ -13,9 +14,10 @@ const BaseAuthStrategy = require('./BaseAuthStrategy');
  * @param {string} options.session.WAToken2
  */
 class LegacySessionAuth extends BaseAuthStrategy {
-    constructor({ session }) {
+    constructor({ session, restartOnAuthFail }) {
         super();
         this.session = session;
+        this.restartOnAuthFail = restartOnAuthFail;
     }
 
     async afterBrowserInitialized() {
@@ -39,6 +41,7 @@ class LegacySessionAuth extends BaseAuthStrategy {
             this.session = null;
             return {
                 failed: true,
+                restart: this.restartOnAuthFail,
                 failureEventPayload: 'Unable to log in. Are the session details valid?'
             };
         }

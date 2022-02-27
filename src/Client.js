@@ -22,8 +22,8 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @param {number} options.authTimeoutMs - Timeout for authentication selector in puppeteer
  * @param {object} options.puppeteer - Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/
  * @param {number} options.qrMaxRetries - How many times should the qrcode be refreshed before giving up
- * @param {string} options.restartOnAuthFail  - Restart client with a new session (i.e. use null 'session' var) if authentication fails
- * @param {object} options.session - Only here for backwards-compatibility. You should move to using LocalAuth, or set the authStrategy to LegacySessionAuth explicitly.
+ * @param {string} options.restartOnAuthFail  - @deprecated This option should be set directly on the LegacySessionAuth.
+ * @param {object} options.session - @deprecated Only here for backwards-compatibility. You should move to using LocalAuth, or set the authStrategy to LegacySessionAuth explicitly. 
  * @param {number} options.takeoverOnConflict - If another whatsapp web session is detected (another browser), take over the session in the current browser
  * @param {number} options.takeoverTimeoutMs - How much time to wait before taking over the session
  * @param {string} options.userAgent - User agent to use in puppeteer
@@ -61,7 +61,8 @@ class Client extends EventEmitter {
                 );
 
                 this.authStrategy = new LegacySessionAuth({
-                    session: this.options.session
+                    session: this.options.session,
+                    restartOnAuthFail: this.options.restartOnAuthFail
                 });
             } else {
                 this.authStrategy = new NoAuth();
@@ -140,7 +141,7 @@ class Client extends EventEmitter {
                  */
                 this.emit(Events.AUTHENTICATION_FAILURE, failureEventPayload);
                 await this.destroy();
-                if (restart && this.options.restartOnAuthFail) {
+                if (restart) {
                     // session restore failed so try again but without session to force new authentication
                     return this.initialize();
                 }
