@@ -1,6 +1,6 @@
 'use strict';
 
-const AuthStrategy = require('./BaseAuthStrategy');
+const BaseAuthStrategy = require('./BaseAuthStrategy');
 
 /**
  * Legacy session auth strategy
@@ -12,7 +12,7 @@ const AuthStrategy = require('./BaseAuthStrategy');
  * @param {string} options.session.WAToken1
  * @param {string} options.session.WAToken2
  */
-class LegacySessionAuth extends AuthStrategy {
+class LegacySessionAuth extends BaseAuthStrategy {
     constructor({ session }) {
         super();
         this.session = session;
