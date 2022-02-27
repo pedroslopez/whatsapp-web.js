@@ -12,7 +12,7 @@ const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
 const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List } = require('./structures');
 const LegacySessionAuth = require('./authStrategies/LegacySessionAuth');
-const LocalAuth = require('./authStrategies/LocalAuth');
+const NoAuth = require('./authStrategies/NoAuth');
 
 /**
  * Starting point for interacting with the WhatsApp Web API
@@ -64,8 +64,7 @@ class Client extends EventEmitter {
                     session: this.options.session
                 });
             } else {
-                // should this default to NoAuth?
-                this.authStrategy = new LocalAuth();
+                this.authStrategy = new NoAuth();
             }
         } else {
             this.authStrategy = this.options.authStrategy;
