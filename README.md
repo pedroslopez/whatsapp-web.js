@@ -20,10 +20,6 @@ The module is now available on npm! `npm i whatsapp-web.js`
 
 Please note that Node v12+ is required.
 
-## MULTIDEVICE NOTES
-- No more saving via session.json, it now follows a filesystem approach, and client options: clientId and dataPath have been added. clientId is used to identify a session (required for multiple), and dataPath is to change the place we are saving the folder. This also means that no more auth info on authenticated.
-- Some bugs are to happen, please report on them asap.
-
 ## Example usage
 
 ```js
