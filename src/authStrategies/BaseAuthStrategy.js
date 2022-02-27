@@ -8,7 +8,8 @@ class AuthStrategy {
     setup(client) {
         this.client = client;
     }
-    async initialize() {}
+    async beforeBrowserInitialized() {}
+    async afterBrowserInitialized() {}
     async onAuthenticationNeeded() {
         return {
             failed: false,

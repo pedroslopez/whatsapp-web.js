@@ -70,7 +70,4 @@ typings/
 
 # Test sessions
 *session.json
-
-# user data
-WWebJS/
-userDataDir/
+.wwebjs_auth/

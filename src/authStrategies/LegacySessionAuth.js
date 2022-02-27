@@ -18,7 +18,7 @@ class LegacySessionAuth extends BaseAuthStrategy {
         this.session = session;
     }
 
-    async initialize() {
+    async afterBrowserInitialized() {
         if(this.session) {
             await this.client.pupPage.evaluateOnNewDocument(session => {
                 if (document.referrer === 'https://whatsapp.com/') {

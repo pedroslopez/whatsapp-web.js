@@ -84,6 +84,8 @@ class Client extends EventEmitter {
     async initialize() {
         let [browser, page] = [null, null];
 
+        await this.authStrategy.beforeBrowserInitialized();
+
         const puppeteerOpts = this.options.puppeteer;
         if (puppeteerOpts && puppeteerOpts.browserWSEndpoint) {
             browser = await puppeteer.connect(puppeteerOpts);
@@ -94,15 +96,12 @@ class Client extends EventEmitter {
         }
       
         await page.setUserAgent(this.options.userAgent);
+        if (this.options.bypassCSP) await page.setBypassCSP(true);
 
         this.pupBrowser = browser;
         this.pupPage = page;
 
-        await this.authStrategy.initialize();
-
-        if (this.options.bypassCSP) {
-            await page.setBypassCSP(true);
-        }
+        await this.authStrategy.afterBrowserInitialized();
 
         await page.goto(WhatsWebURL, {
             waitUntil: 'load',

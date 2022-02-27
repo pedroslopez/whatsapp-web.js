@@ -8,36 +8,44 @@ const BaseAuthStrategy = require('./BaseAuthStrategy');
  * Local directory-based authentication
  * @param {object} options - options
  * @param {string} options.clientId - Client id to distinguish instances if you are using multiple, otherwise keep null if you are using only one instance
- * @param {string} options.dataPath - Change the default path for saving session files, default is: "./WWebJS/" 
+ * @param {string} options.dataPath - Change the default path for saving session files, default is: "./.wwebjs_auth/" 
 */
 class LocalAuth extends BaseAuthStrategy {
     constructor({ clientId, dataPath }={}) {
         super();
-        this.id = clientId;
-        this.dataPath = dataPath || './WWebJS/';
+
+        const idRegex = /^[-_\w]+$/i;
+        if(clientId && !idRegex.test(clientId)) {
+            throw new Error('Invalid clientId. Only alphanumeric characters, underscores and hyphens are allowed.');
+        }
+
+        this.dataPath = path.resolve(dataPath || './.wwebjs_auth/');
+        this.clientId = clientId;
     }
 
-    setup(client) {
-        super.setup(client);
+    async beforeBrowserInitialized() {
+        const puppeteerOpts = this.client.options.puppeteer;
 
-        // eslint-disable-next-line no-useless-escape
-        const foldernameRegex = /^(?!.{256,})(?!(aux|clock\$|con|nul|prn|com[1-9]|lpt[1-9])(?:$|\.))[^ ][ \.\w-$()+=[\];#@~,&amp;']+[^\. ]$/i;
-        if (this.id && !foldernameRegex.test(this.id)) throw Error('Invalid client ID. Make sure you abide by the folder naming rules of your operating system.');
+        if(puppeteerOpts.userDataDir) {
+            throw new Error('LocalAuth is not compatible with a user-supplied userDataDir.');
+        }
 
-        this.dataDir = client.options.puppeteer.userDataDir;
-        const dirPath = path.join(process.cwd(), this.dataPath, this.id ? 'session-' + this.id : 'session');
-        if (!this.dataDir) this.dataDir = dirPath;
-        fs.mkdirSync(this.dataDir, { recursive: true });
+        const sessionDirName = this.clientId ? `session-${this.clientId}` : 'session';
+        const dirPath = path.join(this.dataPath, sessionDirName);
 
-        client.options.puppeteer = {
-            ...client.options.puppeteer,
-            userDataDir: this.dataDir
+        fs.mkdirSync(dirPath, { recursive: true });
+        
+        this.client.options.puppeteer = {
+            ...puppeteerOpts,
+            userDataDir: dirPath
         };
+
+        this.userDataDir = dirPath;
     }
 
     async logout() {
-        if (this.dataDir) {
-            return (fs.rmSync ? fs.rmSync : fs.rmdirSync).call(this.dataDir, { recursive: true });
+        if (this.userDataDir) {
+            return (fs.rmSync ? fs.rmSync : fs.rmdirSync).call(this.userDataDir, { recursive: true });
         }
     }
 
