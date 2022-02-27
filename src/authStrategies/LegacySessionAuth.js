@@ -5,7 +5,6 @@ const AuthStrategy = require('./AuthStrategy');
 /**
  * Legacy session auth strategy
  * Not compatible with multi-device accounts.
- * @deprecated
  * @param {object} options - options
  * @param {object} options.session - Whatsapp session to restore. If not set, will start a new session
  * @param {string} options.session.WABrowserId
