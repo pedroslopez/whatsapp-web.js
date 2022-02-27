@@ -159,15 +159,18 @@ exports.LoadUtils = () => {
             }
         }
 
-        if (options.linkPreview && !window.Store.Features.features.MD_BACKEND) {
-            // Not supported yet by WhatsApp Web on MD
+        if (options.linkPreview) {
             delete options.linkPreview;
-            const link = window.Store.Validators.findLink(content);
-            if (link) {
-                const preview = await window.Store.Wap.queryLinkPreview(link.url);
-                preview.preview = true;
-                preview.subtype = 'url';
-                options = { ...options, ...preview };
+
+            // Not supported yet by WhatsApp Web on MD
+            if(!window.Store.Features.features.MD_BACKEND) {
+                const link = window.Store.Validators.findLink(content);
+                if (link) {
+                    const preview = await window.Store.Wap.queryLinkPreview(link.url);
+                    preview.preview = true;
+                    preview.subtype = 'url';
+                    options = { ...options, ...preview };
+                }
             }
         }
         
