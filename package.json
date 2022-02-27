@@ -5,7 +5,7 @@
   "main": "./index.js",
   "typings": "./index.d.ts",
   "scripts": {
-    "test": "mocha tests --recursive",
+    "test": "mocha tests --recursive --timeout 5000",
     "test-single": "mocha",
     "shell": "node --experimental-repl-await ./shell.js",
     "generate-docs": "node_modules/.bin/jsdoc --configure .jsdoc.json --verbose"
@@ -35,12 +35,12 @@
     "mime": "^3.0.0",
     "node-fetch": "^2.6.5",
     "node-webpmux": "^3.1.0",
-    "puppeteer": "^13.0.0",
-    "sharp": "^0.28.3"
+    "puppeteer": "^13.0.0"
   },
   "devDependencies": {
     "@types/node-fetch": "^2.5.12",
     "chai": "^4.3.4",
+    "chai-as-promised": "^7.1.1",
     "dotenv": "^16.0.0",
     "eslint": "^8.4.1",
     "eslint-plugin-mocha": "^10.0.3",

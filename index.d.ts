@@ -84,6 +84,9 @@ declare namespace WAWebJS {
         /** Returns the contact ID's profile picture URL, if privacy settings allow it */
         getProfilePicUrl(contactId: string): Promise<string>
 
+        /** Gets the Contact's common groups with you. Returns empty array if you don't have any common group. */
+        getCommonGroups(contactId: string): Promise<ChatId[]>
+
         /** Gets the current connection state for the client */
         getState(): Promise<WAState>
 
@@ -118,6 +121,9 @@ declare namespace WAWebJS {
         /** Marks the client as online */
         sendPresenceAvailable(): Promise<void>
 
+        /** Marks the client as offline */
+        sendPresenceUnavailable(): Promise<void>
+
         /** Mark as seen for the Chat */
         sendSeen(chatId: string): Promise<boolean>
 
@@ -134,7 +140,7 @@ declare namespace WAWebJS {
          * Sets the current user's display name
          * @param displayName New display name
          */
-        setDisplayName(displayName: string): Promise<void>
+        setDisplayName(displayName: string): Promise<boolean>
 
         /** Changes and returns the archive state of the Chat */
         unarchiveChat(chatId: string): Promise<boolean>
@@ -150,11 +156,17 @@ declare namespace WAWebJS {
 
         /** Emitted when authentication is successful */
         on(event: 'authenticated', listener: (
-            /** Object containing session information. Can be used to restore the session */
-            session: ClientSession
+            /** 
+             * Object containing session information. Can be used to restore the session
+             * @deprecated
+             */
+            session?: ClientSession
         ) => void): this
 
-        /** Emitted when the battery percentage for the attached device changes */
+        /** 
+         * Emitted when the battery percentage for the attached device changes
+         * @deprecated 
+         */
         on(event: 'change_battery', listener: (batteryInfo: BatteryInfo) => void): this
 
         /** Emitted when the connection state changes */
@@ -249,14 +261,12 @@ declare namespace WAWebJS {
 
     /** Current connection information */
     export interface ClientInfo {
-        /** 
-         * Current user ID 
-         * @deprecated Use .wid instead 
-         */
-        me: ContactId
         /** Current user ID */
         wid: ContactId
-        /** Information about the phone this client is connected to */
+        /** 
+         * Information about the phone this client is connected to.  Not available in multi-device. 
+         * @deprecated 
+         */
         phone: ClientInfoPhone
         /** Platform the phone is running on */
         platform: string
@@ -267,7 +277,10 @@ declare namespace WAWebJS {
         getBatteryStatus: () => Promise<BatteryInfo>
     }
 
-    /** Information about the phone this client is connected to */
+    /** 
+     * Information about the phone this client is connected to 
+     * @deprecated
+     */
     export interface ClientInfoPhone {
         /** WhatsApp Version running on the phone */
         wa_version: string
@@ -300,8 +313,19 @@ declare namespace WAWebJS {
         /** Restart client with a new session (i.e. use null 'session' var) if authentication fails
          * @default false */
         restartOnAuthFail?: boolean
-        /** Whatsapp session to restore. If not set, will start a new session */
+        /**
+         * Enable authentication via a `session` option.
+         * @deprecated Will be removed in a future release
+         */
+        useDeprecatedSessionAuth?: boolean
+        /** 
+         * WhatsApp session to restore. If not set, will start a new session
+         * @deprecated Set `useDeprecatedSessionAuth: true` to enable. This auth method is not supported by MultiDevice and will be removed in a future release. 
+         */
         session?: ClientSession
+        /** Client id to distinguish instances if you are using multiple, otherwise keep empty if you are using only one instance
+         * @default '' */
+        clientId: string
         /** If another whatsapp web session is detected (another browser), take over the session in the current browser
          * @default false */
         takeoverOnConflict?: boolean,
@@ -314,9 +338,15 @@ declare namespace WAWebJS {
         /** Ffmpeg path to use when formating videos to webp while sending stickers 
          * @default 'ffmpeg' */
         ffmpegPath?: string
+        /** Path to place session objects in
+         @default './WWebJS'   */
+        dataPath?: string
     }
 
-    /** Represents a Whatsapp client session */
+    /** 
+     * Represents a WhatsApp client session
+     * @deprecated
+     */
     export interface ClientSession {
         WABrowserId: string,
         WASecretBundle: string,
@@ -324,6 +354,9 @@ declare namespace WAWebJS {
         WAToken2: string,
     }
 
+    /** 
+     * @deprecated
+     */
     export interface BatteryInfo {
         /** The current battery percentage */
         battery: number,
@@ -608,6 +641,13 @@ declare namespace WAWebJS {
         selectedButtonId?: string,
         /** Selected list row ID */
         selectedRowId?: string,
+        /** Returns message in a raw format */
+        rawData: object,
+        /* 
+        * Reloads this Message object's data in-place with the latest values from WhatsApp Web. 
+        * Note that the Message must still be in the web app cache for this to work, otherwise will return null.
+        */
+        reload: () => Promise<Message>,
         /** Accept the Group V4 Invite in message */
         acceptGroupV4Invite: () => Promise<{status: number}>,
         /** Deletes the message from the chat */
@@ -679,7 +719,7 @@ declare namespace WAWebJS {
 
     /** Options for sending a message */
     export interface MessageSendOptions {
-        /** Show links preview */
+        /** Show links preview. Has no effect on multi-device accounts. */
         linkPreview?: boolean
         /** Send audio as voice message */
         sendAudioAsVoice?: boolean
@@ -741,7 +781,7 @@ declare namespace WAWebJS {
         static fromUrl: (url: string, options?: MediaFromURLOptions) => Promise<MessageMedia>
     }
 
-    export type MessageContent = string | MessageMedia | Location | Contact | Contact[] | List | Buttons
+    export type MessageContent = string | MessageMedia | Location | Contact | Contact[] | List | Buttons 
 
     /**
      * Represents a Contact on WhatsApp
@@ -834,6 +874,9 @@ declare namespace WAWebJS {
 
         /** Gets the Contact's current "about" info. Returns null if you don't have permission to read their status.  */
         getAbout: () => Promise<string | null>,
+        
+        /** Gets the Contact's common groups with you. Returns empty array if you don't have any common group. */
+        getCommonGroups: () => Promise<ChatId[]>
 
     }
 
@@ -1011,9 +1054,9 @@ declare namespace WAWebJS {
         /** Demotes participants by IDs to regular users */
         demoteParticipants: ChangeParticipantsPermisions;
         /** Updates the group subject */
-        setSubject: (subject: string) => Promise<void>;
+        setSubject: (subject: string) => Promise<boolean>;
         /** Updates the group description */
-        setDescription: (description: string) => Promise<void>;
+        setDescription: (description: string) => Promise<boolean>;
         /** Updates the group settings to only allow admins to send messages 
          * @param {boolean} [adminsOnly=true] Enable or disable this option 
          * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
