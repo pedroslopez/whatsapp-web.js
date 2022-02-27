@@ -2,7 +2,7 @@
 
 const path = require('path');
 const fs = require('fs');
-const AuthStrategy = require('./AuthStrategy');
+const BaseAuthStrategy = require('./BaseAuthStrategy');
 
 /**
  * Local directory-based authentication
@@ -10,7 +10,7 @@ const AuthStrategy = require('./AuthStrategy');
  * @param {string} options.clientId - Client id to distinguish instances if you are using multiple, otherwise keep null if you are using only one instance
  * @param {string} options.dataPath - Change the default path for saving session files, default is: "./WWebJS/" 
 */
-class LocalAuth extends AuthStrategy {
+class LocalAuth extends BaseAuthStrategy {
     constructor({ clientId, dataPath }={}) {
         super();
         this.id = clientId;

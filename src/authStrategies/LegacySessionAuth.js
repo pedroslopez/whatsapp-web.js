@@ -1,6 +1,6 @@
 'use strict';
 
-const AuthStrategy = require('./AuthStrategy');
+const AuthStrategy = require('./BaseAuthStrategy');
 
 /**
  * Legacy session auth strategy

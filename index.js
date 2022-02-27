@@ -23,6 +23,7 @@ module.exports = {
     Buttons: require('./src/structures/Buttons'),
     
     // Auth Strategies
+    NoAuth: require('./src/authStrategies/NoAuth'),
     LocalAuth: require('./src/authStrategies/LocalAuth'),
     LegacySessionAuth: require('./src/authStrategies/LegacySessionAuth'),
     
