@@ -159,7 +159,8 @@ exports.LoadUtils = () => {
             }
         }
 
-        if (options.linkPreview) {
+        if (options.linkPreview && !window.Store.Features.features.MD_BACKEND) {
+            // Not supported yet by WhatsApp Web on MD
             delete options.linkPreview;
             const link = window.Store.Validators.findLink(content);
             if (link) {
