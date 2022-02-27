@@ -564,8 +564,6 @@ END:VCARD`;
 
         describe('Search messages', function () {
             it('can search for messages', async function () {
-                this.timeout(5000);
-
                 const m1 = await client.sendMessage(remoteId, 'I\'m searching for Super Mario Brothers');
                 const m2 = await client.sendMessage(remoteId, 'This also contains Mario');
                 const m3 = await client.sendMessage(remoteId, 'Nothing of interest here, just Luigi');

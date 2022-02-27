@@ -201,6 +201,8 @@ describe('Group', function() {
             expect(group.isReadOnly).to.equal(false);
             await group.leave();
 
+            await helper.sleep(1000);
+
             // reload and check
             group = await client.getChatById(group.id._serialized);
             expect(group.isReadOnly).to.equal(true);
