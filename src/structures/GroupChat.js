@@ -18,12 +18,6 @@ class GroupChat extends Chat {
     _patch(data) {
         this.groupMetadata = data.groupMetadata;
 
-        /**
-         * Indicates if the Group Chat is read only, such as when the user is no longer a participant
-         * @type {boolean}
-         */
-        this.isReadOnly = data.isReadOnly;
-
         return super._patch(data);
     }
 

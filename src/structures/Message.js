@@ -241,6 +241,11 @@ class Message extends Base {
         return this.fromMe ? this.to : this.from;
     }
 
+    /**
+     * Reloads this Message object's data in-place with the latest values from WhatsApp Web. 
+     * Note that the Message must still be in the web app cache for this to work, otherwise will return null.
+     * @returns {Promise<Message>}
+     */
     async reload() {
         const newData = await this.client.pupPage.evaluate((msgId) => {
             const msg = window.Store.Msg.get(msgId);

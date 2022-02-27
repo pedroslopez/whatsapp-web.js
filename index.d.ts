@@ -121,6 +121,9 @@ declare namespace WAWebJS {
         /** Marks the client as online */
         sendPresenceAvailable(): Promise<void>
 
+        /** Marks the client as offline */
+        sendPresenceUnavailable(): Promise<void>
+
         /** Mark as seen for the Chat */
         sendSeen(chatId: string): Promise<boolean>
 
@@ -640,6 +643,11 @@ declare namespace WAWebJS {
         selectedRowId?: string,
         /** Returns message in a raw format */
         rawData: object,
+        /* 
+        * Reloads this Message object's data in-place with the latest values from WhatsApp Web. 
+        * Note that the Message must still be in the web app cache for this to work, otherwise will return null.
+        */
+        reload: () => Promise<Message>,
         /** Accept the Group V4 Invite in message */
         acceptGroupV4Invite: () => Promise<{status: number}>,
         /** Deletes the message from the chat */
@@ -868,7 +876,7 @@ declare namespace WAWebJS {
         getAbout: () => Promise<string | null>,
         
         /** Gets the Contact's common groups with you. Returns empty array if you don't have any common group. */
-        getCommonGroups: (contactId: string) => Promise<ChatId[]>
+        getCommonGroups: () => Promise<ChatId[]>
 
     }
 

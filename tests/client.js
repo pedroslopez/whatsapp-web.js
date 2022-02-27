@@ -272,8 +272,6 @@ describe('Client', function() {
                     'Sticker',
                     'UploadUtils',
                     'UserConstructor',
-                    'USyncQuery',
-                    'USyncUser',
                     'VCard',
                     'Validators',
                     'Wap',
