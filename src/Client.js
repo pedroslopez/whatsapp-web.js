@@ -53,7 +53,7 @@ class Client extends EventEmitter {
         this.options = Util.mergeDefault(DefaultOptions, options);
         
         if(!this.options.authStrategy) {
-            if(this.options.session) {
+            if(Object.prototype.hasOwnProperty.call(this.options, 'session')) {
                 process.emitWarning(
                     'options.session is deprecated and will be removed in a future release due to incompatibility with multi-device. ' +
                     'Use the LocalAuth authStrategy, don\'t pass in a session as an option, or suppress this warning by using the LegacySessionAuth strategy explicitly.',
