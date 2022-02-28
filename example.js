@@ -1,16 +1,9 @@
-const { Client, Location, List, Buttons } = require('./index');
+const { Client, Location, List, Buttons, LocalAuth } = require('./index');
 
-const client = new Client({ 
-    clientId: 'example',
+const client = new Client({
+    authStrategy: new LocalAuth(),
     puppeteer: { headless: false }
 });
-
-// You also could connect to an existing instance of a browser
-// { 
-//    puppeteer: {
-//        browserWSEndpoint: `ws://localhost:3000`
-//    }
-// }
 
 client.initialize();
 

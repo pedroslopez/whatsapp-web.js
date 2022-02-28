@@ -2,17 +2,17 @@
  * ==== wwebjs-shell ====
  * Used for quickly testing library features
  * 
- * Running `npm run shell` will start WhatsApp Web in headless mode 
+ * Running `npm run shell` will start WhatsApp Web with headless=false
  * and then drop you into Node REPL with `client` in its context. 
  */
 
 const repl = require('repl');
 
-const { Client } = require('./index');
+const { Client, LocalAuth } = require('./index');
 
 const client = new Client({
     puppeteer: { headless: false }, 
-    clientId: 'shell'
+    authStrategy: new LocalAuth()
 });
 
 console.log('Initializing...');
