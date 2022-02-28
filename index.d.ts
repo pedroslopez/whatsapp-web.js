@@ -1048,7 +1048,7 @@ declare namespace WAWebJS {
     }
 
     /** Promotes or demotes participants by IDs to regular users or admins */
-    export type ChangeParticipantsPermisions = 
+    export type ChangeParticipantsPermissions = 
         (participantIds: Array<string>) => Promise<{ status: number }>
 
     /** Adds or removes a list of participants by ID to the group */
@@ -1078,9 +1078,9 @@ declare namespace WAWebJS {
         /** Removes a list of participants by ID to the group */
         removeParticipants: ChangeGroupParticipants;
         /** Promotes participants by IDs to admins */
-        promoteParticipants: ChangeParticipantsPermisions;
+        promoteParticipants: ChangeParticipantsPermissions;
         /** Demotes participants by IDs to regular users */
-        demoteParticipants: ChangeParticipantsPermisions;
+        demoteParticipants: ChangeParticipantsPermissions;
         /** Updates the group subject */
         setSubject: (subject: string) => Promise<boolean>;
         /** Updates the group description */
