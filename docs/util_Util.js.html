@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.15.8 &raquo; Source: util/Util.js</title>
+  <title>whatsapp-web.js 1.16.0 &raquo; Source: util/Util.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>15.<wbr>8</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>16.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -31,7 +31,6 @@
           <article>
             <pre class="prettyprint linenums"><code>&#x27;use strict&#x27;;
 
-const sharp &#x3D; require(&#x27;sharp&#x27;);
 const path &#x3D; require(&#x27;path&#x27;);
 const Crypto &#x3D; require(&#x27;crypto&#x27;);
 const { tmpdir } &#x3D; require(&#x27;os&#x27;);
@@ -45,7 +44,6 @@ const has &#x3D; (o, k) &#x3D;&gt; Object.prototype.hasOwnProperty.call(o, k);
  * Utility methods
  */
 class Util {
-
     constructor() {
         throw new Error(&#x60;The ${this.constructor.name} class may not be instantiated.&#x60;);
     }
@@ -54,7 +52,7 @@ class Util {
         var result &#x3D; &#x27;&#x27;;
         var characters &#x3D; &#x27;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&#x27;;
         var charactersLength &#x3D; characters.length;
-        for ( var i &#x3D; 0; i &amp;lt; length; i++ ) {
+        for (var i &#x3D; 0; i &amp;lt; length; i++) {
             result +&#x3D; characters.charAt(Math.floor(Math.random() * charactersLength));
         }
         return result;
@@ -86,33 +84,19 @@ class Util {
      * 
      * @returns {Promise&amp;lt;MessageMedia&gt;} media in webp format
      */
-    static async formatImageToWebpSticker(media) {
+    static async formatImageToWebpSticker(media, pupPage) {
         if (!media.mimetype.includes(&#x27;image&#x27;))
             throw new Error(&#x27;media is not a image&#x27;);
-      
+
         if (media.mimetype.includes(&#x27;webp&#x27;)) {
             return media;
         }
-      
-        const buff &#x3D; Buffer.from(media.data, &#x27;base64&#x27;);
-      
-        let sharpImg &#x3D; sharp(buff);
-        sharpImg &#x3D; sharpImg.webp();
-      
-        sharpImg &#x3D; sharpImg.resize(512, 512, {
-            fit: &#x27;contain&#x27;,
-            background: { r: 0, g: 0, b: 0, alpha: 0 },
-        });
-      
-        let webpBase64 &#x3D; (await sharpImg.toBuffer()).toString(&#x27;base64&#x27;);
-      
-        return {             
-            mimetype: &#x27;image/webp&#x27;,
-            data: webpBase64,
-            filename: media.filename,
-        };
+
+        return pupPage.evaluate((media) &#x3D;&gt; {
+            return window.WWebJS.toStickerData(media);
+        }, media);
     }
-      
+
     /**
      * Formats a video to webp
      * @param {MessageMedia} media
@@ -122,14 +106,14 @@ class Util {
     static async formatVideoToWebpSticker(media) {
         if (!media.mimetype.includes(&#x27;video&#x27;))
             throw new Error(&#x27;media is not a video&#x27;);
-      
+
         const videoType &#x3D; media.mimetype.split(&#x27;/&#x27;)[1];
 
         const tempFile &#x3D; path.join(
             tmpdir(),
             &#x60;${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp&#x60;
         );
-      
+
         const stream &#x3D; new (require(&#x27;stream&#x27;).Readable)();
         const buffer &#x3D; Buffer.from(
             media.data.replace(&#x60;data:${media.mimetype};base64,&#x60;, &#x27;&#x27;),
@@ -166,17 +150,17 @@ class Util {
                 .toFormat(&#x27;webp&#x27;)
                 .save(tempFile);
         });
-      
+
         const data &#x3D; await fs.readFile(tempFile, &#x27;base64&#x27;);
         await fs.unlink(tempFile);
-      
-        return {             
+
+        return {
             mimetype: &#x27;image/webp&#x27;,
             data: data,
             filename: media.filename,
         };
     }
-      
+
     /**
      * Sticker metadata.
      * @typedef {Object} StickerMetadata
@@ -192,14 +176,14 @@ class Util {
      * 
      * @returns {Promise&amp;lt;MessageMedia&gt;} media in webp format
      */
-    static async formatToWebpSticker(media, metadata) {
+    static async formatToWebpSticker(media, metadata, pupPage) {
         let webpMedia;
 
-        if (media.mimetype.includes(&#x27;image&#x27;)) 
-            webpMedia &#x3D; await this.formatImageToWebpSticker(media);
-        else if (media.mimetype.includes(&#x27;video&#x27;)) 
+        if (media.mimetype.includes(&#x27;image&#x27;))
+            webpMedia &#x3D; await this.formatImageToWebpSticker(media, pupPage);
+        else if (media.mimetype.includes(&#x27;video&#x27;))
             webpMedia &#x3D; await this.formatVideoToWebpSticker(media);
-        else 
+        else
             throw new Error(&#x27;Invalid media format&#x27;);
 
         if (metadata.name || metadata.author) {
@@ -242,7 +226,7 @@ module.exports &#x3D; Util;
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on February 25, 2022.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on February 27, 2022.
       </p>
     </div>
   </footer>

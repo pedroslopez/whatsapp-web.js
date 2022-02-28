@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.16.0 &raquo; Source: structures/ProductMetadata.js</title>
+  <title>whatsapp-web.js 1.16.0 &raquo; Source: authStrategies/BaseAuthStrategy.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -26,34 +26,33 @@
         </div>
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1>Source: structures/ProductMetadata.js</h1>
+            <h1>Source: authStrategies/BaseAuthStrategy.js</h1>
           </header>
           <article>
-            <pre class="prettyprint linenums"><code>const Base &#x3D; require(&#x27;./Base&#x27;);
+            <pre class="prettyprint linenums"><code>&#x27;use strict&#x27;;
 
-class ProductMetadata extends Base {
-    constructor(client, data) {
-        super(client);
-
-        if (data) this._patch(data);
+/**
+ * Base class which all authentication strategies extend
+ */
+class BaseAuthStrategy {
+    constructor() {}
+    setup(client) {
+        this.client &#x3D; client;
     }
-
-    _patch(data) {
-        /** Product ID */
-        this.id &#x3D; data.id;
-        /** Retailer ID */
-        this.retailer_id &#x3D; data.retailer_id;
-        /** Product Name  */
-        this.name &#x3D; data.name;
-        /** Product Description */
-        this.description &#x3D; data.description;
-
-        return super._patch(data);
+    async beforeBrowserInitialized() {}
+    async afterBrowserInitialized() {}
+    async onAuthenticationNeeded() {
+        return {
+            failed: false,
+            restart: false,
+            failureEventPayload: undefined
+        };
     }
-
+    async getAuthEventPayload() {}
+    async logout() {}
 }
 
-module.exports &#x3D; ProductMetadata;</code></pre>
+module.exports &#x3D; BaseAuthStrategy;</code></pre>
           </article>
         </div>
       </div>

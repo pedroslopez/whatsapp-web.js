@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.15.8 &raquo; Source: Client.js</title>
+  <title>whatsapp-web.js 1.16.0 &raquo; Source: Client.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>15.<wbr>8</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>16.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -34,7 +34,6 @@
 const EventEmitter &#x3D; require(&#x27;events&#x27;);
 const puppeteer &#x3D; require(&#x27;puppeteer&#x27;);
 const moduleRaid &#x3D; require(&#x27;@pedroslopez/moduleraid/moduleraid&#x27;);
-const jsQR &#x3D; require(&#x27;jsqr&#x27;);
 
 const Util &#x3D; require(&#x27;./util/Util&#x27;);
 const InterfaceController &#x3D; require(&#x27;./util/InterfaceController&#x27;);
@@ -42,22 +41,20 @@ const { WhatsWebURL, DefaultOptions, Events, WAState } &#x3D; require(&#x27;./ut
 const { ExposeStore, LoadUtils } &#x3D; require(&#x27;./util/Injected&#x27;);
 const ChatFactory &#x3D; require(&#x27;./factories/ChatFactory&#x27;);
 const ContactFactory &#x3D; require(&#x27;./factories/ContactFactory&#x27;);
-const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification , Label, Call, Buttons, List} &#x3D; require(&#x27;./structures&#x27;);
+const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List } &#x3D; require(&#x27;./structures&#x27;);
+const LegacySessionAuth &#x3D; require(&#x27;./authStrategies/LegacySessionAuth&#x27;);
+const NoAuth &#x3D; require(&#x27;./authStrategies/NoAuth&#x27;);
+
 /**
  * Starting point for interacting with the WhatsApp Web API
  * @extends {EventEmitter}
  * @param {object} options - Client options
+ * @param {AuthStrategy} options.authStrategy - Determines how to save and restore sessions. Will use LegacySessionAuth if options.session is set. Otherwise, NoAuth will be used.
  * @param {number} options.authTimeoutMs - Timeout for authentication selector in puppeteer
  * @param {object} options.puppeteer - Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/
- * @param {number} options.qrRefreshIntervalMs - Refresh interval for qr code (how much time to wait before checking if the qr code has changed)
- * @param {number} options.qrTimeoutMs - Timeout for qr code selector in puppeteer
  * @param {number} options.qrMaxRetries - How many times should the qrcode be refreshed before giving up
- * @param {string} options.restartOnAuthFail  - Restart client with a new session (i.e. use null &#x27;session&#x27; var) if authentication fails
- * @param {object} options.session - Whatsapp session to restore. If not set, will start a new session
- * @param {string} options.session.WABrowserId
- * @param {string} options.session.WASecretBundle
- * @param {string} options.session.WAToken1
- * @param {string} options.session.WAToken2
+ * @param {string} options.restartOnAuthFail  - @deprecated This option should be set directly on the LegacySessionAuth.
+ * @param {object} options.session - @deprecated Only here for backwards-compatibility. You should move to using LocalAuth, or set the authStrategy to LegacySessionAuth explicitly. 
  * @param {number} options.takeoverOnConflict - If another whatsapp web session is detected (another browser), take over the session in the current browser
  * @param {number} options.takeoverTimeoutMs - How much time to wait before taking over the session
  * @param {string} options.userAgent - User agent to use in puppeteer
@@ -79,13 +76,33 @@ const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification 
  * @fires Client#group_update
  * @fires Client#disconnected
  * @fires Client#change_state
- * @fires Client#change_battery
  */
 class Client extends EventEmitter {
     constructor(options &#x3D; {}) {
         super();
 
         this.options &#x3D; Util.mergeDefault(DefaultOptions, options);
+        
+        if(!this.options.authStrategy) {
+            if(Object.prototype.hasOwnProperty.call(this.options, &#x27;session&#x27;)) {
+                process.emitWarning(
+                    &#x27;options.session is deprecated and will be removed in a future release due to incompatibility with multi-device. &#x27; +
+                    &#x27;Use the LocalAuth authStrategy, don\&#x27;t pass in a session as an option, or suppress this warning by using the LegacySessionAuth strategy explicitly (see https://wwebjs.dev/guide/authentication.html#legacysessionauth-strategy).&#x27;,
+                    &#x27;DeprecationWarning&#x27;
+                );
+
+                this.authStrategy &#x3D; new LegacySessionAuth({
+                    session: this.options.session,
+                    restartOnAuthFail: this.options.restartOnAuthFail
+                });
+            } else {
+                this.authStrategy &#x3D; new NoAuth();
+            }
+        } else {
+            this.authStrategy &#x3D; this.options.authStrategy;
+        }
+
+        this.authStrategy.setup(this);
 
         this.pupBrowser &#x3D; null;
         this.pupPage &#x3D; null;
@@ -98,41 +115,25 @@ class Client extends EventEmitter {
      */
     async initialize() {
         let [browser, page] &#x3D; [null, null];
-        
-        if(this.options.puppeteer &amp;amp;&amp;amp; this.options.puppeteer.browserWSEndpoint) {
-            browser &#x3D; await puppeteer.connect(this.options.puppeteer);
+
+        await this.authStrategy.beforeBrowserInitialized();
+
+        const puppeteerOpts &#x3D; this.options.puppeteer;
+        if (puppeteerOpts &amp;amp;&amp;amp; puppeteerOpts.browserWSEndpoint) {
+            browser &#x3D; await puppeteer.connect(puppeteerOpts);
             page &#x3D; await browser.newPage();
         } else {
-            browser &#x3D; await puppeteer.launch(this.options.puppeteer);
+            browser &#x3D; await puppeteer.launch(puppeteerOpts);
             page &#x3D; (await browser.pages())[0];
         }
-        
+      
         await page.setUserAgent(this.options.userAgent);
+        if (this.options.bypassCSP) await page.setBypassCSP(true);
 
         this.pupBrowser &#x3D; browser;
         this.pupPage &#x3D; page;
 
-        // remember me
-        await page.evaluateOnNewDocument(() &#x3D;&gt; {
-            localStorage.setItem(&#x27;remember-me&#x27;, &#x27;true&#x27;);
-        });
-
-        if (this.options.session) {
-            await page.evaluateOnNewDocument(
-                session &#x3D;&gt; {
-                    if(document.referrer &#x3D;&#x3D;&#x3D; &#x27;https://whatsapp.com/&#x27;) {
-                        localStorage.clear();
-                        localStorage.setItem(&#x27;WABrowserId&#x27;, session.WABrowserId);
-                        localStorage.setItem(&#x27;WASecretBundle&#x27;, session.WASecretBundle);
-                        localStorage.setItem(&#x27;WAToken1&#x27;, session.WAToken1);
-                        localStorage.setItem(&#x27;WAToken2&#x27;, session.WAToken2);
-                    }
-                }, this.options.session);
-        }
-
-        if(this.options.bypassCSP) {
-            await page.setBypassCSP(true);
-        }
+        await this.authStrategy.afterBrowserInitialized();
 
         await page.goto(WhatsWebURL, {
             waitUntil: &#x27;load&#x27;,
@@ -140,56 +141,54 @@ class Client extends EventEmitter {
             referer: &#x27;https://whatsapp.com/&#x27;
         });
 
-        const KEEP_PHONE_CONNECTED_IMG_SELECTOR &#x3D; &#x27;[data-icon&#x3D;&quot;intro-md-beta-logo-dark&quot;], [data-icon&#x3D;&quot;intro-md-beta-logo-light&quot;], [data-asset-intro-image-light&#x3D;&quot;true&quot;], [data-asset-intro-image-dark&#x3D;&quot;true&quot;]&#x27;;
+        const INTRO_IMG_SELECTOR &#x3D; &#x27;[data-testid&#x3D;&quot;intro-md-beta-logo-dark&quot;], [data-testid&#x3D;&quot;intro-md-beta-logo-light&quot;], [data-asset-intro-image-light&#x3D;&quot;true&quot;], [data-asset-intro-image-dark&#x3D;&quot;true&quot;]&#x27;;
+        const INTRO_QRCODE_SELECTOR &#x3D; &#x27;div[data-ref] canvas&#x27;;
 
-        if (this.options.session) {
-            // Check if session restore was successful
-            try {
-                await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: this.options.authTimeoutMs });
-            } catch (err) {
-                if (err.name &#x3D;&#x3D;&#x3D; &#x27;TimeoutError&#x27;) {
-                    /**
-                     * Emitted when there has been an error while trying to restore an existing session
-                     * @event Client#auth_failure
-                     * @param {string} message
-                     */
-                    this.emit(Events.AUTHENTICATION_FAILURE, &#x27;Unable to log in. Are the session details valid?&#x27;);
-                    browser.close();
-                    if (this.options.restartOnAuthFail) {
-                        // session restore failed so try again but without session to force new authentication
-                        this.options.session &#x3D; null;
-                        this.initialize();
-                    }
-                    return;
+        // Checks which selector appears first
+        const needAuthentication &#x3D; await Promise.race([
+            new Promise(resolve &#x3D;&gt; {
+                page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: this.options.authTimeoutMs })
+                    .then(() &#x3D;&gt; resolve(false))
+                    .catch((err) &#x3D;&gt; resolve(err));
+            }),
+            new Promise(resolve &#x3D;&gt; {
+                page.waitForSelector(INTRO_QRCODE_SELECTOR, { timeout: this.options.authTimeoutMs })
+                    .then(() &#x3D;&gt; resolve(true))
+                    .catch((err) &#x3D;&gt; resolve(err));
+            })
+        ]);
+
+        // Checks if an error ocurred on the first found selector. The second will be discarded and ignored by .race;
+        if (needAuthentication instanceof Error) throw needAuthentication;
+
+        // Scan-qrcode selector was found. Needs authentication
+        if (needAuthentication) {
+            const { failed, failureEventPayload, restart } &#x3D; await this.authStrategy.onAuthenticationNeeded();
+            if(failed) {
+                /**
+                 * Emitted when there has been an error while trying to restore an existing session
+                 * @event Client#auth_failure
+                 * @param {string} message
+                 */
+                this.emit(Events.AUTHENTICATION_FAILURE, failureEventPayload);
+                await this.destroy();
+                if (restart) {
+                    // session restore failed so try again but without session to force new authentication
+                    return this.initialize();
                 }
-
-                throw err;
+                return;
             }
 
-        } else {
+            const QR_CONTAINER &#x3D; &#x27;div[data-ref]&#x27;;
+            const QR_RETRY_BUTTON &#x3D; &#x27;div[data-ref] &gt; span &gt; button&#x27;;
             let qrRetries &#x3D; 0;
-
-            const getQrCode &#x3D; async () &#x3D;&gt; {
-                // Check if retry button is present
-                var QR_RETRY_SELECTOR &#x3D; &#x27;div[data-ref] &gt; span &gt; button&#x27;;
-                var qrRetry &#x3D; await page.$(QR_RETRY_SELECTOR);
-                if (qrRetry) {
-                    await qrRetry.click();
-                }
-
-                // Wait for QR Code
-                const QR_CANVAS_SELECTOR &#x3D; &#x27;canvas&#x27;;
-                await page.waitForSelector(QR_CANVAS_SELECTOR, { timeout: this.options.qrTimeoutMs });
-                const qrImgData &#x3D; await page.$eval(QR_CANVAS_SELECTOR, canvas &#x3D;&gt; [].slice.call(canvas.getContext(&#x27;2d&#x27;).getImageData(0, 0, 264, 264).data));
-                const qr &#x3D; jsQR(qrImgData, 264, 264).data;
-                
+            await page.exposeFunction(&#x27;qrChanged&#x27;, async (qr) &#x3D;&gt; {
                 /**
-                * Emitted when the QR code is received
+                * Emitted when a QR code is received
                 * @event Client#qr
                 * @param {string} qr QR Code
                 */
                 this.emit(Events.QR_RECEIVED, qr);
-
                 if (this.options.qrMaxRetries &gt; 0) {
                     qrRetries++;
                     if (qrRetries &gt; this.options.qrMaxRetries) {
@@ -197,15 +196,39 @@ class Client extends EventEmitter {
                         await this.destroy();
                     }
                 }
-            };
-            getQrCode();
-            this._qrRefreshInterval &#x3D; setInterval(getQrCode, this.options.qrRefreshIntervalMs);
+            });
+
+            await page.evaluate(function (selectors) {
+                const qr_container &#x3D; document.querySelector(selectors.QR_CONTAINER);
+                window.qrChanged(qr_container.dataset.ref);
+
+                const obs &#x3D; new MutationObserver((muts) &#x3D;&gt; {
+                    muts.forEach(mut &#x3D;&gt; {
+                        // Listens to qr token change
+                        if (mut.type &#x3D;&#x3D;&#x3D; &#x27;attributes&#x27; &amp;amp;&amp;amp; mut.attributeName &#x3D;&#x3D;&#x3D; &#x27;data-ref&#x27;) {
+                            window.qrChanged(mut.target.dataset.ref);
+                        } else
+                        // Listens to retry button, when found, click it
+                        if (mut.type &#x3D;&#x3D;&#x3D; &#x27;childList&#x27;) {
+                            const retry_button &#x3D; document.querySelector(selectors.QR_RETRY_BUTTON);
+                            if (retry_button) retry_button.click();
+                        }
+                    });
+                });
+                obs.observe(qr_container.parentElement, {
+                    subtree: true,
+                    childList: true,
+                    attributes: true,
+                    attributeFilter: [&#x27;data-ref&#x27;],
+                });
+            }, {
+                QR_CONTAINER,
+                QR_RETRY_BUTTON
+            });
 
             // Wait for code scan
             try {
-                await page.waitForSelector(KEEP_PHONE_CONNECTED_IMG_SELECTOR, { timeout: 0 });
-                clearInterval(this._qrRefreshInterval);
-                this._qrRefreshInterval &#x3D; undefined;
+                await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: 0 });
             } catch(error) {
                 if (
                     error.name &#x3D;&#x3D;&#x3D; &#x27;ProtocolError&#x27; &amp;amp;&amp;amp; 
@@ -218,43 +241,28 @@ class Client extends EventEmitter {
 
                 throw error;
             }
+
         }
 
         await page.evaluate(ExposeStore, moduleRaid.toString());
-        
-        // Get session tokens
-        const localStorage &#x3D; JSON.parse(await page.evaluate(() &#x3D;&gt; {
-            return JSON.stringify(window.localStorage);
-        }));
-
-        const session &#x3D; {
-            WABrowserId: localStorage.WABrowserId,
-            WASecretBundle: localStorage.WASecretBundle,
-            WAToken1: localStorage.WAToken1,
-            WAToken2: localStorage.WAToken2
-        };
+        const authEventPayload &#x3D; await this.authStrategy.getAuthEventPayload();
 
         /**
          * Emitted when authentication is successful
          * @event Client#authenticated
-         * @param {object} session Object containing session information. Can be used to restore the session.
-         * @param {string} session.WABrowserId
-         * @param {string} session.WASecretBundle
-         * @param {string} session.WAToken1
-         * @param {string} session.WAToken2
          */
-        this.emit(Events.AUTHENTICATED, session);
+        this.emit(Events.AUTHENTICATED, authEventPayload);
 
         // Check window.Store Injection
         await page.waitForFunction(&#x27;window.Store !&#x3D; undefined&#x27;);
 
-        const isMD &#x3D; await page.evaluate(() &#x3D;&gt; {
-            return window.Store.Features.features.MD_BACKEND;
+        await page.evaluate(async () &#x3D;&gt; {
+            // safely unregister service workers
+            const registrations &#x3D; await navigator.serviceWorker.getRegistrations();
+            for (let registration of registrations) {
+                registration.unregister();
+            }
         });
-
-        if(isMD) {
-            throw new Error(&#x27;Multi-device is not yet supported by whatsapp-web.js. Please check out https://github.com/pedroslopez/whatsapp-web.js/pull/889 to follow the progress.&#x27;);
-        }
 
         //Load util functions (serializers, helper functions)
         await page.evaluate(LoadUtils);
@@ -265,7 +273,7 @@ class Client extends EventEmitter {
          * @type {ClientInfo}
          */
         this.info &#x3D; new ClientInfo(this, await page.evaluate(() &#x3D;&gt; {
-            return window.Store.Conn.serialize();
+            return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMeUser() };
         }));
 
         // Add InterfaceController
@@ -429,11 +437,12 @@ class Client extends EventEmitter {
             if (battery &#x3D;&#x3D;&#x3D; undefined) return;
 
             /**
-             * Emitted when the battery percentage for the attached device changes
+             * Emitted when the battery percentage for the attached device changes. Will not be sent if using multi-device.
              * @event Client#change_battery
              * @param {object} batteryInfo
              * @param {number} batteryInfo.battery - The current battery percentage
              * @param {boolean} batteryInfo.plugged - Indicates if the phone is plugged in (true) or not (false)
+             * @deprecated
              */
             this.emit(Events.BATTERY_CHANGED, { battery, plugged });
         });
@@ -452,14 +461,14 @@ class Client extends EventEmitter {
              * @param {boolean} call.webClientShouldHandle - If Waweb should handle
              * @param {object} call.participants - Participants
              */
-            const cll &#x3D; new Call(this,call);
+            const cll &#x3D; new Call(this, call);
             this.emit(Events.INCOMING_CALL, cll);
         });
-        
+
         await page.evaluate(() &#x3D;&gt; {
             window.Store.Msg.on(&#x27;change&#x27;, (msg) &#x3D;&gt; { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on(&#x27;change:type&#x27;, (msg) &#x3D;&gt; { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
-            window.Store.Msg.on(&#x27;change:ack&#x27;, (msg,ack) &#x3D;&gt; { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
+            window.Store.Msg.on(&#x27;change:ack&#x27;, (msg, ack) &#x3D;&gt; { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
             window.Store.Msg.on(&#x27;change:isUnsentMedia&#x27;, (msg, unsent) &#x3D;&gt; { if (msg.id.fromMe &amp;amp;&amp;amp; !unsent) window.onMessageMediaUploadedEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on(&#x27;remove&#x27;, (msg) &#x3D;&gt; { if (msg.isNewMsg) window.onRemoveMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.AppState.on(&#x27;change:state&#x27;, (_AppState, state) &#x3D;&gt; { window.onAppStateChangedEvent(state); });
@@ -497,9 +506,6 @@ class Client extends EventEmitter {
      * Closes the client
      */
     async destroy() {
-        if (this._qrRefreshInterval) {
-            clearInterval(this._qrRefreshInterval);
-        }
         await this.pupBrowser.close();
     }
 
@@ -507,9 +513,11 @@ class Client extends EventEmitter {
      * Logs out the client, closing the current session
      */
     async logout() {
-        return await this.pupPage.evaluate(() &#x3D;&gt; {
+        await this.pupPage.evaluate(() &#x3D;&gt; {
             return window.Store.AppState.logout();
         });
+
+        await this.authStrategy.logout();
     }
 
     /**
@@ -539,7 +547,7 @@ class Client extends EventEmitter {
     /**
      * Message options.
      * @typedef {Object} MessageSendOptions
-     * @property {boolean} [linkPreview&#x3D;true] - Show links preview
+     * @property {boolean} [linkPreview&#x3D;true] - Show links preview. Has no effect on multi-device accounts.
      * @property {boolean} [sendAudioAsVoice&#x3D;false] - Send audio as voice message
      * @property {boolean} [sendVideoAsGif&#x3D;false] - Send video as gif
      * @property {boolean} [sendMediaAsSticker&#x3D;false] - Send media as a sticker
@@ -589,33 +597,35 @@ class Client extends EventEmitter {
         } else if (content instanceof Location) {
             internalOptions.location &#x3D; content;
             content &#x3D; &#x27;&#x27;;
-        } else if(content instanceof Contact) {
+        } else if (content instanceof Contact) {
             internalOptions.contactCard &#x3D; content.id._serialized;
             content &#x3D; &#x27;&#x27;;
-        } else if(Array.isArray(content) &amp;amp;&amp;amp; content.length &gt; 0 &amp;amp;&amp;amp; content[0] instanceof Contact) {
+        } else if (Array.isArray(content) &amp;amp;&amp;amp; content.length &gt; 0 &amp;amp;&amp;amp; content[0] instanceof Contact) {
             internalOptions.contactCardList &#x3D; content.map(contact &#x3D;&gt; contact.id._serialized);
             content &#x3D; &#x27;&#x27;;
-        } else if(content instanceof Buttons){
-            if(content.type !&#x3D;&#x3D; &#x27;chat&#x27;){internalOptions.attachment &#x3D; content.body;}
+        } else if (content instanceof Buttons) {
+            if (content.type !&#x3D;&#x3D; &#x27;chat&#x27;) { internalOptions.attachment &#x3D; content.body; }
             internalOptions.buttons &#x3D; content;
             content &#x3D; &#x27;&#x27;;
-        } else if(content instanceof List){
+        } else if (content instanceof List) {
             internalOptions.list &#x3D; content;
             content &#x3D; &#x27;&#x27;;
         }
 
         if (internalOptions.sendMediaAsSticker &amp;amp;&amp;amp; internalOptions.attachment) {
-            internalOptions.attachment &#x3D; 
-                await Util.formatToWebpSticker(internalOptions.attachment, {
+            internalOptions.attachment &#x3D; await Util.formatToWebpSticker(
+                internalOptions.attachment, {
                     name: options.stickerName,
                     author: options.stickerAuthor,
                     categories: options.stickerCategories
-                });
+                }, this.pupPage
+            );
         }
 
         const newMessage &#x3D; await this.pupPage.evaluate(async (chatId, message, options, sendSeen) &#x3D;&gt; {
             const chatWid &#x3D; window.Store.WidFactory.createWid(chatId);
             const chat &#x3D; await window.Store.Chat.find(chatWid);
+
 
             if (sendSeen) {
                 window.WWebJS.sendSeen(chatId);
@@ -703,7 +713,7 @@ class Client extends EventEmitter {
      */
     async getInviteInfo(inviteCode) {
         return await this.pupPage.evaluate(inviteCode &#x3D;&gt; {
-            return window.Store.Wap.groupInviteInfo(inviteCode);
+            return window.Store.InviteInfo.sendQueryGroupInvite(inviteCode);
         }, inviteCode);
     }
 
@@ -722,25 +732,25 @@ class Client extends EventEmitter {
 
     /**
      * Accepts a private invitation to join a group
-     * @param {object} inviteV4 Invite V4 Info
+     * @param {object} inviteInfo Invite V4 Info
      * @returns {Promise&amp;lt;Object&gt;}
      */
     async acceptGroupV4Invite(inviteInfo) {
-        if(!inviteInfo.inviteCode) throw &#x27;Invalid invite code, try passing the message.inviteV4 object&#x27;;
+        if (!inviteInfo.inviteCode) throw &#x27;Invalid invite code, try passing the message.inviteV4 object&#x27;;
         if (inviteInfo.inviteCodeExp &#x3D;&#x3D; 0) throw &#x27;Expired invite code&#x27;;
-        return await this.pupPage.evaluate(async inviteInfo &#x3D;&gt; {
-            let { groupId, fromId, inviteCode, inviteCodeExp, toId } &#x3D; inviteInfo;
-            return await window.Store.Wap.acceptGroupV4Invite(groupId, fromId, inviteCode, String(inviteCodeExp), toId);
+        return this.pupPage.evaluate(async inviteInfo &#x3D;&gt; {
+            let { groupId, fromId, inviteCode, inviteCodeExp } &#x3D; inviteInfo;
+            return await window.Store.JoinInviteV4.sendJoinGroupViaInviteV4(inviteCode, String(inviteCodeExp), groupId, fromId);
         }, inviteInfo);
     }
-    
+
     /**
      * Sets the current user&#x27;s status message
      * @param {string} status New status message
      */
     async setStatus(status) {
         await this.pupPage.evaluate(async status &#x3D;&gt; {
-            return await window.Store.Wap.sendSetStatus(status);
+            return await window.Store.StatusUtils.setMyStatus(status);
         }, status);
     }
 
@@ -748,11 +758,22 @@ class Client extends EventEmitter {
      * Sets the current user&#x27;s display name. 
      * This is the name shown to WhatsApp users that have not added you as a contact beside your number in groups and in your profile.
      * @param {string} displayName New display name
+     * @returns {Promise&amp;lt;Boolean&gt;}
      */
     async setDisplayName(displayName) {
-        await this.pupPage.evaluate(async displayName &#x3D;&gt; {
-            return await window.Store.Wap.setPushname(displayName);
+        const couldSet &#x3D; await this.pupPage.evaluate(async displayName &#x3D;&gt; {
+            if(!window.Store.Conn.canSetMyPushname()) return false;
+
+            if(window.Store.Features.features.MD_BACKEND) {
+                // TODO
+                return false;
+            } else {
+                const res &#x3D; await window.Store.Wap.setPushname(displayName);
+                return !res.status || res.status &#x3D;&#x3D;&#x3D; 200;
+            }
         }, displayName);
+
+        return couldSet;
     }
 
     /**
@@ -771,7 +792,16 @@ class Client extends EventEmitter {
      */
     async sendPresenceAvailable() {
         return await this.pupPage.evaluate(() &#x3D;&gt; {
-            return window.Store.Wap.sendPresenceAvailable();
+            return window.Store.PresenceUtils.sendPresenceAvailable();
+        });
+    }
+
+    /**
+     * Marks the client as unavailable
+     */
+    async sendPresenceUnavailable() {
+        return await this.pupPage.evaluate(() &#x3D;&gt; {
+            return window.Store.PresenceUtils.sendPresenceUnavailable();
         });
     }
 
@@ -878,10 +908,35 @@ class Client extends EventEmitter {
      */
     async getProfilePicUrl(contactId) {
         const profilePic &#x3D; await this.pupPage.evaluate((contactId) &#x3D;&gt; {
-            return window.Store.Wap.profilePicFind(contactId);
+            const chatWid &#x3D; window.Store.WidFactory.createWid(contactId);
+            return window.Store.getProfilePicFull(chatWid);
         }, contactId);
 
         return profilePic ? profilePic.eurl : undefined;
+    }
+
+    /**
+     * Gets the Contact&#x27;s common groups with you. Returns empty array if you don&#x27;t have any common group.
+     * @param {string} contactId the whatsapp user&#x27;s ID (_serialized format)
+     * @returns {Promise&amp;lt;WAWebJS.ChatId[]&gt;}
+     */
+    async getCommonGroups(contactId) {
+        const commonGroups &#x3D; await this.pupPage.evaluate(async (contactId) &#x3D;&gt; {
+            const contact &#x3D; window.Store.Contact.get(contactId);
+            if (contact.commonGroups) {
+                return contact.commonGroups.serialize();
+            }
+            const status &#x3D; await window.Store.findCommonGroups(contact);
+            if (status) {
+                return contact.commonGroups.serialize();
+            }
+            return [];
+        }, contactId);
+        const chats &#x3D; [];
+        for (const group of commonGroups) {
+            chats.push(group.id);
+        }
+        return chats;
     }
 
     /**
@@ -899,10 +954,7 @@ class Client extends EventEmitter {
      * @returns {Promise&amp;lt;Boolean&gt;}
      */
     async isRegisteredUser(id) {
-        return await this.pupPage.evaluate(async (id) &#x3D;&gt; {
-            let result &#x3D; await window.Store.Wap.queryExist(id);
-            return result.jid !&#x3D;&#x3D; undefined;
-        }, id);
+        return Boolean(await this.getNumberId(id));
     }
 
     /**
@@ -912,14 +964,15 @@ class Client extends EventEmitter {
      * @returns {Promise&amp;lt;Object|null&gt;}
      */
     async getNumberId(number) {
-        if (!number.endsWith(&#x27;@c.us&#x27;)) number +&#x3D; &#x27;@c.us&#x27;;
-        try {
-            return await this.pupPage.evaluate(async numberId &#x3D;&gt; {
-                return window.WWebJS.getNumberId(numberId);
-            }, number);
-        } catch(_) {
-            return null;
+        if (!number.endsWith(&#x27;@c.us&#x27;)) {
+            number +&#x3D; &#x27;@c.us&#x27;;
         }
+
+        return await this.pupPage.evaluate(async number &#x3D;&gt; {
+            const result &#x3D; await window.Store.QueryExist(number);
+            if (!result || result.wid &#x3D;&#x3D;&#x3D; undefined) return null;
+            return result.wid;
+        }, number);
     }
 
     /**
@@ -928,14 +981,14 @@ class Client extends EventEmitter {
      * @returns {Promise&amp;lt;string&gt;}
      */
     async getFormattedNumber(number) {
-        if(!number.endsWith(&#x27;@s.whatsapp.net&#x27;)) number &#x3D; number.replace(&#x27;c.us&#x27;, &#x27;s.whatsapp.net&#x27;);
-        if(!number.includes(&#x27;@s.whatsapp.net&#x27;)) number &#x3D; &#x60;${number}@s.whatsapp.net&#x60;;
-        
+        if (!number.endsWith(&#x27;@s.whatsapp.net&#x27;)) number &#x3D; number.replace(&#x27;c.us&#x27;, &#x27;s.whatsapp.net&#x27;);
+        if (!number.includes(&#x27;@s.whatsapp.net&#x27;)) number &#x3D; &#x60;${number}@s.whatsapp.net&#x60;;
+
         return await this.pupPage.evaluate(async numberId &#x3D;&gt; {
             return window.Store.NumberInfo.formattedPhoneNumber(numberId);
         }, number);
     }
-    
+
     /**
      * Get the country code of a WhatsApp ID.
      * @param {string} number Number or ID
@@ -948,7 +1001,7 @@ class Client extends EventEmitter {
             return window.Store.NumberInfo.findCC(numberId);
         }, number);
     }
-    
+
     /**
      * Create a new group
      * @param {string} name group title
@@ -967,12 +1020,9 @@ class Client extends EventEmitter {
         }
 
         const createRes &#x3D; await this.pupPage.evaluate(async (name, participantIds) &#x3D;&gt; {
-            const res &#x3D; await window.Store.Wap.createGroup(name, participantIds);
-            console.log(res);
-            if (!res.status &#x3D;&#x3D;&#x3D; 200) {
-                throw &#x27;An error occurred while creating the group!&#x27;;
-            }
-
+            const participantWIDs &#x3D; participantIds.map(p &#x3D;&gt; window.Store.WidFactory.createWid(p));
+            const id &#x3D; window.Store.genId();
+            const res &#x3D; await window.Store.GroupUtils.sendCreateGroup(name, participantWIDs, undefined, id);
             return res;
         }, name, participants);
 
@@ -993,9 +1043,9 @@ class Client extends EventEmitter {
     async getLabels() {
         const labels &#x3D; await this.pupPage.evaluate(async () &#x3D;&gt; {
             return window.WWebJS.getLabels();
-        }); 
+        });
 
-        return labels.map(data &#x3D;&gt; new Label(this , data));
+        return labels.map(data &#x3D;&gt; new Label(this, data));
     }
 
     /**
@@ -1006,7 +1056,7 @@ class Client extends EventEmitter {
     async getLabelById(labelId) {
         const label &#x3D; await this.pupPage.evaluate(async (labelId) &#x3D;&gt; {
             return window.WWebJS.getLabel(labelId);
-        }, labelId); 
+        }, labelId);
 
         return new Label(this, label);
     }
@@ -1016,12 +1066,12 @@ class Client extends EventEmitter {
      * @param {string} chatId
      * @returns {Promise&amp;lt;Array&amp;lt;Label&gt;&gt;}
      */
-    async getChatLabels(chatId){
+    async getChatLabels(chatId) {
         const labels &#x3D; await this.pupPage.evaluate(async (chatId) &#x3D;&gt; {
             return window.WWebJS.getChatLabels(chatId);
         }, chatId);
 
-        return labels.map(data &#x3D;&gt; new Label(this, data)); 
+        return labels.map(data &#x3D;&gt; new Label(this, data));
     }
 
     /**
@@ -1029,16 +1079,16 @@ class Client extends EventEmitter {
      * @param {string} labelId
      * @returns {Promise&amp;lt;Array&amp;lt;Chat&gt;&gt;}
      */
-    async getChatsByLabelId(labelId){
+    async getChatsByLabelId(labelId) {
         const chatIds &#x3D; await this.pupPage.evaluate(async (labelId) &#x3D;&gt; {
             const label &#x3D; window.Store.Label.get(labelId);
             const labelItems &#x3D; label.labelItemCollection.models;
             return labelItems.reduce((result, item) &#x3D;&gt; {
-                if(item.parentType &#x3D;&#x3D;&#x3D; &#x27;Chat&#x27;){  
+                if (item.parentType &#x3D;&#x3D;&#x3D; &#x27;Chat&#x27;) {
                     result.push(item.parentId);
                 }
                 return result;
-            },[]);
+            }, []);
         }, labelId);
 
         return Promise.all(chatIds.map(id &#x3D;&gt; this.getChatById(id)));
@@ -1051,7 +1101,7 @@ class Client extends EventEmitter {
     async getBlockedContacts() {
         const blockedContacts &#x3D; await this.pupPage.evaluate(() &#x3D;&gt; {
             let chatIds &#x3D; window.Store.Blocklist.models.map(a &#x3D;&gt; a.id._serialized);
-            return Promise.all(chatIds.map(id &#x3D;&gt; window.WWebJS.getContact(id)));            
+            return Promise.all(chatIds.map(id &#x3D;&gt; window.WWebJS.getContact(id)));
         });
 
         return blockedContacts.map(contact &#x3D;&gt; ContactFactory.create(this.client, contact));
@@ -1069,7 +1119,7 @@ module.exports &#x3D; Client;
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on February 25, 2022.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on February 27, 2022.
       </p>
     </div>
   </footer>
