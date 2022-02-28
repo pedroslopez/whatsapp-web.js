@@ -51,6 +51,12 @@ class Client extends EventEmitter {
     constructor(options = {}) {
         super();
 
+        process.emitWarning(
+            'Thanks for helping test multi-device support. This branch will be deleted soon as v1.16 has now been released with official support for MD. ' +
+            'Please check out the release notes at https://github.com/pedroslopez/whatsapp-web.js/releases/tag/v1.16.0. ',
+            'DeprecationWarning'
+        );
+
         this.options = Util.mergeDefault(DefaultOptions, options);
 
         this.id = this.options.clientId;
