@@ -25,15 +25,17 @@ body:
   - type: input
     id: link
     attributes:
-      label: Your Example Website or App
+      label: Your Reproducible Code Sample
       description: |
-        Which website or app were you using when the bug happened?
         Note:
-        - Your bug will may get fixed much faster if we can run your code and it doesn't have dependencies other than the `whatsapp-web.js` npm package / dependency.
-        - To create a shareable code example you can use Stackblitz (https://stackblitz.com/). Please no localhost URLs.
-        - Please read these tips for providing a minimal example: https://stackoverflow.com/help/mcve.
+        - Your bug will may get fixed much faster, if you can help us we can run your code and it doesn't have dependencies other than the `whatsapp-web.js` npm package / dependency.
+        - Consider sharing your code in 1 of the following ways:
+          - Share your public github repository URL with the team
+          - Create a small public github repository and share the URL with the team
+          - Create a shareable code example with Codesanbox (https://codesandbox.io/s/) or Stackblitz (https://stackblitz.com/)
+        - Please read the following link for tips on how to create a "Minimal, Reproducible Code Example": https://stackoverflow.com/help/mcve.
       placeholder: |
-        e.g. https://stackblitz.com/edit/...... OR Github Repo
+        e.g. https:/github.com/.... OR codesanbox.io/.. OR stackblitz.com/...
     validations:
       required: true
   - type: textarea
@@ -67,14 +69,91 @@ body:
         to the following link: https://docs.github.com/en/github/writing-on-github/working-with-advanced-formatting/attaching-files
       placeholder: |
         You can drag your video or image files inside of this editor ↓
-  - type: textarea
-    id: platform
+  - type: input
+    id: browser_type
     attributes:
-      label: Platform
-      value: |
-        - OS: [e.g. macOS, Windows, Linux]
-        - Browser: [e.g. Chrome, Safari, Firefox]
-        - Version: [e.g. 91.1]
+      label: Browser Type
+      description: What web browser are you using?
+      placeholder: |
+        - OS: [e.g. Chrome, Firefox, Safari etc..]
+    validations:
+      required: true
+  - type: input
+    id: nodejs_version
+    attributes:
+      label: NodeJS version
+      description: | 
+        What version of NodeJS are you using?
+        Run the following command in your terminal to get your node version: `node -v`
+      placeholder: |
+        - version number?
+    validations:
+      required: true
+  - type: input
+    id: package_manager
+    attributes:
+      label: Package manager
+      description: What package manager are you using, for example, npm or yarn?
+      placeholder: |
+        - yarn or npm?
+    validations:
+      required: true
+  - type: input
+    id: package_manager_version
+    attributes:
+      label: Package manager version
+      description: |
+        What version of npm or yarn are you using?
+        Run the following command in your terminal prompt to get your package manager version: `npm -v` or `yarn -v`
+      placeholder: |
+        - version number?
+    validations:
+      required: true
+  - type: input
+    id: operating_system
+    attributes:
+      label: Operating System
+      description: What operating system are you using? (the one running node)
+      placeholder: |
+        - Example: [Linux, MacOS, Windows]  
+    validations:
+      required: true
+  - type: input
+    id: operating_system_version
+    attributes:
+      label: Operating System Version
+      description: What version of your operating system are you using? 
+      placeholder: |
+        - Examples: Windows 10, MacOS Big Sur
+    validations:
+      required: true
+  - type: input
+    id: whatsapp_account_type
+    attributes:
+      label: WhatsApp Account Type
+      description: What type of WhatsApp account type are you using?
+      placeholder: |
+        - Standard or Business?
+    validations:
+      required: true
+  - type: input
+    id: whatsapp_device_os_type
+    attributes:
+      label: WhatsApp Device Operating System Type
+      description: What operating system is the device that is experiencing the issue using?
+      placeholder: |
+        - iOS or Android?
+    validations:
+      required: true
+  - type: input
+    id: whatsapp_web_version
+    attributes:
+      label: WhatsApp Web Version
+      description: |
+        WhatsApp version of Whatsapp web are you using?
+        Run the following command in your code to retrieve the WhatsApp web version: `await client.getWWebVersion()`
+      placeholder: |
+        version number here
     validations:
       required: true
   - type: textarea
