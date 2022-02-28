@@ -18,7 +18,7 @@ const NoAuth = require('./authStrategies/NoAuth');
  * Starting point for interacting with the WhatsApp Web API
  * @extends {EventEmitter}
  * @param {object} options - Client options
- * @param {AuthStrategy} options.authStrategy - Determines how to save and restore sessions. Will default to LegacySessionAuth if options.session is set. Otherwise, LocalAuth will be used.
+ * @param {AuthStrategy} options.authStrategy - Determines how to save and restore sessions. Will use LegacySessionAuth if options.session is set. Otherwise, NoAuth will be used.
  * @param {number} options.authTimeoutMs - Timeout for authentication selector in puppeteer
  * @param {object} options.puppeteer - Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/
  * @param {number} options.qrMaxRetries - How many times should the qrcode be refreshed before giving up

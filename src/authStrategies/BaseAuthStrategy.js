@@ -3,7 +3,7 @@
 /**
  * Base class which all authentication strategies extend
  */
-class AuthStrategy {
+class BaseAuthStrategy {
     constructor() {}
     setup(client) {
         this.client = client;
@@ -21,4 +21,4 @@ class AuthStrategy {
     async logout() {}
 }
 
-module.exports = AuthStrategy;
+module.exports = BaseAuthStrategy;

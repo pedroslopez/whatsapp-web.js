@@ -157,8 +157,7 @@ declare namespace WAWebJS {
         /** Emitted when authentication is successful */
         on(event: 'authenticated', listener: (
             /** 
-             * Object containing session information. Can be used to restore the session
-             * @deprecated
+             * Object containing session information, when using LegacySessionAuth. Can be used to restore the session
              */
             session?: ClientSession
         ) => void): this
@@ -297,35 +296,23 @@ declare namespace WAWebJS {
     /** Options for initializing the whatsapp client */
     export interface ClientOptions {
         /** Timeout for authentication selector in puppeteer
-         * @default 45000 */
+         * @default 0 */
         authTimeoutMs?: number,
         /** Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/ */
         puppeteer?: puppeteer.LaunchOptions & puppeteer.BrowserLaunchArgumentOptions & puppeteer.BrowserConnectOptions
-        /** Refresh interval for qr code (how much time to wait before checking if the qr code has changed)
-         * @default 20000 */
-        qrRefreshIntervalMs?: number
-        /** Timeout for qr code selector in puppeteer
-         * @default 45000 */
-        qrTimeoutMs?: number,
-		/** How many times should the qrcode be refreshed before giving up
+		/** Determines how to save and restore sessions. Will use LegacySessionAuth if options.session is set. Otherwise, NoAuth will be used. */
+        authStrategy?: AuthStrategy,
+        /** How many times should the qrcode be refreshed before giving up
 		 * @default 0 (disabled) */
 		qrMaxRetries?: number,
-        /** Restart client with a new session (i.e. use null 'session' var) if authentication fails
-         * @default false */
-        restartOnAuthFail?: boolean
-        /**
-         * Enable authentication via a `session` option.
-         * @deprecated Will be removed in a future release
-         */
-        useDeprecatedSessionAuth?: boolean
         /** 
-         * WhatsApp session to restore. If not set, will start a new session
-         * @deprecated Set `useDeprecatedSessionAuth: true` to enable. This auth method is not supported by MultiDevice and will be removed in a future release. 
+         * @deprecated This option should be set directly on the LegacySessionAuth
+         */
+        restartOnAuthFail?: boolean
+        /** 
+         * @deprecated Only here for backwards-compatibility. You should move to using LocalAuth, or set the authStrategy to LegacySessionAuth explicitly.  
          */
         session?: ClientSession
-        /** Client id to distinguish instances if you are using multiple, otherwise keep empty if you are using only one instance
-         * @default '' */
-        clientId: string
         /** If another whatsapp web session is detected (another browser), take over the session in the current browser
          * @default false */
         takeoverOnConflict?: boolean,
@@ -338,14 +325,53 @@ declare namespace WAWebJS {
         /** Ffmpeg path to use when formating videos to webp while sending stickers 
          * @default 'ffmpeg' */
         ffmpegPath?: string
-        /** Path to place session objects in
-         @default './WWebJS'   */
-        dataPath?: string
+    }
+
+    /**
+     * Base class which all authentication strategies extend
+     */
+    export abstract class AuthStrategy {
+        setup: (client: Client) => void;
+        beforeBrowserInitialized: () => Promise<void>;
+        afterBrowserInitialized: () => Promise<void>;
+        onAuthenticationNeeded: () => Promise<{
+            failed?: boolean; 
+            restart?: boolean; 
+            failureEventPayload?: any
+        }>;
+        getAuthEventPayload: () => Promise<any>;
+        logout: () => Promise<void>;
+    }
+
+    /**
+     * No session restoring functionality
+     * Will need to authenticate via QR code every time
+     */
+    export class NoAuth extends AuthStrategy {}
+
+    /**
+     * Local directory-based authentication
+     */
+    export class LocalAuth extends AuthStrategy {
+        constructor(options?: {
+            clientId?: string,
+            dataPath?: string
+        })
+    }
+
+    /**
+     * Legacy session auth strategy
+     * Not compatible with multi-device accounts.
+     */
+     export class LegacySessionAuth extends AuthStrategy {
+        constructor(options?: {
+            session?: ClientSession,
+            restartOnAuth?: boolean,
+        })
     }
 
     /** 
      * Represents a WhatsApp client session
-     * @deprecated
      */
     export interface ClientSession {
         WABrowserId: string,
