@@ -8,8 +8,8 @@ const Contact = require('../src/structures/Contact');
 const Message = require('../src/structures/Message');
 const MessageMedia = require('../src/structures/MessageMedia');
 const Location = require('../src/structures/Location');
+const LegacySessionAuth = require('../src/authStrategies/LegacySessionAuth');
 const { MessageTypes, WAState } = require('../src/util/Constants');
-const { LegacySessionAuth } = require('../src/authStrategies/LegacySessionAuth');
 
 const expect = chai.expect;
 chai.use(chaiAsPromised);
