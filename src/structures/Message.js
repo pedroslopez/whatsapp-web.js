@@ -135,6 +135,12 @@ class Message extends Base {
         this.hasQuotedMsg = data.quotedMsg ? true : false;
 
         /**
+         * Indicates the duration of the message in seconds
+         * @type {string}
+         */
+        this.duration = data.duration ? data.duration : undefined;
+
+        /**
          * Location information contained in the message, if the message is type "location"
          * @type {Location}
          */

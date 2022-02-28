@@ -615,6 +615,8 @@ declare namespace WAWebJS {
         hasMedia: boolean,
         /** Indicates if the message was sent as a reply to another message */
         hasQuotedMsg: boolean,
+        /** Indicates the duration of the message in seconds */
+        duration: string,
         /** ID that represents the message */
         id: MessageId,
         /** Indicates if the message was forwarded */
