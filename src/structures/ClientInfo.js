@@ -27,6 +27,12 @@ class ClientInfo extends Base {
         this.wid = data.wid;
 
         /**
+         * @type {object}
+         * @deprecated Use .wid instead
+         */
+        this.me = data.wid;
+
+        /**
          * Information about the phone this client is connected to. Not available in multi-device.
          * @type {object}
          * @property {string} wa_version WhatsApp Version running on the phone

@@ -260,6 +260,11 @@ declare namespace WAWebJS {
 
     /** Current connection information */
     export interface ClientInfo {
+        /** 
+         * Current user ID 
+         * @deprecated Use .wid instead 
+         */
+        me: ContactId
         /** Current user ID */
         wid: ContactId
         /** 
