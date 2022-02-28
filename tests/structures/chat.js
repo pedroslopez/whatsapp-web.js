@@ -13,7 +13,7 @@ describe('Chat', function () {
 
     before(async function() {
         this.timeout(35000);
-        client = helper.createClient({ withSession: true });
+        client = helper.createClient({ authenticated: true });
         await client.initialize();
         chat = await client.getChatById(remoteId);
     });
@@ -32,9 +32,9 @@ describe('Chat', function () {
     });
 
     it('can fetch messages sent in a chat', async function () {
-        this.timeout(5000);
         await helper.sleep(1000);
         const msg = await chat.sendMessage('another message');
+        await helper.sleep(500);
 
         const messages = await chat.fetchMessages();
         expect(messages.length).to.be.greaterThanOrEqual(2);
@@ -49,6 +49,7 @@ describe('Chat', function () {
     it('can use a limit when fetching messages sent in a chat', async function () {
         await helper.sleep(1000);  
         const msg = await chat.sendMessage('yet another message');
+        await helper.sleep(500);
 
         const messages = await chat.fetchMessages({limit: 1});
         expect(messages).to.have.lengthOf(1);
@@ -79,6 +80,8 @@ describe('Chat', function () {
         it('can mark a chat as seen', async function () {
             const res = await chat.sendSeen();
             expect(res).to.equal(true);
+
+            await helper.sleep(1000);
 
             // refresh chat
             chat = await client.getChatById(remoteId);
@@ -137,6 +140,8 @@ describe('Chat', function () {
         it('can mute a chat forever', async function() {
             await chat.mute();
 
+            await helper.sleep(1000);
+
             // refresh chat
             chat = await client.getChatById(remoteId);
             expect(chat.isMuted).to.equal(true);
@@ -146,6 +151,8 @@ describe('Chat', function () {
         it('can mute a chat until a specific date', async function() {
             const unmuteDate = new Date(new Date().getTime() + (1000*60*60));  
             await chat.mute(unmuteDate);
+
+            await helper.sleep(1000);
 
             // refresh chat
             chat = await client.getChatById(remoteId);
@@ -168,9 +175,7 @@ describe('Chat', function () {
   
     // eslint-disable-next-line mocha/no-skipped-tests
     describe.skip('Destructive operations', function () {
-        it('can clear all messages from chat', async function () {
-            this.timeout(5000);
-  
+        it('can clear all messages from chat', async function () { 
             const res = await chat.clearMessages();
             expect(res).to.equal(true);
   
