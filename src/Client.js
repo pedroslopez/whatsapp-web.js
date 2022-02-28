@@ -875,12 +875,19 @@ class Client extends EventEmitter {
      * @param {string} contactId the whatsapp user's ID
      * @returns {Promise<string>}
      */
-    async getProfilePicUrl(contactId) {
-        const profilePic = await this.pupPage.evaluate((contactId) => {
+     async getProfilePicUrl(contactId) {
+        const profilePic = await this.pupPage.evaluate(async contactId => {
             const chatWid = window.Store.WidFactory.createWid(contactId);
-            return window.Store.getProfilePicFull(chatWid);
+            let asyncPic = await window.Store.getProfilePicFull(chatWid).catch(e => {
+                return undefined;
+            });
+            if (!asyncPic) {
+                asyncPic = await window.Store.Wap.profilePicFind(contactId).catch(e => {
+                    return undefined;
+                });
+            }
+            return asyncPic;
         }, contactId);
-
         return profilePic ? profilePic.eurl : undefined;
     }
 
