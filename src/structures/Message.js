@@ -411,7 +411,7 @@ class Message extends Base {
         }, this.id._serialized);
 
         if (!result) return undefined;
-        return new MessageMedia(result.mimetype, result.data, result.filename);
+        return new MessageMedia(result.mimetype, result.data, result.filename, result.filesize);
     }
 
     /**
