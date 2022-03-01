@@ -358,6 +358,8 @@ declare namespace WAWebJS {
      * Local directory-based authentication
      */
     export class LocalAuth extends AuthStrategy {
+        public clientId?: string;
+        public dataPath?: string;
         constructor(options?: {
             clientId?: string,
             dataPath?: string
