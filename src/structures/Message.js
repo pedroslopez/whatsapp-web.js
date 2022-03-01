@@ -384,7 +384,6 @@ class Message extends Base {
                 // media could not be downloaded
                 return undefined;
             }
-
             try {
                 const decryptedMedia = await window.Store.DownloadManager.downloadAndDecrypt({
                     directPath: msg.directPath,
@@ -401,7 +400,8 @@ class Message extends Base {
                 return {
                     data,
                     mimetype: msg.mimetype,
-                    filename: msg.filename
+                    filename: msg.filename,
+                    filesize: msg.size
                 };
             } catch (e) {
                 if(e.status && e.status === 404) return undefined;
@@ -410,7 +410,7 @@ class Message extends Base {
         }, this.id._serialized);
 
         if (!result) return undefined;
-        return new MessageMedia(result.mimetype, result.data, result.filename);
+        return new MessageMedia(result.mimetype, result.data, result.filename, result.filesize);
     }
 
     /**
