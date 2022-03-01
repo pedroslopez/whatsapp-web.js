@@ -401,7 +401,8 @@ class Message extends Base {
                 return {
                     data,
                     mimetype: msg.mimetype,
-                    filename: msg.filename
+                    filename: msg.filename,
+                    filesize: msg.size
                 };
             } catch (e) {
                 if(e.status && e.status === 404) return undefined;
