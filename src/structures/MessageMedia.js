@@ -14,7 +14,7 @@ const { URL } = require('url');
  * @param {?number} filesize Document file size in bytes. Value can be null
  */
 class MessageMedia {
-    constructor(mimetype, data, filename) {
+    constructor(mimetype, data, filename, filesize) {
         /**
          * MIME type of the attachment
          * @type {string}
