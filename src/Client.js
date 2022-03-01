@@ -525,7 +525,7 @@ class Client extends EventEmitter {
         });
 
         if (this.dataDir) {
-            return (fs.rmSync ? fs.rmSync : fs.rmdirSync).call(this.dataDir, { recursive: true });
+            return (fs.rmSync ? fs.rmSync : fs.rmdirSync).call(this, this.dataDir, { recursive: true });
         }
     }
 
