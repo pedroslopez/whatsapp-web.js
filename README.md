@@ -1,4 +1,4 @@
-[![npm](https://img.shields.io/npm/v/whatsapp-web.js.svg)](https://www.npmjs.com/package/whatsapp-web.js) [![Depfu](https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg)](https://depfu.com/github/pedroslopez/whatsapp-web.js?project_id=9765) ![WhatsApp_Web 2.2202.12](https://img.shields.io/badge/WhatsApp_Web-2.2202.12-brightgreen.svg) [![Discord Chat](https://img.shields.io/discord/698610475432411196.svg?logo=discord)](https://discord.gg/H7DqQs4)  
+[![npm](https://img.shields.io/npm/v/whatsapp-web.js.svg)](https://www.npmjs.com/package/whatsapp-web.js) [![Depfu](https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg)](https://depfu.com/github/pedroslopez/whatsapp-web.js?project_id=9765) ![WhatsApp_Web 2.2206.5](https://img.shields.io/badge/WhatsApp_Web-2.2206.5-brightgreen.svg) [![Discord Chat](https://img.shields.io/discord/698610475432411196.svg?logo=discord)](https://discord.gg/H7DqQs4)  
 
 # whatsapp-web.js
 A WhatsApp API client that connects through the WhatsApp Web browser app
@@ -47,43 +47,14 @@ client.initialize();
 
 Take a look at [example.js](https://github.com/pedroslopez/whatsapp-web.js/blob/master/example.js) for another example with more use cases.
 
-## Remote Access
+For more information on saving and restoring sessions, check out the available [Authentication Strategies](https://wwebjs.dev/guide/authentication.html).
 
-You could also connect to any previously existing browser instance:
-
-```js
-const client = new Client({ 
-    puppeteer: {
-        browserWSEndpoint: `ws://localhost:3000`
-    }
-});
-```
-
-### Docker
-
-1) Installing a browser using browserless:
-
-```
-docker run \
-  --rm \
-  -p 3000:3000 \
-  -e "MAX_CONCURRENT_SESSIONS=1" \
-  browserless/chrome:latest
-```
-
-Reference: https://docs.browserless.io/docs/docker-quickstart.html
-
-### Remote Debugging
-
-2) Running a browser with websocket remote debugging enabled:
-> chrome.exe --remote-debugging-port=9222
-
-After that check the following webpage and check http://127.0.0.1:9220/json and get the **webSocketDebuggerUrl**
 
 ## Supported features
 
 | Feature  | Status |
 | ------------- | ------------- |
+| Multi Device  | ✅  |
 | Send messages  | ✅  |
 | Receive messages  | ✅  |
 | Send media (images/audio/documents)  | ✅  |
@@ -116,11 +87,13 @@ Something missing? Make an issue and let us know!
 
 Pull requests are welcome! If you see something you'd like to add, please do. For drastic changes, please open an issue first.
 
-## Donating
+## Supporting the project
 
-You can support the maintainer of this project through the link below
+You can support the maintainer of this project through the links below
 
-[![Support via PayPal](https://cdn.rawgit.com/twolfson/paypal-github-button/1.0.0/dist/button.svg)](https://www.paypal.me/psla/)
+- [Support via GitHub Sponsors](https://github.com/sponsors/pedroslopez)
+- [Support via PayPal](https://www.paypal.me/psla/)
+- [Sign up for DigitalOcean](https://m.do.co/c/73f906a36ed4) and get $100 in credit when you sign up (Referral)
 
 ## Disclaimer
 

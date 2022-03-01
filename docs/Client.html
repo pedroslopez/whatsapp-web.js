@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.15.6 &raquo; Class: Client</title>
+  <title>whatsapp-web.js 1.16.1 &raquo; Class: Client</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>15.<wbr>6</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>16.<wbr>1</a>
       </div>
     </div>
   </nav>
@@ -26,7 +26,7 @@
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
             <h1><small></small><span class="symbol-name">Client</span></h1>
-            <p class="source-link">Source: <a href="Client.js.html#source-line-53">Client.<wbr>js:53</a></p>
+            <p class="source-link">Source: <a href="Client.js.html#source-line-49">Client.<wbr>js:49</a></p>
             <div class="symbol-classdesc">
               <p>Starting point for interacting with the WhatsApp Web API</p>
             </div>
@@ -55,7 +55,7 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Client.html#acceptGroupV4Invite">acceptGroupV4Invite(inviteV4)</a></dt>
+                    <dt><a href="Client.html#acceptGroupV4Invite">acceptGroupV4Invite(inviteInfo)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Client.html#acceptInvite">acceptInvite(inviteCode)</a></dt>
@@ -85,19 +85,22 @@
                     <dt><a href="Client.html#getChatsByLabelId">getChatsByLabelId(labelId)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Client.html#getCommonGroups">getCommonGroups(contactId)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#getContactById">getContactById(contactId)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Client.html#getContacts">getContacts()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Client.html#getCountryCode">getCountryCode(number)</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Client.html#getCountryCode">getCountryCode(number)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#getFormattedNumber">getFormattedNumber(number)</a></dt>
                     <dd>
                     </dd>
@@ -134,13 +137,13 @@
                     <dt><a href="Client.html#markChatUnread">markChatUnread(chatId)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Client.html#muteChat">muteChat(chatId, unmuteDate)</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Client.html#muteChat">muteChat(chatId, unmuteDate)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#pinChat">pinChat()</a></dt>
                     <dd>
                     </dd>
@@ -154,6 +157,9 @@
                     <dd>
                     </dd>
                     <dt><a href="Client.html#sendPresenceAvailable">sendPresenceAvailable()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#sendPresenceUnavailable">sendPresenceUnavailable()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Client.html#sendSeen">sendSeen(chatId)</a></dt>
@@ -286,6 +292,20 @@
                         <tbody>
                           <tr>
                             <td>
+                              <p>authStrategy</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>Determines how to save and restore sessions. Will use LegacySessionAuth if options.session is set. Otherwise, NoAuth will be used.</p>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
                               <p>authTimeoutMs</p>
                             </td>
                             <td>
@@ -314,34 +334,6 @@
                           </tr>
                           <tr>
                             <td>
-                              <p>qrRefreshIntervalMs</p>
-                            </td>
-                            <td>
-                              <p>&nbsp;</p>
-                            </td>
-                            <td>
-                              <p>&nbsp;</p>
-                            </td>
-                            <td>
-                              <p>Refresh interval for qr code (how much time to wait before checking if the qr code has changed)</p>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <p>qrTimeoutMs</p>
-                            </td>
-                            <td>
-                              <p>&nbsp;</p>
-                            </td>
-                            <td>
-                              <p>&nbsp;</p>
-                            </td>
-                            <td>
-                              <p>Timeout for qr code selector in puppeteer</p>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
                               <p>qrMaxRetries</p>
                             </td>
                             <td>
@@ -365,7 +357,7 @@
                               <p>&nbsp;</p>
                             </td>
                             <td>
-                              <p>Restart client with a new session (i.e. use null 'session' var) if authentication fails</p>
+                              <p>@deprecated This option should be set directly on the LegacySessionAuth.</p>
                             </td>
                           </tr>
                           <tr>
@@ -379,59 +371,7 @@
                               <p>&nbsp;</p>
                             </td>
                             <td>
-                              <p>Whatsapp session to restore. If not set, will start a new session</p>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <p>session.WABrowserId</p>
-                            </td>
-                            <td>
-                              <p>&nbsp;</p>
-                            </td>
-                            <td>
-                              <p>&nbsp;</p>
-                            </td>
-                            <td>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <p>session.WASecretBundle</p>
-                            </td>
-                            <td>
-                              <p>&nbsp;</p>
-                            </td>
-                            <td>
-                              <p>&nbsp;</p>
-                            </td>
-                            <td>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <p>session.WAToken1</p>
-                            </td>
-                            <td>
-                              <p>&nbsp;</p>
-                            </td>
-                            <td>
-                              <p>&nbsp;</p>
-                            </td>
-                            <td>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <p>session.WAToken2</p>
-                            </td>
-                            <td>
-                              <p>&nbsp;</p>
-                            </td>
-                            <td>
-                              <p>&nbsp;</p>
-                            </td>
-                            <td>
+                              <p>@deprecated Only here for backwards-compatibility. You should move to using LocalAuth, or set the authStrategy to LegacySessionAuth explicitly.</p>
                             </td>
                           </tr>
                           <tr>
@@ -530,7 +470,6 @@
               <dd><a href="Client.html#event:group_update">Client#event:group_update</a></dd>
               <dd><a href="Client.html#event:disconnected">Client#event:disconnected</a></dd>
               <dd><a href="Client.html#event:change_state">Client#event:change_state</a></dd>
-              <dd><a href="Client.html#event:change_battery">Client#event:change_battery</a></dd>
             </dl>
           </section>
           <section>
@@ -545,7 +484,7 @@
             <h2>Methods</h2>
             <section>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
-              <h3 id="acceptGroupV4Invite"><span class="symbol-name">acceptGroupV4Invite</span><span class="signature"><span class="signature-params">(inviteV4)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Object</span></span></h3>
+              <h3 id="acceptGroupV4Invite"><span class="symbol-name">acceptGroupV4Invite</span><span class="signature"><span class="signature-params">(inviteInfo)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Object</span></span></h3>
               <p>Accepts a private invitation to join a group</p>
               <section>
                 <h4>Parameter</h4>
@@ -561,7 +500,7 @@
                   <tbody>
                     <tr>
                       <td>
-                        <p>inviteV4</p>
+                        <p>inviteInfo</p>
                       </td>
                       <td>
                         <p>object</p>
@@ -827,6 +766,44 @@
                 <dt>Returns</dt>
                 <dd>
                   <p><code>Promise containing Array of <a href="Chat.html">Chat</a></code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getCommonGroups"><span class="symbol-name">getCommonGroups</span><span class="signature"><span class="signature-params">(contactId)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of WAWebJS.ChatId</span></span></h3>
+              <p>Gets the Contact's common groups with you. Returns empty array if you don't have any common group.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>contactId</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>the whatsapp user's ID (_serialized format)</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing Array of WAWebJS.ChatId</code> </p>
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
@@ -1452,6 +1429,11 @@
               <dl class="dl-compact">
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="sendPresenceUnavailable"><span class="symbol-name">sendPresenceUnavailable</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Marks the client as unavailable</p>
+              <dl class="dl-compact">
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="sendSeen"><span class="symbol-name">sendSeen</span><span class="signature"><span class="signature-params">(chatId)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
               <p>Mark as seen for the Chat</p>
               <section>
@@ -1491,7 +1473,7 @@
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
-              <h3 id="setDisplayName"><span class="symbol-name">setDisplayName</span><span class="signature"><span class="signature-params">(displayName)</span></span></h3>
+              <h3 id="setDisplayName"><span class="symbol-name">setDisplayName</span><span class="signature"><span class="signature-params">(displayName)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Boolean</span></span></h3>
               <p>Sets the current user's display name.
                 This is the name shown to WhatsApp users that have not added you as a contact beside your number in groups and in your profile.</p>
               <section>
@@ -1524,6 +1506,10 @@
                 </table>
               </section>
               <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing Boolean</code> </p>
+                </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="setStatus"><span class="symbol-name">setStatus</span><span class="signature"><span class="signature-params">(status)</span></span></h3>
@@ -1650,104 +1636,10 @@
               </dl>
               <h3 id="event:authenticated"><span class="symbol-name">authenticated</span></h3>
               <p>Emitted when authentication is successful</p>
-              <section>
-                <h4>Parameters</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>session</p>
-                      </td>
-                      <td>
-                        <p>object</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Object containing session information. Can be used to restore the session.</p>
-                        <p>Values in <code>session</code> have the following properties:</p>
-                        <table class="jsdoc-details-table">
-                          <thead>
-                            <tr>
-                              <th>Name</th>
-                              <th>Type</th>
-                              <th>Optional</th>
-                              <th>Description</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <td>
-                                <p>WABrowserId</p>
-                              </td>
-                              <td>
-                                <p>string</p>
-                              </td>
-                              <td>
-                                <p>&nbsp;</p>
-                              </td>
-                              <td>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <p>WASecretBundle</p>
-                              </td>
-                              <td>
-                                <p>string</p>
-                              </td>
-                              <td>
-                                <p>&nbsp;</p>
-                              </td>
-                              <td>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <p>WAToken1</p>
-                              </td>
-                              <td>
-                                <p>string</p>
-                              </td>
-                              <td>
-                                <p>&nbsp;</p>
-                              </td>
-                              <td>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <p>WAToken2</p>
-                              </td>
-                              <td>
-                                <p>string</p>
-                              </td>
-                              <td>
-                                <p>&nbsp;</p>
-                              </td>
-                              <td>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
               <dl class="dl-compact">
               </dl>
               <h3 id="event:change_battery"><span class="symbol-name">change_battery</span></h3>
-              <p>Emitted when the battery percentage for the attached device changes</p>
+              <p>Emitted when the battery percentage for the attached device changes. Will not be sent if using multi-device.</p>
               <section>
                 <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
@@ -1818,6 +1710,8 @@
                 </table>
               </section>
               <dl class="dl-compact">
+                <dt>Deprecated</dt>
+                <dd></dd>
               </dl>
               <h3 id="event:change_state"><span class="symbol-name">change_state</span></h3>
               <p>Emitted when the connection state changes</p>
@@ -2370,7 +2264,7 @@
               <dl class="dl-compact">
               </dl>
               <h3 id="event:qr"><span class="symbol-name">qr</span></h3>
-              <p>Emitted when the QR code is received</p>
+              <p>Emitted when a QR code is received</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -2416,7 +2310,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on February 8, 2022.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on February 28, 2022.
       </p>
     </div>
   </footer>

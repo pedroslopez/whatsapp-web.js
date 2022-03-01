@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.15.6 &raquo; Class: Message</title>
+  <title>whatsapp-web.js 1.16.1 &raquo; Class: Message</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>15.<wbr>6</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>16.<wbr>1</a>
       </div>
     </div>
   </nav>
@@ -52,6 +52,9 @@
                     <dd>
                     </dd>
                     <dt><a href="Message.html#deviceType">deviceType</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Message.html#duration">duration</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Message.html#forwardingScore">forwardingScore</a></dt>
@@ -97,13 +100,13 @@
                     <dt><a href="Message.html#links">links</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Message.html#location">location</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Message.html#location">location</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="Message.html#mediaKey">mediaKey</a></dt>
                     <dd>
                     </dd>
@@ -111,6 +114,9 @@
                     <dd>
                     </dd>
                     <dt><a href="Message.html#orderId">orderId</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Message.html#rawData">rawData</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Message.html#timestamp">timestamp</a></dt>
@@ -178,6 +184,9 @@
                     <dt><a href="Message.html#getQuotedMessage">getQuotedMessage()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Message.html#reload">reload()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Message.html#reply">reply(content[, chatId][, options])</a></dt>
                     <dd>
                     </dd>
@@ -225,6 +234,11 @@
               <h3 id="deviceType"><span class="symbol-name">deviceType</span><small class="property-type">
                   &nbsp;string</small></h3>
               <p>String that represents from which device type the message was sent</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="duration"><span class="symbol-name">duration</span><small class="property-type">
+                  &nbsp;string</small></h3>
+              <p>Indicates the duration of the message in seconds</p>
               <dl class="dl-compact">
               </dl>
               <h3 id="forwardingScore"><span class="symbol-name">forwardingScore</span><small class="property-type">
@@ -311,6 +325,11 @@
               <h3 id="orderId"><span class="symbol-name">orderId</span><small class="property-type">
                   &nbsp;string</small></h3>
               <p>Order ID for message type ORDER</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="rawData"><span class="symbol-name">rawData</span><small class="property-type">
+                  &nbsp;Object</small></h3>
+              <p>Returns message in a raw format</p>
               <dl class="dl-compact">
               </dl>
               <h3 id="timestamp"><span class="symbol-name">timestamp</span><small class="property-type">
@@ -496,6 +515,16 @@
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="reload"><span class="symbol-name">reload</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="Message.html">Message</a></span></span></h3>
+              <p>Reloads this Message object's data in-place with the latest values from WhatsApp Web.
+                Note that the Message must still be in the web app cache for this to work, otherwise will return null.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing <a href="Message.html">Message</a></code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="reply"><span class="symbol-name">reply</span><span class="signature"><span class="signature-params">(content[, chatId][, options])</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="Message.html">Message</a></span></span></h3>
               <p>Sends a message as a reply to this message. If chatId is specified, it will be sent
                 through the specified Chat. If not, it will send the message
@@ -580,7 +609,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on February 8, 2022.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on February 28, 2022.
       </p>
     </div>
   </footer>

@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.15.6 &raquo; Home</title>
+  <title>whatsapp-web.js 1.16.1 &raquo; Home</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>15.<wbr>6</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>16.<wbr>1</a>
       </div>
     </div>
   </nav>
@@ -27,11 +27,11 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1>
-              whatsapp-web.js 1.15.6
+              whatsapp-web.js 1.16.1
             </h1>
           </header>
           <article>
-            <p><a href="https://www.npmjs.com/package/whatsapp-web.js"><img src="https://img.shields.io/npm/v/whatsapp-web.js.svg" alt="npm"></a> <a href="https://depfu.com/github/pedroslopez/whatsapp-web.js?project_id=9765"><img src="https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg" alt="Depfu"></a> <img src="https://img.shields.io/badge/WhatsApp_Web-2.2202.12-brightgreen.svg" alt="WhatsApp_Web 2.2202.12"> <a href="https://discord.gg/H7DqQs4"><img src="https://img.shields.io/discord/698610475432411196.svg?logo=discord" alt="Discord Chat"></a></p>
+            <p><a href="https://www.npmjs.com/package/whatsapp-web.js"><img src="https://img.shields.io/npm/v/whatsapp-web.js.svg" alt="npm"></a> <a href="https://depfu.com/github/pedroslopez/whatsapp-web.js?project_id=9765"><img src="https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg" alt="Depfu"></a> <img src="https://img.shields.io/badge/WhatsApp_Web-2.2206.5-brightgreen.svg" alt="WhatsApp_Web 2.2206.5"> <a href="https://discord.gg/H7DqQs4"><img src="https://img.shields.io/discord/698610475432411196.svg?logo=discord" alt="Discord Chat"></a></p>
             <h1>whatsapp-web.js</h1>
             <p>A WhatsApp API client that connects through the WhatsApp Web browser app</p>
             <p>It uses Puppeteer to run a real instance of Whatsapp Web to avoid getting blocked.</p>
@@ -69,33 +69,7 @@ client.on('message', msg => {
 client.initialize();
 </code></pre>
             <p>Take a look at <a href="https://github.com/pedroslopez/whatsapp-web.js/blob/master/example.js">example.js</a> for another example with more use cases.</p>
-            <h2>Remote Access</h2>
-            <p>You could also connect to any previously existing browser instance:</p>
-            <pre class="prettyprint source lang-js"><code>const client = new Client({ 
-    puppeteer: {
-        browserWSEndpoint: `ws://localhost:3000`
-    }
-});
-</code></pre>
-            <h3>Docker</h3>
-            <ol>
-              <li>Installing a browser using browserless:</li>
-            </ol>
-            <pre class="prettyprint source"><code>docker run \
-  --rm \
-  -p 3000:3000 \
-  -e &quot;MAX_CONCURRENT_SESSIONS=1&quot; \
-  browserless/chrome:latest
-</code></pre>
-            <p>Reference: https://docs.browserless.io/docs/docker-quickstart.html</p>
-            <h3>Remote Debugging</h3>
-            <ol start="2">
-              <li>Running a browser with websocket remote debugging enabled:</li>
-            </ol>
-            <blockquote>
-              <p>chrome.exe --remote-debugging-port=9222</p>
-            </blockquote>
-            <p>After that check the following webpage and check http://127.0.0.1:9220/json and get the <strong>webSocketDebuggerUrl</strong></p>
+            <p>For more information on saving and restoring sessions, check out the available <a href="https://wwebjs.dev/guide/authentication.html">Authentication Strategies</a>.</p>
             <h2>Supported features</h2>
             <table>
               <thead>
@@ -105,6 +79,10 @@ client.initialize();
                 </tr>
               </thead>
               <tbody>
+                <tr>
+                  <td>Multi Device</td>
+                  <td>✅</td>
+                </tr>
                 <tr>
                   <td>Send messages</td>
                   <td>✅</td>
@@ -210,9 +188,13 @@ client.initialize();
             <p>Something missing? Make an issue and let us know!</p>
             <h2>Contributing</h2>
             <p>Pull requests are welcome! If you see something you'd like to add, please do. For drastic changes, please open an issue first.</p>
-            <h2>Donating</h2>
-            <p>You can support the maintainer of this project through the link below</p>
-            <p><a href="https://www.paypal.me/psla/"><img src="https://cdn.rawgit.com/twolfson/paypal-github-button/1.0.0/dist/button.svg" alt="Support via PayPal"></a></p>
+            <h2>Supporting the project</h2>
+            <p>You can support the maintainer of this project through the links below</p>
+            <ul>
+              <li><a href="https://github.com/sponsors/pedroslopez">Support via GitHub Sponsors</a></li>
+              <li><a href="https://www.paypal.me/psla/">Support via PayPal</a></li>
+              <li><a href="https://m.do.co/c/73f906a36ed4">Sign up for DigitalOcean</a> and get $100 in credit when you sign up (Referral)</li>
+            </ul>
             <h2>Disclaimer</h2>
             <p>This project is not affiliated, associated, authorized, endorsed by, or in any way officially connected with WhatsApp or any of its subsidiaries or its affiliates. The official WhatsApp website can be found at https://whatsapp.com. &quot;WhatsApp&quot; as well as related names, marks, emblems and images are registered trademarks of their respective owners.</p>
             <h2>License</h2>
@@ -235,6 +217,30 @@ client.initialize();
                     <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Base.html" class="!symbol-index-name">Base()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section>
+              <div class="symbol-index-content">
+                <h2 id="BaseAuthStrategy">BaseAuthStrategy</h2>
+                <div class="symbol-index-section">
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="BaseAuthStrategy.html" class="!symbol-index-name">BaseAuthStrategy()</a>
                       </dt>
                       <dd>
                       </dd>
@@ -283,6 +289,11 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="BusinessContact.html#getCommonGroups" class="!symbol-index-name">BusinessContact#<wbr>getCommonGroups()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="BusinessContact.html#getCountryCode" class="!symbol-index-name">BusinessContact#<wbr>getCountryCode()</a>
                       </dt>
                       <dd>
@@ -292,15 +303,15 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="BusinessContact.html#getProfilePicUrl" class="!symbol-index-name">BusinessContact#<wbr>getProfilePicUrl()</a>
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="BusinessContact.html#id" class="!symbol-index-name">BusinessContact#<wbr>id</a>
                       </dt>
@@ -336,15 +347,15 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="BusinessContact.html#isUser" class="!symbol-index-name">BusinessContact#<wbr>isUser</a>
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="BusinessContact.html#isWAContact" class="!symbol-index-name">BusinessContact#<wbr>isWAContact</a>
                       </dt>
@@ -703,7 +714,7 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
-                        <a href="Client.html#acceptGroupV4Invite" class="!symbol-index-name">Client#<wbr>acceptGroupV4Invite(inviteV4)</a>
+                        <a href="Client.html#acceptGroupV4Invite" class="!symbol-index-name">Client#<wbr>acceptGroupV4Invite(inviteInfo)</a>
                       </dt>
                       <dd>
                       </dd>
@@ -792,15 +803,15 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Client.html#event:message_revoke_everyone" class="!symbol-index-name">Client#<wbr>event:message_revoke_everyone</a>
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Client.html#event:message_revoke_me" class="!symbol-index-name">Client#<wbr>event:message_revoke_me</a>
                       </dt>
@@ -838,6 +849,11 @@ client.initialize();
                       </dd>
                       <dt class="symbol-index-name">
                         <a href="Client.html#getChatsByLabelId" class="!symbol-index-name">Client#<wbr>getChatsByLabelId(labelId)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Client.html#getCommonGroups" class="!symbol-index-name">Client#<wbr>getCommonGroups(contactId)</a>
                       </dt>
                       <dd>
                       </dd>
@@ -891,15 +907,15 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Client.html#getWWebVersion" class="!symbol-index-name">Client#<wbr>getWWebVersion()</a>
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Client.html#info" class="!symbol-index-name">Client#<wbr>info</a>
                       </dt>
@@ -952,6 +968,11 @@ client.initialize();
                       </dd>
                       <dt class="symbol-index-name">
                         <a href="Client.html#sendPresenceAvailable" class="!symbol-index-name">Client#<wbr>sendPresenceAvailable()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Client.html#sendPresenceUnavailable" class="!symbol-index-name">Client#<wbr>sendPresenceUnavailable()</a>
                       </dt>
                       <dd>
                       </dd>
@@ -1071,6 +1092,11 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="Contact.html#getCommonGroups" class="!symbol-index-name">Contact#<wbr>getCommonGroups()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="Contact.html#getCountryCode" class="!symbol-index-name">Contact#<wbr>getCountryCode()</a>
                       </dt>
                       <dd>
@@ -1124,15 +1150,15 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Contact.html#isUser" class="!symbol-index-name">Contact#<wbr>isUser</a>
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Contact.html#isWAContact" class="!symbol-index-name">Contact#<wbr>isWAContact</a>
                       </dt>
@@ -1769,6 +1795,30 @@ client.initialize();
             </section>
             <section>
               <div class="symbol-index-content">
+                <h2 id="LegacySessionAuth">LegacySessionAuth</h2>
+                <div class="symbol-index-section">
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="LegacySessionAuth.html" class="!symbol-index-name">LegacySessionAuth(options)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section>
+              <div class="symbol-index-content">
                 <h2 id="List">List</h2>
                 <div class="symbol-index-section">
                   <div class="symbol-index-column">
@@ -1816,6 +1866,30 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section>
+              <div class="symbol-index-content">
+                <h2 id="LocalAuth">LocalAuth</h2>
+                <div class="symbol-index-section">
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="LocalAuth.html" class="!symbol-index-name">LocalAuth(options)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                     </dl>
                   </div>
                 </div>
@@ -1908,6 +1982,11 @@ client.initialize();
                       </dd>
                       <dt class="symbol-index-name">
                         <a href="Message.html#downloadMedia" class="!symbol-index-name">Message#<wbr>downloadMedia()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Message.html#duration" class="!symbol-index-name">Message#<wbr>duration</a>
                       </dt>
                       <dd>
                       </dd>
@@ -2010,15 +2089,15 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Message.html#isStatus" class="!symbol-index-name">Message#<wbr>isStatus</a>
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="Message.html#links" class="!symbol-index-name">Message#<wbr>links</a>
                       </dt>
@@ -2041,6 +2120,16 @@ client.initialize();
                       </dd>
                       <dt class="symbol-index-name">
                         <a href="Message.html#orderId" class="!symbol-index-name">Message#<wbr>orderId</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Message.html#rawData" class="!symbol-index-name">Message#<wbr>rawData</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Message.html#reload" class="!symbol-index-name">Message#<wbr>reload()</a>
                       </dt>
                       <dd>
                       </dd>
@@ -2383,6 +2472,30 @@ client.initialize();
             </section>
             <section>
               <div class="symbol-index-content">
+                <h2 id="NoAuth">NoAuth</h2>
+                <div class="symbol-index-section">
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="NoAuth.html" class="!symbol-index-name">NoAuth()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section>
+              <div class="symbol-index-content">
                 <h2 id="Order">Order</h2>
                 <div class="symbol-index-section">
                   <div class="symbol-index-column">
@@ -2670,6 +2783,11 @@ client.initialize();
                       <dd>
                       </dd>
                       <dt class="symbol-index-name">
+                        <a href="PrivateContact.html#getCommonGroups" class="!symbol-index-name">PrivateContact#<wbr>getCommonGroups()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
                         <a href="PrivateContact.html#getCountryCode" class="!symbol-index-name">PrivateContact#<wbr>getCountryCode()</a>
                       </dt>
                       <dd>
@@ -2723,15 +2841,15 @@ client.initialize();
                       </dt>
                       <dd>
                       </dd>
-                    </dl>
-                  </div>
-                  <div class="symbol-index-column">
-                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="PrivateContact.html#isUser" class="!symbol-index-name">PrivateContact#<wbr>isUser</a>
                       </dt>
                       <dd>
                       </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
                       <dt class="symbol-index-name">
                         <a href="PrivateContact.html#isWAContact" class="!symbol-index-name">PrivateContact#<wbr>isWAContact</a>
                       </dt>
@@ -3031,7 +3149,7 @@ client.initialize();
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on February 8, 2022.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on February 28, 2022.
       </p>
     </div>
   </footer>
