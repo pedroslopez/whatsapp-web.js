@@ -1,22 +1,9 @@
-const fs = require('fs');
-const { Client, Location, List, Buttons } = require('./index');
+const { Client, Location, List, Buttons, LocalAuth } = require('./index');
 
-const SESSION_FILE_PATH = './session.json';
-let sessionCfg;
-if (fs.existsSync(SESSION_FILE_PATH)) {
-    sessionCfg = require(SESSION_FILE_PATH);
-}
-
-const client = new Client({ puppeteer: { headless: false }, session: sessionCfg });
-// You can use an existing session and avoid scanning a QR code by adding a "session" object to the client options.
-// This object must include WABrowserId, WASecretBundle, WAToken1 and WAToken2.
-
-// You also could connect to an existing instance of a browser
-// { 
-//    puppeteer: {
-//        browserWSEndpoint: `ws://localhost:3000`
-//    }
-// }
+const client = new Client({
+    authStrategy: new LocalAuth(),
+    puppeteer: { headless: false }
+});
 
 client.initialize();
 
@@ -25,18 +12,12 @@ client.on('qr', (qr) => {
     console.log('QR RECEIVED', qr);
 });
 
-client.on('authenticated', (session) => {
-    console.log('AUTHENTICATED', session);
-    sessionCfg=session;
-    fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
-        if (err) {
-            console.error(err);
-        }
-    });
+client.on('authenticated', () => {
+    console.log('AUTHENTICATED');
 });
 
 client.on('auth_failure', msg => {
-    // Fired if session restore was unsuccessfull
+    // Fired if session restore was unsuccessful
     console.error('AUTHENTICATION FAILURE', msg);
 });
 
@@ -124,9 +105,8 @@ client.on('message', async msg => {
         client.sendMessage(msg.from, `
             *Connection info*
             User name: ${info.pushname}
-            My number: ${info.me.user}
+            My number: ${info.wid.user}
             Platform: ${info.platform}
-            WhatsApp version: ${info.phone.wa_version}
         `);
     } else if (msg.body === '!mediainfo' && msg.hasMedia) {
         const attachmentData = await msg.downloadMedia();
@@ -265,12 +245,6 @@ client.on('group_leave', (notification) => {
 client.on('group_update', (notification) => {
     // Group picture, subject or description has been updated.
     console.log('update', notification);
-});
-
-client.on('change_battery', (batteryInfo) => {
-    // Battery percentage for attached device has changed
-    const { battery, plugged } = batteryInfo;
-    console.log(`Battery: ${battery}% - Charging? ${plugged}`);
 });
 
 client.on('change_state', state => {

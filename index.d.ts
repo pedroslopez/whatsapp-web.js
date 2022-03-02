@@ -84,6 +84,9 @@ declare namespace WAWebJS {
         /** Returns the contact ID's profile picture URL, if privacy settings allow it */
         getProfilePicUrl(contactId: string): Promise<string>
 
+        /** Gets the Contact's common groups with you. Returns empty array if you don't have any common group. */
+        getCommonGroups(contactId: string): Promise<ChatId[]>
+
         /** Gets the current connection state for the client */
         getState(): Promise<WAState>
 
@@ -118,6 +121,9 @@ declare namespace WAWebJS {
         /** Marks the client as online */
         sendPresenceAvailable(): Promise<void>
 
+        /** Marks the client as offline */
+        sendPresenceUnavailable(): Promise<void>
+
         /** Mark as seen for the Chat */
         sendSeen(chatId: string): Promise<boolean>
 
@@ -134,7 +140,7 @@ declare namespace WAWebJS {
          * Sets the current user's display name
          * @param displayName New display name
          */
-        setDisplayName(displayName: string): Promise<void>
+        setDisplayName(displayName: string): Promise<boolean>
 
         /** Changes and returns the archive state of the Chat */
         unarchiveChat(chatId: string): Promise<boolean>
@@ -150,11 +156,16 @@ declare namespace WAWebJS {
 
         /** Emitted when authentication is successful */
         on(event: 'authenticated', listener: (
-            /** Object containing session information. Can be used to restore the session */
-            session: ClientSession
+            /** 
+             * Object containing session information, when using LegacySessionAuth. Can be used to restore the session
+             */
+            session?: ClientSession
         ) => void): this
 
-        /** Emitted when the battery percentage for the attached device changes */
+        /** 
+         * Emitted when the battery percentage for the attached device changes
+         * @deprecated 
+         */
         on(event: 'change_battery', listener: (batteryInfo: BatteryInfo) => void): this
 
         /** Emitted when the connection state changes */
@@ -256,7 +267,10 @@ declare namespace WAWebJS {
         me: ContactId
         /** Current user ID */
         wid: ContactId
-        /** Information about the phone this client is connected to */
+        /** 
+         * Information about the phone this client is connected to.  Not available in multi-device. 
+         * @deprecated 
+         */
         phone: ClientInfoPhone
         /** Platform the phone is running on */
         platform: string
@@ -267,7 +281,10 @@ declare namespace WAWebJS {
         getBatteryStatus: () => Promise<BatteryInfo>
     }
 
-    /** Information about the phone this client is connected to */
+    /** 
+     * Information about the phone this client is connected to 
+     * @deprecated
+     */
     export interface ClientInfoPhone {
         /** WhatsApp Version running on the phone */
         wa_version: string
@@ -284,23 +301,22 @@ declare namespace WAWebJS {
     /** Options for initializing the whatsapp client */
     export interface ClientOptions {
         /** Timeout for authentication selector in puppeteer
-         * @default 45000 */
+         * @default 0 */
         authTimeoutMs?: number,
         /** Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/ */
         puppeteer?: puppeteer.LaunchOptions & puppeteer.BrowserLaunchArgumentOptions & puppeteer.BrowserConnectOptions
-        /** Refresh interval for qr code (how much time to wait before checking if the qr code has changed)
-         * @default 20000 */
-        qrRefreshIntervalMs?: number
-        /** Timeout for qr code selector in puppeteer
-         * @default 45000 */
-        qrTimeoutMs?: number,
-		/** How many times should the qrcode be refreshed before giving up
+		/** Determines how to save and restore sessions. Will use LegacySessionAuth if options.session is set. Otherwise, NoAuth will be used. */
+        authStrategy?: AuthStrategy,
+        /** How many times should the qrcode be refreshed before giving up
 		 * @default 0 (disabled) */
 		qrMaxRetries?: number,
-        /** Restart client with a new session (i.e. use null 'session' var) if authentication fails
-         * @default false */
+        /** 
+         * @deprecated This option should be set directly on the LegacySessionAuth
+         */
         restartOnAuthFail?: boolean
-        /** Whatsapp session to restore. If not set, will start a new session */
+        /** 
+         * @deprecated Only here for backwards-compatibility. You should move to using LocalAuth, or set the authStrategy to LegacySessionAuth explicitly.  
+         */
         session?: ClientSession
         /** If another whatsapp web session is detected (another browser), take over the session in the current browser
          * @default false */
@@ -316,7 +332,54 @@ declare namespace WAWebJS {
         ffmpegPath?: string
     }
 
-    /** Represents a Whatsapp client session */
+    /**
+     * Base class which all authentication strategies extend
+     */
+    export abstract class AuthStrategy {
+        setup: (client: Client) => void;
+        beforeBrowserInitialized: () => Promise<void>;
+        afterBrowserInitialized: () => Promise<void>;
+        onAuthenticationNeeded: () => Promise<{
+            failed?: boolean; 
+            restart?: boolean; 
+            failureEventPayload?: any
+        }>;
+        getAuthEventPayload: () => Promise<any>;
+        logout: () => Promise<void>;
+    }
+
+    /**
+     * No session restoring functionality
+     * Will need to authenticate via QR code every time
+     */
+    export class NoAuth extends AuthStrategy {}
+
+    /**
+     * Local directory-based authentication
+     */
+    export class LocalAuth extends AuthStrategy {
+        public clientId?: string;
+        public dataPath?: string;
+        constructor(options?: {
+            clientId?: string,
+            dataPath?: string
+        })
+    }
+
+    /**
+     * Legacy session auth strategy
+     * Not compatible with multi-device accounts.
+     */
+     export class LegacySessionAuth extends AuthStrategy {
+        constructor(options?: {
+            session?: ClientSession,
+            restartOnAuth?: boolean,
+        })
+    }
+
+    /** 
+     * Represents a WhatsApp client session
+     */
     export interface ClientSession {
         WABrowserId: string,
         WASecretBundle: string,
@@ -324,6 +387,9 @@ declare namespace WAWebJS {
         WAToken2: string,
     }
 
+    /** 
+     * @deprecated
+     */
     export interface BatteryInfo {
         /** The current battery percentage */
         battery: number,
@@ -556,6 +622,8 @@ declare namespace WAWebJS {
         hasMedia: boolean,
         /** Indicates if the message was sent as a reply to another message */
         hasQuotedMsg: boolean,
+        /** Indicates the duration of the message in seconds */
+        duration: string,
         /** ID that represents the message */
         id: MessageId,
         /** Indicates if the message was forwarded */
@@ -608,6 +676,13 @@ declare namespace WAWebJS {
         selectedButtonId?: string,
         /** Selected list row ID */
         selectedRowId?: string,
+        /** Returns message in a raw format */
+        rawData: object,
+        /* 
+        * Reloads this Message object's data in-place with the latest values from WhatsApp Web. 
+        * Note that the Message must still be in the web app cache for this to work, otherwise will return null.
+        */
+        reload: () => Promise<Message>,
         /** Accept the Group V4 Invite in message */
         acceptGroupV4Invite: () => Promise<{status: number}>,
         /** Deletes the message from the chat */
@@ -641,11 +716,11 @@ declare namespace WAWebJS {
         /**
          * Gets the order associated with a given message
          */
-        getOrder: () => Order,
+        getOrder: () => Promise<Order>,
         /**
          * Gets the payment details associated with a given message
          */
-        getPayment: () => Payment,
+        getPayment: () => Promise<Payment>,
     }
 
     /** ID that represents a message */
@@ -679,7 +754,7 @@ declare namespace WAWebJS {
 
     /** Options for sending a message */
     export interface MessageSendOptions {
-        /** Show links preview */
+        /** Show links preview. Has no effect on multi-device accounts. */
         linkPreview?: boolean
         /** Send audio as voice message */
         sendAudioAsVoice?: boolean
@@ -741,7 +816,7 @@ declare namespace WAWebJS {
         static fromUrl: (url: string, options?: MediaFromURLOptions) => Promise<MessageMedia>
     }
 
-    export type MessageContent = string | MessageMedia | Location | Contact | Contact[] | List | Buttons
+    export type MessageContent = string | MessageMedia | Location | Contact | Contact[] | List | Buttons 
 
     /**
      * Represents a Contact on WhatsApp
@@ -834,6 +909,9 @@ declare namespace WAWebJS {
 
         /** Gets the Contact's current "about" info. Returns null if you don't have permission to read their status.  */
         getAbout: () => Promise<string | null>,
+        
+        /** Gets the Contact's common groups with you. Returns empty array if you don't have any common group. */
+        getCommonGroups: () => Promise<ChatId[]>
 
     }
 
@@ -977,7 +1055,7 @@ declare namespace WAWebJS {
     }
 
     /** Promotes or demotes participants by IDs to regular users or admins */
-    export type ChangeParticipantsPermisions = 
+    export type ChangeParticipantsPermissions = 
         (participantIds: Array<string>) => Promise<{ status: number }>
 
     /** Adds or removes a list of participants by ID to the group */
@@ -1007,13 +1085,13 @@ declare namespace WAWebJS {
         /** Removes a list of participants by ID to the group */
         removeParticipants: ChangeGroupParticipants;
         /** Promotes participants by IDs to admins */
-        promoteParticipants: ChangeParticipantsPermisions;
+        promoteParticipants: ChangeParticipantsPermissions;
         /** Demotes participants by IDs to regular users */
-        demoteParticipants: ChangeParticipantsPermisions;
+        demoteParticipants: ChangeParticipantsPermissions;
         /** Updates the group subject */
-        setSubject: (subject: string) => Promise<void>;
+        setSubject: (subject: string) => Promise<boolean>;
         /** Updates the group description */
-        setDescription: (description: string) => Promise<void>;
+        setDescription: (description: string) => Promise<boolean>;
         /** Updates the group settings to only allow admins to send messages 
          * @param {boolean} [adminsOnly=true] Enable or disable this option 
          * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
