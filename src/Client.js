@@ -877,11 +877,13 @@ class Client extends EventEmitter {
      */
     async getProfilePicUrl(contactId) {
         const profilePic = await this.pupPage.evaluate(async contactId => {
-            const chatWid = window.Store.WidFactory.createWid(contactId);
-            let asyncPic = await window.Store.getProfilePicFull(chatWid).catch(() => {
-                return undefined;
-            });
-            if (!asyncPic) {
+            let asyncPic;
+            if (window.Store.Features.features.MD_BACKEND) {
+                const chatWid = window.Store.WidFactory.createWid(contactId);
+                asyncPic = await window.Store.getProfilePicFull(chatWid).catch(() => {
+                    return undefined;
+                });
+            } else {
                 asyncPic = await window.Store.Wap.profilePicFind(contactId).catch(() => {
                     return undefined;
                 });
