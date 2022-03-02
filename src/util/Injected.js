@@ -556,8 +556,9 @@ exports.LoadUtils = () => {
         return (chat.labels || []).map(id => window.WWebJS.getLabel(id));
     };
 
-    window.WWebJS.getOrderDetail = async (orderId, token) => {
-        return window.Store.QueryOrder.queryOrder(orderId, 80, 80, token);
+    window.WWebJS.getOrderDetail = async (orderId, token, chatId) => {
+        const chatWid = window.Store.WidFactory.createWid(chatId);
+        return window.Store.QueryOrder.queryOrder(chatWid, orderId, 80, 80, token);
     };
 
     window.WWebJS.getProductMetadata = async (productId) => {

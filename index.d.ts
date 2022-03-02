@@ -716,11 +716,11 @@ declare namespace WAWebJS {
         /**
          * Gets the order associated with a given message
          */
-        getOrder: () => Order,
+        getOrder: () => Promise<Order>,
         /**
          * Gets the payment details associated with a given message
          */
-        getPayment: () => Payment,
+        getPayment: () => Promise<Payment>,
     }
 
     /** ID that represents a message */
