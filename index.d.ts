@@ -373,7 +373,7 @@ declare namespace WAWebJS {
      export class LegacySessionAuth extends AuthStrategy {
         constructor(options?: {
             session?: ClientSession,
-            restartOnAuth?: boolean,
+            restartOnAuthFail?: boolean,
         })
     }
 
