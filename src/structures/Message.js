@@ -487,9 +487,9 @@ class Message extends Base {
      */
     async getOrder() {
         if (this.type === MessageTypes.ORDER) {
-            const result = await this.client.pupPage.evaluate((orderId, token) => {
-                return window.WWebJS.getOrderDetail(orderId, token);
-            }, this.orderId, this.token);
+            const result = await this.client.pupPage.evaluate((orderId, token, chatId) => {
+                return window.WWebJS.getOrderDetail(orderId, token, chatId);
+            }, this.orderId, this.token, this._getChatId());
             if (!result) return undefined;
             return new Order(this.client, result);
         }
