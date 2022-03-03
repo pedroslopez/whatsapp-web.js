@@ -876,9 +876,14 @@ class Client extends EventEmitter {
      * @returns {Promise<string>}
      */
     async getProfilePicUrl(contactId) {
-        const profilePic = await this.pupPage.evaluate((contactId) => {
-            const chatWid = window.Store.WidFactory.createWid(contactId);
-            return window.Store.getProfilePicFull(chatWid);
+        const profilePic = await this.pupPage.evaluate(async contactId => {
+          const chatWid = window.Store.WidFactory.createWid(contactId);
+          // return window.Store.getProfilePicFull(chatWid);
+          const asyncPic = await window.Store.getProfilePicFull(chatWid).catch(() => undefined);
+          if (!asyncPic) {
+            return await window.Store.Wap.profilePicFind(contactId).catch(() => undefined);
+          }
+          return asyncPic;
         }, contactId);
 
         return profilePic ? profilePic.eurl : undefined;
