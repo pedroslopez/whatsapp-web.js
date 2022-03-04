@@ -168,6 +168,8 @@ class Chat extends Base {
         return this.client.markChatUnread(this.id._serialized);
     }
 
+    async sleep (ms = 1100) {return await new Promise(r => setTimeout(r, ms));}
+
     /**
      * Loads chat messages, sorted from earliest to latest.
      * @param {Object} searchOptions Options for searching messages. Right now only limit is supported.
@@ -175,30 +177,43 @@ class Chat extends Base {
      * @returns {Promise<Array<Message>>}
      */
     async fetchMessages(searchOptions) {
-        let messages = await this.client.pupPage.evaluate(async (chatId, searchOptions) => {
-            const msgFilter = m => !m.isNotification; // dont include notification messages
+        let intervalMSG = null;
+        let messages = [];
 
-            const chat = window.Store.Chat.get(chatId);
-            let msgs = chat.msgs.models.filter(msgFilter);
-
-            if (searchOptions && searchOptions.limit > 0) {
-                while (msgs.length < searchOptions.limit) {
-                    const loadedMessages = await chat.loadEarlierMsgs();
-                    if (!loadedMessages) break;
-                    msgs = [...loadedMessages.filter(msgFilter), ...msgs];
+        try {
+            intervalMSG = setTimeout(() => {
+                throw new Error();
+            }, 3000);
+            messages = await this.client.pupPage.evaluate(async (chatId, searchOptions) => {
+                const msgFilter = m => !m.isNotification; // dont include notification messages
+                await this.sleep();
+                const chat = window.Store.Chat.get(chatId);
+                let msgs = chat.msgs.models.filter(msgFilter);
+    
+                if (searchOptions && searchOptions.limit > 0) {
+                    while (msgs.length < searchOptions.limit) {
+                        const loadedMessages = await chat.loadEarlierMsgs();
+                        if (!loadedMessages) break;
+                        msgs = [...loadedMessages.filter(msgFilter), ...msgs];
+                    }
+                    
+                    if (msgs.length > searchOptions.limit) {
+                        msgs.sort((a, b) => (a.t > b.t) ? 1 : -1);
+                        msgs = msgs.splice(msgs.length - searchOptions.limit);
+                    }
                 }
-                
-                if (msgs.length > searchOptions.limit) {
-                    msgs.sort((a, b) => (a.t > b.t) ? 1 : -1);
-                    msgs = msgs.splice(msgs.length - searchOptions.limit);
-                }
-            }
+    
+                return msgs.map(m => window.WWebJS.getMessageModel(m));
+    
+            }, this.id._serialized, searchOptions);
+            if(messages) clearTimeout(intervalMSG);
+        }catch(e) {
+            console.log('morreu!');
+        }
 
-            return msgs.map(m => window.WWebJS.getMessageModel(m));
+        clearTimeout(intervalMSG);
 
-        }, this.id._serialized, searchOptions);
-
-        return messages.map(m => new Message(this.client, m));
+        return messages.length > 0 ? messages.map(m => new Message(this.client, m)) : [];
     }
 
     /**
