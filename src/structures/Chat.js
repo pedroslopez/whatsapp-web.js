@@ -179,11 +179,6 @@ class Chat extends Base {
         let messages = [];
 
         try {
-            new Promise(r => 
-                intervalMSG = setTimeout(r('err'), 3000)
-            ).then(_ => {
-                throw new Error('Fail', _);
-            });
             messages = await this.client.pupPage.evaluate(async (chatId, searchOptions) => {
                 const msgFilter = m => !m.isNotification; // dont include notification messages
                 const chat = window.Store.Chat.get(chatId);
@@ -205,7 +200,6 @@ class Chat extends Base {
                 return msgs.map(m => window.WWebJS.getMessageModel(m));
     
             }, this.id._serialized, searchOptions);
-            if(messages) clearTimeout(intervalMSG);
         }catch(e) {
             console.log('morreu!');
         }
