@@ -13,7 +13,7 @@ const BaseAuthStrategy = require('./BaseAuthStrategy');
  * @param {object} options - options
  * @param {string} options.clientId - Client id to distinguish instances if you are using multiple, otherwise keep null if you are using only one instance
  * @param {string} options.dataPath - Change the default path for saving session files, default is: "./.wwebjs_auth/" 
- * @param {number} options.backupSyncTime - Sets the time interval for periodic session backups. Accepts: (10-59) Minutes
+ * @param {number} options.backupSyncTime - Sets the time interval for periodic session backups. Accepts values bewteen range: (10-59) Minutes
 */
 class RemoteAuth extends BaseAuthStrategy {
     constructor({ clientId, dataPath, store, backupSyncTime }={}) {
@@ -24,7 +24,7 @@ class RemoteAuth extends BaseAuthStrategy {
             throw new Error('Invalid clientId. Only alphanumeric characters, underscores and hyphens are allowed.');
         }
         if (backupSyncTime < 10 || backupSyncTime > 59) {
-            throw new Error('Invalid backupSyncTime. Accepts values are between (10-59) minutes.');
+            throw new Error('Invalid backupSyncTime. Accepts values between range (10-59) minutes.');
         }
 
         this.clientId = clientId;
