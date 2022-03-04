@@ -42,6 +42,9 @@ class RemoteAuth extends BaseAuthStrategy {
             throw new Error('RemoteAuth is not compatible with a user-supplied userDataDir.');
         }
 
+        this.userDataDir = dirPath;
+        this.sessionName = sessionDirName;
+        
         await this.extractSession();
         
         this.client.options.puppeteer = {
@@ -49,8 +52,6 @@ class RemoteAuth extends BaseAuthStrategy {
             userDataDir: dirPath
         };
 
-        this.userDataDir = dirPath;
-        this.sessionName = sessionDirName;
     }
 
     async afterBrowserInitialized() {
