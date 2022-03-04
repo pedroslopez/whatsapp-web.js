@@ -168,8 +168,6 @@ class Chat extends Base {
         return this.client.markChatUnread(this.id._serialized);
     }
 
-    async sleep (ms = 1100) {return await new Promise(r => setTimeout(r, ms));}
-
     /**
      * Loads chat messages, sorted from earliest to latest.
      * @param {Object} searchOptions Options for searching messages. Right now only limit is supported.
@@ -186,7 +184,6 @@ class Chat extends Base {
             }, 3000);
             messages = await this.client.pupPage.evaluate(async (chatId, searchOptions) => {
                 const msgFilter = m => !m.isNotification; // dont include notification messages
-                await this.sleep();
                 const chat = window.Store.Chat.get(chatId);
                 let msgs = chat.msgs.models.filter(msgFilter);
     
