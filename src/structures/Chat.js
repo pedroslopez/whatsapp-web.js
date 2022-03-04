@@ -175,36 +175,30 @@ class Chat extends Base {
      * @returns {Promise<Array<Message>>}
      */
     async fetchMessages(searchOptions) {
-        let intervalMSG = null;
-        let messages = [];
+        let messages = await this.client.pupPage.evaluate(async (chatId, searchOptions) => {
+            const msgFilter = m => !m.isNotification; // dont include notification messages
 
-        try {
-            messages = await this.client.pupPage.evaluate(async (chatId, searchOptions) => {
-                const msgFilter = m => !m.isNotification; // dont include notification messages
-                const chat = window.Store.Chat.get(chatId);
-                let msgs = chat.msgs.models.filter(msgFilter);
-    
-                if (searchOptions && searchOptions.limit > 0) {
-                    while (msgs.length < searchOptions.limit) {
-                        const loadedMessages = await chat.loadEarlierMsgs();
-                        if (!loadedMessages) break;
-                        msgs = [...loadedMessages.filter(msgFilter), ...msgs];
-                    }
-                    
-                    if (msgs.length > searchOptions.limit) {
-                        msgs.sort((a, b) => (a.t > b.t) ? 1 : -1);
-                        msgs = msgs.splice(msgs.length - searchOptions.limit);
-                    }
-                }
-    
-                return msgs.map(m => window.WWebJS.getMessageModel(m));
-    
-            }, this.id._serialized, searchOptions);
-        }catch(e) {
-            console.log('morreu!');
-        }
+            if(!chatId) return [];
 
-        clearTimeout(intervalMSG);
+            const chat = window.Store?.Chat?.get(chatId);
+            let msgs = chat?.msgs?.models?.filter(msgFilter);
+
+            // if (searchOptions && searchOptions.limit > 0) {
+            //     while (msgs.length < searchOptions.limit) {
+            //         const loadedMessages = await chat.loadEarlierMsgs();
+            //         if (!loadedMessages) break;
+            //         msgs = [...loadedMessages.filter(msgFilter), ...msgs];
+            //     }
+                
+            //     if (msgs.length > searchOptions.limit) {
+            //         msgs.sort((a, b) => (a.t > b.t) ? 1 : -1);
+            //         msgs = msgs.splice(msgs.length - searchOptions.limit);
+            //     }
+            // }
+
+            return msgs.map(m => window.WWebJS.getMessageModel(m));
+
+        }, this.id._serialized, searchOptions);
 
         return messages.length > 0 ? messages.map(m => new Message(this.client, m)) : [];
     }
