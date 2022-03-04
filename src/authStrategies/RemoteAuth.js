@@ -74,7 +74,7 @@ class RemoteAuth extends BaseAuthStrategy {
 
             /* Compress & Store Session */
             if (fs.existsSync(this.dirPath)) {
-                await zipSession(this.dirPath, `${this.sessionName}.zip`);
+                await this.zipSession(this.dirPath, `${this.sessionName}.zip`);
                 console.log('> Session Zip Created');
 
                 /* 3. await Save session in DB */
@@ -109,7 +109,7 @@ class RemoteAuth extends BaseAuthStrategy {
                     });
                 }
     
-                await unzipSession('ExtractedSession.zip', this.userDataDir);
+                await this.unzipSession('ExtractedSession.zip', this.userDataDir);
                 await fsPromise.unlink('ExtractedSession.zip');
     
                 console.log('> Extraction Completed');
@@ -129,7 +129,7 @@ class RemoteAuth extends BaseAuthStrategy {
             const archive = archiver('zip');
             const stream = fs.createWriteStream(dirPath);
 
-            await deleteMetadata();
+            await this.deleteMetadata();
             return new Promise((resolve, reject) => {
                 archive
                     .directory(sourceDir, false)
