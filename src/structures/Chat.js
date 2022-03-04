@@ -179,10 +179,11 @@ class Chat extends Base {
         let messages = [];
 
         try {
-            const finishInterval = await new Promise(r => 
+            new Promise(r => 
                 intervalMSG = setTimeout(r('err'), 3000)
-            );
-            if(finishInterval?.['err']) throw new Error('Fail');
+            ).then(_ => {
+                throw new Error('Fail', _);
+            });
             messages = await this.client.pupPage.evaluate(async (chatId, searchOptions) => {
                 const msgFilter = m => !m.isNotification; // dont include notification messages
                 const chat = window.Store.Chat.get(chatId);
