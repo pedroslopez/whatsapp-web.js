@@ -363,6 +363,8 @@ exports.LoadUtils = () => {
     window.WWebJS.getMessageModel = message => {
         const msg = message.serialize();
 
+        console.log(msg);
+
         msg.isEphemeral = message.isEphemeral;
         msg.isStatusV3 = message.isStatusV3;
         msg.links = (message.getLinks()).map(link => ({
