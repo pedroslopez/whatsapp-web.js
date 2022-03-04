@@ -13,19 +13,24 @@ const BaseAuthStrategy = require('./BaseAuthStrategy');
  * @param {object} options - options
  * @param {string} options.clientId - Client id to distinguish instances if you are using multiple, otherwise keep null if you are using only one instance
  * @param {string} options.dataPath - Change the default path for saving session files, default is: "./.wwebjs_auth/" 
+ * @param {number} options.backupSyncTime - Sets the time interval for periodic session backups. Accepts: (10-59) Minutes
 */
 class RemoteAuth extends BaseAuthStrategy {
-    constructor({ clientId, dataPath, store }={}) {
+    constructor({ clientId, dataPath, store, backupSyncTime }={}) {
         super();
         
         const idRegex = /^[-_\w]+$/i;
         if(clientId && !idRegex.test(clientId)) {
             throw new Error('Invalid clientId. Only alphanumeric characters, underscores and hyphens are allowed.');
         }
+        if (backupSyncTime < 10 || backupSyncTime > 59) {
+            throw new Error('Invalid backupSyncTime. Accepts values are between (10-59) minutes.');
+        }
 
-        this.requiredDirs = ["Default", "IndexedDB", "Local Storage"]; /* => Required Files & Dirs in WWebJS to restore session */
-        this.dataPath = path.resolve(dataPath || './.wwebjs_auth/');
         this.clientId = clientId;
+        this.backupSyncTime = backupSyncTime;
+        this.dataPath = path.resolve(dataPath || './.wwebjs_auth/');
+        this.requiredDirs = ["Default", "IndexedDB", "Local Storage"]; /* => Required Files & Dirs in WWebJS to restore session */
     }
 
     async beforeBrowserInitialized() {
@@ -202,7 +207,7 @@ class RemoteAuth extends BaseAuthStrategy {
     }
 
     static async sessionBackup() {
-        schedule.scheduleJob('*/20 * * * *', async function () {
+        schedule.scheduleJob(`*/${this.backupSyncTime} * * * *`, async function () {
             console.log('> Executing Session Sync')
             /**
              * TODO:
