@@ -13,18 +13,18 @@ const BaseAuthStrategy = require('./BaseAuthStrategy');
  * @param {object} options - options
  * @param {string} options.clientId - Client id to distinguish instances if you are using multiple, otherwise keep null if you are using only one instance
  * @param {string} options.dataPath - Change the default path for saving session files, default is: "./.wwebjs_auth/" 
- * @param {number} options.backupSyncTime - Sets the time interval for periodic session backups. Accepts values bewteen range: (10-59) Minutes
-*/
+ * @param {number} options.backupSyncTime - Sets the time interval for periodic session backups. Accepts values bewteen range: (5-59) Minutes
+ */
 class RemoteAuth extends BaseAuthStrategy {
-    constructor({ clientId, dataPath, store, backupSyncTime }={}) {
+    constructor({ clientId, dataPath, store, backupSyncTime } = {}) {
         super();
-        
+
         const idRegex = /^[-_\w]+$/i;
-        if(clientId && !idRegex.test(clientId)) {
+        if (clientId && !idRegex.test(clientId)) {
             throw new Error('Invalid clientId. Only alphanumeric characters, underscores and hyphens are allowed.');
         }
-        if (backupSyncTime < 10 || backupSyncTime > 59) {
-            throw new Error('Invalid backupSyncTime. Accepts values between range (10-59) minutes.');
+        if (backupSyncTime < 5 || backupSyncTime > 59) {
+            throw new Error('Invalid backupSyncTime. Accepts values between range (5-59) minutes.');
         }
 
         this.clientId = clientId;
@@ -38,33 +38,43 @@ class RemoteAuth extends BaseAuthStrategy {
         const sessionDirName = this.clientId ? `session-${this.clientId}` : 'session';
         const dirPath = path.join(this.dataPath, sessionDirName);
 
-        if(puppeteerOpts.userDataDir && puppeteerOpts.userDataDir !== dirPath) {
+        if (puppeteerOpts.userDataDir && puppeteerOpts.userDataDir !== dirPath) {
             throw new Error('RemoteAuth is not compatible with a user-supplied userDataDir.');
         }
 
         this.userDataDir = dirPath;
         this.sessionName = sessionDirName;
-        
+
         await this.extractSession();
-        
+
         this.client.options.puppeteer = {
             ...puppeteerOpts,
             userDataDir: dirPath
         };
-
     }
 
     async afterBrowserInitialized() {
-        await this.createSession(); 
+        /**
+         * TODO:
+         * 1. @const {boolean} sessionExists => Call abstract DB interface to get session instance if exists
+         */
+        const sessionExists = false; /* 1. Default to false on initial draft */
+        if (!sessionExists) {
+            await this.storeSession();
+        }
+        this.sessionBackup();
     }
 
     async logout() {
         if (this.userDataDir) {
-            return (fs.rmSync ? fs.rmSync : fs.rmdirSync).call(this, this.userDataDir, { recursive: true });
+            return (fs.rmSync ? fs.rmSync : fs.rmdirSync).call(this, this.userDataDir, {
+                recursive: true
+            });
         }
+        await this.deleteSession();
     }
 
-    static async createSession() {
+    static async storeSession() {
         try {
             /**
              * TODO:
@@ -73,14 +83,14 @@ class RemoteAuth extends BaseAuthStrategy {
              * 3. Call abstract DB interface to save session
              */
 
-             const sessionExists = false; //1. Default to false on initial draft
+            const sessionExists = false; /* 1. Default to false on initial draft */
             if (sessionExists) {
                 /* 2. Delete Previous Session from DB */
             }
 
             /* Compress & Store Session */
-            if (fs.existsSync(this.dirPath)) {
-                await this.zipSession(this.dirPath, `${this.sessionName}.zip`);
+            if (fs.existsSync(this.userDataDir)) {
+                await this.zipSession(this.userDataDir, `${this.sessionName}.zip`);
                 console.log('> Session Zip Created');
 
                 /* 3. await Save session in DB */
@@ -93,20 +103,20 @@ class RemoteAuth extends BaseAuthStrategy {
         }
     }
 
-    static async extractSession () {
+    static async extractSession() {
         try {
             /**
              * TODO:
              * 1. @const {boolean} sessionExists => Call abstract DB interface to get session instance if exists
              * 2. Call abstract DB interface to extract session using userDataDir as @param
              */
-             const sessionExists = false; /* 1. Default to false on initial draft */
-    
+            const sessionExists = false; /* 1. Default to false on initial draft */
+
             /* Extracting Session From DB to Local Directory */
             if (sessionExists) {
                 console.log('> Extracting Session...');
                 /* 2. await DB extraction to desired path */
-    
+
                 /* Delete Previous local session folder */
                 if (fs.existsSync(this.userDataDir)) {
                     await fsPromise.rm(this.userDataDir, {
@@ -114,10 +124,10 @@ class RemoteAuth extends BaseAuthStrategy {
                         force: true
                     });
                 }
-    
-                await this.unzipSession('ExtractedSession.zip', this.userDataDir);
+
+                await this.unzipSession('ExtractedSession.zip');
                 await fsPromise.unlink('ExtractedSession.zip');
-    
+
                 console.log('> Extraction Completed');
             }
         } catch (error) {
@@ -125,12 +135,33 @@ class RemoteAuth extends BaseAuthStrategy {
         }
     }
 
-     /**
-     * @param {String} sourceDir 
+    static async deleteSession() {
+        try {
+            /**
+             * TODO:
+             * 1. @const {boolean} sessionExists => Call abstract DB interface to get session instance if exists
+             * 2. Call abstract DB interface to delete session
+             */
+             const sessionExists = false; /* 1. Default to false on initial draft */
+    
+            /* Deleting Session */
+            if (sessionExists) {
+                console.log('> Deleting Session...')
+                /* 2. await delete session from DB */
+    
+                console.log('Deleting Complete');
+            }
+        } catch (error) {
+            console.log('Error MD => DeleteSession', error);
+        }
+    }
+
+    /**
+     * @param {String} sourceDir
      * @param {String} dirPath 
      * @returns {Promise}
      */
-      static async zipSession(sourceDir, dirPath) {
+    static async zipSession(sourceDir, dirPath) {
         try {
             const archive = archiver('zip');
             const stream = fs.createWriteStream(dirPath);
@@ -150,17 +181,16 @@ class RemoteAuth extends BaseAuthStrategy {
         }
     }
 
-     /**
+    /**
      * @param {String} sourceDir 
-     * @param {String} dirPath 
      * @returns {Promise}
      */
-    static async unzipSession(sourceDir, outPath) {
+    static async unzipSession(sourceDir) {
         try {
             var stream = fs.createReadStream(sourceDir);
             return new Promise((resolve, reject) => {
                 stream.pipe(unzipper.Extract({
-                        path: outPath
+                        path: this.userDataDir
                     }))
                     .on('error', err => reject(err))
                     .on('finish', () => resolve());
@@ -177,21 +207,21 @@ class RemoteAuth extends BaseAuthStrategy {
             for (let element of sessionFiles) {
                 if (!this.requiredDirs.includes(element)) {
                     let dirElement = path.join(this.userDataDir, element);
-    
+
                     console.log('> Deleting...', element);
                     await fsPromise.unlink(dirElement);
                 }
             }
-    
+
             /* Second Level */
             let sessionFilesDefault = await fsPromise.readdir(`${this.userDataDir}/Default`);
             for (let element of sessionFilesDefault) {
                 if (!this.requiredDirs.includes(element)) {
                     let dirElement = path.join(`${this.userDataDir}/Default`, element);
-    
+
                     console.log('> Deleting...', element);
                     let stats = await fsPromise.lstat(dirElement);
-    
+
                     if (stats.isDirectory()) {
                         await fsPromise.rm(dirElement, {
                             recursive: true,
@@ -212,9 +242,10 @@ class RemoteAuth extends BaseAuthStrategy {
             console.log('> Executing Session Sync')
             /**
              * TODO:
-             * 1. Validate that DB has existing session - pending until db-strategies
+             * 1. Validate if WAClient has existing valid session to store
              * 2. Create new backup session on DB
              */
+            await this.storeSession();
         });
     }
 
