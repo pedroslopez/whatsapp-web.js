@@ -6,48 +6,28 @@ body:
       value: |
         Thank you for reporting an issue :pray:.
 
-        This issue tracker is for reporting bugs found in `whatsapp-web.js` (https://github.com/pedroslopez/whatsapp-web.js).
+        This issue tracker is for reporting bugs found in [`whatsapp-web.js`](https://github.com/pedroslopez/whatsapp-web.js).
         If you have a question about how to achieve something and are struggling, please post a question
-        inside of `whatsapp-web.js`'s Discord server: https://discord.gg/wyKybbF
+        in our Discord server: https://discord.gg/wyKybbF
+        
         Before submitting a new bug/issue, please check the links below to see if there is a solution or question posted there already:
          - `whatsapp-web.js` Issues tab: https://github.com/pedroslopez/whatsapp-web.js/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc
          - `whatsapp-web.js` closed issues tab: https://github.com/pedroslopez/whatsapp-web.js/issues?q=is%3Aissue+sort%3Aupdated-desc+is%3Aclosed
          - `whatsapp-web.js` Discord server: https://discord.gg/wyKybbF
 
         The more information you fill in, the better the community can help you.
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the bug you encountered.
+      options:
+        - label: I have searched the existing issues
+          required: true
   - type: textarea
     id: description
     attributes:
       label: Describe the bug
       description: Provide a clear and concise description of the challenge you are running into.
-    validations:
-      required: true
-  - type: input
-    id: link
-    attributes:
-      label: Your Reproducible Code Sample
-      description: |
-        Note:
-        - Your bug will may get fixed much faster, if you can help us we can run your code and it doesn't have dependencies other than the `whatsapp-web.js` npm package / dependency.
-        - Consider sharing your code in 1 of the following ways:
-          - Share your public github repository URL with the team
-          - Create a small public github repository and share the URL with the team
-          - Create a shareable code example with Codesanbox (https://codesandbox.io/s/) or Stackblitz (https://stackblitz.com/)
-        - Please read the following link for tips on how to create a "Minimal, Reproducible Code Example": https://stackoverflow.com/help/mcve.
-      placeholder: |
-        e.g. https:/github.com/.... OR codesanbox.io/.. OR stackblitz.com/...
-    validations:
-      required: true
-  - type: textarea
-    id: steps
-    attributes:
-      label: Steps to Reproduce the Bug or Issue
-      description: Describe the steps we have to take to reproduce the behavior.
-      placeholder: |
-        1. Go to '...'
-        2. Click on '....'
-        3. Scroll down to '....'
-        4. See error
     validations:
       required: true
   - type: textarea
@@ -56,104 +36,66 @@ body:
       label: Expected behavior
       description: Provide a clear and concise description of what you expected to happen.
       placeholder: |
-        As a user, I expected ___ behavior but i am seeing ___
+        As a user, I expected ___ behavior but I am seeing ___
     validations:
       required: true
   - type: textarea
-    id: screenshots_or_videos
+    id: steps
     attributes:
-      label: Screenshots or Videos
-      description: |
-        If applicable, add screenshots or a video to help explain your problem.
-        For more information on the supported file image/file types and the file size limits, please refer
-        to the following link: https://docs.github.com/en/github/writing-on-github/working-with-advanced-formatting/attaching-files
+      label: Steps to Reproduce the Bug or Issue
+      description: Describe the steps we have to take to reproduce the behavior.
       placeholder: |
-        You can drag your video or image files inside of this editor ↓
+        1. Do X
+        2. Do Y
+        3. Do Z
+        4. See error
+    validations:
+      required: true
+  - type: textarea
+    id: relevant_code
+    attributes:
+      label: Relevant Code
+      description: If applicable, add code snippets to help explain your problem.
+    validations:
+      required: false
   - type: input
     id: browser_type
     attributes:
       label: Browser Type
       description: What web browser are you using?
-      placeholder: |
-        - OS: [e.g. Chrome, Firefox, Safari etc..]
+      options:
+        - Chromium
+        - Google Chrome
+        - Other (please write in Additional Context)
     validations:
       required: true
-  - type: input
-    id: nodejs_version
-    attributes:
-      label: NodeJS version
-      description: | 
-        What version of NodeJS are you using?
-        Run the following command in your terminal to get your node version: `node -v`
-      placeholder: |
-        - version number?
-    validations:
-      required: true
-  - type: input
-    id: package_manager
-    attributes:
-      label: Package manager
-      description: What package manager are you using, for example, npm or yarn?
-      placeholder: |
-        - yarn or npm?
-    validations:
-      required: true
-  - type: input
-    id: package_manager_version
-    attributes:
-      label: Package manager version
-      description: |
-        What version of npm or yarn are you using?
-        Run the following command in your terminal prompt to get your package manager version: `npm -v` or `yarn -v`
-      placeholder: |
-        - version number?
-    validations:
-      required: true
-  - type: input
-    id: operating_system
-    attributes:
-      label: Operating System
-      description: What operating system are you using? (the one running node)
-      placeholder: |
-        - Example: [Linux, MacOS, Windows]  
-    validations:
-      required: true
-  - type: input
-    id: operating_system_version
-    attributes:
-      label: Operating System Version
-      description: What version of your operating system are you using? 
-      placeholder: |
-        - Examples: Windows 10, MacOS Big Sur
-    validations:
-      required: true
-  - type: input
-    id: whatsapp_account_type
+  - type: dropdown
+    id: whatsapp_type
     attributes:
       label: WhatsApp Account Type
-      description: What type of WhatsApp account type are you using?
-      placeholder: |
-        - Standard or Business?
+      options:
+        - Standard
+        - WhatsApp Business
     validations:
       required: true
-  - type: input
-    id: whatsapp_device_os_type
+  - type: dropdown
+    id: multidevice
     attributes:
-      label: WhatsApp Device Operating System Type
-      description: What operating system is the device that is experiencing the issue using?
-      placeholder: |
-        - iOS or Android?
+      label: Does your WhatsApp account have multidevice enabled?
+      options:
+        - Yes, I am using Multi Device
+        - No, I am not using Multi Device
     validations:
       required: true
-  - type: input
-    id: whatsapp_web_version
+  - type: textarea
     attributes:
-      label: WhatsApp Web Version
+      label: Environment
       description: |
-        WhatsApp version of Whatsapp web are you using?
-        Run the following command in your code to retrieve the WhatsApp web version: `await client.getWWebVersion()`
-      placeholder: |
-        version number here
+        - OS: [e.g. Mac, Windows, Linux, Docker + Ubuntu 18, etc]
+        - Phone OS: [e.g. Android, iOS]
+        - whatsapp-web.js version [e.g. 1.2.3]
+        - WhatsApp Web version [run `await client.getWWebVersion()`]:
+        - Node.js Version [e.g. 1.2.3]
     validations:
       required: true
   - type: textarea
