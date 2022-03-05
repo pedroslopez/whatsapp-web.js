@@ -58,7 +58,7 @@ body:
       description: If applicable, add code snippets to help explain your problem.
     validations:
       required: false
-  - type: input
+  - type: dropdown
     id: browser_type
     attributes:
       label: Browser Type
