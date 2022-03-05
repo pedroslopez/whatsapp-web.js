@@ -12,9 +12,8 @@ body:
         in our Discord server: https://discord.gg/wyKybbF
         
         Before submitting a new bug/issue, please check the links below to see if there is a solution or question posted there already:
-         - `whatsapp-web.js` Issues tab: https://github.com/pedroslopez/whatsapp-web.js/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc
-         - `whatsapp-web.js` closed issues tab: https://github.com/pedroslopez/whatsapp-web.js/issues?q=is%3Aissue+sort%3Aupdated-desc+is%3Aclosed
-         - `whatsapp-web.js` Discord server: https://discord.gg/wyKybbF
+         - `whatsapp-web.js` [Issues tab](https://github.com/pedroslopez/whatsapp-web.js/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc)
+         - `whatsapp-web.js` [closed Issues tab](https://github.com/pedroslopez/whatsapp-web.js/issues?q=is%3Aissue+sort%3Aupdated-desc+is%3Aclosed)
 
         The more information you fill in, the better the community can help you.
   - type: checkboxes
