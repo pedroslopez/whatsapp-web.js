@@ -17,7 +17,7 @@ chai.use(chaiAsPromised);
 const remoteId = helper.remoteId;
 const isMD = helper.isMD();
 
-describe.only('Client', function() {
+describe('Client', function() {
     describe('Authentication', function() {
         it('should emit QR code if not authenticated', async function() {
             this.timeout(25000);
