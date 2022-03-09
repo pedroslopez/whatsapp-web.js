@@ -17,7 +17,7 @@ chai.use(chaiAsPromised);
 const remoteId = helper.remoteId;
 const isMD = helper.isMD();
 
-describe('Client', function() {
+describe.only('Client', function() {
     describe('Authentication', function() {
         it('should emit QR code if not authenticated', async function() {
             this.timeout(25000);
@@ -272,7 +272,6 @@ describe('Client', function() {
                     'SendMessage',
                     'SendSeen',
                     'StatusUtils',
-                    'Sticker',
                     'UploadUtils',
                     'UserConstructor',
                     'VCard',
@@ -280,7 +279,6 @@ describe('Client', function() {
                     'Wap',
                     'WidFactory',
                     'findCommonGroups',
-                    'genId',
                     'getProfilePicFull',
                 ];
               
