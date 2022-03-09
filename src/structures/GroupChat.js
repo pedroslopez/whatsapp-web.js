@@ -136,7 +136,7 @@ class GroupChat extends Chat {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             let descId = window.Store.GroupMetadata.get(chatWid).descId;
             try {
-                return await window.Store.GroupUtils.sendSetGroupDescription(chatWid, description, window.Store.genId(), descId);
+                return await window.Store.GroupUtils.sendSetGroupDescription(chatWid, description, window.Store.MsgKey.newId(), descId);
             } catch (err) {
                 if(err.name === 'ServerStatusCodeError') return false;
                 throw err;
