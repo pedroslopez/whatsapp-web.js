@@ -324,6 +324,12 @@ declare namespace WAWebJS {
         /** How much time to wait before taking over the session
          * @default 0 */
         takeoverTimeoutMs?: number,
+        /** If another whatsapp web session is detected (another browser), logs out the client, closing the current session.
+         * @default false */
+        logoutOnConflict?: boolean,
+        /** If another whatsapp web session is detected (another browser), logs out the client. This can be used together with the logoutOnConflict option to start generating qrcodes after closing the current session.
+         * @default false */
+        restartOnConflict?: boolean,
         /** User agent to use in puppeteer.
          * @default 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36' */
         userAgent?: string

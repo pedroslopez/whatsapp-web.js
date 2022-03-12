@@ -55,8 +55,10 @@ const NoAuth &#x3D; require(&#x27;./authStrategies/NoAuth&#x27;);
  * @param {number} options.qrMaxRetries - How many times should the qrcode be refreshed before giving up
  * @param {string} options.restartOnAuthFail  - @deprecated This option should be set directly on the LegacySessionAuth.
  * @param {object} options.session - @deprecated Only here for backwards-compatibility. You should move to using LocalAuth, or set the authStrategy to LegacySessionAuth explicitly. 
- * @param {number} options.takeoverOnConflict - If another whatsapp web session is detected (another browser), take over the session in the current browser
+ * @param {boolean} options.takeoverOnConflict - If another whatsapp web session is detected (another browser), take over the session in the current browser
  * @param {number} options.takeoverTimeoutMs - How much time to wait before taking over the session
+ * @param {boolean} options.logoutOnConflict - If another whatsapp web session is detected (another browser), logs out the client, closing the current session.
+ * @param {boolean} options.restartOnConflict - If another whatsapp web session is detected (another browser), logs out the client. This can be used together with the logoutOnConflict option to start generating qrcodes after closing the current session.
  * @param {string} options.userAgent - User agent to use in puppeteer
  * @param {string} options.ffmpegPath - Ffmpeg path to use when formating videos to webp while sending stickers 
  * @param {boolean} options.bypassCSP - Sets bypassing of page&#x27;s Content-Security-Policy.
@@ -506,7 +508,18 @@ class Client extends EventEmitter {
      * Closes the client
      */
     async destroy() {
+        const appState &#x3D; await this.getState();
+        const isConflict &#x3D; appState &#x3D;&#x3D;&#x3D; WAState.CONFLICT;
+
+        if(isConflict &amp;amp;&amp;amp; this.options.logoutOnConflict) {
+            await this.logout();
+        }
+
         await this.pupBrowser.close();
+
+        if(isConflict &amp;amp;&amp;amp; this.options.restartOnConflict) {
+            await this.initialize();
+        }
     }
 
     /**
