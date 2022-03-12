@@ -258,8 +258,12 @@ declare namespace WAWebJS {
         on(event: 'ready', listener: () => void): this
     }
 
+    export class Base {
+        client: Client
+    }
+
     /** Current connection information */
-    export interface ClientInfo {
+    export interface ClientInfo extends Base {
         /** 
          * Current user ID 
          * @deprecated Use .wid instead 
@@ -407,7 +411,7 @@ declare namespace WAWebJS {
         missingParticipants: Record<string, string>
     }
 
-    export interface GroupNotification {
+    export interface GroupNotification extends Base {
         /** ContactId for the user that produced the GroupNotification */
         author: string,
         /** Extra content */
@@ -599,7 +603,7 @@ declare namespace WAWebJS {
      *   mentionedIds: []
      * }
      */
-    export interface Message {
+    export interface Message extends Base {
         /** ACK status for the message */
         ack: MessageAck,
         /** If the message was sent to a group, this field will contain the user that sent the message. */
@@ -740,7 +744,7 @@ declare namespace WAWebJS {
         constructor(latitude: number, longitude: number, description?: string)
     }
 
-    export interface Label {
+    export interface Label extends Base {
         /** Label name */
         name: string,
         /** Label ID */
@@ -847,7 +851,7 @@ declare namespace WAWebJS {
      *   isMyContact: false
      * }
      */
-    export interface Contact {
+    export interface Contact extends Base {
         /** Contact's phone number */
         number: string,
         /** Indicates if the contact is a business contact */
@@ -951,7 +955,7 @@ declare namespace WAWebJS {
      *   archived: false
      * }
      */
-    export interface Chat {
+    export interface Chat extends Base {
         /** Indicates if the Chat is archived */
         archived: boolean,
         /** ID that represents the chat */
@@ -1115,7 +1119,7 @@ declare namespace WAWebJS {
      * Represents the metadata associated with a given product
      *
      */
-    export interface ProductMetadata {
+    export interface ProductMetadata extends Base {
         /** Product Id */
         id: string,
         /** Product Name */
@@ -1139,7 +1143,7 @@ declare namespace WAWebJS {
      * "quantity": 1
      * }
      */
-    export interface Product {
+    export interface Product extends Base {
         /** Product Id */
         id: string,
         /** Price */
@@ -1179,7 +1183,7 @@ declare namespace WAWebJS {
      * "sellerJid": "55555555@s.whatsapp.net"
      * }
      */
-    export interface Order {
+    export interface Order extends Base {
         /** List of products*/
         products: Array<Product>,
         /** Order Subtotal */
@@ -1220,7 +1224,7 @@ declare namespace WAWebJS {
      * paymentNote: 'note'
      * }
      */
-    export interface Payment {
+    export interface Payment extends Base {
         /** Payment Id*/
         id: object,
         /** Payment currency */
@@ -1255,7 +1259,7 @@ declare namespace WAWebJS {
      * participants: []
      * }
      */
-    export interface Call {
+    export interface Call extends Base {
         /** Call Id */
         id: string,
         /** from */
