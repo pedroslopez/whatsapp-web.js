@@ -27,7 +27,7 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @param {boolean} options.takeoverOnConflict - If another whatsapp web session is detected (another browser), take over the session in the current browser
  * @param {number} options.takeoverTimeoutMs - How much time to wait before taking over the session
  * @param {boolean} options.logoutOnConflict - If another whatsapp web session is detected (another browser), logs out the client, closing the current session.
- * @param {boolean} options.restartOnConflict - If another whatsapp web session is detected (another browser), logs out the client. This can be used together with the logoutOnConflict option to start generating qrcodes after closing the current session.
+ * @param {boolean} options.restartOnConflict - If another whatsapp web session is detected (another browser), restarts the client. This can be used together with the logoutOnConflict option to start generating qrcodes after closing the current session.
  * @param {string} options.userAgent - User agent to use in puppeteer
  * @param {string} options.ffmpegPath - Ffmpeg path to use when formating videos to webp while sending stickers 
  * @param {boolean} options.bypassCSP - Sets bypassing of page's Content-Security-Policy.
