@@ -279,7 +279,7 @@ describe('Client', function() {
                     'Wap',
                     'WidFactory',
                     'findCommonGroups',
-                    'getProfilePicFull',
+                    'ProfilePic',
                 ];
               
                 const loadedModules = await client.pupPage.evaluate((expectedModules) => {
