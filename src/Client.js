@@ -752,12 +752,10 @@ class Client extends EventEmitter {
      * @return {Promise<string>}
      */
     async setPicture(chatId, picture){
-        const buffer = Buffer.from(picture.data, 'base64');
-        const cropped = await Util.generateProfilePicture(buffer);
-        const res = await this.pupPage.evaluate(async (chatId, img, preview) => {
+        const res = await this.pupPage.evaluate(async (chatId, picture) => {
             const wid = window.Store.WidFactory.createWid(chatId);
-            return await window.Store.SendSetPicture(wid, img, preview);
-        }, chatId, cropped.img, cropped.preview);
+            return await window.Store.SendSetPicture(wid, picture, picture);
+        }, chatId, picture.data);
         return res.eurl;
     }
 
