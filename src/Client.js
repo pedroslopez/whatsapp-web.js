@@ -733,7 +733,7 @@ class Client extends EventEmitter {
         const couldSet = await this.pupPage.evaluate(async displayName => {
             if(!window.Store.Conn.canSetMyPushname()) return false;
 
-            if(window.Store.MDBackend) {
+            if(window.Store.Features.features.MD_BACKEND) {
                 // TODO
                 return false;
             } else {
@@ -743,22 +743,6 @@ class Client extends EventEmitter {
         }, displayName);
 
         return couldSet;
-    }
-
-    /**
-     * Sets group's or current user's picture.
-     * @param {string} chatId
-     * @param {MessageMedia} picture
-     * @return {Promise<string>}
-     */
-    async setPicture(chatId, picture){
-        const buffer = Buffer.from(picture.data, 'base64');
-        const cropped = await Util.generateProfilePicture(buffer);
-        const res = await this.pupPage.evaluate(async (chatId, img, preview) => {
-            const wid = window.Store.WidFactory.createWid(chatId);
-            return await window.Store.SendSetPicture(wid, img, preview);
-        }, chatId, cropped.img, cropped.preview);
-        return res.eurl;
     }
 
     /**
@@ -825,9 +809,8 @@ class Client extends EventEmitter {
                 return true;
             }
             const MAX_PIN_COUNT = 3;
-            const chatModels = window.Store.Chat.getModelsArray();
-            if (chatModels.length > MAX_PIN_COUNT) {
-                let maxPinned = chatModels[MAX_PIN_COUNT - 1].pin;
+            if (window.Store.Chat.models.length > MAX_PIN_COUNT) {
+                let maxPinned = window.Store.Chat.models[MAX_PIN_COUNT - 1].pin;
                 if (maxPinned) {
                     return false;
                 }
@@ -1073,7 +1056,7 @@ class Client extends EventEmitter {
     async getChatsByLabelId(labelId) {
         const chatIds = await this.pupPage.evaluate(async (labelId) => {
             const label = window.Store.Label.get(labelId);
-            const labelItems = label.labelItemCollection.getModelsArray();
+            const labelItems = label.labelItemCollection.models;
             return labelItems.reduce((result, item) => {
                 if (item.parentType === 'Chat') {
                     result.push(item.parentId);
@@ -1091,7 +1074,7 @@ class Client extends EventEmitter {
      */
     async getBlockedContacts() {
         const blockedContacts = await this.pupPage.evaluate(() => {
-            let chatIds = window.Store.Blocklist.getModelsArray().map(a => a.id._serialized);
+            let chatIds = window.Store.Blocklist.models.map(a => a.id._serialized);
             return Promise.all(chatIds.map(id => window.WWebJS.getContact(id)));
         });
 
