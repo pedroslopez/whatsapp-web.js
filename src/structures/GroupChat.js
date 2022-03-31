@@ -153,12 +153,8 @@ class GroupChat extends Chat {
      * @param {MessageMedia} picture
      * @return {Promise<string>}
      */
-    async setPicture( picture){
-        const res = await this.pupPage.evaluate(async (chatId, picture) => {
-            const wid = window.Store.WidFactory.createWid(chatId);
-            return await window.Store.SendSetPicture(wid, picture, picture);
-        }, this.id._serialized, picture.data);
-        return res.eurl;
+    async setPicture(picture){
+        return this.client.setPicture(this.id._serialized, picture);
     }
     
     /**
