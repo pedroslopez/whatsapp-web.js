@@ -746,6 +746,22 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Sets group's or current user's picture.
+     * @param {string} chatId
+     * @param {MessageMedia} picture
+     * @return {Promise<string>}
+     */
+    async setPicture(chatId, picture){
+        const buffer = Buffer.from(picture.data, 'base64');
+        const cropped = await Util.generateProfilePicture(buffer);
+        const res = await this.pupPage.evaluate(async (chatId, img, preview) => {
+            const wid = window.Store.WidFactory.createWid(chatId);
+            return await window.Store.SendSetPicture(wid, img, preview);
+        }, chatId, cropped.img, cropped.preview);
+        return res.eurl;
+    }
+
+    /**
      * Gets the current connection state for the client
      * @returns {WAState} 
      */
