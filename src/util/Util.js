@@ -186,7 +186,7 @@ class Util {
     /**
      * Cropped image to profile's picture size
      * @param {Buffer} buffer
-     * @return {Promise<{preview: Buffer, img: Buffer}>}
+     * @return {Promise<{preview: string, img: string}>}
      */
     static async generateProfilePicture(buffer){
         const jimp = await Jimp.read(buffer);
