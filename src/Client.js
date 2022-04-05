@@ -877,19 +877,15 @@ class Client extends EventEmitter {
      */
     async getProfilePicUrl(contactId) {
         const profilePic = await this.pupPage.evaluate(async contactId => {
-            let asyncPic;
-            if (window.Store.Features.features.MD_BACKEND) {
+            try {
                 const chatWid = window.Store.WidFactory.createWid(contactId);
-                asyncPic = await window.Store.getProfilePicFull(chatWid).catch(() => {
-                    return undefined;
-                });
-            } else {
-                asyncPic = await window.Store.Wap.profilePicFind(contactId).catch(() => {
-                    return undefined;
-                });
+                return await window.Store.ProfilePic.profilePicFind(chatWid);
+            } catch (err) {
+                if(err.name === 'ServerStatusCodeError') return undefined;
+                throw err;
             }
-            return asyncPic;
         }, contactId);
+        
         return profilePic ? profilePic.eurl : undefined;
     }
 
@@ -999,7 +995,7 @@ class Client extends EventEmitter {
 
         const createRes = await this.pupPage.evaluate(async (name, participantIds) => {
             const participantWIDs = participantIds.map(p => window.Store.WidFactory.createWid(p));
-            const id = window.Store.genId();
+            const id = window.Store.MsgKey.newId();
             const res = await window.Store.GroupUtils.sendCreateGroup(name, participantWIDs, undefined, id);
             return res;
         }, name, participants);
