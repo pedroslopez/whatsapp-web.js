@@ -184,7 +184,7 @@ class Chat extends Base {
             if (searchOptions && searchOptions.limit > 0) {
                 while (msgs.length < searchOptions.limit) {
                     const loadedMessages = await chat.loadEarlierMsgs();
-                    if (!loadedMessages) break;
+                    if (!loadedMessages || loadedMessages == 0) break;
                     msgs = [...loadedMessages.filter(msgFilter), ...msgs];
                 }
                 
