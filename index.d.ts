@@ -260,6 +260,11 @@ declare namespace WAWebJS {
 
     /** Current connection information */
     export interface ClientInfo {
+        /** 
+         * Current user ID 
+         * @deprecated Use .wid instead 
+         */
+        me: ContactId
         /** Current user ID */
         wid: ContactId
         /** 
@@ -299,7 +304,7 @@ declare namespace WAWebJS {
          * @default 0 */
         authTimeoutMs?: number,
         /** Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/ */
-        puppeteer?: puppeteer.LaunchOptions & puppeteer.BrowserLaunchArgumentOptions & puppeteer.BrowserConnectOptions
+        puppeteer?: puppeteer.PuppeteerNodeLaunchOptions & puppeteer.ConnectOptions
 		/** Determines how to save and restore sessions. Will use LegacySessionAuth if options.session is set. Otherwise, NoAuth will be used. */
         authStrategy?: AuthStrategy,
         /** How many times should the qrcode be refreshed before giving up
@@ -353,6 +358,8 @@ declare namespace WAWebJS {
      * Local directory-based authentication
      */
     export class LocalAuth extends AuthStrategy {
+        public clientId?: string;
+        public dataPath?: string;
         constructor(options?: {
             clientId?: string,
             dataPath?: string
@@ -366,7 +373,7 @@ declare namespace WAWebJS {
      export class LegacySessionAuth extends AuthStrategy {
         constructor(options?: {
             session?: ClientSession,
-            restartOnAuth?: boolean,
+            restartOnAuthFail?: boolean,
         })
     }
 
@@ -709,11 +716,11 @@ declare namespace WAWebJS {
         /**
          * Gets the order associated with a given message
          */
-        getOrder: () => Order,
+        getOrder: () => Promise<Order>,
         /**
          * Gets the payment details associated with a given message
          */
-        getPayment: () => Payment,
+        getPayment: () => Promise<Payment>,
     }
 
     /** ID that represents a message */
@@ -1048,7 +1055,7 @@ declare namespace WAWebJS {
     }
 
     /** Promotes or demotes participants by IDs to regular users or admins */
-    export type ChangeParticipantsPermisions = 
+    export type ChangeParticipantsPermissions = 
         (participantIds: Array<string>) => Promise<{ status: number }>
 
     /** Adds or removes a list of participants by ID to the group */
@@ -1078,9 +1085,9 @@ declare namespace WAWebJS {
         /** Removes a list of participants by ID to the group */
         removeParticipants: ChangeGroupParticipants;
         /** Promotes participants by IDs to admins */
-        promoteParticipants: ChangeParticipantsPermisions;
+        promoteParticipants: ChangeParticipantsPermissions;
         /** Demotes participants by IDs to regular users */
-        demoteParticipants: ChangeParticipantsPermisions;
+        demoteParticipants: ChangeParticipantsPermissions;
         /** Updates the group subject */
         setSubject: (subject: string) => Promise<boolean>;
         /** Updates the group description */

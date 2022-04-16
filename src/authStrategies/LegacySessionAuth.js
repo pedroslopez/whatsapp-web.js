@@ -14,7 +14,7 @@ const BaseAuthStrategy = require('./BaseAuthStrategy');
  * @param {string} options.session.WAToken2
  */
 class LegacySessionAuth extends BaseAuthStrategy {
-    constructor({ session, restartOnAuthFail }) {
+    constructor({ session, restartOnAuthFail }={}) {
         super();
         this.session = session;
         this.restartOnAuthFail = restartOnAuthFail;
