@@ -676,6 +676,10 @@ declare namespace WAWebJS {
         selectedButtonId?: string,
         /** Selected list row ID */
         selectedRowId?: string,
+        /** Selected list row title*/
+        selectedRowTitle?: string,
+        /** Selected list row description */
+        selectedRowDescription?: string,
         /** Returns message in a raw format */
         rawData: object,
         /* 

@@ -238,6 +238,8 @@ class Message extends Base {
         /** Selected List row Id **/
         if (data.listResponse && data.listResponse.singleSelectReply.selectedRowId) {
             this.selectedRowId = data.listResponse.singleSelectReply.selectedRowId;
+            this.selectedRowTitle = data.listResponse.title;
+            this.selectedRowDescription = data.listResponse.description;
         }
 
         return super._patch(data);
