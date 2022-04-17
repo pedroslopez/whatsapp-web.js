@@ -10,7 +10,7 @@ const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constan
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
-const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List, Reaction } = require('./structures');
+const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List } = require('./structures');
 const LegacySessionAuth = require('./authStrategies/LegacySessionAuth');
 const NoAuth = require('./authStrategies/NoAuth');
 
@@ -579,9 +579,6 @@ class Client extends EventEmitter {
         } else if (content instanceof List) {
             internalOptions.list = content;
             content = '';
-        } else if (content instanceof Reaction){
-            internalOptions.reaction = content;
-            content = '';
         }
 
         if (internalOptions.sendMediaAsSticker && internalOptions.attachment) {
@@ -608,6 +605,19 @@ class Client extends EventEmitter {
         }, chatId, content, internalOptions, sendSeen);
 
         return new Message(this, newMessage);
+    }
+    
+    /**
+     * Send reaction to specific message.
+     * @param {string} messageId
+     * @param {string} emoji
+     * @return {Promise<string>}
+     */
+    async sendReaction(messageId, emoji){
+        return await this.pupPage.evaluate(async (messageId, emoji) => {
+            const msg = await window.Store.Msg.get(messageId);
+            return await window.Store.sendReactionToMsg(msg, emoji);
+        }, messageId, emoji);
     }
     
     /**
@@ -736,7 +746,7 @@ class Client extends EventEmitter {
         const couldSet = await this.pupPage.evaluate(async displayName => {
             if(!window.Store.Conn.canSetMyPushname()) return false;
 
-            if(window.Store.MDBackend) {
+            if(window.Store.Features.features.MD_BACKEND) {
                 // TODO
                 return false;
             } else {
@@ -747,7 +757,23 @@ class Client extends EventEmitter {
 
         return couldSet;
     }
-    
+
+    /**
+     * Sets group's or current user's picture.
+     * @param {string} chatId
+     * @param {MessageMedia} picture
+     * @return {Promise<string>}
+     */
+    async setPicture(chatId, picture){
+        const buffer = Buffer.from(picture.data, 'base64');
+        const cropped = await Util.generateProfilePicture(buffer);
+        const res = await this.pupPage.evaluate(async (chatId, img, preview) => {
+            const wid = window.Store.WidFactory.createWid(chatId);
+            return await window.Store.SendSetPicture(wid, img, preview);
+        }, chatId, cropped.img, cropped.preview);
+        return res.eurl;
+    }
+
     /**
      * Gets the current connection state for the client
      * @returns {WAState} 
