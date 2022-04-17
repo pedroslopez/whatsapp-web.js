@@ -144,14 +144,6 @@ declare namespace WAWebJS {
          * @param displayName New display name
          */
         setDisplayName(displayName: string): Promise<boolean>
-
-        /**
-         * Sets group's or current user's picture.
-         * @param {string} chatId
-         * @param {MessageMedia} picture
-         * @return {Promise<string>}
-         */
-        setPicture(chatId: string, picture: MessageMedia): Promise<string>
                 
         /** Changes and returns the archive state of the Chat */
         unarchiveChat(chatId: string): Promise<boolean>
@@ -1109,14 +1101,6 @@ declare namespace WAWebJS {
          * @param {boolean} [adminsOnly=true] Enable or disable this option 
          * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
          */
-
-        /**
-         * Sets the group's picture.
-         * @param {MessageMedia} picture
-         * @return {Promise<string>}
-         */
-        setPicture(picture: MessageMedia): Promise<string>
-        
         setMessagesAdminsOnly: (adminsOnly?: boolean) => Promise<boolean>;
         /**
          * Updates the group settings to only allow admins to edit group info (title, description, photo).
@@ -1308,7 +1292,7 @@ declare namespace WAWebJS {
         constructor(body: string, buttonText: string, sections: Array<any>, title?: string | null, footer?: string | null)
     }
     
-    /** Message type buttons */
+    /** Message type Buttons */
     export class Buttons {
         body: string | MessageMedia
         buttons: Array<{ buttonId: string; buttonText: {displayText: string}; type: number }>
@@ -1316,6 +1300,12 @@ declare namespace WAWebJS {
         footer?: string | null
         
         constructor(body: string, buttons: Array<{ id?: string; body: string }>, title?: string | null, footer?: string | null)
+    }
+    
+    /** Message type Reaction */
+    export class Reaction {
+        value: string
+        constructor(value: string)
     }
 }
 

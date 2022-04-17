@@ -147,15 +147,6 @@ class GroupChat extends Chat {
         this.groupMetadata.desc = description;
         return true;
     }
-
-    /**
-     * Sets group's or current user's picture.
-     * @param {MessageMedia} picture
-     * @return {Promise<string>}
-     */
-    async setPicture( picture){
-        await this.client.setPicture(this.id._serialized, picture);
-    }
     
     /**
      * Updates the group settings to only allow admins to send messages.
