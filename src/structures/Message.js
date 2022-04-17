@@ -317,7 +317,7 @@ class Message extends Base {
      * through the specified Chat. If not, it will send the message
      * in the same Chat as the original message was sent.
      *
-     * @param {string|MessageMedia|Location|Reaction} content
+     * @param {string|MessageMedia|Location} content
      * @param {string} [chatId]
      * @param {MessageSendOptions} [options]
      * @returns {Promise<Message>}
@@ -333,6 +333,15 @@ class Message extends Base {
         };
 
         return this.client.sendMessage(chatId, content, options);
+    }
+    
+    /**
+     * Send reaction to the message.
+     * @param {string} emoji
+     * @return {Promise<string>}
+     */
+    async sendReaction(emoji){
+        return await this.client.sendReaction(this.id._serialized, emoji);
     }
     
     /**
