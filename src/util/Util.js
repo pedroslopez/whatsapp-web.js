@@ -6,7 +6,6 @@ const { tmpdir } = require('os');
 const ffmpeg = require('fluent-ffmpeg');
 const webp = require('node-webpmux');
 const fs = require('fs').promises;
-const Jimp = require('jimp');
 const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
 
 /**
@@ -181,21 +180,6 @@ class Util {
      */
     static setFfmpegPath(path) {
         ffmpeg.setFfmpegPath(path);
-    }
-
-    /**
-     * Cropped image to profile's picture size
-     * @param {Buffer} buffer
-     * @return {Promise<{preview: string, img: string}>}
-     */
-    static async generateProfilePicture(buffer){
-        const jimp = await Jimp.read(buffer);
-        const imgRatio = 640/Math.max(jimp.getHeight(), jimp.getWidth());
-        const previewRatio = 96/Math.max(jimp.getHeight(), jimp.getWidth());
-        return {
-            img: await (await jimp.resize(jimp.getWidth()*imgRatio, jimp.getHeight()*imgRatio)).getBase64Async(Jimp.MIME_JPEG),
-            preview: await (await jimp.resize(jimp.getWidth()*previewRatio, jimp.getHeight()*previewRatio)).getBase64Async(Jimp.MIME_JPEG),
-        };
     }
 }
 
