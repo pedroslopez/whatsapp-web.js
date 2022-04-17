@@ -47,7 +47,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.JoinInviteV4 = window.mR.findModule('sendJoinGroupViaInviteV4')[0];
     window.Store.findCommonGroups = window.mR.findModule('findCommonGroups')[0].findCommonGroups;
     window.Store.StatusUtils = window.mR.findModule('setMyStatus')[0];
-    window.Store.SendSetPicture = window.mR.findModule('sendSetPicture')[1].sendSetPicture;
     window.Store.sendReactionToMsg = window.mR.findModule('sendReactionToMsg')[0].sendReactionToMsg;
     window.Store.StickerTools = {
         ...window.mR.findModule('toWebpSticker')[0],
@@ -102,6 +101,10 @@ exports.LoadUtils = () => {
 
         let quotedMsgOptions = {};
         if (options.quotedMessageId) {
+            if (options.reaction){
+                const msg = await window.Store.Msg.get(options.quotedMessageId);
+                return await window.Store.sendReactionToMsg(msg, options.reaction);
+            }
             let quotedMessage = window.Store.Msg.get(options.quotedMessageId);
             if (quotedMessage.canReply()) {
                 quotedMsgOptions = quotedMessage.msgContextInfo(chat);
