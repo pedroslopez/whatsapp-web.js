@@ -334,7 +334,16 @@ class Message extends Base {
 
         return this.client.sendMessage(chatId, content, options);
     }
-
+    
+    /**
+     * Send reaction to the message.
+     * @param {string} emoji
+     * @return {Promise<string>}
+     */
+    async sendReaction(emoji){
+        return await this.client.sendReaction(this.id._serialized, emoji);
+    }
+    
     /**
      * Accept Group V4 Invite
      * @returns {Promise<Object>}
