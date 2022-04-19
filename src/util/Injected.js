@@ -101,10 +101,6 @@ exports.LoadUtils = () => {
 
         let quotedMsgOptions = {};
         if (options.quotedMessageId) {
-            if (options.reaction){
-                const msg = await window.Store.Msg.get(options.quotedMessageId);
-                return await window.Store.sendReactionToMsg(msg, options.reaction);
-            }
             let quotedMessage = window.Store.Msg.get(options.quotedMessageId);
             if (quotedMessage.canReply()) {
                 quotedMsgOptions = quotedMessage.msgContextInfo(chat);
@@ -158,6 +154,10 @@ exports.LoadUtils = () => {
             } catch (_) {
                 // not a vcard
             }
+        }
+        if (options.reaction){
+            const msg = await window.Store.Msg.get(options.quotedMessageId);
+            return await window.Store.sendReactionToMsg(msg, options.reaction);
         }
 
         if (options.linkPreview) {
