@@ -535,7 +535,7 @@ class Client extends EventEmitter {
     /**
      * Send a message to a specific chatId
      * @param {string} chatId
-     * @param {string|MessageMedia|Location|Contact|Array<Contact>|Buttons|List} content
+     * @param {string|MessageMedia|Location|Contact|Array<Contact>|Buttons|List|Reaction} content
      * @param {MessageSendOptions} [options] - Options used when sending the message
      * 
      * @returns {Promise<Message>} Message that was just sent
