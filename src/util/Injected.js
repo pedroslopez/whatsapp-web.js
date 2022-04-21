@@ -190,7 +190,6 @@ exports.LoadUtils = () => {
                 caption: caption
             };
             delete options.buttons;
-            debugger;
         }
 
         let listOptions = {};
