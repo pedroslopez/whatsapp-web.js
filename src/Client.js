@@ -733,7 +733,7 @@ class Client extends EventEmitter {
         const couldSet = await this.pupPage.evaluate(async displayName => {
             if(!window.Store.Conn.canSetMyPushname()) return false;
 
-            if(window.Store.Features.features.MD_BACKEND) {
+            if(window.Store.MDBackend) {
                 // TODO
                 return false;
             } else {
