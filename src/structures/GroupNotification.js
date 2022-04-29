@@ -43,7 +43,7 @@ class GroupNotification extends Base {
          * 
          * @type {string}
          */
-        this.chatId = typeof (data.to) === 'object' ? data.to._serialized : data.to;
+        this.chatId = typeof (data.id.remote) === 'object' ? data.id.remote._serialized : data.id.remote;
 
         /**
          * ContactId for the user that produced the GroupNotification.
