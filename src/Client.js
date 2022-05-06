@@ -566,7 +566,7 @@ class Client extends EventEmitter {
      */
     async logout() {
         await this.pupPage.evaluate(() => {
-            return window.WPP.comm.logout();
+            return window.WPP.conn.logout();
         });
 
         await this.authStrategy.logout();
