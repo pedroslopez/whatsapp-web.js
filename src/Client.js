@@ -252,8 +252,6 @@ class Client extends EventEmitter {
         });
         await page.waitForFunction(() => window.WPP?.isReady);
 
-        await page.evaluate(() => window.WPP.auth.isAuthenticated());
-
         await page.evaluate(ExposeStore, moduleRaid.toString());
         const authEventPayload = await this.authStrategy.getAuthEventPayload();
 
