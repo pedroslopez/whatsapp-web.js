@@ -13,7 +13,8 @@ exports.DefaultOptions = {
     takeoverTimeoutMs: 0,
     userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36',
     ffmpegPath: 'ffmpeg',
-    bypassCSP: false
+    bypassCSP: false,
+    afterBrowserInitialized: () => {}
 };
 
 /**
@@ -92,7 +93,7 @@ exports.MessageTypes = {
     OVERSIZED: 'oversized',
     PROTOCOL: 'protocol',
     REACTION: 'reaction',
-    TEMPLATE_BUTTON_REPLY: 'template_button_reply',
+    TEMPLATE_BUTTON_REPLY: 'template_button_reply'
 };
 
 /**
@@ -109,7 +110,7 @@ exports.GroupNotificationTypes = {
     DESCRIPTION: 'description',
     PICTURE: 'picture',
     ANNOUNCE: 'announce',
-    RESTRICT: 'restrict',
+    RESTRICT: 'restrict'
 };
 
 /**
@@ -154,5 +155,5 @@ exports.MessageAck = {
     ACK_SERVER: 1,
     ACK_DEVICE: 2,
     ACK_READ: 3,
-    ACK_PLAYED: 4,
+    ACK_PLAYED: 4
 };
