@@ -344,9 +344,9 @@ declare namespace WAWebJS {
          * @default 0 */
         authTimeoutMs?: number
         /** Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/ */
-        puppeteer?: puppeteer.LaunchOptions & puppeteer.BrowserLaunchArgumentOptions & puppeteer.BrowserConnectOptions
-        /** Determines how to save and restore sessions. Will use LegacySessionAuth if options.session is set. Otherwise, NoAuth will be used. */
-        authStrategy?: AuthStrategy
+        puppeteer?: puppeteer.PuppeteerNodeLaunchOptions & puppeteer.ConnectOptions
+		    /** Determines how to save and restore sessions. Will use LegacySessionAuth if options.session is set. Otherwise, NoAuth will be used. */
+        authStrategy?: AuthStrategy,
         /** How many times should the qrcode be refreshed before giving up
          * @default 0 (disabled) */
         qrMaxRetries?: number

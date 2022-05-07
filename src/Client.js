@@ -761,7 +761,7 @@ class Client extends EventEmitter {
         const couldSet = await this.pupPage.evaluate(async (displayName) => {
             if (!window.Store.Conn.canSetMyPushname()) return false;
 
-            if (window.Store.Features.features.MD_BACKEND) {
+            if(window.Store.MDBackend) {
                 // TODO
                 return false;
             } else {
@@ -908,20 +908,16 @@ class Client extends EventEmitter {
      * @returns {Promise<string>}
      */
     async getProfilePicUrl(contactId) {
-        const profilePic = await this.pupPage.evaluate(async (contactId) => {
-            let asyncPic;
-            if (window.Store.Features.features.MD_BACKEND) {
+        const profilePic = await this.pupPage.evaluate(async contactId => {
+            try {
                 const chatWid = window.Store.WidFactory.createWid(contactId);
-                asyncPic = await window.Store.getProfilePicFull(chatWid).catch(() => {
-                    return undefined;
-                });
-            } else {
-                asyncPic = await window.Store.Wap.profilePicFind(contactId).catch(() => {
-                    return undefined;
-                });
+                return await window.Store.ProfilePic.profilePicFind(chatWid);
+            } catch (err) {
+                if(err.name === 'ServerStatusCodeError') return undefined;
+                throw err;
             }
-            return asyncPic;
         }, contactId);
+        
         return profilePic ? profilePic.eurl : undefined;
     }
 
@@ -1029,18 +1025,14 @@ class Client extends EventEmitter {
             participants = participants.map((c) => c.id._serialized);
         }
 
-        const createRes = await this.pupPage.evaluate(
-            async (name, participantIds) => {
-                const participantWIDs = participantIds.map((p) => window.Store.WidFactory.createWid(p));
-                const id = window.Store.genId();
-                const res = await window.Store.GroupUtils.sendCreateGroup(name, participantWIDs, undefined, id);
-                return res;
-            },
-            name,
-            participants
-        );
+        const createRes = await this.pupPage.evaluate(async (name, participantIds) => {
+            const participantWIDs = participantIds.map(p => window.Store.WidFactory.createWid(p));
+            const id = window.Store.MsgKey.newId();
+            const res = await window.Store.GroupUtils.sendCreateGroup(name, participantWIDs, undefined, id);
+            return res;
+        }, name, participants);
 
-        const missingParticipants = createRes.participants.reduce((missing, c) => {
+        const missingParticipants = createRes.participants.reduce(((missing, c) => {
             const id = Object.keys(c)[0];
             const statusCode = c[id].code;
             if (statusCode != 200) return Object.assign(missing, { [id]: statusCode });
