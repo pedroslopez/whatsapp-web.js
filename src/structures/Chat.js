@@ -40,6 +40,12 @@ class Chat extends Base {
         this.isReadOnly = data.isReadOnly;
 
         /**
+         * Indicates if the user can send message to the chat
+         * @type {boolean}
+         */
+        this.canSend = data.canSend;
+        
+        /**
          * Amount of messages unread
          * @type {number}
          */
@@ -74,6 +80,12 @@ class Chat extends Base {
          * @type {number}
          */
         this.muteExpiration = data.muteExpiration;
+
+        /**
+         * Raw object with all the data of the chat
+         * @type {object}
+         */
+        this.raw = data;
 
         return super._patch(data);
     }
