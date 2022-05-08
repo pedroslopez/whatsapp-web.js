@@ -187,7 +187,7 @@ class Chat extends Base {
                     }
                 }
                 return true;
-            }
+            };
 
             const chat = window.Store.Chat.get(chatId);
             let msgs = chat.msgs.models.filter(msgFilter);
