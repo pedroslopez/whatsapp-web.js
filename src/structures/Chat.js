@@ -182,7 +182,7 @@ class Chat extends Base {
                     return false; // dont include notification messages
                 }
                 if (searchOptions) {
-                    if (searchOptions.fromMe !== undefined && m.fromMe !== searchOptions.fromMe) {
+                    if (searchOptions.fromMe !== undefined && m.id.fromMe !== searchOptions.fromMe) {
                         return false;
                     }
                 }
