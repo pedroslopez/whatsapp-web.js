@@ -83,7 +83,7 @@ class RemoteAuth extends BaseAuthStrategy {
         try {
             const sessionExists = await this.store.sessionExists({session: this.sessionName});
             if (sessionExists) {
-                await this.store.delete({session: this.sessionName});;
+                await this.store.delete({session: this.sessionName});
             }
             /* Compress & Store Session */
             const pathExists = await this.isValidPath(this.userDataDir);
@@ -152,10 +152,10 @@ class RemoteAuth extends BaseAuthStrategy {
             var stream = fs.createReadStream(`RemoteAuth-${this.sessionName}.zip`);
             return new Promise((resolve, reject) => {
                 stream.pipe(unzipper.Extract({
-                        path: this.userDataDir
-                    }))
-                    .on('error', err => reject(err))
-                    .on('finish', () => resolve());
+                    path: this.userDataDir
+                }))
+                .on('error', err => reject(err))
+                .on('finish', () => resolve());
             });
         } catch (error) {
             console.log('RemoteAuth Error => unCompressSession: ', error);
