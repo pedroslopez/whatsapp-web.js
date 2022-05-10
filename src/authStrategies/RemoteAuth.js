@@ -154,8 +154,8 @@ class RemoteAuth extends BaseAuthStrategy {
                 stream.pipe(unzipper.Extract({
                     path: this.userDataDir
                 }))
-                .on('error', err => reject(err))
-                .on('finish', () => resolve());
+                    .on('error', err => reject(err))
+                    .on('finish', () => resolve());
             });
         } catch (error) {
             console.log('RemoteAuth Error => unCompressSession: ', error);
