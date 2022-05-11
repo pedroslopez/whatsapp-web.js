@@ -366,6 +366,30 @@ declare namespace WAWebJS {
         })
     }
 
+    
+    /**
+     * Remote auth strategy
+     * For storing the data external
+     */
+     export class RemoteAuth extends AuthStrategy {
+        constructor(options?: {
+            store: Store,
+            clientId: string,
+            dataPath?: string,
+            backupSyncMs: number
+        })
+    }
+
+    /** 
+     * The Store interface for the RemoteAuth strategy
+     */
+    export interface Store {
+        sessionExists: ({session: string}) => Promise<boolean> | boolean,
+        delete: ({session: string}) => Promise<any> | any,
+        save: ({session: string}) => Promise<any> | any,
+        extract: ({session: string}) => Promise<any> | any,
+    }
+
     /**
      * Legacy session auth strategy
      * Not compatible with multi-device accounts.
