@@ -466,7 +466,6 @@ class Client extends EventEmitter {
             const appState = await this.getState();
             if(!appState || appState === WAState.PAIRING) {
                 this.emit(Events.DISCONNECTED, 'NAVIGATION');
-                await this.destroy();
             }
         });
     }
