@@ -400,6 +400,7 @@ exports.LoadUtils = () => {
             const chatWid = window.Store.WidFactory.createWid((chat.id._serialized));
             await window.Store.GroupMetadata.update(chatWid);
             res.groupMetadata = chat.groupMetadata.serialize();
+            res.groupMetadata.canSend = chat.canSend;
         }
 
         delete res.msgs;
