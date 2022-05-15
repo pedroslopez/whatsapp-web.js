@@ -1,7 +1,5 @@
 'use strict';
 
-const Base = require('./Base');
-
 /**
  * Represents a Reaction on WhatsApp
  * @extends {Base}
