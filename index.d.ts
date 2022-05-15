@@ -1299,8 +1299,8 @@ declare namespace WAWebJS {
     
     /** Message type Reaction */
     export class Reaction {
-        value: string
-        constructor(value: string)
+        reaction: string
+        constructor(reaction: string)
     }
 }
 
