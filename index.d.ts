@@ -345,6 +345,7 @@ declare namespace WAWebJS {
             failureEventPayload?: any
         }>;
         getAuthEventPayload: () => Promise<any>;
+        authReady: () => Promise<void>;
         logout: () => Promise<void>;
     }
 
@@ -365,23 +366,23 @@ declare namespace WAWebJS {
             dataPath?: string
         })
     }
-
     
     /**
-     * Remote auth strategy
-     * For storing the data external
+     * Remote-based authentication
      */
      export class RemoteAuth extends AuthStrategy {
+        public clientId?: string;
+        public dataPath?: string;
         constructor(options?: {
             store: Store,
-            clientId: string,
+            clientId?: string,
             dataPath?: string,
             backupSyncMs: number
         })
     }
 
     /** 
-     * The Store interface for the RemoteAuth strategy
+     * Remote store interface
      */
     export interface Store {
         sessionExists: ({session: string}) => Promise<boolean> | boolean,
