@@ -478,6 +478,20 @@ exports.LoadUtils = () => {
         return window.btoa(binary);
     };
 
+    window.WWebJS.arrayBufferToBase64Async = (arrayBuffer) =>
+        new Promise((resolve, reject) => {
+            const blob = new Blob([arrayBuffer], {
+                type: "application/octet-stream",
+            });
+            const fileReader = new FileReader();
+            fileReader.onload = (ev) => {
+                const [, data] = fileReader.result.split(",");
+                resolve(data);
+            };
+            fileReader.onerror = (e) => reject(e);
+            fileReader.readAsDataURL(blob);
+        });
+
     window.WWebJS.getFileHash = async (data) => {
         let buffer = await data.arrayBuffer();
         const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);

@@ -396,7 +396,7 @@ class Message extends Base {
                     signal: (new AbortController).signal
                 });
 
-                const data = window.WWebJS.arrayBufferToBase64(decryptedMedia);
+                const data = await window.WWebJS.arrayBufferToBase64Async(decryptedMedia);
 
                 return {
                     data,
