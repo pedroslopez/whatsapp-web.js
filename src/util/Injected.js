@@ -416,7 +416,7 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getChats = async () => {
-        const chats = window.Store.Chat.models;
+        const chats = window.Store.Chat._models;
 
         const chatPromises = chats.map(chat => window.WWebJS.getChatModel(chat));
         return await Promise.all(chatPromises);
@@ -448,7 +448,7 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getContacts = () => {
-        const contacts = window.Store.Contact.models;
+        const contacts = window.Store.Contact._models;
         return contacts.map(contact => window.WWebJS.getContactModel(contact));
     };
 
@@ -541,7 +541,7 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getLabels = () => {
-        const labels = window.Store.Label.models;
+        const labels = window.Store.Label._models;
         return labels.map(label => window.WWebJS.getLabelModel(label));
     };
 
