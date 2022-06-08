@@ -172,11 +172,17 @@ class Chat extends Base {
      * Loads chat messages, sorted from earliest to latest.
      * @param {Object} searchOptions Options for searching messages. Right now only limit is supported.
      * @param {Number} [searchOptions.limit] The amount of messages to return. If no limit is specified, the available messages will be returned. Note that the actual number of returned messages may be smaller if there aren't enough messages in the conversation. Set this to Infinity to load all messages.
+     * @param {Number} [searchOptions.minTimestamp] If specified, filter message by minimum timestamp.
+     * @param {Number} [searchOptions.maxTimestamp] If specified, filter message by maximum timestamp.
      * @returns {Promise<Array<Message>>}
      */
     async fetchMessages(searchOptions) {
         let messages = await this.client.pupPage.evaluate(async (chatId, searchOptions) => {
-            const msgFilter = m => !m.isNotification; // dont include notification messages
+            const msgFilter = m => {
+                return !m.isNotification 
+                    && (!searchOptions || !searchOptions.minTimestamp || m.t >= searchOptions.minTimestamp)
+                    && (!searchOptions || !searchOptions.maxTimestamp || m.t <= searchOptions.maxTimestamp)
+                }; // dont include notification messages
 
             const chat = window.Store.Chat.get(chatId);
             let msgs = chat.msgs.models.filter(msgFilter);
