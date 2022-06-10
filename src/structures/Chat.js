@@ -179,11 +179,11 @@ class Chat extends Base {
             const msgFilter = m => !m.isNotification; // dont include notification messages
 
             const chat = window.Store.Chat.get(chatId);
-            let msgs = chat.msgs.models.filter(msgFilter);
+            let msgs = chat.msgs.getModelsArray().filter(msgFilter);
 
             if (searchOptions && searchOptions.limit > 0) {
                 while (msgs.length < searchOptions.limit) {
-                    const loadedMessages = await chat.loadEarlierMsgs();
+                    const loadedMessages = await window.Store.ConversationMsgs.loadEarlierMsgs(chat);
                     if (!loadedMessages) break;
                     msgs = [...loadedMessages.filter(msgFilter), ...msgs];
                 }
