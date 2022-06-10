@@ -825,8 +825,9 @@ class Client extends EventEmitter {
                 return true;
             }
             const MAX_PIN_COUNT = 3;
-            if (window.Store.Chat.models.length > MAX_PIN_COUNT) {
-                let maxPinned = window.Store.Chat.models[MAX_PIN_COUNT - 1].pin;
+            const chatModels = window.Store.Chat.getModelsArray();
+            if (chatModels.length > MAX_PIN_COUNT) {
+                let maxPinned = chatModels[MAX_PIN_COUNT - 1].pin;
                 if (maxPinned) {
                     return false;
                 }
@@ -1072,7 +1073,7 @@ class Client extends EventEmitter {
     async getChatsByLabelId(labelId) {
         const chatIds = await this.pupPage.evaluate(async (labelId) => {
             const label = window.Store.Label.get(labelId);
-            const labelItems = label.labelItemCollection.models;
+            const labelItems = label.labelItemCollection.getModelsArray();
             return labelItems.reduce((result, item) => {
                 if (item.parentType === 'Chat') {
                     result.push(item.parentId);
@@ -1090,7 +1091,7 @@ class Client extends EventEmitter {
      */
     async getBlockedContacts() {
         const blockedContacts = await this.pupPage.evaluate(() => {
-            let chatIds = window.Store.Blocklist.models.map(a => a.id._serialized);
+            let chatIds = window.Store.Blocklist.getModelsArray().map(a => a.id._serialized);
             return Promise.all(chatIds.map(id => window.WWebJS.getContact(id)));
         });
 
