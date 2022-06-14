@@ -99,11 +99,6 @@ exports.LoadUtils = () => {
             delete options.attachment;
             delete options.sendMediaAsSticker;
         }
-        if (options.reaction){
-            const msg = await window.Store.Msg.get(options.quotedMessageId);
-            await window.Store.sendReactionToMsg(msg, options.reaction.reaction);
-            return msg;
-        }
         let quotedMsgOptions = {};
         if (options.quotedMessageId) {
             let quotedMessage = window.Store.Msg.get(options.quotedMessageId);
