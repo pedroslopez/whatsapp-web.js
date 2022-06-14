@@ -115,6 +115,9 @@ declare namespace WAWebJS {
         /** Send a message to a specific chatId */
         sendMessage(chatId: string, content: MessageContent, options?: MessageSendOptions): Promise<Message>
         
+        /** React to a message by id.*/
+        reactToMessage(messageId, reaction): Promise<Message>
+        
         /** Searches for messages */
         searchMessages(query: string, options?: { chatId?: string, page?: number, limit?: number }): Promise<Message[]>
 
@@ -703,6 +706,8 @@ declare namespace WAWebJS {
          * If not, it will send the message in the same Chat as the original message was sent. 
          */
         reply: (content: MessageContent, chatId?: string, options?: MessageSendOptions) => Promise<Message>,
+        /** React to this message.*/
+        react: (emoji: string) => Promise<Message>,
         /** 
          * Forwards this message to another chat
          */
@@ -816,7 +821,7 @@ declare namespace WAWebJS {
         static fromUrl: (url: string, options?: MediaFromURLOptions) => Promise<MessageMedia>
     }
 
-    export type MessageContent = string | MessageMedia | Location | Contact | Contact[] | List | Buttons | Reaction
+    export type MessageContent = string | MessageMedia | Location | Contact | Contact[] | List | Buttons
 
     /**
      * Represents a Contact on WhatsApp
@@ -1295,12 +1300,6 @@ declare namespace WAWebJS {
         footer?: string | null
         
         constructor(body: string, buttons: Array<{ id?: string; body: string }>, title?: string | null, footer?: string | null)
-    }
-    
-    /** Message type Reaction */
-    export class Reaction {
-        reaction: string
-        constructor(reaction: string)
     }
 }
 

@@ -609,6 +609,20 @@ class Client extends EventEmitter {
 
         return new Message(this, newMessage);
     }
+
+    /**
+     * React to a message by id.
+     * @param {string} messageId
+     * @param {string} reaction
+     * @return {Promise<Message>}
+     */
+    async reactToMessage(messageId, reaction){
+        return await this.pupPage.evaluate(async (messageId, reaction) => {
+            const msg = await window.Store.Msg.get(messageId);
+            await window.Store.sendReactionToMsg(msg, reaction);
+            return msg;
+        }, messageId, reaction);
+    }
     
     /**
      * Searches for messages
