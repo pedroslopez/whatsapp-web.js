@@ -317,7 +317,7 @@ class Message extends Base {
      * through the specified Chat. If not, it will send the message
      * in the same Chat as the original message was sent.
      *
-     * @param {string|MessageMedia|Location} content
+     * @param {string|MessageMedia|Location|Reaction} content
      * @param {string} [chatId]
      * @param {MessageSendOptions} [options]
      * @returns {Promise<Message>}
@@ -334,7 +334,7 @@ class Message extends Base {
 
         return this.client.sendMessage(chatId, content, options);
     }
-
+    
     /**
      * Accept Group V4 Invite
      * @returns {Promise<Object>}
