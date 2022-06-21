@@ -264,6 +264,7 @@ describe('Client', function() {
                     'QueryOrder',
                     'QueryProduct',
                     'PresenceUtils',
+                    'ProfilePic',
                     'QueryExist',
                     'QueryProduct',
                     'QueryOrder',
@@ -279,7 +280,7 @@ describe('Client', function() {
                     'Wap',
                     'WidFactory',
                     'findCommonGroups',
-                    'ProfilePic',
+                    'sendReactionToMsg',
                 ];
               
                 const loadedModules = await client.pupPage.evaluate((expectedModules) => {

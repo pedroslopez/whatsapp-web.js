@@ -115,9 +115,6 @@ declare namespace WAWebJS {
         /** Send a message to a specific chatId */
         sendMessage(chatId: string, content: MessageContent, options?: MessageSendOptions): Promise<Message>
         
-        /** React to a message by id.*/
-        reactToMessage(messageId, reaction): Promise<Message>
-        
         /** Searches for messages */
         searchMessages(query: string, options?: { chatId?: string, page?: number, limit?: number }): Promise<Message[]>
 
@@ -690,7 +687,7 @@ declare namespace WAWebJS {
         acceptGroupV4Invite: () => Promise<{status: number}>,
         /** Deletes the message from the chat */
         delete: (everyone?: boolean) => Promise<void>,
-        /** Downloads and returns the attatched message media */
+        /** Downloads and returns the attached message media */
         downloadMedia: () => Promise<MessageMedia>,
         /** Returns the Chat this message was sent in */
         getChat: () => Promise<Chat>,
@@ -706,8 +703,8 @@ declare namespace WAWebJS {
          * If not, it will send the message in the same Chat as the original message was sent. 
          */
         reply: (content: MessageContent, chatId?: string, options?: MessageSendOptions) => Promise<Message>,
-        /** React to this message.*/
-        react: (emoji: string) => Promise<Message>,
+        /** React to this message with an emoji*/
+        react: (reaction: string) => Promise,
         /** 
          * Forwards this message to another chat
          */
@@ -716,7 +713,7 @@ declare namespace WAWebJS {
         star: () => Promise<void>,
         /** Unstar this message */
         unstar: () => Promise<void>,
-        /** Get information about message delivery statuso */
+        /** Get information about message delivery status */
         getInfo: () => Promise<MessageInfo | null>,
         /**
          * Gets the order associated with a given message
