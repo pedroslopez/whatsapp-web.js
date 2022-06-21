@@ -175,13 +175,13 @@ class Client extends EventEmitter {
                 });
             },
             {
-                PROGRESS: '//*[@id="app"]/div/div/div[2]/progress',
-                PROGRESS_MESSAGE: '//*[@id="app"]/div/div/div[3]',
+                PROGRESS: "//*[@id='app']/div/div/div[2]/progress",
+                PROGRESS_MESSAGE: "//*[@id='app']/div/div/div[3]",
             }
         );
 
         const INTRO_IMG_SELECTOR =
-            '[data-testid="intro-md-beta-logo-dark"], [data-testid="intro-md-beta-logo-light"], [data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
+            "[data-testid='intro-md-beta-logo-dark'], [data-testid='intro-md-beta-logo-light'], [data-asset-intro-image-light='true'], [data-asset-intro-image-dark='true']";
         const INTRO_QRCODE_SELECTOR = "div[data-ref] canvas";
 
         // Checks which selector appears first
@@ -492,7 +492,7 @@ class Client extends EventEmitter {
                 /**
                  * Emitted when the client has been disconnected
                  * @event Client#disconnected
-                 * @param {WAState|"NAVIGATION"} reason reason that caused the disconnect
+                 * @param {WAState|'NAVIGATION'} reason reason that caused the disconnect
                  */
                 this.emit(Events.DISCONNECTED, state);
                 this.destroy();
@@ -1112,7 +1112,7 @@ class Client extends EventEmitter {
     /**
      * Get the registered WhatsApp ID for a number.
      * Will return null if the number is not registered on WhatsApp.
-     * @param {string} number Number or ID ("@c.us" will be automatically appended if not specified)
+     * @param {string} number Number or ID ('@c.us' will be automatically appended if not specified)
      * @returns {Promise<Object|null>}
      */
     async getNumberId(number) {
