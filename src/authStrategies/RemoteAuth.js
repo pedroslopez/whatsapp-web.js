@@ -142,38 +142,23 @@ class RemoteAuth extends BaseAuthStrategy {
     }
 
     async deleteMetadata() {
-        /* First Level */
-        let sessionFiles = await fs.promises.readdir(this.userDataDir);
-        for (let element of sessionFiles) {
-            if (!this.requiredDirs.includes(element)) {
-                let dirElement = path.join(this.userDataDir, element);
-                let stats = await fs.promises.lstat(dirElement);
-
-                if (stats.isDirectory()) {
-                    await fs.promises.rm(dirElement, {
-                        recursive: true,
-                        force: true
-                    });
-                } else {
-                    await fs.promises.unlink(dirElement);
-                }
-            }
-        }
-
-        /* Second Level */
-        let sessionFilesDefault = await fs.promises.readdir(`${this.userDataDir}/Default`);
-        for (let element of sessionFilesDefault) {
-            if (!this.requiredDirs.includes(element)) {
-                let dirElement = path.join(`${this.userDataDir}/Default`, element);
-                let stats = await fs.promises.lstat(dirElement);
-
-                if (stats.isDirectory()) {
-                    await fs.promises.rm(dirElement, {
-                        recursive: true,
-                        force: true
-                    });
-                } else {
-                    await fs.promises.unlink(dirElement);
+        const sessionDirs = [this.userDataDir, path.join(this.userDataDir, 'Default')];
+        for (const dir of sessionDirs) {
+            const dirPath = dir.includes('Default') ? dir : this.userDataDir;
+            const sessionFiles = await fs.promises.readdir(dir);
+            for (const element of sessionFiles) {
+                if (!this.requiredDirs.includes(element)) {
+                    const dirElement = path.join(dirPath, element);
+                    const stats = await fs.promises.lstat(dirElement);
+    
+                    if (stats.isDirectory()) {
+                        await fs.promises.rm(dirElement, {
+                            recursive: true,
+                            force: true
+                        });
+                    } else {
+                        await fs.promises.unlink(dirElement);
+                    }
                 }
             }
         }
