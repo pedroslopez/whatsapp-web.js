@@ -465,7 +465,7 @@ class Client extends EventEmitter {
          * @event Client#ready
          */
         this.emit(Events.READY);
-        this.authStrategy.authReady();
+        this.authStrategy.afterAuthReady();
 
         // Disconnect when navigating away when in PAIRING state (detect logout)
         this.pupPage.on('framenavigated', async () => {
