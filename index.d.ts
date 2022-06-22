@@ -345,7 +345,7 @@ declare namespace WAWebJS {
             failureEventPayload?: any
         }>;
         getAuthEventPayload: () => Promise<any>;
-        authReady: () => Promise<void>;
+        afterAuthReady: () => Promise<void>;
         logout: () => Promise<void>;
     }
 
