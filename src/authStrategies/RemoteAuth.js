@@ -80,127 +80,102 @@ class RemoteAuth extends BaseAuthStrategy {
     }
 
     async storeRemoteSession() {
-        try {
-            const sessionExists = await this.store.sessionExists({session: this.sessionName});
-            if (sessionExists) {
-                await this.store.delete({session: this.sessionName});
-            }
-            /* Compress & Store Session */
-            const pathExists = await this.isValidPath(this.userDataDir);
-            if (pathExists) {
-                await this.compressSession();
-                await this.store.save({session: this.sessionName});
-                await fs.promises.unlink(`${this.sessionName}.zip`);
-            }
-        } catch (error) {
-            console.log('RemoteAuth Error => storeRemoteSession: ', error);
+        const sessionExists = await this.store.sessionExists({session: this.sessionName});
+        if (sessionExists) {
+            await this.store.delete({session: this.sessionName});
+        }
+        /* Compress & Store Session */
+        const pathExists = await this.isValidPath(this.userDataDir);
+        if (pathExists) {
+            await this.compressSession();
+            await this.store.save({session: this.sessionName});
+            await fs.promises.unlink(`${this.sessionName}.zip`);
         }
     }
 
     async extractRemoteSession() {
-        try {
-            const sessionExists = await this.store.sessionExists({session: this.sessionName});
-            const pathExists = await this.isValidPath(this.userDataDir);
-            if (pathExists) {
-                await fs.promises.rm(this.userDataDir, {
-                    recursive: true,
-                    force: true
-                });
-            }
-            if (sessionExists) {
-                await this.store.extract({session: this.sessionName});
-                await this.unCompressSession();
-                await fs.promises.unlink(`RemoteAuth-${this.sessionName}.zip`);
-            }
-        } catch (error) {
-            console.log('RemoteAuth Error => extractRemoteSession: ', error);
+        const sessionExists = await this.store.sessionExists({session: this.sessionName});
+        const pathExists = await this.isValidPath(this.userDataDir);
+        if (pathExists) {
+            await fs.promises.rm(this.userDataDir, {
+                recursive: true,
+                force: true
+            });
+        }
+        if (sessionExists) {
+            await this.store.extract({session: this.sessionName});
+            await this.unCompressSession();
+            await fs.promises.unlink(`RemoteAuth-${this.sessionName}.zip`);
         }
     }
 
     async deleteRemoteSession() {
-        try {
-            const sessionExists = await this.store.sessionExists({session: this.sessionName});
-            if (sessionExists) await this.store.delete({session: this.sessionName});
-
-        } catch (error) {
-            console.log('RemoteAuth Error => deleteRemoteSession: ', error);
-        }
+        const sessionExists = await this.store.sessionExists({session: this.sessionName});
+        if (sessionExists) await this.store.delete({session: this.sessionName});
     }
 
     async compressSession() {
-        try {
-            const archive = archiver('zip');
-            const stream = fs.createWriteStream(`${this.sessionName}.zip`);
+        const archive = archiver('zip');
+        const stream = fs.createWriteStream(`${this.sessionName}.zip`);
 
-            await this.deleteMetadata();
-            return new Promise((resolve, reject) => {
-                archive
-                    .directory(this.userDataDir, false)
-                    .on('error', err => reject(err))
-                    .pipe(stream);
+        await this.deleteMetadata();
+        return new Promise((resolve, reject) => {
+            archive
+                .directory(this.userDataDir, false)
+                .on('error', err => reject(err))
+                .pipe(stream);
 
-                stream.on('close', () => resolve());
-                archive.finalize();
-            });
-        } catch (error) {
-            console.log('RemoteAuth Error => compressSession: ', error);
-        }
+            stream.on('close', () => resolve());
+            archive.finalize();
+        });
     }
 
     async unCompressSession() {
-        try {
-            var stream = fs.createReadStream(`RemoteAuth-${this.sessionName}.zip`);
-            return new Promise((resolve, reject) => {
-                stream.pipe(unzipper.Extract({
-                    path: this.userDataDir
-                }))
-                    .on('error', err => reject(err))
-                    .on('finish', () => resolve());
-            });
-        } catch (error) {
-            console.log('RemoteAuth Error => unCompressSession: ', error);
-        }
+        var stream = fs.createReadStream(`RemoteAuth-${this.sessionName}.zip`);
+        return new Promise((resolve, reject) => {
+            stream.pipe(unzipper.Extract({
+                path: this.userDataDir
+            }))
+                .on('error', err => reject(err))
+                .on('finish', () => resolve());
+        });
     }
 
     async deleteMetadata() {
-        try {
-            /* First Level */
-            let sessionFiles = await fs.promises.readdir(this.userDataDir);
-            for (let element of sessionFiles) {
-                if (!this.requiredDirs.includes(element)) {
-                    let dirElement = path.join(this.userDataDir, element);
-                    let stats = await fs.promises.lstat(dirElement);
-    
-                    if (stats.isDirectory()) {
-                        await fs.promises.rm(dirElement, {
-                            recursive: true,
-                            force: true
-                        });
-                    } else {
-                        await fs.promises.unlink(dirElement);
-                    }
-                }
-            }
+        /* First Level */
+        let sessionFiles = await fs.promises.readdir(this.userDataDir);
+        for (let element of sessionFiles) {
+            if (!this.requiredDirs.includes(element)) {
+                let dirElement = path.join(this.userDataDir, element);
+                let stats = await fs.promises.lstat(dirElement);
 
-            /* Second Level */
-            let sessionFilesDefault = await fs.promises.readdir(`${this.userDataDir}/Default`);
-            for (let element of sessionFilesDefault) {
-                if (!this.requiredDirs.includes(element)) {
-                    let dirElement = path.join(`${this.userDataDir}/Default`, element);
-                    let stats = await fs.promises.lstat(dirElement);
-    
-                    if (stats.isDirectory()) {
-                        await fs.promises.rm(dirElement, {
-                            recursive: true,
-                            force: true
-                        });
-                    } else {
-                        await fs.promises.unlink(dirElement);
-                    }
+                if (stats.isDirectory()) {
+                    await fs.promises.rm(dirElement, {
+                        recursive: true,
+                        force: true
+                    });
+                } else {
+                    await fs.promises.unlink(dirElement);
                 }
             }
-        } catch (error) {
-            console.log('RemoteAuth Error => deleteMetadata: ', error);
+        }
+
+        /* Second Level */
+        let sessionFilesDefault = await fs.promises.readdir(`${this.userDataDir}/Default`);
+        for (let element of sessionFilesDefault) {
+            if (!this.requiredDirs.includes(element)) {
+                let dirElement = path.join(`${this.userDataDir}/Default`, element);
+                let stats = await fs.promises.lstat(dirElement);
+
+                if (stats.isDirectory()) {
+                    await fs.promises.rm(dirElement, {
+                        recursive: true,
+                        force: true
+                    });
+                } else {
+                    await fs.promises.unlink(dirElement);
+                }
+            }
         }
     }
 
