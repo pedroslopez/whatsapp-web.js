@@ -12,24 +12,24 @@ const BaseAuthStrategy = require('./BaseAuthStrategy');
  * @param {object} options.store - Remote database store instance
  * @param {string} options.clientId - Client id to distinguish instances if you are using multiple, otherwise keep null if you are using only one instance
  * @param {string} options.dataPath - Change the default path for saving session files, default is: "./.wwebjs_auth/" 
- * @param {number} options.backupSyncMs - Sets the time interval for periodic session backups. Accepts values starting from 60000ms {1 minute}
+ * @param {number} options.backupSyncIntervalMs - Sets the time interval for periodic session backups. Accepts values starting from 60000ms {1 minute}
  */
 class RemoteAuth extends BaseAuthStrategy {
-    constructor({ clientId, dataPath, store, backupSyncMs } = {}) {
+    constructor({ clientId, dataPath, store, backupSyncIntervalMs } = {}) {
         super();
 
         const idRegex = /^[-_\w]+$/i;
         if (clientId && !idRegex.test(clientId)) {
             throw new Error('Invalid clientId. Only alphanumeric characters, underscores and hyphens are allowed.');
         }
-        if (!backupSyncMs || backupSyncMs < 60000) {
-            throw new Error('Invalid backupSyncMs. Accepts values starting from 60000ms {1 minute}.');
+        if (!backupSyncIntervalMs || backupSyncIntervalMs < 60000) {
+            throw new Error('Invalid backupSyncIntervalMs. Accepts values starting from 60000ms {1 minute}.');
         }
         if(!store) throw new Error('Remote database store is required.');
 
         this.store = store;
         this.clientId = clientId;
-        this.backupSyncMs = backupSyncMs;
+        this.backupSyncIntervalMs = backupSyncIntervalMs;
         this.dataPath = path.resolve(dataPath || './.wwebjs_auth/');
         this.requiredDirs = ['Default', 'IndexedDB', 'Local Storage']; /* => Required Files & Dirs in WWebJS to restore session */
     }
@@ -76,7 +76,7 @@ class RemoteAuth extends BaseAuthStrategy {
         var self = this;
         this.backupSync = setInterval(async function () {
             await self.storeRemoteSession();
-        }, this.backupSyncMs);
+        }, this.backupSyncIntervalMs);
     }
 
     async storeRemoteSession() {
