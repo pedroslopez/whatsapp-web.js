@@ -80,6 +80,7 @@ For more information on saving and restoring sessions, check out the available [
 | Get contact info | ✅ |
 | Get profile pictures | ✅ |
 | Set user status message | ✅ |
+| React message | ✅ |
 
 Something missing? Make an issue and let us know!
 
