@@ -9,7 +9,7 @@ const Message = require('../src/structures/Message');
 const MessageMedia = require('../src/structures/MessageMedia');
 const Location = require('../src/structures/Location');
 const LegacySessionAuth = require('../src/authStrategies/LegacySessionAuth');
-const { MessageTypes, WAState } = require('../src/util/Constants');
+const { MessageTypes, WAState, DefaultOptions } = require('../src/util/Constants');
 
 const expect = chai.expect;
 chai.use(chaiAsPromised);
@@ -18,6 +18,74 @@ const remoteId = helper.remoteId;
 const isMD = helper.isMD();
 
 describe('Client', function() {
+    describe('User Agent', function () {
+        it('should set user agent on browser', async function () {
+            this.timeout(25000);
+
+            const client = helper.createClient();
+            client.initialize();
+
+            await helper.sleep(20000);
+
+            const browserUA = await client.pupBrowser.userAgent();
+            expect(browserUA).to.equal(DefaultOptions.userAgent);
+
+            const pageUA = await client.pupPage.evaluate(() => window.navigator.userAgent);
+            expect(pageUA).to.equal(DefaultOptions.userAgent);
+
+            await client.destroy();
+        });
+
+        it('should set custom user agent on browser', async function () {
+            this.timeout(25000);
+            const customUA = DefaultOptions.userAgent.replace(/Chrome\/.* /, 'Chrome/99.9.9999.999 ');
+
+            const client = helper.createClient({
+                options: {
+                    userAgent: customUA
+                }
+            });
+
+            client.initialize();
+            await helper.sleep(20000);
+
+            const browserUA = await client.pupBrowser.userAgent();
+            expect(browserUA).to.equal(customUA);
+            expect(browserUA.includes('Chrome/99.9.9999.999')).to.equal(true);
+
+            const pageUA = await client.pupPage.evaluate(() => window.navigator.userAgent);
+            expect(pageUA).to.equal(customUA);
+
+            await client.destroy();
+        });
+
+        it('should respect an existing user agent arg', async function () {
+            this.timeout(25000);
+
+            const customUA = DefaultOptions.userAgent.replace(/Chrome\/.* /, 'Chrome/99.9.9999.999 ');
+
+            const client = helper.createClient({
+                options: {
+                    puppeteer: {
+                        args: [`--user-agent=${customUA}`]
+                    }
+                }
+            });
+
+            client.initialize();
+            await helper.sleep(20000);
+
+            const browserUA = await client.pupBrowser.userAgent();
+            expect(browserUA).to.equal(customUA);
+            expect(browserUA.includes('Chrome/99.9.9999.999')).to.equal(true);
+
+            const pageUA = await client.pupPage.evaluate(() => window.navigator.userAgent);
+            expect(pageUA).to.equal(DefaultOptions.userAgent);
+
+            await client.destroy();
+        });
+    });
+
     describe('Authentication', function() {
         it('should emit QR code if not authenticated', async function() {
             this.timeout(25000);
@@ -264,6 +332,7 @@ describe('Client', function() {
                     'QueryOrder',
                     'QueryProduct',
                     'PresenceUtils',
+                    'ProfilePic',
                     'QueryExist',
                     'QueryProduct',
                     'QueryOrder',
@@ -279,7 +348,7 @@ describe('Client', function() {
                     'Wap',
                     'WidFactory',
                     'findCommonGroups',
-                    'ProfilePic',
+                    'sendReactionToMsg',
                 ];
               
                 const loadedModules = await client.pupPage.evaluate((expectedModules) => {
