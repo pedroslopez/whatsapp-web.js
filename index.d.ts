@@ -377,7 +377,7 @@ declare namespace WAWebJS {
             store: Store,
             clientId?: string,
             dataPath?: string,
-            backupSyncMs: number
+            backupSyncIntervalMs: number
         })
     }
 
