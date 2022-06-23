@@ -147,7 +147,7 @@ class GroupChat extends Chat {
         this.groupMetadata.desc = description;
         return true;
     }
-
+    
     /**
      * Sets group's or current user's picture.
      * @param {MessageMedia} picture

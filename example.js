@@ -1,4 +1,4 @@
-const { Client, Location, List, Buttons, LocalAuth, Reaction } = require('./index');
+const { Client, Location, List, Buttons, LocalAuth} = require('./index');
 
 const client = new Client({
     authStrategy: new LocalAuth(),
@@ -192,7 +192,7 @@ client.on('message', async msg => {
         let list = new List('List body','btnText',sections,'Title','footer');
         client.sendMessage(msg.from, list);
     } else if (msg.body === '!reaction') {
-        msg.reply(new Reaction('👍'));
+        msg.react('👍');
     }
 });
 

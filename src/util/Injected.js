@@ -13,7 +13,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Cmd = window.mR.findModule('Cmd')[0].Cmd;
     window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
     window.Store.DownloadManager = window.mR.findModule('downloadManager')[0].downloadManager;
-    window.Store.Features = window.mR.findModule('FEATURE_CHANGE_EVENT')[0].GK;
+    window.Store.MDBackend = window.mR.findModule('isMDBackend')[0].isMDBackend();
+    window.Store.Features = window.mR.findModule('FEATURE_CHANGE_EVENT')[0].LegacyPhoneFeatures;
     window.Store.GroupMetadata = window.mR.findModule((module) => module.default && module.default.handlePendingInvite)[0].default;
     window.Store.Invite = window.mR.findModule('sendJoinGroupViaInvite')[0];
     window.Store.InviteInfo = window.mR.findModule('sendQueryGroupInvite')[0];
@@ -47,6 +48,9 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.JoinInviteV4 = window.mR.findModule('sendJoinGroupViaInviteV4')[0];
     window.Store.findCommonGroups = window.mR.findModule('findCommonGroups')[0].findCommonGroups;
     window.Store.StatusUtils = window.mR.findModule('setMyStatus')[0];
+    window.Store.SendSetPicture = window.mR.findModule('sendSetPicture')[1].sendSetPicture;
+    window.Store.ConversationMsgs = window.mR.findModule('loadEarlierMsgs')[0];
+    window.Store.sendReactionToMsg = window.mR.findModule('sendReactionToMsg')[0].sendReactionToMsg;
     window.Store.StickerTools = {
         ...window.mR.findModule('toWebpSticker')[0],
         ...window.mR.findModule('addWebpMetadata')[0]
@@ -96,11 +100,6 @@ exports.LoadUtils = () => {
 
             delete options.attachment;
             delete options.sendMediaAsSticker;
-        }
-        if (options.reaction){
-            const msg = await window.Store.Msg.get(options.quotedMessageId);
-            await window.Store.sendReactionToMsg(msg, options.reaction.reaction);
-            return msg;
         }
         let quotedMsgOptions = {};
         if (options.quotedMessageId) {
@@ -163,7 +162,7 @@ exports.LoadUtils = () => {
             delete options.linkPreview;
 
             // Not supported yet by WhatsApp Web on MD
-            if(!window.Store.Features.features.MD_BACKEND) {
+            if(!window.Store.MDBackend) {
                 const link = window.Store.Validators.findLink(content);
                 if (link) {
                     const preview = await window.Store.Wap.queryLinkPreview(link.url);
@@ -215,7 +214,7 @@ exports.LoadUtils = () => {
         }
 
         const meUser = window.Store.User.getMaybeMeUser();
-        const isMD = window.Store.Features.features.MD_BACKEND;
+        const isMD = window.Store.MDBackend;
 
         const newMsgId = new window.Store.MsgKey({
             from: meUser,
@@ -419,7 +418,7 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getChats = async () => {
-        const chats = window.Store.Chat.models;
+        const chats = window.Store.Chat.getModelsArray();
 
         const chatPromises = chats.map(chat => window.WWebJS.getChatModel(chat));
         return await Promise.all(chatPromises);
@@ -451,7 +450,7 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getContacts = () => {
-        const contacts = window.Store.Contact.models;
+        const contacts = window.Store.Contact.getModelsArray();
         return contacts.map(contact => window.WWebJS.getContactModel(contact));
     };
 
@@ -516,7 +515,7 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.sendChatstate = async (state, chatId) => {
-        if (window.Store.Features.features.MD_BACKEND) {
+        if (window.Store.MDBackend) {
             chatId = window.Store.WidFactory.createWid(chatId);
         }
         switch (state) {
@@ -544,7 +543,7 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getLabels = () => {
-        const labels = window.Store.Label.models;
+        const labels = window.Store.Label.getModelsArray();
         return labels.map(label => window.WWebJS.getLabelModel(label));
     };
 
