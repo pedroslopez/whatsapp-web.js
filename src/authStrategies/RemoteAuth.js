@@ -144,11 +144,10 @@ class RemoteAuth extends BaseAuthStrategy {
     async deleteMetadata() {
         const sessionDirs = [this.userDataDir, path.join(this.userDataDir, 'Default')];
         for (const dir of sessionDirs) {
-            const dirPath = dir.includes('Default') ? dir : this.userDataDir;
             const sessionFiles = await fs.promises.readdir(dir);
             for (const element of sessionFiles) {
                 if (!this.requiredDirs.includes(element)) {
-                    const dirElement = path.join(dirPath, element);
+                    const dirElement = path.join(dir, element);
                     const stats = await fs.promises.lstat(dirElement);
     
                     if (stats.isDirectory()) {
