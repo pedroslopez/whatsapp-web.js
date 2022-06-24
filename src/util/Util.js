@@ -195,7 +195,7 @@ class Util {
         return {
             img: await (await jimp.resize(jimp.getWidth()*imgRatio, jimp.getHeight()*imgRatio)).getBase64Async(Jimp.MIME_JPEG),
             preview: await (await jimp.resize(jimp.getWidth()*previewRatio, jimp.getHeight()*previewRatio)).getBase64Async(Jimp.MIME_JPEG),
-        }
+        };
     }
 }
 
