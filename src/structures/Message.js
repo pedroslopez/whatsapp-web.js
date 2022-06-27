@@ -133,6 +133,12 @@ class Message extends Base {
          * @type {boolean}
          */
         this.hasQuotedMsg = data.quotedMsg ? true : false;
+        
+        /**
+         * Indicates if there are reactions to messages
+         * @type {boolean}
+         */
+        this.hasReaction = data.hasReaction || false;
 
         /**
          * Indicates the duration of the message in seconds
