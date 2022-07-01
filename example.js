@@ -2,10 +2,14 @@ const { Client, Location, List, Buttons, LocalAuth} = require('./index');
 
 const client = new Client({
     authStrategy: new LocalAuth(),
-    puppeteer: { headless: false }
+    puppeteer: { headless: true }
 });
 
 client.initialize();
+
+client.on('loading_screen', (percent, message) => {
+    console.log('LOADING SCREEN', percent, message);
+});
 
 client.on('qr', (qr) => {
     // NOTE: This event will not be fired if a session is specified.
