@@ -704,7 +704,7 @@ declare namespace WAWebJS {
          */
         reply: (content: MessageContent, chatId?: string, options?: MessageSendOptions) => Promise<Message>,
         /** React to this message with an emoji*/
-        react: (reaction: string) => Promise,
+        react: (reaction: "👍" | "❤" | "😂" | "😮" | "😥" | "🙏" | string) => Promise<void>,
         /** 
          * Forwards this message to another chat
          */
