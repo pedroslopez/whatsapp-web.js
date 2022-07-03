@@ -132,7 +132,7 @@ class Client extends EventEmitter {
             })
         ]);
 
-        // Checks if an error ocurred on the first found selector. The second will be discarded and ignored by .race;
+        // Checks if an error occurred on the first found selector. The second will be discarded and ignored by .race;
         if (needAuthentication instanceof Error) throw needAuthentication;
 
         // Scan-qrcode selector was found. Needs authentication
