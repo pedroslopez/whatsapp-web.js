@@ -482,11 +482,11 @@ exports.LoadUtils = () => {
     window.WWebJS.arrayBufferToBase64Async = (arrayBuffer) =>
         new Promise((resolve, reject) => {
             const blob = new Blob([arrayBuffer], {
-                type: "application/octet-stream",
+                type: 'application/octet-stream',
             });
             const fileReader = new FileReader();
-            fileReader.onload = (ev) => {
-                const [, data] = fileReader.result.split(",");
+            fileReader.onload = () => {
+                const [, data] = fileReader.result.split(',');
                 resolve(data);
             };
             fileReader.onerror = (e) => reject(e);
