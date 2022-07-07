@@ -21,30 +21,31 @@ class ClientInfo extends Base {
         this.pushname = data.pushname;
 
         /**
-         * @type {object}
-         * @deprecated Use .wid instead
-         */
-        this.me = data.wid;
-
-        /**
          * Current user ID
          * @type {object}
          */
         this.wid = data.wid;
 
         /**
-         * Information about the phone this client is connected to
+         * @type {object}
+         * @deprecated Use .wid instead
+         */
+        this.me = data.wid;
+
+        /**
+         * Information about the phone this client is connected to. Not available in multi-device.
          * @type {object}
          * @property {string} wa_version WhatsApp Version running on the phone
          * @property {string} os_version OS Version running on the phone (iOS or Android version)
          * @property {string} device_manufacturer Device manufacturer
          * @property {string} device_model Device model
          * @property {string} os_build_number OS build number
+         * @deprecated
          */
         this.phone = data.phone;
 
         /**
-         * Platform the phone is running on
+         * Platform WhatsApp is running on
          * @type {string}
          */
         this.platform = data.platform;
@@ -57,6 +58,7 @@ class ClientInfo extends Base {
      * @returns {object} batteryStatus
      * @returns {number} batteryStatus.battery - The current battery percentage
      * @returns {boolean} batteryStatus.plugged - Indicates if the phone is plugged in (true) or not (false)
+     * @deprecated
      */
     async getBatteryStatus() {
         return await this.client.pupPage.evaluate(() => {
@@ -64,7 +66,6 @@ class ClientInfo extends Base {
             return { battery, plugged };
         });
     }
-
 }
 
 module.exports = ClientInfo;
