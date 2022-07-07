@@ -1,7 +1,7 @@
 'use strict';
 
 const Chat = require('./Chat');
-const Util = require('../util/Util')
+const Util = require('../util/Util');
 
 /**
  * Group participant information
@@ -68,7 +68,7 @@ class GroupChat extends Chat {
             for (const participantWid of participantWids) {
                 status.push(await window.Store.GroupParticipants.sendAddParticipants(chatWid, participantWid));
                 if (sleep) {
-                    await Util.sleep(sleep) 
+                    await Util.sleep(sleep);
                 }
             }
             return status;
@@ -89,7 +89,7 @@ class GroupChat extends Chat {
             for (const participantWid of participantWids) {
                 status.push(await window.Store.GroupParticipants.sendRemoveParticipants(chatWid, participantWid));
                 if (sleep) {
-                    await Util.sleep(sleep) 
+                    await Util.sleep(sleep);
                 } 
             }
             return status;
@@ -110,7 +110,7 @@ class GroupChat extends Chat {
             for (const participantWid of participantWids) {
                 status.push(await window.Store.GroupParticipants.sendPromoteParticipants(chatWid, participantWid));
                 if (sleep) {
-                    await Util.sleep(sleep) 
+                    await Util.sleep(sleep);
                 }
             }
             return status;
@@ -131,7 +131,7 @@ class GroupChat extends Chat {
             for (const participantWid of participantWids) {
                 status.push(await window.Store.GroupParticipants.sendDemoteParticipants(chatWid, participantWid));
                 if (sleep) {
-                   await Util.sleep(sleep) 
+                    await Util.sleep(sleep);
                 }
             }
             return status;
