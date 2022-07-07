@@ -1062,7 +1062,7 @@ declare namespace WAWebJS {
 
     /** Adds or removes a list of participants by ID to the group */
     export type ChangeGroupParticipants = 
-        (participantIds: Array<string>) => Promise<{
+        (participantIds: Array<string>, sleep?: number) => Promise<{
             status: number;
             participants: Array<{
                 [key: string]: {
