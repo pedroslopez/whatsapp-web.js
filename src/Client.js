@@ -132,7 +132,7 @@ class Client extends EventEmitter {
 
         await page.evaluate(
             async function (selectors) {
-                var observer = new MutationObserver(function (mutations) {
+                var observer = new MutationObserver(function () {
                     let progressBar = window.getElementByXpath(
                         selectors.PROGRESS
                     );
@@ -156,8 +156,8 @@ class Client extends EventEmitter {
                 });
             },
             {
-                PROGRESS: "//*[@id='app']/div/div/div[2]/progress",
-                PROGRESS_MESSAGE: "//*[@id='app']/div/div/div[3]",
+                PROGRESS: '//*[@id=\'app\']/div/div/div[2]/progress',
+                PROGRESS_MESSAGE: '//*[@id=\'app\']/div/div/div[3]',
             }
         );
 
