@@ -64,7 +64,7 @@ class GroupChat extends Chat {
             const participantWids = participantIds.map(p => window.Store.WidFactory.createWid(p));
             const status = [];
             for (const participantWid of participantWids) {
-              status.push(await window.Store.GroupParticipants.sendAddParticipants(chatWid, participantWid));
+                status.push(await window.Store.GroupParticipants.sendAddParticipants(chatWid, participantWid));
             }
             return status;
         }, this.id._serialized, participantIds);
@@ -81,7 +81,7 @@ class GroupChat extends Chat {
             const participantWids = participantIds.map(p => window.Store.WidFactory.createWid(p));
             const status = [];
             for (const participantWid of participantWids) {
-              status.push(await window.Store.GroupParticipants.sendRemoveParticipants(chatWid, participantWid));
+                status.push(await window.Store.GroupParticipants.sendRemoveParticipants(chatWid, participantWid));
             }
             return status;
         }, this.id._serialized, participantIds);
@@ -98,7 +98,7 @@ class GroupChat extends Chat {
             const participantWids = participantIds.map(p => window.Store.WidFactory.createWid(p));
             const status = [];
             for (const participantWid of participantWids) {
-              status.push(await window.Store.GroupParticipants.sendPromoteParticipants(chatWid, participantWid));
+                status.push(await window.Store.GroupParticipants.sendPromoteParticipants(chatWid, participantWid));
             }
             return status;
         }, this.id._serialized, participantIds);
@@ -115,7 +115,7 @@ class GroupChat extends Chat {
             const participantWids = participantIds.map(p => window.Store.WidFactory.createWid(p));
             const status = [];
             for (const participantWid of participantWids) {
-              status.push(await window.Store.GroupParticipants.sendDemoteParticipants(chatWid, participantWid));
+                status.push(await window.Store.GroupParticipants.sendDemoteParticipants(chatWid, participantWid));
             }
             return status;
         }, this.id._serialized, participantIds);
