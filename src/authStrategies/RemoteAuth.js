@@ -70,7 +70,7 @@ class RemoteAuth extends BaseAuthStrategy {
     async afterAuthReady() {
         const sessionExists = await this.store.sessionExists({session: this.sessionName});
         if(!sessionExists) {
-            await this.delay(30000); /* Initial delay sync required for session to be stable enough to recover */
+            await this.delay(60000); /* Initial delay sync required for session to be stable enough to recover */
             await this.storeRemoteSession();
         }
         var self = this;
@@ -106,6 +106,8 @@ class RemoteAuth extends BaseAuthStrategy {
             await this.store.extract({session: this.sessionName});
             await this.unCompressSession();
             await fs.promises.unlink(`RemoteAuth-${this.sessionName}.zip`);
+        } else {
+            fs.mkdirSync(this.userDataDir, { recursive: true });
         }
     }
 
