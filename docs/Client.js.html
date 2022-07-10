@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.16.6 &raquo; Source: Client.js</title>
+  <title>whatsapp-web.js 1.17.1 &raquo; Source: Client.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>16.<wbr>6</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>17.<wbr>1</a>
       </div>
     </div>
   </nav>
@@ -41,7 +41,7 @@ const { WhatsWebURL, DefaultOptions, Events, WAState } &#x3D; require(&#x27;./ut
 const { ExposeStore, LoadUtils } &#x3D; require(&#x27;./util/Injected&#x27;);
 const ChatFactory &#x3D; require(&#x27;./factories/ChatFactory&#x27;);
 const ContactFactory &#x3D; require(&#x27;./factories/ContactFactory&#x27;);
-const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List } &#x3D; require(&#x27;./structures&#x27;);
+const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List} &#x3D; require(&#x27;./structures&#x27;);
 const LegacySessionAuth &#x3D; require(&#x27;./authStrategies/LegacySessionAuth&#x27;);
 const NoAuth &#x3D; require(&#x27;./authStrategies/NoAuth&#x27;);
 
@@ -123,7 +123,12 @@ class Client extends EventEmitter {
             browser &#x3D; await puppeteer.connect(puppeteerOpts);
             page &#x3D; await browser.newPage();
         } else {
-            browser &#x3D; await puppeteer.launch(puppeteerOpts);
+            const browserArgs &#x3D; [...(puppeteerOpts.args || [])];
+            if(!browserArgs.find(arg &#x3D;&gt; arg.includes(&#x27;--user-agent&#x27;))) {
+                browserArgs.push(&#x60;--user-agent&#x3D;${this.options.userAgent}&#x60;);
+            }
+
+            browser &#x3D; await puppeteer.launch({...puppeteerOpts, args: browserArgs});
             page &#x3D; (await browser.pages())[0];
         }
       
@@ -158,7 +163,7 @@ class Client extends EventEmitter {
             })
         ]);
 
-        // Checks if an error ocurred on the first found selector. The second will be discarded and ignored by .race;
+        // Checks if an error occurred on the first found selector. The second will be discarded and ignored by .race;
         if (needAuthentication instanceof Error) throw needAuthentication;
 
         // Scan-qrcode selector was found. Needs authentication
@@ -611,7 +616,7 @@ class Client extends EventEmitter {
             internalOptions.list &#x3D; content;
             content &#x3D; &#x27;&#x27;;
         }
-
+        
         if (internalOptions.sendMediaAsSticker &amp;amp;&amp;amp; internalOptions.attachment) {
             internalOptions.attachment &#x3D; await Util.formatToWebpSticker(
                 internalOptions.attachment, {
@@ -775,7 +780,7 @@ class Client extends EventEmitter {
 
         return couldSet;
     }
-
+    
     /**
      * Gets the current connection state for the client
      * @returns {WAState} 
@@ -840,8 +845,9 @@ class Client extends EventEmitter {
                 return true;
             }
             const MAX_PIN_COUNT &#x3D; 3;
-            if (window.Store.Chat.models.length &gt; MAX_PIN_COUNT) {
-                let maxPinned &#x3D; window.Store.Chat.models[MAX_PIN_COUNT - 1].pin;
+            const chatModels &#x3D; window.Store.Chat.getModelsArray();
+            if (chatModels.length &gt; MAX_PIN_COUNT) {
+                let maxPinned &#x3D; chatModels[MAX_PIN_COUNT - 1].pin;
                 if (maxPinned) {
                     return false;
                 }
@@ -974,7 +980,8 @@ class Client extends EventEmitter {
         }
 
         return await this.pupPage.evaluate(async number &#x3D;&gt; {
-            const result &#x3D; await window.Store.QueryExist(number);
+            const wid &#x3D; window.Store.WidFactory.createWid(number);
+            const result &#x3D; await window.Store.QueryExist(wid);
             if (!result || result.wid &#x3D;&#x3D;&#x3D; undefined) return null;
             return result.wid;
         }, number);
@@ -1087,7 +1094,7 @@ class Client extends EventEmitter {
     async getChatsByLabelId(labelId) {
         const chatIds &#x3D; await this.pupPage.evaluate(async (labelId) &#x3D;&gt; {
             const label &#x3D; window.Store.Label.get(labelId);
-            const labelItems &#x3D; label.labelItemCollection.models;
+            const labelItems &#x3D; label.labelItemCollection.getModelsArray();
             return labelItems.reduce((result, item) &#x3D;&gt; {
                 if (item.parentType &#x3D;&#x3D;&#x3D; &#x27;Chat&#x27;) {
                     result.push(item.parentId);
@@ -1105,7 +1112,7 @@ class Client extends EventEmitter {
      */
     async getBlockedContacts() {
         const blockedContacts &#x3D; await this.pupPage.evaluate(() &#x3D;&gt; {
-            let chatIds &#x3D; window.Store.Blocklist.models.map(a &#x3D;&gt; a.id._serialized);
+            let chatIds &#x3D; window.Store.Blocklist.getModelsArray().map(a &#x3D;&gt; a.id._serialized);
             return Promise.all(chatIds.map(id &#x3D;&gt; window.WWebJS.getContact(id)));
         });
 
@@ -1124,7 +1131,7 @@ module.exports &#x3D; Client;
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on April 21, 2022.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on July 10, 2022.
       </p>
     </div>
   </footer>

@@ -6,7 +6,6 @@ const { tmpdir } = require('os');
 const ffmpeg = require('fluent-ffmpeg');
 const webp = require('node-webpmux');
 const fs = require('fs').promises;
-
 const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
 
 /**

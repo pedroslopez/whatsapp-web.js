@@ -190,12 +190,12 @@ class Chat extends Base {
             };
 
             const chat = window.Store.Chat.get(chatId);
-            let msgs = chat.msgs._models.filter(msgFilter);
+            let msgs = chat.msgs.getModelsArray().filter(msgFilter);
 
             if (searchOptions && searchOptions.limit > 0) {
                 while (msgs.length < searchOptions.limit) {
-                    const loadedMessages = await chat.preload();
-                    if (!loadedMessages?.length || loadedMessages == 0) break;
+                    const loadedMessages = await window.Store.ConversationMsgs.loadEarlierMsgs(chat);
+                    if (!loadedMessages || !loadedMessages.length) break;
                     msgs = [...loadedMessages.filter(msgFilter), ...msgs];
                 }
                 
