@@ -80,10 +80,6 @@ class RemoteAuth extends BaseAuthStrategy {
     }
 
     async storeRemoteSession() {
-        const sessionExists = await this.store.sessionExists({session: this.sessionName});
-        if (sessionExists) {
-            await this.store.delete({session: this.sessionName});
-        }
         /* Compress & Store Session */
         const pathExists = await this.isValidPath(this.userDataDir);
         if (pathExists) {
