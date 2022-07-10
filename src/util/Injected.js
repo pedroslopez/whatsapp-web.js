@@ -40,6 +40,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Validators = window.mR.findModule('findLinks')[0];
     window.Store.VCard = window.mR.findModule('vcardFromContactModel')[0];
     window.Store.Wap = window.mR.findModule('queryLinkPreview')[0].default;
+    window.Store.queryLinkPreview = mR.findModule(x=>x.default && x.default.cache && x.default.name === "n")[0].default;
     window.Store.WidFactory = window.mR.findModule('createWid')[0];
     window.Store.ProfilePic = window.mR.findModule('profilePicResync')[0];
     window.Store.PresenceUtils = window.mR.findModule('sendPresenceAvailable')[0];
@@ -164,7 +165,7 @@ exports.LoadUtils = () => {
             if(!window.Store.MDBackend) {
                 const link = window.Store.Validators.findLink(content);
                 if (link) {
-                    const preview = await window.Store.Wap.queryLinkPreview(link.url);
+                    const preview = (await window.Store.queryLinkPreview(link)).data;
                     preview.preview = true;
                     preview.subtype = 'url';
                     options = { ...options, ...preview };
