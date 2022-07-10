@@ -949,7 +949,8 @@ class Client extends EventEmitter {
         }
 
         return await this.pupPage.evaluate(async number => {
-            const result = await window.Store.QueryExist(number);
+            const wid = window.Store.WidFactory.createWid(number);
+            const result = await window.Store.QueryExist(wid);
             if (!result || result.wid === undefined) return null;
             return result.wid;
         }, number);
