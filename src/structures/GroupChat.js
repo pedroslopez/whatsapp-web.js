@@ -54,14 +54,6 @@ class GroupChat extends Chat {
     }
 
     /**
-     * Indicates if the user can send message to the chat
-     * @type {Boolean}
-     */
-    get canSend() {
-        return this.groupMetadata.canSend;
-    }
-
-    /**
      * Adds a list of participants by ID to the group
      * @param {Array<string>} participantIds 
      * @returns {Promise<Object>}
