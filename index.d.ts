@@ -607,6 +607,8 @@ declare namespace WAWebJS {
         ack: MessageAck,
         /** If the message was sent to a group, this field will contain the user that sent the message. */
         author?: string,
+        /** String that represents from which device type the message was sent */
+        deviceType: string,
         /** Message content */
         body: string,
         /** Indicates if the message was a broadcast */
@@ -707,7 +709,7 @@ declare namespace WAWebJS {
          */
         reply: (content: MessageContent, chatId?: string, options?: MessageSendOptions) => Promise<Message>,
         /** React to this message with an emoji*/
-        react: (reaction: string) => Promise,
+        react: (reaction: string) => Promise<void>,
         /** 
          * Forwards this message to another chat
          */
