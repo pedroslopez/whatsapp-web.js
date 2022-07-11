@@ -40,7 +40,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Validators = window.mR.findModule('findLinks')[0];
     window.Store.VCard = window.mR.findModule('vcardFromContactModel')[0];
     window.Store.Wap = window.mR.findModule('queryLinkPreview')[0].default;
-    window.Store.queryLinkPreview = mR.findModule(x=>x.default && x.default.cache && x.default.name === "n")[0].default;
+    window.Store.queryLinkPreview = window.mR.findModule(x=>x.default && x.default.cache && x.default.name === 'n')[0].default;
     window.Store.WidFactory = window.mR.findModule('createWid')[0];
     window.Store.ProfilePic = window.mR.findModule('profilePicResync')[0];
     window.Store.PresenceUtils = window.mR.findModule('sendPresenceAvailable')[0];
