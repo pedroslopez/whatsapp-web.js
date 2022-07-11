@@ -388,7 +388,7 @@ declare namespace WAWebJS {
         sessionExists: ({session: string}) => Promise<boolean> | boolean,
         delete: ({session: string}) => Promise<any> | any,
         save: ({session: string}) => Promise<any> | any,
-        extract: ({session: string}) => Promise<any> | any,
+        extract: ({session: string, path: string}) => Promise<any> | any,
     }
 
     /**
