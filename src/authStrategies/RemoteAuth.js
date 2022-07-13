@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const unzipper = require('unzipper');
 const archiver = require('archiver');
+const { Events } = require('./../util/Constants');
 const BaseAuthStrategy = require('./BaseAuthStrategy');
 
 /**
@@ -55,6 +56,14 @@ class RemoteAuth extends BaseAuthStrategy {
     }
 
     async logout() {
+        await this.disconnect();
+    }
+
+    async destroy() {
+        clearInterval(this.backupSync);
+    }
+
+    async disconnect() {
         await this.deleteRemoteSession();
 
         let pathExists = await this.isValidPath(this.userDataDir);
@@ -71,7 +80,7 @@ class RemoteAuth extends BaseAuthStrategy {
         const sessionExists = await this.store.sessionExists({session: this.sessionName});
         if(!sessionExists) {
             await this.delay(60000); /* Initial delay sync required for session to be stable enough to recover */
-            await this.storeRemoteSession();
+            await this.storeRemoteSession({emit: true});
         }
         var self = this;
         this.backupSync = setInterval(async function () {
@@ -79,13 +88,14 @@ class RemoteAuth extends BaseAuthStrategy {
         }, this.backupSyncIntervalMs);
     }
 
-    async storeRemoteSession() {
+    async storeRemoteSession(options) {
         /* Compress & Store Session */
         const pathExists = await this.isValidPath(this.userDataDir);
         if (pathExists) {
             await this.compressSession();
             await this.store.save({session: this.sessionName});
             await fs.promises.unlink(`${this.sessionName}.zip`);
+            if(options && options.emit) this.client.emit(Events.REMOTE_SESSION_SAVED);
         }
     }
 
@@ -97,7 +107,7 @@ class RemoteAuth extends BaseAuthStrategy {
             await fs.promises.rm(this.userDataDir, {
                 recursive: true,
                 force: true
-            });
+            }).catch(() => {});
         }
         if (sessionExists) {
             await this.store.extract({session: this.sessionName, path: compressedSessionPath});
