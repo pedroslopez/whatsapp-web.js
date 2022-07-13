@@ -256,6 +256,9 @@ declare namespace WAWebJS {
 
         /** Emitted when the client has initialized and is ready to receive messages */
         on(event: 'ready', listener: () => void): this
+
+        /** Emitted when the RemoteAuth session is saved successfully on the external Database */
+        on(event: 'remote_session_saved', listener: () => void): this
     }
 
     /** Current connection information */
@@ -346,6 +349,8 @@ declare namespace WAWebJS {
         }>;
         getAuthEventPayload: () => Promise<any>;
         afterAuthReady: () => Promise<void>;
+        disconnect: () => Promise<void>;
+        destroy: () => Promise<void>;
         logout: () => Promise<void>;
     }
 
@@ -491,6 +496,7 @@ declare namespace WAWebJS {
         DISCONNECTED = 'disconnected',
         STATE_CHANGED = 'change_state',
         BATTERY_CHANGED = 'change_battery',
+        REMOTE_SESSION_SAVED = 'remote_session_saved'
     }
 
     /** Group notification types */
