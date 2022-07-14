@@ -466,6 +466,7 @@ declare namespace WAWebJS {
         GROUP_LEAVE = 'group_leave',
         GROUP_UPDATE = 'group_update',
         QR_RECEIVED = 'qr',
+        LOADING_SCREEN = 'loading_screen',
         DISCONNECTED = 'disconnected',
         STATE_CHANGED = 'change_state',
         BATTERY_CHANGED = 'change_battery',
