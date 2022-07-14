@@ -4,28 +4,28 @@ const Constants = require('./src/util/Constants');
 
 module.exports = {
     Client: require('./src/Client'),
-    
+
     version: require('./package.json').version,
 
     // Structures
+    BusinessContact: require('./src/structures/BusinessContact'),
+    Buttons: require('./src/structures/Buttons'),
     Chat: require('./src/structures/Chat'),
-    PrivateChat: require('./src/structures/PrivateChat'),
+    ClientInfo: require('./src/structures/ClientInfo'),
+    Contact: require('./src/structures/Contact'),
     GroupChat: require('./src/structures/GroupChat'),
+    List: require('./src/structures/List'),
+    Location: require('./src/structures/Location'),
     Message: require('./src/structures/Message'),
     MessageMedia: require('./src/structures/MessageMedia'),
-    Contact: require('./src/structures/Contact'),
+    PrivateChat: require('./src/structures/PrivateChat'),
     PrivateContact: require('./src/structures/PrivateContact'),
-    BusinessContact: require('./src/structures/BusinessContact'),
-    ClientInfo: require('./src/structures/ClientInfo'),
-    Location: require('./src/structures/Location'),
     ProductMetadata: require('./src/structures/ProductMetadata'),
-    List: require('./src/structures/List'),
-    Buttons: require('./src/structures/Buttons'),
-    
+
     // Auth Strategies
-    NoAuth: require('./src/authStrategies/NoAuth'),
-    LocalAuth: require('./src/authStrategies/LocalAuth'),
     LegacySessionAuth: require('./src/authStrategies/LegacySessionAuth'),
-    
+    LocalAuth: require('./src/authStrategies/LocalAuth'),
+    NoAuth: require('./src/authStrategies/NoAuth'),
+
     ...Constants
 };
