@@ -241,7 +241,7 @@ declare namespace WAWebJS {
             message: Message
         ) => void): this
 
-        /** Emitted when loading screen is appear */
+        /** Emitted when loading screen is appearing */
         on(event: 'loading_screen', listener: (percent: string, message: string) => void): this
 
         /** Emitted when the QR code is received */
