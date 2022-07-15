@@ -1,7 +1,7 @@
 'use strict';
 
-const fs = require('fs');
 const path = require('path');
+const fs = require('fs-extra');
 const unzipper = require('unzipper');
 const archiver = require('archiver');
 const { Events } = require('./../util/Constants');
@@ -32,12 +32,13 @@ class RemoteAuth extends BaseAuthStrategy {
         this.clientId = clientId;
         this.backupSyncIntervalMs = backupSyncIntervalMs;
         this.dataPath = path.resolve(dataPath || './.wwebjs_auth/');
+        this.tempDir = `${this.dataPath}/wwebjs_temp_session`;
         this.requiredDirs = ['Default', 'IndexedDB', 'Local Storage']; /* => Required Files & Dirs in WWebJS to restore session */
     }
 
     async beforeBrowserInitialized() {
         const puppeteerOpts = this.client.options.puppeteer;
-        const sessionDirName = this.clientId ? `session-${this.clientId}` : 'session';
+        const sessionDirName = this.clientId ? `RemoteAuth-${this.clientId}` : 'RemoteAuth';
         const dirPath = path.join(this.dataPath, sessionDirName);
 
         if (puppeteerOpts.userDataDir && puppeteerOpts.userDataDir !== dirPath) {
@@ -95,13 +96,17 @@ class RemoteAuth extends BaseAuthStrategy {
             await this.compressSession();
             await this.store.save({session: this.sessionName});
             await fs.promises.unlink(`${this.sessionName}.zip`);
+            await fs.promises.rmdir(`${this.tempDir}`, {
+                recursive: true,
+                force: true
+            }).catch(() => {});
             if(options && options.emit) this.client.emit(Events.REMOTE_SESSION_SAVED);
         }
     }
 
     async extractRemoteSession() {
         const pathExists = await this.isValidPath(this.userDataDir);
-        const compressedSessionPath = `RemoteAuth-${this.sessionName}.zip`;
+        const compressedSessionPath = `${this.sessionName}.zip`;
         const sessionExists = await this.store.sessionExists({session: this.sessionName});
         if (pathExists) {
             await fs.promises.rm(this.userDataDir, {
@@ -126,10 +131,11 @@ class RemoteAuth extends BaseAuthStrategy {
         const archive = archiver('zip');
         const stream = fs.createWriteStream(`${this.sessionName}.zip`);
 
+        await fs.copy(this.userDataDir, this.tempDir).catch(() => {});
         await this.deleteMetadata();
         return new Promise((resolve, reject) => {
             archive
-                .directory(this.userDataDir, false)
+                .directory(this.tempDir, false)
                 .on('error', err => reject(err))
                 .pipe(stream);
 
@@ -151,7 +157,7 @@ class RemoteAuth extends BaseAuthStrategy {
     }
 
     async deleteMetadata() {
-        const sessionDirs = [this.userDataDir, path.join(this.userDataDir, 'Default')];
+        const sessionDirs = [this.tempDir, path.join(this.tempDir, 'Default')];
         for (const dir of sessionDirs) {
             const sessionFiles = await fs.promises.readdir(dir);
             for (const element of sessionFiles) {
