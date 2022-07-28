@@ -241,6 +241,12 @@ declare namespace WAWebJS {
             message: Message
         ) => void): this
 
+        /** Emitted when a reaction is added, removed or updated */
+        on(event: 'message_reaction', listener: (
+            /** The message that was revoked */
+            reaction: Reaction
+        ) => void): this
+
         /** Emitted when the QR code is received */
         on(event: 'qr', listener: (
             /** qr code string
@@ -1299,6 +1305,19 @@ declare namespace WAWebJS {
         footer?: string | null
         
         constructor(body: string, buttons: Array<{ id?: string; body: string }>, title?: string | null, footer?: string | null)
+    }
+
+    /** Message type Reaction */
+    export class Reaction {
+        id: MessageId
+        orphan: number
+        orphanReason?: string
+        timestamp: number
+        reaction: string
+        read: boolean
+        msgId: MessageId
+        senderId: string
+        ack?: number
     }
 }
 

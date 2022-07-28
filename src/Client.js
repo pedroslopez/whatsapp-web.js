@@ -445,13 +445,13 @@ class Client extends EventEmitter {
                  * Emitted when a call is received
                  * @event Client#incoming_call
                  * @param {object} reaction
-                 * @param {string} reaction.id - Reaction id
+                 * @param {object} reaction.id - Reaction id
                  * @param {number} reaction.orphan - Orphan
                  * @param {?string} reaction.orphanReason - Orphan reason
                  * @param {number} reaction.timestamp - Timestamp
                  * @param {string} reaction.reaction - Reaction
                  * @param {boolean} reaction.read - Read
-                 * @param {string} reaction.msgId - Parent message id
+                 * @param {object} reaction.msgId - Parent message id
                  * @param {string} reaction.senderId - Sender id
                  * @param {?number} reaction.ack - Ack
                  */
@@ -484,7 +484,13 @@ class Client extends EventEmitter {
                 const module = window.Store.createOrUpdateReactionsModule;
                 const ogMethod = module.createOrUpdateReactions;
                 module.createOrUpdateReactions = ((...args) => {
-                    window.onReaction(args[0]);
+                    window.onReaction(args[0].map(reaction => {
+                        const msgKey = window.Store.MsgKey.fromString(reaction.msgKey);
+                        const parentMsgKey = window.Store.MsgKey.fromString(reaction.parentMsgKey);
+
+                        return {...reaction, msgKey, parentMsgKey };
+                    }));
+
                     return ogMethod(...args);
                 }).bind(module);
             }

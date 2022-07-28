@@ -16,7 +16,7 @@ class Reaction extends Base {
     _patch(data) {
         /**
          * Reaction ID
-         * @type {string}
+         * @type {object}
          */
         this.id = data.msgKey;
         /**
@@ -46,7 +46,7 @@ class Reaction extends Base {
         this.read = data.read;
         /**
          * Message ID
-         * @type {string}
+         * @type {object}
          */
         this.msgId = data.parentMsgKey;
         /**
