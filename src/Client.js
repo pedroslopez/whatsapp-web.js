@@ -3,6 +3,7 @@
 const EventEmitter = require('events');
 const puppeteer = require('puppeteer');
 const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
+const {proxyRequest} = require('puppeteer-proxy');
 
 const Util = require('./util/Util');
 const InterfaceController = require('./util/InterfaceController');
@@ -100,7 +101,17 @@ class Client extends EventEmitter {
             browser = await puppeteer.launch({...puppeteerOpts, args: browserArgs});
             page = (await browser.pages())[0];
         }
-      
+        if (this.options.proxyUrl){
+            await page.setRequestInterception(true);
+    
+            page.on('request', async (request) => {
+                await proxyRequest({
+                page,
+                proxyUrl: this.options.proxyUrl,
+                request,
+                });
+            });
+        }
         await page.setUserAgent(this.options.userAgent);
         if (this.options.bypassCSP) await page.setBypassCSP(true);
 

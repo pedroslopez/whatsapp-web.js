@@ -2,7 +2,8 @@ const { Client, Location, List, Buttons, LocalAuth} = require('./index');
 
 const client = new Client({
     authStrategy: new LocalAuth(),
-    puppeteer: { headless: false }
+    puppeteer: { headless: false },
+    // proxyUrl: 'socks5://username:password@host:port'
 });
 
 client.initialize();
