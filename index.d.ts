@@ -241,9 +241,9 @@ declare namespace WAWebJS {
             message: Message
         ) => void): this
 
-        /** Emitted when a reaction is added, removed or updated */
+        /** Emitted when a reaction is sent, received, updated or removed */
         on(event: 'message_reaction', listener: (
-            /** The message that was revoked */
+            /** The reaction object */
             reaction: Reaction
         ) => void): this
 

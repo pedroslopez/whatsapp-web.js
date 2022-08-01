@@ -3,7 +3,7 @@
 const Base = require('./Base');
 
 /**
- * Represents a Call on WhatsApp
+ * Represents a Reaction on WhatsApp
  * @extends {Base}
  */
 class Reaction extends Base {

@@ -442,7 +442,7 @@ class Client extends EventEmitter {
         await page.exposeFunction('onReaction', (reactions) => {
             for (const reaction of reactions) {
                 /**
-                 * Emitted when a call is received
+                 * Emitted when a reaction is sent, received, updated or removed
                  * @event Client#incoming_call
                  * @param {object} reaction
                  * @param {object} reaction.id - Reaction id
