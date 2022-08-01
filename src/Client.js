@@ -487,8 +487,9 @@ class Client extends EventEmitter {
                     window.onReaction(args[0].map(reaction => {
                         const msgKey = window.Store.MsgKey.fromString(reaction.msgKey);
                         const parentMsgKey = window.Store.MsgKey.fromString(reaction.parentMsgKey);
+                        const timestamp = reaction.timestamp / 1000;
 
-                        return {...reaction, msgKey, parentMsgKey };
+                        return {...reaction, msgKey, parentMsgKey, timestamp };
                     }));
 
                     return ogMethod(...args);
