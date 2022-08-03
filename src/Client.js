@@ -443,7 +443,7 @@ class Client extends EventEmitter {
             for (const reaction of reactions) {
                 /**
                  * Emitted when a reaction is sent, received, updated or removed
-                 * @event Client#incoming_call
+                 * @event Client#message_reaction
                  * @param {object} reaction
                  * @param {object} reaction.id - Reaction id
                  * @param {number} reaction.orphan - Orphan
