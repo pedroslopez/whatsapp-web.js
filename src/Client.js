@@ -106,9 +106,9 @@ class Client extends EventEmitter {
     
             page.on('request', async (request) => {
                 await proxyRequest({
-                page,
-                proxyUrl: this.options.proxyUrl,
-                request,
+                    page,
+                    proxyUrl: this.options.proxyUrl,
+                    request,
                 });
             });
         }
