@@ -356,7 +356,7 @@ class Message extends Base {
     }
 
     /**
-     * Forwards this message to another chat
+     * Forwards this message to another chat (that you chatted before, otherwise it will fail)
      *
      * @param {string|Chat} chat Chat model or chat ID to which the message will be forwarded
      * @returns {Promise}
