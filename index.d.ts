@@ -809,13 +809,16 @@ declare namespace WAWebJS {
         data: string
         /** Document file name. Value can be null */
         filename?: string | null
+        /** Document file size in bytes. Value can be null. */
+        filesize?: number | null
 
         /**
          * @param {string} mimetype MIME type of the attachment
          * @param {string} data Base64-encoded data of the file
          * @param {?string} filename Document file name. Value can be null
+         * @param {?number} filesize Document file size in bytes. Value can be null.
          */
-        constructor(mimetype: string, data: string, filename?: string | null)
+        constructor(mimetype: string, data: string, filename?: string | null, filesize?: number | null)
 
         /** Creates a MessageMedia instance from a local file path */
         static fromFilePath: (filePath: string) => MessageMedia
