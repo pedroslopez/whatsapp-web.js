@@ -132,7 +132,7 @@ class Client extends EventEmitter {
             })
         ]);
 
-        // Checks if an error ocurred on the first found selector. The second will be discarded and ignored by .race;
+        // Checks if an error occurred on the first found selector. The second will be discarded and ignored by .race;
         if (needAuthentication instanceof Error) throw needAuthentication;
 
         // Scan-qrcode selector was found. Needs authentication
@@ -949,7 +949,8 @@ class Client extends EventEmitter {
         }
 
         return await this.pupPage.evaluate(async number => {
-            const result = await window.Store.QueryExist(number);
+            const wid = window.Store.WidFactory.createWid(number);
+            const result = await window.Store.QueryExist(wid);
             if (!result || result.wid === undefined) return null;
             return result.wid;
         }, number);
