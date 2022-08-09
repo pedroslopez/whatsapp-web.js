@@ -241,6 +241,9 @@ declare namespace WAWebJS {
             message: Message
         ) => void): this
 
+        /** Emitted when loading screen is appearing */
+        on(event: 'loading_screen', listener: (percent: string, message: string) => void): this
+
         /** Emitted when the QR code is received */
         on(event: 'qr', listener: (
             /** qr code string
@@ -493,6 +496,7 @@ declare namespace WAWebJS {
         GROUP_LEAVE = 'group_leave',
         GROUP_UPDATE = 'group_update',
         QR_RECEIVED = 'qr',
+        LOADING_SCREEN = 'loading_screen',
         DISCONNECTED = 'disconnected',
         STATE_CHANGED = 'change_state',
         BATTERY_CHANGED = 'change_battery',
@@ -739,7 +743,7 @@ declare namespace WAWebJS {
         /** React to this message with an emoji*/
         react: (reaction: string) => Promise<void>,
         /** 
-         * Forwards this message to another chat
+         * Forwards this message to another chat (that you chatted before, otherwise it will fail)
          */
         forward: (chat: Chat | string) => Promise<void>,
         /** Star this message */

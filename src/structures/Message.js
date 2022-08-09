@@ -356,7 +356,7 @@ class Message extends Base {
     }
 
     /**
-     * Forwards this message to another chat
+     * Forwards this message to another chat (that you chatted before, otherwise it will fail)
      *
      * @param {string|Chat} chat Chat model or chat ID to which the message will be forwarded
      * @returns {Promise}
@@ -449,7 +449,7 @@ class Message extends Base {
             let msg = window.Store.Msg.get(msgId);
 
             if (msg.canStar()) {
-                return msg.chat.sendStarMsgs([msg], true);
+                return window.Store.Cmd.sendStarMsgs(msg.chat, [msg], false);
             }
         }, this.id._serialized);
     }
@@ -462,7 +462,7 @@ class Message extends Base {
             let msg = window.Store.Msg.get(msgId);
 
             if (msg.canStar()) {
-                return msg.chat.sendStarMsgs([msg], false);
+                return window.Store.Cmd.sendUnstarMsgs(msg.chat, [msg], false);
             }
         }, this.id._serialized);
     }
