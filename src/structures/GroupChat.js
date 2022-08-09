@@ -53,89 +53,64 @@ class GroupChat extends Chat {
     get participants() {
         return this.groupMetadata.participants;
     }
-
+    
     /**
-     * Adds a list of participants by ID to the group
-     * @param {Array<string>} participantIds
-     * @param {?number} sleep optional, amount to sleep in milliseconds before adding the next participant
-     * @returns {Promise<Object>}
+     * Internal function to change a number of participant's state..
+     * @param {string} type (promote|demote|add|remove) 
      */
-    async addParticipants(participantIds, sleep = null) {
+    async _changeParticipants(participantIds, type, sleep = null) {
         return await this.client.pupPage.evaluate(async (chatId, participantIds, sleep) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             const participantWids = participantIds.map(p => window.Store.WidFactory.createWid(p));
             const status = [];
             for (const participantWid of participantWids) {
-                status.push(await window.Store.GroupParticipants.sendAddParticipants(chatWid, participantWid));
+                status.push(await window.Store.GroupParticipants.['send'+type.charAt(0).toUpperCase() + type.slice(1)+'Participants'](chatWid, [participantWid]));
                 if (sleep) {
                     await Util.sleep(sleep);
                 }
             }
             return status;
         }, this.id._serialized, participantIds, sleep);
+    }
+
+    /**
+     * Adds a list of participants by ID to the group
+     * @param {Array<string>} participantIds
+     * @param {?number} sleep optional, amount to sleep in milliseconds before adding the next participant
+     * @returns {Promise<Array<Object>>}
+     */
+    async addParticipants(participantIds, sleep = null) {
+        return this._changeParticipants(participantIds, 'add', sleep);
     }
 
     /**
      * Removes a list of participants by ID to the group
      * @param {Array<string>} participantIds
      * @param {?number} sleep optional, amount to sleep in milliseconds before removing the next participant
-     * @returns {Promise<Object>}
+     * @returns {Promise<Array<Object>>}
      */
     async removeParticipants(participantIds, sleep = null) {
-        return await this.client.pupPage.evaluate(async (chatId, participantIds, sleep) => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
-            const participantWids = participantIds.map(p => window.Store.WidFactory.createWid(p));
-            const status = [];
-            for (const participantWid of participantWids) {
-                status.push(await window.Store.GroupParticipants.sendRemoveParticipants(chatWid, participantWid));
-                if (sleep) {
-                    await Util.sleep(sleep);
-                } 
-            }
-            return status;
-        }, this.id._serialized, participantIds, sleep);
+        return return this._changeParticipants(participantIds, 'remove', sleep);
     }
 
     /**
-     * Promotes participants by IDs to admins
+     * Promote participants to admins by IDs
      * @param {Array<string>} participantIds
      * @param {?number} sleep optional, amount to sleep in milliseconds before promoting the next participant
-     * @returns {Promise<{ status: number }>} Object with status code indicating if the operation was successful
+     * @returns {Promise<Array<Object>>}
      */
     async promoteParticipants(participantIds, sleep = null) {
-        return await this.client.pupPage.evaluate(async (chatId, participantIds, sleep) => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
-            const participantWids = participantIds.map(p => window.Store.WidFactory.createWid(p));
-            const status = [];
-            for (const participantWid of participantWids) {
-                status.push(await window.Store.GroupParticipants.sendPromoteParticipants(chatWid, participantWid));
-                if (sleep) {
-                    await Util.sleep(sleep);
-                }
-            }
-            return status;
-        }, this.id._serialized, participantIds, sleep);
+        return return this._changeParticipants(participantIds, 'promote', sleep);
     }
 
     /**
-     * Demotes participants by IDs to regular users
+     * Demotes admins to regular participants by IDs 
      * @param {Array<string>} participantIds
      * @param {?number} sleep optional, amount to sleep in milliseconds before demoting the next participant
-     * @returns {Promise<{ status: number }>} Object with status code indicating if the operation was successful
+     * @returns {Promise<Array<Object>>}
      */
     async demoteParticipants(participantIds, sleep = null) {
-        return await this.client.pupPage.evaluate(async (chatId, participantIds, sleep) => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
-            const participantWids = participantIds.map(p => window.Store.WidFactory.createWid(p));
-            const status = [];
-            for (const participantWid of participantWids) {
-                status.push(await window.Store.GroupParticipants.sendDemoteParticipants(chatWid, participantWid));
-                if (sleep) {
-                    await Util.sleep(sleep);
-                }
-            }
-            return status;
-        }, this.id._serialized, participantIds, sleep);
+        return return this._changeParticipants(participantIds, 'demote', sleep);
     }
 
     /**
