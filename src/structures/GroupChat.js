@@ -59,18 +59,19 @@ class GroupChat extends Chat {
      * @param {string} type (promote|demote|add|remove) 
      */
     async _changeParticipants(participantIds, type, sleep = null) {
-        return await this.client.pupPage.evaluate(async (chatId, participantIds, sleep) => {
+        return await this.client.pupPage.evaluate(async (chatId, participantIds, type, sleep) => {
+            if (type != 'add' && type != 'remove' && type != 'promote' && type != 'demote') return null;
             const chatWid = window.Store.WidFactory.createWid(chatId);
             const participantWids = participantIds.map(p => window.Store.WidFactory.createWid(p));
             const status = [];
             for (const participantWid of participantWids) {
-                status.push(await window.Store.GroupParticipants.['send'+type.charAt(0).toUpperCase() + type.slice(1)+'Participants'](chatWid, [participantWid]));
+                status.push(await window.Store.GroupParticipants['send'+type.charAt(0).toUpperCase() + type.slice(1)+'Participants'](chatWid, [participantWid]));
                 if (sleep) {
                     await Util.sleep(sleep);
                 }
             }
             return status;
-        }, this.id._serialized, participantIds, sleep);
+        }, this.id._serialized, participantIds, type, sleep);
     }
 
     /**
