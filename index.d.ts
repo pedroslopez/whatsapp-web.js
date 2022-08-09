@@ -241,6 +241,9 @@ declare namespace WAWebJS {
             message: Message
         ) => void): this
 
+        /** Emitted when loading screen is appearing */
+        on(event: 'loading_screen', listener: (percent: string, message: string) => void): this
+
         /** Emitted when the QR code is received */
         on(event: 'qr', listener: (
             /** qr code string
@@ -463,6 +466,7 @@ declare namespace WAWebJS {
         GROUP_LEAVE = 'group_leave',
         GROUP_UPDATE = 'group_update',
         QR_RECEIVED = 'qr',
+        LOADING_SCREEN = 'loading_screen',
         DISCONNECTED = 'disconnected',
         STATE_CHANGED = 'change_state',
         BATTERY_CHANGED = 'change_battery',
