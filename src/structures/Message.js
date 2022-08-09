@@ -451,7 +451,7 @@ class Message extends Base {
             let msg = window.Store.Msg.get(msgId);
 
             if (msg.canStar()) {
-                return msg.chat.sendStarMsgs([msg], true);
+                return window.Store.Cmd.sendStarMsgs(msg.chat, [msg], false);
             }
         }, this.id._serialized);
     }
@@ -464,7 +464,7 @@ class Message extends Base {
             let msg = window.Store.Msg.get(msgId);
 
             if (msg.canStar()) {
-                return msg.chat.sendStarMsgs([msg], false);
+                return window.Store.Cmd.sendUnstarMsgs(msg.chat, [msg], false);
             }
         }, this.id._serialized);
     }
