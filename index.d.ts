@@ -241,6 +241,12 @@ declare namespace WAWebJS {
             message: Message
         ) => void): this
 
+        /** Emitted when a reaction is sent, received, updated or removed */
+        on(event: 'message_reaction', listener: (
+            /** The reaction object */
+            reaction: Reaction
+        ) => void): this
+
         /** Emitted when loading screen is appearing */
         on(event: 'loading_screen', listener: (percent: string, message: string) => void): this
 
@@ -1306,6 +1312,19 @@ declare namespace WAWebJS {
         footer?: string | null
         
         constructor(body: string, buttons: Array<{ id?: string; body: string }>, title?: string | null, footer?: string | null)
+    }
+
+    /** Message type Reaction */
+    export class Reaction {
+        id: MessageId
+        orphan: number
+        orphanReason?: string
+        timestamp: number
+        reaction: string
+        read: boolean
+        msgId: MessageId
+        senderId: string
+        ack?: number
     }
 }
 

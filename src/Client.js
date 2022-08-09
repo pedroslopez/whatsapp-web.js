@@ -10,7 +10,7 @@ const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constan
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
-const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List} = require('./structures');
+const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List, Reaction } = require('./structures');
 const LegacySessionAuth = require('./authStrategies/LegacySessionAuth');
 const NoAuth = require('./authStrategies/NoAuth');
 
@@ -485,6 +485,27 @@ class Client extends EventEmitter {
             this.emit(Events.INCOMING_CALL, cll);
         });
 
+        await page.exposeFunction('onReaction', (reactions) => {
+            for (const reaction of reactions) {
+                /**
+                 * Emitted when a reaction is sent, received, updated or removed
+                 * @event Client#message_reaction
+                 * @param {object} reaction
+                 * @param {object} reaction.id - Reaction id
+                 * @param {number} reaction.orphan - Orphan
+                 * @param {?string} reaction.orphanReason - Orphan reason
+                 * @param {number} reaction.timestamp - Timestamp
+                 * @param {string} reaction.reaction - Reaction
+                 * @param {boolean} reaction.read - Read
+                 * @param {object} reaction.msgId - Parent message id
+                 * @param {string} reaction.senderId - Sender id
+                 * @param {?number} reaction.ack - Ack
+                 */
+
+                this.emit(Events.MESSAGE_REACTION, new Reaction(this, reaction));
+            }
+        });
+
         await page.evaluate(() => {
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
@@ -504,6 +525,22 @@ class Client extends EventEmitter {
                     }
                 }
             });
+            
+            {
+                const module = window.Store.createOrUpdateReactionsModule;
+                const ogMethod = module.createOrUpdateReactions;
+                module.createOrUpdateReactions = ((...args) => {
+                    window.onReaction(args[0].map(reaction => {
+                        const msgKey = window.Store.MsgKey.fromString(reaction.msgKey);
+                        const parentMsgKey = window.Store.MsgKey.fromString(reaction.parentMsgKey);
+                        const timestamp = reaction.timestamp / 1000;
+
+                        return {...reaction, msgKey, parentMsgKey, timestamp };
+                    }));
+
+                    return ogMethod(...args);
+                }).bind(module);
+            }
         });
 
         /**
