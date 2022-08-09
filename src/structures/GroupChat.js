@@ -147,7 +147,7 @@ class GroupChat extends Chat {
         this.groupMetadata.desc = description;
         return true;
     }
-
+    
     /**
      * Updates the group settings to only allow admins to send messages.
      * @param {boolean} [adminsOnly=true] Enable or disable this option 

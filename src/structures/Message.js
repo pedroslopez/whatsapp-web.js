@@ -336,6 +336,18 @@ class Message extends Base {
     }
 
     /**
+     * React to this message with an emoji
+     * @param {string} reaction - Emoji to react with. Send an empty string to remove the reaction.
+     * @return {Promise}
+     */
+    async react(reaction){
+        await this.client.pupPage.evaluate(async (messageId, reaction) => {
+            const msg = await window.Store.Msg.get(messageId);
+            await window.Store.sendReactionToMsg(msg, reaction);
+        }, this.id._serialized, reaction);
+    }
+
+    /**
      * Accept Group V4 Invite
      * @returns {Promise<Object>}
      */
