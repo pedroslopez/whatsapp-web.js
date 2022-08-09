@@ -115,6 +115,52 @@ class Client extends EventEmitter {
             referer: 'https://whatsapp.com/'
         });
 
+        await page.evaluate(`function getElementByXpath(path) {
+            return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+          }`);
+
+        let lastPercent = null,
+            lastPercentMessage = null;
+
+        await page.exposeFunction('loadingScreen', async (percent, message) => {
+            if (lastPercent !== percent || lastPercentMessage !== message) {
+                this.emit(Events.LOADING_SCREEN, percent, message);
+                lastPercent = percent;
+                lastPercentMessage = message;
+            }
+        });
+
+        await page.evaluate(
+            async function (selectors) {
+                var observer = new MutationObserver(function () {
+                    let progressBar = window.getElementByXpath(
+                        selectors.PROGRESS
+                    );
+                    let progressMessage = window.getElementByXpath(
+                        selectors.PROGRESS_MESSAGE
+                    );
+
+                    if (progressBar) {
+                        window.loadingScreen(
+                            progressBar.value,
+                            progressMessage.innerText
+                        );
+                    }
+                });
+
+                observer.observe(document, {
+                    attributes: true,
+                    childList: true,
+                    characterData: true,
+                    subtree: true,
+                });
+            },
+            {
+                PROGRESS: '//*[@id=\'app\']/div/div/div[2]/progress',
+                PROGRESS_MESSAGE: '//*[@id=\'app\']/div/div/div[3]',
+            }
+        );
+
         const INTRO_IMG_SELECTOR = '[data-testid="intro-md-beta-logo-dark"], [data-testid="intro-md-beta-logo-light"], [data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
         const INTRO_QRCODE_SELECTOR = 'div[data-ref] canvas';
 
