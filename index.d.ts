@@ -114,7 +114,7 @@ declare namespace WAWebJS {
 
         /** Send a message to a specific chatId */
         sendMessage(chatId: string, content: MessageContent, options?: MessageSendOptions): Promise<Message>
-
+        
         /** Searches for messages */
         searchMessages(query: string, options?: { chatId?: string, page?: number, limit?: number }): Promise<Message[]>
 
@@ -141,7 +141,7 @@ declare namespace WAWebJS {
          * @param displayName New display name
          */
         setDisplayName(displayName: string): Promise<boolean>
-
+                
         /** Changes and returns the archive state of the Chat */
         unarchiveChat(chatId: string): Promise<boolean>
 
@@ -304,7 +304,7 @@ declare namespace WAWebJS {
          * @default 0 */
         authTimeoutMs?: number,
         /** Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/ */
-        puppeteer?: puppeteer.LaunchOptions & puppeteer.BrowserLaunchArgumentOptions & puppeteer.BrowserConnectOptions
+        puppeteer?: puppeteer.PuppeteerNodeLaunchOptions & puppeteer.ConnectOptions
 		/** Determines how to save and restore sessions. Will use LegacySessionAuth if options.session is set. Otherwise, NoAuth will be used. */
         authStrategy?: AuthStrategy,
         /** How many times should the qrcode be refreshed before giving up
@@ -373,7 +373,7 @@ declare namespace WAWebJS {
      export class LegacySessionAuth extends AuthStrategy {
         constructor(options?: {
             session?: ClientSession,
-            restartOnAuth?: boolean,
+            restartOnAuthFail?: boolean,
         })
     }
 
@@ -604,6 +604,8 @@ declare namespace WAWebJS {
         ack: MessageAck,
         /** If the message was sent to a group, this field will contain the user that sent the message. */
         author?: string,
+        /** String that represents from which device type the message was sent */
+        deviceType: string,
         /** Message content */
         body: string,
         /** Indicates if the message was a broadcast */
@@ -687,7 +689,7 @@ declare namespace WAWebJS {
         acceptGroupV4Invite: () => Promise<{status: number}>,
         /** Deletes the message from the chat */
         delete: (everyone?: boolean) => Promise<void>,
-        /** Downloads and returns the attatched message media */
+        /** Downloads and returns the attached message media */
         downloadMedia: () => Promise<MessageMedia>,
         /** Returns the Chat this message was sent in */
         getChat: () => Promise<Chat>,
@@ -703,24 +705,26 @@ declare namespace WAWebJS {
          * If not, it will send the message in the same Chat as the original message was sent. 
          */
         reply: (content: MessageContent, chatId?: string, options?: MessageSendOptions) => Promise<Message>,
+        /** React to this message with an emoji*/
+        react: (reaction: string) => Promise<void>,
         /** 
-         * Forwards this message to another chat
+         * Forwards this message to another chat (that you chatted before, otherwise it will fail)
          */
         forward: (chat: Chat | string) => Promise<void>,
         /** Star this message */
         star: () => Promise<void>,
         /** Unstar this message */
         unstar: () => Promise<void>,
-        /** Get information about message delivery statuso */
+        /** Get information about message delivery status */
         getInfo: () => Promise<MessageInfo | null>,
         /**
          * Gets the order associated with a given message
          */
-        getOrder: () => Order,
+        getOrder: () => Promise<Order>,
         /**
          * Gets the payment details associated with a given message
          */
-        getPayment: () => Payment,
+        getPayment: () => Promise<Payment>,
     }
 
     /** ID that represents a message */
@@ -819,7 +823,7 @@ declare namespace WAWebJS {
         static fromUrl: (url: string, options?: MediaFromURLOptions) => Promise<MessageMedia>
     }
 
-    export type MessageContent = string | MessageMedia | Location | Contact | Contact[] | List | Buttons 
+    export type MessageContent = string | MessageMedia | Location | Contact | Contact[] | List | Buttons
 
     /**
      * Represents a Contact on WhatsApp
@@ -1290,7 +1294,7 @@ declare namespace WAWebJS {
         constructor(body: string, buttonText: string, sections: Array<any>, title?: string | null, footer?: string | null)
     }
     
-    /** Message type buttons */
+    /** Message type Buttons */
     export class Buttons {
         body: string | MessageMedia
         buttons: Array<{ buttonId: string; buttonText: {displayText: string}; type: number }>

@@ -336,6 +336,18 @@ class Message extends Base {
     }
 
     /**
+     * React to this message with an emoji
+     * @param {string} reaction - Emoji to react with. Send an empty string to remove the reaction.
+     * @return {Promise}
+     */
+    async react(reaction){
+        await this.client.pupPage.evaluate(async (messageId, reaction) => {
+            const msg = await window.Store.Msg.get(messageId);
+            await window.Store.sendReactionToMsg(msg, reaction);
+        }, this.id._serialized, reaction);
+    }
+
+    /**
      * Accept Group V4 Invite
      * @returns {Promise<Object>}
      */
@@ -344,7 +356,7 @@ class Message extends Base {
     }
 
     /**
-     * Forwards this message to another chat
+     * Forwards this message to another chat (that you chatted before, otherwise it will fail)
      *
      * @param {string|Chat} chat Chat model or chat ID to which the message will be forwarded
      * @returns {Promise}
@@ -438,7 +450,7 @@ class Message extends Base {
             let msg = window.Store.Msg.get(msgId);
 
             if (msg.canStar()) {
-                return msg.chat.sendStarMsgs([msg], true);
+                return window.Store.Cmd.sendStarMsgs(msg.chat, [msg], false);
             }
         }, this.id._serialized);
     }
@@ -451,7 +463,7 @@ class Message extends Base {
             let msg = window.Store.Msg.get(msgId);
 
             if (msg.canStar()) {
-                return msg.chat.sendStarMsgs([msg], false);
+                return window.Store.Cmd.sendUnstarMsgs(msg.chat, [msg], false);
             }
         }, this.id._serialized);
     }
@@ -488,9 +500,9 @@ class Message extends Base {
      */
     async getOrder() {
         if (this.type === MessageTypes.ORDER) {
-            const result = await this.client.pupPage.evaluate((orderId, token) => {
-                return window.WWebJS.getOrderDetail(orderId, token);
-            }, this.orderId, this.token);
+            const result = await this.client.pupPage.evaluate((orderId, token, chatId) => {
+                return window.WWebJS.getOrderDetail(orderId, token, chatId);
+            }, this.orderId, this.token, this._getChatId());
             if (!result) return undefined;
             return new Order(this.client, result);
         }

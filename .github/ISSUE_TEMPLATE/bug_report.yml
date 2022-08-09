@@ -1,0 +1,105 @@
+name: '🐛 Bug report'
+description: Create a report to help us improve
+labels: bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue :pray:.
+
+        This issue tracker is for reporting bugs found in [`whatsapp-web.js`](https://github.com/pedroslopez/whatsapp-web.js).
+        
+        If you have a question about how to achieve something and are struggling, please post a question in our [Discord server](https://discord.gg/wyKybbF) instead.
+        
+        Before submitting a new bug/issue, please check the links below to see if there is a solution or question posted there already:
+         - `whatsapp-web.js` [Issues tab](https://github.com/pedroslopez/whatsapp-web.js/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc)
+         - `whatsapp-web.js` [closed Issues tab](https://github.com/pedroslopez/whatsapp-web.js/issues?q=is%3Aissue+sort%3Aupdated-desc+is%3Aclosed)
+
+        The more information you fill in, the better the community can help you.
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the bug you encountered.
+      options:
+        - label: I have searched the existing issues
+          required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: Provide a clear and concise description of the challenge you are running into.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: Provide a clear and concise description of what you expected to happen.
+      placeholder: |
+        As a user, I expected ___ behavior but I am seeing ___
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce the Bug or Issue
+      description: Describe the steps we have to take to reproduce the behavior.
+      placeholder: |
+        1. Do X
+        2. Do Y
+        3. Do Z
+        4. See error
+    validations:
+      required: true
+  - type: textarea
+    id: relevant_code
+    attributes:
+      label: Relevant Code
+      description: If applicable, add code snippets to help explain your problem.
+    validations:
+      required: false
+  - type: dropdown
+    id: browser_type
+    attributes:
+      label: Browser Type
+      description: What web browser are you using?
+      options:
+        - Chromium
+        - Google Chrome
+        - Other (please write in Additional Context)
+    validations:
+      required: true
+  - type: dropdown
+    id: whatsapp_type
+    attributes:
+      label: WhatsApp Account Type
+      options:
+        - Standard
+        - WhatsApp Business
+    validations:
+      required: true
+  - type: dropdown
+    id: multidevice
+    attributes:
+      label: Does your WhatsApp account have multidevice enabled?
+      options:
+        - Yes, I am using Multi Device
+        - No, I am not using Multi Device
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Environment
+      description: |
+        - OS: [e.g. Mac, Windows, Linux, Docker + Ubuntu 18, etc]
+        - Phone OS: [e.g. Android, iOS]
+        - whatsapp-web.js version [e.g. 1.2.3]
+        - WhatsApp Web version [run `await client.getWWebVersion()`]:
+        - Node.js Version [e.g. 1.2.3]
+    validations:
+      required: true
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Add any other context about the problem here.

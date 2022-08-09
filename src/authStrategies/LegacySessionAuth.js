@@ -51,7 +51,7 @@ class LegacySessionAuth extends BaseAuthStrategy {
 
     async getAuthEventPayload() {
         const isMD = await this.client.pupPage.evaluate(() => {
-            return window.Store.Features.features.MD_BACKEND;
+            return window.Store.MDBackend;
         });
 
         if(isMD) throw new Error('Authenticating via JSON session is not supported for MultiDevice-enabled WhatsApp accounts.');
