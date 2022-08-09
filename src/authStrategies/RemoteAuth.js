@@ -1,9 +1,15 @@
 'use strict';
 
+/* Require Optional Dependencies */
+try {
+    var fs = require('fs-extra');
+    var unzipper = require('unzipper');
+    var archiver = require('archiver');
+} catch {
+    throw new Error('Optional Dependencies [fs-extra, unzipper, archiver] are required to use RemoteAuth. Make sure to run npm install correctly and remove the --no-optional flag');
+}
+
 const path = require('path');
-const fs = require('fs-extra');
-const unzipper = require('unzipper');
-const archiver = require('archiver');
 const { Events } = require('./../util/Constants');
 const BaseAuthStrategy = require('./BaseAuthStrategy');
 
