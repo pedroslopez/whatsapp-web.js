@@ -241,6 +241,15 @@ declare namespace WAWebJS {
             message: Message
         ) => void): this
 
+        /** Emitted when a reaction is sent, received, updated or removed */
+        on(event: 'message_reaction', listener: (
+            /** The reaction object */
+            reaction: Reaction
+        ) => void): this
+
+        /** Emitted when loading screen is appearing */
+        on(event: 'loading_screen', listener: (percent: string, message: string) => void): this
+
         /** Emitted when the QR code is received */
         on(event: 'qr', listener: (
             /** qr code string
@@ -463,6 +472,7 @@ declare namespace WAWebJS {
         GROUP_LEAVE = 'group_leave',
         GROUP_UPDATE = 'group_update',
         QR_RECEIVED = 'qr',
+        LOADING_SCREEN = 'loading_screen',
         DISCONNECTED = 'disconnected',
         STATE_CHANGED = 'change_state',
         BATTERY_CHANGED = 'change_battery',
@@ -604,6 +614,8 @@ declare namespace WAWebJS {
         ack: MessageAck,
         /** If the message was sent to a group, this field will contain the user that sent the message. */
         author?: string,
+        /** String that represents from which device type the message was sent */
+        deviceType: string,
         /** Message content */
         body: string,
         /** Indicates if the message was a broadcast */
@@ -704,9 +716,9 @@ declare namespace WAWebJS {
          */
         reply: (content: MessageContent, chatId?: string, options?: MessageSendOptions) => Promise<Message>,
         /** React to this message with an emoji*/
-        react: (reaction: string) => Promise,
+        react: (reaction: string) => Promise<void>,
         /** 
-         * Forwards this message to another chat
+         * Forwards this message to another chat (that you chatted before, otherwise it will fail)
          */
         forward: (chat: Chat | string) => Promise<void>,
         /** Star this message */
@@ -803,13 +815,16 @@ declare namespace WAWebJS {
         data: string
         /** Document file name. Value can be null */
         filename?: string | null
+        /** Document file size in bytes. Value can be null. */
+        filesize?: number | null
 
         /**
          * @param {string} mimetype MIME type of the attachment
          * @param {string} data Base64-encoded data of the file
          * @param {?string} filename Document file name. Value can be null
+         * @param {?number} filesize Document file size in bytes. Value can be null.
          */
-        constructor(mimetype: string, data: string, filename?: string | null)
+        constructor(mimetype: string, data: string, filename?: string | null, filesize?: number | null)
 
         /** Creates a MessageMedia instance from a local file path */
         static fromFilePath: (filePath: string) => MessageMedia
@@ -1297,6 +1312,19 @@ declare namespace WAWebJS {
         footer?: string | null
         
         constructor(body: string, buttons: Array<{ id?: string; body: string }>, title?: string | null, footer?: string | null)
+    }
+
+    /** Message type Reaction */
+    export class Reaction {
+        id: MessageId
+        orphan: number
+        orphanReason?: string
+        timestamp: number
+        reaction: string
+        read: boolean
+        msgId: MessageId
+        senderId: string
+        ack?: number
     }
 }
 

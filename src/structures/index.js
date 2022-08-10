@@ -18,4 +18,5 @@ module.exports = {
     Buttons: require('./Buttons'),
     List: require('./List'),
     Payment: require('./Payment'),
+    Reaction: require('./Reaction'),
 };
