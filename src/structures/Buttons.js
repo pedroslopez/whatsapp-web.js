@@ -78,7 +78,7 @@ class Buttons {
                 buttonId: btn.id ? String(btn.id) : Util.generateHash(6),
                 url: btn.url,
                 phoneNumber: btn.number,
-                buttonText: {displayText: btn.body},
+                buttonText: btn.body,
                 type: 1
             };
         });
