@@ -241,6 +241,15 @@ declare namespace WAWebJS {
             message: Message
         ) => void): this
 
+        /** Emitted when a reaction is sent, received, updated or removed */
+        on(event: 'message_reaction', listener: (
+            /** The reaction object */
+            reaction: Reaction
+        ) => void): this
+
+        /** Emitted when loading screen is appearing */
+        on(event: 'loading_screen', listener: (percent: string, message: string) => void): this
+
         /** Emitted when the QR code is received */
         on(event: 'qr', listener: (
             /** qr code string
@@ -256,6 +265,9 @@ declare namespace WAWebJS {
 
         /** Emitted when the client has initialized and is ready to receive messages */
         on(event: 'ready', listener: () => void): this
+
+        /** Emitted when the RemoteAuth session is saved successfully on the external Database */
+        on(event: 'remote_session_saved', listener: () => void): this
     }
 
     /** Current connection information */
@@ -345,6 +357,9 @@ declare namespace WAWebJS {
             failureEventPayload?: any
         }>;
         getAuthEventPayload: () => Promise<any>;
+        afterAuthReady: () => Promise<void>;
+        disconnect: () => Promise<void>;
+        destroy: () => Promise<void>;
         logout: () => Promise<void>;
     }
 
@@ -364,6 +379,30 @@ declare namespace WAWebJS {
             clientId?: string,
             dataPath?: string
         })
+    }
+    
+    /**
+     * Remote-based authentication
+     */
+     export class RemoteAuth extends AuthStrategy {
+        public clientId?: string;
+        public dataPath?: string;
+        constructor(options?: {
+            store: Store,
+            clientId?: string,
+            dataPath?: string,
+            backupSyncIntervalMs: number
+        })
+    }
+
+    /** 
+     * Remote store interface
+     */
+    export interface Store {
+        sessionExists: ({session: string}) => Promise<boolean> | boolean,
+        delete: ({session: string}) => Promise<any> | any,
+        save: ({session: string}) => Promise<any> | any,
+        extract: ({session: string, path: string}) => Promise<any> | any,
     }
 
     /**
@@ -463,9 +502,11 @@ declare namespace WAWebJS {
         GROUP_LEAVE = 'group_leave',
         GROUP_UPDATE = 'group_update',
         QR_RECEIVED = 'qr',
+        LOADING_SCREEN = 'loading_screen',
         DISCONNECTED = 'disconnected',
         STATE_CHANGED = 'change_state',
         BATTERY_CHANGED = 'change_battery',
+        REMOTE_SESSION_SAVED = 'remote_session_saved'
     }
 
     /** Group notification types */
@@ -708,7 +749,7 @@ declare namespace WAWebJS {
         /** React to this message with an emoji*/
         react: (reaction: string) => Promise<void>,
         /** 
-         * Forwards this message to another chat
+         * Forwards this message to another chat (that you chatted before, otherwise it will fail)
          */
         forward: (chat: Chat | string) => Promise<void>,
         /** Star this message */
@@ -805,13 +846,16 @@ declare namespace WAWebJS {
         data: string
         /** Document file name. Value can be null */
         filename?: string | null
+        /** Document file size in bytes. Value can be null. */
+        filesize?: number | null
 
         /**
          * @param {string} mimetype MIME type of the attachment
          * @param {string} data Base64-encoded data of the file
          * @param {?string} filename Document file name. Value can be null
+         * @param {?number} filesize Document file size in bytes. Value can be null.
          */
-        constructor(mimetype: string, data: string, filename?: string | null)
+        constructor(mimetype: string, data: string, filename?: string | null, filesize?: number | null)
 
         /** Creates a MessageMedia instance from a local file path */
         static fromFilePath: (filePath: string) => MessageMedia
@@ -1299,6 +1343,19 @@ declare namespace WAWebJS {
         footer?: string | null
         
         constructor(body: string, buttons: Array<{ id?: string; body: string }>, title?: string | null, footer?: string | null)
+    }
+
+    /** Message type Reaction */
+    export class Reaction {
+        id: MessageId
+        orphan: number
+        orphanReason?: string
+        timestamp: number
+        reaction: string
+        read: boolean
+        msgId: MessageId
+        senderId: string
+        ack?: number
     }
 }
 

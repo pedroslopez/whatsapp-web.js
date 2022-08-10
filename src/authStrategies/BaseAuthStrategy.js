@@ -18,6 +18,9 @@ class BaseAuthStrategy {
         };
     }
     async getAuthEventPayload() {}
+    async afterAuthReady() {}
+    async disconnect() {}
+    async destroy() {}
     async logout() {}
 }
 
