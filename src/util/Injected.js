@@ -145,12 +145,12 @@ exports.ExposeStore = (moduleRaidStr) => {
                 if (found === 'locationMessage') {
                     if (
                         !hydratedTemplate.hydratedContentText &&
-                        (r[found].name || r[found].address)
+                        (message[found].name || message[found].address)
                     ) {
                         hydratedTemplate.hydratedContentText =
-                            r[found].name && r[found].address
-                                ? `${r[found].name}\n${r[found].address}`
-                                : r[found].name || r[found].address || '';
+                            message[found].name && message[found].address
+                                ? `${message[found].name}\n${message[found].address}`
+                                : message[found].name || message[found].address || '';
                     }
                 }
 
