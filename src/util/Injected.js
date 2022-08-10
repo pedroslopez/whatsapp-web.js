@@ -299,10 +299,10 @@ exports.LoadUtils = () => {
     window.WWebJS.prepareMessageButtons = (buttonsOptions) => {
         const returnObject = {};
 
-        (window.Store.ReplyButtonModel) || (window.Store.ReplyButtonModel = mR.findModule(m => m.default && m?.default?.prototype?.proxyName === "replyButton")[0].default);
-        (window.Store.TemplateButtonModel) || (window.Store.TemplateButtonModel = mR.findModule(m => m.default && m?.default?.prototype?.proxyName === "templateButton")[0].default);
-        (window.Store.TemplateButtonCollection) || (window.Store.TemplateButtonCollection = mR.findModule("TemplateButtonCollection")[0].TemplateButtonCollection);
-        (window.Store.ButtonCollection) || (window.Store.ButtonCollection = mR.findModule("ButtonCollection")[0].ButtonCollection);
+        (window.Store.ReplyButtonModel) || (window.Store.ReplyButtonModel = window.mR.findModule(m => m.default && m?.default?.prototype?.proxyName === 'replyButton')[0].default);
+        (window.Store.TemplateButtonModel) || (window.Store.TemplateButtonModel = window.mR.findModule(m => m.default && m?.default?.prototype?.proxyName === 'templateButton')[0].default);
+        (window.Store.TemplateButtonCollection) || (window.Store.TemplateButtonCollection = window.mR.findModule('TemplateButtonCollection')[0].TemplateButtonCollection);
+        (window.Store.ButtonCollection) || (window.Store.ButtonCollection = window.mR.findModule('ButtonCollection')[0].ButtonCollection);
 
         if (!buttonsOptions.buttons) {
             return returnObject;
