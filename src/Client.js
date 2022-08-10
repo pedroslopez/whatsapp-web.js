@@ -771,9 +771,9 @@ class Client extends EventEmitter {
             const params = messageId.split('_');
             if(params.length !== 3) throw new Error('Invalid serialized message id specified');
 
-            let msaggesObject = await window.Store.Msg.getMessagesById([messageId])
+            let messagesObject = await window.Store.Msg.getMessagesById([messageId])
             if (messagesObject && messagesObject.messages.length) {
-              msg = msaggesObject.messages[0];
+              msg = messagesObject.messages[0];
             };
             
             if(msg) return window.WWebJS.getMessageModel(msg);
