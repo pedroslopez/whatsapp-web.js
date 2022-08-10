@@ -77,6 +77,31 @@ exports.ExposeStore = (moduleRaidStr) => {
         window.mR.findModule(selector.name)[selector.index][selector.property] = (...args) => callback(oldFunct, args);
     };
 
+    window.findProxyModel = (name) => {
+        const baseName = name.replace(/Model$/, '');
+      
+        const names = [baseName];
+      
+        // ChatModel => "chat"
+        names.push(baseName.replace(/^(\w)/, (l) => l.toLowerCase()));
+      
+        // CartItemModel => "cart-item"
+        // ProductListModel => "product_list"
+        const parts = baseName.split(/(?=[A-Z])/);
+      
+        names.push(parts.join('-').toLowerCase());
+        names.push(parts.join('_').toLowerCase());
+      
+        return window.mR.findModule(
+            (m) =>
+                names.includes(
+                    m.default?.prototype?.proxyName ||
+                    m[name]?.prototype?.proxyName ||
+                    m[baseName]?.prototype?.proxyName
+                )
+        );
+    };
+
     window.injectToFunction({index: 0, name: 'createMsgProtobuf', property: 'createMsgProtobuf'}, (func, args) => {
         const proto = func(...args);
         if (proto.listMessage) {
@@ -98,7 +123,7 @@ exports.ExposeStore = (moduleRaidStr) => {
         return proto;
     });
 
-    window.injectToFunction({index: 0, name: 'typeAttributeFromProtobuf', property: 'typeAttributeFromProtobuf'}, (func, ...args) => {
+    window.injectToFunction({index: 0, name: 'typeAttributeFromProtobuf', property: 'typeAttributeFromProtobuf'}, (func, args) => {
         const [proto] = args;
         if (
             proto.buttonsMessage?.headerType === 1 ||
@@ -225,13 +250,15 @@ exports.LoadUtils = () => {
             } else {
                 caption = options.caption ? options.caption : ' '; //Caption can't be empty
             }
-            // TODO: fix this
+            // UI needs to stop glitching
             const ButtonsCollection = window.mR.findModule('ButtonCollection')[0].ButtonCollection;
-            const collection = new ButtonsCollection();
+            const ReplyButtonModel = window.findProxyModel('ReplyButtonModel')[0].default; 
+            const collection = new ButtonsCollection(ReplyButtonModel);
+
             const quickButtons = options.buttons.buttons.map(a => {
-                return {id: a.buttonId, displayText: a.buttonText.displayText, isState: true, selected: false, stale: false};
+                return new ReplyButtonModel({id: a.buttonId, displayText: a.buttonText.displayText});
             });
-            collection.add(quickButtons, {merge: true});
+            collection.add(quickButtons);
 
             buttonOptions = {
                 isDynamicReplyButtonsMsg: true,
