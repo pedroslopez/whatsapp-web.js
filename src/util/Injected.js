@@ -77,15 +77,112 @@ exports.ExposeStore = (moduleRaidStr) => {
         window.mR.findModule(selector.name)[selector.index][selector.property] = (...args) => callback(oldFunct, args);
     };
 
-    window.injectToFunction({index: 0, name: 'createMsgProtobuf', property: 'createMsgProtobuf'}, (func, args) => {
+    window.injectToFunction({
+        index: 0,
+        name: 'createMsgProtobuf',
+        property: 'createMsgProtobuf'
+    }, (func, args) => {
+        const [message] = args;
         const proto = func(...args);
-        if (proto.listMessage) {
+        if (message.hydratedButtons) {
+            const hydratedTemplate = {
+                hydratedButtons: message.hydratedButtons,
+            };
+
+            if (message.footer) {
+                hydratedTemplate.hydratedFooterText = message.footer;
+            }
+
+            if (message.caption) {
+                hydratedTemplate.hydratedContentText = message.caption;
+            }
+
+            if (message.title) {
+                hydratedTemplate.hydratedTitleText = message.title;
+            }
+
+            if (proto.conversation) {
+                hydratedTemplate.hydratedContentText = proto.conversation;
+                delete proto.conversation;
+            } else if (proto.extendedTextMessage?.text) {
+                hydratedTemplate.hydratedContentText = proto.extendedTextMessage.text;
+                delete proto.extendedTextMessage;
+            } else {
+                // Search media part in message
+                let found;
+                const mediaPart = [
+                    'documentMessage',
+                    'imageMessage',
+                    'locationMessage',
+                    'videoMessage',
+                ];
+                for (const part of mediaPart) {
+                    if (part in proto) {
+                        found = part;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    return proto;
+                }
+
+                // Media message doesn't allow title
+                hydratedTemplate[found] = proto[found];
+
+                // Copy title to caption if not setted
+                if (
+                    hydratedTemplate.hydratedTitleText &&
+                    !hydratedTemplate.hydratedContentText
+                ) {
+                    hydratedTemplate.hydratedContentText =
+                        hydratedTemplate.hydratedTitleText;
+                }
+
+                // Remove title for media messages
+                delete hydratedTemplate.hydratedTitleText;
+
+                if (found === 'locationMessage') {
+                    if (
+                        !hydratedTemplate.hydratedContentText &&
+                        (r[found].name || r[found].address)
+                    ) {
+                        hydratedTemplate.hydratedContentText =
+                            r[found].name && r[found].address
+                                ? `${r[found].name}\n${r[found].address}`
+                                : r[found].name || r[found].address || '';
+                    }
+                }
+
+                // Ensure a content text;
+                hydratedTemplate.hydratedContentText =
+                    hydratedTemplate.hydratedContentText || ' ';
+
+                delete proto[found];
+            }
+
+            proto.templateMessage = {
+                hydratedTemplate,
+            };
+        }
+
+        return proto;
+    });
+
+    window.injectToFunction({
+        index: 0,
+        name: 'createMsgProtobuf',
+        property: 'createMsgProtobuf'
+    },
+        (func, args) => {
+        const proto = func(...args);
+        if (proto.templateMessage) {
             proto.viewOnceMessage = {
                 message: {
-                    listMessage: proto.listMessage
-                }
+                    templateMessage: proto.templateMessage,
+                },
             };
-            delete proto.listMessage;
+            delete proto.templateMessage;
         }
         if (proto.buttonsMessage) {
             proto.viewOnceMessage = {
@@ -95,20 +192,91 @@ exports.ExposeStore = (moduleRaidStr) => {
             };
             delete proto.buttonsMessage;
         }
+        if (proto.listMessage) {
+            proto.viewOnceMessage = {
+                message: {
+                    listMessage: proto.listMessage,
+                },
+            };
+            delete proto.listMessage;
+        }
         return proto;
     });
 
-    window.injectToFunction({index: 0, name: 'typeAttributeFromProtobuf', property: 'typeAttributeFromProtobuf'}, (func, ...args) => {
+    window.injectToFunction({
+        index: 0,
+        name: 'typeAttributeFromProtobuf',
+        property: 'typeAttributeFromProtobuf'
+    }, (func, args) => {
         const [proto] = args;
-        if (
-            proto.buttonsMessage?.headerType === 1 ||
-            proto.buttonsMessage?.headerType === 2
-        ) {
+        if (proto.templateMessage?.hydratedTemplate) {
+            const keys = Object.keys(proto.templateMessage?.hydratedTemplate);
+            const messagePart = [
+                'documentMessage',
+                'imageMessage',
+                'locationMessage',
+                'videoMessage',
+            ];
+            if (messagePart.some((part) => keys.includes(part))) {
+                return 'media';
+            }
             return 'text';
         }
+        return func(...args);
+    });
 
-        if (proto.listMessage) {
-            return 'text';
+    window.injectToFunction({
+        index: 0,
+        name: 'typeAttributeFromProtobuf',
+        property: 'typeAttributeFromProtobuf'
+    }, (func, args) => {
+        const [proto] = args;
+
+        if (proto.ephemeralMessage) {
+            const { message: n } = proto.ephemeralMessage;
+            return n ? func(n) : 'text';
+        }
+        if (proto.deviceSentMessage) {
+            const { message: n } = proto.deviceSentMessage;
+            return n ? func(n) : 'text';
+        }
+        if (proto.viewOnceMessage) {
+            const { message: n } = proto.viewOnceMessage;
+            return n ? func(n) : 'text';
+        }
+
+        return func(...args);
+    });
+
+    window.injectToFunction({
+        index: 0,
+        name: 'mediaTypeFromProtobuf',
+        property: 'mediaTypeFromProtobuf'
+    }, (func, args) => {
+        const [proto] = args;
+        if (proto.templateMessage?.hydratedTemplate) {
+            return func(proto.templateMessage.hydratedTemplate);
+        }
+        return func(...args);
+    });
+
+    window.injectToFunction({
+        index: 0,
+        name: 'mediaTypeFromProtobuf',
+        property: 'mediaTypeFromProtobuf'
+    }, (func, args) => {
+        const [proto] = args;
+        if (proto.deviceSentMessage) {
+            const {message: n} = proto.deviceSentMessage;
+            return n ? func(n) : null;
+        }
+        if (proto.ephemeralMessage) {
+            const {message: n} = proto.ephemeralMessage;
+            return n ? func(n) : null;
+        }
+        if (proto.viewOnceMessage) {
+            const {message: n} = proto.viewOnceMessage;
+            return n ? func (n) : null;
         }
 
         return func(...args);
@@ -127,6 +295,75 @@ exports.LoadUtils = () => {
         return false;
 
     };
+    
+    window.WWebJS.prepareMessageButtons = (buttonsOptions) => {
+        const returnObject = {};
+
+        (window.Store.ReplyButtonModel) || (window.Store.ReplyButtonModel = mR.findModule(m => m.default && m?.default?.prototype?.proxyName === "replyButton")[0].default);
+        (window.Store.TemplateButtonModel) || (window.Store.TemplateButtonModel = mR.findModule(m => m.default && m?.default?.prototype?.proxyName === "templateButton")[0].default);
+        (window.Store.TemplateButtonCollection) || (window.Store.TemplateButtonCollection = mR.findModule("TemplateButtonCollection")[0].TemplateButtonCollection);
+        (window.Store.ButtonCollection) || (window.Store.ButtonCollection = mR.findModule("ButtonCollection")[0].ButtonCollection);
+
+        if (!buttonsOptions.buttons) {
+            return returnObject;
+        }
+        if (!Array.isArray(buttonsOptions.buttons)) {
+            throw "Buttons options is not a array";
+        }
+
+        returnObject.title = buttonsOptions.title;
+        returnObject.footer = buttonsOptions.footer;
+        returnObject.isFromTemplate = !0;
+        returnObject.buttons = new Store.TemplateButtonCollection;
+        returnObject.hydratedButtons = buttonsOptions.buttons.map((e, t) => {
+            if ("phoneNumber" in e) {
+                return {
+                    index: t, callButton: {
+                        displayText: e.buttonText, phoneNumber: e.phoneNumber
+                    }
+                }
+            } else if ("url" in e) {
+                return {
+                    index: t, urlButton: {
+                        displayText: e.buttonText, url: e.url
+                    }
+                }
+            } else {
+                return {
+                    index: t, quickReplyButton: {
+                        displayText: e.buttonText, id: e.buttonId || `${t}`
+                    }
+                }
+            }
+
+        });
+
+        returnObject.buttons.add(returnObject.hydratedButtons.map((e, t) => {
+            var r, n, o, i;
+            const s = `${null != e.index ? e.index : t}`;
+            if (e.urlButton) {
+                return new Store.TemplateButtonModel({
+                    id: s,
+                    displayText: null === (r = e.urlButton) || void 0 === r ? void 0 : r.displayText,
+                    url: null === (n = e.urlButton) || void 0 === n ? void 0 : n.url,
+                    subtype: "url"
+                })
+            } else if (e.callButton) {
+                return new Store.TemplateButtonModel({
+                    id: s, displayText: e.callButton.displayText, phoneNumber: e.callButton.phoneNumber, subtype: "call"
+                })
+            } else {
+                return new Store.TemplateButtonModel({
+                    id: s,
+                    displayText: null === (o = e.quickReplyButton) || void 0 === o ? void 0 : o.displayText,
+                    selectionId: null === (i = e.quickReplyButton) || void 0 === i ? void 0 : i.id,
+                    subtype: "quick_reply"
+                })
+            }
+        }));
+
+        return returnObject;
+    }
 
     window.WWebJS.sendMessage = async (chat, content, options = {}) => {
         let attOptions = {};
@@ -215,7 +452,7 @@ exports.LoadUtils = () => {
                 }
             }
         }
-        
+
         let buttonOptions = {};
         if(options.buttons){
             let caption;
@@ -225,20 +462,10 @@ exports.LoadUtils = () => {
             } else {
                 caption = options.caption ? options.caption : ' '; //Caption can't be empty
             }
-            // TODO: fix this
-            const ButtonsCollection = window.mR.findModule('ButtonCollection')[0].ButtonCollection;
-            const collection = new ButtonsCollection();
-            const quickButtons = options.buttons.buttons.map(a => {
-                return {id: a.buttonId, displayText: a.buttonText.displayText, isState: true, selected: false, stale: false};
-            });
-            collection.add(quickButtons, {merge: true});
 
+            buttonOptions = window.WWebJS.prepareMessageButtons(options.buttons);
             buttonOptions = {
-                isDynamicReplyButtonsMsg: true,
-                title: options.buttons.title ? options.buttons.title : undefined,
-                footer: options.buttons.footer ? options.buttons.footer : undefined,
-                dynamicReplyButtons: options.buttons.buttons,
-                replyButtons: collection,
+                ...buttonOptions,
                 caption: caption
             };
             delete options.buttons;
