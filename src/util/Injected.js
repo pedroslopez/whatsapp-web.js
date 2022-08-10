@@ -70,6 +70,49 @@ exports.ExposeStore = (moduleRaidStr) => {
             });
         };
     }
+
+    // Function to modify functions.
+    window.injectToFunction = (selector, callback) => {
+        const oldFunct = window.mR.findModule(selector.name)[selector.index][selector.property];
+        window.mR.findModule(selector.name)[selector.index][selector.property] = (...args) => callback(oldFunct, args);
+    };
+
+    window.injectToFunction({index: 0, name: 'createMsgProtobuf', property: 'createMsgProtobuf'}, (func, args) => {
+        const proto = func(...args);
+        if (proto.listMessage) {
+            proto.viewOnceMessage = {
+                message: {
+                    listMessage: proto.listMessage
+                }
+            };
+            delete proto.listMessage;
+        }
+        if (proto.buttonsMessage) {
+            proto.viewOnceMessage = {
+                message: {
+                    buttonsMessage: proto.buttonsMessage,
+                },
+            };
+            delete proto.buttonsMessage;
+        }
+        return proto;
+    });
+
+    window.injectToFunction({index: 0, name: 'typeAttributeFromProtobuf', property: 'typeAttributeFromProtobuf'}, (func, ...args) => {
+        const [proto] = args;
+        if (
+            proto.buttonsMessage?.headerType === 1 ||
+            proto.buttonsMessage?.headerType === 2
+        ) {
+            return 'text';
+        }
+
+        if (proto.listMessage) {
+            return 'text';
+        }
+
+        return func(...args);
+    });
 };
 
 exports.LoadUtils = () => {
@@ -182,14 +225,20 @@ exports.LoadUtils = () => {
             } else {
                 caption = options.caption ? options.caption : ' '; //Caption can't be empty
             }
+            // TODO: fix this
+            const ButtonsCollection = window.mR.findModule('ButtonCollection')[0].ButtonCollection;
+            const collection = new ButtonsCollection();
+            const quickButtons = options.buttons.buttons.map(a => {
+                return {id: a.buttonId, displayText: a.buttonText.displayText, isState: true, selected: false, stale: false};
+            });
+            collection.add(quickButtons, {merge: true});
+
             buttonOptions = {
-                productHeaderImageRejected: false,
-                isFromTemplate: false,
                 isDynamicReplyButtonsMsg: true,
                 title: options.buttons.title ? options.buttons.title : undefined,
                 footer: options.buttons.footer ? options.buttons.footer : undefined,
                 dynamicReplyButtons: options.buttons.buttons,
-                replyButtons: options.buttons.buttons,
+                replyButtons: collection,
                 caption: caption
             };
             delete options.buttons;
