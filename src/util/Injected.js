@@ -308,32 +308,32 @@ exports.LoadUtils = () => {
             return returnObject;
         }
         if (!Array.isArray(buttonsOptions.buttons)) {
-            throw "Buttons options is not a array";
+            throw 'Buttons options is not a array';
         }
 
         returnObject.title = buttonsOptions.title;
         returnObject.footer = buttonsOptions.footer;
         returnObject.isFromTemplate = !0;
-        returnObject.buttons = new Store.TemplateButtonCollection;
+        returnObject.buttons = new window.Store.TemplateButtonCollection;
         returnObject.hydratedButtons = buttonsOptions.buttons.map((e, t) => {
-            if ("phoneNumber" in e) {
+            if ('phoneNumber' in e) {
                 return {
                     index: t, callButton: {
                         displayText: e.buttonText, phoneNumber: e.phoneNumber
                     }
-                }
-            } else if ("url" in e) {
+                };
+            } else if ('url' in e) {
                 return {
                     index: t, urlButton: {
                         displayText: e.buttonText, url: e.url
                     }
-                }
+                };
             } else {
                 return {
                     index: t, quickReplyButton: {
                         displayText: e.buttonText, id: e.buttonId || `${t}`
                     }
-                }
+                };
             }
 
         });
@@ -342,22 +342,22 @@ exports.LoadUtils = () => {
             var r, n, o, i;
             const s = `${null != e.index ? e.index : t}`;
             if (e.urlButton) {
-                return new Store.TemplateButtonModel({
+                return new window.Store.TemplateButtonModel({
                     id: s,
                     displayText: null === (r = e.urlButton) || void 0 === r ? void 0 : r.displayText,
                     url: null === (n = e.urlButton) || void 0 === n ? void 0 : n.url,
-                    subtype: "url"
+                    subtype: 'url'
                 })
             } else if (e.callButton) {
-                return new Store.TemplateButtonModel({
-                    id: s, displayText: e.callButton.displayText, phoneNumber: e.callButton.phoneNumber, subtype: "call"
+                return new window.Store.TemplateButtonModel({
+                    id: s, displayText: e.callButton.displayText, phoneNumber: e.callButton.phoneNumber, subtype: 'call'
                 })
             } else {
-                return new Store.TemplateButtonModel({
+                return new window.Store.TemplateButtonModel({
                     id: s,
                     displayText: null === (o = e.quickReplyButton) || void 0 === o ? void 0 : o.displayText,
                     selectionId: null === (i = e.quickReplyButton) || void 0 === i ? void 0 : i.id,
-                    subtype: "quick_reply"
+                    subtype: 'quick_reply'
                 })
             }
         }));
