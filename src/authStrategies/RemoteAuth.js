@@ -6,7 +6,9 @@ try {
     var unzipper = require('unzipper');
     var archiver = require('archiver');
 } catch {
-    throw new Error('Optional Dependencies [fs-extra, unzipper, archiver] are required to use RemoteAuth. Make sure to run npm install correctly and remove the --no-optional flag');
+    fs = undefined;
+    unzipper = undefined;
+    archiver = undefined;
 }
 
 const path = require('path');
@@ -23,6 +25,7 @@ const BaseAuthStrategy = require('./BaseAuthStrategy');
  */
 class RemoteAuth extends BaseAuthStrategy {
     constructor({ clientId, dataPath, store, backupSyncIntervalMs } = {}) {
+        if (!fs && !unzipper && !archiver) throw new Error('Optional Dependencies [fs-extra, unzipper, archiver] are required to use RemoteAuth. Make sure to run npm install correctly and remove the --no-optional flag');
         super();
 
         const idRegex = /^[-_\w]+$/i;
