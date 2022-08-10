@@ -181,10 +181,8 @@ class Chat extends Base {
                 if (m.isNotification) {
                     return false; // dont include notification messages
                 }
-                if (searchOptions) {
-                    if (searchOptions.fromMe && m.id.fromMe !== searchOptions.fromMe) {
-                        return false;
-                    }
+                if (searchOptions && searchOptions.fromMe && m.id.fromMe !== searchOptions.fromMe) {
+                    return false;
                 }
                 return true;
             };
