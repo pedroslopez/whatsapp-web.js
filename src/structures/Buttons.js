@@ -73,8 +73,11 @@ class Buttons {
     _format(buttons){
         buttons = buttons.slice(0,3); // phone users can only see 3 buttons, so lets limit this
         return buttons.map((btn) => {
+            if (btn.url && btn.number) throw "button can't be with url and number together"
             return {
                 buttonId: btn.id ? String(btn.id) : Util.generateHash(6),
+                url: btn.url,
+                phoneNumber: btn.number,
                 buttonText: {displayText: btn.body},
                 type: 1
             };
