@@ -91,7 +91,7 @@ class GroupChat extends Chat {
      * @returns {Promise<Array<Object>>}
      */
     async removeParticipants(participantIds, sleep = null) {
-        return return this._changeParticipants(participantIds, 'remove', sleep);
+        return this._changeParticipants(participantIds, 'remove', sleep);
     }
 
     /**
@@ -101,7 +101,7 @@ class GroupChat extends Chat {
      * @returns {Promise<Array<Object>>}
      */
     async promoteParticipants(participantIds, sleep = null) {
-        return return this._changeParticipants(participantIds, 'promote', sleep);
+        return this._changeParticipants(participantIds, 'promote', sleep);
     }
 
     /**
@@ -111,7 +111,7 @@ class GroupChat extends Chat {
      * @returns {Promise<Array<Object>>}
      */
     async demoteParticipants(participantIds, sleep = null) {
-        return return this._changeParticipants(participantIds, 'demote', sleep);
+        return this._changeParticipants(participantIds, 'demote', sleep);
     }
 
     /**
