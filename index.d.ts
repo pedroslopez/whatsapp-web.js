@@ -265,6 +265,9 @@ declare namespace WAWebJS {
 
         /** Emitted when the client has initialized and is ready to receive messages */
         on(event: 'ready', listener: () => void): this
+
+        /** Emitted when the RemoteAuth session is saved successfully on the external Database */
+        on(event: 'remote_session_saved', listener: () => void): this
     }
 
     /** Current connection information */
@@ -354,6 +357,9 @@ declare namespace WAWebJS {
             failureEventPayload?: any
         }>;
         getAuthEventPayload: () => Promise<any>;
+        afterAuthReady: () => Promise<void>;
+        disconnect: () => Promise<void>;
+        destroy: () => Promise<void>;
         logout: () => Promise<void>;
     }
 
@@ -373,6 +379,30 @@ declare namespace WAWebJS {
             clientId?: string,
             dataPath?: string
         })
+    }
+    
+    /**
+     * Remote-based authentication
+     */
+     export class RemoteAuth extends AuthStrategy {
+        public clientId?: string;
+        public dataPath?: string;
+        constructor(options?: {
+            store: Store,
+            clientId?: string,
+            dataPath?: string,
+            backupSyncIntervalMs: number
+        })
+    }
+
+    /** 
+     * Remote store interface
+     */
+    export interface Store {
+        sessionExists: ({session: string}) => Promise<boolean> | boolean,
+        delete: ({session: string}) => Promise<any> | any,
+        save: ({session: string}) => Promise<any> | any,
+        extract: ({session: string, path: string}) => Promise<any> | any,
     }
 
     /**
@@ -476,6 +506,7 @@ declare namespace WAWebJS {
         DISCONNECTED = 'disconnected',
         STATE_CHANGED = 'change_state',
         BATTERY_CHANGED = 'change_battery',
+        REMOTE_SESSION_SAVED = 'remote_session_saved'
     }
 
     /** Group notification types */

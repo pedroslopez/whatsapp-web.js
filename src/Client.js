@@ -419,7 +419,7 @@ class Client extends EventEmitter {
             this.emit(Events.MEDIA_UPLOADED, message);
         });
 
-        await page.exposeFunction('onAppStateChangedEvent', (state) => {
+        await page.exposeFunction('onAppStateChangedEvent', async (state) => {
 
             /**
              * Emitted when the connection state changes
@@ -446,6 +446,7 @@ class Client extends EventEmitter {
                  * @event Client#disconnected
                  * @param {WAState|"NAVIGATION"} reason reason that caused the disconnect
                  */
+                await this.authStrategy.disconnect();
                 this.emit(Events.DISCONNECTED, state);
                 this.destroy();
             }
@@ -548,11 +549,13 @@ class Client extends EventEmitter {
          * @event Client#ready
          */
         this.emit(Events.READY);
+        this.authStrategy.afterAuthReady();
 
         // Disconnect when navigating away when in PAIRING state (detect logout)
         this.pupPage.on('framenavigated', async () => {
             const appState = await this.getState();
             if(!appState || appState === WAState.PAIRING) {
+                await this.authStrategy.disconnect();
                 this.emit(Events.DISCONNECTED, 'NAVIGATION');
                 await this.destroy();
             }
@@ -564,6 +567,7 @@ class Client extends EventEmitter {
      */
     async destroy() {
         await this.pupBrowser.close();
+        await this.authStrategy.destroy();
     }
 
     /**
