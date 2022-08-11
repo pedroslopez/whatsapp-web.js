@@ -87,6 +87,7 @@ class Chat extends Base {
     async sendMessage(content, options) {
         return this.client.sendMessage(this.id._serialized, content, options);
     }
+    
 
     /**
      * Set the message as seen

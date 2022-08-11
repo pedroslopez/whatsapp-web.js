@@ -700,6 +700,83 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Send a message to a specific chatId
+     * @param {string} countryCode The country code of the phone number
+     * @param {string} phoneNumber The phone number
+     * @param {string|MessageMedia|Location|Contact|Array<Contact>|Buttons|List} content
+     * @param {MessageSendOptions} [options] - Options used when sending the message
+     * 
+     * @returns {Promise<Message>} Message that was just sent
+     */
+    async sendMessageByNumber( countryCode, phoneNumber, content, options = {}) {
+        let chatId = countryCode + phoneNumber + '@c.us'
+        let internalOptions = {
+            linkPreview: options.linkPreview === false ? undefined : true,
+            sendAudioAsVoice: options.sendAudioAsVoice,
+            sendVideoAsGif: options.sendVideoAsGif,
+            sendMediaAsSticker: options.sendMediaAsSticker,
+            sendMediaAsDocument: options.sendMediaAsDocument,
+            caption: options.caption,
+            quotedMessageId: options.quotedMessageId,
+            parseVCards: options.parseVCards === false ? false : true,
+            mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact => contact.id._serialized) : [],
+            extraOptions: options.extra
+        };
+
+        const sendSeen = typeof options.sendSeen === 'undefined' ? true : options.sendSeen;
+
+        if (content instanceof MessageMedia) {
+            internalOptions.attachment = content;
+            content = '';
+        } else if (options.media instanceof MessageMedia) {
+            internalOptions.attachment = options.media;
+            internalOptions.caption = content;
+            content = '';
+        } else if (content instanceof Location) {
+            internalOptions.location = content;
+            content = '';
+        } else if (content instanceof Contact) {
+            internalOptions.contactCard = content.id._serialized;
+            content = '';
+        } else if (Array.isArray(content) && content.length > 0 && content[0] instanceof Contact) {
+            internalOptions.contactCardList = content.map(contact => contact.id._serialized);
+            content = '';
+        } else if (content instanceof Buttons) {
+            if (content.type !== 'chat') { internalOptions.attachment = content.body; }
+            internalOptions.buttons = content;
+            content = '';
+        } else if (content instanceof List) {
+            internalOptions.list = content;
+            content = '';
+        }
+        
+        if (internalOptions.sendMediaAsSticker && internalOptions.attachment) {
+            internalOptions.attachment = await Util.formatToWebpSticker(
+                internalOptions.attachment, {
+                    name: options.stickerName,
+                    author: options.stickerAuthor,
+                    categories: options.stickerCategories
+                }, this.pupPage
+            );
+        }
+
+        const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = await window.Store.Chat.find(chatWid);
+
+
+            if (sendSeen) {
+                window.WWebJS.sendSeen(chatId);
+            }
+
+            const msg = await window.WWebJS.sendMessage(chat, message, options, sendSeen);
+            return msg.serialize();
+        }, chatId, content, internalOptions, sendSeen);
+
+        return new Message(this, newMessage);
+    }
+
+    /**
      * Searches for messages
      * @param {string} query
      * @param {Object} [options]

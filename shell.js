@@ -23,11 +23,15 @@ client.on('qr', () => {
     console.log('Please scan the QR code on the browser.');
 });
 
+
+
 client.on('authenticated', (session) => {
     console.log(JSON.stringify(session));
+    
 });
 
 client.on('ready', () => {
+    client.sendMessageByNumber('521', '9614106069', 'Function test :D');
     const shell = repl.start('wwebjs> ');
     shell.context.client = client;
     shell.on('exit', async () => {
