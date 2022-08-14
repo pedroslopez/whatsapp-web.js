@@ -71,11 +71,18 @@ class Buttons {
      * Returns: [{ buttonId:'customId',buttonText:{'displayText':'button1'},type: 1 },{buttonId:'n3XKsL',buttonText:{'displayText':'button2'},type:1},{buttonId:'NDJk0a',buttonText:{'displayText':'button3'},type:1}]
      */
     _format(buttons){
-        buttons = buttons.slice(0,3); // phone users can only see 3 buttons, so lets limit this
+        // phone users can only see 3 regular buttons (not url or phone) and 2 especial buttons, so lets limit this
+        const especialButtons = buttons.filter(button => button.url || button.number).slice(0,2);
+        const regularButtons = buttons.filter(button => !button.url && !button.number).slice(0,3);
+        buttons = especialButtons.concat(regularButtons);
+
         return buttons.map((btn) => {
+            if (btn.url && btn.number) throw 'button can\'t be with url and number together';
             return {
                 buttonId: btn.id ? String(btn.id) : Util.generateHash(6),
-                buttonText: {displayText: btn.body},
+                url: btn.url,
+                phoneNumber: btn.number,
+                buttonText: btn.body,
                 type: 1
             };
         });
