@@ -10,10 +10,11 @@ const { URL } = require('url');
  * Media attached to a message
  * @param {string} mimetype MIME type of the attachment
  * @param {string} data Base64-encoded data of the file
- * @param {?string} filename Document file name
+ * @param {?string} filename Document file name. Value can be null
+ * @param {?number} filesize Document file size in bytes. Value can be null
  */
 class MessageMedia {
-    constructor(mimetype, data, filename) {
+    constructor(mimetype, data, filename, filesize) {
         /**
          * MIME type of the attachment
          * @type {string}
@@ -27,10 +28,16 @@ class MessageMedia {
         this.data = data;
 
         /**
-         * Name of the file (for documents)
+         * Document file name. Value can be null
          * @type {?string}
          */
         this.filename = filename;
+        
+        /**
+         * Document file size in bytes. Value can be null
+         * @type {?number}
+         */
+        this.filesize = filesize;
     }
 
     /**
@@ -68,6 +75,7 @@ class MessageMedia {
             const reqOptions = Object.assign({ headers: { accept: 'image/* video/* text/* audio/*' } }, options);
             const response = await fetch(url, reqOptions);
             const mime = response.headers.get('Content-Type');
+            const size = response.headers.get('Content-Length');
 
             const contentDisposition = response.headers.get('Content-Disposition');
             const name = contentDisposition ? contentDisposition.match(/((?<=filename=")(.*)(?="))/) : null;
@@ -83,7 +91,7 @@ class MessageMedia {
                 data = btoa(data);
             }
             
-            return { data, mime, name };
+            return { data, mime, name, size };
         }
 
         const res = options.client
@@ -96,7 +104,7 @@ class MessageMedia {
         if (!mimetype)
             mimetype = res.mime;
 
-        return new MessageMedia(mimetype, res.data, filename);
+        return new MessageMedia(mimetype, res.data, filename, res.size || null);
     }
 }
 

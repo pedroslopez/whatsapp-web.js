@@ -11,7 +11,7 @@ exports.DefaultOptions = {
     qrMaxRetries: 0,
     takeoverOnConflict: false,
     takeoverTimeoutMs: 0,
-    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36',
+    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36',
     ffmpegPath: 'ffmpeg',
     bypassCSP: false
 };
@@ -41,15 +41,18 @@ exports.Events = {
     MESSAGE_REVOKED_EVERYONE: 'message_revoke_everyone',
     MESSAGE_REVOKED_ME: 'message_revoke_me',
     MESSAGE_ACK: 'message_ack',
+    MESSAGE_REACTION: 'message_reaction',
     MEDIA_UPLOADED: 'media_uploaded',
     GROUP_JOIN: 'group_join',
     GROUP_LEAVE: 'group_leave',
     GROUP_UPDATE: 'group_update',
     QR_RECEIVED: 'qr',
+    LOADING_SCREEN: 'loading_screen',
     DISCONNECTED: 'disconnected',
     STATE_CHANGED: 'change_state',
     BATTERY_CHANGED: 'change_battery',
-    INCOMING_CALL: 'incoming_call'
+    INCOMING_CALL: 'incoming_call',
+    REMOTE_SESSION_SAVED: 'remote_session_saved'
 };
 
 /**
