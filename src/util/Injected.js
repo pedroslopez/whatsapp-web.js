@@ -55,7 +55,7 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('toWebpSticker')[0],
         ...window.mR.findModule('addWebpMetadata')[0]
     };
-  
+
     window.Store.GroupUtils = {
         ...window.mR.findModule('sendCreateGroup')[0],
         ...window.mR.findModule('sendSetGroupSubject')[0],
@@ -71,12 +71,47 @@ exports.ExposeStore = (moduleRaidStr) => {
         };
     }
 
+    // The following was implemented and inspired from wppconnect/wa-js at 
+    // https://github.com/wppconnect-team/wa-js/tree/main/src/chat/functions/prepareMessageButtons.ts
+
+    // Find proxy modules
+    window.findProxyModel = (name) => {
+        const baseName = name.replace(/Model$/, '');
+
+        const names = [baseName];
+
+        // ChatModel => "chat"
+        names.push(baseName.replace(/^(\w)/, (l) => l.toLowerCase()));
+
+        // CartItemModel => "cart-item"
+        // ProductListModel => "product_list"
+        const parts = baseName.split(/(?=[A-Z])/);
+
+        names.push(parts.join('-').toLowerCase());
+        names.push(parts.join('_').toLowerCase());
+
+        const results = window.mR.findModule((m) =>
+            names.includes(
+                m.default?.prototype?.proxyName ||
+                m[name]?.prototype?.proxyName ||
+                m[baseName]?.prototype?.proxyName
+            )
+        )[0];
+
+        return results.default || results[name] || results[baseName];
+    };
+
     // Function to modify functions.
     window.injectToFunction = (selector, callback) => {
         const oldFunct = window.mR.findModule(selector.name)[selector.index][selector.property];
         window.mR.findModule(selector.name)[selector.index][selector.property] = (...args) => callback(oldFunct, args);
     };
 
+    // Find button models
+    window.Store.TemplateButtonModel = window.findProxyModel('TemplateButtonModel');
+    window.Store.TemplateButtonCollection = window.mR.findModule('TemplateButtonCollection')[0].TemplateButtonCollection;
+
+    // Modify functions 
     window.injectToFunction({
         index: 0,
         name: 'createMsgProtobuf',
@@ -173,8 +208,7 @@ exports.ExposeStore = (moduleRaidStr) => {
         index: 0,
         name: 'createMsgProtobuf',
         property: 'createMsgProtobuf'
-    },
-    (func, args) => {
+    }, (func, args) => {
         const proto = func(...args);
         if (proto.templateMessage) {
             proto.viewOnceMessage = {
@@ -183,14 +217,6 @@ exports.ExposeStore = (moduleRaidStr) => {
                 },
             };
             delete proto.templateMessage;
-        }
-        if (proto.buttonsMessage) {
-            proto.viewOnceMessage = {
-                message: {
-                    buttonsMessage: proto.buttonsMessage,
-                },
-            };
-            delete proto.buttonsMessage;
         }
         if (proto.listMessage) {
             proto.viewOnceMessage = {
@@ -233,16 +259,16 @@ exports.ExposeStore = (moduleRaidStr) => {
         const [proto] = args;
 
         if (proto.ephemeralMessage) {
-            const { message: n } = proto.ephemeralMessage;
-            return n ? func(n) : 'text';
+            const { message } = proto.ephemeralMessage;
+            return message ? func(message) : 'text';
         }
         if (proto.deviceSentMessage) {
-            const { message: n } = proto.deviceSentMessage;
-            return n ? func(n) : 'text';
+            const { message } = proto.deviceSentMessage;
+            return message ? func(message) : 'text';
         }
         if (proto.viewOnceMessage) {
-            const { message: n } = proto.viewOnceMessage;
-            return n ? func(n) : 'text';
+            const { message } = proto.viewOnceMessage;
+            return message ? func(message) : 'text';
         }
 
         return func(...args);
@@ -267,16 +293,16 @@ exports.ExposeStore = (moduleRaidStr) => {
     }, (func, args) => {
         const [proto] = args;
         if (proto.deviceSentMessage) {
-            const {message: n} = proto.deviceSentMessage;
-            return n ? func(n) : null;
+            const { message } = proto.deviceSentMessage;
+            return message ? func(message) : null;
         }
         if (proto.ephemeralMessage) {
-            const {message: n} = proto.ephemeralMessage;
-            return n ? func(n) : null;
+            const { message } = proto.ephemeralMessage;
+            return message ? func(message) : null;
         }
         if (proto.viewOnceMessage) {
-            const {message: n} = proto.viewOnceMessage;
-            return n ? func (n) : null;
+            const { message } = proto.viewOnceMessage;
+            return message ? func(message) : null;
         }
 
         return func(...args);
@@ -295,68 +321,42 @@ exports.LoadUtils = () => {
         return false;
 
     };
-    
+
     window.WWebJS.prepareMessageButtons = (buttonsOptions) => {
         const returnObject = {};
-
-        (window.Store.ReplyButtonModel) || (window.Store.ReplyButtonModel = window.mR.findModule(m => m.default && m?.default?.prototype?.proxyName === 'replyButton')[0].default);
-        (window.Store.TemplateButtonModel) || (window.Store.TemplateButtonModel = window.mR.findModule(m => m.default && m?.default?.prototype?.proxyName === 'templateButton')[0].default);
-        (window.Store.TemplateButtonCollection) || (window.Store.TemplateButtonCollection = window.mR.findModule('TemplateButtonCollection')[0].TemplateButtonCollection);
-        (window.Store.ButtonCollection) || (window.Store.ButtonCollection = window.mR.findModule('ButtonCollection')[0].ButtonCollection);
 
         if (!buttonsOptions.buttons) {
             return returnObject;
         }
-        if (!Array.isArray(buttonsOptions.buttons)) {
-            throw 'Buttons options is not a array';
-        }
 
         returnObject.title = buttonsOptions.title;
         returnObject.footer = buttonsOptions.footer;
-        returnObject.isFromTemplate = !0;
+        returnObject.isFromTemplate = true;
         returnObject.buttons = new window.Store.TemplateButtonCollection;
-        returnObject.hydratedButtons = buttonsOptions.buttons.map((e, t) => {
-            if ('phoneNumber' in e) {
-                return {
-                    index: t, callButton: {
-                        displayText: e.buttonText, phoneNumber: e.phoneNumber
-                    }
-                };
-            } else if ('url' in e) {
-                return {
-                    index: t, urlButton: {
-                        displayText: e.buttonText, url: e.url
-                    }
-                };
-            } else {
-                return {
-                    index: t, quickReplyButton: {
-                        displayText: e.buttonText, id: e.buttonId || `${t}`
-                    }
-                };
-            }
 
-        });
+        returnObject.hydratedButtons = buttonsOptions.buttons;
 
-        returnObject.buttons.add(returnObject.hydratedButtons.map((e, t) => {
-            var r, n, o, i;
-            const s = `${null != e.index ? e.index : t}`;
-            if (e.urlButton) {
+        returnObject.buttons.add(returnObject.hydratedButtons.map((button, index) => {
+            const buttonIndex = button.index ? button.index : index;
+            if (button.urlButton) {
                 return new window.Store.TemplateButtonModel({
-                    id: s,
-                    displayText: null === (r = e.urlButton) || void 0 === r ? void 0 : r.displayText,
-                    url: null === (n = e.urlButton) || void 0 === n ? void 0 : n.url,
+                    id: buttonIndex,
+                    displayText: button.urlButton?.displayText || '',
+                    url: button.urlButton?.url,
                     subtype: 'url'
                 });
-            } else if (e.callButton) {
+            } else if (button.callButton) {
                 return new window.Store.TemplateButtonModel({
-                    id: s, displayText: e.callButton.displayText, phoneNumber: e.callButton.phoneNumber, subtype: 'call'
+                    id: buttonIndex,
+                    displayText: button.callButton?.displayText,
+                    phoneNumber: button.callButton?.phoneNumber,
+                    subtype: 'call'
                 });
             } else {
                 return new window.Store.TemplateButtonModel({
-                    id: s,
-                    displayText: null === (o = e.quickReplyButton) || void 0 === o ? void 0 : o.displayText,
-                    selectionId: null === (i = e.quickReplyButton) || void 0 === i ? void 0 : i.id,
+                    id: buttonIndex,
+                    displayText: button.quickReplyButton?.displayText,
+                    selectionId: button.quickReplyButton?.id,
                     subtype: 'quick_reply'
                 });
             }
@@ -442,7 +442,7 @@ exports.LoadUtils = () => {
             delete options.linkPreview;
 
             // Not supported yet by WhatsApp Web on MD
-            if(!window.Store.MDBackend) {
+            if (!window.Store.MDBackend) {
                 const link = window.Store.Validators.findLink(content);
                 if (link) {
                     const preview = await window.Store.Wap.queryLinkPreview(link.url);
@@ -454,7 +454,7 @@ exports.LoadUtils = () => {
         }
 
         let buttonOptions = {};
-        if(options.buttons){
+        if (options.buttons) {
             let caption;
             if (options.buttons.type === 'chat') {
                 content = options.buttons.body;
@@ -472,8 +472,8 @@ exports.LoadUtils = () => {
         }
 
         let listOptions = {};
-        if(options.list){
-            if(window.Store.Conn.platform === 'smba' || window.Store.Conn.platform === 'smbi'){
+        if (options.list) {
+            if (window.Store.Conn.platform === 'smba' || window.Store.Conn.platform === 'smbi') {
                 throw '[LT01] Whatsapp business can\'t send this yet';
             }
             listOptions = {

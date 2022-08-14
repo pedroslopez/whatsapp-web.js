@@ -1,20 +1,22 @@
 'use strict';
 
 const MessageMedia = require('./MessageMedia');
-const Util = require('../util/Util');
 
 /**
  * Button spec used in Buttons constructor
  * @typedef {Object} ButtonSpec
- * @property {string=} id - Custom ID to set on the button. A random one will be generated if one is not passed.
  * @property {string} body - The text to show on the button.
+ * @property {string=} id - Custom ID to set on the button. A random one will be generated if one is not passed.
+ * @property {string=} url - Custom URL to set on the button. Optional and will change the type of the button
+ * @property {string=} number - Custom URL to set on the button. Optional and will change the type of the button
  */
 
 /**
  * @typedef {Object} FormattedButtonSpec
- * @property {string} buttonId
- * @property {number} type
- * @property {Object} buttonText
+ * @property {number} index
+ * @property {{displayText: string, url: string}=} urlButton
+ * @property {{displayText: string, phoneNumber: string}=} callButton
+ * @property {{displayText: string, id: string}=} quickReplyButton
  */
 
 /**
@@ -76,15 +78,34 @@ class Buttons {
         const regularButtons = buttons.filter(button => !button.url && !button.number).slice(0,3);
         buttons = especialButtons.concat(regularButtons);
 
-        return buttons.map((btn) => {
-            if (btn.url && btn.number) throw 'button can\'t be with url and number together';
-            return {
-                buttonId: btn.id ? String(btn.id) : Util.generateHash(6),
-                url: btn.url,
-                phoneNumber: btn.number,
-                buttonText: btn.body,
-                type: 1
-            };
+        return buttons.map((button, index) => {
+            if (button.url && button.number && button.id) throw 'Only pick one of the following (url/number/id)';
+            if (button.number) {
+                return {
+                    index,
+                    callButton: {
+                        displayText: button.body, 
+                        phoneNumber: button.number || ''
+                    }
+                };
+            } else if (button.url) {
+                return {
+                    index,
+                    urlButton: {
+                        displayText: button.body, 
+                        url: button.url || ''
+                    }
+                };
+            } else {
+                return {
+                    index,
+                    quickReplyButton: {
+                        displayText: button.body, 
+                        id: button.id || index
+                    }
+                };
+            }
+
         });
     }
     
