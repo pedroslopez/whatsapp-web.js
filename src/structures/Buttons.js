@@ -68,15 +68,12 @@ class Buttons {
      * Creates button array from simple array
      * @param {ButtonSpec[]} buttons
      * @returns {FormattedButtonSpec[]}
-     * @example 
-     * Input: [{id:'customId',body:'button1'},{body:'button2'},{body:'button3'},{body:'button4'}]
-     * Returns: [{ buttonId:'customId',buttonText:{'displayText':'button1'},type: 1 },{buttonId:'n3XKsL',buttonText:{'displayText':'button2'},type:1},{buttonId:'NDJk0a',buttonText:{'displayText':'button3'},type:1}]
      */
     _format(buttons){
-        // phone users can only see 3 regular buttons (not url or phone) and 2 especial buttons, so lets limit this
-        const especialButtons = buttons.filter(button => button.url || button.number).slice(0,2);
+        // Limit the buttons (max 3 of regular and 2 of special buttons)
+        const templateButtons = buttons.filter(button => button.url || button.number).slice(0,2);
         const regularButtons = buttons.filter(button => !button.url && !button.number).slice(0,3);
-        buttons = especialButtons.concat(regularButtons);
+        buttons = templateButtons.concat(regularButtons);
 
         return buttons.map((button, index) => {
             if (button.url && button.number && button.id) throw 'Only pick one of the following (url/number/id)';
