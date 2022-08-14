@@ -189,7 +189,20 @@ client.on('message', async msg => {
             client.interface.openChatWindowAt(quotedMsg.id._serialized);
         }
     } else if (msg.body === '!buttons') {
-        let button = new Buttons('Button body',[{body:'bt1'},{body:'bt2'},{body:'bt3'}],'title','footer');
+        let button = new Buttons(
+            'Button body',
+            [
+                { body: 'whatsapp-web.js', url: 'https://wwebjs.dev/' },
+                { body: 'Call me', number: '+1 (805) 457-4992' },
+                { body: 'third special button', number: '+1 (202) 968-6161' },// Limited to 2 especial buttons, this one will be ignored
+                { body: 'Some text' },
+                { body: 'Another text' },
+                { body: 'Another another text' },
+                { body: 'Fourth button' }// Limited to 3 regular buttons, this one will be ignored
+            ],
+            'title',
+            'footer'
+        );
         client.sendMessage(msg.from, button);
     } else if (msg.body === '!list') {
         let sections = [{title:'sectionTitle',rows:[{title:'ListItem1', description: 'desc'},{title:'ListItem2'}]}];
