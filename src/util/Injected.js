@@ -399,8 +399,8 @@ exports.LoadUtils = () => {
             }));
 
             // For UI only
-            returnObject.replyButtons = new Store.ButtonCollection();
-            returnObject.replyButtons.add(returnObject.dynamicReplyButtons.map((button) => new Store.ReplyButtonModel({
+            returnObject.replyButtons = new window.Store.ButtonCollection();
+            returnObject.replyButtons.add(returnObject.dynamicReplyButtons.map((button) => new window.Store.ReplyButtonModel({
                 id: button.buttonId,
                 displayText: button.buttonText?.displayText || undefined,
             })));
