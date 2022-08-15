@@ -41,6 +41,7 @@ exports.Events = {
     MESSAGE_REVOKED_EVERYONE: 'message_revoke_everyone',
     MESSAGE_REVOKED_ME: 'message_revoke_me',
     MESSAGE_ACK: 'message_ack',
+    MESSAGE_REACTION: 'message_reaction',
     MEDIA_UPLOADED: 'media_uploaded',
     GROUP_JOIN: 'group_join',
     GROUP_LEAVE: 'group_leave',
@@ -50,7 +51,8 @@ exports.Events = {
     DISCONNECTED: 'disconnected',
     STATE_CHANGED: 'change_state',
     BATTERY_CHANGED: 'change_battery',
-    INCOMING_CALL: 'incoming_call'
+    INCOMING_CALL: 'incoming_call',
+    REMOTE_SESSION_SAVED: 'remote_session_saved'
 };
 
 /**
