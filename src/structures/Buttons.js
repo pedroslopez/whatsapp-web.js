@@ -98,7 +98,7 @@ class Buttons {
                     index,
                     quickReplyButton: {
                         displayText: button.body, 
-                        id: button.id || index
+                        id: button.id || `${index}`
                     }
                 };
             }
