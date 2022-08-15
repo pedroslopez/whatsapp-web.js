@@ -57,7 +57,7 @@ echo "-----> BUMP VERSION"
 echo ""
 
 npm version $VERSION_ARGS || exit 1
-git push && git push --tags
+git push && git push --tags || exit 1
 
 NEW_VERSION=`cat package.json | jq -r .version`
 echo "New Version: $NEW_VERSION"
