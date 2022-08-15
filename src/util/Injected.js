@@ -473,9 +473,6 @@ exports.LoadUtils = () => {
 
         let listOptions = {};
         if (options.list) {
-            if (window.Store.Conn.platform === 'smba' || window.Store.Conn.platform === 'smbi') {
-                throw '[LT01] Whatsapp business can\'t send this yet';
-            }
             listOptions = {
                 type: 'list',
                 footer: options.list.footer,
