@@ -317,6 +317,8 @@ declare namespace WAWebJS {
         authTimeoutMs?: number,
         /** Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/ */
         puppeteer?: puppeteer.PuppeteerNodeLaunchOptions & puppeteer.ConnectOptions
+        /** Use SOCKS/HTTP proxy for connection using puppeteer-proxy library */
+        proxyUrl?: string
 		/** Determines how to save and restore sessions. Will use LegacySessionAuth if options.session is set. Otherwise, NoAuth will be used. */
         authStrategy?: AuthStrategy,
         /** How many times should the qrcode be refreshed before giving up
