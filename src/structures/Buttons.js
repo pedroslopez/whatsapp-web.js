@@ -70,10 +70,10 @@ class Buttons {
      * @returns {FormattedButtonSpec[]}
      */
     _format(buttons){
-        // Limit the buttons (max 3 of regular and 2 of special buttons)
-        const templateButtons = buttons.filter(button => button.url || button.number).slice(0,2);
+        // Limit the buttons (max 3 of regular and 3 of special buttons) 5 buttons total at the same time
+        const templateButtons = buttons.filter(button => button.url || button.number).slice(0,3);
         const regularButtons = buttons.filter(button => !button.url && !button.number).slice(0,3);
-        buttons = templateButtons.concat(regularButtons);
+        buttons = templateButtons.concat(regularButtons).slice(0,5);
 
         return buttons.map((button, index) => {
             if (button.url && button.number && button.id) throw 'Only pick one of the following (url/number/id)';

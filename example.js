@@ -189,16 +189,18 @@ client.on('message', async msg => {
             client.interface.openChatWindowAt(quotedMsg.id._serialized);
         }
     } else if (msg.body === '!buttons') {
+        // Limited to 5 buttons per message and limited to 3 buttons for each kind, in this case the third quick reply button will be removed
         let button = new Buttons(
             'Button body',
             [
                 { body: 'whatsapp-web.js', url: 'https://wwebjs.dev/' },
+                { body: 'Copy', url: 'https://www.whatsapp.com/otp/copy/This text will be copied to your clipboard' },
                 { body: 'Call me', number: '+1 (805) 457-4992' },
-                { body: 'third special button', number: '+1 (202) 968-6161' },// Limited to 2 especial buttons, this one will be ignored
+                // Limited to 3 template buttons, any more will be ignored
                 { body: 'Some text' },
                 { body: 'Another text' },
                 { body: 'Another another text' },
-                { body: 'Fourth button' }// Limited to 3 regular buttons, this one will be ignored
+                // Limited to 3 quick reply buttons, any more will be ignored
             ],
             'title',
             'footer'
