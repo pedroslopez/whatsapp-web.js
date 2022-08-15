@@ -77,6 +77,8 @@ class Buttons {
 
         return buttons.map((button, index) => {
             if (button.url && button.number && button.id) throw 'Only pick one of the following (url/number/id)';
+            if (button.id && typeof button.id !== 'string') throw 'ID must be a string';
+            
             if (button.number) {
                 return {
                     index,
@@ -98,7 +100,7 @@ class Buttons {
                     index,
                     quickReplyButton: {
                         displayText: button.body, 
-                        id: button.id || index
+                        id: button.id || `${index}`
                     }
                 };
             }
