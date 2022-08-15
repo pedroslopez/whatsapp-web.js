@@ -358,7 +358,7 @@ exports.LoadUtils = () => {
         returnObject.title = buttonsOptions.title;
         returnObject.footer = buttonsOptions.footer;
     
-        if (options.useTemplateButtons) {
+        if (buttonsOptions.useTemplateButtons) {
             returnObject.isFromTemplate = true;
             returnObject.hydratedButtons = buttonsOptions.buttons;
             returnObject.buttons = new window.Store.TemplateButtonCollection;
