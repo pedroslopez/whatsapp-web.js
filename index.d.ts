@@ -399,10 +399,10 @@ declare namespace WAWebJS {
      * Remote store interface
      */
     export interface Store {
-        sessionExists: ({session: string}) => Promise<boolean> | boolean,
-        delete: ({session: string}) => Promise<any> | any,
-        save: ({session: string}) => Promise<any> | any,
-        extract: ({session: string, path: string}) => Promise<any> | any,
+        sessionExists: ({session}: {session: string}) => Promise<boolean> | boolean,
+        delete: ({session}: {session: string}) => Promise<any> | any,
+        save: ({session}: {session: string}) => Promise<any> | any,
+        extract: ({session, path}: {session: string; path: string}) => Promise<any> | any,
     }
 
     /**
