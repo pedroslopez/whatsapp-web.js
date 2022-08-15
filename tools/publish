@@ -13,17 +13,17 @@ echo ""
 if [[ "$RELEASE_MODE" == "alpha" ]]
 then
   PRERELEASE='true'
-  VERSION_ARGS='prerelease --preid alpha -m "chore: prerelease v%s"'
+  VERSION_ARGS="prerelease --preid alpha"
   DIST_TAG="next"
 elif [[ "$RELEASE_MODE" == "alpha-minor" ]]
 then
   PRERELEASE='true'
-  VERSION_ARGS='preminor --preid alpha -m "chore: prerelease v%s"'
+  VERSION_ARGS="preminor --preid alpha"
   DIST_TAG="next"
 elif [[ "$RELEASE_MODE" == "alpha-major" ]]
 then
   PRERELEASE='true'
-  VERSION_ARGS='premajor --preid alpha -m "chore: prerelease v%s"'
+  VERSION_ARGS="premajor --preid alpha"
   DIST_TAG="next"
 else
   echo 'Release Mode required'
@@ -48,7 +48,7 @@ if [[ $BRANCH != 'main' ]]; then
 fi
 
 if [[ -n $(git status -s) ]]; then
-  echo "There are uncommitted changes on this branch.  Exiting"
+  echo "There are uncommitted changes on this branch. Exiting..."
   exit 1
 fi
 
@@ -75,6 +75,6 @@ echo "Version $NEW_VERSION published to $DIST_TAG tag"
 echo ""
 
 echo "::set-output name=NEW_VERSION::$NEW_VERSION"
-echo "::set-output name=PRERELEASE::$PRELEASE"
+echo "::set-output name=PRERELEASE::$PRERELEASE"
 
 exit 0
