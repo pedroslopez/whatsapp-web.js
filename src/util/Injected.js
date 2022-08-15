@@ -351,7 +351,7 @@ exports.LoadUtils = () => {
         
         if (typeof buttonsOptions.useTemplateButtons === 'undefined' || buttonsOptions.useTemplateButtons === null) {
             buttonsOptions.useTemplateButtons = buttonsOptions.buttons.some((button) => {
-                return 'callButton' in button || 'url' in button
+                return 'callButton' in button || 'url' in button;
             });
         }
         
