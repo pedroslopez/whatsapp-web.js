@@ -110,6 +110,10 @@ exports.ExposeStore = (moduleRaidStr) => {
     // Find button models
     window.Store.TemplateButtonModel = window.findProxyModel('TemplateButtonModel');
     window.Store.TemplateButtonCollection = window.mR.findModule('TemplateButtonCollection')[0].TemplateButtonCollection;
+    
+    // Find quick reply models
+    window.Store.ReplyButtonModel = window.findProxyModel('ReplyButtonModel');
+    window.Store.ButtonCollection = window.mR.findModule('ButtonCollection')[0].ButtonCollection;
 
     // Modify functions 
     window.injectToFunction({
@@ -248,6 +252,14 @@ exports.ExposeStore = (moduleRaidStr) => {
             }
             return 'text';
         }
+        
+        if (
+            proto.buttonsMessage?.headerType === 1 ||
+            proto.buttonsMessage?.headerType === 2
+        ) {
+            return 'text';
+        }
+        
         return func(...args);
     });
 
@@ -307,6 +319,18 @@ exports.ExposeStore = (moduleRaidStr) => {
 
         return func(...args);
     });
+    
+    window.injectToFunction({
+        index: 0,
+        name: 'encodeMaybeMediaType',
+        property: 'encodeMaybeMediaType',
+    }, (func, args) => {
+        const [type] = args;
+        if (type === 'button') {
+            return window.mR.findModule('DROP_ATTR')[0].DROP_ATTR;
+        }
+        return func(...args);
+    });
 };
 
 exports.LoadUtils = () => {
@@ -328,40 +352,64 @@ exports.LoadUtils = () => {
         if (!buttonsOptions.buttons) {
             return returnObject;
         }
-
+        
+        if (typeof buttonsOptions.useTemplateButtons === 'undefined' || buttonsOptions.useTemplateButtons === null) {
+            buttonsOptions.useTemplateButtons = buttonsOptions.buttons.some((button) => {
+                return 'callButton' in button || 'urlButton' in button;
+            });
+        }
+        
         returnObject.title = buttonsOptions.title;
         returnObject.footer = buttonsOptions.footer;
-        returnObject.isFromTemplate = true;
-        returnObject.buttons = new window.Store.TemplateButtonCollection;
+    
+        if (buttonsOptions.useTemplateButtons) {
+            returnObject.isFromTemplate = true;
+            returnObject.hydratedButtons = buttonsOptions.buttons;
+            returnObject.buttons = new window.Store.TemplateButtonCollection;
 
-        returnObject.hydratedButtons = buttonsOptions.buttons;
+            returnObject.buttons.add(returnObject.hydratedButtons.map((button, index) => {
+                const buttonIndex = button.index ? button.index : index;
+                if (button.urlButton) {
+                    return new window.Store.TemplateButtonModel({
+                        id: buttonIndex,
+                        displayText: button.urlButton?.displayText || '',
+                        url: button.urlButton?.url,
+                        subtype: 'url'
+                    });
+                } else if (button.callButton) {
+                    return new window.Store.TemplateButtonModel({
+                        id: buttonIndex,
+                        displayText: button.callButton?.displayText,
+                        phoneNumber: button.callButton?.phoneNumber,
+                        subtype: 'call'
+                    });
+                } else {
+                    return new window.Store.TemplateButtonModel({
+                        id: buttonIndex,
+                        displayText: button.quickReplyButton?.displayText,
+                        selectionId: button.quickReplyButton?.id,
+                        subtype: 'quick_reply'
+                    });
+                }
+            }));
+        }
+        else {
+            returnObject.isDynamicReplyButtonsMsg = true;
 
-        returnObject.buttons.add(returnObject.hydratedButtons.map((button, index) => {
-            const buttonIndex = button.index ? button.index : index;
-            if (button.urlButton) {
-                return new window.Store.TemplateButtonModel({
-                    id: buttonIndex,
-                    displayText: button.urlButton?.displayText || '',
-                    url: button.urlButton?.url,
-                    subtype: 'url'
-                });
-            } else if (button.callButton) {
-                return new window.Store.TemplateButtonModel({
-                    id: buttonIndex,
-                    displayText: button.callButton?.displayText,
-                    phoneNumber: button.callButton?.phoneNumber,
-                    subtype: 'call'
-                });
-            } else {
-                return new window.Store.TemplateButtonModel({
-                    id: buttonIndex,
-                    displayText: button.quickReplyButton?.displayText,
-                    selectionId: button.quickReplyButton?.id,
-                    subtype: 'quick_reply'
-                });
-            }
-        }));
+            returnObject.dynamicReplyButtons = buttonsOptions.buttons.map((button, index) => ({
+                buttonId: button.index || `${index}`,
+                buttonText: {displayText: button.quickReplyButton?.displayText},
+                type: 1,
+            }));
 
+            // For UI only
+            returnObject.replyButtons = new window.Store.ButtonCollection();
+            returnObject.replyButtons.add(returnObject.dynamicReplyButtons.map((button) => new window.Store.ReplyButtonModel({
+                id: button.buttonId,
+                displayText: button.buttonText?.displayText || undefined,
+            })));
+
+        }
         return returnObject;
     };
 
