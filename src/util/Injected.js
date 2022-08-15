@@ -110,6 +110,10 @@ exports.ExposeStore = (moduleRaidStr) => {
     // Find button models
     window.Store.TemplateButtonModel = window.findProxyModel('TemplateButtonModel');
     window.Store.TemplateButtonCollection = window.mR.findModule('TemplateButtonCollection')[0].TemplateButtonCollection;
+    
+    // Find quick reply models
+    window.Store.ReplyButtonModel = window.findProxyModel('ReplyButtonModel');
+    window.Store.ButtonCollection = window.mR.findModule('ButtonCollection')[0].ButtonCollection;
 
     // Modify functions 
     window.injectToFunction({
