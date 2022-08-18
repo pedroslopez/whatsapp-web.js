@@ -989,7 +989,13 @@ class Client extends EventEmitter {
      */
     async getCommonGroups(contactId) {
         const commonGroups = await this.pupPage.evaluate(async (contactId) => {
-            const contact = window.Store.Contact.get(contactId);
+            let contact = window.Store.Contact.get(contactId);
+            if (!contact) {
+                const wid = window.Store.WidFactory.createUserWid(contactId);
+                const chatConstructor = window.Store.Contact.getModelsArray().find(c=>!c.isGroup).constructor;
+                contact = new chatConstructor({id: wid});
+            }
+
             if (contact.commonGroups) {
                 return contact.commonGroups.serialize();
             }
