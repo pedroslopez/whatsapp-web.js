@@ -7,8 +7,8 @@ const MessageMedia = require('./MessageMedia');
  * @typedef {Object} ButtonSpec
  * @property {string} body - The text to show on the button.
  * @property {string=} id - Custom ID to set on the button. A random one will be generated if one is not passed.
- * @property {string=} url - Custom URL to set on the button. Optional and will change the type of the button
- * @property {string=} number - Custom URL to set on the button. Optional and will change the type of the button
+ * @ property {string=} url - Custom URL to set on the button. Optional and will change the type of the button
+ * @ property {string=} number - Custom URL to set on the button. Optional and will change the type of the button
  */
 
 /**
@@ -78,21 +78,23 @@ class Buttons {
         return buttons.map((button, index) => {
             if (button.url && button.number && button.id) throw 'Only pick one of the following (url/number/id)';
             if (button.number) {
-                return {
+                throw 'number buttons are not supported yet';
+                /* return {
                     index,
                     callButton: {
                         displayText: button.body, 
                         phoneNumber: button.number || ''
                     }
-                };
+                }; */
             } else if (button.url) {
-                return {
+                throw 'URL buttons are not supported yet';
+                /* return {
                     index,
                     urlButton: {
                         displayText: button.body, 
                         url: button.url || ''
                     }
-                };
+                }; */
             } else {
                 return {
                     index,
