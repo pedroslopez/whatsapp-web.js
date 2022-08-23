@@ -32,6 +32,12 @@ client.on('ready', () => {
 client.on('message', async msg => {
     console.log('MESSAGE RECEIVED', msg);
 
+    if (msg.selectedButtonId == 'test') {
+        return msg.reply('You clicked the button!');
+    } else if (msg.selectedRowId == 'test') {
+        return msg.reply('You clicked that section');
+    }
+
     if (msg.body === '!ping reply') {
         // Send a new message as a reply to the current one
         msg.reply('pong');
@@ -200,11 +206,19 @@ client.on('message', async msg => {
         );
         client.sendMessage(msg.from, button);
     } else if (msg.body === '!list') {
-        let sections = [{title:'sectionTitle',rows:[{title:'ListItem1', description: 'desc'},{title: 'Try clicking me (id: test)', }]}];
-        let list = new List('List body','btnText',sections,'Title','footer');
-        client.sendMessage(msg.from, list);
+        let sections = [
+            {
+                title: 'Secton title',
+                rows: [
+                    {title:'ListItem1', description: 'desc'},
+                    {title: 'Try clicking me (id: test)', id: 'test'}
+                ]
+            }
+        ];
+        let list = new List('List body', 'btnText', sections, 'Custom title', 'custom footer, google.com');
+        await client.sendMessage(msg.from, list);
     } else if (msg.body === '!reaction') {
-        msg.react('👍');
+        await msg.react('👍');
     }
 });
 
