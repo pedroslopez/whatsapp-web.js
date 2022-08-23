@@ -178,9 +178,9 @@ class RemoteAuth extends BaseAuthStrategy {
                         await fs.promises.rm(dirElement, {
                             recursive: true,
                             force: true
-                        });
+                        }).catch(() => {});
                     } else {
-                        await fs.promises.unlink(dirElement);
+                        await fs.promises.unlink(dirElement).catch(() => {});
                     }
                 }
             }

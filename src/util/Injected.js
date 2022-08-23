@@ -222,6 +222,14 @@ exports.ExposeStore = (moduleRaidStr) => {
             };
             delete proto.templateMessage;
         }
+        if (proto.buttonsMessage) {
+            proto.viewOnceMessage = {
+                message: {
+                    buttonsMessage: proto.buttonsMessage,
+                },
+            };
+            delete proto.buttonsMessage;
+        }
         if (proto.listMessage) {
             proto.viewOnceMessage = {
                 message: {
@@ -348,7 +356,6 @@ exports.LoadUtils = () => {
 
     window.WWebJS.prepareMessageButtons = (buttonsOptions) => {
         const returnObject = {};
-
         if (!buttonsOptions.buttons) {
             return returnObject;
         }
@@ -397,7 +404,7 @@ exports.LoadUtils = () => {
             returnObject.isDynamicReplyButtonsMsg = true;
 
             returnObject.dynamicReplyButtons = buttonsOptions.buttons.map((button, index) => ({
-                buttonId: button.index || `${index}`,
+                buttonId: button.quickReplyButton.id.toString() || `${index}`,
                 buttonText: {displayText: button.quickReplyButton?.displayText},
                 type: 1,
             }));

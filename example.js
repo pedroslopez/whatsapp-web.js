@@ -195,6 +195,7 @@ client.on('message', async msg => {
             client.interface.openChatWindowAt(quotedMsg.id._serialized);
         }
     } else if (msg.body === '!buttons') {
+        // Limited to 5 buttons per message and limited to 3 buttons for each kind, in this case the third quick reply button will be removed
         let button = new Buttons(
             'Button body',
             [
