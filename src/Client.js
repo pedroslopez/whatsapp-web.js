@@ -161,6 +161,32 @@ class Client extends EventEmitter {
             }
         );
 
+        page.exposeFunction('connectionError', async () => {
+            await this.destroy();
+            this.authStrategy.logout();
+        });
+
+        page.evaluate(
+            async function (logoutSelector) {
+                var observer = new MutationObserver(function () {
+                    let logoutButton = window.getElementByXpath(
+                        logoutSelector
+                    );
+                    if (logoutButton) {
+                        window.connectionError()
+                    }
+                });
+
+                observer.observe(document, {
+                    attributes: true,
+                    childList: true,
+                    characterData: true,
+                    subtree: true,
+                });
+            },
+            '//*[@id=\'app\']/div/div/div/div/div/div/div/div/div[@role="button"]/div/div'
+        );
+
         const INTRO_IMG_SELECTOR = '[data-testid="intro-md-beta-logo-dark"], [data-testid="intro-md-beta-logo-light"], [data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
         const INTRO_QRCODE_SELECTOR = 'div[data-ref] canvas';
 
