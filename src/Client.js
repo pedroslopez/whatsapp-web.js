@@ -162,8 +162,8 @@ class Client extends EventEmitter {
         );
 
         page.exposeFunction('connectionError', async () => {
-            await this.destroy();
-            this.authStrategy.logout();
+            const failureEventPayload = 'The session seems damaged, try to use new session';
+            this.emit(Events.AUTHENTICATION_FAILURE, failureEventPayload);
         });
 
         page.evaluate(
@@ -173,7 +173,7 @@ class Client extends EventEmitter {
                         logoutSelector
                     );
                     if (logoutButton) {
-                        window.connectionError()
+                        window.connectionError();
                     }
                 });
 
