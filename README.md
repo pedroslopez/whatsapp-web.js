@@ -88,6 +88,8 @@ Something missing? Make an issue and let us know!
 
 Pull requests are welcome! If you see something you'd like to add, please do. For drastic changes, please open an issue first.
 
+* Please, gently read https://github.com/pedroslopez/whatsapp-web.js/issues/1621 before opening an enhancement or question *
+
 ## Supporting the project
 
 You can support the maintainer of this project through the links below
