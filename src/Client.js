@@ -1180,6 +1180,26 @@ class Client extends EventEmitter {
 
         return blockedContacts.map(contact => ContactFactory.create(this.client, contact));
     }
+
+    /**
+     * Gets battery status from used device
+     * @returns {Promise<BatteryManajer>}
+     */
+    async getBatteryStatus() {
+        return await this.pupPage.evaluate(async () => {
+			let status = await window.navigator.getBattery()
+            return {
+				level: Math.floor(status.level * 100),
+				charging: status.charging,
+				chargingTime: status.chargingTime,
+				dischargingTime: status.dischargingTime,
+				onchargingchange: status.onchargingchange,
+				onchargingchange: status.onchargingchange,
+				ondischargingtimechange: status.ondischargingtimechange,
+				onlevelchange: status.onlevelchange
+			}
+        });
+	}
 }
 
 module.exports = Client;
