@@ -90,7 +90,10 @@ class Client extends EventEmitter {
         const puppeteerOpts = this.options.puppeteer;
         if (puppeteerOpts && puppeteerOpts.browserWSEndpoint) {
             browser = await puppeteer.connect(puppeteerOpts);
-            page = await browser.newPage();
+            // if there is an opened page for whatsapp web,then use it
+            page = (await client.pupBrowser.pages()).find((p) => {
+	                p.url == "https://web.whatsapp.com/";
+                    }) || (await browser.newPage());
         } else {
             const browserArgs = [...(puppeteerOpts.args || [])];
             if(!browserArgs.find(arg => arg.includes('--user-agent'))) {
