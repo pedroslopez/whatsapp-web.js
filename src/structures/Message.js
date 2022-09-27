@@ -430,14 +430,14 @@ class Message extends Base {
 
     /**
      * Deletes a message from the chat
-     * @param {?boolean} everyone If true and the message is sent by the current user, will delete it for everyone in the chat.
+     * @param {?boolean} everyone If true and the message is sent by the current user or the user is an admin, will delete it for everyone in the chat.
      */
     async delete(everyone) {
         await this.client.pupPage.evaluate((msgId, everyone) => {
             let msg = window.Store.Msg.get(msgId);
 
-            if (everyone && msg.id.fromMe && msg._canRevoke()) {
-                return window.Store.Cmd.sendRevokeMsgs(msg.chat, [msg], {type: 'Sender'});
+            if (everyone && msg._canRevoke()) {
+                return window.Store.Cmd.sendRevokeMsgs(msg.chat, [msg], { type: msg.id.fromMe ? 'Sender' : 'Admin' });
             }
 
             return window.Store.Cmd.sendDeleteMsgs(msg.chat, [msg], true);
