@@ -52,10 +52,10 @@ declare namespace WAWebJS {
         getBlockedContacts(): Promise<Contact[]>
 
         /** Get chat instance by ID */
-        getChatById(chatId: string): Promise<Chat>
+        getChatById(chatId: string): Promise<GroupChat>
 
         /** Get all current chat instances */
-        getChats(): Promise<Chat[]>
+        getChats(): Promise<GroupChat[]>
 
         /** Get contact instance by ID */
         getContactById(contactId: string): Promise<Contact>
@@ -79,7 +79,7 @@ declare namespace WAWebJS {
         getChatLabels(chatId: string): Promise<Label[]>
 
         /** Get all Chats for a specific Label */
-        getChatsByLabelId(labelId: string): Promise<Chat[]>
+        getChatsByLabelId(labelId: string): Promise<GroupChat[]>
 
         /** Returns the contact ID's profile picture URL, if privacy settings allow it */
         getProfilePicUrl(contactId: string): Promise<string>
@@ -464,7 +464,7 @@ declare namespace WAWebJS {
         type: GroupNotificationTypes,
 
         /** Returns the Chat this GroupNotification was sent in */
-        getChat: () => Promise<Chat>,
+        getChat: () => Promise<GroupChat>,
         /** Returns the Contact this GroupNotification was produced by */
         getContact: () => Promise<Contact>,
         /** Returns the Contacts affected by this GroupNotification */
@@ -733,7 +733,7 @@ declare namespace WAWebJS {
         /** Downloads and returns the attached message media */
         downloadMedia: () => Promise<MessageMedia>,
         /** Returns the Chat this message was sent in */
-        getChat: () => Promise<Chat>,
+        getChat: () => Promise<GroupChat>,
         /** Returns the Contact this message was sent from */
         getContact: () => Promise<Contact>,
         /** Returns the Contacts mentioned in this message */
@@ -794,7 +794,7 @@ declare namespace WAWebJS {
         hexColor: string,
 
         /** Get all chats that have been assigned this Label */
-        getChats: () => Promise<Chat[]>
+        getChats: () => Promise<GroupChat[]>
     }
 
     /** Options for sending a message */
@@ -941,7 +941,7 @@ declare namespace WAWebJS {
         /** Returns the Chat that corresponds to this Contact.  
          * Will return null when getting chat for currently logged in user.
          */
-        getChat: () => Promise<Chat>,
+        getChat: () => Promise<GroupChat>,
         
         /** Returns the contact's countrycode, (1541859685@c.us) => (1) */
         getCountryCode(): Promise<string>,
