@@ -1,7 +1,7 @@
 
 import { EventEmitter } from 'events'
 import { RequestInit } from 'node-fetch'
-import * as puppeteer from 'puppeteer'
+import puppeteer from 'puppeteer'
 
 declare namespace WAWebJS {
 
@@ -52,10 +52,10 @@ declare namespace WAWebJS {
         getBlockedContacts(): Promise<Contact[]>
 
         /** Get chat instance by ID */
-        getChatById(chatId: string): Promise<GroupChat>
+        getChatById(chatId: string): Promise<GroupChat | PrivateChat>
 
         /** Get all current chat instances */
-        getChats(): Promise<GroupChat[]>
+        getChats(): Promise<GroupChat[] | PrivateChat[]>
 
         /** Get contact instance by ID */
         getContactById(contactId: string): Promise<Contact>
@@ -79,7 +79,7 @@ declare namespace WAWebJS {
         getChatLabels(chatId: string): Promise<Label[]>
 
         /** Get all Chats for a specific Label */
-        getChatsByLabelId(labelId: string): Promise<GroupChat[]>
+        getChatsByLabelId(labelId: string): Promise<GroupChat[] | PrivateChat[]>
 
         /** Returns the contact ID's profile picture URL, if privacy settings allow it */
         getProfilePicUrl(contactId: string): Promise<string>
@@ -464,7 +464,7 @@ declare namespace WAWebJS {
         type: GroupNotificationTypes,
 
         /** Returns the Chat this GroupNotification was sent in */
-        getChat: () => Promise<GroupChat>,
+        getChat: () => Promise<GroupChat | PrivateChat>,
         /** Returns the Contact this GroupNotification was produced by */
         getContact: () => Promise<Contact>,
         /** Returns the Contacts affected by this GroupNotification */
@@ -733,7 +733,7 @@ declare namespace WAWebJS {
         /** Downloads and returns the attached message media */
         downloadMedia: () => Promise<MessageMedia>,
         /** Returns the Chat this message was sent in */
-        getChat: () => Promise<GroupChat>,
+        getChat: () => Promise<GroupChat | PrivateChat>,
         /** Returns the Contact this message was sent from */
         getContact: () => Promise<Contact>,
         /** Returns the Contacts mentioned in this message */
@@ -794,7 +794,7 @@ declare namespace WAWebJS {
         hexColor: string,
 
         /** Get all chats that have been assigned this Label */
-        getChats: () => Promise<GroupChat[]>
+        getChats: () => Promise<GroupChat[] | PrivateChat[]>
     }
 
     /** Options for sending a message */
@@ -941,7 +941,7 @@ declare namespace WAWebJS {
         /** Returns the Chat that corresponds to this Contact.  
          * Will return null when getting chat for currently logged in user.
          */
-        getChat: () => Promise<GroupChat>,
+        getChat: () => Promise<GroupChat | PrivateChat>,
         
         /** Returns the contact's countrycode, (1541859685@c.us) => (1) */
         getCountryCode(): Promise<string>,
@@ -1004,8 +1004,6 @@ declare namespace WAWebJS {
         archived: boolean,
         /** ID that represents the chat */
         id: ChatId,
-        /** Indicates if the Chat is a Group Chat */
-        isGroup: boolean,
         /** Indicates if the Chat is readonly */
         isReadOnly: boolean,
         /** Indicates if the Chat is muted */
@@ -1097,7 +1095,8 @@ declare namespace WAWebJS {
     }
 
     export interface PrivateChat extends Chat {
-
+        /** Indicates if the Chat is a Group Chat */
+        isGroup: false;
     }
 
     export type GroupParticipant = {
@@ -1124,6 +1123,8 @@ declare namespace WAWebJS {
          }>
 
     export interface GroupChat extends Chat {
+        /** Indicates if the Chat is a Group Chat */
+        isGroup: true;
         /** Group owner */
         owner: ContactId;
         /** Date at which the group was created */
