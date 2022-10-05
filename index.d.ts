@@ -1328,26 +1328,52 @@ declare namespace WAWebJS {
         /** Object with participants */
         participants: object
     }
-
+    export interface IRow {
+        /** indicates the title of row */
+        title: string;
+        /** indicates the description of the row */
+        description: string;
+        /** indicates the id of the row */
+        id: string;
+    }
+    export interface ISection {
+        /** indicates title of section list */
+        title: string;
+        /** indicates rows of the section list */
+        rows: IRow[];
+    }
+    export interface IRowRefactored {
+        /** indicates the title of row */
+        title: string;
+        /** indicates the description of the row */
+        description: string;
+        /** indicates the id of the row */
+        rowId: string;
+    }
+    export interface ISectionRefactored {
+        /** indicates title of section list */
+        title: string;
+        /** indicates rows of the section list */
+        rows: IRowRefactored[];
+    }
     /** Message type List */
     export class List {
         body: string
         buttonText: string
-        sections: Array<any>
+        sections: ISectionRefactored[]
         title?: string | null
         footer?: string | null
-        
-        constructor(body: string, buttonText: string, sections: Array<any>, title?: string | null, footer?: string | null)
+
+        constructor(body: string, buttonText: string, sections: ISection[], title?: string | null, footer?: string | null)
     }
-    
     /** Message type Buttons */
     export class Buttons {
         body: string | MessageMedia
-        buttons: Array<{ buttonId: string; buttonText: {displayText: string}; type: number }>
+        buttons: Array<{ buttonId: string; buttonText: { displayText: string }; type: number }>
         title?: string | null
         footer?: string | null
-        
-        constructor(body: string, buttons: Array<{ id?: string; body: string }>, title?: string | null, footer?: string | null)
+
+        constructor(body: string | MessageMedia, buttons: Array<{ id?: string; body: string }>, title?: string | null, footer?: string | null)
     }
 
     /** Message type Reaction */

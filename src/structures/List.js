@@ -1,7 +1,6 @@
 'use strict';
 
 const Util = require('../util/Util');
-
 /**
  * Message type List
  */
@@ -9,7 +8,7 @@ class List {
     /**
      * @param {string} body
      * @param {string} buttonText
-     * @param {Array<any>} sections
+     * @param {import('../..').ISection[]} sections
      * @param {string?} title
      * @param {string?} footer
      */
@@ -49,8 +48,8 @@ class List {
     
     /**
      * Creates section array from simple array
-     * @param {Array<any>} sections
-     * @returns {Array<any>}
+     * @param {import('../..').ISection[]} sections
+     * @returns {import('../..').ISectionRefactored[]}
      * @example
      * Input: [{title:'sectionTitle',rows:[{id:'customId', title:'ListItem2', description: 'desc'},{title:'ListItem2'}]}}]
      * Returns: [{'title':'sectionTitle','rows':[{'rowId':'customId','title':'ListItem1','description':'desc'},{'rowId':'oGSRoD','title':'ListItem2','description':''}]}]
