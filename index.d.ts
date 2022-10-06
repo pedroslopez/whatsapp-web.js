@@ -1,7 +1,7 @@
 
 import { EventEmitter } from 'events'
 import { RequestInit } from 'node-fetch'
-import puppeteer from 'puppeteer'
+import * as puppeteer from 'puppeteer'
 
 declare namespace WAWebJS {
 
