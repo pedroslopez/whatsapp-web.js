@@ -121,13 +121,13 @@ class MessageMedia {
             const stat = await fs.promises.stat(filePath);
             if (stat.isDirectory()) {
                 if (this.filename){
-                    filePath += this.filename;
+                    filePath = path.join(filePath, this.filename);
                 } else {
                     throw Error('You passed in a directory but the filename is empty');
                 }
             }
         }
-        if (!filePath.includes('.')) {
+        if (!path.basename(filePath).includes('.')) {
             filePath += `.${ext}`;   
         }
         await fs.promises.writeFile(filePath, this.data, 'base64');
