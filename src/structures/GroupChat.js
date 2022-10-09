@@ -77,40 +77,40 @@ class GroupChat extends Chat {
     /**
      * Adds a list of participants by ID to the group
      * @param {Array<string>} participantIds
-     * @param {?number} sleep optional, amount to sleep in milliseconds before adding the next participant
+     * @param {?number} default 100ms, amount to sleep in milliseconds before adding the next participant
      * @returns {Promise<Array<Object>>}
      */
-    async addParticipants(participantIds, sleep = null) {
+    async addParticipants(participantIds, sleep = 100) {
         return this._changeParticipants(participantIds, 'add', sleep);
     }
 
     /**
      * Removes a list of participants by ID to the group
      * @param {Array<string>} participantIds
-     * @param {?number} sleep optional, amount to sleep in milliseconds before removing the next participant
+     * @param {?number} default 100ms, amount to sleep in milliseconds before removing the next participant
      * @returns {Promise<Array<Object>>}
      */
-    async removeParticipants(participantIds, sleep = null) {
+    async removeParticipants(participantIds, sleep = 100) {
         return this._changeParticipants(participantIds, 'remove', sleep);
     }
 
     /**
      * Promote participants to admins by IDs
      * @param {Array<string>} participantIds
-     * @param {?number} sleep optional, amount to sleep in milliseconds before promoting the next participant
+     * @param {?number} default 100ms, amount to sleep in milliseconds before promoting the next participant
      * @returns {Promise<Array<Object>>}
      */
-    async promoteParticipants(participantIds, sleep = null) {
+    async promoteParticipants(participantIds, sleep = 100) {
         return this._changeParticipants(participantIds, 'promote', sleep);
     }
 
     /**
      * Demotes admins to regular participants by IDs 
      * @param {Array<string>} participantIds
-     * @param {?number} sleep optional, amount to sleep in milliseconds before demoting the next participant
+     * @param {?number} default 100ms, amount to sleep in milliseconds before demoting the next participant
      * @returns {Promise<Array<Object>>}
      */
-    async demoteParticipants(participantIds, sleep = null) {
+    async demoteParticipants(participantIds, sleep = 100) {
         return this._changeParticipants(participantIds, 'demote', sleep);
     }
 
