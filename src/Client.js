@@ -849,7 +849,7 @@ class Client extends EventEmitter {
         const cropped = await Util.generateProfilePicture(buffer);
         const res = await this.pupPage.evaluate(async (chatId, img, preview) => {
             const wid = window.Store.WidFactory.createWid(chatId);
-            return await window.Store.SendSetPicture(wid, img, preview);
+            return await window.Store.SendSetPicture(wid, preview, img);
         }, chatId, cropped.img, cropped.preview);
         return res.eurl;
     }
