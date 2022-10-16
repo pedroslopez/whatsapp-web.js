@@ -192,14 +192,8 @@ declare namespace WAWebJS {
             notification: GroupNotification
         ) => void): this
 
-        /** Emitted when a user is promoted to admin by an admin */
-        on(event: 'group_admin_promoted', listener: (
-            /** GroupNotification with more information about the action */
-            notification: GroupNotification
-        ) => void): this
-
-        /** Emitted when an admin is demoted by a main group admin */
-        on(event: 'group_admin_demoted', listener: (
+        /** Emitted when a user is promoted to an admin or an admin is demoted to a regular user */
+        on(event: 'group_admin_changed', listener: (
             /** GroupNotification with more information about the action */
             notification: GroupNotification
         ) => void): this
@@ -512,6 +506,7 @@ declare namespace WAWebJS {
         MEDIA_UPLOADED = 'media_uploaded',
         GROUP_JOIN = 'group_join',
         GROUP_LEAVE = 'group_leave',
+        GROUP_ADMIN_CHANGED = 'group_admin_changed',
         GROUP_UPDATE = 'group_update',
         QR_RECEIVED = 'qr',
         LOADING_SCREEN = 'loading_screen',
