@@ -317,20 +317,13 @@ class Client extends EventEmitter {
                      * @param {GroupNotification} notification GroupNotification with more information about the action
                      */
                     this.emit(Events.GROUP_LEAVE, notification);
-                } else if (msg.subtype === 'promote') {
+                } else if (msg.subtype === 'promote' || msg.subtype === 'demote') {
                     /**
-                     * Emitted when a user is promoted to admin by an admin.
-                     * @event Client#group_admin_promoted
+                     * Emitted when a user is promoted to an admin or an admin is demoted to a regular user.
+                     * @event Client#group_admin_changed
                      * @param {GroupNotification} notification GroupNotification with more information about the action
                      */
-                    this.emit(Events.GROUP_ADMIN_PROMOTED, notification);
-                } else if (msg.subtype === 'demote') {
-                    /**
-                     * Emitted when an admin is demoted by a main group admin.
-                     * @event Client#group_admin_demoted
-                     * @param {GroupNotification} notification GroupNotification with more information about the action
-                     */
-                    this.emit(Events.GROUP_ADMIN_DEMOTED, notification);
+                    this.emit(Events.GROUP_ADMIN_CHANGED, notification);
                 } else {
                     /**
                      * Emitted when group settings are updated, such as subject, description or picture.
