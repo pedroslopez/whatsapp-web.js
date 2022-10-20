@@ -366,10 +366,10 @@ exports.LoadUtils = () => {
 
         msg.isEphemeral = message.isEphemeral;
         msg.isStatusV3 = message.isStatusV3;
-        msg.links = (message.getLinks()).map(link => ({
+        msg.links = (message?.getRawLinks())?.map(link => ({
             link: link.href,
             isSuspicious: Boolean(link.suspiciousCharacters && link.suspiciousCharacters.size)
-        }));
+        })) || [];
 
         if (msg.buttons) {
             msg.buttons = msg.buttons.serialize();
