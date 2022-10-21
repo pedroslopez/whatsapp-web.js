@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.18.0 &raquo; Class: LegacySessionAuth</title>
+  <title>whatsapp-web.js 1.18.0 &raquo; Class: RemoteAuth</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -25,11 +25,10 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
-            <h1><small></small><span class="symbol-name">LegacySessionAuth</span></h1>
-            <p class="source-link">Source: <a href="authStrategies_LegacySessionAuth.js.html#source-line-16">authStrategies/<wbr>LegacySessionAuth.<wbr>js:16</a></p>
+            <h1><small></small><span class="symbol-name">RemoteAuth</span></h1>
+            <p class="source-link">Source: <a href="authStrategies_RemoteAuth.js.html#source-line-26">authStrategies/<wbr>RemoteAuth.<wbr>js:26</a></p>
             <div class="symbol-classdesc">
-              <p>Legacy session auth strategy
-                Not compatible with multi-device accounts.</p>
+              <p>Remote-based authentication</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -37,7 +36,7 @@
           <section id="summary">
           </section>
           <section>
-            <h2 id="LegacySessionAuth">new&nbsp;<span class="symbol-name">LegacySessionAuth</span><span class="signature"><span class="signature-params">(options)</span></span></h2>
+            <h2 id="RemoteAuth">new&nbsp;<span class="symbol-name">RemoteAuth</span><span class="signature"><span class="signature-params">(options)</span></span></h2>
             <section>
               <h3>Parameters</h3>
               <table class="jsdoc-details-table">
@@ -75,7 +74,7 @@
                         <tbody>
                           <tr>
                             <td>
-                              <p>restartOnAuthFail</p>
+                              <p>store</p>
                             </td>
                             <td>
                               <p>&nbsp;</p>
@@ -84,12 +83,12 @@
                               <p>&nbsp;</p>
                             </td>
                             <td>
-                              <p>Restart client with a new session (i.e. use null 'session' var) if authentication fails</p>
+                              <p>Remote database store instance</p>
                             </td>
                           </tr>
                           <tr>
                             <td>
-                              <p>session</p>
+                              <p>clientId</p>
                             </td>
                             <td>
                               <p>&nbsp;</p>
@@ -98,12 +97,12 @@
                               <p>&nbsp;</p>
                             </td>
                             <td>
-                              <p>Whatsapp session to restore. If not set, will start a new session</p>
+                              <p>Client id to distinguish instances if you are using multiple, otherwise keep null if you are using only one instance</p>
                             </td>
                           </tr>
                           <tr>
                             <td>
-                              <p>session.WABrowserId</p>
+                              <p>dataPath</p>
                             </td>
                             <td>
                               <p>&nbsp;</p>
@@ -112,11 +111,12 @@
                               <p>&nbsp;</p>
                             </td>
                             <td>
+                              <p>Change the default path for saving session files, default is: &quot;./.wwebjs_auth/&quot;</p>
                             </td>
                           </tr>
                           <tr>
                             <td>
-                              <p>session.WASecretBundle</p>
+                              <p>backupSyncIntervalMs</p>
                             </td>
                             <td>
                               <p>&nbsp;</p>
@@ -125,32 +125,7 @@
                               <p>&nbsp;</p>
                             </td>
                             <td>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <p>session.WAToken1</p>
-                            </td>
-                            <td>
-                              <p>&nbsp;</p>
-                            </td>
-                            <td>
-                              <p>&nbsp;</p>
-                            </td>
-                            <td>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <p>session.WAToken2</p>
-                            </td>
-                            <td>
-                              <p>&nbsp;</p>
-                            </td>
-                            <td>
-                              <p>&nbsp;</p>
-                            </td>
-                            <td>
+                              <p>Sets the time interval for periodic session backups. Accepts values starting from 60000ms {1 minute}</p>
                             </td>
                           </tr>
                         </tbody>

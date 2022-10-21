@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.17.1 &raquo; Source: Client.js</title>
+  <title>whatsapp-web.js 1.18.0 &raquo; Source: Client.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>17.<wbr>1</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>18.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -41,7 +41,7 @@ const { WhatsWebURL, DefaultOptions, Events, WAState } &#x3D; require(&#x27;./ut
 const { ExposeStore, LoadUtils } &#x3D; require(&#x27;./util/Injected&#x27;);
 const ChatFactory &#x3D; require(&#x27;./factories/ChatFactory&#x27;);
 const ContactFactory &#x3D; require(&#x27;./factories/ContactFactory&#x27;);
-const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List} &#x3D; require(&#x27;./structures&#x27;);
+const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List, Reaction } &#x3D; require(&#x27;./structures&#x27;);
 const LegacySessionAuth &#x3D; require(&#x27;./authStrategies/LegacySessionAuth&#x27;);
 const NoAuth &#x3D; require(&#x27;./authStrategies/NoAuth&#x27;);
 
@@ -145,6 +145,52 @@ class Client extends EventEmitter {
             timeout: 0,
             referer: &#x27;https://whatsapp.com/&#x27;
         });
+
+        await page.evaluate(&#x60;function getElementByXpath(path) {
+            return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+          }&#x60;);
+
+        let lastPercent &#x3D; null,
+            lastPercentMessage &#x3D; null;
+
+        await page.exposeFunction(&#x27;loadingScreen&#x27;, async (percent, message) &#x3D;&gt; {
+            if (lastPercent !&#x3D;&#x3D; percent || lastPercentMessage !&#x3D;&#x3D; message) {
+                this.emit(Events.LOADING_SCREEN, percent, message);
+                lastPercent &#x3D; percent;
+                lastPercentMessage &#x3D; message;
+            }
+        });
+
+        await page.evaluate(
+            async function (selectors) {
+                var observer &#x3D; new MutationObserver(function () {
+                    let progressBar &#x3D; window.getElementByXpath(
+                        selectors.PROGRESS
+                    );
+                    let progressMessage &#x3D; window.getElementByXpath(
+                        selectors.PROGRESS_MESSAGE
+                    );
+
+                    if (progressBar) {
+                        window.loadingScreen(
+                            progressBar.value,
+                            progressMessage.innerText
+                        );
+                    }
+                });
+
+                observer.observe(document, {
+                    attributes: true,
+                    childList: true,
+                    characterData: true,
+                    subtree: true,
+                });
+            },
+            {
+                PROGRESS: &#x27;//*[@id&#x3D;\&#x27;app\&#x27;]/div/div/div[2]/progress&#x27;,
+                PROGRESS_MESSAGE: &#x27;//*[@id&#x3D;\&#x27;app\&#x27;]/div/div/div[3]&#x27;,
+            }
+        );
 
         const INTRO_IMG_SELECTOR &#x3D; &#x27;[data-testid&#x3D;&quot;intro-md-beta-logo-dark&quot;], [data-testid&#x3D;&quot;intro-md-beta-logo-light&quot;], [data-asset-intro-image-light&#x3D;&quot;true&quot;], [data-asset-intro-image-dark&#x3D;&quot;true&quot;]&#x27;;
         const INTRO_QRCODE_SELECTOR &#x3D; &#x27;div[data-ref] canvas&#x27;;
@@ -404,7 +450,7 @@ class Client extends EventEmitter {
             this.emit(Events.MEDIA_UPLOADED, message);
         });
 
-        await page.exposeFunction(&#x27;onAppStateChangedEvent&#x27;, (state) &#x3D;&gt; {
+        await page.exposeFunction(&#x27;onAppStateChangedEvent&#x27;, async (state) &#x3D;&gt; {
 
             /**
              * Emitted when the connection state changes
@@ -431,6 +477,7 @@ class Client extends EventEmitter {
                  * @event Client#disconnected
                  * @param {WAState|&quot;NAVIGATION&quot;} reason reason that caused the disconnect
                  */
+                await this.authStrategy.disconnect();
                 this.emit(Events.DISCONNECTED, state);
                 this.destroy();
             }
@@ -470,6 +517,27 @@ class Client extends EventEmitter {
             this.emit(Events.INCOMING_CALL, cll);
         });
 
+        await page.exposeFunction(&#x27;onReaction&#x27;, (reactions) &#x3D;&gt; {
+            for (const reaction of reactions) {
+                /**
+                 * Emitted when a reaction is sent, received, updated or removed
+                 * @event Client#message_reaction
+                 * @param {object} reaction
+                 * @param {object} reaction.id - Reaction id
+                 * @param {number} reaction.orphan - Orphan
+                 * @param {?string} reaction.orphanReason - Orphan reason
+                 * @param {number} reaction.timestamp - Timestamp
+                 * @param {string} reaction.reaction - Reaction
+                 * @param {boolean} reaction.read - Read
+                 * @param {object} reaction.msgId - Parent message id
+                 * @param {string} reaction.senderId - Sender id
+                 * @param {?number} reaction.ack - Ack
+                 */
+
+                this.emit(Events.MESSAGE_REACTION, new Reaction(this, reaction));
+            }
+        });
+
         await page.evaluate(() &#x3D;&gt; {
             window.Store.Msg.on(&#x27;change&#x27;, (msg) &#x3D;&gt; { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on(&#x27;change:type&#x27;, (msg) &#x3D;&gt; { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
@@ -489,6 +557,22 @@ class Client extends EventEmitter {
                     }
                 }
             });
+            
+            {
+                const module &#x3D; window.Store.createOrUpdateReactionsModule;
+                const ogMethod &#x3D; module.createOrUpdateReactions;
+                module.createOrUpdateReactions &#x3D; ((...args) &#x3D;&gt; {
+                    window.onReaction(args[0].map(reaction &#x3D;&gt; {
+                        const msgKey &#x3D; window.Store.MsgKey.fromString(reaction.msgKey);
+                        const parentMsgKey &#x3D; window.Store.MsgKey.fromString(reaction.parentMsgKey);
+                        const timestamp &#x3D; reaction.timestamp / 1000;
+
+                        return {...reaction, msgKey, parentMsgKey, timestamp };
+                    }));
+
+                    return ogMethod(...args);
+                }).bind(module);
+            }
         });
 
         /**
@@ -496,11 +580,13 @@ class Client extends EventEmitter {
          * @event Client#ready
          */
         this.emit(Events.READY);
+        this.authStrategy.afterAuthReady();
 
         // Disconnect when navigating away when in PAIRING state (detect logout)
         this.pupPage.on(&#x27;framenavigated&#x27;, async () &#x3D;&gt; {
             const appState &#x3D; await this.getState();
             if(!appState || appState &#x3D;&#x3D;&#x3D; WAState.PAIRING) {
+                await this.authStrategy.disconnect();
                 this.emit(Events.DISCONNECTED, &#x27;NAVIGATION&#x27;);
                 await this.destroy();
             }
@@ -512,6 +598,7 @@ class Client extends EventEmitter {
      */
     async destroy() {
         await this.pupBrowser.close();
+        await this.authStrategy.destroy();
     }
 
     /**
@@ -933,7 +1020,13 @@ class Client extends EventEmitter {
      */
     async getCommonGroups(contactId) {
         const commonGroups &#x3D; await this.pupPage.evaluate(async (contactId) &#x3D;&gt; {
-            const contact &#x3D; window.Store.Contact.get(contactId);
+            let contact &#x3D; window.Store.Contact.get(contactId);
+            if (!contact) {
+                const wid &#x3D; window.Store.WidFactory.createUserWid(contactId);
+                const chatConstructor &#x3D; window.Store.Contact.getModelsArray().find(c&#x3D;&gt;!c.isGroup).constructor;
+                contact &#x3D; new chatConstructor({id: wid});
+            }
+
             if (contact.commonGroups) {
                 return contact.commonGroups.serialize();
             }
@@ -1131,7 +1224,7 @@ module.exports &#x3D; Client;
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on July 10, 2022.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on October 21, 2022.
       </p>
     </div>
   </footer>
