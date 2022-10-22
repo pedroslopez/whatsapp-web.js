@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.17.1 &raquo; Class: Client</title>
+  <title>whatsapp-web.js 1.18.0 &raquo; Class: Client</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>17.<wbr>1</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>18.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -234,6 +234,9 @@
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
                     <dt><a href="Client.html#event:message_create">message_create</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#event:message_reaction">message_reaction</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Client.html#event:message_revoke_everyone">message_revoke_everyone</a></dt>
@@ -2181,6 +2184,179 @@
               </section>
               <dl class="dl-compact">
               </dl>
+              <h3 id="event:message_reaction"><span class="symbol-name">message_reaction</span></h3>
+              <p>Emitted when a reaction is sent, received, updated or removed</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>reaction</p>
+                      </td>
+                      <td>
+                        <p>object</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Values in <code>reaction</code> have the following properties:</p>
+                        <table class="jsdoc-details-table">
+                          <thead>
+                            <tr>
+                              <th>Name</th>
+                              <th>Type</th>
+                              <th>Optional</th>
+                              <th>Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>
+                                <p>id</p>
+                              </td>
+                              <td>
+                                <p>object</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                                <p>Reaction id</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>orphan</p>
+                              </td>
+                              <td>
+                                <p>number</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                                <p>Orphan</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>orphanReason</p>
+                              </td>
+                              <td>
+                                <p>string</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                                <p>Orphan reason</p>
+                                <p>Value can be null.</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>timestamp</p>
+                              </td>
+                              <td>
+                                <p>number</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                                <p>Timestamp</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>reaction</p>
+                              </td>
+                              <td>
+                                <p>string</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                                <p>Reaction</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>read</p>
+                              </td>
+                              <td>
+                                <p>boolean</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                                <p>Read</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>msgId</p>
+                              </td>
+                              <td>
+                                <p>object</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                                <p>Parent message id</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>senderId</p>
+                              </td>
+                              <td>
+                                <p>string</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                                <p>Sender id</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>ack</p>
+                              </td>
+                              <td>
+                                <p>number</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                                <p>Ack</p>
+                                <p>Value can be null.</p>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="event:message_revoke_everyone"><span class="symbol-name">message_revoke_everyone</span></h3>
               <p>Emitted when a message is deleted for everyone in the chat.</p>
               <section>
@@ -2310,7 +2486,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on July 10, 2022.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on October 21, 2022.
       </p>
     </div>
   </footer>
