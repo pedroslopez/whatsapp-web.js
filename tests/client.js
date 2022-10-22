@@ -313,6 +313,7 @@ describe('Client', function() {
                     'Conn',
                     'Contact',
                     'DownloadManager',
+                    'EphemeralFields',
                     'Features',
                     'GroupMetadata',
                     'GroupParticipants',
