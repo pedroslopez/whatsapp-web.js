@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.18.0 &raquo; Class: Order</title>
+  <title>whatsapp-web.js 1.18.0 &raquo; Class: Reaction</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -25,10 +25,10 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
-            <h1><small></small><span class="symbol-name">Order</span></h1>
-            <p class="source-link">Source: <a href="structures_Order.js.html#source-line-10">structures/<wbr>Order.<wbr>js:10</a></p>
+            <h1><small></small><span class="symbol-name">Reaction</span></h1>
+            <p class="source-link">Source: <a href="structures_Reaction.js.html#source-line-9">structures/<wbr>Reaction.<wbr>js:9</a></p>
             <div class="symbol-classdesc">
-              <p>Represents a Order on WhatsApp</p>
+              <p>Represents a Reaction on WhatsApp</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -39,31 +39,48 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Order.html#createdAt">createdAt</a></dt>
+                    <dt><a href="Reaction.html#ack">ack</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Order.html#currency">currency</a></dt>
+                    <dt><a href="Reaction.html#id">id</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Reaction.html#msgId">msgId</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Order.html#subtotal">subtotal</a></dt>
+                    <dt><a href="Reaction.html#orphan">orphan</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Order.html#total">total</a></dt>
+                    <dt><a href="Reaction.html#orphanReason">orphanReason</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Reaction.html#reaction">reaction</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Reaction.html#read">read</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Reaction.html#senderId">senderId</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Reaction.html#timestamp">timestamp</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
                 </div>
               </div>
             </div>
           </section>
           <section>
-            <h2 id="Order">new&nbsp;<span class="symbol-name">Order</span><span class="signature"><span class="signature-params">()</span></span></h2>
+            <h2 id="Reaction">new&nbsp;<span class="symbol-name">Reaction</span><span class="signature"><span class="signature-params">()</span></span></h2>
             <dl class="dl-compact">
               <dt>Extends</dt>
               <dd><a href="Base.html">Base</a></dd>
@@ -72,24 +89,49 @@
           <section>
             <h2>Properties</h2>
             <section>
-              <h3 id="createdAt"><span class="symbol-name">createdAt</span><small class="property-type">
+              <h3 id="ack"><span class="symbol-name">ack</span><small class="property-type">
+                  &nbsp;nullable number</small></h3>
+              <p>ACK</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="id"><span class="symbol-name">id</span><small class="property-type">
+                  &nbsp;object</small></h3>
+              <p>Reaction ID</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="msgId"><span class="symbol-name">msgId</span><small class="property-type">
+                  &nbsp;object</small></h3>
+              <p>Message ID</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="orphan"><span class="symbol-name">orphan</span><small class="property-type">
                   &nbsp;number</small></h3>
-              <p>Order Created At</p>
+              <p>Orphan</p>
               <dl class="dl-compact">
               </dl>
-              <h3 id="currency"><span class="symbol-name">currency</span><small class="property-type">
-                  &nbsp;string</small></h3>
-              <p>Order Currency</p>
+              <h3 id="orphanReason"><span class="symbol-name">orphanReason</span><small class="property-type">
+                  &nbsp;nullable string</small></h3>
+              <p>Orphan reason</p>
               <dl class="dl-compact">
               </dl>
-              <h3 id="subtotal"><span class="symbol-name">subtotal</span><small class="property-type">
+              <h3 id="reaction"><span class="symbol-name">reaction</span><small class="property-type">
                   &nbsp;string</small></h3>
-              <p>Order Subtotal</p>
+              <p>Reaction</p>
               <dl class="dl-compact">
               </dl>
-              <h3 id="total"><span class="symbol-name">total</span><small class="property-type">
+              <h3 id="read"><span class="symbol-name">read</span><small class="property-type">
+                  &nbsp;boolean</small></h3>
+              <p>Read</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="senderId"><span class="symbol-name">senderId</span><small class="property-type">
                   &nbsp;string</small></h3>
-              <p>Order Total</p>
+              <p>Sender ID</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="timestamp"><span class="symbol-name">timestamp</span><small class="property-type">
+                  &nbsp;number</small></h3>
+              <p>Unix timestamp for when the reaction was created</p>
               <dl class="dl-compact">
               </dl>
             </section>
