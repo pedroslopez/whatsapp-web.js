@@ -78,7 +78,7 @@ class Buttons {
         return buttons.map((button, index) => {
             if (button.url && button.number && button.id) throw 'Only pick one of the following (url/number/id)';
             if (button.number) {
-                throw 'number buttons are not supported yet';
+                throw 'Not supported, URL and Call buttons are not supported on IOS';
                 /* return {
                     index,
                     callButton: {
@@ -87,7 +87,7 @@ class Buttons {
                     }
                 }; */
             } else if (button.url) {
-                throw 'URL buttons are not supported yet';
+                throw 'Not supported, URL and Call buttons are not supported on IOS';
                 /* return {
                     index,
                     urlButton: {
