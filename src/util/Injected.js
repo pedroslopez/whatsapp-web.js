@@ -13,7 +13,11 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Cmd = window.mR.findModule('Cmd')[0].Cmd;
     window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
     window.Store.DownloadManager = window.mR.findModule('downloadManager')[0].downloadManager;
-    window.Store.MDBackend = true;
+    if (window.mR.findModule('isMDBackend')[0]?.isMDBackend) {
+        window.Store.MDBackend = window.mR.findModule('isMDBackend')[0].isMDBackend();
+    } else {
+        window.Store.MDBackend = true;
+    }
     window.Store.Features = window.mR.findModule('FEATURE_CHANGE_EVENT')[0].LegacyPhoneFeatures;
     window.Store.GroupMetadata = window.mR.findModule((module) => module.default && module.default.handlePendingInvite)[0].default;
     window.Store.Invite = window.mR.findModule('sendJoinGroupViaInvite')[0];
@@ -39,7 +43,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default;
     window.Store.Validators = window.mR.findModule('findLinks')[0];
     window.Store.VCard = window.mR.findModule('vcardFromContactModel')[0];
-    window.Store.Wap = window.mR.findModule('queryLinkPreview')[0].default;
     window.Store.WidFactory = window.mR.findModule('createWid')[0];
     window.Store.ProfilePic = window.mR.findModule('profilePicResync')[0];
     window.Store.PresenceUtils = window.mR.findModule('sendPresenceAvailable')[0];
