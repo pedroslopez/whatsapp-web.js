@@ -13,11 +13,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Cmd = window.mR.findModule('Cmd')[0].Cmd;
     window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
     window.Store.DownloadManager = window.mR.findModule('downloadManager')[0].downloadManager;
-    if (window.mR.findModule('isMDBackend')[0]?.isMDBackend) {
-        window.Store.MDBackend = window.mR.findModule('isMDBackend')[0].isMDBackend();
-    } else {
-        window.Store.MDBackend = true;
-    }
     window.Store.Features = window.mR.findModule('FEATURE_CHANGE_EVENT')[0].LegacyPhoneFeatures;
     window.Store.GroupMetadata = window.mR.findModule((module) => module.default && module.default.handlePendingInvite)[0].default;
     window.Store.Invite = window.mR.findModule('sendJoinGroupViaInvite')[0];
@@ -39,9 +34,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.SendMessage = window.mR.findModule('addAndSendMsgToChat')[0];
     window.Store.SendSeen = window.mR.findModule('sendSeen')[0];
     window.Store.User = window.mR.findModule('getMaybeMeUser')[0];
-    if (window.mR.findModule('queryLinkPreview')[0]?.default) {
-        window.Store.Wap = window.mR.findModule('queryLinkPreview')[0].default;
-    }
     window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
     window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default;
     window.Store.Validators = window.mR.findModule('findLinks')[0];
@@ -76,6 +68,17 @@ exports.ExposeStore = (moduleRaidStr) => {
                 id: e
             });
         };
+    }
+
+    // TODO remove these once everybody has been updated to WWebJS with legacy sessions removed
+    const _linkPreview = window.mR.findModule('queryLinkPreview');
+    if (_linkPreview && _linkPreview[0] && _linkPreview[0].default) {
+        window.Store.Wap = _linkPreview[0].default;
+    }
+
+    const _isMDBackend = window.mR.findModule('isMDBackend');
+    if(_isMDBackend && _isMDBackend[0] && _isMDBackend[0].isMDBackend()) {
+        window.Store.MDBackend = true;
     }
 };
 
