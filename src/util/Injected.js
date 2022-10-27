@@ -50,12 +50,11 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.sendReactionToMsg = window.mR.findModule('sendReactionToMsg')[0].sendReactionToMsg;
     window.Store.createOrUpdateReactionsModule = window.mR.findModule('createOrUpdateReactions')[0];
     window.Store.EphemeralFields = window.mR.findModule('getEphemeralFields')[0];
-    window.Store.ReplyUtils = window.mR.findModule('canReplyMsg').length > 0 && window.mR.findModule('canReplyMsg')[0];
     window.Store.StickerTools = {
         ...window.mR.findModule('toWebpSticker')[0],
         ...window.mR.findModule('addWebpMetadata')[0]
     };
-  
+
     window.Store.GroupUtils = {
         ...window.mR.findModule('sendCreateGroup')[0],
         ...window.mR.findModule('sendSetGroupSubject')[0],
@@ -98,6 +97,72 @@ exports.LoadUtils = () => {
 
     };
 
+    window.WWebJS.prepareMessageButtons = (buttonsOptions) => {
+        const returnObject = {};
+        if (!buttonsOptions.buttons) {
+            return returnObject;
+        }
+        
+        if (typeof buttonsOptions.useTemplateButtons === 'undefined' || buttonsOptions.useTemplateButtons === null) {
+            buttonsOptions.useTemplateButtons = buttonsOptions.buttons.some((button) => {
+                return 'callButton' in button || 'urlButton' in button;
+            });
+        }
+        
+        returnObject.title = buttonsOptions.title;
+        returnObject.footer = buttonsOptions.footer;
+    
+        if (buttonsOptions.useTemplateButtons) {
+            returnObject.isFromTemplate = true;
+            returnObject.hydratedButtons = buttonsOptions.buttons;
+            returnObject.buttons = new window.Store.TemplateButtonCollection;
+
+            returnObject.buttons.add(returnObject.hydratedButtons.map((button, index) => {
+                const buttonIndex = button.index ? button.index : index;
+                if (button.urlButton) {
+                    return new window.Store.TemplateButtonModel({
+                        id: buttonIndex,
+                        displayText: button.urlButton?.displayText || '',
+                        url: button.urlButton?.url,
+                        subtype: 'url'
+                    });
+                } else if (button.callButton) {
+                    return new window.Store.TemplateButtonModel({
+                        id: buttonIndex,
+                        displayText: button.callButton?.displayText,
+                        phoneNumber: button.callButton?.phoneNumber,
+                        subtype: 'call'
+                    });
+                } else {
+                    return new window.Store.TemplateButtonModel({
+                        id: buttonIndex,
+                        displayText: button.quickReplyButton?.displayText,
+                        selectionId: button.quickReplyButton?.id,
+                        subtype: 'quick_reply'
+                    });
+                }
+            }));
+        }
+        else {
+            returnObject.isDynamicReplyButtonsMsg = true;
+
+            returnObject.dynamicReplyButtons = buttonsOptions.buttons.map((button, index) => ({
+                buttonId: button.quickReplyButton.id.toString() || `${index}`,
+                buttonText: {displayText: button.quickReplyButton?.displayText},
+                type: 1,
+            }));
+
+            // For UI only
+            returnObject.replyButtons = new window.Store.ButtonCollection();
+            returnObject.replyButtons.add(returnObject.dynamicReplyButtons.map((button) => new window.Store.ReplyButtonModel({
+                id: button.buttonId,
+                displayText: button.buttonText?.displayText || undefined,
+            })));
+
+        }
+        return returnObject;
+    };
+
     window.WWebJS.sendMessage = async (chat, content, options = {}) => {
         let attOptions = {};
         if (options.attachment) {
@@ -117,13 +182,7 @@ exports.LoadUtils = () => {
         let quotedMsgOptions = {};
         if (options.quotedMessageId) {
             let quotedMessage = window.Store.Msg.get(options.quotedMessageId);
-
-            // TODO remove .canReply() once all clients are updated to >= v2.2241.6
-            const canReply = window.Store.ReplyUtils ? 
-                window.Store.ReplyUtils.canReplyMsg(quotedMessage.unsafe()) : 
-                quotedMessage.canReply();
-
-            if (canReply) {
+            if (quotedMessage.canReply()) {
                 quotedMsgOptions = quotedMessage.msgContextInfo(chat);
             }
             delete options.quotedMessageId;
@@ -181,7 +240,7 @@ exports.LoadUtils = () => {
             delete options.linkPreview;
 
             // Not supported yet by WhatsApp Web on MD
-            if(!window.Store.MDBackend) {
+            if (!window.Store.MDBackend) {
                 const link = window.Store.Validators.findLink(content);
                 if (link) {
                     const preview = await window.Store.Wap.queryLinkPreview(link.url);
@@ -191,9 +250,9 @@ exports.LoadUtils = () => {
                 }
             }
         }
-        
+
         let buttonOptions = {};
-        if(options.buttons){
+        if (options.buttons) {
             let caption;
             if (options.buttons.type === 'chat') {
                 content = options.buttons.body;
@@ -201,24 +260,17 @@ exports.LoadUtils = () => {
             } else {
                 caption = options.caption ? options.caption : ' '; //Caption can't be empty
             }
+
+            buttonOptions = window.WWebJS.prepareMessageButtons(options.buttons);
             buttonOptions = {
-                productHeaderImageRejected: false,
-                isFromTemplate: false,
-                isDynamicReplyButtonsMsg: true,
-                title: options.buttons.title ? options.buttons.title : undefined,
-                footer: options.buttons.footer ? options.buttons.footer : undefined,
-                dynamicReplyButtons: options.buttons.buttons,
-                replyButtons: options.buttons.buttons,
+                ...buttonOptions,
                 caption: caption
             };
             delete options.buttons;
         }
 
         let listOptions = {};
-        if(options.list){
-            if(window.Store.Conn.platform === 'smba' || window.Store.Conn.platform === 'smbi'){
-                throw '[LT01] Whatsapp business can\'t send this yet';
-            }
+        if (options.list) {
             listOptions = {
                 type: 'list',
                 footer: options.list.footer,
