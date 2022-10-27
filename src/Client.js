@@ -104,12 +104,6 @@ class Client extends EventEmitter {
       
         await page.setUserAgent(this.options.userAgent);
         if (this.options.bypassCSP) await page.setBypassCSP(true);
-
-        this.pupBrowser = browser;
-        this.pupPage = page;
-
-        await this.authStrategy.afterBrowserInitialized();
-
         if (this.options.version) {
             const body = waVersion.getPageContent(this.options.version);
 
@@ -132,6 +126,11 @@ class Client extends EventEmitter {
                 });
             });
         }
+
+        this.pupBrowser = browser;
+        this.pupPage = page;
+
+        await this.authStrategy.afterBrowserInitialized();
 
         await page.goto(WhatsWebURL, {
             waitUntil: 'load',
