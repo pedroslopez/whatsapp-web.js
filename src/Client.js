@@ -109,6 +109,29 @@ class Client extends EventEmitter {
 
         await this.authStrategy.afterBrowserInitialized();
 
+        if (this.options.version) {
+            const body = waVersion.getPageContent(this.options.version);
+
+            await page.setRequestInterception(true);
+        
+            page.on('request', (req) => {
+                if (req.url().startsWith('https://web.whatsapp.com/check-update')) {
+                    req.abort();
+                    return;
+                }
+                if (req.url() !== 'https://web.whatsapp.com/') {
+                    req.continue();
+                    return;
+                }
+            
+                req.respond({
+                    status: 200,
+                    contentType: 'text/html',
+                    body: body,
+                });
+            });
+        }
+
         await page.goto(WhatsWebURL, {
             waitUntil: 'load',
             timeout: 0,
