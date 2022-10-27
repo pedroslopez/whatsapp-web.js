@@ -3,6 +3,7 @@
 const EventEmitter = require('events');
 const puppeteer = require('puppeteer');
 const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
+const waVersion = require('@wppconnect/wa-version')
 
 const Util = require('./util/Util');
 const InterfaceController = require('./util/InterfaceController');
