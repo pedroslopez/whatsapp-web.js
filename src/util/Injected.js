@@ -77,7 +77,9 @@ exports.ExposeStore = (moduleRaidStr) => {
     }
 
     const _isMDBackend = window.mR.findModule('isMDBackend');
-    if(_isMDBackend && _isMDBackend[0] && _isMDBackend[0].isMDBackend()) {
+    if(_isMDBackend && _isMDBackend[0] && _isMDBackend[0].isMDBackend) {
+        window.Store.MDBackend = _isMDBackend[0].isMDBackend();
+    } else {
         window.Store.MDBackend = true;
     }
 };
