@@ -36,6 +36,8 @@ exports.Events = {
     AUTHENTICATED: 'authenticated',
     AUTHENTICATION_FAILURE: 'auth_failure',
     READY: 'ready',
+    CHAT_REMOVED: 'chat_removed',
+    CHAT_ARCHIVED: 'chat_archived',
     MESSAGE_RECEIVED: 'message',
     MESSAGE_CREATE: 'message_create',
     MESSAGE_REVOKED_EVERYONE: 'message_revoke_everyone',
