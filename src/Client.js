@@ -508,22 +508,22 @@ class Client extends EventEmitter {
         });
 
         await page.exposeFunction('onRemoveChatEvent', (chat) => {
-                /**
-                 * Emitted when a chat is removed
-                 * @event Client#chat_removed
-                 * @param {Chat} chat
-                 */
+            /**
+             * Emitted when a chat is removed
+             * @event Client#chat_removed
+             * @param {Chat} chat
+             */
             this.emit(Events.CHAT_REMOVED, new Chat(this, chat));
         });
         
         await page.exposeFunction('onArchiveChatEvent', (chat, currState, prevState) => {
-                /**
-                 * Emitted when a chat is archived/unarchived
-                 * @event Client#chat_archived
-                 * @param {Chat} chat
-                 * @param {boolean} currState
-                 * @param {boolean} prevState
-                 */
+            /**
+             * Emitted when a chat is archived/unarchived
+             * @event Client#chat_archived
+             * @param {Chat} chat
+             * @param {boolean} currState
+             * @param {boolean} prevState
+             */
             this.emit(Events.CHAT_ARCHIVED, new Chat(this, chat), currState, prevState);
         });
 
