@@ -421,8 +421,8 @@ exports.LoadUtils = () => {
         
         res.lastMessage = null;
         if (res.msgs && res.msgs.length) {
-           const lastMessage = window.Store.Msg.get(chat.lastReceivedKey._serialized);
-            if(lastMessage){
+            const lastMessage = window.Store.Msg.get(chat.lastReceivedKey._serialized);
+            if (lastMessage) {
                 res.lastMessage = window.WWebJS.getMessageModel(lastMessage);
             }
         }
