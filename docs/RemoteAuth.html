@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.18.2 &raquo; Class: LocalAuth</title>
+  <title>whatsapp-web.js 1.18.2 &raquo; Class: RemoteAuth</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -25,10 +25,10 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
-            <h1><small></small><span class="symbol-name">LocalAuth</span></h1>
-            <p class="source-link">Source: <a href="authStrategies_LocalAuth.js.html#source-line-13">authStrategies/<wbr>LocalAuth.<wbr>js:13</a></p>
+            <h1><small></small><span class="symbol-name">RemoteAuth</span></h1>
+            <p class="source-link">Source: <a href="authStrategies_RemoteAuth.js.html#source-line-26">authStrategies/<wbr>RemoteAuth.<wbr>js:26</a></p>
             <div class="symbol-classdesc">
-              <p>Local directory-based authentication</p>
+              <p>Remote-based authentication</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -36,7 +36,7 @@
           <section id="summary">
           </section>
           <section>
-            <h2 id="LocalAuth">new&nbsp;<span class="symbol-name">LocalAuth</span><span class="signature"><span class="signature-params">(options)</span></span></h2>
+            <h2 id="RemoteAuth">new&nbsp;<span class="symbol-name">RemoteAuth</span><span class="signature"><span class="signature-params">(options)</span></span></h2>
             <section>
               <h3>Parameters</h3>
               <table class="jsdoc-details-table">
@@ -74,6 +74,20 @@
                         <tbody>
                           <tr>
                             <td>
+                              <p>store</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>Remote database store instance</p>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
                               <p>clientId</p>
                             </td>
                             <td>
@@ -98,6 +112,20 @@
                             </td>
                             <td>
                               <p>Change the default path for saving session files, default is: &quot;./.wwebjs_auth/&quot;</p>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <p>backupSyncIntervalMs</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>Sets the time interval for periodic session backups. Accepts values starting from 60000ms {1 minute}</p>
                             </td>
                           </tr>
                         </tbody>
