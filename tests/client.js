@@ -98,7 +98,7 @@ describe('Client', function() {
             await helper.sleep(20000);
 
             expect(callback.called).to.equal(true);
-            expect(callback.args[0][0]).to.have.lengthOf(152);
+            expect(callback.args[0][0]).to.have.length.greaterThanOrEqual(152);
 
             await client.destroy();
         });
@@ -224,7 +224,7 @@ describe('Client', function() {
         
                 expect(authFailCallback.called).to.equal(true);
                 expect(qrCallback.called).to.equal(true);
-                expect(qrCallback.args[0][0]).to.have.lengthOf(152);
+                expect(qrCallback.args[0][0]).to.have.length.greaterThanOrEqual(152);
         
                 await client.destroy();
             });
@@ -346,7 +346,6 @@ describe('Client', function() {
                     'UserConstructor',
                     'VCard',
                     'Validators',
-                    'Wap',
                     'WidFactory',
                     'findCommonGroups',
                     'sendReactionToMsg',
