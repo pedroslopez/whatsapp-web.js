@@ -102,7 +102,7 @@ This project is not affiliated, associated, authorized, endorsed by, or in any w
 
 ## License
 
-Copyright 2019 Pedro S Lopez
+Copyright 2022 Pedro S Lopez
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this project except in compliance with the License.
