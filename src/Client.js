@@ -1036,14 +1036,25 @@ class Client extends EventEmitter {
      * @param {string} number Number or ID ("@c.us" will be automatically appended if not specified)
      * @returns {Promise<Object|null>}
      */
-    async getNumberId(number) {
-        return await this.pupPage.evaluate(async number => {
-            if (number.endsWith('@c.us')) number.replace('@c.us','');
-            const result = await window.Store.QueryExist({type: 'phone', phone: number.startsWith('+') ? number : `+${number}`});
+async function getNumberId(number) {
+    return await this.pupPage.evaluate(async number => {
+    if (number.endsWith('@c.us')) number.replace('@c.us', '');
+    try {
+        const result = await WUPE.WapQuery.queryExist('phone', number.startsWith('+') ? number : `+${number}`);
+        if (!result || result.wid === undefined) return null;
+        return result.wid;
+    } catch (e) {
+        if (e && e.toString() == 'Error: user must have an id or a phone') {
+            const result = await WUPE.WapQuery.queryExist({
+                type: 'phone',
+                phone: number.startsWith('+') ? number : `+${number}`
+            });
             if (!result || result.wid === undefined) return null;
             return result.wid;
-        }, number);
+        } else return null;
     }
+    }, number);
+}
 
     /**
      * Get the formatted number of a WhatsApp ID.
