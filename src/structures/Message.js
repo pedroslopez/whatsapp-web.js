@@ -453,7 +453,7 @@ class Message extends Base {
         await this.client.pupPage.evaluate((msgId) => {
             let msg = window.Store.Msg.get(msgId);
 
-            if (msg.canStar()) {
+            if (window.Store.MsgActionChecks.canStarMsg(msg)) {
                 return window.Store.Cmd.sendStarMsgs(msg.chat, [msg], false);
             }
         }, this.id._serialized);
@@ -466,7 +466,7 @@ class Message extends Base {
         await this.client.pupPage.evaluate((msgId) => {
             let msg = window.Store.Msg.get(msgId);
 
-            if (msg.canStar()) {
+            if (window.Store.MsgActionChecks.canStarMsg(msg)) {
                 return window.Store.Cmd.sendUnstarMsgs(msg.chat, [msg], false);
             }
         }, this.id._serialized);
