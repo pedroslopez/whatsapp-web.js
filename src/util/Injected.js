@@ -52,6 +52,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.EphemeralFields = window.mR.findModule('getEphemeralFields')[0];
     window.Store.ReplyUtils = window.mR.findModule('canReplyMsg').length > 0 && window.mR.findModule('canReplyMsg')[0];
     window.Store.MsgActionChecks = window.mR.findModule('canSenderRevokeMsg')[0];
+    window.Store.QuotedMsg = window.mR.findModule('getQuotedMsgObj')[0];
     window.Store.StickerTools = {
         ...window.mR.findModule('toWebpSticker')[0],
         ...window.mR.findModule('addWebpMetadata')[0]
