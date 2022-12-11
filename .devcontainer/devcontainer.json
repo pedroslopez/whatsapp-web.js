@@ -1,0 +1,17 @@
+{
+  "name": "whatsapp_client_dev_container",
+  "service": "whatsapp_client_dev_container",
+  "dockerComposeFile": "./docker-compose.yml",
+  //Para copiar o ID do grupo do Docker da máquina host para as variáveis de ambiente do Docker
+  //Tambem cria o DEV_ROOT_DIR
+  "initializeCommand": "echo HOST_DOCKER_GROUP_ID=$(getent group docker | cut -d: -f3)'\n'DEV_ROOT_DIR=$(pwd) > .devcontainer/.env",
+  "settings": {},
+  "extensions": [
+    "ms-azuretools.vscode-docker",
+    "streetsidesoftware.code-spell-checker-portuguese-brazilian",
+    "dbaeumer.vscode-eslint",
+    "prisma.prisma"
+  ],
+  "workspaceFolder": "/home/developer/dev",
+  "postStartCommand": "npm install -g npm && npm i"
+}
