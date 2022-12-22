@@ -54,7 +54,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.MsgActionChecks = window.mR.findModule('canSenderRevokeMsg')[0];
     window.Store.QuotedMsg = window.mR.findModule('getQuotedMsgObj')[0];
     window.Store.Socket = window.mR.findModule('deprecatedSendIq')[0];
-    window.Store.Wap = window.mR.findModule('wap')[0];
+    window.Store.SocketWap = window.mR.findModule('wap')[0];
     window.Store.StickerTools = {
         ...window.mR.findModule('toWebpSticker')[0],
         ...window.mR.findModule('addWebpMetadata')[0]
@@ -73,6 +73,12 @@ exports.ExposeStore = (moduleRaidStr) => {
                 id: e
             });
         };
+    }
+
+    // TODO remove these once everybody has been updated to WWebJS with legacy sessions removed
+    const _linkPreview = window.mR.findModule('queryLinkPreview');
+    if (_linkPreview && _linkPreview[0] && _linkPreview[0].default) {
+        window.Store.Wap = _linkPreview[0].default;
     }
 
     const _isMDBackend = window.mR.findModule('isMDBackend');
@@ -602,14 +608,14 @@ exports.LoadUtils = () => {
     window.WWebJS.rejectCall = async (peerJid, id) => {
         peerJid = peerJid.split('@')[0] + '@s.whatsapp.net';
         let userId = window.Store.User.getMaybeMeUser().user + '@s.whatsapp.net';
-        const stanza = window.Store.Wap.wap('call', {
-            id: window.Store.Wap.generateId(),
-            from: window.Store.Wap.USER_JID(userId),
-            to: window.Store.Wap.USER_JID(peerJid),
+        const stanza = window.Store.SocketWap.wap('call', {
+            id: window.Store.SocketWap.generateId(),
+            from: window.Store.SocketWap.USER_JID(userId),
+            to: window.Store.SocketWap.USER_JID(peerJid),
         }, [
-            window.Store.Wap.wap('reject', {
+            window.Store.SocketWap.wap('reject', {
                 'call-id': id,
-                'call-creator': window.Store.Wap.USER_JID(peerJid),
+                'call-creator': window.Store.SocketWap.USER_JID(peerJid),
                 count: '0',
             })
         ]);
