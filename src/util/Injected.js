@@ -601,7 +601,7 @@ exports.LoadUtils = () => {
 
     window.WWebJS.rejectCall = async (peerJid, id) => {
         peerJid = peerJid.split('@')[0] + '@s.whatsapp.net';
-        let userId = window.Store.User.getMaybeMeUser().user + '@s.whatsapp.net'
+        let userId = window.Store.User.getMaybeMeUser().user + '@s.whatsapp.net';
         const stanza = window.Store.Wap.wap('call', {
             id: window.Store.Wap.generateId(),
             from: window.Store.Wap.USER_JID(userId),
@@ -609,10 +609,10 @@ exports.LoadUtils = () => {
         }, [
             window.Store.Wap.wap('reject', {
                 'call-id': id,
-                'call-creator': Wap.USER_JID(peerJid),
+                'call-creator': window.Store.Wap.USER_JID(peerJid),
                 count: '0',
             })
         ]);
         await window.Store.Socket.deprecatedCastStanza(stanza);
-    }
+    };
 };
