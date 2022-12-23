@@ -1386,6 +1386,12 @@ declare namespace WAWebJS {
         senderId: string
         ack?: number
     }
+
+    export class PollVote {
+        selectedOptions: string[]
+        sender: string
+        senderTimestampMs: number
+    }
 }
 
 export = WAWebJS

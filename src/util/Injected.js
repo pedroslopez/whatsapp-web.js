@@ -407,7 +407,7 @@ exports.LoadUtils = () => {
         }
 
         if (msg.type == 'poll_creation') {
-            msg.pollVotes = Store.PollVote.getForParent(msg.id).getModelsArray().map(a => a.serialize());
+            msg.pollVotes = window.Store.PollVote.getForParent(msg.id).getModelsArray().map(a => a.serialize());
         }
 
         delete msg.pendingAckUpdate;
@@ -636,7 +636,7 @@ exports.LoadUtils = () => {
             for (const option of selectedOptions) {
                 if (a.name == option) localIdSet.add(a.localId);
             }
-        })
+        });
         await window.Store.SendVote.sendVote(msg, localIdSet);
-    } 
+    };
 };

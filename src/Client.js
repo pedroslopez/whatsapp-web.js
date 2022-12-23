@@ -543,8 +543,7 @@ class Client extends EventEmitter {
                     }
                 }
             });
-            window.Store.PollVote.on('add', (vote) => window.onPollVote)
-            
+            window.Store.PollVote.on('add', (vote) => window.onPollVote(vote));
             {
                 const module = window.Store.createOrUpdateReactionsModule;
                 const ogMethod = module.createOrUpdateReactions;

@@ -1,5 +1,6 @@
 'use strict';
 
+const { Message } = require('.');
 const Base = require('./Base');
 
 /**
@@ -20,10 +21,13 @@ class PollVote extends Base {
         });
 
         /** Sender of the Poll vote */
-        this.sender = data.sender;
+        this.sender = data.sender._serialized;
 
         /** Timestamp of the time it was sent in milliseconds */
         this.senderTimestampMs = data.senderTimestampMs;
+
+        /** The poll creation message associated with the poll vote */
+        this.parentPollMessage = new Message(this.client, data.pollCreationMessage);
 
         return super._patch(data);
     }

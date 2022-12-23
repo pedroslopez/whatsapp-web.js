@@ -50,7 +50,7 @@ class Message extends Base {
          * Message content
          * @type {string}
          */
-        this.body = this.hasMedia ? data.caption || '' : data.body || '';
+        this.body = this.hasMedia ? data.caption || '' : data.body || data.pollName || '';
 
         /**
          * Message type
@@ -250,7 +250,7 @@ class Message extends Base {
 
             /** Current poll votes, refresh with Message.refreshPollVotes() */
             this.pollVotes = data.pollVotes.map((pollVote) => {
-                return new PollVote(this.client, pollVote);
+                return new PollVote(this.client, {...pollVote, pollCreationMessage: this});
             });
         }
 
@@ -549,10 +549,10 @@ class Message extends Base {
     async refreshPollVotes() {
         if (this.type != MessageTypes.POLL_CREATION) throw 'Invalid usage! Can only be used with a pollCreation message';
         const pollVotes = await this.client.evaluate((parentMsgId) => {
-            return Store.PollVote.getForParent(parentMsgId).getModelsArray().map(a => a.serialize())
+            return window.Store.PollVote.getForParent(parentMsgId).getModelsArray().map(a => a.serialize());
         }, this.id);
         this.pollVotes = pollVotes.map((pollVote) => {
-            return new PollVote(this.client, pollVote);
+            return new PollVote(this.client, {...pollVote, pollCreationMessage: this});
         });
         return;
     }

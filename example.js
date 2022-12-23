@@ -197,6 +197,27 @@ client.on('message', async msg => {
         client.sendMessage(msg.from, list);
     } else if (msg.body === '!reaction') {
         msg.react('👍');
+    } else if (msg.body.startsWith('!vote ')) {
+        if (msg.hasQuotedMsg) {
+            const quotedMsg = await msg.getQuotedMessage();
+            if (quotedMsg.type === 'poll_creation') {
+                const options = msg.body.slice(6).split('//');
+                const voteCount = {};
+                for (const pollVote of quotedMsg.pollVotes) {
+                    for (const selectedOption of pollVote.selectedOptions) {
+                        if (!voteCount[selectedOption]) voteCount[selectedOption] = 0;
+                        voteCount[selectedOption]++;
+                    }
+                }
+                const voteCountStr = Object.entries(voteCount).map(([vote, number]) => `  -${vote}: ${number}`).join('\n');
+                quotedMsg.reply(
+                    `Voting to poll ${quotedMsg.body}, with options: ${options.join(', ')}\ncurrent vote count:\n${voteCountStr}`
+                );
+                quotedMsg.vote(options);
+            } else {
+                msg.reply('Usage: !vote TEST1//TEST2');
+            }
+        }
     }
 });
 
@@ -251,6 +272,10 @@ client.on('group_leave', (notification) => {
 client.on('group_update', (notification) => {
     // Group picture, subject or description has been updated.
     console.log('update', notification);
+});
+
+client.on('poll_vote', (vote) => {
+    console.log(`Vote received, from ${vote.sender}, ${vote.selectedOptions.map(a => `  - ${a}`).join('\n')}`);
 });
 
 client.on('change_state', state => {
