@@ -1342,6 +1342,9 @@ declare namespace WAWebJS {
         webClientShouldHandle: boolean,
         /** Object with participants */
         participants: object
+
+        /** Reject the call */
+        reject: () => Promise<void>
     }
 
     /** Message type List */
