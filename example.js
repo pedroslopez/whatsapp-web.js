@@ -261,7 +261,7 @@ client.on('call', async (call) => {
     console.log('Call received', call);
     await call.reject();
     await client.sendMessage(call.from, 'I am not accepting calls.');
-})
+});
 
 client.on('disconnected', (reason) => {
     console.log('Client was logged out', reason);
