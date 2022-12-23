@@ -1,5 +1,8 @@
 const { Client, Location, List, Buttons, LocalAuth} = require('./index');
 
+// Change to false if you don't want to reject incoming calls
+let rejectCalls = true;
+
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: { headless: false }
@@ -255,6 +258,12 @@ client.on('group_update', (notification) => {
 
 client.on('change_state', state => {
     console.log('CHANGE STATE', state );
+});
+
+client.on('call', async (call) => {
+    console.log('Call received, rejecting.', call);
+    if (rejectCalls) await call.reject();
+    await client.sendMessage(call.from, `[${call.fromMe ? 'Outgoing' : 'Incoming'}] Phone call from ${call.from}, type ${call.isGroup ? 'group' : ''} ${call.isVideo ? 'video' : 'audio'} call. ${rejectCalls ? 'This call was automatically rejected by the script.' : ''}`);
 });
 
 client.on('disconnected', (reason) => {
