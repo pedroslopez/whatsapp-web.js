@@ -13,6 +13,7 @@ const ContactFactory = require('./factories/ContactFactory');
 const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List, Reaction } = require('./structures');
 const LegacySessionAuth = require('./authStrategies/LegacySessionAuth');
 const NoAuth = require('./authStrategies/NoAuth');
+const PollVote = require('./structures/PollVote');
 
 /**
  * Starting point for interacting with the WhatsApp Web API
@@ -45,6 +46,7 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @fires Client#group_update
  * @fires Client#disconnected
  * @fires Client#change_state
+ * @fires
  */
 class Client extends EventEmitter {
     constructor(options = {}) {
@@ -486,6 +488,21 @@ class Client extends EventEmitter {
             this.emit(Events.INCOMING_CALL, cll);
         });
 
+        await page.exposeFunction('onPollVote', (vote) => {
+            if (vote.parentMsgKey) vote.pollCreationMessage = window.Store.Msg.get(vote.parentMsgKey).serialize();
+            const vote_ = new PollVote(this, vote);
+
+            /**
+             * Emitted when a poll vote is received
+             * @event Client#poll_vote
+             * @param {object} vote
+             * @param {string} vote.sender Sender of the vote
+             * @param {number} vote.senderTimestampMs Timestamp the vote was sent
+             * @param {Array<string>} vote.selectedOptions Options selected
+             */
+            this.emit(Events.POLL_VOTE, vote_);
+        });
+
         await page.exposeFunction('onReaction', (reactions) => {
             for (const reaction of reactions) {
                 /**
@@ -526,6 +543,7 @@ class Client extends EventEmitter {
                     }
                 }
             });
+            window.Store.PollVote.on('add', (vote) => window.onPollVote)
             
             {
                 const module = window.Store.createOrUpdateReactionsModule;

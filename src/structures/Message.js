@@ -6,6 +6,7 @@ const Location = require('./Location');
 const Order = require('./Order');
 const Payment = require('./Payment');
 const { MessageTypes } = require('../util/Constants');
+const PollVote = require('./PollVote');
 
 /**
  * Represents a Message on WhatsApp
@@ -238,6 +239,19 @@ class Message extends Base {
         /** Selected List row Id **/
         if (data.listResponse && data.listResponse.singleSelectReply.selectedRowId) {
             this.selectedRowId = data.listResponse.singleSelectReply.selectedRowId;
+        }
+
+        if (this.type == MessageTypes.POLL_CREATION) {
+
+            /** Selectable poll options */
+            this.pollOptions = data.pollOptions.map(option => {
+                return option.name;
+            });
+
+            /** Current poll votes, refresh with Message.refreshPollVotes() */
+            this.pollVotes = data.pollVotes.map((pollVote) => {
+                return new PollVote(this.client, pollVote);
+            });
         }
 
         return super._patch(data);
@@ -526,6 +540,34 @@ class Message extends Base {
             return new Payment(this.client, msg);
         }
         return undefined;
+    }
+
+    /**
+     * Refresh the current poll votes
+     * @returns {Promise<void>}
+     */
+    async refreshPollVotes() {
+        if (this.type != MessageTypes.POLL_CREATION) throw 'Invalid usage! Can only be used with a pollCreation message';
+        const pollVotes = await this.client.evaluate((parentMsgId) => {
+            return Store.PollVote.getForParent(parentMsgId).getModelsArray().map(a => a.serialize())
+        }, this.id);
+        this.pollVotes = pollVotes.map((pollVote) => {
+            return new PollVote(this.client, pollVote);
+        });
+        return;
+    }
+
+    /**
+     * Vote to the poll.
+     * @param {Array<string>} selectedOptions Array of options selected.
+     * @returns {Promise<void>}
+     */
+    async vote(selectedOptions) {
+        if (this.type != MessageTypes.POLL_CREATION) throw 'Invalid usage! Can only be used with a pollCreation message';
+        
+        return this.client.evaluate((creationMsgId, selectedOptions) => {
+            window.WWebJS.votePoll(creationMsgId, selectedOptions);
+        }, this.id, selectedOptions);
     }
 }
 
