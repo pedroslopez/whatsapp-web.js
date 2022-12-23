@@ -85,7 +85,14 @@ class Client extends EventEmitter {
      * Sets up events and requirements, kicks off authentication request
      */
     async initialize() {
-        let [browser, page] = [null, null];
+        /**
+         * @type {puppeteer.Browser}
+         */
+        let browser = null;
+        /**
+         * @type {puppeteer.Page}
+         */
+        let page = null;
 
         await this.authStrategy.beforeBrowserInitialized();
 
@@ -489,9 +496,7 @@ class Client extends EventEmitter {
         });
 
         await page.exposeFunction('onPollVote', (vote) => {
-            if (vote.parentMsgKey) vote.pollCreationMessage = window.Store.Msg.get(vote.parentMsgKey).serialize();
             const vote_ = new PollVote(this, vote);
-
             /**
              * Emitted when a poll vote is received
              * @event Client#poll_vote
@@ -543,7 +548,12 @@ class Client extends EventEmitter {
                     }
                 }
             });
-            window.Store.PollVote.on('add', (vote) => window.onPollVote(vote));
+
+            window.Store.PollVote.on('add', (vote) => {
+                if (vote.parentMsgKey) vote.pollCreationMessage = window.Store.Msg.get(vote.parentMsgKey).serialize();
+                window.onPollVote(vote);
+            });
+
             {
                 const module = window.Store.createOrUpdateReactionsModule;
                 const ogMethod = module.createOrUpdateReactions;
