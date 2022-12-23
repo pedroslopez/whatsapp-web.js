@@ -1,6 +1,6 @@
 'use strict';
 
-const { Message } = require('.');
+const Message = require('./Message');
 const Base = require('./Base');
 
 /**
