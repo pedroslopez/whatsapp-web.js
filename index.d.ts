@@ -2,6 +2,7 @@
 import { EventEmitter } from 'events'
 import { RequestInit } from 'node-fetch'
 import * as puppeteer from 'puppeteer'
+import InterfaceController from './src/util/InterfaceController'
 
 declare namespace WAWebJS {
 
@@ -16,6 +17,8 @@ declare namespace WAWebJS {
 
         /** Puppeteer browser running WhatsApp Web */
         pupBrowser?: puppeteer.Browser
+
+        interface?: InterfaceController
 
         /**Accepts an invitation to join a group */
         acceptInvite(inviteCode: string): Promise<string>
