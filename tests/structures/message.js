@@ -66,6 +66,8 @@ describe('Message', function () {
             expect(message.isStarred).to.equal(false);
             await message.star();
 
+            await helper.sleep(1000);
+
             // reload and check
             await message.reload();
             expect(message.isStarred).to.equal(true);
@@ -74,6 +76,8 @@ describe('Message', function () {
         it('can un-star a message', async function () {
             expect(message.isStarred).to.equal(true);
             await message.unstar();
+
+            await helper.sleep(1000);
 
             // reload and check
             await message.reload();
@@ -85,7 +89,7 @@ describe('Message', function () {
         it('can delete a message for me', async function () {
             await message.delete();
             
-            await helper.sleep(1000);
+            await helper.sleep(5000);
             expect(await message.reload()).to.equal(null);
         });
 
