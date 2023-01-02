@@ -636,6 +636,7 @@ declare namespace WAWebJS {
      *   broadcast: false,
      *   fromMe: false,
      *   hasQuotedMsg: false,
+     *   hasReaction: false,
      *   location: undefined,
      *   mentionedIds: []
      * }
@@ -665,6 +666,8 @@ declare namespace WAWebJS {
         hasMedia: boolean,
         /** Indicates if the message was sent as a reply to another message */
         hasQuotedMsg: boolean,
+        /** Indicates whether there are reactions to the message */
+        hasReaction: boolean,
         /** Indicates the duration of the message in seconds */
         duration: string,
         /** ID that represents the message */
@@ -766,6 +769,10 @@ declare namespace WAWebJS {
          * Gets the payment details associated with a given message
          */
         getPayment: () => Promise<Payment>,
+        /**
+         * Gets the reactions associated with the given message
+         */
+        getReactions: () => Promise<Reaction[]>,
     }
 
     /** ID that represents a message */
