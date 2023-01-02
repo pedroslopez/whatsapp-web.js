@@ -772,7 +772,7 @@ declare namespace WAWebJS {
         /**
          * Gets the reactions associated with the given message
          */
-        getReactions: () => Promise<Reaction[]>,
+        getReactions: () => Promise<ReactionList[]>,
     }
 
     /** ID that represents a message */
@@ -1370,6 +1370,13 @@ declare namespace WAWebJS {
         msgId: MessageId
         senderId: string
         ack?: number
+    }
+    
+    export type ReactionList = {
+        id: string,
+        aggregateEmoji: string,
+        hasReactionByMe: boolean,
+        senders: Array<Reaction>
     }
 }
 

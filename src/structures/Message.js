@@ -537,22 +537,40 @@ class Message extends Base {
 
 
     /**
+     * Reaction List
+     * @typedef {Object} ReactionList
+     * @property {string} id Original emoji
+     * @property {string} aggregateEmoji aggregate emoji
+     * @property {boolean} hasReactionByMe Flag who sent the reaction
+     * @property {Array<Reaction>} senders Reaction senders, to this message
+     */
+
+    /**
      * Gets the reactions associated with the given message
-     * @return {Promise<Reaction[]>}
+     * @return {Promise<ReactionList[]>}
      */
     async getReactions() {
         if (!this.hasReaction) {
             return undefined;
         }
-        
+
         const reactions = await this.client.pupPage.evaluate(async (msgId) => {
             const msgReactions = await window.Store.Reactions.find(msgId);
-            if (!msgReactions || msgReactions.reactions.length) return null;
+            if (!msgReactions || !msgReactions.reactions.length) return null;
             return msgReactions.reactions.serialize();
         }, this.id._serialized);
 
-        return reactions.map(reaction => new Reaction(this.client, reaction));
+        if (!reactions) {
+            return undefined;
+        }
 
+        return reactions.map(reaction => {
+            reaction.senders = reaction.senders.map(sender => {
+                sender.timestamp = Math.round(sender.timestamp / 1000);
+                return new Reaction(this.client, sender);
+            });
+            return reaction;
+        });
     }
 }
 
