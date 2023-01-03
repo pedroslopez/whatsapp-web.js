@@ -139,7 +139,7 @@ class Message extends Base {
          * Indicates whether there are reactions to the message
          * @type {boolean}
          */
-        this.hasReaction = data.hasReaction;
+        this.hasReaction = data.hasReaction ? true : false;
 
         /**
          * Indicates the duration of the message in seconds
