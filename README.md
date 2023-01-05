@@ -94,7 +94,7 @@ You can support the maintainer of this project through the links below
 
 - [Support via GitHub Sponsors](https://github.com/sponsors/pedroslopez)
 - [Support via PayPal](https://www.paypal.me/psla/)
-- [Sign up for DigitalOcean](https://m.do.co/c/73f906a36ed4) and get $100 in credit when you sign up (Referral)
+- [Sign up for DigitalOcean](https://m.do.co/c/73f906a36ed4) and get $200 in credit when you sign up (Referral)
 
 ## Disclaimer
 
