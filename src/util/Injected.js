@@ -267,6 +267,7 @@ exports.LoadUtils = () => {
             ...ephemeralFields,
             ...locationOptions,
             ...attOptions,
+            ...(Object.keys(attOptions).length > 0 ? attOptions.toJSON() : {}),
             ...quotedMsgOptions,
             ...vcardOptions,
             ...buttonOptions,
