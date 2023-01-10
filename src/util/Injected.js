@@ -684,5 +684,5 @@ exports.LoadUtils = () => {
             if(err.name === 'ServerStatusCodeError') return false;
             throw err;
         }
-    }
+    };
 };
