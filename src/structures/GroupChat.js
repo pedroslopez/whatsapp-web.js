@@ -59,10 +59,14 @@ class GroupChat extends Chat {
      * @returns {Promise<Object>}
      */
     async addParticipants(participantIds) {
-        return await this.client.pupPage.evaluate((chatId, participantIds) => {
+        return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            const participantWids = participantIds.map(p => window.Store.WidFactory.createWid(p));
-            return window.Store.GroupParticipants.sendAddParticipants(chatWid, participantWids);
+            const chat = await window.Store.Chat.find(chatWid);
+            const participants = await Promise.all(participantIds.map(async p => {
+                const wid = window.Store.WidFactory.createWid(p);
+                return await window.Store.Contact.get(wid);
+            }));
+            return window.Store.GroupParticipants.addParticipants(chat, participants);
         }, this.id._serialized, participantIds);
     }
 
@@ -72,10 +76,13 @@ class GroupChat extends Chat {
      * @returns {Promise<Object>}
      */
     async removeParticipants(participantIds) {
-        return await this.client.pupPage.evaluate((chatId, participantIds) => {
+        return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            const participantWids = participantIds.map(p => window.Store.WidFactory.createWid(p));
-            return window.Store.GroupParticipants.sendRemoveParticipants(chatWid, participantWids);
+            const chat = await window.Store.Chat.find(chatWid);
+            const participants = participantIds.map(p => {
+                return chat.groupMetadata.participants.get(p);
+            }).filter(p => Boolean(p));
+            return window.Store.GroupParticipants.removeParticipants(chat, participants);
         }, this.id._serialized, participantIds);
     }
 
@@ -85,10 +92,14 @@ class GroupChat extends Chat {
      * @returns {Promise<{ status: number }>} Object with status code indicating if the operation was successful
      */
     async promoteParticipants(participantIds) {
-        return await this.client.pupPage.evaluate((chatId, participantIds) => {
+        return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            const participantWids = participantIds.map(p => window.Store.WidFactory.createWid(p));
-            return window.Store.GroupParticipants.sendPromoteParticipants(chatWid, participantWids);
+            const chat = await window.Store.Chat.find(chatWid);
+            const participants = participantIds.map(p => {
+                return chat.groupMetadata.participants.get(p);
+            }).filter(p => Boolean(p));
+            console.log(chat, participants);
+            return window.Store.GroupParticipants.promoteParticipants(chat, participants);
         }, this.id._serialized, participantIds);
     }
 
@@ -98,10 +109,13 @@ class GroupChat extends Chat {
      * @returns {Promise<{ status: number }>} Object with status code indicating if the operation was successful
      */
     async demoteParticipants(participantIds) {
-        return await this.client.pupPage.evaluate((chatId, participantIds) => {
+        return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            const participantWids = participantIds.map(p => window.Store.WidFactory.createWid(p));
-            return window.Store.GroupParticipants.sendDemoteParticipants(chatWid, participantWids);
+            const chat = await window.Store.Chat.find(chatWid);
+            const participants = participantIds.map(p => {
+                return chat.groupMetadata.participants.get(p);
+            }).filter(p => Boolean(p));
+            return window.Store.GroupParticipants.demoteParticipants(chat, participants);
         }, this.id._serialized, participantIds);
     }
 
