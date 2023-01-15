@@ -13,7 +13,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Cmd = window.mR.findModule('Cmd')[0].Cmd;
     window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
     window.Store.DownloadManager = window.mR.findModule('downloadManager')[0].downloadManager;
-    window.Store.Features = window.mR.findModule('FEATURE_CHANGE_EVENT')[0].LegacyPhoneFeatures;
     window.Store.GroupMetadata = window.mR.findModule('GroupMetadata')[0].default.GroupMetadata;
     window.Store.Invite = window.mR.findModule('sendJoinGroupViaInvite')[0];
     window.Store.InviteInfo = window.mR.findModule('sendQueryGroupInvite')[0];
@@ -86,6 +85,11 @@ exports.ExposeStore = (moduleRaidStr) => {
         window.Store.MDBackend = _isMDBackend[0].isMDBackend();
     } else {
         window.Store.MDBackend = true;
+    }
+
+    const _features = window.mR.findModule('FEATURE_CHANGE_EVENT')[0];
+    if(_features) {
+        window.Store.Features = _features.LegacyPhoneFeatures;
     }
 };
 
