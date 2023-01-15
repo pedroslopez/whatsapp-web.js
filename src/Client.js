@@ -1095,19 +1095,17 @@ class Client extends EventEmitter {
 
         const createRes = await this.pupPage.evaluate(async (name, participantIds) => {
             const participantWIDs = participantIds.map(p => window.Store.WidFactory.createWid(p));
-            const id = window.Store.MsgKey.newId();
-            const res = await window.Store.GroupUtils.sendCreateGroup(name, participantWIDs, undefined, id);
-            return res;
+            return await window.Store.GroupUtils.createGroup(name, participantWIDs, 0);
         }, name, participants);
 
         const missingParticipants = createRes.participants.reduce(((missing, c) => {
-            const id = Object.keys(c)[0];
-            const statusCode = c[id].code;
+            const id = c.wid._serialized;
+            const statusCode = c.error ? c.error.toString() : '200';
             if (statusCode != 200) return Object.assign(missing, { [id]: statusCode });
             return missing;
         }), {});
 
-        return { gid: createRes.gid, missingParticipants };
+        return { gid: createRes.wid, missingParticipants };
     }
 
     /**
