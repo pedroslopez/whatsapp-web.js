@@ -774,7 +774,7 @@ class Client extends EventEmitter {
      */
     async getInviteInfo(inviteCode) {
         return await this.pupPage.evaluate(inviteCode => {
-            return window.Store.InviteInfo.sendQueryGroupInvite(inviteCode);
+            return window.Store.InviteInfo.queryGroupInvite(inviteCode);
         }, inviteCode);
     }
 
@@ -784,11 +784,11 @@ class Client extends EventEmitter {
      * @returns {Promise<string>} Id of the joined Chat
      */
     async acceptInvite(inviteCode) {
-        const chatId = await this.pupPage.evaluate(async inviteCode => {
-            return await window.Store.Invite.sendJoinGroupViaInvite(inviteCode);
+        const res = await this.pupPage.evaluate(async inviteCode => {
+            return await window.Store.Invite.joinGroupViaInvite(inviteCode);
         }, inviteCode);
 
-        return chatId._serialized;
+        return res.gid._serialized;
     }
 
     /**

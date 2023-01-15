@@ -218,12 +218,12 @@ class GroupChat extends Chat {
      * @returns {Promise<string>} Group's invite code
      */
     async getInviteCode() {
-        const code = await this.client.pupPage.evaluate(async chatId => {
+        const codeRes = await this.client.pupPage.evaluate(async chatId => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            return window.Store.Invite.sendQueryGroupInviteCode(chatWid);
+            return window.Store.Invite.queryGroupInviteCode(chatWid);
         }, this.id._serialized);
 
-        return code;
+        return codeRes.code;
     }
     
     /**
@@ -231,12 +231,12 @@ class GroupChat extends Chat {
      * @returns {Promise<string>} New invite code
      */
     async revokeInvite() {
-        const code = await this.client.pupPage.evaluate(chatId => {
+        const codeRes = await this.client.pupPage.evaluate(chatId => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            return window.Store.Invite.sendRevokeGroupInviteCode(chatWid);
+            return window.Store.Invite.resetGroupInviteCode(chatWid);
         }, this.id._serialized);
 
-        return code;
+        return codeRes.code;
     }
 
     /**
