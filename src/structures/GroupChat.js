@@ -66,7 +66,8 @@ class GroupChat extends Chat {
                 const wid = window.Store.WidFactory.createWid(p);
                 return await window.Store.Contact.get(wid);
             }));
-            return window.Store.GroupParticipants.addParticipants(chat, participants);
+            await window.Store.GroupParticipants.addParticipants(chat, participants);
+            return { status: 200 };
         }, this.id._serialized, participantIds);
     }
 
@@ -82,7 +83,8 @@ class GroupChat extends Chat {
             const participants = participantIds.map(p => {
                 return chat.groupMetadata.participants.get(p);
             }).filter(p => Boolean(p));
-            return window.Store.GroupParticipants.removeParticipants(chat, participants);
+            await window.Store.GroupParticipants.removeParticipants(chat, participants);
+            return { status: 200 };
         }, this.id._serialized, participantIds);
     }
 
@@ -98,8 +100,8 @@ class GroupChat extends Chat {
             const participants = participantIds.map(p => {
                 return chat.groupMetadata.participants.get(p);
             }).filter(p => Boolean(p));
-            console.log(chat, participants);
-            return window.Store.GroupParticipants.promoteParticipants(chat, participants);
+            await window.Store.GroupParticipants.promoteParticipants(chat, participants);
+            return { status: 200 };
         }, this.id._serialized, participantIds);
     }
 
@@ -115,7 +117,8 @@ class GroupChat extends Chat {
             const participants = participantIds.map(p => {
                 return chat.groupMetadata.participants.get(p);
             }).filter(p => Boolean(p));
-            return window.Store.GroupParticipants.demoteParticipants(chat, participants);
+            await window.Store.GroupParticipants.demoteParticipants(chat, participants);
+            return { status: 200 };
         }, this.id._serialized, participantIds);
     }
 
