@@ -1188,20 +1188,20 @@ class Client extends EventEmitter {
     async addOrRemoveLabels(labelIds, chatIds) {
 
         return this.pupPage.evaluate(async (labelIds, chatIds) => {
-            if (["smba", "smbi"].indexOf(window.Store.Conn.platform) === -1) {
+            if (['smba', 'smbi'].indexOf(window.Store.Conn.platform) === -1) {
                 throw '[LT01] Only Whatsapp business';
             }
             const labels = window.WWebJS.getLabels().filter(e => labelIds.find(l => l == e.id) !== undefined);
             const chats = window.Store.Chat.filter(e => chatIds.includes(e.id._serialized));
 
-            let actions = labels.map(label => ({id: label.id, type: "add"}));
+            let actions = labels.map(label => ({id: label.id, type: 'add'}));
 
             chats.forEach(chat => {
                 (chat.labels || []).forEach(n => {
                     if (!actions.find(e => e.id == n)) {
-                        actions.push({id: n, type: "remove"});
+                        actions.push({id: n, type: 'remove'});
                     }
-                })
+                });
             });
 
             return await window.Store.Label.addOrRemoveLabels(actions, chats);
