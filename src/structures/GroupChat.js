@@ -59,10 +59,15 @@ class GroupChat extends Chat {
      * @returns {Promise<Object>}
      */
     async addParticipants(participantIds) {
-        return await this.client.pupPage.evaluate((chatId, participantIds) => {
+        return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            const participantWids = participantIds.map(p => window.Store.WidFactory.createWid(p));
-            return window.Store.GroupParticipants.sendAddParticipants(chatWid, participantWids);
+            const chat = await window.Store.Chat.find(chatWid);
+            const participants = await Promise.all(participantIds.map(async p => {
+                const wid = window.Store.WidFactory.createWid(p);
+                return await window.Store.Contact.get(wid);
+            }));
+            await window.Store.GroupParticipants.addParticipants(chat, participants);
+            return { status: 200 };
         }, this.id._serialized, participantIds);
     }
 
@@ -72,10 +77,14 @@ class GroupChat extends Chat {
      * @returns {Promise<Object>}
      */
     async removeParticipants(participantIds) {
-        return await this.client.pupPage.evaluate((chatId, participantIds) => {
+        return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            const participantWids = participantIds.map(p => window.Store.WidFactory.createWid(p));
-            return window.Store.GroupParticipants.sendRemoveParticipants(chatWid, participantWids);
+            const chat = await window.Store.Chat.find(chatWid);
+            const participants = participantIds.map(p => {
+                return chat.groupMetadata.participants.get(p);
+            }).filter(p => Boolean(p));
+            await window.Store.GroupParticipants.removeParticipants(chat, participants);
+            return { status: 200 };
         }, this.id._serialized, participantIds);
     }
 
@@ -85,10 +94,14 @@ class GroupChat extends Chat {
      * @returns {Promise<{ status: number }>} Object with status code indicating if the operation was successful
      */
     async promoteParticipants(participantIds) {
-        return await this.client.pupPage.evaluate((chatId, participantIds) => {
+        return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            const participantWids = participantIds.map(p => window.Store.WidFactory.createWid(p));
-            return window.Store.GroupParticipants.sendPromoteParticipants(chatWid, participantWids);
+            const chat = await window.Store.Chat.find(chatWid);
+            const participants = participantIds.map(p => {
+                return chat.groupMetadata.participants.get(p);
+            }).filter(p => Boolean(p));
+            await window.Store.GroupParticipants.promoteParticipants(chat, participants);
+            return { status: 200 };
         }, this.id._serialized, participantIds);
     }
 
@@ -98,10 +111,14 @@ class GroupChat extends Chat {
      * @returns {Promise<{ status: number }>} Object with status code indicating if the operation was successful
      */
     async demoteParticipants(participantIds) {
-        return await this.client.pupPage.evaluate((chatId, participantIds) => {
+        return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            const participantWids = participantIds.map(p => window.Store.WidFactory.createWid(p));
-            return window.Store.GroupParticipants.sendDemoteParticipants(chatWid, participantWids);
+            const chat = await window.Store.Chat.find(chatWid);
+            const participants = participantIds.map(p => {
+                return chat.groupMetadata.participants.get(p);
+            }).filter(p => Boolean(p));
+            await window.Store.GroupParticipants.demoteParticipants(chat, participants);
+            return { status: 200 };
         }, this.id._serialized, participantIds);
     }
 
@@ -114,7 +131,8 @@ class GroupChat extends Chat {
         const success = await this.client.pupPage.evaluate(async (chatId, subject) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             try {
-                return await window.Store.GroupUtils.sendSetGroupSubject(chatWid, subject);
+                await window.Store.GroupUtils.setGroupSubject(chatWid, subject);
+                return true;
             } catch (err) {
                 if(err.name === 'ServerStatusCodeError') return false;
                 throw err;
@@ -136,7 +154,8 @@ class GroupChat extends Chat {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             let descId = window.Store.GroupMetadata.get(chatWid).descId;
             try {
-                return await window.Store.GroupUtils.sendSetGroupDescription(chatWid, description, window.Store.MsgKey.newId(), descId);
+                await window.Store.GroupUtils.setGroupDescription(chatWid, description, window.Store.MsgKey.newId(), descId);
+                return true;
             } catch (err) {
                 if(err.name === 'ServerStatusCodeError') return false;
                 throw err;
@@ -157,7 +176,8 @@ class GroupChat extends Chat {
         const success = await this.client.pupPage.evaluate(async (chatId, adminsOnly) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             try {
-                return await window.Store.GroupUtils.sendSetGroupProperty(chatWid, 'announcement', adminsOnly ? 1 : 0);
+                await window.Store.GroupUtils.setGroupProperty(chatWid, 'announcement', adminsOnly ? 1 : 0);
+                return true;
             } catch (err) {
                 if(err.name === 'ServerStatusCodeError') return false;
                 throw err;
@@ -179,7 +199,8 @@ class GroupChat extends Chat {
         const success = await this.client.pupPage.evaluate(async (chatId, adminsOnly) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             try {
-                return await window.Store.GroupUtils.sendSetGroupProperty(chatWid, 'restrict', adminsOnly ? 1 : 0);
+                await window.Store.GroupUtils.setGroupProperty(chatWid, 'restrict', adminsOnly ? 1 : 0);
+                return true;
             } catch (err) {
                 if(err.name === 'ServerStatusCodeError') return false;
                 throw err;
@@ -197,12 +218,12 @@ class GroupChat extends Chat {
      * @returns {Promise<string>} Group's invite code
      */
     async getInviteCode() {
-        const code = await this.client.pupPage.evaluate(async chatId => {
+        const codeRes = await this.client.pupPage.evaluate(async chatId => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            return window.Store.Invite.sendQueryGroupInviteCode(chatWid);
+            return window.Store.Invite.queryGroupInviteCode(chatWid);
         }, this.id._serialized);
 
-        return code;
+        return codeRes.code;
     }
     
     /**
@@ -210,12 +231,12 @@ class GroupChat extends Chat {
      * @returns {Promise<string>} New invite code
      */
     async revokeInvite() {
-        const code = await this.client.pupPage.evaluate(chatId => {
+        const codeRes = await this.client.pupPage.evaluate(chatId => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            return window.Store.Invite.sendRevokeGroupInviteCode(chatWid);
+            return window.Store.Invite.resetGroupInviteCode(chatWid);
         }, this.id._serialized);
 
-        return code;
+        return codeRes.code;
     }
 
     /**
@@ -223,9 +244,10 @@ class GroupChat extends Chat {
      * @returns {Promise}
      */
     async leave() {
-        await this.client.pupPage.evaluate(chatId => {
+        await this.client.pupPage.evaluate(async chatId => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            return window.Store.GroupUtils.sendExitGroup(chatWid);
+            const chat = await window.Store.Chat.find(chatWid);
+            return window.Store.GroupUtils.sendExitGroup(chat);
         }, this.id._serialized);
     }
 
