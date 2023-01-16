@@ -11,8 +11,25 @@ const repl = require('repl');
 const { Client, LocalAuth } = require('./index');
 
 const client = new Client({
-    puppeteer: { headless: false }, 
-    authStrategy: new LocalAuth()
+    restartOnAuthFail: true,
+    authStrategy: new LocalAuth(),
+    takeoverOnConflict: true,
+    takeoverTimeoutMs: 20000,
+    qrMaxRetries: 4,
+    userAgent: 'Mozilla/5.0 (X11; Linux MeetsCRM x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36',
+    puppeteer: {
+        headless: false,
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--single-process', // <- this one doesn't works in Windows
+            '--disable-gpu'
+        ],
+    },
 });
 
 console.log('Initializing...');

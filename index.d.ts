@@ -508,7 +508,8 @@ declare namespace WAWebJS {
         DISCONNECTED = 'disconnected',
         STATE_CHANGED = 'change_state',
         BATTERY_CHANGED = 'change_battery',
-        REMOTE_SESSION_SAVED = 'remote_session_saved'
+        REMOTE_SESSION_SAVED = 'remote_session_saved',
+        CALL = 'call'
     }
 
     /** Group notification types */

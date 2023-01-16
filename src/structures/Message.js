@@ -386,7 +386,9 @@ class Message extends Base {
 
         const result = await this.client.pupPage.evaluate(async (msgId) => {
             const msg = window.Store.Msg.get(msgId);
-
+            if (!msg) {
+                return undefined;
+            }
             if (msg.mediaData.mediaStage != 'RESOLVED') {
                 // try to resolve media
                 await msg.downloadMedia({
