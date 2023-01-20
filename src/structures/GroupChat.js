@@ -190,6 +190,15 @@ class GroupChat extends Chat {
         return true;
     }
 
+	/**
+     * Sets group's or current user's picture.
+     * @param {MessageMedia} picture
+     * @return {Promise<string>}
+     */
+    async setPicture(picture){
+        return await this.client.setPicture(this.id._serialized, picture);
+    }
+
     /**
      * Updates the group settings to only allow admins to edit group info (title, description, photo).
      * @param {boolean} [adminsOnly=true] Enable or disable this option 
