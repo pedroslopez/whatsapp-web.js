@@ -1,20 +1,20 @@
-"use strict";
+'use strict';
 
-const EventEmitter = require("events");
-const puppeteer = require("puppeteer");
-const moduleRaid = require("@pedroslopez/moduleraid/moduleraid");
+const EventEmitter = require('events');
+const puppeteer = require('puppeteer');
+const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
 
-const Util = require("./util/Util");
-const InterfaceController = require("./util/InterfaceController");
+const Util = require('./util/Util');
+const InterfaceController = require('./util/InterfaceController');
 const {
     WhatsWebURL,
     DefaultOptions,
     Events,
     WAState,
-} = require("./util/Constants");
-const { ExposeStore, LoadUtils } = require("./util/Injected");
-const ChatFactory = require("./factories/ChatFactory");
-const ContactFactory = require("./factories/ContactFactory");
+} = require('./util/Constants');
+const { ExposeStore, LoadUtils } = require('./util/Injected');
+const ChatFactory = require('./factories/ChatFactory');
+const ContactFactory = require('./factories/ContactFactory');
 const {
     ClientInfo,
     Message,
@@ -27,9 +27,9 @@ const {
     Buttons,
     List,
     Reaction,
-} = require("./structures");
-const LegacySessionAuth = require("./authStrategies/LegacySessionAuth");
-const NoAuth = require("./authStrategies/NoAuth");
+} = require('./structures');
+const LegacySessionAuth = require('./authStrategies/LegacySessionAuth');
+const NoAuth = require('./authStrategies/NoAuth');
 
 /**
  * Starting point for interacting with the WhatsApp Web API
@@ -72,11 +72,11 @@ class Client extends EventEmitter {
         this.options = Util.mergeDefault(DefaultOptions, options);
 
         if (!this.options.authStrategy) {
-            if (Object.prototype.hasOwnProperty.call(this.options, "session")) {
+            if (Object.prototype.hasOwnProperty.call(this.options, 'session')) {
                 process.emitWarning(
-                    "options.session is deprecated and will be removed in a future release due to incompatibility with multi-device. " +
-                        "Use the LocalAuth authStrategy, don't pass in a session as an option, or suppress this warning by using the LegacySessionAuth strategy explicitly (see https://wwebjs.dev/guide/authentication.html#legacysessionauth-strategy).",
-                    "DeprecationWarning"
+                    'options.session is deprecated and will be removed in a future release due to incompatibility with multi-device. ' +
+                        'Use the LocalAuth authStrategy, don"t pass in a session as an option, or suppress this warning by using the LegacySessionAuth strategy explicitly (see https://wwebjs.dev/guide/authentication.html#legacysessionauth-strategy).',
+                    'DeprecationWarning'
                 );
 
                 this.authStrategy = new LegacySessionAuth({
@@ -112,7 +112,7 @@ class Client extends EventEmitter {
             page = await browser.newPage();
         } else {
             const browserArgs = [...(puppeteerOpts.args || [])];
-            if (!browserArgs.find((arg) => arg.includes("--user-agent"))) {
+            if (!browserArgs.find((arg) => arg.includes('--user-agent'))) {
                 browserArgs.push(`--user-agent=${this.options.userAgent}`);
             }
 
@@ -136,9 +136,9 @@ class Client extends EventEmitter {
         await this.authStrategy.afterBrowserInitialized();
 
         await page.goto(WhatsWebURL, {
-            waitUntil: "load",
+            waitUntil: 'load',
             timeout: 0,
-            referer: "https://whatsapp.com/",
+            referer: 'https://whatsapp.com/',
         });
 
         await page.evaluate(`function getElementByXpath(path) {
@@ -148,7 +148,7 @@ class Client extends EventEmitter {
         let lastPercent = null,
             lastPercentMessage = null;
 
-        await page.exposeFunction("loadingScreen", async (percent, message) => {
+        await page.exposeFunction('loadingScreen', async (percent, message) => {
             if (lastPercent !== percent || lastPercentMessage !== message) {
                 this.emit(Events.LOADING_SCREEN, percent, message);
                 lastPercent = percent;
@@ -182,14 +182,14 @@ class Client extends EventEmitter {
                 });
             },
             {
-                PROGRESS: "//*[@id='app']/div/div/div[2]/progress",
-                PROGRESS_MESSAGE: "//*[@id='app']/div/div/div[3]",
+                PROGRESS: '//*[@id="app"]/div/div/div[2]/progress',
+                PROGRESS_MESSAGE: '//*[@id="app"]/div/div/div[3]',
             }
         );
 
         const INTRO_IMG_SELECTOR =
             '[data-testid="intro-md-beta-logo-dark"], [data-testid="intro-md-beta-logo-light"], [data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
-        const INTRO_QRCODE_SELECTOR = "div[data-ref] canvas";
+        const INTRO_QRCODE_SELECTOR = 'div[data-ref] canvas';
 
         // Checks which selector appears first
         const needAuthentication = await Promise.race([
@@ -231,10 +231,10 @@ class Client extends EventEmitter {
                 return;
             }
 
-            const QR_CONTAINER = "div[data-ref]";
-            const QR_RETRY_BUTTON = "div[data-ref] > span > button";
+            const QR_CONTAINER = 'div[data-ref]';
+            const QR_RETRY_BUTTON = 'div[data-ref] > span > button';
             let qrRetries = 0;
-            await page.exposeFunction("qrChanged", async (qr) => {
+            await page.exposeFunction('qrChanged', async (qr) => {
                 /**
                  * Emitted when a QR code is received
                  * @event Client#qr
@@ -246,7 +246,7 @@ class Client extends EventEmitter {
                     if (qrRetries > this.options.qrMaxRetries) {
                         this.emit(
                             Events.DISCONNECTED,
-                            "Max qrcode retries reached"
+                            'Max qrcode retries reached'
                         );
                         await this.destroy();
                     }
@@ -264,13 +264,13 @@ class Client extends EventEmitter {
                         muts.forEach((mut) => {
                             // Listens to qr token change
                             if (
-                                mut.type === "attributes" &&
-                                mut.attributeName === "data-ref"
+                                mut.type === 'attributes' &&
+                                mut.attributeName === 'data-ref'
                             ) {
                                 window.qrChanged(mut.target.dataset.ref);
                             }
                             // Listens to retry button, when found, click it
-                            else if (mut.type === "childList") {
+                            else if (mut.type === 'childList') {
                                 const retry_button = document.querySelector(
                                     selectors.QR_RETRY_BUTTON
                                 );
@@ -282,7 +282,7 @@ class Client extends EventEmitter {
                         subtree: true,
                         childList: true,
                         attributes: true,
-                        attributeFilter: ["data-ref"],
+                        attributeFilter: ['data-ref'],
                     });
                 },
                 {
@@ -296,7 +296,7 @@ class Client extends EventEmitter {
                 await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: 0 });
             } catch (error) {
                 if (
-                    error.name === "ProtocolError" &&
+                    error.name === 'ProtocolError' &&
                     error.message &&
                     error.message.match(/Target closed/)
                 ) {
@@ -318,7 +318,7 @@ class Client extends EventEmitter {
         this.emit(Events.AUTHENTICATED, authEventPayload);
 
         // Check window.Store Injection
-        await page.waitForFunction("window.Store != undefined");
+        await page.waitForFunction('window.Store != undefined');
 
         await page.evaluate(async () => {
             // safely unregister service workers
@@ -351,10 +351,10 @@ class Client extends EventEmitter {
         this.interface = new InterfaceController(this);
 
         // Register events
-        await page.exposeFunction("onAddMessageEvent", (msg) => {
-            if (msg.type === "gp2") {
+        await page.exposeFunction('onAddMessageEvent', (msg) => {
+            if (msg.type === 'gp2') {
                 const notification = new GroupNotification(this, msg);
-                if (msg.subtype === "add" || msg.subtype === "invite") {
+                if (msg.subtype === 'add' || msg.subtype === 'invite') {
                     /**
                      * Emitted when a user joins the chat via invite link or is added by an admin.
                      * @event Client#group_join
@@ -362,8 +362,8 @@ class Client extends EventEmitter {
                      */
                     this.emit(Events.GROUP_JOIN, notification);
                 } else if (
-                    msg.subtype === "remove" ||
-                    msg.subtype === "leave"
+                    msg.subtype === 'remove' ||
+                    msg.subtype === 'leave'
                 ) {
                     /**
                      * Emitted when a user leaves the chat or is removed by an admin.
@@ -403,8 +403,8 @@ class Client extends EventEmitter {
 
         let last_message;
 
-        await page.exposeFunction("onChangeMessageTypeEvent", (msg) => {
-            if (msg.type === "revoked") {
+        await page.exposeFunction('onChangeMessageTypeEvent', (msg) => {
+            if (msg.type === 'revoked') {
                 const message = new Message(this, msg);
                 let revoked_msg;
                 if (last_message && msg.id.id === last_message.id.id) {
@@ -426,13 +426,13 @@ class Client extends EventEmitter {
             }
         });
 
-        await page.exposeFunction("onChangeMessageEvent", (msg) => {
-            if (msg.type !== "revoked") {
+        await page.exposeFunction('onChangeMessageEvent', (msg) => {
+            if (msg.type !== 'revoked') {
                 last_message = msg;
             }
         });
 
-        await page.exposeFunction("onRemoveMessageEvent", (msg) => {
+        await page.exposeFunction('onRemoveMessageEvent', (msg) => {
             if (!msg.isNewMsg) return;
 
             const message = new Message(this, msg);
@@ -445,7 +445,7 @@ class Client extends EventEmitter {
             this.emit(Events.MESSAGE_REVOKED_ME, message);
         });
 
-        await page.exposeFunction("onMessageAckEvent", (msg, ack) => {
+        await page.exposeFunction('onMessageAckEvent', (msg, ack) => {
             const message = new Message(this, msg);
 
             /**
@@ -457,7 +457,7 @@ class Client extends EventEmitter {
             this.emit(Events.MESSAGE_ACK, message, ack);
         });
 
-        await page.exposeFunction("onMessageMediaUploadedEvent", (msg) => {
+        await page.exposeFunction('onMessageMediaUploadedEvent', (msg) => {
             const message = new Message(this, msg);
 
             /**
@@ -468,7 +468,7 @@ class Client extends EventEmitter {
             this.emit(Events.MEDIA_UPLOADED, message);
         });
 
-        await page.exposeFunction("onAppStateChangedEvent", async (state) => {
+        await page.exposeFunction('onAppStateChangedEvent', async (state) => {
             /**
              * Emitted when the connection state changes
              * @event Client#change_state
@@ -499,7 +499,7 @@ class Client extends EventEmitter {
                 /**
                  * Emitted when the client has been disconnected
                  * @event Client#disconnected
-                 * @param {WAState|"NAVIGATION"} reason reason that caused the disconnect
+                 * @param {WAState|'NAVIGATION'} reason reason that caused the disconnect
                  */
                 await this.authStrategy.disconnect();
                 this.emit(Events.DISCONNECTED, state);
@@ -507,7 +507,7 @@ class Client extends EventEmitter {
             }
         });
 
-        await page.exposeFunction("onBatteryStateChangedEvent", (state) => {
+        await page.exposeFunction('onBatteryStateChangedEvent', (state) => {
             const { battery, plugged } = state;
 
             if (battery === undefined) return;
@@ -523,7 +523,7 @@ class Client extends EventEmitter {
             this.emit(Events.BATTERY_CHANGED, { battery, plugged });
         });
 
-        await page.exposeFunction("onIncomingCall", (call) => {
+        await page.exposeFunction('onIncomingCall', (call) => {
             /**
              * Emitted when a call is received
              * @event Client#incoming_call
@@ -541,7 +541,7 @@ class Client extends EventEmitter {
             this.emit(Events.INCOMING_CALL, cll);
         });
 
-        await page.exposeFunction("onReaction", (reactions) => {
+        await page.exposeFunction('onReaction', (reactions) => {
             for (const reaction of reactions) {
                 /**
                  * Emitted when a reaction is sent, received, updated or removed
@@ -566,46 +566,46 @@ class Client extends EventEmitter {
         });
 
         await page.evaluate(() => {
-            window.Store.Msg.on("change", (msg) => {
+            window.Store.Msg.on('change', (msg) => {
                 window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg));
             });
-            window.Store.Msg.on("change:type", (msg) => {
+            window.Store.Msg.on('change:type', (msg) => {
                 window.onChangeMessageTypeEvent(
                     window.WWebJS.getMessageModel(msg)
                 );
             });
-            window.Store.Msg.on("change:ack", (msg, ack) => {
+            window.Store.Msg.on('change:ack', (msg, ack) => {
                 window.onMessageAckEvent(
                     window.WWebJS.getMessageModel(msg),
                     ack
                 );
             });
-            window.Store.Msg.on("change:isUnsentMedia", (msg, unsent) => {
+            window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => {
                 if (msg.id.fromMe && !unsent)
                     window.onMessageMediaUploadedEvent(
                         window.WWebJS.getMessageModel(msg)
                     );
             });
-            window.Store.Msg.on("remove", (msg) => {
+            window.Store.Msg.on('remove', (msg) => {
                 if (msg.isNewMsg)
                     window.onRemoveMessageEvent(
                         window.WWebJS.getMessageModel(msg)
                     );
             });
-            window.Store.AppState.on("change:state", (_AppState, state) => {
+            window.Store.AppState.on('change:state', (_AppState, state) => {
                 window.onAppStateChangedEvent(state);
             });
-            window.Store.Conn.on("change:battery", (state) => {
+            window.Store.Conn.on('change:battery', (state) => {
                 window.onBatteryStateChangedEvent(state);
             });
-            window.Store.Call.on("add", (call) => {
+            window.Store.Call.on('add', (call) => {
                 window.onIncomingCall(call);
             });
-            window.Store.Msg.on("add", (msg) => {
+            window.Store.Msg.on('add', (msg) => {
                 if (msg.isNewMsg) {
-                    if (msg.type === "ciphertext") {
+                    if (msg.type === 'ciphertext') {
                         // defer message event until ciphertext is resolved (type changed)
-                        msg.once("change:type", (_msg) =>
+                        msg.once('change:type', (_msg) =>
                             window.onAddMessageEvent(
                                 window.WWebJS.getMessageModel(_msg)
                             )
@@ -654,11 +654,11 @@ class Client extends EventEmitter {
         this.authStrategy.afterAuthReady();
 
         // Disconnect when navigating away when in PAIRING state (detect logout)
-        this.pupPage.on("framenavigated", async () => {
+        this.pupPage.on('framenavigated', async () => {
             const appState = await this.getState();
             if (!appState || appState === WAState.PAIRING) {
                 await this.authStrategy.disconnect();
-                this.emit(Events.DISCONNECTED, "NAVIGATION");
+                this.emit(Events.DISCONNECTED, 'NAVIGATION');
                 await this.destroy();
             }
         });
@@ -750,21 +750,21 @@ class Client extends EventEmitter {
         };
 
         const sendSeen =
-            typeof options.sendSeen === "undefined" ? true : options.sendSeen;
+            typeof options.sendSeen === 'undefined' ? true : options.sendSeen;
 
         if (content instanceof MessageMedia) {
             internalOptions.attachment = content;
-            content = "";
+            content = '';
         } else if (options.media instanceof MessageMedia) {
             internalOptions.attachment = options.media;
             internalOptions.caption = content;
-            content = "";
+            content = '';
         } else if (content instanceof Location) {
             internalOptions.location = content;
-            content = "";
+            content = '';
         } else if (content instanceof Contact) {
             internalOptions.contactCard = content.id._serialized;
-            content = "";
+            content = '';
         } else if (
             Array.isArray(content) &&
             content.length > 0 &&
@@ -773,16 +773,16 @@ class Client extends EventEmitter {
             internalOptions.contactCardList = content.map(
                 (contact) => contact.id._serialized
             );
-            content = "";
+            content = '';
         } else if (content instanceof Buttons) {
-            if (content.type !== "chat") {
+            if (content.type !== 'chat') {
                 internalOptions.attachment = content.body;
             }
             internalOptions.buttons = content;
-            content = "";
+            content = '';
         } else if (content instanceof List) {
             internalOptions.list = content;
-            content = "";
+            content = '';
         }
 
         if (internalOptions.sendMediaAsSticker && internalOptions.attachment) {
@@ -935,8 +935,8 @@ class Client extends EventEmitter {
      */
     async acceptGroupV4Invite(inviteInfo) {
         if (!inviteInfo.inviteCode)
-            throw "Invalid invite code, try passing the message.inviteV4 object";
-        if (inviteInfo.inviteCodeExp == 0) throw "Expired invite code";
+            throw 'Invalid invite code, try passing the message.inviteV4 object';
+        if (inviteInfo.inviteCodeExp == 0) throw 'Expired invite code';
         return this.pupPage.evaluate(async (inviteInfo) => {
             let { groupId, fromId, inviteCode, inviteCodeExp } = inviteInfo;
             return await window.Store.JoinInviteV4.sendJoinGroupViaInviteV4(
@@ -1121,7 +1121,7 @@ class Client extends EventEmitter {
                 const chatWid = window.Store.WidFactory.createWid(contactId);
                 return await window.Store.ProfilePic.profilePicFind(chatWid);
             } catch (err) {
-                if (err.name === "ServerStatusCodeError") return undefined;
+                if (err.name === 'ServerStatusCodeError') return undefined;
                 throw err;
             }
         }, contactId);
@@ -1183,12 +1183,12 @@ class Client extends EventEmitter {
     /**
      * Get the registered WhatsApp ID for a number.
      * Will return null if the number is not registered on WhatsApp.
-     * @param {string} number Number or ID ("@c.us" will be automatically appended if not specified)
+     * @param {string} number Number or ID ('@c.us' will be automatically appended if not specified)
      * @returns {Promise<Object|null>}
      */
     async getNumberId(number) {
-        if (!number.endsWith("@c.us")) {
-            number += "@c.us";
+        if (!number.endsWith('@c.us')) {
+            number += '@c.us';
         }
 
         return await this.pupPage.evaluate(async (number) => {
@@ -1205,9 +1205,9 @@ class Client extends EventEmitter {
      * @returns {Promise<string>}
      */
     async getFormattedNumber(number) {
-        if (!number.endsWith("@s.whatsapp.net"))
-            number = number.replace("c.us", "s.whatsapp.net");
-        if (!number.includes("@s.whatsapp.net"))
+        if (!number.endsWith('@s.whatsapp.net'))
+            number = number.replace('c.us', 's.whatsapp.net');
+        if (!number.includes('@s.whatsapp.net'))
             number = `${number}@s.whatsapp.net`;
 
         return await this.pupPage.evaluate(async (numberId) => {
@@ -1221,7 +1221,7 @@ class Client extends EventEmitter {
      * @returns {Promise<string>}
      */
     async getCountryCode(number) {
-        number = number.replace(" ", "").replace("+", "").replace("@c.us", "");
+        number = number.replace(' ', '').replace('+', '').replace('@c.us', '');
 
         return await this.pupPage.evaluate(async (numberId) => {
             return window.Store.NumberInfo.findCC(numberId);
@@ -1238,7 +1238,7 @@ class Client extends EventEmitter {
      */
     async createGroup(name, participants) {
         if (!Array.isArray(participants) || participants.length == 0) {
-            throw "You need to add at least one other participant to the group";
+            throw 'You need to add at least one other participant to the group';
         }
 
         if (participants.every((c) => c instanceof Contact)) {
@@ -1263,7 +1263,7 @@ class Client extends EventEmitter {
         const missingParticipants = createRes.participants.reduce(
             (missing, c) => {
                 const id = c.wid._serialized;
-                const statusCode = c.error ? c.error.toString() : "200";
+                const statusCode = c.error ? c.error.toString() : '200';
                 if (statusCode != 200)
                     return Object.assign(missing, { [id]: statusCode });
                 return missing;
@@ -1322,7 +1322,7 @@ class Client extends EventEmitter {
             const label = window.Store.Label.get(labelId);
             const labelItems = label.labelItemCollection.getModelsArray();
             return labelItems.reduce((result, item) => {
-                if (item.parentType === "Chat") {
+                if (item.parentType === 'Chat') {
                     result.push(item.parentId);
                 }
                 return result;
