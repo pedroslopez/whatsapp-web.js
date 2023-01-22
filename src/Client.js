@@ -105,7 +105,9 @@ class Client extends EventEmitter {
         await page.setUserAgent(this.options.userAgent);
         if (this.options.bypassCSP) await page.setBypassCSP(true);
         if (this.options.version) {
-            const body = waVersion.getPageContent(this.options.version);
+            const body = await waVersion.fetchLatest().catch(() => {
+                return waVersion.getLatestVersion()
+            });
 
             await page.setRequestInterception(true);
         
@@ -797,7 +799,7 @@ class Client extends EventEmitter {
      */
     async getInviteInfo(inviteCode) {
         return await this.pupPage.evaluate(inviteCode => {
-            return window.Store.InviteInfo.sendQueryGroupInvite(inviteCode);
+            return window.Store.InviteInfo.queryGroupInvite(inviteCode);
         }, inviteCode);
     }
 
@@ -808,7 +810,7 @@ class Client extends EventEmitter {
      */
     async acceptInvite(inviteCode) {
         const chatId = await this.pupPage.evaluate(async inviteCode => {
-            return await window.Store.Invite.sendJoinGroupViaInvite(inviteCode);
+            return await window.Store.Invite.joinGroupViaInvite(inviteCode);
         }, inviteCode);
 
         return chatId._serialized;
@@ -1118,19 +1120,17 @@ class Client extends EventEmitter {
 
         const createRes = await this.pupPage.evaluate(async (name, participantIds) => {
             const participantWIDs = participantIds.map(p => window.Store.WidFactory.createWid(p));
-            const id = window.Store.MsgKey.newId();
-            const res = await window.Store.GroupUtils.sendCreateGroup(name, participantWIDs, undefined, id);
-            return res;
+            return await window.Store.GroupUtils.createGroup(name, participantWIDs, 0);
         }, name, participants);
 
         const missingParticipants = createRes.participants.reduce(((missing, c) => {
-            const id = Object.keys(c)[0];
-            const statusCode = c[id].code;
+            const id = c.wid._serialized;
+            const statusCode = c.error ? c.error.toString() : '200';
             if (statusCode != 200) return Object.assign(missing, { [id]: statusCode });
             return missing;
         }), {});
 
-        return { gid: createRes.gid, missingParticipants };
+        return { gid: createRes.wid, missingParticipants };
     }
 
     /**
