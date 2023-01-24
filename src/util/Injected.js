@@ -13,10 +13,9 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Cmd = window.mR.findModule('Cmd')[0].Cmd;
     window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
     window.Store.DownloadManager = window.mR.findModule('downloadManager')[0].downloadManager;
-    window.Store.Features = window.mR.findModule('FEATURE_CHANGE_EVENT')[0].LegacyPhoneFeatures;
     window.Store.GroupMetadata = window.mR.findModule('GroupMetadata')[0].default.GroupMetadata;
-    window.Store.Invite = window.mR.findModule('sendJoinGroupViaInvite')[0];
-    window.Store.InviteInfo = window.mR.findModule('sendQueryGroupInvite')[0];
+    window.Store.Invite = window.mR.findModule('resetGroupInviteCode')[0];
+    window.Store.InviteInfo = window.mR.findModule('queryGroupInvite')[0];
     window.Store.Label = window.mR.findModule('LabelCollection')[0].LabelCollection;
     window.Store.MediaPrep = window.mR.findModule('MediaPrep')[0];
     window.Store.MediaObject = window.mR.findModule('getOrCreateMediaObject')[0];
@@ -42,7 +41,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.ProfilePic = window.mR.findModule('profilePicResync')[0];
     window.Store.PresenceUtils = window.mR.findModule('sendPresenceAvailable')[0];
     window.Store.ChatState = window.mR.findModule('sendChatStateComposing')[0];
-    window.Store.GroupParticipants = window.mR.findModule('sendPromoteParticipants')[0];
+    window.Store.GroupParticipants = window.mR.findModule('promoteParticipants')[1];
     window.Store.JoinInviteV4 = window.mR.findModule('sendJoinGroupViaInviteV4')[0];
     window.Store.findCommonGroups = window.mR.findModule('findCommonGroups')[0].findCommonGroups;
     window.Store.StatusUtils = window.mR.findModule('setMyStatus')[0];
@@ -61,9 +60,9 @@ exports.ExposeStore = (moduleRaidStr) => {
     };
 
     window.Store.GroupUtils = {
-        ...window.mR.findModule('sendCreateGroup')[0],
-        ...window.mR.findModule('sendSetGroupSubject')[0],
-        ...window.mR.findModule('markExited')[0]
+        ...window.mR.findModule('createGroup')[0],
+        ...window.mR.findModule('setGroupDescription')[0],
+        ...window.mR.findModule('sendExitGroup')[0]
     };
 
     if (!window.Store.Chat._find) {
@@ -355,6 +354,11 @@ exports.ExposeStore = (moduleRaidStr) => {
         window.Store.MDBackend = _isMDBackend[0].isMDBackend();
     } else {
         window.Store.MDBackend = true;
+    }
+
+    const _features = window.mR.findModule('FEATURE_CHANGE_EVENT')[0];
+    if(_features) {
+        window.Store.Features = _features.LegacyPhoneFeatures;
     }
 };
 
