@@ -202,7 +202,7 @@ class GroupChat extends Chat {
             return window.Store.Invite.sendQueryGroupInviteCode(chatWid);
         }, this.id._serialized);
 
-        return code.code;
+        return code;
     }
     
     /**

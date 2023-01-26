@@ -185,7 +185,7 @@ class Util {
             throw new Error('media is not an audio');
 
         if (media.mimetype === 'audio/ogg; codecs=opus')
-            return media
+            return media;
 
         const tempFile = path.join(
             tmpdir(), `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.ogg`
