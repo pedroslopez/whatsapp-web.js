@@ -684,7 +684,7 @@ class Client extends EventEmitter {
         }
 
         if (internalOptions.attachment.mimetype.startsWith('audio')) {
-            internalOptions.attachment = await Util.formatToOpusAudio(internalOptions.attachment)
+            internalOptions.attachment = await Util.formatToOpusAudio(internalOptions.attachment);
         }
 
         const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
