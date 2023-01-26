@@ -683,7 +683,7 @@ class Client extends EventEmitter {
             );
         }
 
-        if (internalOptions.attachment.mimetype.startsWith('audio')) {
+        if (internalOptions.sendAudioAsVoice && internalOptions.attachment.mimetype.startsWith('audio')) {
             internalOptions.attachment = await Util.formatToOpusAudio(internalOptions.attachment);
         }
 
