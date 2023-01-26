@@ -175,6 +175,51 @@ class Util {
     }
 
     /**
+    * Formats a media to ogg/opus
+    * @param {MessageMedia} media
+    * 
+    * @returns {Promise<MessageMedia> media} in opus/ogg (audio) format
+    */
+    static async formatToOpusAudio(media) {
+        if (!media.mimetype.includes('audio'))
+            throw new Error('media is not an audio');
+
+        if (media.mimetype === 'audio/ogg; codecs=opus')
+            return media;
+
+        const tempFile = path.join(
+            tmpdir(), `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.ogg`
+        );
+
+        const stream = new (require('stream').Readable)();
+        const buffer = Buffer.from(
+            media.data.replace(`data:${media.mimetype};base64,`, ''),
+            'base64'
+        );
+        stream.push(buffer);
+        stream.push(null);
+
+        await new Promise((resolve, reject) => {
+            ffmpeg(stream)
+                .on('error', reject)
+                .on('end', () => resolve(true))
+                .addOutputOptions([
+                    '-c:a libopus'
+                ])
+                .save(tempFile);
+        });
+
+        const data = await fs.readFile(tempFile, 'base64');
+        await fs.unlink(tempFile);
+
+        return {
+            mimetype: 'audio/ogg; codecs=opus',
+            data: data,
+            filename: media.filename,
+        };
+    }
+
+    /**
      * Configure ffmpeg path
      * @param {string} path
      */
