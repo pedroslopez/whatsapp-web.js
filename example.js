@@ -195,9 +195,8 @@ client.on('message', async msg => {
             client.interface.openChatWindowAt(quotedMsg.id._serialized);
         }
     } else if (msg.body === '!buttons') {
-        // Limited to 5 buttons per message and limited to 3 buttons for each kind, in this case the third quick reply button will be removed
         let button = new Buttons(
-            'Button body',
+            'Button body\n\nWant to test buttons some more? Check out https://github.com/wwebjs/buttons-test',
             [
                 { body: 'Some text' },
                 { body: 'Try clicking me (id:test)', id: 'test'},

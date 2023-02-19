@@ -105,12 +105,13 @@ exports.ExposeStore = (moduleRaidStr) => {
     };
 
     // Function to modify functions.
+    // This function simply just runs the callback you provide with the original code in the first argument and all the arguments passed to that function.
     window.injectToFunction = (selector, callback) => {
         const oldFunct = window.mR.findModule(selector.name)[selector.index][selector.property];
         window.mR.findModule(selector.name)[selector.index][selector.property] = (...args) => callback(oldFunct, args);
     };
 
-    // Find button models
+    // Find Template models
     window.Store.TemplateButtonModel = window.findProxyModel('TemplateButtonModel');
     window.Store.TemplateButtonCollection = window.mR.findModule('TemplateButtonCollection')[0].TemplateButtonCollection;
     
