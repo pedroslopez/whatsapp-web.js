@@ -71,14 +71,14 @@ class Buttons {
      */
     _format(buttons){
         // Limit the buttons (max 3 of regular and 3 of special buttons) 5 buttons total at the same time
-        const templateButtons = buttons.filter(button => button.url || button.number).slice(0,3);
-        const regularButtons = buttons.filter(button => !button.url && !button.number).slice(0,3);
-        buttons = templateButtons.concat(regularButtons).slice(0,5);
+        const templateButtons = buttons.filter(button => button.url || button.number);
+        const regularButtons = buttons.filter(button => !button.url && !button.number);
+        buttons = templateButtons.concat(regularButtons);
 
         return buttons.map((button, index) => {
             if (button.url && button.number && button.id) throw 'Only pick one of the following (url/number/id)';
             if (button.number) {
-                throw 'Not supported, URL and Call buttons are not supported on IOS';
+                console.log("[WARNING] THIS FEATURE (CALL BUTTONS) IS UNSTABLE AND IS NOT TESTED OR EXPECTED TO WORK ON ALL PLATFORMS. Help test this feature with us on https://github.com/wwebjs/buttons-test")
                 return {
                     index,
                     callButton: {
@@ -87,7 +87,7 @@ class Buttons {
                     }
                 };
             } else if (button.url) {
-                throw 'Not supported, URL and Call buttons are not supported on IOS';
+                console.log("[WARNING] THIS FEATURE (URL BUTTONS) IS UNSTABLE AND IS NOT TESTED OR EXPECTED TO WORK ON ALL PLATFORMS. Help test this feature with us on https://github.com/wwebjs/buttons-test")
                 return {
                     index,
                     urlButton: {
