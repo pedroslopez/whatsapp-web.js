@@ -112,7 +112,7 @@ class Buttons {
                         id: button.id,
                         text: button.body
                     }
-                }
+                };
             }
 
         });
