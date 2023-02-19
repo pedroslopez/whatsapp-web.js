@@ -17,6 +17,7 @@ const MessageMedia = require('./MessageMedia');
  * @property {{displayText: string, url: string}=} urlButton
  * @property {{displayText: string, phoneNumber: string}=} callButton
  * @property {{displayText: string, id: string}=} quickReplyButton
+ * @property {{regularButtons: {text: string, id: string}}=} regularButtons
  */
 
 /**
@@ -28,8 +29,9 @@ class Buttons {
      * @param {ButtonSpec[]} buttons - See {@link ButtonSpec}
      * @param {string?} title
      * @param {string?} footer
+     * @param {boolean?} templateOverride
      */
-    constructor(body, buttons, title, footer) {
+    constructor(body, buttons, title, footer, templateOverride) {
         /**
          * Message body
          * @type {string|MessageMedia}
@@ -59,7 +61,7 @@ class Buttons {
          * buttons of message
          * @type {FormattedButtonSpec[]}
          */
-        this.buttons = this._format(buttons);
+        this.buttons = this._format(buttons, templateOverride);
         if(!this.buttons.length){ throw '[BT01] No buttons';}
                 
     }
@@ -69,7 +71,7 @@ class Buttons {
      * @param {ButtonSpec[]} buttons
      * @returns {FormattedButtonSpec[]}
      */
-    _format(buttons){
+    _format(buttons, templateOverride){
         // Limit the buttons (max 3 of regular and 3 of special buttons) 5 buttons total at the same time
         const templateButtons = buttons.filter(button => button.url || button.number);
         const regularButtons = buttons.filter(button => !button.url && !button.number);
@@ -78,7 +80,7 @@ class Buttons {
         return buttons.map((button, index) => {
             if (button.url && button.number && button.id) throw 'Only pick one of the following (url/number/id)';
             if (button.number) {
-                console.log("[WARNING] THIS FEATURE (CALL BUTTONS) IS UNSTABLE AND IS NOT TESTED OR EXPECTED TO WORK ON ALL PLATFORMS. Help test this feature with us on https://github.com/wwebjs/buttons-test")
+                console.log('[WARNING] THIS FEATURE (CALL BUTTONS) IS UNSTABLE AND IS NOT TESTED OR EXPECTED TO WORK ON ALL PLATFORMS. Help test this feature with us on https://github.com/wwebjs/buttons-test');
                 return {
                     index,
                     callButton: {
@@ -87,7 +89,7 @@ class Buttons {
                     }
                 };
             } else if (button.url) {
-                console.log("[WARNING] THIS FEATURE (URL BUTTONS) IS UNSTABLE AND IS NOT TESTED OR EXPECTED TO WORK ON ALL PLATFORMS. Help test this feature with us on https://github.com/wwebjs/buttons-test")
+                console.log('[WARNING] THIS FEATURE (URL BUTTONS) IS UNSTABLE AND IS NOT TESTED OR EXPECTED TO WORK ON ALL PLATFORMS. Help test this feature with us on https://github.com/wwebjs/buttons-test');
                 return {
                     index,
                     urlButton: {
@@ -96,13 +98,21 @@ class Buttons {
                     }
                 };
             } else {
-                return {
+                if (templateOverride) return {
                     index,
                     quickReplyButton: {
                         displayText: button.body, 
                         id: button.id || `${index}`
                     }
                 };
+
+                return {
+                    index,
+                    regularButtons: {
+                        id: button.id,
+                        text: button.body
+                    }
+                }
             }
 
         });

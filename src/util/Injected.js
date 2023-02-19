@@ -251,6 +251,20 @@ exports.ExposeStore = (moduleRaidStr) => {
         property: 'typeAttributeFromProtobuf'
     }, (func, args) => {
         const [proto] = args;
+
+        if (proto.ephemeralMessage) {
+            const { message } = proto.ephemeralMessage;
+            return message ? func(message) : 'text';
+        }
+        if (proto.deviceSentMessage) {
+            const { message } = proto.deviceSentMessage;
+            return message ? func(message) : 'text';
+        }
+        if (proto.viewOnceMessage) {
+            const { message } = proto.viewOnceMessage;
+            return message ? func(message) : 'text';
+        }
+        
         if (proto.templateMessage?.hydratedTemplate) {
             const keys = Object.keys(proto.templateMessage?.hydratedTemplate);
             const messagePart = [
@@ -271,29 +285,6 @@ exports.ExposeStore = (moduleRaidStr) => {
         ) {
             return 'text';
         }
-        
-        return func(...args);
-    });
-
-    window.injectToFunction({
-        index: 0,
-        name: 'typeAttributeFromProtobuf',
-        property: 'typeAttributeFromProtobuf'
-    }, (func, args) => {
-        const [proto] = args;
-
-        if (proto.ephemeralMessage) {
-            const { message } = proto.ephemeralMessage;
-            return message ? func(message) : 'text';
-        }
-        if (proto.deviceSentMessage) {
-            const { message } = proto.deviceSentMessage;
-            return message ? func(message) : 'text';
-        }
-        if (proto.viewOnceMessage) {
-            const { message } = proto.viewOnceMessage;
-            return message ? func(message) : 'text';
-        }
 
         return func(...args);
     });
@@ -304,29 +295,21 @@ exports.ExposeStore = (moduleRaidStr) => {
         property: 'mediaTypeFromProtobuf'
     }, (func, args) => {
         const [proto] = args;
+        if (proto.deviceSentMessage) {
+            const { message } = proto.deviceSentMessage;
+            return message ? func(message) : null;
+        }
+        if (proto.ephemeralMessage) {
+            const { message } = proto.ephemeralMessage;
+            return message ? func(message) : null;
+        }
+        if (proto.viewOnceMessage) {
+            const { message } = proto.viewOnceMessage;
+            return message ? func(message) : null;
+        }
+
         if (proto.templateMessage?.hydratedTemplate) {
             return func(proto.templateMessage.hydratedTemplate);
-        }
-        return func(...args);
-    });
-
-    window.injectToFunction({
-        index: 0,
-        name: 'mediaTypeFromProtobuf',
-        property: 'mediaTypeFromProtobuf'
-    }, (func, args) => {
-        const [proto] = args;
-        if (proto.deviceSentMessage) {
-            const { message } = proto.deviceSentMessage;
-            return message ? func(message) : null;
-        }
-        if (proto.ephemeralMessage) {
-            const { message } = proto.ephemeralMessage;
-            return message ? func(message) : null;
-        }
-        if (proto.viewOnceMessage) {
-            const { message } = proto.viewOnceMessage;
-            return message ? func(message) : null;
         }
 
         return func(...args);
