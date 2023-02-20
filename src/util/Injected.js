@@ -302,7 +302,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     }, (func, args) => {
         const [proto] = args;
         if (proto.templateMessage?.hydratedTemplate) {
-        return func(proto.templateMessage.hydratedTemplate);
+            return func(proto.templateMessage.hydratedTemplate);
         }
         return func(...args);
     });
@@ -365,34 +365,34 @@ exports.LoadUtils = () => {
             returnObject.hydratedButtons = buttonsOptions.buttons;
             returnObject.buttons = new window.Store.TemplateButtonCollection();
 
-            message.buttons.add(
-                message.hydratedButtons.map((button, index) => {
-                  const i = `${null != button.index ? button.index : index}`;
-          
-                  if (button.urlButton) {
+            returnObject.buttons.add(
+                returnObject.hydratedButtons.map((button, index) => {
+                      const i = `${null != button.index ? button.index : index}`;
+                      
+                    if (button.urlButton) {
+                      return new window.Store.TemplateButtonModel({
+                        id: i,
+                        displayText: button.urlButton?.displayText,
+                        url: button.urlButton?.url,
+                        subtype: 'url',
+                      });
+                    }
+            
+                    if (button.callButton) {
+                      return new window.Store.TemplateButtonModel({
+                        id: i,
+                        displayText: button.callButton.displayText,
+                        phoneNumber: button.callButton.phoneNumber,
+                        subtype: 'call',
+                      });
+                    }
+            
                     return new window.Store.TemplateButtonModel({
                       id: i,
-                      displayText: button.urlButton?.displayText,
-                      url: button.urlButton?.url,
-                      subtype: 'url',
+                      displayText: button.quickReplyButton?.displayText,
+                      selectionId: button.quickReplyButton?.id,
+                      subtype: 'quick_reply',
                     });
-                  }
-          
-                  if (button.callButton) {
-                    return new window.Store.TemplateButtonModel({
-                      id: i,
-                      displayText: button.callButton.displayText,
-                      phoneNumber: button.callButton.phoneNumber,
-                      subtype: 'call',
-                    });
-                  }
-          
-                  return new window.Store.TemplateButtonModel({
-                    id: i,
-                    displayText: button.quickReplyButton?.displayText,
-                    selectionId: button.quickReplyButton?.id,
-                    subtype: 'quick_reply',
-                  });
                 })
               );
         }
