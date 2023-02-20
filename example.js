@@ -32,6 +32,12 @@ client.on('ready', () => {
 client.on('message', async msg => {
     console.log('MESSAGE RECEIVED', msg);
 
+    if (msg.selectedButtonId == 'test') {
+        return msg.reply('You clicked the button!');
+    } else if (msg.selectedRowId == 'test') {
+        return msg.reply('You clicked that section');
+    }
+
     if (msg.body === '!ping reply') {
         // Send a new message as a reply to the current one
         msg.reply('pong');
@@ -189,14 +195,31 @@ client.on('message', async msg => {
             client.interface.openChatWindowAt(quotedMsg.id._serialized);
         }
     } else if (msg.body === '!buttons') {
-        let button = new Buttons('Button body',[{body:'bt1'},{body:'bt2'},{body:'bt3'}],'title','footer');
+        // Limited to 5 buttons per message and limited to 3 buttons for each kind, in this case the third quick reply button will be removed
+        let button = new Buttons(
+            'Button body',
+            [
+                { body: 'Some text' },
+                { body: 'Try clicking me (id:test)', id: 'test'},
+            ],
+            'title',
+            'footer'
+        );
         client.sendMessage(msg.from, button);
     } else if (msg.body === '!list') {
-        let sections = [{title:'sectionTitle',rows:[{title:'ListItem1', description: 'desc'},{title:'ListItem2'}]}];
-        let list = new List('List body','btnText',sections,'Title','footer');
-        client.sendMessage(msg.from, list);
+        let sections = [
+            {
+                title: 'Secton title',
+                rows: [
+                    {title:'ListItem1', description: 'desc'},
+                    {title: 'Try clicking me (id: test)', id: 'test'}
+                ]
+            }
+        ];
+        let list = new List('List body', 'btnText', sections, 'Custom title', 'custom footer, google.com');
+        await client.sendMessage(msg.from, list);
     } else if (msg.body === '!reaction') {
-        msg.react('👍');
+        await msg.react('👍');
     }
 });
 
