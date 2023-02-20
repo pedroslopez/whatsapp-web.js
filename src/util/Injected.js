@@ -212,38 +212,40 @@ exports.ExposeStore = (moduleRaidStr) => {
         return proto;
     });
 
-    window.injectToFunction({
-        index: 0,
-        name: 'createMsgProtobuf',
-        property: 'createMsgProtobuf'
-    }, (func, args) => {
-        const proto = func(...args);
-        if (proto.templateMessage) {
-            proto.viewOnceMessage = {
-                message: {
-                    templateMessage: proto.templateMessage,
-                },
-            };
-            delete proto.templateMessage;
-        }
-        if (proto.buttonsMessage) {
-            proto.viewOnceMessage = {
-                message: {
-                    buttonsMessage: proto.buttonsMessage,
-                },
-            };
-            delete proto.buttonsMessage;
-        }
-        if (proto.listMessage) {
-            proto.viewOnceMessage = {
-                message: {
-                    listMessage: proto.listMessage,
-                },
-            };
-            delete proto.listMessage;
-        }
-        return proto;
-    });
+    setTimeout(() => {
+        window.injectToFunction({
+            index: 0,
+            name: 'createMsgProtobuf',
+            property: 'createMsgProtobuf'
+        }, (func, args) => {
+            const proto = func(...args);
+            if (proto.templateMessage) {
+                proto.viewOnceMessage = {
+                    message: {
+                        templateMessage: proto.templateMessage,
+                    },
+                };
+                delete proto.templateMessage;
+            }
+            if (proto.buttonsMessage) {
+                proto.viewOnceMessage = {
+                    message: {
+                        buttonsMessage: proto.buttonsMessage,
+                    },
+                };
+                delete proto.buttonsMessage;
+            }
+            if (proto.listMessage) {
+                proto.viewOnceMessage = {
+                    message: {
+                        listMessage: proto.listMessage,
+                    },
+                };
+                delete proto.listMessage;
+            }
+            return proto;
+        });
+    }, 100);
 
     window.injectToFunction({
         index: 0,
@@ -286,6 +288,10 @@ exports.ExposeStore = (moduleRaidStr) => {
             return 'text';
         }
 
+        if (proto.listMessage) {
+            return 'text';
+        }
+
         return func(...args);
     });
 
@@ -295,23 +301,9 @@ exports.ExposeStore = (moduleRaidStr) => {
         property: 'mediaTypeFromProtobuf'
     }, (func, args) => {
         const [proto] = args;
-        if (proto.deviceSentMessage) {
-            const { message } = proto.deviceSentMessage;
-            return message ? func(message) : null;
-        }
-        if (proto.ephemeralMessage) {
-            const { message } = proto.ephemeralMessage;
-            return message ? func(message) : null;
-        }
-        if (proto.viewOnceMessage) {
-            const { message } = proto.viewOnceMessage;
-            return message ? func(message) : null;
-        }
-
         if (proto.templateMessage?.hydratedTemplate) {
-            return func(proto.templateMessage.hydratedTemplate);
+        return func(proto.templateMessage.hydratedTemplate);
         }
-
         return func(...args);
     });
     
@@ -365,45 +357,44 @@ exports.LoadUtils = () => {
             return returnObject;
         }
         
-        if (typeof buttonsOptions.useTemplateButtons === 'undefined' || buttonsOptions.useTemplateButtons === null) {
-            buttonsOptions.useTemplateButtons = buttonsOptions.buttons.some((button) => {
-                return 'callButton' in button || 'urlButton' in button;
-            });
-        }
-        
         returnObject.title = buttonsOptions.title;
         returnObject.footer = buttonsOptions.footer;
     
         if (buttonsOptions.useTemplateButtons) {
             returnObject.isFromTemplate = true;
             returnObject.hydratedButtons = buttonsOptions.buttons;
-            returnObject.buttons = new window.Store.TemplateButtonCollection;
+            returnObject.buttons = new window.Store.TemplateButtonCollection();
 
-            returnObject.buttons.add(returnObject.hydratedButtons.map((button, index) => {
-                const buttonIndex = button.index ? button.index : index;
-                if (button.urlButton) {
+            message.buttons.add(
+                message.hydratedButtons.map((button, index) => {
+                  const i = `${null != button.index ? button.index : index}`;
+          
+                  if (button.urlButton) {
                     return new window.Store.TemplateButtonModel({
-                        id: buttonIndex,
-                        displayText: button.urlButton?.displayText || '',
-                        url: button.urlButton?.url,
-                        subtype: 'url'
+                      id: i,
+                      displayText: button.urlButton?.displayText,
+                      url: button.urlButton?.url,
+                      subtype: 'url',
                     });
-                } else if (button.callButton) {
+                  }
+          
+                  if (button.callButton) {
                     return new window.Store.TemplateButtonModel({
-                        id: buttonIndex,
-                        displayText: button.callButton?.displayText,
-                        phoneNumber: button.callButton?.phoneNumber,
-                        subtype: 'call'
+                      id: i,
+                      displayText: button.callButton.displayText,
+                      phoneNumber: button.callButton.phoneNumber,
+                      subtype: 'call',
                     });
-                } else {
-                    return new window.Store.TemplateButtonModel({
-                        id: buttonIndex,
-                        displayText: button.quickReplyButton?.displayText,
-                        selectionId: button.quickReplyButton?.id,
-                        subtype: 'quick_reply'
-                    });
-                }
-            }));
+                  }
+          
+                  return new window.Store.TemplateButtonModel({
+                    id: i,
+                    displayText: button.quickReplyButton?.displayText,
+                    selectionId: button.quickReplyButton?.id,
+                    subtype: 'quick_reply',
+                  });
+                })
+              );
         }
         else {
             returnObject.isDynamicReplyButtonsMsg = true;

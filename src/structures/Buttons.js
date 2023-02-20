@@ -31,7 +31,7 @@ class Buttons {
      * @param {string?} footer
      * @param {boolean?} templateOverride
      */
-    constructor(body, buttons, title, footer, templateOverride) {
+    constructor(body, buttons, title, footer, templateOverride = false) {
         /**
          * Message body
          * @type {string|MessageMedia}
@@ -61,9 +61,14 @@ class Buttons {
          * buttons of message
          * @type {FormattedButtonSpec[]}
          */
-        this.buttons = this._format(buttons, templateOverride);
+        this.buttons = this._format(buttons);
         if(!this.buttons.length){ throw '[BT01] No buttons';}
-                
+
+        /**
+         * Override buttons with templates
+         * @type {boolean}
+         */
+        this.useTemplateButtons = templateOverride;
     }
 
     /**
@@ -71,11 +76,11 @@ class Buttons {
      * @param {ButtonSpec[]} buttons
      * @returns {FormattedButtonSpec[]}
      */
-    _format(buttons, templateOverride){
+    _format(buttons){
         // Limit the buttons (max 3 of regular and 3 of special buttons) 5 buttons total at the same time
         const templateButtons = buttons.filter(button => button.url || button.number);
         const regularButtons = buttons.filter(button => !button.url && !button.number);
-        buttons = templateButtons.concat(regularButtons);
+        buttons = regularButtons.concat(templateButtons);
 
         return buttons.map((button, index) => {
             if (button.url && button.number && button.id) throw 'Only pick one of the following (url/number/id)';
@@ -98,19 +103,11 @@ class Buttons {
                     }
                 };
             } else {
-                if (templateOverride) return {
+                return {
                     index,
                     quickReplyButton: {
                         displayText: button.body, 
                         id: button.id || `${index}`
-                    }
-                };
-
-                return {
-                    index,
-                    regularButtons: {
-                        id: button.id,
-                        text: button.body
                     }
                 };
             }
