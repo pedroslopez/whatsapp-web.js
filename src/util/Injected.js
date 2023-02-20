@@ -394,7 +394,7 @@ exports.LoadUtils = () => {
                         subtype: 'quick_reply',
                     });
                 })
-              );
+            );
         }
         else {
             returnObject.isDynamicReplyButtonsMsg = true;
