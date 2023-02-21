@@ -376,6 +376,18 @@ class Client extends EventEmitter {
                 last_message = msg;
             }
 
+            if (msg.type === 'gp2') {
+                const notification = new GroupNotification(this, msg);
+                if (msg.subtype === 'modify') {
+                    /**
+                     * Emitted when a group participant changes its phone number.
+                     * @event Client#group_participant_changed
+                     * @param {GroupNotification} notification GroupNotification with more information about the action
+                     */
+                    this.emit(Events.GROUP_PARTICIPANT_CHANGED, notification);
+                }
+            }
+
         });
 
         await page.exposeFunction('onRemoveMessageEvent', (msg) => {
