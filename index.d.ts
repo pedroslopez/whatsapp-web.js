@@ -198,6 +198,12 @@ declare namespace WAWebJS {
             notification: GroupNotification
         ) => void): this
 
+        /** Emitted when a group participant changes its phone number. */
+        on(event: 'group_participant_changed', listener: (
+            /** GroupNotification with more information about the action */
+            notification: GroupNotification
+        ) => void): this
+
         /** Emitted when media has been uploaded for a message sent by the client */
         on(event: 'media_uploaded', listener: (
             /** The message with media that was uploaded */
@@ -501,6 +507,7 @@ declare namespace WAWebJS {
         GROUP_JOIN = 'group_join',
         GROUP_LEAVE = 'group_leave',
         GROUP_UPDATE = 'group_update',
+        GROUP_PARTICIPANT_CHANGED = 'group_participant_changed',
         QR_RECEIVED = 'qr',
         LOADING_SCREEN = 'loading_screen',
         DISCONNECTED = 'disconnected',
