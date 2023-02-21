@@ -45,6 +45,7 @@ exports.Events = {
     MEDIA_UPLOADED: 'media_uploaded',
     GROUP_JOIN: 'group_join',
     GROUP_LEAVE: 'group_leave',
+    GROUP_ADMIN_CHANGE: 'group_admin_change',
     GROUP_UPDATE: 'group_update',
     QR_RECEIVED: 'qr',
     LOADING_SCREEN: 'loading_screen',
