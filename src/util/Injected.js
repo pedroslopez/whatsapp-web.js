@@ -625,4 +625,16 @@ exports.LoadUtils = () => {
         ]);
         await window.Store.Socket.deprecatedCastStanza(stanza);
     };
+
+    /** The code belongs to @wictornogueira */
+    window.WWebJS.deletePicture = async (chatId) => {
+        const chatWid = window.Store.WidFactory.createWid(chatId);
+        try {
+            const res = await window.Store.GroupUtils.requestDeletePicture(chatWid);
+            return res ? res.status === 200 : false;
+        } catch (err) {
+            if (err.name === 'ServerStatusCodeError') return false;
+            throw err;
+        }
+    };
 };
