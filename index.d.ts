@@ -203,6 +203,12 @@ declare namespace WAWebJS {
             /** GroupNotification with more information about the action */
             notification: GroupNotification
         ) => void): this
+        
+        /** Emitted when a contact changed their phone number. */
+        on(event: 'contact_changed', listener: (
+            /** Message with more information about the action. */
+            message: Message
+        ) => void): this
 
         /** Emitted when media has been uploaded for a message sent by the client */
         on(event: 'media_uploaded', listener: (
@@ -504,6 +510,7 @@ declare namespace WAWebJS {
         MESSAGE_REVOKED_ME = 'message_revoke_me',
         MESSAGE_ACK = 'message_ack',
         MEDIA_UPLOADED = 'media_uploaded',
+        CONTACT_CHANGED = 'contact_changed',
         GROUP_JOIN = 'group_join',
         GROUP_LEAVE = 'group_leave',
         GROUP_UPDATE = 'group_update',
@@ -1152,14 +1159,14 @@ declare namespace WAWebJS {
         setSubject: (subject: string) => Promise<boolean>;
         /** Updates the group description */
         setDescription: (description: string) => Promise<boolean>;
-        /** Updates the group settings to only allow admins to send messages 
-         * @param {boolean} [adminsOnly=true] Enable or disable this option 
+        /** Updates the group settings to only allow admins to send messages
+         * @param {boolean} [adminsOnly=true] Enable or disable this option
          * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
          */
         setMessagesAdminsOnly: (adminsOnly?: boolean) => Promise<boolean>;
         /**
          * Updates the group settings to only allow admins to edit group info (title, description, photo).
-         * @param {boolean} [adminsOnly=true] Enable or disable this option 
+         * @param {boolean} [adminsOnly=true] Enable or disable this option
          * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
          */
         setInfoAdminsOnly: (adminsOnly?: boolean) => Promise<boolean>;
@@ -1169,6 +1176,11 @@ declare namespace WAWebJS {
         revokeInvite: () => Promise<void>;
         /** Makes the bot leave the group */
         leave: () => Promise<void>;
+        /**
+         * The code belongs to @wictornogueira
+         * Deletes the current group's profile picture
+         */
+        deleteProfilePicture: () => Promise<boolean>;
     }
 
     /**
