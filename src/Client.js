@@ -383,14 +383,14 @@ class Client extends EventEmitter {
 
             if (inGroup || inChat) {
                 /** {@link GroupNotification} object does not provide enough information about this event, so a {@link Message} object is used. */
-                const notification = new Message(this, msg);
+                const message = new Message(this, msg);
 
                 /**
                  * Emitted when a contact or a group participant changes their phone number.
                  * @event Client#contact_changed
-                 * @param {Message} notification Message with more information about the event
+                 * @param {Message} message Message with more information about the event
                  */
-                this.emit(Events.CONTACT_CHANGED, notification);
+                this.emit(Events.CONTACT_CHANGED, message);
             }
         });
 
