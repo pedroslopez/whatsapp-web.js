@@ -376,20 +376,22 @@ class Client extends EventEmitter {
                 last_message = msg;
             }
 
-            if (msg.type === 'notification_template') {
-                const message = new Message(this, msg);
-                if (msg.subtype === 'change_number') {
-                    /**
-                     * Emitted when a contact changed their phone number.
-                     * @event Client#contact_changed
-                     * @param {Message} message Message with more information about the action.
-                     * The event notification is shown in private chats.
-                     * Note that GroupNotification object with such a subtype does not provide sufficient information about the action, so a Message object is used.
-                     */
-                    this.emit(Events.CONTACT_CHANGED, message);
-                }
-            }
+            /** The event notification that is shown in group chats. */
+            const inGroup = msg.type === 'gp2' && msg.subtype === 'modify';
+            /** The event notification that is shown in private chats. */
+            const inChat = msg.type === 'notification_template' && msg.subtype === 'change_number';
 
+            if (inGroup || inChat) {
+                /** {@link GroupNotification} object does not provide enough information about this event, so a {@link Message} object is used. */
+                const notification = new Message(this, msg);
+
+                /**
+                 * Emitted when a contact or a group participant changes their phone number.
+                 * @event Client#contact_changed
+                 * @param {Message} notification Message with more information about the event
+                 */
+                this.emit(Events.CONTACT_CHANGED, notification);
+            }
         });
 
         await page.exposeFunction('onRemoveMessageEvent', (msg) => {
