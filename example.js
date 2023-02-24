@@ -270,3 +270,50 @@ client.on('disconnected', (reason) => {
     console.log('Client was logged out', reason);
 });
 
+client.on('contact_changed', (notification) => {
+    /** The time the event occurred. */
+    const eventTime = (new Date(notification.timestamp * 1000)).toLocaleString();
+
+    if (notification.subtype === 'change_number') {
+        /**
+         * Emitted when a contact changed their phone number.
+         * 
+         * {@link notification.templateParams} is an array of two user's ids:
+         * the old (before the change) and a new one, stored in alphabetical order.
+         * 
+         * {@link notification.from} is a current user's id that has a Chat with a user,
+         * whos phone number was changed.
+         * 
+         * {@link notification.to} is a user's id (after the change), the current user has a Chat with.
+         */
+
+        const newId = notification.to;
+        const oldId = notification.templateParams.find(id => id !== newId);
+
+        console.log(`The user ${oldId} changed their phone number at ${eventTime}.\n` +
+            `Their new phone number is ${newId.slice(0, -5)}.`)
+
+    }
+    else if (notification.subtype === 'modify') {
+        /**
+         * Emitted when a group participant changed their phone number.
+         * 
+         * {@link notification.author} is a participant's id before the change.
+         * 
+         * {@link notification.recipients[0]} is a participant's id after the change,
+         * a new one.
+         * 
+         * {@link notification.to} is a group chat id the event was emitted in.
+         * 
+         * {@link notification.from} is a current user's id that got an notification message in the group.
+         */
+
+        const oldId = notification.author;
+        const newId = notification.recipients[0];
+        const groupId = notification.to;
+
+        console.log(`The user ${oldId} that participates in group ${groupId} ` +
+            `changed their phone number at ${eventTime}.\n` +
+            `Their new phone number is ${newId.slice(0, -5)}.`)
+    }
+});
