@@ -43,7 +43,6 @@ exports.Events = {
     MESSAGE_ACK: 'message_ack',
     MESSAGE_REACTION: 'message_reaction',
     MEDIA_UPLOADED: 'media_uploaded',
-    CONTACT_CHANGED: 'contact_changed',
     GROUP_JOIN: 'group_join',
     GROUP_LEAVE: 'group_leave',
     GROUP_ADMIN_CHANGED: 'group_admin_changed',
