@@ -214,20 +214,6 @@ class GroupChat extends Chat {
     }
 
     /**
-     * The code belongs to @wictornogueira
-     * Deletes the current group's profile picture.
-     * @returns {Promise<boolean>} Returns true if the picture was properly deleted,
-     * false otherwise.
-     */
-    async deleteProfilePicture() {
-        const success = await this.client.pupPage.evaluate((chatId) => {
-            return window.WWebJS.deletePicture(chatId);
-        }, this.id._serialized);
-
-        return success;
-    }
-
-    /**
      * Gets the invite code for a specific group
      * @returns {Promise<string>} Group's invite code
      */
