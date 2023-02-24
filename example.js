@@ -270,3 +270,14 @@ client.on('disconnected', (reason) => {
     console.log('Client was logged out', reason);
 });
 
+client.on('group_admin_changed', (notification) => {
+    if (notification.type === 'promote') {
+        /** 
+          * Emitted when a current user is promoted to an admin.
+          * {@link notification.author} is a user who performs the action of promoting/demoting the current user.
+          */
+        console.log(`You were promoted by ${notification.author}`);
+    } else if (notification.type === 'demote')
+        /** Emitted when a current user is demoted to a regular user. */
+        console.log(`You were demoted by ${notification.author}`);
+});
