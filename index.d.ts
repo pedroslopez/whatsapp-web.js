@@ -201,7 +201,13 @@ declare namespace WAWebJS {
         /** Emitted when a contact or a group participant changed their phone number. */
         on(event: 'contact_changed', listener: (
             /** Message with more information about the event. */
-            message: Message
+            message: Message,
+            /** Old user's id. */
+            oldId : String,
+            /** New user's id. */
+            newId : String,
+            /** Indicates if a contact or a group participant changed their phone number. */
+            isContact : Boolean
         ) => void): this
 
         /** Emitted when media has been uploaded for a message sent by the client */
