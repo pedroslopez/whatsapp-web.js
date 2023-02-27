@@ -45,6 +45,7 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @fires Client#group_update
  * @fires Client#disconnected
  * @fires Client#change_state
+ * @fires Client#group_admin_changed
  */
 class Client extends EventEmitter {
     constructor(options = {}) {
