@@ -65,6 +65,7 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('sendExitGroup')[0]
     };
 
+    window.Store.Catalog = window.mR.findModule('Catalog')[0].default.Catalog;
     if (!window.Store.Chat._find) {
         window.Store.Chat._find = e => {
             const target = window.Store.Chat.get(e);
@@ -624,5 +625,32 @@ exports.LoadUtils = () => {
             })
         ]);
         await window.Store.Socket.deprecatedCastStanza(stanza);
+    };
+    
+    window.WWebJS.getCatalogProductModel = product => {
+        return product.serialize();
+    };
+    
+    window.WWebJS.getCatalogProducts = async() => {
+        const catalog = await window.Store.Catalog.getModelsArray()[0].productCollection;
+        return catalog.map(product => window.WWebJS.getCatalogProductModel(product));
+    };
+    
+    window.WWebJS.getCatalogCollectionsModel = collection => {
+        return collection.serialize();
+    };
+    
+    window.WWebJS.getCatalogCollections = async() => {
+        const catalog = await window.Store.Catalog.getModelsArray()[0];
+        const collections = await catalog.collections.getCollectionModels();
+        
+        return collections.map(collection => window.WWebJS.getCatalogCollectionsModel(collection));
+    };
+    
+    window.WWebJS.getCollectionProducts = async (id) => {
+        const catalog = await window.Store.Catalog.getModelsArray()[0];
+        const products = await catalog.collections.get(id).productCollection;
+    
+        return products.map(product => window.WWebJS.getCatalogProductModel(product));
     };
 };

@@ -10,7 +10,7 @@ const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constan
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
-const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List, Reaction } = require('./structures');
+const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List, Reaction, Catalog } = require('./structures');
 const LegacySessionAuth = require('./authStrategies/LegacySessionAuth');
 const NoAuth = require('./authStrategies/NoAuth');
 
@@ -45,6 +45,7 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @fires Client#group_update
  * @fires Client#disconnected
  * @fires Client#change_state
+ * @fires Client#catalog_ready
  */
 class Client extends EventEmitter {
     constructor(options = {}) {
@@ -551,6 +552,51 @@ class Client extends EventEmitter {
         this.emit(Events.READY);
         this.authStrategy.afterAuthReady();
 
+        /*
+         * Load Catalog items with collections
+         * 
+         * it's not clean implementation, but all modules like 
+         * 'refetchCollections', 'fetchCollections', 'getCollections' don't work 
+         * and always returns an empty array
+         */
+
+        const EXTENDED_MENU_TOPBAR = '[data-testid="menu-bar-menu"] span';
+        const EXTENDED_CATALOG_BTN = '[data-testid="mi-catalog menu-item"]';
+        const BACK_BTN_CATALOG = '[data-testid="btn-closer-drawer"] span';
+
+        /**
+         * @event Client#catalog_ready
+         */
+        await page.evaluate(async function (selectors) {
+            const user = await window.WWebJS.getContact(window.Store.User.getMeUser()._serialized);
+            return new Promise(async (resolve, reject) => { // RESOLVE THIS ANTI-PATTERN
+                if(user.isBusiness) {
+                    const dotMenu = document.querySelector(selectors.EXTENDED_MENU_TOPBAR);
+                    await dotMenu.click();
+
+                    // on navigate in catalog, fetch all data 
+                    const catalogBtn = document.querySelector(selectors.EXTENDED_CATALOG_BTN);
+                    await catalogBtn.click();
+
+                    setTimeout(async () => {
+                        const catalogBack = document.querySelector(selectors.BACK_BTN_CATALOG);
+                        await catalogBack.click();
+                        resolve();
+                    },5000); // frequently less time, but prevents empty data on low connections
+                }
+                else {
+                    reject('Not whatsapp business');
+                }
+            });
+        }, {
+            EXTENDED_MENU_TOPBAR,
+            EXTENDED_CATALOG_BTN,
+            BACK_BTN_CATALOG
+        }).then(() => {
+            this.emit(Events.CATALOG_READY);
+        }).catch(() => {});
+
+        
         // Disconnect when navigating away when in PAIRING state (detect logout)
         this.pupPage.on('framenavigated', async () => {
             const appState = await this.getState();
@@ -1177,6 +1223,10 @@ class Client extends EventEmitter {
         });
 
         return blockedContacts.map(contact => ContactFactory.create(this.client, contact));
+    }
+    
+    getCatalog() {
+        return new Catalog(this, {});
     }
 }
 

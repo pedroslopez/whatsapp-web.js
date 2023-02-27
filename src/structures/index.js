@@ -19,4 +19,7 @@ module.exports = {
     List: require('./List'),
     Payment: require('./Payment'),
     Reaction: require('./Reaction'),
+    Catalog: require('./Catalog'),
+    CatalogItem: require('./CatalogItem'),
+    Collection: require('./Collection'),
 };

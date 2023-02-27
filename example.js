@@ -29,6 +29,11 @@ client.on('ready', () => {
     console.log('READY');
 });
 
+client.on('catalog_ready', async () => {
+    // Fired only if user isBusiness
+    console.log('CATALOG READY');
+});
+
 client.on('message', async msg => {
     console.log('MESSAGE RECEIVED', msg);
 
