@@ -1187,7 +1187,7 @@ class Client extends EventEmitter {
      * @returns {Promise<boolean>} Returns true if the picture was properly updated.
      */
     async setProfilePicture(media) {
-        const success = await this.client.pupPage.evaluate((chatid, media) => {
+        const success = await this.pupPage.evaluate((chatid, media) => {
             return window.WWebJS.setPicture(chatid, media);
         }, this.info.wid._serialized, media);
 
@@ -1199,7 +1199,7 @@ class Client extends EventEmitter {
      * @returns {Promise<boolean>} Returns true if the picture was properly deleted.
      */
     async deleteProfilePicture() {
-        const success = await this.client.pupPage.evaluate((chatid) => {
+        const success = await this.pupPage.evaluate((chatid) => {
             return window.WWebJS.deletePicture(chatid);
         }, this.info.wid._serialized);
 
