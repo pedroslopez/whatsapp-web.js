@@ -251,20 +251,31 @@ exports.ExposeStore = (moduleRaidStr) => {
         index: 0,
         name: 'typeAttributeFromProtobuf',
         property: 'typeAttributeFromProtobuf'
-    }, (func, args) => {
+    }, function callback(func, args) {
         const [proto] = args;
 
         if (proto.ephemeralMessage) {
             const { message } = proto.ephemeralMessage;
-            return message ? func(message) : 'text';
+            return message ? callback(func, [message]) : 'text';
         }
         if (proto.deviceSentMessage) {
             const { message } = proto.deviceSentMessage;
-            return message ? func(message) : 'text';
+            return message ? callback(func, [message]) : 'text';
         }
         if (proto.viewOnceMessage) {
             const { message } = proto.viewOnceMessage;
-            return message ? func(message) : 'text';
+            return message ? callback(func, [message]) : 'text';
+        }
+        
+        if (
+            proto.buttonsMessage?.headerType === 1 ||
+            proto.buttonsMessage?.headerType === 2
+        ) {
+            return 'text';
+        }
+
+        if (proto.listMessage) {
+            return 'text';
         }
         
         if (proto.templateMessage?.hydratedTemplate) {
@@ -278,17 +289,6 @@ exports.ExposeStore = (moduleRaidStr) => {
             if (messagePart.some((part) => keys.includes(part))) {
                 return 'media';
             }
-            return 'text';
-        }
-        
-        if (
-            proto.buttonsMessage?.headerType === 1 ||
-            proto.buttonsMessage?.headerType === 2
-        ) {
-            return 'text';
-        }
-
-        if (proto.listMessage) {
             return 'text';
         }
 
