@@ -718,6 +718,25 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Delete message 
+     * @param {string} chatId
+     * @param {string} msgId 
+     * @param {?boolean} everyone 
+     */
+    async deleteMessage(chatId, msgId, everyone) {
+        const message = new Message(this, {
+           id: {
+            id: msgId,
+            _serialized: "true_" + chatId + "_" + msgId
+           } 
+        });
+
+        if (Object.is(await message.getInfo(), null)) return {status: false, error: 'Message not found!'};
+
+        return await message.delete(everyone);
+    }
+
+    /**
      * Get all current chat instances
      * @returns {Promise<Array<Chat>>}
      */
