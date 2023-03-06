@@ -118,6 +118,9 @@ declare namespace WAWebJS {
         /** Searches for messages */
         searchMessages(query: string, options?: { chatId?: string, page?: number, limit?: number }): Promise<Message[]>
 
+        /** Delete message */
+        deleteMessage(chatId: string, msgId: string, everyone?: boolean): Promise<void>
+
         /** Marks the client as online */
         sendPresenceAvailable(): Promise<void>
 
