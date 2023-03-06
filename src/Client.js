@@ -727,7 +727,7 @@ class Client extends EventEmitter {
         const message = new Message(this, {
            id: {
             id: msgId,
-            _serialized: "true_" + chatId + "_" + msgId
+            _serialized: "true_"+chatId+"_"+msgId
            } 
         });
 
