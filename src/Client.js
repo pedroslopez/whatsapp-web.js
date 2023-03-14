@@ -407,8 +407,9 @@ class Client extends EventEmitter {
 
         });
 
-        await page.exposeFunction('onChatUnreadCountEvent', (data) =>{
-            const chat = new Chat(this, data);
+        await page.exposeFunction('onChatUnreadCountEvent', async (data) =>{
+            const chat = await this.getChatById(data.id);
+            
             /**
              * Emitted when the chat unread count changes
              */
