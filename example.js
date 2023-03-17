@@ -1,4 +1,4 @@
-const { Client, Location, List, Buttons, LocalAuth} = require('./index');
+const { Client, Location, List, Buttons, LocalAuth } = require('./index');
 
 const client = new Client({
     authStrategy: new LocalAuth(),
@@ -189,11 +189,11 @@ client.on('message', async msg => {
             client.interface.openChatWindowAt(quotedMsg.id._serialized);
         }
     } else if (msg.body === '!buttons') {
-        let button = new Buttons('Button body',[{body:'bt1'},{body:'bt2'},{body:'bt3'}],'title','footer');
+        let button = new Buttons('Button body', [{ body: 'bt1' }, { body: 'bt2' }, { body: 'bt3' }], 'title', 'footer');
         client.sendMessage(msg.from, button);
     } else if (msg.body === '!list') {
-        let sections = [{title:'sectionTitle',rows:[{title:'ListItem1', description: 'desc'},{title:'ListItem2'}]}];
-        let list = new List('List body','btnText',sections,'Title','footer');
+        let sections = [{ title: 'sectionTitle', rows: [{ title: 'ListItem1', description: 'desc' }, { title: 'ListItem2' }] }];
+        let list = new List('List body', 'btnText', sections, 'Title', 'footer');
         client.sendMessage(msg.from, list);
     } else if (msg.body === '!reaction') {
         msg.react('👍');
@@ -231,7 +231,7 @@ client.on('message_ack', (msg, ack) => {
         ACK_PLAYED: 4
     */
 
-    if(ack == 3) {
+    if (ack == 3) {
         // The message was read
     }
 });
@@ -254,7 +254,7 @@ client.on('group_update', (notification) => {
 });
 
 client.on('change_state', state => {
-    console.log('CHANGE STATE', state );
+    console.log('CHANGE STATE', state);
 });
 
 // Change to false if you don't want to reject incoming calls
@@ -270,15 +270,16 @@ client.on('disconnected', (reason) => {
     console.log('Client was logged out', reason);
 });
 
-client.on('contact_changed', (message, oldId, newId, isContact) => {
+client.on('contact_changed', async (message, oldId, newId, isContact) => {
     /** The time the event occurred. */
     const eventTime = (new Date(message.timestamp * 1000)).toLocaleString();
 
     console.log(
-        `The user ${oldId}` +
-        `${!isContact ? ` that participates in group ${message.to}` : ''}` +
-        `changed their phone number at ${eventTime}.\n` +
-        `Their new phone number is ${newId.slice(0, -5)}.`);
+        `The contact ${oldId.slice(0, -5)}` +
+        `${!isContact ? ` that participates in group ` +
+            `${(await client.getChatById(message.to ?? message.from)).name} ` : ' '}` +
+        `changed their phone number\nat ${eventTime}.\n` +
+        `Their new phone number is ${newId.slice(0, -5)}.\n`);
 
     /**
      * Information about the {@link message}:
@@ -286,8 +287,11 @@ client.on('contact_changed', (message, oldId, newId, isContact) => {
      * 1. If a notification was emitted due to a group participant changing their phone number:
      * {@link message.author} is a participant's id before the change.
      * {@link message.recipients[0]} is a participant's id after the change (a new one).
+     * 
      * {@link message.to} is a group chat id the event was emitted in.
      * {@link message.from} is a current user's id that got an notification message in the group.
+     * Note: if {@link message.to} is {@link undefined}, then
+     * {@link message.from} is a group chat id the event was emitted in.
      * 
      * 2. If a notification was emitted due to a contact changing their phone number:
      * {@link message.templateParams} is an array of two user's ids:
