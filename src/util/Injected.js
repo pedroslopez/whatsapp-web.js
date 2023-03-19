@@ -682,6 +682,8 @@ exports.LoadUtils = () => {
     window.WWebJS.deletePicture = async (chatid) => {
         const chatWid = window.Store.WidFactory.createWid(chatid);
         try {
+          const collection = window.Store.ProfilePicThumb.get(chatid);
+          if (!collection.canDelete()) return;
             const res = await window.Store.GroupUtils.requestDeletePicture(chatWid);
             return res ? res.status === 200 : false;
         } catch (err) {
