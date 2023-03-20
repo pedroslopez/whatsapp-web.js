@@ -1,6 +1,8 @@
 
 import { EventEmitter } from 'events'
 import { RequestInit } from 'node-fetch'
+import { ButtonSpec, FormattedButtonSpec } from './src/structures/Buttons'
+import { FormattedSectionSpec, SectionSpec } from './src/structures/List'
 import * as puppeteer from 'puppeteer'
 
 declare namespace WAWebJS {
@@ -1336,21 +1338,21 @@ declare namespace WAWebJS {
     export class List {
         body: string
         buttonText: string
-        sections: Array<any>
+        sections: Array<FormattedSectionSpec>
         title?: string | null
         footer?: string | null
         
-        constructor(body: string, buttonText: string, sections: Array<any>, title?: string | null, footer?: string | null)
+        constructor(body: string, buttonText: string, sections: Array<SectionSpec>, title?: string | null, footer?: string | null)
     }
     
     /** Message type Buttons */
     export class Buttons {
         body: string | MessageMedia
-        buttons: Array<{ buttonId: string; buttonText: {displayText: string}; type: number }>
+        buttons: FormattedButtonSpec
         title?: string | null
         footer?: string | null
         
-        constructor(body: string, buttons: Array<{ id?: string; body: string }>, title?: string | null, footer?: string | null)
+        constructor(body: string, buttons: Array<ButtonSpec>, title?: string | null, footer?: string | null)
     }
 
     /** Message type Reaction */
