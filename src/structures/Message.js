@@ -1,11 +1,11 @@
-'use strict';
+"use strict";
 
-const Base = require('./Base');
-const MessageMedia = require('./MessageMedia');
-const Location = require('./Location');
-const Order = require('./Order');
-const Payment = require('./Payment');
-const { MessageTypes } = require('../util/Constants');
+const Base = require("./Base");
+const MessageMedia = require("./MessageMedia");
+const Location = require("./Location");
+const Order = require("./Order");
+const Payment = require("./Payment");
+const { MessageTypes } = require("../util/Constants");
 
 /**
  * Represents a Message on WhatsApp
@@ -20,13 +20,13 @@ class Message extends Base {
 
     _patch(data) {
         this._data = data;
-        
+
         /**
          * MediaKey that represents the sticker 'ID'
          * @type {string}
          */
         this.mediaKey = data.mediaKey;
-        
+
         /**
          * ID that represents the message
          * @type {object}
@@ -49,7 +49,7 @@ class Message extends Base {
          * Message content
          * @type {string}
          */
-        this.body = this.hasMedia ? data.caption || '' : data.body || '';
+        this.body = this.hasMedia ? data.caption || "" : data.body || "";
 
         /**
          * Message type
@@ -67,7 +67,10 @@ class Message extends Base {
          * ID for the Chat that this message was sent to, except if the message was sent by the current user.
          * @type {string}
          */
-        this.from = (typeof (data.from) === 'object' && data.from !== null) ? data.from._serialized : data.from;
+        this.from =
+            typeof data.from === "object" && data.from !== null
+                ? data.from._serialized
+                : data.from;
 
         /**
          * ID for who this message is for.
@@ -76,19 +79,30 @@ class Message extends Base {
          * If the message is sent by another user, it will be the ID for the current user.
          * @type {string}
          */
-        this.to = (typeof (data.to) === 'object' && data.to !== null) ? data.to._serialized : data.to;
+        this.to =
+            typeof data.to === "object" && data.to !== null
+                ? data.to._serialized
+                : data.to;
 
         /**
          * If the message was sent to a group, this field will contain the user that sent the message.
          * @type {string}
          */
-        this.author = (typeof (data.author) === 'object' && data.author !== null) ? data.author._serialized : data.author;
+        this.author =
+            typeof data.author === "object" && data.author !== null
+                ? data.author._serialized
+                : data.author;
 
         /**
          * String that represents from which device type the message was sent
          * @type {string}
          */
-        this.deviceType = data.id.id.length > 21 ? 'android' : data.id.id.substring(0, 2) == '3A' ? 'ios' : 'web';
+        this.deviceType =
+            data.id.id.length > 21
+                ? "android"
+                : data.id.id.substring(0, 2) == "3A"
+                ? "ios"
+                : "web";
 
         /**
          * Indicates if the message was forwarded
@@ -144,26 +158,37 @@ class Message extends Base {
          * Location information contained in the message, if the message is type "location"
          * @type {Location}
          */
-        this.location = data.type === MessageTypes.LOCATION ? new Location(data.lat, data.lng, data.loc) : undefined;
+        this.location =
+            data.type === MessageTypes.LOCATION
+                ? new Location(data.lat, data.lng, data.loc)
+                : undefined;
 
         /**
          * List of vCards contained in the message.
          * @type {Array<string>}
          */
-        this.vCards = data.type === MessageTypes.CONTACT_CARD_MULTI ? data.vcardList.map((c) => c.vcard) : data.type === MessageTypes.CONTACT_CARD ? [data.body] : [];
+        this.vCards =
+            data.type === MessageTypes.CONTACT_CARD_MULTI
+                ? data.vcardList.map((c) => c.vcard)
+                : data.type === MessageTypes.CONTACT_CARD
+                ? [data.body]
+                : [];
 
         /**
          * Group Invite Data
          * @type {object}
          */
-        this.inviteV4 = data.type === MessageTypes.GROUP_INVITE ? {
-            inviteCode: data.inviteCode,
-            inviteCodeExp: data.inviteCodeExp,
-            groupId: data.inviteGrp,
-            groupName: data.inviteGrpName,
-            fromId: data.from._serialized,
-            toId: data.to._serialized
-        } : undefined;
+        this.inviteV4 =
+            data.type === MessageTypes.GROUP_INVITE
+                ? {
+                      inviteCode: data.inviteCode,
+                      inviteCodeExp: data.inviteCodeExp,
+                      groupId: data.inviteGrp,
+                      groupName: data.inviteGrpName,
+                      fromId: data.from._serialized,
+                      toId: data.to._serialized,
+                  }
+                : undefined;
 
         /**
          * Indicates the mentions in the message body.
@@ -186,7 +211,7 @@ class Message extends Base {
          */
         this.token = data.token ? data.token : undefined;
 
-        /** 
+        /**
          * Indicates whether the message is a Gif
          * @type {boolean}
          */
@@ -236,8 +261,12 @@ class Message extends Base {
         }
 
         /** Selected List row Id **/
-        if (data.listResponse && data.listResponse.singleSelectReply.selectedRowId) {
-            this.selectedRowId = data.listResponse.singleSelectReply.selectedRowId;
+        if (
+            data.listResponse &&
+            data.listResponse.singleSelectReply.selectedRowId
+        ) {
+            this.selectedRowId =
+                data.listResponse.singleSelectReply.selectedRowId;
         }
 
         return super._patch(data);
@@ -248,19 +277,19 @@ class Message extends Base {
     }
 
     /**
-     * Reloads this Message object's data in-place with the latest values from WhatsApp Web. 
+     * Reloads this Message object's data in-place with the latest values from WhatsApp Web.
      * Note that the Message must still be in the web app cache for this to work, otherwise will return null.
      * @returns {Promise<Message>}
      */
     async reload() {
         const newData = await this.client.pupPage.evaluate((msgId) => {
             const msg = window.Store.Msg.get(msgId);
-            if(!msg) return null;
+            if (!msg) return null;
             return window.WWebJS.getMessageModel(msg);
         }, this.id._serialized);
 
-        if(!newData) return null;
-        
+        if (!newData) return null;
+
         this._patch(newData);
         return this;
     }
@@ -272,7 +301,7 @@ class Message extends Base {
     get rawData() {
         return this._data;
     }
-    
+
     /**
      * Returns the Chat this message was sent in
      * @returns {Promise<Chat>}
@@ -294,7 +323,11 @@ class Message extends Base {
      * @returns {Promise<Array<Contact>>}
      */
     async getMentions() {
-        return await Promise.all(this.mentionedIds.map(async m => await this.client.getContactById(m)));
+        return await Promise.all(
+            this.mentionedIds.map(
+                async (m) => await this.client.getContactById(m)
+            )
+        );
     }
 
     /**
@@ -330,7 +363,7 @@ class Message extends Base {
 
         options = {
             ...options,
-            quotedMessageId: this.id._serialized
+            quotedMessageId: this.id._serialized,
         };
 
         return this.client.sendMessage(chatId, content, options);
@@ -341,13 +374,19 @@ class Message extends Base {
      * @param {string} reaction - Emoji to react with. Send an empty string to remove the reaction.
      * @return {Promise}
      */
-    async react(reaction){
-        await this.client.pupPage.evaluate(async (messageId, reaction) => {
-            if (!messageId) { return undefined; }
-            
-            const msg = await window.Store.Msg.get(messageId);
-            await window.Store.sendReactionToMsg(msg, reaction);
-        }, this.id._serialized, reaction);
+    async react(reaction) {
+        await this.client.pupPage.evaluate(
+            async (messageId, reaction) => {
+                if (!messageId) {
+                    return undefined;
+                }
+
+                const msg = await window.Store.Msg.get(messageId);
+                await window.Store.sendReactionToMsg(msg, reaction);
+            },
+            this.id._serialized,
+            reaction
+        );
     }
 
     /**
@@ -365,14 +404,18 @@ class Message extends Base {
      * @returns {Promise}
      */
     async forward(chat) {
-        const chatId = typeof chat === 'string' ? chat : chat.id._serialized;
+        const chatId = typeof chat === "string" ? chat : chat.id._serialized;
 
-        await this.client.pupPage.evaluate(async (msgId, chatId) => {
-            let msg = window.Store.Msg.get(msgId);
-            let chat = window.Store.Chat.get(chatId);
+        await this.client.pupPage.evaluate(
+            async (msgId, chatId) => {
+                let msg = window.Store.Msg.get(msgId);
+                let chat = window.Store.Chat.get(chatId);
 
-            return await chat.forwardMessages([msg]);
-        }, this.id._serialized, chatId);
+                return await chat.forwardMessages([msg]);
+            },
+            this.id._serialized,
+            chatId
+        );
     }
 
     /**
@@ -389,46 +432,59 @@ class Message extends Base {
             if (!msg) {
                 return undefined;
             }
-            if (msg.mediaData.mediaStage != 'RESOLVED') {
+            if (msg.mediaData.mediaStage != "RESOLVED") {
                 // try to resolve media
                 await msg.downloadMedia({
                     downloadEvenIfExpensive: true,
-                    rmrReason: 1
+                    rmrReason: 1,
                 });
             }
 
-            if (msg.mediaData.mediaStage.includes('ERROR') || msg.mediaData.mediaStage === 'FETCHING') {
+            if (
+                msg.mediaData.mediaStage.includes("ERROR") ||
+                msg.mediaData.mediaStage === "FETCHING"
+            ) {
                 // media could not be downloaded
                 return undefined;
             }
 
             try {
-                const decryptedMedia = await window.Store.DownloadManager.downloadAndMaybeDecrypt({
+                const decryptedMedia = await (
+                    window.Store.DownloadManager.downloadAndMaybeDecrypt ||
+                    window.Store.DownloadManager.downloadAndDecrypt
+                )({
                     directPath: msg.directPath,
                     encFilehash: msg.encFilehash,
                     filehash: msg.filehash,
                     mediaKey: msg.mediaKey,
                     mediaKeyTimestamp: msg.mediaKeyTimestamp,
                     type: msg.type,
-                    signal: (new AbortController).signal
+                    signal: new AbortController().signal,
                 });
 
-                const data = await window.WWebJS.arrayBufferToBase64Async(decryptedMedia);
+                const data = await window.WWebJS.arrayBufferToBase64Async(
+                    decryptedMedia
+                );
 
                 return {
                     data,
                     mimetype: msg.mimetype,
                     filename: msg.filename,
-                    filesize: msg.size
+                    filesize: msg.size,
                 };
             } catch (e) {
-                if(e.status && e.status === 404) return undefined;
+                if (e.status && e.status === 404) return undefined;
                 throw e;
             }
         }, this.id._serialized);
 
         if (!result) return undefined;
-        return new MessageMedia(result.mimetype, result.data, result.filename, result.filesize);
+        return new MessageMedia(
+            result.mimetype,
+            result.data,
+            result.filename,
+            result.filesize
+        );
     }
 
     /**
@@ -436,16 +492,24 @@ class Message extends Base {
      * @param {?boolean} everyone If true and the message is sent by the current user or the user is an admin, will delete it for everyone in the chat.
      */
     async delete(everyone) {
-        await this.client.pupPage.evaluate((msgId, everyone) => {
-            let msg = window.Store.Msg.get(msgId);
+        await this.client.pupPage.evaluate(
+            (msgId, everyone) => {
+                let msg = window.Store.Msg.get(msgId);
 
-            const canRevoke = window.Store.MsgActionChecks.canSenderRevokeMsg(msg) || window.Store.MsgActionChecks.canAdminRevokeMsg(msg);
-            if (everyone && canRevoke) {
-                return window.Store.Cmd.sendRevokeMsgs(msg.chat, [msg], { type: msg.id.fromMe ? 'Sender' : 'Admin' });
-            }
+                const canRevoke =
+                    window.Store.MsgActionChecks.canSenderRevokeMsg(msg) ||
+                    window.Store.MsgActionChecks.canAdminRevokeMsg(msg);
+                if (everyone && canRevoke) {
+                    return window.Store.Cmd.sendRevokeMsgs(msg.chat, [msg], {
+                        type: msg.id.fromMe ? "Sender" : "Admin",
+                    });
+                }
 
-            return window.Store.Cmd.sendDeleteMsgs(msg.chat, [msg], true);
-        }, this.id._serialized, everyone);
+                return window.Store.Cmd.sendDeleteMsgs(msg.chat, [msg], true);
+            },
+            this.id._serialized,
+            everyone
+        );
     }
 
     /**
@@ -506,9 +570,14 @@ class Message extends Base {
      */
     async getOrder() {
         if (this.type === MessageTypes.ORDER) {
-            const result = await this.client.pupPage.evaluate((orderId, token, chatId) => {
-                return window.WWebJS.getOrderDetail(orderId, token, chatId);
-            }, this.orderId, this.token, this._getChatId());
+            const result = await this.client.pupPage.evaluate(
+                (orderId, token, chatId) => {
+                    return window.WWebJS.getOrderDetail(orderId, token, chatId);
+                },
+                this.orderId,
+                this.token,
+                this._getChatId()
+            );
             if (!result) return undefined;
             return new Order(this.client, result);
         }
@@ -522,7 +591,7 @@ class Message extends Base {
         if (this.type === MessageTypes.PAYMENT) {
             const msg = await this.client.pupPage.evaluate(async (msgId) => {
                 const msg = window.Store.Msg.get(msgId);
-                if(!msg) return null;
+                if (!msg) return null;
                 return msg.serialize();
             }, this.id._serialized);
             return new Payment(this.client, msg);
