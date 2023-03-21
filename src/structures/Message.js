@@ -5,7 +5,7 @@ const MessageMedia = require('./MessageMedia');
 const Location = require('./Location');
 const Order = require('./Order');
 const Payment = require('./Payment');
-const { MessageTypes } = require('../util/Constants');
+const {MessageTypes} = require('../util/Constants');
 
 /**
  * Represents a Message on WhatsApp
@@ -20,13 +20,13 @@ class Message extends Base {
 
     _patch(data) {
         this._data = data;
-        
+
         /**
          * MediaKey that represents the sticker 'ID'
          * @type {string}
          */
         this.mediaKey = data.mediaKey;
-        
+
         /**
          * ID that represents the message
          * @type {object}
@@ -186,7 +186,7 @@ class Message extends Base {
          */
         this.token = data.token ? data.token : undefined;
 
-        /** 
+        /**
          * Indicates whether the message is a Gif
          * @type {boolean}
          */
@@ -248,19 +248,19 @@ class Message extends Base {
     }
 
     /**
-     * Reloads this Message object's data in-place with the latest values from WhatsApp Web. 
+     * Reloads this Message object's data in-place with the latest values from WhatsApp Web.
      * Note that the Message must still be in the web app cache for this to work, otherwise will return null.
      * @returns {Promise<Message>}
      */
     async reload() {
         const newData = await this.client.pupPage.evaluate((msgId) => {
             const msg = window.Store.Msg.get(msgId);
-            if(!msg) return null;
+            if (!msg) return null;
             return window.WWebJS.getMessageModel(msg);
         }, this.id._serialized);
 
-        if(!newData) return null;
-        
+        if (!newData) return null;
+
         this._patch(newData);
         return this;
     }
@@ -272,7 +272,7 @@ class Message extends Base {
     get rawData() {
         return this._data;
     }
-    
+
     /**
      * Returns the Chat this message was sent in
      * @returns {Promise<Chat>}
@@ -341,10 +341,12 @@ class Message extends Base {
      * @param {string} reaction - Emoji to react with. Send an empty string to remove the reaction.
      * @return {Promise}
      */
-    async react(reaction){
+    async react(reaction) {
         await this.client.pupPage.evaluate(async (messageId, reaction) => {
-            if (!messageId) { return undefined; }
-            
+            if (!messageId) {
+                return undefined;
+            }
+
             const msg = await window.Store.Msg.get(messageId);
             await window.Store.sendReactionToMsg(msg, reaction);
         }, this.id._serialized, reaction);
@@ -403,7 +405,7 @@ class Message extends Base {
             }
 
             try {
-                const decryptedMedia = await window.Store.DownloadManager.downloadAndMaybeDecrypt({
+                const decryptedMedia = await (window.Store.DownloadManager.downloadAndMaybeDecrypt || window.Store.DownloadManager.downloadAndDecrypt)({
                     directPath: msg.directPath,
                     encFilehash: msg.encFilehash,
                     filehash: msg.filehash,
@@ -422,7 +424,7 @@ class Message extends Base {
                     filesize: msg.size
                 };
             } catch (e) {
-                if(e.status && e.status === 404) return undefined;
+                if (e.status && e.status === 404) return undefined;
                 throw e;
             }
         }, this.id._serialized);
@@ -441,7 +443,7 @@ class Message extends Base {
 
             const canRevoke = window.Store.MsgActionChecks.canSenderRevokeMsg(msg) || window.Store.MsgActionChecks.canAdminRevokeMsg(msg);
             if (everyone && canRevoke) {
-                return window.Store.Cmd.sendRevokeMsgs(msg.chat, [msg], { type: msg.id.fromMe ? 'Sender' : 'Admin' });
+                return window.Store.Cmd.sendRevokeMsgs(msg.chat, [msg], {type: msg.id.fromMe ? 'Sender' : 'Admin'});
             }
 
             return window.Store.Cmd.sendDeleteMsgs(msg.chat, [msg], true);
@@ -514,6 +516,7 @@ class Message extends Base {
         }
         return undefined;
     }
+
     /**
      * Gets the payment details associated with a given message
      * @return {Promise<Payment>}
@@ -522,7 +525,7 @@ class Message extends Base {
         if (this.type === MessageTypes.PAYMENT) {
             const msg = await this.client.pupPage.evaluate(async (msgId) => {
                 const msg = window.Store.Msg.get(msgId);
-                if(!msg) return null;
+                if (!msg) return null;
                 return msg.serialize();
             }, this.id._serialized);
             return new Payment(this.client, msg);
