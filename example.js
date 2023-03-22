@@ -282,22 +282,27 @@ client.on('contact_changed', async (message, oldId, newId, isContact) => {
         `Their new phone number is ${newId.slice(0, -5)}.\n`);
 
     /**
-     * Information about the {@link message}:
+     * Information about the {@name message}:
      * 
      * 1. If a notification was emitted due to a group participant changing their phone number:
-     * {@link message.author} is a participant's id before the change.
-     * {@link message.recipients[0]} is a participant's id after the change (a new one).
+     * {@name message.author} is a participant's id before the change.
+     * {@name message.recipients[0]} is a participant's id after the change (a new one).
      * 
-     * {@link message.to} is a group chat id the event was emitted in.
-     * {@link message.from} is a current user's id that got an notification message in the group.
-     * Note: if {@link message.to} is {@link undefined}, then
-     * {@link message.from} is a group chat id the event was emitted in.
+     * 1.1 If the contact who changed their number WAS in the current user's contact list at the time of the change:
+     * {@name message.to} is a group chat id the event was emitted in.
+     * {@name message.from} is a current user's id that got an notification message in the group.
+     * Also the {@name message.fromMe} is TRUE.
+     * 
+     * 1.2 Otherwise:
+     * {@name message.from} is a group chat id the event was emitted in.
+     * {@name message.to} is @type {undefined}.
+     * Also {@name message.fromMe} is FALSE.
      * 
      * 2. If a notification was emitted due to a contact changing their phone number:
-     * {@link message.templateParams} is an array of two user's ids:
+     * {@name message.templateParams} is an array of two user's ids:
      * the old (before the change) and a new one, stored in alphabetical order.
-     * {@link message.from} is a current user's id that has a chat with a user,
+     * {@name message.from} is a current user's id that has a chat with a user,
      * whos phone number was changed.
-     * {@link message.to} is a user's id (after the change), the current user has a chat with.
+     * {@name message.to} is a user's id (after the change), the current user has a chat with.
      */
 });
