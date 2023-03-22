@@ -276,7 +276,7 @@ client.on('contact_changed', async (message, oldId, newId, isContact) => {
 
     console.log(
         `The contact ${oldId.slice(0, -5)}` +
-        `${!isContact ? ` that participates in group ` +
+        `${!isContact ? ' that participates in group ' +
             `${(await client.getChatById(message.to ?? message.from)).name} ` : ' '}` +
         `changed their phone number\nat ${eventTime}.\n` +
         `Their new phone number is ${newId.slice(0, -5)}.\n`);
