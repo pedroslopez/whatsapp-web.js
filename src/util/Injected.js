@@ -262,19 +262,10 @@ exports.ExposeStore = (moduleRaidStr) => {
             const { message } = proto.deviceSentMessage;
             return message ? callback(func, [message]) : 'text';
         }
-        if (proto.viewOnceMessage) {
-            const { message } = proto.viewOnceMessage;
-            return message ? callback(func, [message]) : 'text';
-        }
-        
         if (
-            proto.buttonsMessage?.headerType === 1 ||
-            proto.buttonsMessage?.headerType === 2
+            [1, 2].includes(proto.viewOnceMessage?.message?.buttonsMessage?.headerType) ||
+            proto.viewOnceMessage?.message?.listMessage
         ) {
-            return 'text';
-        }
-
-        if (proto.listMessage) {
             return 'text';
         }
         

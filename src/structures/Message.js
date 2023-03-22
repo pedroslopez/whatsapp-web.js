@@ -14,7 +14,6 @@ const { MessageTypes } = require("../util/Constants");
 class Message extends Base {
     constructor(client, data) {
         super(client);
-        console.log("client data", client);
         if (data) this._patch(data);
     }
 
