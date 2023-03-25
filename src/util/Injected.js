@@ -671,8 +671,9 @@ exports.LoadUtils = () => {
 
         const chatWid = window.Store.WidFactory.createWid(chatid);
         try {
-          const collection = window.Store.ProfilePicThumb.get(chatid);
-          if (!collection.canSet()) return;
+            const collection = window.Store.ProfilePicThumb.get(chatid);
+            if (!collection.canSet()) return;
+
             const res = await window.Store.GroupUtils.sendSetPicture(chatWid, thumbnail, profilePic);
             return res ? res.status === 200 : false;
         } catch (err) {
@@ -686,6 +687,7 @@ exports.LoadUtils = () => {
         try {
             const collection = window.Store.ProfilePicThumb.get(chatid);
             if (!collection.canDelete()) return;
+
             const res = await window.Store.GroupUtils.requestDeletePicture(chatWid);
             return res ? res.status === 200 : false;
         } catch (err) {
