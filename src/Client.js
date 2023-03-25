@@ -1178,6 +1178,19 @@ class Client extends EventEmitter {
 
         return blockedContacts.map(contact => ContactFactory.create(this.client, contact));
     }
+
+    /**
+     * Get stories
+     * @returns {Promise<Message[]>}
+     */
+    async getStories() {
+        const messages = await this.pupPage.evaluate(async () => {
+            const models = window.Store.Msg._models.filter(x => x.__x_id.remote.server == 'broadcast')
+            return models.map(msg => window.WWebJS.getMessageModel(msg))
+        });
+
+        return messages.map(msg => new Message(this, msg));
+    }
 }
 
 module.exports = Client;

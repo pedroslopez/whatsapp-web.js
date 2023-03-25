@@ -40,6 +40,18 @@ client.on('message', async msg => {
         // Send a new message to the same chat
         client.sendMessage(msg.from, 'pong');
 
+    } else if (msg.body.startsWith('!getstory ')) {
+        // let number = await msg.getMentions()[0]
+        const stories = await client.getStories()
+        let number = msg.body.split(' ')[1]
+        number = number.includes('@c.us') ? number : `${number}@c.us`;
+        let filtered = stories.filter(v => v.author == number)
+        msg.reply(`found ${filtered.length} stories`)
+        
+        for (let i of filtered) {
+            await sleep(2000);
+            i.forward(msg.from)
+        }    
     } else if (msg.body.startsWith('!sendto ')) {
         // Direct send a new message to specific id
         let number = msg.body.split(' ')[1];

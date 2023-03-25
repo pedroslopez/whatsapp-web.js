@@ -90,6 +90,9 @@ declare namespace WAWebJS {
         /** Gets the current connection state for the client */
         getState(): Promise<WAState>
 
+        /** Get All contact stories */
+        getStories(): Promise<Message[]>
+
         /** Returns the version of WhatsApp Web currently being run */
         getWWebVersion(): Promise<string>
 
