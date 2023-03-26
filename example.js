@@ -49,7 +49,6 @@ client.on('message', async msg => {
         msg.reply(`found ${filtered.length} stories`);
         
         for (let i of filtered) {
-            await sleep(2000);
             i.forward(msg.from);
         }    
     } else if (msg.body.startsWith('!sendto ')) {
