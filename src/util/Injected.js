@@ -17,7 +17,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Invite = window.mR.findModule('resetGroupInviteCode')[0];
     window.Store.InviteInfo = window.mR.findModule('queryGroupInvite')[0];
     window.Store.Label = window.mR.findModule('LabelCollection')[0].LabelCollection;
-    window.Store.MediaPrep = window.mR.findModule('MediaPrep')[0];
+    window.Store.MediaPrep = window.mR.findModule('prepRawMedia')[0];
     window.Store.MediaObject = window.mR.findModule('getOrCreateMediaObject')[0];
     window.Store.NumberInfo = window.mR.findModule('formattedPhoneNumber')[0];
     window.Store.MediaTypes = window.mR.findModule('msgToMediaType')[0];
@@ -41,7 +41,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.ProfilePic = window.mR.findModule('profilePicResync')[0];
     window.Store.PresenceUtils = window.mR.findModule('sendPresenceAvailable')[0];
     window.Store.ChatState = window.mR.findModule('sendChatStateComposing')[0];
-    window.Store.GroupParticipants = window.mR.findModule('promoteParticipants')[1];
+    window.Store.GroupParticipants = window.mR.findModule('promoteParticipants')[0];
     window.Store.JoinInviteV4 = window.mR.findModule('sendJoinGroupViaInviteV4')[0];
     window.Store.findCommonGroups = window.mR.findModule('findCommonGroups')[0].findCommonGroups;
     window.Store.StatusUtils = window.mR.findModule('setMyStatus')[0];
