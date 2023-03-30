@@ -96,6 +96,9 @@ class Client extends EventEmitter {
             if(!browserArgs.find(arg => arg.includes('--user-agent'))) {
                 browserArgs.push(`--user-agent=${this.options.userAgent}`);
             }
+            if(!browserArgs.find(arg => arg.includes('--no-sandbox'))){
+                browserArgs.push('--no-sandbox');
+            }
 
             browser = await puppeteer.launch({...puppeteerOpts, args: browserArgs});
             page = (await browser.pages())[0];
