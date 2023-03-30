@@ -324,10 +324,20 @@ exports.LoadUtils = () => {
         return stickerInfo;
     };
 
+    window.WWebJS.supportedImages = [
+        'image/jpeg',
+        'image/x-png',
+        'image/gif'
+    ];
+
+    window.WWebJS.isUnsupportedImage = function (mimeType) {
+        return mimeType.startsWith('image/') && !window.WWebJS.supportedImages.includes(mimeType);
+    }
+
     window.WWebJS.processMediaData = async (mediaInfo, { forceVoice, forceDocument, forceGif }) => {
         const file = window.WWebJS.mediaInfoToFile(mediaInfo);
         const mData = await window.Store.OpaqueData.createFromData(file, file.type);
-        const mediaPrep = window.Store.MediaPrep.prepRawMedia(mData, { asDocument: forceDocument });
+        const mediaPrep = window.Store.MediaPrep.prepRawMedia(mData, { asDocument: forceDocument || window.WWebJS.isUnsupportedImage(file.type) });
         const mediaData = await mediaPrep.waitForPrep();
         const mediaObject = window.Store.MediaObject.getOrCreateMediaObject(mediaData.filehash);
 
