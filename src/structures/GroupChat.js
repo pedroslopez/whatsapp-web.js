@@ -214,6 +214,31 @@ class GroupChat extends Chat {
     }
 
     /**
+     * Deletes the group's picture.
+     * @returns {Promise<boolean>} Returns true if the picture was properly deleted. This can return false if the user does not have the necessary permissions.
+     */
+    async deletePicture() {
+        const success = await this.client.pupPage.evaluate((chatid) => {
+            return window.WWebJS.deletePicture(chatid);
+        }, this.id._serialized);
+
+        return success;
+    }
+
+    /**
+     * Sets the group's picture.
+     * @param {MessageMedia} media
+     * @returns {Promise<boolean>} Returns true if the picture was properly updated. This can return false if the user does not have the necessary permissions.
+     */
+    async setPicture(media) {
+        const success = await this.client.pupPage.evaluate((chatid, media) => {
+            return window.WWebJS.setPicture(chatid, media);
+        }, this.id._serialized, media);
+
+        return success;
+    }
+
+    /**
      * Gets the invite code for a specific group
      * @returns {Promise<string>} Group's invite code
      */
