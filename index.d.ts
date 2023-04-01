@@ -149,6 +149,12 @@ declare namespace WAWebJS {
         /** Unmutes the Chat */
         unmuteChat(chatId: string): Promise<void>
 
+        /** Sets the current user's profile picture */
+        setProfilePicture(media: MessageMedia): Promise<boolean>
+
+        /** Deletes the current user's profile picture */
+        deleteProfilePicture(): Promise<boolean>
+
         /** Generic event */
         on(event: string, listener: (...args: any) => void): this
 
@@ -217,6 +223,12 @@ declare namespace WAWebJS {
             message: Message,
             /** The new ACK value */
             ack: MessageAck
+        ) => void): this
+        
+        /** Emitted when a chat unread count changes */
+        on(event: 'unread_count', listener: (
+            /** The chat that was affected */
+            chat: Chat
         ) => void): this
 
         /** Emitted when a new message is created, which may include the current user's own messages */
@@ -515,6 +527,7 @@ declare namespace WAWebJS {
         BATTERY_CHANGED = 'change_battery',
         REMOTE_SESSION_SAVED = 'remote_session_saved',
         POLL_VOTE = 'poll_vote'
+        CALL = 'call'
     }
 
     /** Group notification types */
@@ -645,6 +658,7 @@ declare namespace WAWebJS {
      *   broadcast: false,
      *   fromMe: false,
      *   hasQuotedMsg: false,
+     *   hasReaction: false,
      *   location: undefined,
      *   mentionedIds: []
      * }
@@ -674,6 +688,8 @@ declare namespace WAWebJS {
         hasMedia: boolean,
         /** Indicates if the message was sent as a reply to another message */
         hasQuotedMsg: boolean,
+        /** Indicates whether there are reactions to the message */
+        hasReaction: boolean,
         /** Indicates the duration of the message in seconds */
         duration: string,
         /** ID that represents the message */
@@ -788,6 +804,10 @@ declare namespace WAWebJS {
          * @param {Array<string>} selectedOptions The selected options from .pollOptions
          */
         vote: (selectedOptions: string[]) => Promise<void>,
+        /**
+         * Gets the reactions associated with the given message
+         */
+        getReactions: () => Promise<ReactionList[]>,
     }
 
     /** ID that represents a message */
@@ -1040,6 +1060,8 @@ declare namespace WAWebJS {
         timestamp: number,
         /** Amount of messages unread */
         unreadCount: number,
+        /** Last message fo chat */
+        lastMessage: Message,
 
         /** Archives this chat */
         archive: () => Promise<void>,
@@ -1183,6 +1205,10 @@ declare namespace WAWebJS {
         revokeInvite: () => Promise<void>;
         /** Makes the bot leave the group */
         leave: () => Promise<void>;
+        /** Sets the group's picture.*/
+        setPicture: (media: MessageMedia) => Promise<boolean>;
+        /** Deletes the group's picture */
+        deletePicture: () => Promise<boolean>;
     }
 
     /**
@@ -1391,6 +1417,13 @@ declare namespace WAWebJS {
         selectedOptions: string[]
         sender: string
         senderTimestampMs: number
+    }
+    
+    export type ReactionList = {
+        id: string,
+        aggregateEmoji: string,
+        hasReactionByMe: boolean,
+        senders: Array<Reaction>
     }
 }
 
