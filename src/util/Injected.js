@@ -62,7 +62,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.GroupUtils = {
         ...window.mR.findModule('createGroup')[0],
         ...window.mR.findModule('setGroupDescription')[0],
-        ...window.mR.findModule('sendExitGroup')[0]
+        ...window.mR.findModule('sendExitGroup')[0],
+        ...window.mR.findModule('sendSetPicture')[0]
     };
 
     if (!window.Store.Chat._find) {
@@ -624,5 +625,74 @@ exports.LoadUtils = () => {
             })
         ]);
         await window.Store.Socket.deprecatedCastStanza(stanza);
+    };
+
+    window.WWebJS.cropAndResizeImage = async (media, options = {}) => {
+        if (!media.mimetype.includes('image'))
+            throw new Error('Media is not an image');
+
+        if (options.mimetype && !options.mimetype.includes('image'))
+            delete options.mimetype;
+
+        options = Object.assign({ size: 640, mimetype: media.mimetype, quality: .75, asDataUrl: false }, options);
+
+        const img = await new Promise ((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = `data:${media.mimetype};base64,${media.data}`;
+        });
+
+        const sl = Math.min(img.width, img.height);
+        const sx = Math.floor((img.width - sl) / 2);
+        const sy = Math.floor((img.height - sl) / 2);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = options.size;
+        canvas.height = options.size;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, sx, sy, sl, sl, 0, 0, options.size, options.size);
+
+        const dataUrl = canvas.toDataURL(options.mimetype, options.quality);
+
+        if (options.asDataUrl)
+            return dataUrl;
+
+        return Object.assign(media, {
+            mimetype: options.mimeType,
+            data: dataUrl.replace(`data:${options.mimeType};base64,`, '')
+        });
+    };
+
+    window.WWebJS.setPicture = async (chatid, media) => {
+        const thumbnail = await window.WWebJS.cropAndResizeImage(media, { asDataUrl: true, mimetype: 'image/jpeg', size: 96 });
+        const profilePic = await window.WWebJS.cropAndResizeImage(media, { asDataUrl: true, mimetype: 'image/jpeg', size: 640 });
+
+        const chatWid = window.Store.WidFactory.createWid(chatid);
+        try {
+            const collection = window.Store.ProfilePicThumb.get(chatid);
+            if (!collection.canSet()) return;
+
+            const res = await window.Store.GroupUtils.sendSetPicture(chatWid, thumbnail, profilePic);
+            return res ? res.status === 200 : false;
+        } catch (err) {
+            if(err.name === 'ServerStatusCodeError') return false;
+            throw err;
+        }
+    };
+
+    window.WWebJS.deletePicture = async (chatid) => {
+        const chatWid = window.Store.WidFactory.createWid(chatid);
+        try {
+            const collection = window.Store.ProfilePicThumb.get(chatid);
+            if (!collection.canDelete()) return;
+
+            const res = await window.Store.GroupUtils.requestDeletePicture(chatWid);
+            return res ? res.status === 200 : false;
+        } catch (err) {
+            if(err.name === 'ServerStatusCodeError') return false;
+            throw err;
+        }
     };
 };
