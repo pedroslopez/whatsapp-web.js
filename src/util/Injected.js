@@ -3,7 +3,8 @@
 // Exposes the internal Store to the WhatsApp Web client
 exports.ExposeStore = (moduleRaidStr) => {
     eval('var moduleRaid = ' + moduleRaidStr);
-    // eslint-disable-next-line no-undef    window.mR = moduleRaid();
+    // eslint-disable-next-line no-undef
+    window.mR = moduleRaid();
     window.Store = Object.assign({}, window.mR.findModule(m => m.default && m.default.Chat)[0].default);
     window.Store.AppState = window.mR.findModule('Socket')[0].Socket;
     window.Store.Conn = window.mR.findModule('Conn')[0].Conn;
@@ -650,7 +651,7 @@ exports.LoadUtils = () => {
             }
         });
         await window.Store.SendVote.sendVote(msg, localIdSet);
-    }
+    };
     
     window.WWebJS.cropAndResizeImage = async (media, options = {}) => {
         if (!media.mimetype.includes('image'))
