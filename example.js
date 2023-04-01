@@ -306,3 +306,15 @@ client.on('contact_changed', async (message, oldId, newId, isContact) => {
      * {@name message.to} is a user's id (after the change), the current user has a chat with.
      */
 });
+
+client.on('group_admin_changed', (notification) => {
+    if (notification.type === 'promote') {
+        /** 
+          * Emitted when a current user is promoted to an admin.
+          * {@link notification.author} is a user who performs the action of promoting/demoting the current user.
+          */
+        console.log(`You were promoted by ${notification.author}`);
+    } else if (notification.type === 'demote')
+        /** Emitted when a current user is demoted to a regular user. */
+        console.log(`You were demoted by ${notification.author}`);
+});

@@ -47,6 +47,7 @@ exports.Events = {
     CONTACT_CHANGED: 'contact_changed',
     GROUP_JOIN: 'group_join',
     GROUP_LEAVE: 'group_leave',
+    GROUP_ADMIN_CHANGED: 'group_admin_changed',
     GROUP_UPDATE: 'group_update',
     QR_RECEIVED: 'qr',
     LOADING_SCREEN: 'loading_screen',
