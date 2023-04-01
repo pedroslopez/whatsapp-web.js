@@ -28,7 +28,7 @@ class InterfaceController {
     async openChatDrawer(chatId) {
         await this.pupPage.evaluate(async chatId => {
             let chat = await window.Store.Chat.get(chatId);
-            await window.Store.Cmd.chatInfoDrawer(chat);
+            await window.Store.Cmd.openDrawerMid(chat);
         }, chatId);
     }
 
@@ -79,6 +79,7 @@ class InterfaceController {
      */
     async getFeatures() {
         return await this.pupPage.evaluate(() => {
+            if(!window.Store.Features) throw new Error('This version of Whatsapp Web does not support features');
             return window.Store.Features.F;
         });
     }
@@ -89,6 +90,7 @@ class InterfaceController {
      */
     async checkFeatureStatus(feature) {
         return await this.pupPage.evaluate((feature) => {
+            if(!window.Store.Features) throw new Error('This version of Whatsapp Web does not support features');
             return window.Store.Features.supportsFeature(feature);
         }, feature);
     }
@@ -99,6 +101,7 @@ class InterfaceController {
      */
     async enableFeatures(features) {
         await this.pupPage.evaluate((features) => {
+            if(!window.Store.Features) throw new Error('This version of Whatsapp Web does not support features');
             for (const feature in features) {
                 window.Store.Features.setFeature(features[feature], true);
             }
@@ -111,6 +114,7 @@ class InterfaceController {
      */
     async disableFeatures(features) {
         await this.pupPage.evaluate((features) => {
+            if(!window.Store.Features) throw new Error('This version of Whatsapp Web does not support features');
             for (const feature in features) {
                 window.Store.Features.setFeature(features[feature], false);
             }

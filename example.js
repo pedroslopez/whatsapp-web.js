@@ -1,42 +1,27 @@
-const fs = require('fs');
-const { Client, Location } = require('./index');
+const { Client, Location, List, Buttons, LocalAuth} = require('./index');
 
-const SESSION_FILE_PATH = './session.json';
-let sessionCfg;
-if (fs.existsSync(SESSION_FILE_PATH)) {
-    sessionCfg = require(SESSION_FILE_PATH);
-}
-
-const client = new Client({ puppeteer: { headless: false }, session: sessionCfg });
-// You can use an existing session and avoid scanning a QR code by adding a "session" object to the client options.
-// This object must include WABrowserId, WASecretBundle, WAToken1 and WAToken2.
-
-// You also could connect to an existing instance of a browser
-// { 
-//    puppeteer: {
-//        browserWSEndpoint: `ws://localhost:3000`
-//    }
-// }
+const client = new Client({
+    authStrategy: new LocalAuth(),
+    puppeteer: { headless: false }
+});
 
 client.initialize();
+
+client.on('loading_screen', (percent, message) => {
+    console.log('LOADING SCREEN', percent, message);
+});
 
 client.on('qr', (qr) => {
     // NOTE: This event will not be fired if a session is specified.
     console.log('QR RECEIVED', qr);
 });
 
-client.on('authenticated', (session) => {
-    console.log('AUTHENTICATED', session);
-    sessionCfg=session;
-    fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
-        if (err) {
-            console.error(err);
-        }
-    });
+client.on('authenticated', () => {
+    console.log('AUTHENTICATED');
 });
 
 client.on('auth_failure', msg => {
-    // Fired if session restore was unsuccessfull
+    // Fired if session restore was unsuccessful
     console.error('AUTHENTICATION FAILURE', msg);
 });
 
@@ -124,9 +109,8 @@ client.on('message', async msg => {
         client.sendMessage(msg.from, `
             *Connection info*
             User name: ${info.pushname}
-            My number: ${info.me.user}
+            My number: ${info.wid.user}
             Platform: ${info.platform}
-            WhatsApp version: ${info.phone.wa_version}
         `);
     } else if (msg.body === '!mediainfo' && msg.hasMedia) {
         const attachmentData = await msg.downloadMedia();
@@ -204,6 +188,15 @@ client.on('message', async msg => {
             const quotedMsg = await msg.getQuotedMessage();
             client.interface.openChatWindowAt(quotedMsg.id._serialized);
         }
+    } else if (msg.body === '!buttons') {
+        let button = new Buttons('Button body',[{body:'bt1'},{body:'bt2'},{body:'bt3'}],'title','footer');
+        client.sendMessage(msg.from, button);
+    } else if (msg.body === '!list') {
+        let sections = [{title:'sectionTitle',rows:[{title:'ListItem1', description: 'desc'},{title:'ListItem2'}]}];
+        let list = new List('List body','btnText',sections,'Title','footer');
+        client.sendMessage(msg.from, list);
+    } else if (msg.body === '!reaction') {
+        msg.react('👍');
     }
 });
 
@@ -260,14 +253,17 @@ client.on('group_update', (notification) => {
     console.log('update', notification);
 });
 
-client.on('change_battery', (batteryInfo) => {
-    // Battery percentage for attached device has changed
-    const { battery, plugged } = batteryInfo;
-    console.log(`Battery: ${battery}% - Charging? ${plugged}`);
-});
-
 client.on('change_state', state => {
     console.log('CHANGE STATE', state );
+});
+
+// Change to false if you don't want to reject incoming calls
+let rejectCalls = true;
+
+client.on('call', async (call) => {
+    console.log('Call received, rejecting. GOTO Line 261 to disable', call);
+    if (rejectCalls) await call.reject();
+    await client.sendMessage(call.from, `[${call.fromMe ? 'Outgoing' : 'Incoming'}] Phone call from ${call.from}, type ${call.isGroup ? 'group' : ''} ${call.isVideo ? 'video' : 'audio'} call. ${rejectCalls ? 'This call was automatically rejected by the script.' : ''}`);
 });
 
 client.on('disconnected', (reason) => {

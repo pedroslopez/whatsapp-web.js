@@ -65,7 +65,7 @@ class Chat extends Base {
 
         /**
          * Indicates if the chat is muted or not
-         * @type {number}
+         * @type {boolean}
          */
         this.isMuted = data.isMuted;
 
@@ -147,8 +147,8 @@ class Chat extends Base {
     }
 
     /**
-     * Mutes this chat until a specified date
-     * @param {Date} unmuteDate Date at which the Chat will be unmuted
+     * Mutes this chat forever, unless a date is specified
+     * @param {?Date} unmuteDate Date at which the Chat will be unmuted, leave as is to mute forever
      */
     async mute(unmuteDate) {
         return this.client.muteChat(this.id._serialized, unmuteDate);
@@ -170,31 +170,42 @@ class Chat extends Base {
 
     /**
      * Loads chat messages, sorted from earliest to latest.
-     * @param {Object} searchOptions Options for searching messages. Right now only limit is supported.
-     * @param {Number} [searchOptions.limit=50] The amount of messages to return. Note that the actual number of returned messages may be smaller if there aren't enough messages in the conversation. Set this to Infinity to load all messages.
+     * @param {Object} searchOptions Options for searching messages. Right now only limit and fromMe is supported.
+     * @param {Number} [searchOptions.limit] The amount of messages to return. If no limit is specified, the available messages will be returned. Note that the actual number of returned messages may be smaller if there aren't enough messages in the conversation. Set this to Infinity to load all messages.
+     * @param {Boolean} [searchOptions.fromMe] Return only messages from the bot number or vise versa. To get all messages, leave the option undefined.
      * @returns {Promise<Array<Message>>}
      */
     async fetchMessages(searchOptions) {
-        if (!searchOptions || !searchOptions.limit) {
-            searchOptions = { limit: 50 };
-        }
-        let messages = await this.client.pupPage.evaluate(async (chatId, limit) => {
-            const msgFilter = m => !m.isNotification; // dont include notification messages
+        let messages = await this.client.pupPage.evaluate(async (chatId, searchOptions) => {
+            const msgFilter = (m) => {
+                if (m.isNotification) {
+                    return false; // dont include notification messages
+                }
+                if (searchOptions && searchOptions.fromMe && m.id.fromMe !== searchOptions.fromMe) {
+                    return false;
+                }
+                return true;
+            };
 
             const chat = window.Store.Chat.get(chatId);
-            let msgs = chat.msgs.models.filter(msgFilter);
+            let msgs = chat.msgs.getModelsArray().filter(msgFilter);
 
-            while (msgs.length < limit) {
-                const loadedMessages = await chat.loadEarlierMsgs();
-                if (!loadedMessages) break;
-                msgs = [...loadedMessages.filter(msgFilter), ...msgs];
+            if (searchOptions && searchOptions.limit > 0) {
+                while (msgs.length < searchOptions.limit) {
+                    const loadedMessages = await window.Store.ConversationMsgs.loadEarlierMsgs(chat);
+                    if (!loadedMessages || !loadedMessages.length) break;
+                    msgs = [...loadedMessages.filter(msgFilter), ...msgs];
+                }
+                
+                if (msgs.length > searchOptions.limit) {
+                    msgs.sort((a, b) => (a.t > b.t) ? 1 : -1);
+                    msgs = msgs.splice(msgs.length - searchOptions.limit);
+                }
             }
 
-            msgs.sort((a, b) => (a.t > b.t) ? 1 : -1);
-            if (msgs.length > limit) msgs = msgs.splice(msgs.length - limit);
             return msgs.map(m => window.WWebJS.getMessageModel(m));
 
-        }, this.id._serialized, searchOptions.limit);
+        }, this.id._serialized, searchOptions);
 
         return messages.map(m => new Message(this.client, m));
     }
