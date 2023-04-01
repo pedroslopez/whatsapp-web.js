@@ -3,70 +3,68 @@
 // Exposes the internal Store to the WhatsApp Web client
 exports.ExposeStore = (moduleRaidStr) => {
     eval('var moduleRaid = ' + moduleRaidStr);
-    // eslint-disable-next-line no-undef
-    window.mR = moduleRaid();
+    // eslint-disable-next-line no-undef    window.mR = moduleRaid();
     window.Store = Object.assign({}, window.mR.findModule(m => m.default && m.default.Chat)[0].default);
-
     window.Store.AppState = window.mR.findModule('Socket')[0].Socket;
+    window.Store.Conn = window.mR.findModule('Conn')[0].Conn;
     window.Store.BlockContact = window.mR.findModule('blockContact')[0];
     window.Store.Call = window.mR.findModule('CallCollection')[0].CallCollection;
-    window.Store.ChatState = window.mR.findModule('sendChatStateComposing')[0];
     window.Store.Cmd = window.mR.findModule('Cmd')[0].Cmd;
-    window.Store.Conn = window.mR.findModule('Conn')[0].Conn;
-    window.Store.ConversationMsgs = window.mR.findModule('loadEarlierMsgs')[0];
-    window.Store.createOrUpdateReactionsModule = window.mR.findModule('createOrUpdateReactions')[0];
     window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
     window.Store.DownloadManager = window.mR.findModule('downloadManager')[0].downloadManager;
-    window.Store.EphemeralFields = window.mR.findModule('getEphemeralFields')[0];
-    window.Store.Features = window.mR.findModule('FEATURE_CHANGE_EVENT')[0].LegacyPhoneFeatures;
-    window.Store.findCommonGroups = window.mR.findModule('findCommonGroups')[0].findCommonGroups;
     window.Store.GroupMetadata = window.mR.findModule('GroupMetadata')[0].default.GroupMetadata;
-    window.Store.GroupParticipants = window.mR.findModule('sendPromoteParticipants')[0];
-    window.Store.GroupUtils = {
-        ...window.mR.findModule('sendCreateGroup')[0],
-        ...window.mR.findModule('sendSetGroupSubject')[0],
-        ...window.mR.findModule('markExited')[0]
-    };
-    window.Store.Invite = window.mR.findModule('sendJoinGroupViaInvite')[0];
-    window.Store.InviteInfo = window.mR.findModule('sendQueryGroupInvite')[0];
-    window.Store.JoinInviteV4 = window.mR.findModule('sendJoinGroupViaInviteV4')[0];
+    window.Store.Invite = window.mR.findModule('resetGroupInviteCode')[0];
+    window.Store.InviteInfo = window.mR.findModule('queryGroupInvite')[0];
     window.Store.Label = window.mR.findModule('LabelCollection')[0].LabelCollection;
+    window.Store.MediaPrep = window.mR.findModule('prepRawMedia')[0];
     window.Store.MediaObject = window.mR.findModule('getOrCreateMediaObject')[0];
-    window.Store.MediaPrep = window.mR.findModule('MediaPrep')[0];
+    window.Store.NumberInfo = window.mR.findModule('formattedPhoneNumber')[0];
     window.Store.MediaTypes = window.mR.findModule('msgToMediaType')[0];
     window.Store.MediaUpload = window.mR.findModule('uploadMedia')[0];
-    window.Store.MessageInfo = window.mR.findModule('sendQueryMsgInfo')[0];
-    window.Store.MsgActionChecks = window.mR.findModule('canSenderRevokeMsg')[0];
     window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
-    window.Store.NumberInfo = window.mR.findModule('formattedPhoneNumber')[0];
+    window.Store.MessageInfo = window.mR.findModule('sendQueryMsgInfo')[0];
     window.Store.OpaqueData = window.mR.findModule(module => module.default && module.default.createFromData)[0].default;
-    window.Store.PresenceUtils = window.mR.findModule('sendPresenceAvailable')[0];
-    window.Store.ProfilePic = window.mR.findModule('profilePicResync')[0];
-    window.Store.QueryExist = window.mR.findModule('queryExists')[0].queryExists;
-    window.Store.QueryOrder = window.mR.findModule('queryOrder')[0];
+    window.Store.QueryExist = window.mR.findModule('queryExists')[0] ? window.mR.findModule('queryExists')[0].queryExists : window.mR.findModule('queryExist')[0].queryWidExists;
     window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
-    window.Store.QuotedMsg = window.mR.findModule('getQuotedMsgObj')[0];
-    window.Store.ReplyUtils = window.mR.findModule('canReplyMsg').length > 0 && window.mR.findModule('canReplyMsg')[0];
+    window.Store.QueryOrder = window.mR.findModule('queryOrder')[0];
     window.Store.SendClear = window.mR.findModule('sendClear')[0];
     window.Store.SendDelete = window.mR.findModule('sendDelete')[0];
     window.Store.SendMessage = window.mR.findModule('addAndSendMsgToChat')[0];
-    window.Store.sendReactionToMsg = window.mR.findModule('sendReactionToMsg')[0].sendReactionToMsg;
     window.Store.SendSeen = window.mR.findModule('sendSeen')[0];
-    window.Store.SendVote = window.mR.findModule('sendVote')[0];
-    window.Store.Socket = window.mR.findModule('deprecatedSendIq')[0];
-    window.Store.SocketWap = window.mR.findModule('wap')[0];
-    window.Store.StatusUtils = window.mR.findModule('setMyStatus')[0];
-    window.Store.StickerTools = {
-        ...window.mR.findModule('toWebpSticker')[0],
-        ...window.mR.findModule('addWebpMetadata')[0]
-    };
-    window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
     window.Store.User = window.mR.findModule('getMaybeMeUser')[0];
+    window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
     window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default;
     window.Store.Validators = window.mR.findModule('findLinks')[0];
     window.Store.VCard = window.mR.findModule('vcardFromContactModel')[0];
     window.Store.WidFactory = window.mR.findModule('createWid')[0];
-    
+    window.Store.ProfilePic = window.mR.findModule('profilePicResync')[0];
+    window.Store.PresenceUtils = window.mR.findModule('sendPresenceAvailable')[0];
+    window.Store.ChatState = window.mR.findModule('sendChatStateComposing')[0];
+    window.Store.GroupParticipants = window.mR.findModule('promoteParticipants')[0];
+    window.Store.JoinInviteV4 = window.mR.findModule('sendJoinGroupViaInviteV4')[0];
+    window.Store.findCommonGroups = window.mR.findModule('findCommonGroups')[0].findCommonGroups;
+    window.Store.StatusUtils = window.mR.findModule('setMyStatus')[0];
+    window.Store.ConversationMsgs = window.mR.findModule('loadEarlierMsgs')[0];
+    window.Store.sendReactionToMsg = window.mR.findModule('sendReactionToMsg')[0].sendReactionToMsg;
+    window.Store.createOrUpdateReactionsModule = window.mR.findModule('createOrUpdateReactions')[0];
+    window.Store.EphemeralFields = window.mR.findModule('getEphemeralFields')[0];
+    window.Store.ReplyUtils = window.mR.findModule('canReplyMsg').length > 0 && window.mR.findModule('canReplyMsg')[0];
+    window.Store.MsgActionChecks = window.mR.findModule('canSenderRevokeMsg')[0];
+    window.Store.QuotedMsg = window.mR.findModule('getQuotedMsgObj')[0];
+    window.Store.Socket = window.mR.findModule('deprecatedSendIq')[0];
+    window.Store.SocketWap = window.mR.findModule('wap')[0];
+    window.Store.SendVote = window.mR.findModule('sendVote')[0];
+    window.Store.StickerTools = {
+        ...window.mR.findModule('toWebpSticker')[0],
+        ...window.mR.findModule('addWebpMetadata')[0]
+    };
+  
+    window.Store.GroupUtils = {
+        ...window.mR.findModule('createGroup')[0],
+        ...window.mR.findModule('setGroupDescription')[0],
+        ...window.mR.findModule('sendExitGroup')[0],
+        ...window.mR.findModule('sendSetPicture')[0]
+    };
 
     if (!window.Store.Chat._find) {
         window.Store.Chat._find = e => {
@@ -88,6 +86,11 @@ exports.ExposeStore = (moduleRaidStr) => {
         window.Store.MDBackend = _isMDBackend[0].isMDBackend();
     } else {
         window.Store.MDBackend = true;
+    }
+
+    const _features = window.mR.findModule('FEATURE_CHANGE_EVENT')[0];
+    if(_features) {
+        window.Store.Features = _features.LegacyPhoneFeatures;
     }
 };
 
