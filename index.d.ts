@@ -148,6 +148,12 @@ declare namespace WAWebJS {
         /** Unmutes the Chat */
         unmuteChat(chatId: string): Promise<void>
 
+        /** Sets the current user's profile picture */
+        setProfilePicture(media: MessageMedia): Promise<boolean>
+
+        /** Deletes the current user's profile picture */
+        deleteProfilePicture(): Promise<boolean>
+
         /** Generic event */
         on(event: string, listener: (...args: any) => void): this
 
@@ -1162,6 +1168,10 @@ declare namespace WAWebJS {
         revokeInvite: () => Promise<void>;
         /** Makes the bot leave the group */
         leave: () => Promise<void>;
+        /** Sets the group's picture.*/
+        setPicture: (media: MessageMedia) => Promise<boolean>;
+        /** Deletes the group's picture */
+        deletePicture: () => Promise<boolean>;
     }
 
     /**
