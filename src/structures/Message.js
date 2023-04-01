@@ -386,7 +386,9 @@ class Message extends Base {
 
         const result = await this.client.pupPage.evaluate(async (msgId) => {
             const msg = window.Store.Msg.get(msgId);
-
+            if (!msg) {
+                return undefined;
+            }
             if (msg.mediaData.mediaStage != 'RESOLVED') {
                 // try to resolve media
                 await msg.downloadMedia({
@@ -401,7 +403,7 @@ class Message extends Base {
             }
 
             try {
-                const decryptedMedia = await window.Store.DownloadManager.downloadAndDecrypt({
+                const decryptedMedia = await window.Store.DownloadManager.downloadAndMaybeDecrypt({
                     directPath: msg.directPath,
                     encFilehash: msg.encFilehash,
                     filehash: msg.filehash,
@@ -492,7 +494,7 @@ class Message extends Base {
             const msg = window.Store.Msg.get(msgId);
             if (!msg) return null;
 
-            return await window.Store.MessageInfo.sendQueryMsgInfo(msg);
+            return await window.Store.MessageInfo.sendQueryMsgInfo(msg.id);
         }, this.id._serialized);
 
         return info;

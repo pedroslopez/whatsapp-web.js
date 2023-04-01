@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.7">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.18.4 &raquo; Source: structures/GroupChat.js</title>
+  <title>whatsapp-web.js 1.19.5 &raquo; Source: structures/GroupChat.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>18.<wbr>4</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>19.<wbr>5</a>
       </div>
     </div>
   </nav>
@@ -90,10 +90,15 @@ class GroupChat extends Chat {
      * @returns {Promise&amp;lt;Object&gt;}
      */
     async addParticipants(participantIds) {
-        return await this.client.pupPage.evaluate((chatId, participantIds) &#x3D;&gt; {
+        return await this.client.pupPage.evaluate(async (chatId, participantIds) &#x3D;&gt; {
             const chatWid &#x3D; window.Store.WidFactory.createWid(chatId);
-            const participantWids &#x3D; participantIds.map(p &#x3D;&gt; window.Store.WidFactory.createWid(p));
-            return window.Store.GroupParticipants.sendAddParticipants(chatWid, participantWids);
+            const chat &#x3D; await window.Store.Chat.find(chatWid);
+            const participants &#x3D; await Promise.all(participantIds.map(async p &#x3D;&gt; {
+                const wid &#x3D; window.Store.WidFactory.createWid(p);
+                return await window.Store.Contact.get(wid);
+            }));
+            await window.Store.GroupParticipants.addParticipants(chat, participants);
+            return { status: 200 };
         }, this.id._serialized, participantIds);
     }
 
@@ -103,10 +108,14 @@ class GroupChat extends Chat {
      * @returns {Promise&amp;lt;Object&gt;}
      */
     async removeParticipants(participantIds) {
-        return await this.client.pupPage.evaluate((chatId, participantIds) &#x3D;&gt; {
+        return await this.client.pupPage.evaluate(async (chatId, participantIds) &#x3D;&gt; {
             const chatWid &#x3D; window.Store.WidFactory.createWid(chatId);
-            const participantWids &#x3D; participantIds.map(p &#x3D;&gt; window.Store.WidFactory.createWid(p));
-            return window.Store.GroupParticipants.sendRemoveParticipants(chatWid, participantWids);
+            const chat &#x3D; await window.Store.Chat.find(chatWid);
+            const participants &#x3D; participantIds.map(p &#x3D;&gt; {
+                return chat.groupMetadata.participants.get(p);
+            }).filter(p &#x3D;&gt; Boolean(p));
+            await window.Store.GroupParticipants.removeParticipants(chat, participants);
+            return { status: 200 };
         }, this.id._serialized, participantIds);
     }
 
@@ -116,10 +125,14 @@ class GroupChat extends Chat {
      * @returns {Promise&amp;lt;{ status: number }&gt;} Object with status code indicating if the operation was successful
      */
     async promoteParticipants(participantIds) {
-        return await this.client.pupPage.evaluate((chatId, participantIds) &#x3D;&gt; {
+        return await this.client.pupPage.evaluate(async (chatId, participantIds) &#x3D;&gt; {
             const chatWid &#x3D; window.Store.WidFactory.createWid(chatId);
-            const participantWids &#x3D; participantIds.map(p &#x3D;&gt; window.Store.WidFactory.createWid(p));
-            return window.Store.GroupParticipants.sendPromoteParticipants(chatWid, participantWids);
+            const chat &#x3D; await window.Store.Chat.find(chatWid);
+            const participants &#x3D; participantIds.map(p &#x3D;&gt; {
+                return chat.groupMetadata.participants.get(p);
+            }).filter(p &#x3D;&gt; Boolean(p));
+            await window.Store.GroupParticipants.promoteParticipants(chat, participants);
+            return { status: 200 };
         }, this.id._serialized, participantIds);
     }
 
@@ -129,10 +142,14 @@ class GroupChat extends Chat {
      * @returns {Promise&amp;lt;{ status: number }&gt;} Object with status code indicating if the operation was successful
      */
     async demoteParticipants(participantIds) {
-        return await this.client.pupPage.evaluate((chatId, participantIds) &#x3D;&gt; {
+        return await this.client.pupPage.evaluate(async (chatId, participantIds) &#x3D;&gt; {
             const chatWid &#x3D; window.Store.WidFactory.createWid(chatId);
-            const participantWids &#x3D; participantIds.map(p &#x3D;&gt; window.Store.WidFactory.createWid(p));
-            return window.Store.GroupParticipants.sendDemoteParticipants(chatWid, participantWids);
+            const chat &#x3D; await window.Store.Chat.find(chatWid);
+            const participants &#x3D; participantIds.map(p &#x3D;&gt; {
+                return chat.groupMetadata.participants.get(p);
+            }).filter(p &#x3D;&gt; Boolean(p));
+            await window.Store.GroupParticipants.demoteParticipants(chat, participants);
+            return { status: 200 };
         }, this.id._serialized, participantIds);
     }
 
@@ -145,7 +162,8 @@ class GroupChat extends Chat {
         const success &#x3D; await this.client.pupPage.evaluate(async (chatId, subject) &#x3D;&gt; {
             const chatWid &#x3D; window.Store.WidFactory.createWid(chatId);
             try {
-                return await window.Store.GroupUtils.sendSetGroupSubject(chatWid, subject);
+                await window.Store.GroupUtils.setGroupSubject(chatWid, subject);
+                return true;
             } catch (err) {
                 if(err.name &#x3D;&#x3D;&#x3D; &#x27;ServerStatusCodeError&#x27;) return false;
                 throw err;
@@ -167,7 +185,8 @@ class GroupChat extends Chat {
             const chatWid &#x3D; window.Store.WidFactory.createWid(chatId);
             let descId &#x3D; window.Store.GroupMetadata.get(chatWid).descId;
             try {
-                return await window.Store.GroupUtils.sendSetGroupDescription(chatWid, description, window.Store.MsgKey.newId(), descId);
+                await window.Store.GroupUtils.setGroupDescription(chatWid, description, window.Store.MsgKey.newId(), descId);
+                return true;
             } catch (err) {
                 if(err.name &#x3D;&#x3D;&#x3D; &#x27;ServerStatusCodeError&#x27;) return false;
                 throw err;
@@ -188,7 +207,8 @@ class GroupChat extends Chat {
         const success &#x3D; await this.client.pupPage.evaluate(async (chatId, adminsOnly) &#x3D;&gt; {
             const chatWid &#x3D; window.Store.WidFactory.createWid(chatId);
             try {
-                return await window.Store.GroupUtils.sendSetGroupProperty(chatWid, &#x27;announcement&#x27;, adminsOnly ? 1 : 0);
+                await window.Store.GroupUtils.setGroupProperty(chatWid, &#x27;announcement&#x27;, adminsOnly ? 1 : 0);
+                return true;
             } catch (err) {
                 if(err.name &#x3D;&#x3D;&#x3D; &#x27;ServerStatusCodeError&#x27;) return false;
                 throw err;
@@ -210,7 +230,8 @@ class GroupChat extends Chat {
         const success &#x3D; await this.client.pupPage.evaluate(async (chatId, adminsOnly) &#x3D;&gt; {
             const chatWid &#x3D; window.Store.WidFactory.createWid(chatId);
             try {
-                return await window.Store.GroupUtils.sendSetGroupProperty(chatWid, &#x27;restrict&#x27;, adminsOnly ? 1 : 0);
+                await window.Store.GroupUtils.setGroupProperty(chatWid, &#x27;restrict&#x27;, adminsOnly ? 1 : 0);
+                return true;
             } catch (err) {
                 if(err.name &#x3D;&#x3D;&#x3D; &#x27;ServerStatusCodeError&#x27;) return false;
                 throw err;
@@ -228,12 +249,12 @@ class GroupChat extends Chat {
      * @returns {Promise&amp;lt;string&gt;} Group&#x27;s invite code
      */
     async getInviteCode() {
-        const code &#x3D; await this.client.pupPage.evaluate(async chatId &#x3D;&gt; {
+        const codeRes &#x3D; await this.client.pupPage.evaluate(async chatId &#x3D;&gt; {
             const chatWid &#x3D; window.Store.WidFactory.createWid(chatId);
-            return window.Store.Invite.sendQueryGroupInviteCode(chatWid);
+            return window.Store.Invite.queryGroupInviteCode(chatWid);
         }, this.id._serialized);
 
-        return code;
+        return codeRes.code;
     }
     
     /**
@@ -241,12 +262,12 @@ class GroupChat extends Chat {
      * @returns {Promise&amp;lt;string&gt;} New invite code
      */
     async revokeInvite() {
-        const code &#x3D; await this.client.pupPage.evaluate(chatId &#x3D;&gt; {
+        const codeRes &#x3D; await this.client.pupPage.evaluate(chatId &#x3D;&gt; {
             const chatWid &#x3D; window.Store.WidFactory.createWid(chatId);
-            return window.Store.Invite.sendRevokeGroupInviteCode(chatWid);
+            return window.Store.Invite.resetGroupInviteCode(chatWid);
         }, this.id._serialized);
 
-        return code;
+        return codeRes.code;
     }
 
     /**
@@ -254,9 +275,10 @@ class GroupChat extends Chat {
      * @returns {Promise}
      */
     async leave() {
-        await this.client.pupPage.evaluate(chatId &#x3D;&gt; {
+        await this.client.pupPage.evaluate(async chatId &#x3D;&gt; {
             const chatWid &#x3D; window.Store.WidFactory.createWid(chatId);
-            return window.Store.GroupUtils.sendExitGroup(chatWid);
+            const chat &#x3D; await window.Store.Chat.find(chatWid);
+            return window.Store.GroupUtils.sendExitGroup(chat);
         }, this.id._serialized);
     }
 
@@ -272,7 +294,7 @@ module.exports &#x3D; GroupChat;</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on November 26, 2022.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on March 18, 2023.
       </p>
     </div>
   </footer>
