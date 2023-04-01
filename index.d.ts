@@ -1038,6 +1038,8 @@ declare namespace WAWebJS {
         timestamp: number,
         /** Amount of messages unread */
         unreadCount: number,
+        /** Last message fo chat */
+        lastMessage: Message,
 
         /** Archives this chat */
         archive: () => Promise<void>,
