@@ -210,6 +210,18 @@ declare namespace WAWebJS {
             notification: GroupNotification
         ) => void): this
 
+        /** Emitted when a contact or a group participant changed their phone number. */
+        on(event: 'contact_changed', listener: (
+            /** Message with more information about the event. */
+            message: Message,
+            /** Old user's id. */
+            oldId : String,
+            /** New user's id. */
+            newId : String,
+            /** Indicates if a contact or a group participant changed their phone number. */
+            isContact : Boolean
+        ) => void): this
+
         /** Emitted when media has been uploaded for a message sent by the client */
         on(event: 'media_uploaded', listener: (
             /** The message with media that was uploaded */
@@ -532,6 +544,7 @@ declare namespace WAWebJS {
         MESSAGE_REVOKED_ME = 'message_revoke_me',
         MESSAGE_ACK = 'message_ack',
         MEDIA_UPLOADED = 'media_uploaded',
+        CONTACT_CHANGED = 'contact_changed',
         GROUP_JOIN = 'group_join',
         GROUP_LEAVE = 'group_leave',
         GROUP_ADMIN_CHANGED = 'group_admin_changed',

@@ -45,6 +45,7 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @fires Client#group_update
  * @fires Client#disconnected
  * @fires Client#change_state
+ * @fires Client#contact_changed
  * @fires Client#group_admin_changed
  */
 class Client extends EventEmitter {
@@ -384,6 +385,36 @@ class Client extends EventEmitter {
                 last_message = msg;
             }
 
+            /**
+             * The event notification that is received when one of
+             * the group participants changes thier phone number.
+             */
+            const isParticipant = msg.type === 'gp2' && msg.subtype === 'modify';
+
+            /**
+             * The event notification that is received when one of
+             * the contacts changes thier phone number.
+             */
+            const isContact = msg.type === 'notification_template' && msg.subtype === 'change_number';
+
+            if (isParticipant || isContact) {
+                /** {@link GroupNotification} object does not provide enough information about this event, so a {@link Message} object is used. */
+                const message = new Message(this, msg);
+
+                const newId = isParticipant ? msg.recipients[0] : msg.to;
+                const oldId = isParticipant ? msg.author : msg.templateParams.find(id => id !== newId);
+
+                /**
+                 * Emitted when a contact or a group participant changes their phone number.
+                 * @event Client#contact_changed
+                 * @param {Message} message Message with more information about the event.
+                 * @param {String} oldId The user's id (an old one) who changed their phone number
+                 * and who triggered the notification.
+                 * @param {String} newId The user's new id after the change.
+                 * @param {Boolean} isContact Indicates if a contact or a group participant changed their phone number.
+                 */
+                this.emit(Events.CONTACT_CHANGED, message, oldId, newId, isContact);
+            }
         });
 
         await page.exposeFunction('onRemoveMessageEvent', (msg) => {
