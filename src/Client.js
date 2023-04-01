@@ -438,6 +438,15 @@ class Client extends EventEmitter {
 
         });
 
+        await page.exposeFunction('onChatUnreadCountEvent', async (data) =>{
+            const chat = await this.getChatById(data.id);
+            
+            /**
+             * Emitted when the chat unread count changes
+             */
+            this.emit(Events.UNREAD_COUNT, chat);
+        });
+
         await page.exposeFunction('onMessageMediaUploadedEvent', (msg) => {
 
             const message = new Message(this, msg);
@@ -557,7 +566,8 @@ class Client extends EventEmitter {
                     }
                 }
             });
-            
+            window.Store.Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
+
             {
                 const module = window.Store.createOrUpdateReactionsModule;
                 const ogMethod = module.createOrUpdateReactions;
@@ -1208,6 +1218,31 @@ class Client extends EventEmitter {
         });
 
         return blockedContacts.map(contact => ContactFactory.create(this.client, contact));
+    }
+
+    /**
+     * Sets the current user's profile picture.
+     * @param {MessageMedia} media
+     * @returns {Promise<boolean>} Returns true if the picture was properly updated.
+     */
+    async setProfilePicture(media) {
+        const success = await this.pupPage.evaluate((chatid, media) => {
+            return window.WWebJS.setPicture(chatid, media);
+        }, this.info.wid._serialized, media);
+
+        return success;
+    }
+
+    /**
+     * Deletes the current user's profile picture.
+     * @returns {Promise<boolean>} Returns true if the picture was properly deleted.
+     */
+    async deleteProfilePicture() {
+        const success = await this.pupPage.evaluate((chatid) => {
+            return window.WWebJS.deletePicture(chatid);
+        }, this.info.wid._serialized);
+
+        return success;
     }
 }
 
