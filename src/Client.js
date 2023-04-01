@@ -10,7 +10,7 @@ const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constan
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
-const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List, Reaction } = require('./structures');
+const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List, Reaction, Chat } = require('./structures');
 const LegacySessionAuth = require('./authStrategies/LegacySessionAuth');
 const NoAuth = require('./authStrategies/NoAuth');
 
@@ -524,6 +524,26 @@ class Client extends EventEmitter {
             }
         });
 
+        await page.exposeFunction('onRemoveChatEvent', (chat) => {
+            /**
+             * Emitted when a chat is removed
+             * @event Client#chat_removed
+             * @param {Chat} chat
+             */
+            this.emit(Events.CHAT_REMOVED, new Chat(this, chat));
+        });
+        
+        await page.exposeFunction('onArchiveChatEvent', (chat, currState, prevState) => {
+            /**
+             * Emitted when a chat is archived/unarchived
+             * @event Client#chat_archived
+             * @param {Chat} chat
+             * @param {boolean} currState
+             * @param {boolean} prevState
+             */
+            this.emit(Events.CHAT_ARCHIVED, new Chat(this, chat), currState, prevState);
+        });
+
         await page.evaluate(() => {
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
@@ -533,6 +553,8 @@ class Client extends EventEmitter {
             window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
             window.Store.Conn.on('change:battery', (state) => { window.onBatteryStateChangedEvent(state); });
             window.Store.Call.on('add', (call) => { window.onIncomingCall(call); });
+            window.Store.Chat.on('remove', async (chat) => { window.onRemoveChatEvent(await window.WWebJS.getChatModel(chat)); });
+            window.Store.Chat.on('change:archive', async (chat, currState, prevState) => { window.onArchiveChatEvent(await window.WWebJS.getChatModel(chat), currState, prevState); });
             window.Store.Msg.on('add', (msg) => { 
                 if (msg.isNewMsg) {
                     if(msg.type === 'ciphertext') {

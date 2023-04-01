@@ -265,6 +265,22 @@ declare namespace WAWebJS {
             reaction: Reaction
         ) => void): this
 
+        /** Emitted when a chat is removed */
+        on(event: 'chat_removed', listener: (
+            /** The chat that was removed */
+            chat: Chat
+        ) => void): this
+
+        /** Emitted when a chat is archived/unarchived */
+        on(event: 'chat_archived', listener: (
+            /** The chat that was archived/unarchived */
+            chat: Chat,
+            /** State the chat is currently in */
+            currState: boolean,
+            /** State the chat was previously in */
+            prevState: boolean
+        ) => void): this
+
         /** Emitted when loading screen is appearing */
         on(event: 'loading_screen', listener: (percent: string, message: string) => void): this
 
