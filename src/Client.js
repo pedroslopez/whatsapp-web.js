@@ -407,6 +407,15 @@ class Client extends EventEmitter {
 
         });
 
+        await page.exposeFunction('onChatUnreadCountEvent', async (data) =>{
+            const chat = await this.getChatById(data.id);
+            
+            /**
+             * Emitted when the chat unread count changes
+             */
+            this.emit(Events.UNREAD_COUNT, chat);
+        });
+
         await page.exposeFunction('onMessageMediaUploadedEvent', (msg) => {
 
             const message = new Message(this, msg);
@@ -526,7 +535,8 @@ class Client extends EventEmitter {
                     }
                 }
             });
-            
+            window.Store.Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
+
             {
                 const module = window.Store.createOrUpdateReactionsModule;
                 const ogMethod = module.createOrUpdateReactions;

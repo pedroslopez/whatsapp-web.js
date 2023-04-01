@@ -223,6 +223,12 @@ declare namespace WAWebJS {
             /** The new ACK value */
             ack: MessageAck
         ) => void): this
+        
+        /** Emitted when a chat unread count changes */
+        on(event: 'unread_count', listener: (
+            /** The chat that was affected */
+            chat: Chat
+        ) => void): this
 
         /** Emitted when a new message is created, which may include the current user's own messages */
         on(event: 'message_create', listener: (
