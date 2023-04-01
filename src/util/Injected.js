@@ -272,6 +272,7 @@ exports.LoadUtils = () => {
             ...ephemeralFields,
             ...locationOptions,
             ...attOptions,
+            ...(attOptions.toJSON ? attOptions.toJSON() : {}),
             ...quotedMsgOptions,
             ...vcardOptions,
             ...buttonOptions,
@@ -427,7 +428,15 @@ exports.LoadUtils = () => {
             await window.Store.GroupMetadata.update(chatWid);
             res.groupMetadata = chat.groupMetadata.serialize();
         }
-
+        
+        res.lastMessage = null;
+        if (res.msgs && res.msgs.length) {
+            const lastMessage = window.Store.Msg.get(chat.lastReceivedKey._serialized);
+            if (lastMessage) {
+                res.lastMessage = window.WWebJS.getMessageModel(lastMessage);
+            }
+        }
+        
         delete res.msgs;
         delete res.msgUnsyncedButtonReplyMsgs;
         delete res.unsyncedButtonReplies;
