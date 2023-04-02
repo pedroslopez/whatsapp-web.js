@@ -1181,13 +1181,17 @@ class Client extends EventEmitter {
 
     /**
      * Get stories
+     * @param {string} contactId he whatsapp user's ID (_serialized format) 1234@c.us
      * @returns {Promise<Message[]>}
      */
-    async getStories() {
-        const messages = await this.pupPage.evaluate(async () => {
-            const models = window.Store.Msg._models.filter(x => x.__x_id.remote.server == 'broadcast');
-            return models.map(msg => window.WWebJS.getMessageModel(msg));
-        });
+    async getStories(contactId) {
+        const messages = await this.pupPage.evaluate(async (contactId) => {
+            const models = window.Store.StatusV3._models.find(model => model.__x_id._serialized == contactId);
+            if (models === undefined) {
+                return [];
+            }
+            return models.msgs.map(msg => window.WWebJS.getMessageModel(msg));
+        }, contactId);
 
         return messages.map(msg => new Message(this, msg));
     }

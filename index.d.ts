@@ -91,7 +91,7 @@ declare namespace WAWebJS {
         getState(): Promise<WAState>
 
         /** Get All contact stories */
-        getStories(): Promise<Message[]>
+        getStories(contactId: string): Promise<Message[]>
 
         /** Returns the version of WhatsApp Web currently being run */
         getWWebVersion(): Promise<string>
