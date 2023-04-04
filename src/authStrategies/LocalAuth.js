@@ -42,9 +42,12 @@ class LocalAuth extends BaseAuthStrategy {
         this.userDataDir = dirPath;
     }
 
-    async logout() {
+   async logout() {
         if (this.userDataDir) {
+            try{
             return (fs.rmSync ? fs.rmSync : fs.rmdirSync).call(this, this.userDataDir, { recursive: true });
+            }
+            catch{}
         }
     }
 
