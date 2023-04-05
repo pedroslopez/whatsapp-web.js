@@ -198,10 +198,28 @@ declare namespace WAWebJS {
             notification: GroupNotification
         ) => void): this
 
+        /** Emitted when a current user is promoted to an admin or demoted to a regular user */
+        on(event: 'group_admin_changed', listener: (
+            /** GroupNotification with more information about the action */
+            notification: GroupNotification
+        ) => void): this
+
         /** Emitted when group settings are updated, such as subject, description or picture */
         on(event: 'group_update', listener: (
             /** GroupNotification with more information about the action */
             notification: GroupNotification
+        ) => void): this
+
+        /** Emitted when a contact or a group participant changed their phone number. */
+        on(event: 'contact_changed', listener: (
+            /** Message with more information about the event. */
+            message: Message,
+            /** Old user's id. */
+            oldId : String,
+            /** New user's id. */
+            newId : String,
+            /** Indicates if a contact or a group participant changed their phone number. */
+            isContact : Boolean
         ) => void): this
 
         /** Emitted when media has been uploaded for a message sent by the client */
@@ -257,6 +275,22 @@ declare namespace WAWebJS {
         on(event: 'message_reaction', listener: (
             /** The reaction object */
             reaction: Reaction
+        ) => void): this
+
+        /** Emitted when a chat is removed */
+        on(event: 'chat_removed', listener: (
+            /** The chat that was removed */
+            chat: Chat
+        ) => void): this
+
+        /** Emitted when a chat is archived/unarchived */
+        on(event: 'chat_archived', listener: (
+            /** The chat that was archived/unarchived */
+            chat: Chat,
+            /** State the chat is currently in */
+            currState: boolean,
+            /** State the chat was previously in */
+            prevState: boolean
         ) => void): this
 
         /** Emitted when loading screen is appearing */
@@ -510,8 +544,10 @@ declare namespace WAWebJS {
         MESSAGE_REVOKED_ME = 'message_revoke_me',
         MESSAGE_ACK = 'message_ack',
         MEDIA_UPLOADED = 'media_uploaded',
+        CONTACT_CHANGED = 'contact_changed',
         GROUP_JOIN = 'group_join',
         GROUP_LEAVE = 'group_leave',
+        GROUP_ADMIN_CHANGED = 'group_admin_changed',
         GROUP_UPDATE = 'group_update',
         QR_RECEIVED = 'qr',
         LOADING_SCREEN = 'loading_screen',
