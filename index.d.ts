@@ -998,7 +998,7 @@ declare namespace WAWebJS {
         getProfilePicUrl: () => Promise<string>,
 
         /** Returns the contact ID's profile picture Base64, if privacy settings allow it */
-        getProfilePicBase64(contactId: string): Promise<ProfileMedia>
+        getProfilePicBase64: () => Promise<ProfileMedia>
 
         /** Returns the Chat that corresponds to this Contact.  
          * Will return null when getting chat for currently logged in user.
