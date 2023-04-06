@@ -1056,7 +1056,7 @@ class Client extends EventEmitter {
     /**
      * Returns the contact ID's profile picture Base64, if privacy settings allow it
      * @param {string} contactId the whatsapp user's ID
-     * @returns {Promise<string>}
+     * @returns {Promise<ProfileMedia>}
      */
     async getProfilePicBase64(contactId) {
         const profilePic = await this.pupPage.evaluate(async contactId => {
@@ -1069,7 +1069,7 @@ class Client extends EventEmitter {
                     const reader = new FileReader();
                     reader.readAsDataURL(blob);
                     return new Promise((resolve, reject) => {
-                        reader.onloadend = () => resolve(reader.result);
+                        reader.onloadend = () => resolve({ data: reader.result, mimetype: blob.type });
                         reader.onerror = reject;
                     });
                 }

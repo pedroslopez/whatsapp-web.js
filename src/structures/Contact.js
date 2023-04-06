@@ -122,7 +122,7 @@ class Contact extends Base {
 
     /**
      * Returns the contact's profile picture Base64, if privacy settings allow it
-     * @returns {Promise<string>}
+     * @returns {Promise<ProfileMedia>}
      */
     async getProfilePicBase64() {
         return await this.client.getProfilePicBase64(this.id._serialized);

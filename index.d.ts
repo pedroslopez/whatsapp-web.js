@@ -85,7 +85,7 @@ declare namespace WAWebJS {
         getProfilePicUrl(contactId: string): Promise<string>
 
         /** Returns the contact ID's profile picture Base64, if privacy settings allow it */
-        getProfilePicBase64(contactId: string): Promise<string>
+        getProfilePicBase64(contactId: string): Promise<ProfileMedia>
 
         /** Gets the Contact's common groups with you. Returns empty array if you don't have any common group. */
         getCommonGroups(contactId: string): Promise<ChatId[]>
@@ -998,7 +998,7 @@ declare namespace WAWebJS {
         getProfilePicUrl: () => Promise<string>,
 
         /** Returns the contact ID's profile picture Base64, if privacy settings allow it */
-        getProfilePicBase64(contactId: string): Promise<string>
+        getProfilePicBase64(contactId: string): Promise<ProfileMedia>
 
         /** Returns the Chat that corresponds to this Contact.  
          * Will return null when getting chat for currently logged in user.
@@ -1029,6 +1029,13 @@ declare namespace WAWebJS {
         server: string,
         user: string,
         _serialized: string,
+    }
+
+    export interface ProfileMedia {
+        /** The media's mimetype */
+        mimetype: string,
+        /** The media's data */
+        data: string,
     }
 
     export interface BusinessContact extends Contact {
