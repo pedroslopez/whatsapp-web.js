@@ -731,7 +731,7 @@ declare namespace WAWebJS {
         /** Indicates if the message was starred */
         isStarred: boolean,
         /** Location information contained in the message, if the message is type "location" */
-        location: Location,
+        location?: Location,
         /** List of vCards contained in the message */
         vCards: string[],
         /** Invite v4 info */
@@ -835,8 +835,8 @@ declare namespace WAWebJS {
     /** Location information */
     export class Location {
         description?: string | null
-        latitude: string
-        longitude: string
+        latitude: number
+        longitude: number
         
         constructor(latitude: number, longitude: number, description?: string)
     }
