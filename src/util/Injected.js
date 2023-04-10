@@ -339,7 +339,7 @@ exports.ExposeStore = (moduleRaidStr) => {
                 } // add media type to body of encrypted message
                 
                 args[0].content.push(node); // patch the message
-                
+                delete window.WWebJS.pendingBypass[window.WWebJS.pendingBypass.findIndex(a => a.id == args[0].attrs.id)]
             }
         }
         return func(...args);
