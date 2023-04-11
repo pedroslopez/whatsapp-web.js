@@ -459,11 +459,11 @@ class Message extends Base {
      * Stars this message
      */
     async star() {
-        await this.client.pupPage.evaluate((msgId) => {
+        await this.client.pupPage.evaluate(async (msgId) => {
             let msg = window.Store.Msg.get(msgId);
-
             if (window.Store.MsgActionChecks.canStarMsg(msg)) {
-                return window.Store.Cmd.sendStarMsgs(msg.chat, [msg], false);
+                let chat = await window.Store.Chat.find(msg.id.remote);
+                return window.Store.Cmd.sendStarMsgs(chat, [msg], false);
             }
         }, this.id._serialized);
     }
@@ -472,11 +472,12 @@ class Message extends Base {
      * Unstars this message
      */
     async unstar() {
-        await this.client.pupPage.evaluate((msgId) => {
+        await this.client.pupPage.evaluate(async (msgId) => {
             let msg = window.Store.Msg.get(msgId);
 
             if (window.Store.MsgActionChecks.canStarMsg(msg)) {
-                return window.Store.Cmd.sendUnstarMsgs(msg.chat, [msg], false);
+                let chat = await window.Store.Chat.find(msg.id.remote);
+                return window.Store.Cmd.sendUnstarMsgs(chat, [msg], false);
             }
         }, this.id._serialized);
     }
