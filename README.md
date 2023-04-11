@@ -18,9 +18,30 @@ It uses Puppeteer to run a real instance of Whatsapp Web to avoid getting blocke
 
 The module is now available on npm! `npm i whatsapp-web.js`
 
-Please note that Node v16+ is required.
+Please note that Node v18+ is required.
 
---QUICK STEPS TO INSTALL NEW VERSION
+## QUICK STEPS TO UPGRADE NODE
+
+### Windows
+
+#### Manual
+Just get the latest LTS from https://nodejs.org
+
+#### Choco
+```powershell
+choco install nodejs-lts
+```
+
+#### Winget
+```powershell
+winget install OpenJS.NodeJS.LTS
+```
+
+### Ubuntu / Debian
+```bash
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - &&\
+sudo apt-get install -y nodejs
+```
 
 ## Example usage
 
