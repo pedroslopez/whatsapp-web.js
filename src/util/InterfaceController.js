@@ -72,7 +72,7 @@ class InterfaceController {
      */
     async closeRightDrawer() {
         await this.pupPage.evaluate(async () => {
-            await window.Store.Cmd.closeDrawerRight();
+            await window.Store.DrawerManager.closeDrawerRight();
         });
     }
 
