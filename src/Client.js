@@ -29,6 +29,7 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @param {string} options.userAgent - User agent to use in puppeteer
  * @param {string} options.ffmpegPath - Ffmpeg path to use when formating videos to webp while sending stickers 
  * @param {boolean} options.bypassCSP - Sets bypassing of page's Content-Security-Policy.
+ * @param {boolean} options.cipherMsg - Receive encrypted messages
  * 
  * @fires Client#qr
  * @fires Client#authenticated
@@ -575,7 +576,7 @@ class Client extends EventEmitter {
             this.emit(Events.CHAT_ARCHIVED, new Chat(this, chat), currState, prevState);
         });
 
-        await page.evaluate(() => {
+        await page.evaluate((cipherMsg) => {
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:ack', (msg, ack) => { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
@@ -591,6 +592,9 @@ class Client extends EventEmitter {
                     if(msg.type === 'ciphertext') {
                         // defer message event until ciphertext is resolved (type changed)
                         msg.once('change:type', (_msg) => window.onAddMessageEvent(window.WWebJS.getMessageModel(_msg)));
+                        if(cipherMsg){
+                            window.onAddMessageEvent(window.WWebJS.getMessageModel(msg));
+                        }
                     } else {
                         window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); 
                     }
@@ -613,7 +617,7 @@ class Client extends EventEmitter {
                     return ogMethod(...args);
                 }).bind(module);
             }
-        });
+        },this.options.cipherMsg);
 
         /**
          * Emitted when the client has initialized and is ready to receive messages.
