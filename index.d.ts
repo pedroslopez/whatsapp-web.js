@@ -389,7 +389,7 @@ declare namespace WAWebJS {
          * @default 'ffmpeg' */
         ffmpegPath?: string,
         /** Object with proxy autentication requirements @default: undefined */
-        proxyAuthentication?: object | undefined
+        proxyAuthentication?: {username: string, password: string} | undefined
     }
 
     /**
