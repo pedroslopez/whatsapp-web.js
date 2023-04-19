@@ -109,7 +109,7 @@ class Message extends Base {
          * Indicates if the message is a status update
          * @type {boolean}
          */
-        this.isStatus = data.isStatusV3;
+        this.isStatus = data.isStatusV3 || data.id.remote === 'status@broadcast';
 
         /**
          * Indicates if the message was starred
@@ -443,15 +443,16 @@ class Message extends Base {
      * @param {?boolean} everyone If true and the message is sent by the current user or the user is an admin, will delete it for everyone in the chat.
      */
     async delete(everyone) {
-        await this.client.pupPage.evaluate((msgId, everyone) => {
+        await this.client.pupPage.evaluate(async (msgId, everyone) => {
             let msg = window.Store.Msg.get(msgId);
-
+            let chat = await window.Store.Chat.find(msg.id.remote);
+            
             const canRevoke = window.Store.MsgActionChecks.canSenderRevokeMsg(msg) || window.Store.MsgActionChecks.canAdminRevokeMsg(msg);
             if (everyone && canRevoke) {
-                return window.Store.Cmd.sendRevokeMsgs(msg.chat, [msg], { type: msg.id.fromMe ? 'Sender' : 'Admin' });
+                return window.Store.Cmd.sendRevokeMsgs(chat, [msg], { clearMedia: true, type: msg.id.fromMe ? 'Sender' : 'Admin' });
             }
 
-            return window.Store.Cmd.sendDeleteMsgs(msg.chat, [msg], true);
+            return window.Store.Cmd.sendDeleteMsgs(chat, [msg], true);
         }, this.id._serialized, everyone);
     }
 
@@ -459,11 +460,12 @@ class Message extends Base {
      * Stars this message
      */
     async star() {
-        await this.client.pupPage.evaluate((msgId) => {
+        await this.client.pupPage.evaluate(async (msgId) => {
             let msg = window.Store.Msg.get(msgId);
-
+            
             if (window.Store.MsgActionChecks.canStarMsg(msg)) {
-                return window.Store.Cmd.sendStarMsgs(msg.chat, [msg], false);
+                let chat = await window.Store.Chat.find(msg.id.remote);
+                return window.Store.Cmd.sendStarMsgs(chat, [msg], false);
             }
         }, this.id._serialized);
     }
@@ -472,11 +474,12 @@ class Message extends Base {
      * Unstars this message
      */
     async unstar() {
-        await this.client.pupPage.evaluate((msgId) => {
+        await this.client.pupPage.evaluate(async (msgId) => {
             let msg = window.Store.Msg.get(msgId);
 
             if (window.Store.MsgActionChecks.canStarMsg(msg)) {
-                return window.Store.Cmd.sendUnstarMsgs(msg.chat, [msg], false);
+                let chat = await window.Store.Chat.find(msg.id.remote);
+                return window.Store.Cmd.sendUnstarMsgs(chat, [msg], false);
             }
         }, this.id._serialized);
     }

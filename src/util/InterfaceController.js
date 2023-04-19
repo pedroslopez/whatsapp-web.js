@@ -50,7 +50,9 @@ class InterfaceController {
     async openChatWindowAt(msgId) {
         await this.pupPage.evaluate(async msgId => {
             let msg = await window.Store.Msg.get(msgId);
-            await window.Store.Cmd.openChatAt(msg.chat, msg.chat.getSearchContext(msg));
+            let chat = await window.Store.Chat.find(msg.id.remote);
+            let searchContext = await window.Store.SearchContext(chat,msg);
+            await window.Store.Cmd.openChatAt(chat, searchContext);
         }, msgId);
     }
 
@@ -70,7 +72,7 @@ class InterfaceController {
      */
     async closeRightDrawer() {
         await this.pupPage.evaluate(async () => {
-            await window.Store.Cmd.closeDrawerRight();
+            await window.Store.DrawerManager.closeDrawerRight();
         });
     }
 
