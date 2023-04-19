@@ -632,6 +632,18 @@ class Client extends EventEmitter {
             }
         });
     }
+    
+    /**
+     *  Set Theme Dark or Light
+     *  @param {boolean}
+     * 
+     */
+    async setDark(theme) {
+        const setTheme = theme ? 'web dark' : 'web';
+        await this.pupPage.evaluate((setTheme) => {
+            document.body.setAttribute('class', setTheme);
+        }, setTheme);
+    }
 
     /**
      * Closes the client
