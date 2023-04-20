@@ -13,7 +13,8 @@ exports.DefaultOptions = {
     takeoverTimeoutMs: 0,
     userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36',
     ffmpegPath: 'ffmpeg',
-    bypassCSP: false
+    bypassCSP: false,
+    proxyAuthentication: undefined
 };
 
 /**
