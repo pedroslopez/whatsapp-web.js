@@ -724,7 +724,7 @@ class Client extends EventEmitter {
 
         const sendSeen = typeof options.sendSeen === 'undefined' ? true : options.sendSeen;
 
-        content = content?.url ? await MessageMedia.fromUrl(content.url) : content?.file ?  await MessageMedia.fromFilePath(content.file) : content;
+        content = content?.url ? await MessageMedia.fromAll(content) : content;
 
         if (content instanceof MessageMedia) {
             internalOptions.attachment = content;
