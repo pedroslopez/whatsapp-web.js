@@ -2,6 +2,7 @@
 
 const EventEmitter = require('events');
 const puppeteer = require('puppeteer');
+const fs = require('fs');
 const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
 
 const Util = require('./util/Util');
@@ -724,7 +725,10 @@ class Client extends EventEmitter {
 
         const sendSeen = typeof options.sendSeen === 'undefined' ? true : options.sendSeen;
 
-        content = content?.url ? await MessageMedia.fromAll(content) : content;
+        if (content.url) {
+            let { url, ...contentOptions } = content;
+            content = fs.existsSync(url) ? await MessageMedia.fromFilePath(url) : await MessageMedia.fromUrl(url, contentOptions);
+        }
 
         if (content instanceof MessageMedia) {
             internalOptions.attachment = content;

@@ -106,21 +106,6 @@ class MessageMedia {
 
         return new MessageMedia(mimetype, res.data, filename, res.size || null);
     }
-    
-    /**
-     * Select a MessageMedia instance (URL or FILE)
-     * @param {string} url
-     * @param {Object} [options]
-     * @param {boolean} [options.unsafeMime=false]
-     * @param {string} [options.filename]
-     * @param {object} [options.client]
-     * @param {object} [options.reqOptions]
-     * @param {number} [options.reqOptions.size=0]
-     * @returns {Promise<MessageMedia> | new MessageMedia(mimetype, b64data, filename);}
-     */
-    static async fromAll({url, ...options}) {
-        return fs.existsSync(url) ? this.fromFilePath(url) : this.fromUrl(url, options);
-    }
 }
 
 module.exports = MessageMedia;
