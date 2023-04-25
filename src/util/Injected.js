@@ -99,6 +99,230 @@ exports.ExposeStore = (moduleRaidStr) => {
 exports.LoadUtils = () => {
     window.WWebJS = {};
 
+
+    // used to parse vcards
+    // thanks to https://github.com/woutervroege/node-vcardparser
+    window.WWebJS.parseVCardString = function(string) {
+        function parseVCardToObject(vcard) {
+            card = stripUnixChars(vcard);
+            cardLines = splitAtNewLines(card);
+            propertyLines = evalProperties(cardLines);
+            propertiesChunks = parseLinesToPropertiesChunks(propertyLines);
+            properties = parseChunksToProperties(propertiesChunks);
+            return properties;
+        }
+        function parseFile(pathToFile, callback) {
+            require("fs").readFile(pathToFile, function(err, data) {
+                if(err)
+                    return callback(err);
+                json = parseVCardToObject(data.toString());
+                callback(null, json);		
+            })
+        }
+        function stripUnixChars(str) {
+            return str.replace(/\r/g, "");
+        }
+        function splitAtNewLines(str) {
+            return str.split(/\n/g);
+        }
+        function evalProperties(cardLines) {
+            numLines = cardLines.length;
+            
+            validLines = [];
+            validLinesIndex = -1;
+            
+            for(var i=0;i<numLines;i++) {
+                isValidProperty = evalTextLine(cardLines[i]);
+                
+                if(isValidProperty) {
+                    validLinesIndex++;
+                    validLines[validLinesIndex] = cardLines[i];
+                }
+                else {
+                    validLines[validLinesIndex] += cardLines[i];			
+                }
+            }
+            
+            return validLines;
+        }
+        function evalTextLine(textLine) {
+            hasPropertyElement = textLine.match(/[A-Z]*:/);
+    
+            if(hasPropertyElement && hasPropertyElement.constructor.name == "Array") {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        function parseLinesToPropertiesChunks(propertyLines) {
+            numLines = propertyLines.length;
+            properties = [];
+            
+            for(var i=0;i<numLines;i++) {
+                properties.push(parsePropertyChunks(propertyLines[i]));
+            }
+            
+            return properties;
+        }
+        function parsePropertyChunks(propertyLine) {
+            arr = propertyLine.split(":");
+            chunks = [];
+            chunks[0] = arr[0] || "";
+            
+            chunks[1] = "";		
+            for(var i=1;i<arr.length;i++) {
+                chunks[1] += (":" + arr[i]);
+            }
+            chunks[1] = chunks[1].substr(1);
+            
+            return chunks;
+        }
+        function parseChunksToProperties(propertiesChunks) {
+    
+            numPropertiesChunks = propertiesChunks.length;
+            properties = {};
+            for(var i=0;i<numPropertiesChunks;i++) {
+                property = parsePropertyChunksToObject(propertiesChunks[i]);
+    
+                if(properties[property.name]) {
+                    switch(properties[property.name].constructor.name) {
+                        case "Object":
+                                //convert object to array, store new item into it
+                                properties[property.name] = [
+                                properties[property.name],
+                                property.value
+                            ]
+                            break;
+                        case "Array":	
+                            //add new value to array
+                            properties[property.name].push(property.value);
+                            break;
+                    }
+                }
+                
+                else {
+                    
+                    switch(property.name) {
+                        default:
+                            properties[property.name] = property.value;			
+                            break;
+                        case "tel":
+                        case "email":
+                        case "impp":
+                        case "url":
+                        case "adr":
+                        case "x-socialprofile":
+                        case "x-addressbookserver-member":
+                        case "member":
+                            properties[property.name] = [property.value];
+                            break;						
+                    }
+                }
+            }
+    
+            return properties;
+        }
+        function parsePropertyChunksToObject(propertyChunks) {
+    
+    
+            obj = {}
+            
+            leftPart = propertyChunks[0];
+            rightPart = propertyChunks[1];
+            
+            leftPartPieces = leftPart.split(";");
+            numLeftPartPieces = leftPartPieces.length;
+            
+            propTypes = [];
+            
+            for(var i=1;i<numLeftPartPieces;i++) {
+                if(leftPartPieces[i].substr(0, 5).toUpperCase() == "TYPE=") {
+                    propTypes.push(leftPartPieces[i].substr(5).toLowerCase());
+                }
+                if(leftPartPieces[i].substr(0, 5).toUpperCase() == "WAID=") {
+                    propTypes.push(leftPartPieces[i].substr(5).toLowerCase());
+                }
+            }
+                
+            obj.name = leftPartPieces[0].replace(/(item|ITEM)[0-9]./, "").toLowerCase();
+            
+            switch(obj.name) {
+                case "n":
+                    obj.value = parseName(rightPart);
+                    obj.test = 'boe';
+                    break;
+                case "adr":
+                    obj.value = parseAddress(rightPart, propTypes);
+                    break;
+                case "tel":
+                case "email":
+                case "impp":
+                case "url":
+                    obj.value = parseMVProperty(rightPart, propTypes);
+                    break;
+                case "org":
+                    obj.value = parseOrganization(rightPart);
+                    break;
+                case "photo":
+                    obj.value = parsePhoto(rightPart, propTypes);
+                    break;
+                default:
+                    obj.value = rightPart
+                    break;
+            }
+            
+            return obj;	
+        }
+        function parseMVProperty(mvValue, types) {
+            return {
+                type: types,
+                value: mvValue
+            }
+        }
+        function parseAddress(adrValues, types) {
+            
+            addressValues = adrValues.split(";", 7);
+            
+            address = {
+                street: addressValues[0] + addressValues[1] + addressValues[2],
+                city: addressValues[3],
+                region: addressValues[4],
+                zip: addressValues[5],
+                country: addressValues[6],
+            }
+            return {
+                type: types,
+                value: address
+            };
+        }
+        function parseName(nameValues) {
+            nameValues = nameValues.split(";", 5);
+            return {
+                last: nameValues[0],
+                first: nameValues[1],
+                middle: nameValues[2],
+                prefix: nameValues[3],
+                suffix: nameValues[4]
+            }
+        }
+        function parseOrganization(orgValues) {
+            orgValues = orgValues.split(";", 2);
+            return {
+                name: orgValues[0],
+                dept: orgValues[1]
+            }
+        }
+        function parsePhoto(base64string, types) {
+            return {
+                type: types,
+                value: base64string
+            }
+        }
+        json = parseVCardToObject(string);
+        return json;
+    }
+
     window.WWebJS.sendSeen = async (chatId) => {
         let chat = window.Store.Chat.get(chatId);
         if (chat !== undefined) {
@@ -176,11 +400,74 @@ exports.LoadUtils = () => {
         } else if (options.parseVCards && typeof (content) === 'string' && content.startsWith('BEGIN:VCARD')) {
             delete options.parseVCards;
             try {
-                const parsed = window.Store.VCard.parseVcard(content);
-                if (parsed) {
+                // enhanced from the previuos version, added the ability to read multiple cards
+                let vcards = content.split("END:VCARD")
+                let vcardsContacts = []; // initial array where all vcards for the Message object will be stored
+                let contentCards = ''; // used only to check if there is at least on valid vcard, appending to `content` will make conflict issues since old (might be invalid) vcards are stored there
+                
+                // Promise.all to check everything done before going next
+                await Promise.all (vcards.map( async (vcard) => { // map through vcards
+                    vcard += 'END:VCARD\n' // restore 'END:VCARD\n' after being deleted by `content.split("END:VCARD")`
+                    var parsedVCard = window.WWebJS.parseVCardString(vcard); // parse the vcard to JSON object
+
+                    if (Boolean(parsedVCard.fn) && Boolean(parsedVCard.n) && Boolean(parsedVCard.version) && Boolean(parsedVCard.tel) && typeof parsedVCard.tel == 'object' && parsedVCard.tel.length > 0) { // syntax is valid [contains the minimum required fields for vcard]
+                        
+                        // map through all phone numbers in single vcard
+                        await Promise.all(parsedVCard.tel.map(async (tel, index) => {
+                                /**
+                                 * if the parser found a waid in `tel`, it will attach it to the `tel`.`type` array, so we can read it later
+                                 * hint: if waid not present for phone numbers registered on whatsapp, the user will not see 'Message' button on the chat
+                                 * if waid is set, then the user is sharing valid (already checked and parsed) whatsapp vcard
+                                 */
+                                if (!tel.type.length != 2) {
+                                    try { // try to get the `waid` and attach 
+                                        var vWid = await window.Store.WidFactory.createWid(`${tel.value.replace('+', '').replace(/\s+/g, '')}@c.us`);
+                                        var vContact = await window.Store.Contact.find(vWid);
+                                        // var vContactModel = await vContact.serialize(); // no need for this since window.Store.VCard.vcardFromContactModel(c) needs unserliazed Contact
+                                        vcardsContacts.push(vContact)
+                                        if (vContact.isSmb) { // not sure what is `isSmb`, but I found that it's undefined for invalid/non-registered numbers
+                                            parsedVCard.tel[index].type.push(vContact.id.user) // again set waid on `tel`.`type`, index 1
+                                        } else {
+                                        // do something else
+                                        }
+                                    } catch(_) {
+                                        // handle error
+                                    }
+                                } else {
+                                  // waid is set, don't do anything
+                                }
+                        }));
+                        let TELS = ``;
+                        parsedVCard.tel.forEach((tel, index) => { // single vcard might contain more than one number, process them here
+                            TELS += `TEL;type=${tel.type[0]};${tel.type.length == 2 ? `waid=${tel.type[1]}` : ``}:${tel.value}\n`
+                        });
+                        // dummy variable for later
+                        contentCards += 
+                            `BEGIN:VCARD\n` +
+                            `VERSION:3.0\n` +
+                            `N:${parsedVCard.n.last};${parsedVCard.n.first};${parsedVCard.n.middle};;\n` +
+                            `FN:${parsedVCard.fn}\n` +
+                            TELS +
+                            `END:VCARD\n`
+                    }
+                }));
+                
+                if ((contentCards.match(/BEGIN:VCARD/g) || []).length > 1) { // multiple vcards
+                    // Promise.all is needed to make sure code is executed and vcards are generated
+                    let vcards = await Promise.all(vcardsContacts.map(async (c) => await window.Store.VCard.vcardFromContactModel(c)));
+                    vcardOptions = {
+                        type: 'multi_vcard',
+                        vcardList: vcards,
+                        body: undefined
+                    };
+                } else if ((contentCards.match(/BEGIN:VCARD/g) || []).length == 1) {
                     vcardOptions = {
                         type: 'vcard',
-                        vcardFormattedName: window.Store.VCard.vcardGetNameFromParsed(parsed)
+                        // as you see here vcard is in msg body, that's why we check waid above
+                        // in fact it's not needed for multi_vcard since vcardList is generated by whatsapp web functions and valid
+                        // but in single vcard we need waid because the vcard is checked by us
+                        body: window.Store.VCard.vcardFromContactModel(vcardsContacts[0]).vcard,
+                        vcardFormattedName: vcardsContacts[0].__x_formattedName
                     };
                 }
             } catch (_) {
