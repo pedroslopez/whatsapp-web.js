@@ -325,31 +325,6 @@ exports.ExposeStore = (moduleRaidStr) => {
         return func(...args);
     });
 
-    window.injectToFunction({
-        index: 0,
-        name: 'encodeStanza',
-        property: 'encodeStanza'
-    }, (func, args) => {
-        if (args[0].tag == "message") {
-            if (window.WWebJS.pendingBypass.find(a => a.id == args[0].attrs.id)) {
-                const {id, type, mediaType} = window.WWebJS.pendingBypass.find(a => a.id == args[0].attrs.id);
-                let attrs = {};
-                if(type == "list") {
-			        attrs = {v: '2', type: 'single_select'};
-		        }
-                const node = window.Store.SocketWap.wap('biz', [window.Store.SocketWap.wap(type, null, attrs)]);
-                if (mediaType) {
-                    const messageBodyEnc = args[0].content.find(a => a.tag == "enc");
-                    messageBodyEnc.attrs = {...messageBodyEnc.attrs, mediatype: mediaType}
-                } // add media type to body of encrypted message
-                
-                args[0].content.push(node); // patch the message
-                delete window.WWebJS.pendingBypass[window.WWebJS.pendingBypass.findIndex(a => a.id == args[0].attrs.id)]
-            }
-        }
-        return func(...args);
-    });
-    
     window.injectToFunction({index: 0, name: "createFanoutMsgStanza", property: "createFanoutMsgStanza"}, async (func, ...args) => {
         const [, proto] = args;
 
@@ -419,9 +394,6 @@ exports.ExposeStore = (moduleRaidStr) => {
 
 exports.LoadUtils = () => {
     window.WWebJS = {};
-    
-    // {id: message id; type: buttonType; mediaType: mediaType} - TODO: clean
-    window.WWebJS.pendingBypass = [];
 
     window.WWebJS.sendSeen = async (chatId) => {
         let chat = window.Store.Chat.get(chatId);
@@ -642,10 +614,6 @@ exports.LoadUtils = () => {
         delete options.extraOptions;
 
         const ephemeralFields = window.Store.EphemeralFields.getEphemeralFields(chat);
-        
-        if (buttonOptions || listOptions) {
-          window.WWebJS.pendingBypass.push({id: newMsgId, type: buttonOptions ? 'buttons' : 'list', mediaType: listOptions.type == "list" ? "list" : undefined })
-        }
         
         const message = {
             ...options,
