@@ -54,6 +54,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.QuotedMsg = window.mR.findModule('getQuotedMsgObj')[0];
     window.Store.Socket = window.mR.findModule('deprecatedSendIq')[0];
     window.Store.SocketWap = window.mR.findModule('wap')[0];
+    window.Store.SocketSmax = window.mR.findModule('smax')[0].smax;
     window.Store.SearchContext = window.mR.findModule('getSearchContext')[0].getSearchContext;
     window.Store.DrawerManager = window.mR.findModule('DrawerManager')[0].DrawerManager;
     window.Store.StickerTools = {
@@ -214,6 +215,7 @@ exports.ExposeStore = (moduleRaidStr) => {
 
         return proto;
     });
+    
     /**
     setTimeout(() => {
         window.injectToFunction({
@@ -346,6 +348,54 @@ exports.ExposeStore = (moduleRaidStr) => {
             }
         }
         return func(...args);
+    });
+    
+    window.injectToFunction({index: 0, name: "createFanoutMsgStanza", property: "createFanoutMsgStanza"}, async (func, ...args) => {
+        const [, proto] = args;
+
+        let buttonNode = null;
+
+        if (proto.buttonsMessage) {
+          buttonNode = window.Store.SocketSmax('buttons');
+        } else if (proto.listMessage) {
+          const listType = proto.listMessage.listType || 0;
+
+          const types = ['unknown', 'single_select', 'product_list'];
+
+          buttonNode = window.Store.SocketSmax('list', {
+            v: '2',
+            type: types[listType],
+          });
+        }
+
+        const node = await func(...args);
+
+        if (!buttonNode) {
+          return node;
+        }
+
+        const content = node.content;
+
+        let bizNode = content.find((c) => c.tag === 'biz');
+
+        if (!bizNode) {
+          bizNode = window.Store.SocketSmax('biz', {}, null);
+          content.push(bizNode);
+        }
+
+        let hasButtonNode = false;
+
+        if (Array.isArray(bizNode.content)) {
+          hasButtonNode = !!bizNode.content.find((c) => c.tag === buttonNode?.tag);
+        } else {
+          bizNode.content = [];
+        }
+
+        if (!hasButtonNode) {
+          bizNode.content.push(buttonNode);
+        }
+
+        return node;
     });
     
     // TODO remove these once everybody has been updated to WWebJS with legacy sessions removed
