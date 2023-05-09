@@ -1,7 +1,8 @@
 'use strict';
 
 const EventEmitter = require('events');
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
 
 const Util = require('./util/Util');
@@ -86,6 +87,7 @@ class Client extends EventEmitter {
      * Sets up events and requirements, kicks off authentication request
      */
     async initialize() {
+        puppeteer.use(StealthPlugin());
         let [browser, page] = [null, null];
 
         await this.authStrategy.beforeBrowserInitialized();
