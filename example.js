@@ -207,7 +207,7 @@ client.on('message', async msg => {
         setTimeout(async function editMsg() {
             if (editTimes < 5) {
                 editTimes++;
-                await msg.edit(`Edited ${editTimes} times.`, []);
+                await message.edit(`Edited ${editTimes} times.`);
                 setTimeout(editMsg, 1500);
             }
         }, 1500);
