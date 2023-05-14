@@ -201,6 +201,16 @@ client.on('message', async msg => {
         client.sendMessage(msg.from, list);
     } else if (msg.body === '!reaction') {
         msg.react('👍');
+    } else if (msg.body === '!edit') {
+        const message = await msg.reply('No edit yet.');
+        let editTimes = 0;
+        setTimeout(function editMsg() {
+            if (editTimes < 5) {
+                editTimes++;
+                msg.edit(`Edited ${editTimes} times.`, []);
+                setTimeout(editMsg, 1000);
+            }
+        }, 1000);
     }
 });
 

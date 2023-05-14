@@ -490,7 +490,7 @@ class Message extends Base {
      * There is a time limit of 15 minutes after the message was last edit
      * This works on media captions and text messages only
      * @param {string} text The text to edit - it works on captions as well
-     * @param {string[]} mentionedJidList mentions - list of 
+     * @param {string[]} mentionedJidList mentions - list of mentions
      */
     async edit(text, mentionedJidList = []) {
         if (mentionedJidList.length > 0 && !mentionedJidList.every(a => typeof a === "string")) {
