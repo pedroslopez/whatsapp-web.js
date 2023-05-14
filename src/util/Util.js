@@ -5,7 +5,7 @@ const Crypto = require('crypto');
 const { tmpdir } = require('os');
 const ffmpeg = require('fluent-ffmpeg');
 const webp = require('node-webpmux');
-const { getLinkPreview } = require('link-preview.js')
+const { getLinkPreview } = require('link-preview-js')
 const fs = require('fs').promises;
 const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
 
