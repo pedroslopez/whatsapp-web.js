@@ -724,6 +724,10 @@ class Client extends EventEmitter {
 
         const sendSeen = typeof options.sendSeen === 'undefined' ? true : options.sendSeen;
 
+        if (internalOptions.linkPreview) {
+            internalOptions.linkPreview = await Util.getLinkPreview(content || options.caption);
+        }
+
         if (content instanceof MessageMedia) {
             internalOptions.attachment = content;
             content = '';

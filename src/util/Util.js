@@ -5,6 +5,7 @@ const Crypto = require('crypto');
 const { tmpdir } = require('os');
 const ffmpeg = require('fluent-ffmpeg');
 const webp = require('node-webpmux');
+const { getLinkPreview } = require('link-preview.js')
 const fs = require('fs').promises;
 const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
 
@@ -180,6 +181,34 @@ class Util {
      */
     static setFfmpegPath(path) {
         ffmpeg.setFfmpegPath(path);
+    }
+
+    static async getLinkPreview(link) {
+        const linkPreview = {};
+
+        const info = await getLinkPreview(link, { headers: { 'user-agent': "WhatsApp/2.23.8.76 A" } }).catch(_ => _);
+
+        if (info && info.title) {
+            const [image] = info.images;
+            let imageData;
+            if (image) {
+                imageData = (await MessageMedia.fromUrl(image)).data;
+            }
+
+            linkPreview = {
+                url: e.url,
+                title: e.domain,
+                description: e.url,
+                canonicalUrl: e.url,
+                matchedText: e.url,
+                richPreviewType: 0,
+                thumbnail: imageData,
+                doNotPlayInline: true
+            }
+        }
+
+        return linkPreview;
+
     }
 }
 

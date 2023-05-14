@@ -7,6 +7,7 @@ const Order = require('./Order');
 const Payment = require('./Payment');
 const Reaction = require('./Reaction');
 const {MessageTypes} = require('../util/Constants');
+const Util = require('../util/Util');
 
 /**
  * Represents a Message on WhatsApp
@@ -485,6 +486,30 @@ class Message extends Base {
     }
 
     /**
+     * Edit the message
+     * There is a time limit of 15 minutes after the message was last edit
+     * This works on media captions and text messages only
+     * @param {string} text The text to edit - it works on captions as well
+     * @param {string[]} mentionedJidList mentions - list of 
+     */
+    async edit(text, mentionedJidList = []) {
+        if (mentionedJidList.length > 0 && !mentionedJidList.every(a => typeof a === "string")) {
+            if (mentionedJidList.every(a => typeof a === "object")) {
+                mentionedJidList = mentionedJidList.map(a => a.id);
+            }
+        }
+        const linkPreview = await Util.getLinkPreview(text);
+        
+        await this.client.pupPage.evaluate(async (msgId, timestamp, text, linkPreview, mentionedJidList) => {
+            let msg = window.Store.Msg.get(msgId);
+
+            if (Date.now() < (15 * 60 * 1000) + timestamp) {
+                await window.Store.EditedMsg.sendMessageEdit(msg, text, { linkPreview, mentionedJidList }); 
+            }
+        }, this.id._serialized, this.timestamp, text, linkPreview, mentionedJidList);
+    }
+
+    /**
      * Message Info
      * @typedef {Object} MessageInfo
      * @property {Array<{id: ContactId, t: number}>} delivery Contacts to which the message has been delivered to
@@ -577,6 +602,9 @@ class Message extends Base {
             return reaction;
         });
     }
+
+
+
 }
 
 module.exports = Message;

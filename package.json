@@ -35,7 +35,8 @@
     "mime": "^3.0.0",
     "node-fetch": "^2.6.5",
     "node-webpmux": "^3.1.0",
-    "puppeteer": "^13.0.0"
+    "puppeteer": "^13.0.0",
+    "link-preview.js": "^3.0.4"
   },
   "devDependencies": {
     "@types/node-fetch": "^2.5.12",
