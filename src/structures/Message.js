@@ -503,7 +503,7 @@ class Message extends Base {
         await this.client.pupPage.evaluate(async (msgId, timestamp, text, linkPreview, mentionedJidList) => {
             let msg = window.Store.Msg.get(msgId);
 
-            if (Date.now() < (15 * 60 * 1000) + timestamp) {
+            if (window.Store.MsgActionChecks.canEditText(msg)) {
                 await window.Store.EditedMsg.sendMessageEdit(msg, text, { linkPreview, mentionedJidList }); 
             }
         }, this.id._serialized, this.timestamp, text, linkPreview, mentionedJidList);
