@@ -204,13 +204,8 @@ client.on('message', async msg => {
     } else if (msg.body === '!edit') {
         const message = await msg.reply('No edit yet.');
         let editTimes = 0;
-        setTimeout(async function editMsg() {
-            if (editTimes < 5) {
-                editTimes++;
-                await message.edit(`Edited ${editTimes} times.`);
-                setTimeout(editMsg, 1500);
-            }
-        }, 1500);
+        await new Promise(r => setTimeout(r, 1500));
+        await message.edit(`Edited!`);
     }
 });
 
