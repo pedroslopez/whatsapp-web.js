@@ -1,12 +1,27 @@
 const { Client, Location, List, Buttons, LocalAuth } = require('./index');
 
 const client = new Client({
+    restartOnAuthFail: true,
     authStrategy: new LocalAuth(),
+    takeoverOnConflict: true,
+    takeoverTimeoutMs: 20000,
+    qrMaxRetries: 4,
+    userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36',
     // proxyAuthentication: { username: 'username', password: 'password' },
-    puppeteer: { 
-        // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
-        headless: false
-    }
+    puppeteer: {
+        headless: false,
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--single-process', // <- this one doesn't works in Windows
+            '--disable-gpu'
+            //'--proxy-server=proxy-server-that-requires-authentication.example.com'
+        ],
+    },
 });
 
 client.initialize();
@@ -35,6 +50,12 @@ client.on('ready', () => {
 
 client.on('message', async msg => {
     console.log('MESSAGE RECEIVED', msg);
+
+    if (msg.selectedButtonId == 'test') {
+        return msg.reply('You clicked the button!');
+    } else if (msg.selectedRowId == 'test') {
+        return msg.reply('You clicked that section');
+    }
 
     if (msg.body === '!ping reply') {
         // Send a new message as a reply to the current one
@@ -200,7 +221,7 @@ client.on('message', async msg => {
         let list = new List('List body', 'btnText', sections, 'Title', 'footer');
         client.sendMessage(msg.from, list);
     } else if (msg.body === '!reaction') {
-        msg.react('👍');
+        await msg.react('👍');
     }
 });
 
