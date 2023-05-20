@@ -17,7 +17,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Invite = window.mR.findModule('resetGroupInviteCode')[0];
     window.Store.InviteInfo = window.mR.findModule('queryGroupInvite')[0];
     window.Store.Label = window.mR.findModule('LabelCollection')[0].LabelCollection;
-    window.Store.MediaPrep = window.mR.findModule('MediaPrep')[0];
+    window.Store.MediaPrep = window.mR.findModule('prepRawMedia')[0];
     window.Store.MediaObject = window.mR.findModule('getOrCreateMediaObject')[0];
     window.Store.NumberInfo = window.mR.findModule('formattedPhoneNumber')[0];
     window.Store.MediaTypes = window.mR.findModule('msgToMediaType')[0];
@@ -25,7 +25,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
     window.Store.MessageInfo = window.mR.findModule('sendQueryMsgInfo')[0];
     window.Store.OpaqueData = window.mR.findModule(module => module.default && module.default.createFromData)[0].default;
-    window.Store.QueryExist = window.mR.findModule('queryExist')[0]?.queryExist;
+    window.Store.QueryExist = window.mR.findModule('queryExists')[0] ? window.mR.findModule('queryExists')[0].queryExists : window.mR.findModule('queryExist')[0].queryWidExists;
     window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
     window.Store.QueryOrder = window.mR.findModule('queryOrder')[0];
     window.Store.SendClear = window.mR.findModule('sendClear')[0];
@@ -52,6 +52,10 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.ReplyUtils = window.mR.findModule('canReplyMsg').length > 0 && window.mR.findModule('canReplyMsg')[0];
     window.Store.MsgActionChecks = window.mR.findModule('canSenderRevokeMsg')[0];
     window.Store.QuotedMsg = window.mR.findModule('getQuotedMsgObj')[0];
+    window.Store.Socket = window.mR.findModule('deprecatedSendIq')[0];
+    window.Store.SocketWap = window.mR.findModule('wap')[0];
+    window.Store.SearchContext = window.mR.findModule('getSearchContext')[0].getSearchContext;
+    window.Store.DrawerManager = window.mR.findModule('DrawerManager')[0].DrawerManager;
     window.Store.StickerTools = {
         ...window.mR.findModule('toWebpSticker')[0],
         ...window.mR.findModule('addWebpMetadata')[0]
@@ -60,7 +64,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.GroupUtils = {
         ...window.mR.findModule('createGroup')[0],
         ...window.mR.findModule('setGroupDescription')[0],
-        ...window.mR.findModule('sendExitGroup')[0]
+        ...window.mR.findModule('sendExitGroup')[0],
+        ...window.mR.findModule('sendSetPicture')[0]
     };
 
     if (!window.Store.Chat._find) {
@@ -89,275 +94,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     if(_features) {
         window.Store.Features = _features.LegacyPhoneFeatures;
     }
-
-    // The following was implemented and inspired from wppconnect/wa-js at 
-    // https://github.com/wppconnect-team/wa-js/tree/main/src/chat/functions/prepareMessageButtons.ts
-
-    // Find proxy modules
-    window.findProxyModel = (name) => {
-        const baseName = name.replace(/Model$/, '');
-
-        const names = [baseName];
-
-        // ChatModel => "chat"
-        names.push(baseName.replace(/^(\w)/, (l) => l.toLowerCase()));
-
-        // CartItemModel => "cart-item"
-        // ProductListModel => "product_list"
-        const parts = baseName.split(/(?=[A-Z])/);
-
-        names.push(parts.join('-').toLowerCase());
-        names.push(parts.join('_').toLowerCase());
-
-        const results = window.mR.findModule((m) =>
-            names.includes(
-                m.default?.prototype?.proxyName ||
-                m[name]?.prototype?.proxyName ||
-                m[baseName]?.prototype?.proxyName
-            )
-        )[0];
-
-        return results.default || results[name] || results[baseName];
-    };
-
-    // Function to modify functions.
-    window.injectToFunction = (selector, callback) => {
-        const oldFunct = window.mR.findModule(selector.name)[selector.index][selector.property];
-        window.mR.findModule(selector.name)[selector.index][selector.property] = (...args) => callback(oldFunct, args);
-    };
-
-    // Find button models
-    window.Store.TemplateButtonModel = window.findProxyModel('TemplateButtonModel');
-    window.Store.TemplateButtonCollection = window.mR.findModule('TemplateButtonCollection')[0].TemplateButtonCollection;
-    
-    // Find quick reply models
-    window.Store.ReplyButtonModel = window.findProxyModel('ReplyButtonModel');
-    window.Store.ButtonCollection = window.mR.findModule('ButtonCollection')[0].ButtonCollection;
-
-    // Modify functions 
-    window.injectToFunction({
-        index: 0,
-        name: 'createMsgProtobuf',
-        property: 'createMsgProtobuf'
-    }, (func, args) => {
-        const [message] = args;
-        const proto = func(...args);
-        if (message.hydratedButtons) {
-            const hydratedTemplate = {
-                hydratedButtons: message.hydratedButtons,
-            };
-
-            if (message.footer) {
-                hydratedTemplate.hydratedFooterText = message.footer;
-            }
-
-            if (message.caption) {
-                hydratedTemplate.hydratedContentText = message.caption;
-            }
-
-            if (message.title) {
-                hydratedTemplate.hydratedTitleText = message.title;
-            }
-
-            if (proto.conversation) {
-                hydratedTemplate.hydratedContentText = proto.conversation;
-                delete proto.conversation;
-            } else if (proto.extendedTextMessage?.text) {
-                hydratedTemplate.hydratedContentText = proto.extendedTextMessage.text;
-                delete proto.extendedTextMessage;
-            } else {
-                // Search media part in message
-                let found;
-                const mediaPart = [
-                    'documentMessage',
-                    'imageMessage',
-                    'locationMessage',
-                    'videoMessage',
-                ];
-                for (const part of mediaPart) {
-                    if (part in proto) {
-                        found = part;
-                        break;
-                    }
-                }
-
-                if (!found) {
-                    return proto;
-                }
-
-                // Media message doesn't allow title
-                hydratedTemplate[found] = proto[found];
-
-                // Copy title to caption if not setted
-                if (
-                    hydratedTemplate.hydratedTitleText &&
-                    !hydratedTemplate.hydratedContentText
-                ) {
-                    hydratedTemplate.hydratedContentText =
-                        hydratedTemplate.hydratedTitleText;
-                }
-
-                // Remove title for media messages
-                delete hydratedTemplate.hydratedTitleText;
-
-                if (found === 'locationMessage') {
-                    if (
-                        !hydratedTemplate.hydratedContentText &&
-                        (message[found].name || message[found].address)
-                    ) {
-                        hydratedTemplate.hydratedContentText =
-                            message[found].name && message[found].address
-                                ? `${message[found].name}\n${message[found].address}`
-                                : message[found].name || message[found].address || '';
-                    }
-                }
-
-                // Ensure a content text;
-                hydratedTemplate.hydratedContentText =
-                    hydratedTemplate.hydratedContentText || ' ';
-
-                delete proto[found];
-            }
-
-            proto.templateMessage = {
-                hydratedTemplate,
-            };
-        }
-
-        return proto;
-    });
-
-    window.injectToFunction({
-        index: 0,
-        name: 'createMsgProtobuf',
-        property: 'createMsgProtobuf'
-    }, (func, args) => {
-        const proto = func(...args);
-        if (proto.templateMessage) {
-            proto.viewOnceMessage = {
-                message: {
-                    templateMessage: proto.templateMessage,
-                },
-            };
-            delete proto.templateMessage;
-        }
-        if (proto.buttonsMessage) {
-            proto.viewOnceMessage = {
-                message: {
-                    buttonsMessage: proto.buttonsMessage,
-                },
-            };
-            delete proto.buttonsMessage;
-        }
-        if (proto.listMessage) {
-            proto.viewOnceMessage = {
-                message: {
-                    listMessage: proto.listMessage,
-                },
-            };
-            delete proto.listMessage;
-        }
-        return proto;
-    });
-
-    window.injectToFunction({
-        index: 0,
-        name: 'typeAttributeFromProtobuf',
-        property: 'typeAttributeFromProtobuf'
-    }, (func, args) => {
-        const [proto] = args;
-        if (proto.templateMessage?.hydratedTemplate) {
-            const keys = Object.keys(proto.templateMessage?.hydratedTemplate);
-            const messagePart = [
-                'documentMessage',
-                'imageMessage',
-                'locationMessage',
-                'videoMessage',
-            ];
-            if (messagePart.some((part) => keys.includes(part))) {
-                return 'media';
-            }
-            return 'text';
-        }
-        
-        if (
-            proto.buttonsMessage?.headerType === 1 ||
-            proto.buttonsMessage?.headerType === 2
-        ) {
-            return 'text';
-        }
-        
-        return func(...args);
-    });
-
-    window.injectToFunction({
-        index: 0,
-        name: 'typeAttributeFromProtobuf',
-        property: 'typeAttributeFromProtobuf'
-    }, (func, args) => {
-        const [proto] = args;
-
-        if (proto.ephemeralMessage) {
-            const { message } = proto.ephemeralMessage;
-            return message ? func(message) : 'text';
-        }
-        if (proto.deviceSentMessage) {
-            const { message } = proto.deviceSentMessage;
-            return message ? func(message) : 'text';
-        }
-        if (proto.viewOnceMessage) {
-            const { message } = proto.viewOnceMessage;
-            return message ? func(message) : 'text';
-        }
-
-        return func(...args);
-    });
-
-    window.injectToFunction({
-        index: 0,
-        name: 'mediaTypeFromProtobuf',
-        property: 'mediaTypeFromProtobuf'
-    }, (func, args) => {
-        const [proto] = args;
-        if (proto.templateMessage?.hydratedTemplate) {
-            return func(proto.templateMessage.hydratedTemplate);
-        }
-        return func(...args);
-    });
-
-    window.injectToFunction({
-        index: 0,
-        name: 'mediaTypeFromProtobuf',
-        property: 'mediaTypeFromProtobuf'
-    }, (func, args) => {
-        const [proto] = args;
-        if (proto.deviceSentMessage) {
-            const { message } = proto.deviceSentMessage;
-            return message ? func(message) : null;
-        }
-        if (proto.ephemeralMessage) {
-            const { message } = proto.ephemeralMessage;
-            return message ? func(message) : null;
-        }
-        if (proto.viewOnceMessage) {
-            const { message } = proto.viewOnceMessage;
-            return message ? func(message) : null;
-        }
-
-        return func(...args);
-    });
-    
-    window.injectToFunction({
-        index: 0,
-        name: 'encodeMaybeMediaType',
-        property: 'encodeMaybeMediaType',
-    }, (func, args) => {
-        const [type] = args;
-        if (type === 'button') {
-            return window.mR.findModule('DROP_ATTR')[0].DROP_ATTR;
-        }
-        return func(...args);
-    });
 };
 
 exports.LoadUtils = () => {
@@ -568,11 +304,12 @@ exports.LoadUtils = () => {
 
         const meUser = window.Store.User.getMaybeMeUser();
         const isMD = window.Store.MDBackend;
-
+        const newId = await window.Store.MsgKey.newId();
+        
         const newMsgId = new window.Store.MsgKey({
             from: meUser,
             to: chat.id,
-            id: window.Store.MsgKey.newId(),
+            id: newId,
             participant: isMD && chat.id.isGroup() ? meUser : undefined,
             selfDir: 'out',
         });
@@ -597,6 +334,7 @@ exports.LoadUtils = () => {
             ...ephemeralFields,
             ...locationOptions,
             ...attOptions,
+            ...(attOptions.toJSON ? attOptions.toJSON() : {}),
             ...quotedMsgOptions,
             ...vcardOptions,
             ...buttonOptions,
@@ -752,7 +490,15 @@ exports.LoadUtils = () => {
             await window.Store.GroupMetadata.update(chatWid);
             res.groupMetadata = chat.groupMetadata.serialize();
         }
-
+        
+        res.lastMessage = null;
+        if (res.msgs && res.msgs.length) {
+            const lastMessage = window.Store.Msg.get(chat.lastReceivedKey._serialized);
+            if (lastMessage) {
+                res.lastMessage = window.WWebJS.getMessageModel(lastMessage);
+            }
+        }
+        
         delete res.msgs;
         delete res.msgUnsyncedButtonReplyMsgs;
         delete res.unsyncedButtonReplies;
@@ -933,5 +679,91 @@ exports.LoadUtils = () => {
         }
 
         return undefined;
+    };
+
+    window.WWebJS.rejectCall = async (peerJid, id) => {
+        peerJid = peerJid.split('@')[0] + '@s.whatsapp.net';
+        let userId = window.Store.User.getMaybeMeUser().user + '@s.whatsapp.net';
+        const stanza = window.Store.SocketWap.wap('call', {
+            id: window.Store.SocketWap.generateId(),
+            from: window.Store.SocketWap.USER_JID(userId),
+            to: window.Store.SocketWap.USER_JID(peerJid),
+        }, [
+            window.Store.SocketWap.wap('reject', {
+                'call-id': id,
+                'call-creator': window.Store.SocketWap.USER_JID(peerJid),
+                count: '0',
+            })
+        ]);
+        await window.Store.Socket.deprecatedCastStanza(stanza);
+    };
+
+    window.WWebJS.cropAndResizeImage = async (media, options = {}) => {
+        if (!media.mimetype.includes('image'))
+            throw new Error('Media is not an image');
+
+        if (options.mimetype && !options.mimetype.includes('image'))
+            delete options.mimetype;
+
+        options = Object.assign({ size: 640, mimetype: media.mimetype, quality: .75, asDataUrl: false }, options);
+
+        const img = await new Promise ((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = `data:${media.mimetype};base64,${media.data}`;
+        });
+
+        const sl = Math.min(img.width, img.height);
+        const sx = Math.floor((img.width - sl) / 2);
+        const sy = Math.floor((img.height - sl) / 2);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = options.size;
+        canvas.height = options.size;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, sx, sy, sl, sl, 0, 0, options.size, options.size);
+
+        const dataUrl = canvas.toDataURL(options.mimetype, options.quality);
+
+        if (options.asDataUrl)
+            return dataUrl;
+
+        return Object.assign(media, {
+            mimetype: options.mimeType,
+            data: dataUrl.replace(`data:${options.mimeType};base64,`, '')
+        });
+    };
+
+    window.WWebJS.setPicture = async (chatid, media) => {
+        const thumbnail = await window.WWebJS.cropAndResizeImage(media, { asDataUrl: true, mimetype: 'image/jpeg', size: 96 });
+        const profilePic = await window.WWebJS.cropAndResizeImage(media, { asDataUrl: true, mimetype: 'image/jpeg', size: 640 });
+
+        const chatWid = window.Store.WidFactory.createWid(chatid);
+        try {
+            const collection = window.Store.ProfilePicThumb.get(chatid);
+            if (!collection.canSet()) return;
+
+            const res = await window.Store.GroupUtils.sendSetPicture(chatWid, thumbnail, profilePic);
+            return res ? res.status === 200 : false;
+        } catch (err) {
+            if(err.name === 'ServerStatusCodeError') return false;
+            throw err;
+        }
+    };
+
+    window.WWebJS.deletePicture = async (chatid) => {
+        const chatWid = window.Store.WidFactory.createWid(chatid);
+        try {
+            const collection = window.Store.ProfilePicThumb.get(chatid);
+            if (!collection.canDelete()) return;
+
+            const res = await window.Store.GroupUtils.requestDeletePicture(chatWid);
+            return res ? res.status === 200 : false;
+        } catch (err) {
+            if(err.name === 'ServerStatusCodeError') return false;
+            throw err;
+        }
     };
 };
