@@ -1,4 +1,5 @@
-const {expect} = require('chai');
+const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
 const sinon = require('sinon');
 
 const helper = require('./helper');
@@ -7,11 +8,84 @@ const Contact = require('../src/structures/Contact');
 const Message = require('../src/structures/Message');
 const MessageMedia = require('../src/structures/MessageMedia');
 const Location = require('../src/structures/Location');
-const { MessageTypes } = require('../src/util/Constants');
+const LegacySessionAuth = require('../src/authStrategies/LegacySessionAuth');
+const { MessageTypes, WAState, DefaultOptions } = require('../src/util/Constants');
+
+const expect = chai.expect;
+chai.use(chaiAsPromised);
 
 const remoteId = helper.remoteId;
+const isMD = helper.isMD();
 
 describe('Client', function() {
+    describe('User Agent', function () {
+        it('should set user agent on browser', async function () {
+            this.timeout(25000);
+
+            const client = helper.createClient();
+            client.initialize();
+
+            await helper.sleep(20000);
+
+            const browserUA = await client.pupBrowser.userAgent();
+            expect(browserUA).to.equal(DefaultOptions.userAgent);
+
+            const pageUA = await client.pupPage.evaluate(() => window.navigator.userAgent);
+            expect(pageUA).to.equal(DefaultOptions.userAgent);
+
+            await client.destroy();
+        });
+
+        it('should set custom user agent on browser', async function () {
+            this.timeout(25000);
+            const customUA = DefaultOptions.userAgent.replace(/Chrome\/.* /, 'Chrome/99.9.9999.999 ');
+
+            const client = helper.createClient({
+                options: {
+                    userAgent: customUA
+                }
+            });
+
+            client.initialize();
+            await helper.sleep(20000);
+
+            const browserUA = await client.pupBrowser.userAgent();
+            expect(browserUA).to.equal(customUA);
+            expect(browserUA.includes('Chrome/99.9.9999.999')).to.equal(true);
+
+            const pageUA = await client.pupPage.evaluate(() => window.navigator.userAgent);
+            expect(pageUA).to.equal(customUA);
+
+            await client.destroy();
+        });
+
+        it('should respect an existing user agent arg', async function () {
+            this.timeout(25000);
+
+            const customUA = DefaultOptions.userAgent.replace(/Chrome\/.* /, 'Chrome/99.9.9999.999 ');
+
+            const client = helper.createClient({
+                options: {
+                    puppeteer: {
+                        args: [`--user-agent=${customUA}`]
+                    }
+                }
+            });
+
+            client.initialize();
+            await helper.sleep(20000);
+
+            const browserUA = await client.pupBrowser.userAgent();
+            expect(browserUA).to.equal(customUA);
+            expect(browserUA.includes('Chrome/99.9.9999.999')).to.equal(true);
+
+            const pageUA = await client.pupPage.evaluate(() => window.navigator.userAgent);
+            expect(pageUA).to.equal(DefaultOptions.userAgent);
+
+            await client.destroy();
+        });
+    });
+
     describe('Authentication', function() {
         it('should emit QR code if not authenticated', async function() {
             this.timeout(25000);
@@ -24,81 +98,29 @@ describe('Client', function() {
             await helper.sleep(20000);
 
             expect(callback.called).to.equal(true);
-            expect(callback.args[0][0]).to.have.lengthOf(152);
+            expect(callback.args[0][0]).to.have.length.greaterThanOrEqual(152);
 
             await client.destroy();
         });
 
-        it('should fail auth if session is invalid', async function() {
-            this.timeout(40000);
-
-            const authFailCallback = sinon.spy();
+        it('should disconnect after reaching max qr retries', async function () {
+            this.timeout(50000);
+            
             const qrCallback = sinon.spy();
-            const readyCallback = sinon.spy();
-
-            const client = helper.createClient({
-                options: {
-                    session: {
-                        WABrowserId: 'invalid', 
-                        WASecretBundle: 'invalid', 
-                        WAToken1: 'invalid', 
-                        WAToken2: 'invalid'
-                    },
-                    authTimeoutMs: 10000,
-                    restartOnAuthFail: false
-                }
-            });
-
+            const disconnectedCallback = sinon.spy();
+            
+            const client = helper.createClient({options: {qrMaxRetries: 2}});
             client.on('qr', qrCallback);
-            client.on('auth_failure', authFailCallback);
-            client.on('ready', readyCallback);
+            client.on('disconnected', disconnectedCallback);
 
             client.initialize();
 
-            await helper.sleep(25000);
-
-            expect(authFailCallback.called).to.equal(true);
-            expect(authFailCallback.args[0][0]).to.equal('Unable to log in. Are the session details valid?');
-
-            expect(readyCallback.called).to.equal(false);
-            expect(qrCallback.called).to.equal(false);
-
-            await client.destroy();
+            await helper.sleep(45000);
+            
+            expect(qrCallback.calledThrice).to.eql(true);
+            expect(disconnectedCallback.calledOnceWith('Max qrcode retries reached')).to.eql(true);
         });
 
-        it('can restart without a session if session was invalid and restartOnAuthFail=true', async function() {
-            this.timeout(40000);
-
-            const authFailCallback = sinon.spy();
-            const qrCallback = sinon.spy();
-
-            const client = helper.createClient({
-                options:{
-                    session: {
-                        WABrowserId: 'invalid', 
-                        WASecretBundle: 'invalid', 
-                        WAToken1: 'invalid', 
-                        WAToken2: 'invalid'
-                    },
-                    authTimeoutMs: 10000,
-                    restartOnAuthFail: true
-                }
-            });
-
-            client.on('auth_failure', authFailCallback);
-            client.on('qr', qrCallback);
-
-            client.initialize();
-
-            await helper.sleep(35000);
-
-            expect(authFailCallback.called).to.equal(true);
-            expect(qrCallback.called).to.equal(true);
-            expect(qrCallback.args[0][0]).to.have.lengthOf(152);
-
-            await client.destroy();
-        });
-        
         it('should authenticate with existing session', async function() {
             this.timeout(40000);
 
@@ -106,7 +128,10 @@ describe('Client', function() {
             const qrCallback = sinon.spy();
             const readyCallback = sinon.spy();
 
-            const client = helper.createClient({withSession: true});
+            const client = helper.createClient({
+                authenticated: true,
+            });
+
             client.on('qr', qrCallback);
             client.on('authenticated', authenticatedCallback);
             client.on('ready', readyCallback);
@@ -114,19 +139,139 @@ describe('Client', function() {
             await client.initialize();
 
             expect(authenticatedCallback.called).to.equal(true);
-            const newSession = authenticatedCallback.args[0][0];
-            expect(newSession).to.have.key([
-                'WABrowserId', 
-                'WASecretBundle', 
-                'WAToken1', 
-                'WAToken2'
-            ]);
-            expect(authenticatedCallback.called).to.equal(true);
+
+            if(helper.isUsingLegacySession()) {
+                const newSession = authenticatedCallback.args[0][0];
+                expect(newSession).to.have.key([
+                    'WABrowserId', 
+                    'WASecretBundle', 
+                    'WAToken1', 
+                    'WAToken2'
+                ]);
+            }
+            
             expect(readyCallback.called).to.equal(true);
             expect(qrCallback.called).to.equal(false);
 
             await client.destroy();
-        });   
+        });
+
+        describe('LegacySessionAuth', function () {
+            it('should fail auth if session is invalid', async function() {
+                this.timeout(40000);
+        
+                const authFailCallback = sinon.spy();
+                const qrCallback = sinon.spy();
+                const readyCallback = sinon.spy();
+        
+                const client = helper.createClient({
+                    options: {
+                        authStrategy: new LegacySessionAuth({
+                            session: {
+                                WABrowserId: 'invalid', 
+                                WASecretBundle: 'invalid', 
+                                WAToken1: 'invalid', 
+                                WAToken2: 'invalid'
+                            },
+                            restartOnAuthFail: false,
+                        }),
+                    }
+                });
+        
+                client.on('qr', qrCallback);
+                client.on('auth_failure', authFailCallback);
+                client.on('ready', readyCallback);
+        
+                client.initialize();
+        
+                await helper.sleep(25000);
+        
+                expect(authFailCallback.called).to.equal(true);
+                expect(authFailCallback.args[0][0]).to.equal('Unable to log in. Are the session details valid?');
+        
+                expect(readyCallback.called).to.equal(false);
+                expect(qrCallback.called).to.equal(false);
+        
+                await client.destroy();
+            });
+        
+            it('can restart without a session if session was invalid and restartOnAuthFail=true', async function() {
+                this.timeout(40000);
+        
+                const authFailCallback = sinon.spy();
+                const qrCallback = sinon.spy();
+        
+                const client = helper.createClient({
+                    options: {
+                        authStrategy: new LegacySessionAuth({
+                            session: {
+                                WABrowserId: 'invalid', 
+                                WASecretBundle: 'invalid', 
+                                WAToken1: 'invalid', 
+                                WAToken2: 'invalid'
+                            },
+                            restartOnAuthFail: true,
+                        }),
+                    }
+                });
+        
+                client.on('auth_failure', authFailCallback);
+                client.on('qr', qrCallback);
+        
+                client.initialize();
+        
+                await helper.sleep(35000);
+        
+                expect(authFailCallback.called).to.equal(true);
+                expect(qrCallback.called).to.equal(true);
+                expect(qrCallback.args[0][0]).to.have.length.greaterThanOrEqual(152);
+        
+                await client.destroy();
+            });
+        });
+
+        describe('Non-MD only', function () {
+            if(!isMD) {
+                it('can take over if client was logged in somewhere else with takeoverOnConflict=true', async function() {
+                    this.timeout(40000);
+    
+                    const readyCallback1 = sinon.spy();
+                    const readyCallback2 = sinon.spy();
+                    const disconnectedCallback1 = sinon.spy();
+                    const disconnectedCallback2 = sinon.spy();
+    
+                    const client1 = helper.createClient({
+                        authenticated: true, 
+                        options: { takeoverOnConflict: true, takeoverTimeoutMs: 5000 }
+                    });
+                    const client2 = helper.createClient({authenticated: true});
+    
+                    client1.on('ready', readyCallback1);
+                    client2.on('ready', readyCallback2);
+                    client1.on('disconnected', disconnectedCallback1);
+                    client2.on('disconnected', disconnectedCallback2);
+    
+                    await client1.initialize();
+                    expect(readyCallback1.called).to.equal(true);
+                    expect(readyCallback2.called).to.equal(false);
+                    expect(disconnectedCallback1.called).to.equal(false);
+                    expect(disconnectedCallback2.called).to.equal(false);
+    
+                    await client2.initialize();
+                    expect(readyCallback2.called).to.equal(true);
+                    expect(disconnectedCallback1.called).to.equal(false);
+                    expect(disconnectedCallback2.called).to.equal(false);
+    
+                    // wait for takeoverTimeoutMs to kick in
+                    await helper.sleep(5200);
+                    expect(disconnectedCallback1.called).to.equal(false);
+                    expect(disconnectedCallback2.called).to.equal(true);
+                    expect(disconnectedCallback2.calledWith(WAState.CONFLICT)).to.equal(true);
+    
+                    await client1.destroy();
+                });
+            }
+        }); 
     });
 
     describe('Authenticated', function() {
@@ -134,12 +279,18 @@ describe('Client', function() {
 
         before(async function() {
             this.timeout(35000);
-            client = helper.createClient({withSession: true});
+            client = helper.createClient({authenticated: true});
             await client.initialize();
         });
 
         after(async function () {
             await client.destroy();
+        });
+
+        it('can get current WhatsApp Web version', async function () {
+            const version = await client.getWWebVersion();
+            expect(typeof version).to.equal('string');
+            console.log(`WA Version: ${version}`);
         });
 
         describe('Expose Store', function() {
@@ -153,46 +304,58 @@ describe('Client', function() {
     
             it('exposes all required WhatsApp Web internal models', async function() {
                 const expectedModules = [
-                    'Chat',
-                    'Msg',
-                    'Contact',
-                    'Conn', 
                     'AppState',
-                    'CryptoLib', 
-                    'Wap', 
-                    'SendSeen', 
-                    'SendClear', 
-                    'SendDelete', 
-                    'genId', 
-                    'SendMessage', 
-                    'MsgKey', 
-                    'Invite', 
-                    'OpaqueData', 
-                    'MediaPrep', 
-                    'MediaObject', 
-                    'MediaUpload',
-                    'Cmd',
-                    'MediaTypes',
-                    'VCard',
-                    'UserConstructor',
-                    'Validators',
-                    'WidFactory',
                     'BlockContact',
-                    'GroupMetadata',
-                    'Sticker',
-                    'UploadUtils',
-                    'Label',
+                    'Call',
+                    'Chat',
+                    'ChatState',
+                    'Cmd',
+                    'Conn',
+                    'Contact',
+                    'DownloadManager',
+                    'EphemeralFields',
                     'Features',
+                    'GroupMetadata',
+                    'GroupParticipants',
+                    'GroupUtils',
+                    'Invite',
+                    'InviteInfo',
+                    'JoinInviteV4',
+                    'Label',
+                    'MediaObject',
+                    'MediaPrep',
+                    'MediaTypes',
+                    'MediaUpload',
+                    'MessageInfo',
+                    'Msg',
+                    'MsgKey',
+                    'OpaqueData',
                     'QueryOrder',
                     'QueryProduct',
-                    'DownloadManager'
-                ];  
+                    'PresenceUtils',
+                    'ProfilePic',
+                    'QueryExist',
+                    'QueryProduct',
+                    'QueryOrder',
+                    'SendClear',
+                    'SendDelete',
+                    'SendMessage',
+                    'SendSeen',
+                    'StatusUtils',
+                    'UploadUtils',
+                    'UserConstructor',
+                    'VCard',
+                    'Validators',
+                    'WidFactory',
+                    'findCommonGroups',
+                    'sendReactionToMsg',
+                ];
               
-                const loadedModules = await client.pupPage.evaluate(() => {
-                    return Object.keys(window.Store);
-                });
+                const loadedModules = await client.pupPage.evaluate((expectedModules) => {
+                    return expectedModules.filter(m => Boolean(window.Store[m]));
+                }, expectedModules);
     
-                expect(loadedModules).to.include.members(expectedModules);
+                expect(loadedModules).to.have.members(expectedModules);
             });
         });
     
@@ -218,6 +381,17 @@ describe('Client', function() {
                 expect(msg.fromMe).to.equal(true);
                 expect(msg.hasMedia).to.equal(true);
                 expect(msg.body).to.equal('here\'s my media');
+                expect(msg.to).to.equal(remoteId);
+            });
+
+            it('can send a media message from URL', async function() {
+                const media = await MessageMedia.fromUrl('https://via.placeholder.com/350x150.png');
+    
+                const msg = await client.sendMessage(remoteId, media);
+                expect(msg).to.be.instanceOf(Message);
+                expect(msg.type).to.equal(MessageTypes.IMAGE);
+                expect(msg.fromMe).to.equal(true);
+                expect(msg.hasMedia).to.equal(true);
                 expect(msg.to).to.equal(remoteId);
             });
     
@@ -384,6 +558,32 @@ END:VCARD`;
                 expect(contact).to.exist;
                 expect(contact).to.be.instanceOf(Contact);
             });
+
+            it('can block a contact', async function () {
+                const contact = await client.getContactById(remoteId);
+                await contact.block();
+
+                const refreshedContact = await client.getContactById(remoteId);
+                expect(refreshedContact.isBlocked).to.eql(true);
+            });
+
+            it('can get a list of blocked contacts', async function () {
+                const blockedContacts = await client.getBlockedContacts();
+                expect(blockedContacts.length).to.be.greaterThanOrEqual(1);
+
+                const contact = blockedContacts.find(c => c.id._serialized === remoteId);
+                expect(contact).to.exist;
+                expect(contact).to.be.instanceOf(Contact);
+
+            });
+
+            it('can unblock a contact', async function () {
+                const contact = await client.getContactById(remoteId);
+                await contact.unblock();
+
+                const refreshedContact = await client.getContactById(remoteId);
+                expect(refreshedContact.isBlocked).to.eql(false);
+            });
         });
 
         describe('Numbers and Users', function () {
@@ -411,6 +611,70 @@ END:VCARD`;
                 const number = '9999999999';
                 const numberId = await client.getNumberId(number);
                 expect(numberId).to.eql(null);
+            });
+
+            it('can get a number\'s country code', async function () {
+                const number = '18092201111';
+                const countryCode = await client.getCountryCode(number);
+                expect(countryCode).to.eql('1');
+            });
+
+            it('can get a formatted number', async function () {
+                const number = '18092201111';
+                const formatted = await client.getFormattedNumber(number);
+                expect(formatted).to.eql('+1 (809) 220-1111');
+            });
+
+            it('can get a formatted number from a serialized ID', async function () {
+                const number = '18092201111@c.us';
+                const formatted = await client.getFormattedNumber(number);
+                expect(formatted).to.eql('+1 (809) 220-1111');
+            });
+        });
+
+        describe('Search messages', function () {
+            it('can search for messages', async function () {
+                const m1 = await client.sendMessage(remoteId, 'I\'m searching for Super Mario Brothers');
+                const m2 = await client.sendMessage(remoteId, 'This also contains Mario');
+                const m3 = await client.sendMessage(remoteId, 'Nothing of interest here, just Luigi');
+                
+                // wait for search index to catch up
+                await helper.sleep(1000);
+                
+                const msgs = await client.searchMessages('Mario', {chatId: remoteId});
+                expect(msgs.length).to.be.greaterThanOrEqual(2);
+                const msgIds = msgs.map(m => m.id._serialized);
+                expect(msgIds).to.include.members([
+                    m1.id._serialized, m2.id._serialized
+                ]);
+                expect(msgIds).to.not.include.members([m3.id._serialized]);
+            });
+        });
+
+        describe('Status/About', function () {
+            let me, previousStatus;
+
+            before(async function () {
+                me = await client.getContactById(client.info.wid._serialized);
+                previousStatus = await me.getAbout();
+            });
+
+            after(async function () {
+                await client.setStatus(previousStatus);
+            });
+            
+            it('can set the status text', async function () {
+                await client.setStatus('My shiny new status');
+
+                const status = await me.getAbout();
+                expect(status).to.eql('My shiny new status');
+            });
+
+            it('can set the status text to something else', async function () {
+                await client.setStatus('Busy');
+                
+                const status = await me.getAbout();
+                expect(status).to.eql('Busy');
             });
         });
     });
