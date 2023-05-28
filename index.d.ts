@@ -389,7 +389,9 @@ declare namespace WAWebJS {
         userAgent?: string
         /** Ffmpeg path to use when formating videos to webp while sending stickers 
          * @default 'ffmpeg' */
-        ffmpegPath?: string
+        ffmpegPath?: string,
+        /** Object with proxy autentication requirements @default: undefined */
+        proxyAuthentication?: {username: string, password: string} | undefined
     }
 
     /**

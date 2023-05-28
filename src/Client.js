@@ -29,6 +29,7 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @param {string} options.userAgent - User agent to use in puppeteer
  * @param {string} options.ffmpegPath - Ffmpeg path to use when formating videos to webp while sending stickers 
  * @param {boolean} options.bypassCSP - Sets bypassing of page's Content-Security-Policy.
+ * @param {object} options.proxyAuthentication - Proxy Authentication object.
  * 
  * @fires Client#qr
  * @fires Client#authenticated
@@ -101,6 +102,10 @@ class Client extends EventEmitter {
 
             browser = await puppeteer.launch({...puppeteerOpts, args: browserArgs});
             page = (await browser.pages())[0];
+        }
+
+        if (this.options.proxyAuthentication !== undefined) {
+            await page.authenticate(this.options.proxyAuthentication);
         }
       
         await page.setUserAgent(this.options.userAgent);
