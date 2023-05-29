@@ -18,15 +18,24 @@ const getCurrentVersion = () => {
     }
 };
 
-const updateVersion = async (oldVersion, newVersion) => {
-    const readmePath = '../../README.md';
-  
-    const readme = fs.readFileSync(readmePath);  
-    const newReadme = readme.toString().replaceAll(oldVersion, newVersion);
+const updateInFile = (filePath, oldVersion, newVersion) => {
+    const originalFile = fs.readFileSync(filePath);  
+    const newFile = originalFile.toString().replaceAll(oldVersion, newVersion);
 
-    fs.writeFileSync(readmePath, newReadme);
-    fs.writeFileSync('./.version', newVersion);
-    
+    fs.writeFileSync(filePath, newFile);
+};
+
+const updateVersion = async (oldVersion, newVersion) => {
+    const filesToUpdate = [
+        '../../src/util/Constants.js',
+        '../../README.md',
+    ];
+
+    for (const file of filesToUpdate) {
+        updateInFile(file, oldVersion, newVersion);
+    }
+
+    fs.writeFileSync('./.version', newVersion);  
 };
 
 (async () => {
