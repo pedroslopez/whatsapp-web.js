@@ -7,7 +7,7 @@ exports.DefaultOptions = {
         headless: true,
         defaultViewport: null
     },
-    webVersion: '2.2244.6',
+    webVersion: '2.2306.7',
     webVersionCache: {
         type: 'local',
     },
