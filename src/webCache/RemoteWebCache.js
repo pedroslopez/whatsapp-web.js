@@ -10,7 +10,7 @@ class RemoteWebCache extends WebCache {
     constructor(options = {}) {
         super();
 
-        if (!options.remotePattern) throw new Error('webVersionCache.remotePath is required when using the remote cache');
+        if (!options.remotePath) throw new Error('webVersionCache.remotePath is required when using the remote cache');
         this.remotePath = options.remotePath;
         this.strict = options.strict || false;
     }
