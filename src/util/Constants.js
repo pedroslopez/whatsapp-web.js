@@ -7,6 +7,10 @@ exports.DefaultOptions = {
         headless: true,
         defaultViewport: null
     },
+    webVersion: '2.2306.7',
+    webVersionCache: {
+        type: 'local',
+    },
     authTimeoutMs: 0,
     qrMaxRetries: 0,
     takeoverOnConflict: false,
