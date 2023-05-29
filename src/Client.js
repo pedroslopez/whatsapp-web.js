@@ -662,13 +662,13 @@ class Client extends EventEmitter {
                     req.continue();
                 }
             });
+        } else {
+            this.pupPage.on('response', async (res) => {
+                if(res.ok() && res.url() === WhatsWebURL) {
+                    await webCache.persist(await res.text());
+                }
+            });
         }
-
-        this.pupPage.on('response', async (res) => {
-            if(res.ok() && res.url() === WhatsWebURL) {
-                await webCache.persist(await res.text());
-            }
-        });
     }
 
     /**
