@@ -1,3 +1,4 @@
+const fetch = require('node-fetch');
 const { WebCache, VersionResolveError } = require('./WebCache');
 
 /**
@@ -17,13 +18,18 @@ class RemoteWebCache extends WebCache {
 
     async resolve(version) {
         const remotePath = this.remotePath.replace('{version}', version);
-        const cachedRes = await fetch(remotePath);
-        if (!cachedRes.ok) {
-            if (this.strict) throw new VersionResolveError(`Couldn't load version ${version} from the archive`);
-            return null;
+
+        try {
+            const cachedRes = await fetch(remotePath);
+            if (cachedRes.ok) {
+                return cachedRes.text();
+            }
+        } catch (err) {
+            console.error(`Error fetching version ${version} from remote`, err);
         }
 
-        return cachedRes.text();
+        if (this.strict) throw new VersionResolveError(`Couldn't load version ${version} from the archive`);
+        return null;         
     }
 
     async persist() {
