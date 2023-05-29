@@ -496,8 +496,6 @@ declare namespace WAWebJS {
         WAToken2: string,
     }
 
-    export 
-
     /** 
      * @deprecated
      */
