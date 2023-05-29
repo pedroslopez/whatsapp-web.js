@@ -11,12 +11,12 @@ class RemoteWebCache extends WebCache {
         super();
 
         if (!options.remotePattern) throw new Error('webVersionCache.remotePath is required when using the remote cache');
-        this.remotePattern = options.remotePattern;
+        this.remotePath = options.remotePath;
         this.strict = options.strict || false;
     }
 
     async resolve(version) {
-        const remotePath = this.remotePattern.replace('{version}', version);
+        const remotePath = this.remotePath.replace('{version}', version);
         const cachedRes = await fetch(remotePath);
         if (!cachedRes.ok) {
             if (this.strict) throw new VersionResolveError(`Couldn't load version ${version} from the archive`);
