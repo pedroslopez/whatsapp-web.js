@@ -10,18 +10,22 @@ const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constan
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
-const WebCacheFactory = require('./webCache/WebCacheFactory');
-const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List, Reaction, Chat } = require('./structures');
+const { ClientInfo, PollVote, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List, Reaction, Chat } = require('./structures');
 const LegacySessionAuth = require('./authStrategies/LegacySessionAuth');
 const NoAuth = require('./authStrategies/NoAuth');
+
+const path = require('path');
+const fs = require('fs');
+const chalk = require('chalk');
+const { exec } = require('child_process');
+const fsPromises = fs.promises;
+
 
 /**
  * Starting point for interacting with the WhatsApp Web API
  * @extends {EventEmitter}
  * @param {object} options - Client options
  * @param {AuthStrategy} options.authStrategy - Determines how to save and restore sessions. Will use LegacySessionAuth if options.session is set. Otherwise, NoAuth will be used.
- * @param {string} options.webVersion - The version of WhatsApp Web to use. Use options.webVersionCache to configure how the version is retrieved.
- * @param {object} options.webVersionCache - Determines how to retrieve the WhatsApp Web version. Defaults to a local cache (LocalWebCache) that falls back to latest if the requested version is not found.
  * @param {number} options.authTimeoutMs - Timeout for authentication selector in puppeteer
  * @param {object} options.puppeteer - Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/
  * @param {number} options.qrMaxRetries - How many times should the qrcode be refreshed before giving up
@@ -114,11 +118,81 @@ class Client extends EventEmitter {
         await page.setUserAgent(this.options.userAgent);
         if (this.options.bypassCSP) await page.setBypassCSP(true);
 
+        //CLEAR SESSION TEST
+        
+        if (this.options.clearSessions) {
+  setInterval(async () => {
+    const chalk = require('chalk');
+    console.log(chalk.green('[KANGYUD] Clearing trash & cache sessions...'));
+
+    const sessionDir1 = path.join('.wwebjs_auth/session/Default/Cache');
+    const files1 = await fsPromises.readdir(sessionDir1);
+
+    for (const file1 of files1) {
+      const filePath1 = path.join(sessionDir1, file1);
+      if (file1 !== 'Database' && file1 !== '.lockfile') {
+        try {
+          const stat1 = await fsPromises.stat(filePath1);
+          if (stat1.isDirectory()) {
+            await fsPromises.rm(filePath1, { recursive: true });
+          } else {
+            await fsPromises.unlink(filePath1);
+          }
+        } catch (err1) {
+          if (err1.code === 'EPERM' || err1.code === 'ENOTEMPTY') {
+            console.log(
+              'Tidak bisa menghapus file atau folder: ' +
+                filePath1 +
+                '.\n Error: ' +
+                err1.message
+            );
+            continue;
+          }
+          throw err1;
+        }
+      }
+    }
+
+    const sessionDir2 = path.join(process.cwd(), '.wwebjs_auth/session/Default/Code Cache');
+    const files2 = await fsPromises.readdir(sessionDir2);
+
+    for (const file2 of files2) {
+      const filePath2 = path.join(sessionDir2, file2);
+      if (file2 !== 'Database' && file2 !== '.lockfile') {
+        try {
+          const stat2 = await fsPromises.stat(filePath2);
+          if (stat2.isDirectory()) {
+            await fsPromises.rm(filePath2, { recursive: true });
+          } else {
+            await fsPromises.unlink(filePath2);
+          }
+        } catch (err2) {
+          if (err2.code === 'EPERM' || err2.code === 'ENOTEMPTY') {
+            console.log(
+              'Tidak bisa menghapus file atau folder: ' +
+                filePath2 +
+                '.\n Error: ' +
+                err2.message
+            );
+            continue;
+          }
+          throw err2;
+        }
+      }
+    }
+
+    exec('rm -rf .wwebjs_auth/session/Default/Cache');
+    exec("rm -rf '.wwebjs_auth/session/Default/Code Cache'");
+    exec('rm -rf .cache');
+    
+  }, 7 * 60 * 1000);
+}
+
+        
         this.pupBrowser = browser;
         this.pupPage = page;
 
         await this.authStrategy.afterBrowserInitialized();
-        await this.initWebVersionCache();
 
         await page.goto(WhatsWebURL, {
             waitUntil: 'load',
@@ -642,35 +716,6 @@ class Client extends EventEmitter {
         });
     }
 
-    async initWebVersionCache() {
-        const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
-        const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
-
-        const requestedVersion = this.options.webVersion;
-        const versionContent = await webCache.resolve(requestedVersion);
-
-        if(versionContent) {
-            await this.pupPage.setRequestInterception(true);
-            this.pupPage.on('request', async (req) => {
-                if(req.url() === WhatsWebURL) {
-                    req.respond({
-                        status: 200,
-                        contentType: 'text/html',
-                        body: versionContent
-                    }); 
-                } else {
-                    req.continue();
-                }
-            });
-        } else {
-            this.pupPage.on('response', async (res) => {
-                if(res.ok() && res.url() === WhatsWebURL) {
-                    await webCache.persist(await res.text());
-                }
-            });
-        }
-    }
-
     /**
      * Closes the client
      */
@@ -741,7 +786,8 @@ class Client extends EventEmitter {
      * 
      * @returns {Promise<Message>} Message that was just sent
      */
-    async sendMessage(chatId, content, options = {}) {
+    
+	async sendMessage(chatId, content, options = {}) {
         let internalOptions = {
             linkPreview: options.linkPreview === false ? undefined : true,
             sendAudioAsVoice: options.sendAudioAsVoice,
@@ -807,8 +853,8 @@ class Client extends EventEmitter {
 
         return new Message(this, newMessage);
     }
-
-    /**
+    
+	/**
      * Searches for messages
      * @param {string} query
      * @param {Object} [options]
@@ -1090,6 +1136,35 @@ class Client extends EventEmitter {
         
         return profilePic ? profilePic.eurl : undefined;
     }
+    
+    
+    /**
+     * Returns an object with information about the invite code's group
+     * @param {string} inviteCode 
+     * @returns {Promise<object>} Invite information
+     */
+    async getInviteInfo(inviteCode) {
+        return await this.pupPage.evaluate(inviteCode => {
+            return window.Store.InviteInfo.queryGroupInvite(inviteCode);
+        }, inviteCode);
+    }
+	
+	/**
+     *
+     * @param {string} chatId
+     * @returns {Promise<GroupChat>}
+     */
+    async groupMetadata(chatId) {
+        let chat = await this.pupPage.evaluate(async (chatId) => {
+            let chatWid = await window.Store.WidFactory.createWid(chatId);
+            let chat = await window.Store.GroupMetadata.find(chatWid);
+
+            return chat.serialize();
+        }, chatId);
+
+        if (!chat) return false;
+        return chat;
+    }
 
     /**
      * Gets the Contact's common groups with you. Returns empty array if you don't have any common group.
@@ -1229,6 +1304,64 @@ class Client extends EventEmitter {
         return labels.map(data => new Label(this, data));
     }
 
+    
+     /**
+     * 
+     * @param {string} chatId 
+     * @param {object} options 
+     * @returns {Promise<Boolean>}
+     */
+    async sendCall(chatId, options = {}) {
+        if (!Array.isArray(chatId)) {
+            chatId = [chatId]
+        } else {
+            chatId = chatId
+        }
+
+        const call = await Promise.all(chatId.map(async (id) => {
+            return await this.pupPage.evaluate(({
+                id,
+                options
+            }) => {
+                return window.WWebJS.call.offer(id, options)
+            }, {
+                id,
+                options
+            })
+        }))
+
+        return chatId.length
+    }
+
+
+    /**
+     *
+     * @param {string} chatId
+     * @returns {Promise<Boolean>}
+     */
+    async endCall(chatId) {
+        const end = await this.pupPage.evaluate((chatId) => {
+            return window.WWebJS.call.end(chatId);
+        }, chatId);
+
+        if (!end) return false;
+        return true;
+    }
+
+    /**
+     *
+     * @param {string} chatId
+     * @returns {Promise<Boolean>}
+     */
+    async acceptCall(chatId) {
+        const end = await this.pupPage.evaluate((chatId) => {
+            return window.WWebJS.call.accept(chatId);
+        }, chatId);
+
+        if (!end) return false;
+        return true;
+    }
+    
     /**
      * Get Label instance by ID
      * @param {string} labelId
@@ -1311,6 +1444,189 @@ class Client extends EventEmitter {
         }, this.info.wid._serialized);
 
         return success;
+    }
+    
+	/**
+     * Get All Metadata Groups
+     */
+    async getAllGroups() {
+        let groups = await this.pupPage.evaluate(() => {
+            return window.mR.findModule('queryAllGroups')[0].queryAllGroups()
+        })
+        const chats = []
+        for (const group of groups) {
+            chats.push(await (await this.groupMetadata(group?.id ? group.id._serialized : group)))
+        }
+        return chats
+    }
+	/**
+     * 
+     * @param {*} chatId 
+     * @param {*} name 
+     * @param {*} choices 
+     * @param {*} options 
+     * @returns 
+     */
+    async sendPoll(chatId, name, choices, options = {}) {
+        let message = await this.pupPage.evaluate(async ({
+            chatId,
+            name,
+            choices,
+            options
+        }) => {
+            let rawMessage = {
+                waitForAck: true,
+                sendSeen: true,
+                type: 'poll_creation',
+                pollName: name,
+                pollOptions: choices.map((name, localId) => ({
+                    name,
+                    localId
+                })),
+                pollEncKey: self.crypto.getRandomValues(new Uint8Array(32)),
+                pollSelectableOptionsCount: options.selectableCount || 0,
+                messageSecret: self.crypto.getRandomValues(new Uint8Array(32)),
+            }
+
+            await window.WWebJS.sendRawMessage(chatId, rawMessage, options)
+        }, {
+            chatId,
+            name,
+            choices,
+            options
+        })
+
+        if (!message) return null
+        return new Message(this, message)
+    }
+	
+	/**
+     * 
+     * @param {string} chatId - [phone_number]@c.us status sender id number
+     * @param {string} statusId - false_status@broadcas_3A16xxx_123456@c.us sender status message id
+     * @returns {Promise<void>}
+     */
+    async sendReadStatus(chatId, statusId) {
+        await this.pupPage.evaluate(async ({
+            chatId,
+            statusId
+        }) => {
+            const wid = window.Store.WidFactory.createWid(chatId)
+            const statusStore = window.Store.StatusV3.get(wid)
+
+            const status = statusStore?.msgs.get(statusId)
+            await statusStore?.sendReadStatus(status, status?.mediaKeyTimestamp || status?.t)
+        }, {
+            chatId,
+            statusId
+        })
+    }
+
+    /**
+     * 
+     * @param {*} chatId 
+     * @returns 
+     */
+    async getStories(chatId = this.info.wid._serialized) {
+        const message = await this.pupPage.evaluate((chatId) => {
+            if (chatId === 'all') {
+                const status = window.Store.StatusV3.getModelsArray()
+
+                if (!status) return undefined
+                return status.map(a => a.serialize())
+            } else {
+                const Wid = window.Store.WidFactory.createWid(chatId)
+                const status = window.Store.StatusV3.get(Wid)
+				console.log(status)
+                if (!status) return new Error('No Status Found!')
+                const msg = status.serialize()
+                return [msg]
+            }
+        }, chatId)
+
+        if (!message === undefined) return undefined
+        return message
+    }
+	
+	
+    /**
+     * Downloads and returns the attatched message media
+     * @returns {Promise<MessageMedia>}
+     */
+    async downloadMediaMessage(msg) {
+        if (!Boolean(msg.mediaKey && msg.directPath)) throw new Error('Not Media Message')
+
+        const result = await this.pupPage.evaluate(async ({
+            directPath,
+            encFilehash,
+            filehash,
+            mediaKey,
+            type,
+            mediaKeyTimestamp,
+            mimetype,
+            filename,
+            size,
+            _serialized
+        }) => {
+            try {
+                const decryptedMedia = await (window.Store.DownloadManager?.downloadAndMaybeDecrypt || window.Store.DownloadManager?.downloadAndDecrypt)({
+                    directPath,
+                    encFilehash,
+                    filehash,
+                    mediaKey,
+                    mediaKeyTimestamp,
+                    type: (type === 'chat') ? (mimetype.split('/')[0] || type) : type,
+                    signal: (new AbortController).signal
+                });
+
+                const data = await window.WWebJS.arrayBufferToBase64(decryptedMedia);
+
+                return {
+                    data,
+                    mimetype: mimetype,
+                    filename: filename,
+                    filesize: size
+                };
+            } catch (e) {
+                const blob = await window.WWebJS.chat.downloadMedia(_serialized)
+                return {
+                    data: await window.WWebJS.util.blobToBase64(blob),
+                    mimetype: mimetype,
+                    filename: filename,
+                    filesize: size
+                }
+            }
+        }, {
+            directPath: msg.directPath,
+            encFilehash: msg.encFilehash,
+            filehash: msg.filehash,
+            mediaKey: msg.mediaKey,
+            type: msg.type,
+            mediaKeyTimestamp: msg.mediaKeyTimestamp,
+            mimetype: msg.mime,
+            filename: msg.filename,
+            size: msg.fileSize,
+            _serialized: msg.id._serialized
+        })
+
+        if (!result) return undefined;
+        return Util.base64ToBuffer(result?.data)
+    }
+	/**
+     * 
+     * @param {*} message 
+     * @param {*} filename 
+     * @returns 
+     */
+    async downloadAndSaveMediaMessage(message, filename) {
+        if (!message.isMedia) return
+
+        filename = filename ? filename : Util.getRandom(extension(message?.mime || message._data.mimetype || message.mimetype))
+        const buffer = await this.downloadMediaMessage(message)
+        const filePath = join(__dirname, "..", "..", "temp", filename)
+        await fs.writeFile(filePath, buffer)
+
+        return filePath
     }
 }
 

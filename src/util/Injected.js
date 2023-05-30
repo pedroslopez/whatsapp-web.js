@@ -8,6 +8,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store = Object.assign({}, window.mR.findModule(m => m.default && m.default.Chat)[0].default);
     window.Store.AppState = window.mR.findModule('Socket')[0].Socket;
     window.Store.Conn = window.mR.findModule('Conn')[0].Conn;
+    window.Store.InviteInfo = window.mR.findModule('queryGroupInvite')[0];
     window.Store.BlockContact = window.mR.findModule('blockContact')[0];
     window.Store.Call = window.mR.findModule('CallCollection')[0].CallCollection;
     window.Store.Cmd = window.mR.findModule('Cmd')[0].Cmd;
@@ -32,6 +33,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.SendDelete = window.mR.findModule('sendDelete')[0];
     window.Store.SendMessage = window.mR.findModule('addAndSendMsgToChat')[0];
     window.Store.SendSeen = window.mR.findModule('sendSeen')[0];
+    window.Store.SendVote = window.mR.findModule('sendVote')[0];
     window.Store.User = window.mR.findModule('getMaybeMeUser')[0];
     window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
     window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default;
@@ -56,6 +58,21 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.SocketWap = window.mR.findModule('wap')[0];
     window.Store.SearchContext = window.mR.findModule('getSearchContext')[0].getSearchContext;
     window.Store.DrawerManager = window.mR.findModule('DrawerManager')[0].DrawerManager;
+	window.Store.Functions = {
+        ...window.mR.findModule('randomHex')[0]
+    }
+    window.Store.WebSocket = {
+        ...window.mR.findModule('smax')[0],
+        ...window.mR.findModule('getFanOutList')[0],
+        ...window.mR.findModule('ensureE2ESessions')[0],
+        ...window.mR.findModule('encryptMsgProtobuf')[0],
+        ...window.mR.findModule('sendSmaxStanza')[0]
+    };
+    window.Store.MultiDevice = {
+        ...window.mR.findModule('getADVEncodedIdentity')[0],
+        ...window.mR.findModule('waNoiseInfo')[0],
+        ...window.mR.findModule('waSignalStore')[0].waSignalStore
+    };
     window.Store.StickerTools = {
         ...window.mR.findModule('toWebpSticker')[0],
         ...window.mR.findModule('addWebpMetadata')[0]
@@ -108,6 +125,86 @@ exports.LoadUtils = () => {
         return false;
 
     };
+		window.WWebJS.prepareRawMessage = async (chatId, message, options = {}) => {
+        const chatWid = window.Store.WidFactory.createWid(chatId)
+        const chat = await window.Store.Chat.find(chatWid)
+		console.log(chatWid)
+        const meUser = window.Store.User.getMaybeMeUser()
+        const isMD = window.Store.MDBackend
+
+        const newMsgId = await window.WWebJS.chat.generateMessageID(chat)
+
+        message = {
+            t: parseInt(new Date().getTime() / 1000),
+            id: newMsgId,
+            from: meUser,
+            to: chat.id,
+            self: 'out',
+            isNewMsg: true,
+            local: true,
+            ack: 0,
+            ...message
+        }
+
+        if (options.messageId) {
+            message.id = new window.Store.MsgKey({
+                from: meUser,
+                to: chat.id,
+                id: options.messageId,
+                participant: isMD && chat.id.isGroup() || chat.id.isStatusV3() ? meUser : undefined,
+                selfDir: 'out'
+            })
+
+
+            delete options.messageId
+        }
+
+        if (options.mentions) {
+            message.mentionedJidList = options.mentions.map(cId => window.Store.Contact.get(cId).id);
+
+            delete options.mentions
+        }
+
+        let quotedMsg = {}
+        if (options.quoted) {
+            if (typeof options.quoted === 'string') quotedMsg = window.Store.Msg.get(options.quoted)
+            if (typeof options.quoted === 'object') quotedMsg = window.Store.Msg.get(options.quoted.id ? options.quoted.id._serialized : options.quoted._serialized)
+
+            quotedMsg = quotedMsg.msgContextInfo(chat.id)
+
+            delete options.quoted
+        }
+
+        let extraOptions = {}
+        if (options.extra) {
+            extraOptions = options.extra
+
+            delete options.extra
+        }
+
+        message = {
+            ...message,
+            ...quotedMsg,
+            ...extraOptions
+        }
+
+        return message
+    }
+	
+	window.WWebJS.sendRawMessage = async (chatId, rawMessage, options = {}) => {
+        const chatWid = window.Store.WidFactory.createWid(chatId)
+        const chat = await window.Store.Chat.find(chatWid)
+
+        rawMessage = window.WWebJS.prepareRawMessage(chatId, rawMessage, options)
+
+        if (options.sendSeen) {
+            window.WWebJS.sendSeen(chatId);
+        }
+
+        await window.Store.SendMessage.addAndSendMsgToChat(chat, rawMessage)
+        return rawMessage
+    }
+
 
     window.WWebJS.sendMessage = async (chat, content, options = {}) => {
         let attOptions = {};
@@ -119,10 +216,7 @@ exports.LoadUtils = () => {
                     forceDocument: options.sendMediaAsDocument,
                     forceGif: options.sendVideoAsGif
                 });
-            
-            if (options.caption){
-                attOptions.caption = options.caption; 
-            }
+
             content = options.sendMediaAsSticker ? undefined : attOptions.preview;
 
             delete options.attachment;
@@ -303,6 +397,7 @@ exports.LoadUtils = () => {
             data
         };
     };
+	
 
     window.WWebJS.processStickerData = async (mediaInfo) => {
         if (mediaInfo.mimetype !== 'image/webp') throw new Error('Invalid media type');
@@ -414,6 +509,10 @@ exports.LoadUtils = () => {
 
         if (typeof msg.id.remote === 'object') {
             msg.id = Object.assign({}, msg.id, { remote: msg.id.remote._serialized });
+        }
+		
+		if (msg.type == 'poll_creation') {
+            msg.pollVotes = window.Store.PollVote.getForParent([msg.id._serialized]).map(a => a.serialize())[0];
         }
 
         delete msg.pendingAckUpdate;
@@ -640,6 +739,18 @@ exports.LoadUtils = () => {
             })
         ]);
         await window.Store.Socket.deprecatedCastStanza(stanza);
+    };
+	
+	window.WWebJS.votePoll = async (pollCreationMessageId, selectedOptions) => {
+        const msg = window.Store.Msg.get(pollCreationMessageId);
+        if (msg.type !== 'poll_creation') throw 'Quoted message is not a poll creation message!';
+        let localIdSet = new Set();
+        msg.pollOptions.map(a => {
+            for (const option of selectedOptions) {
+                if (a.name == option) localIdSet.add(a.localId);
+            }
+        });
+        await window.Store.SendVote.sendVote(msg, localIdSet);
     };
 
     window.WWebJS.cropAndResizeImage = async (media, options = {}) => {

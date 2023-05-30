@@ -7,10 +7,6 @@ exports.DefaultOptions = {
         headless: true,
         defaultViewport: null
     },
-    webVersion: '2.2322.15',
-    webVersionCache: {
-        type: 'local',
-    },
     authTimeoutMs: 0,
     qrMaxRetries: 0,
     takeoverOnConflict: false,
@@ -62,7 +58,9 @@ exports.Events = {
     STATE_CHANGED: 'change_state',
     BATTERY_CHANGED: 'change_battery',
     INCOMING_CALL: 'call',
-    REMOTE_SESSION_SAVED: 'remote_session_saved'
+    REMOTE_SESSION_SAVED: 'remote_session_saved',
+    POLL_VOTE: 'poll_vote',
+    POLL_CREATION: 'poll_creation'
 };
 
 /**
@@ -106,6 +104,8 @@ exports.MessageTypes = {
     PROTOCOL: 'protocol',
     REACTION: 'reaction',
     TEMPLATE_BUTTON_REPLY: 'template_button_reply',
+    POLL_VOTE: 'poll_vote',
+    POLL_CREATION: 'poll_creation',
 };
 
 /**

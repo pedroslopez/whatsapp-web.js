@@ -365,10 +365,6 @@ declare namespace WAWebJS {
         puppeteer?: puppeteer.PuppeteerNodeLaunchOptions & puppeteer.ConnectOptions
 		/** Determines how to save and restore sessions. Will use LegacySessionAuth if options.session is set. Otherwise, NoAuth will be used. */
         authStrategy?: AuthStrategy,
-        /** The version of WhatsApp Web to use. Use options.webVersionCache to configure how the version is retrieved. */
-        webVersion?: string,
-        /**  Determines how to retrieve the WhatsApp Web version specified in options.webVersion. */
-        webVersionCache?: WebCacheOptions,
         /** How many times should the qrcode be refreshed before giving up
 		 * @default 0 (disabled) */
 		qrMaxRetries?: number,
@@ -395,24 +391,6 @@ declare namespace WAWebJS {
         /** Object with proxy autentication requirements @default: undefined */
         proxyAuthentication?: {username: string, password: string} | undefined
     }
-
-    export interface LocalWebCacheOptions {
-        type: 'local',
-        path?: string,
-        strict?: boolean
-    }
-
-    export interface RemoteWebCacheOptions {
-        type: 'remote',
-        remotePath: string,
-        strict?: boolean
-    }
-
-    export interface NoWebCacheOptions {
-        type: 'none'
-    }
-
-    export type WebCacheOptions = NoWebCacheOptions | LocalWebCacheOptions | RemoteWebCacheOptions;
 
     /**
      * Base class which all authentication strategies extend
@@ -1119,6 +1097,8 @@ declare namespace WAWebJS {
         mute: (unmuteDate?: Date) => Promise<void>,
         /** Send a message to this chat */
         sendMessage: (content: MessageContent, options?: MessageSendOptions) => Promise<Message>,
+		/** send polling message */
+        sendPoll(chatId: string, name: string, choices: Array, options: MessageSendOptions): Promise<Message>
         /** Set the message as seen */
         sendSeen: () => Promise<void>,
         /** Simulate recording audio in chat. This will last for 25 seconds */

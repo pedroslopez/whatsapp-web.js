@@ -19,4 +19,5 @@ module.exports = {
     List: require('./List'),
     Payment: require('./Payment'),
     Reaction: require('./Reaction'),
+    PollVote: require('./PollVote'),
 };

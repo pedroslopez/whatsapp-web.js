@@ -7,6 +7,7 @@ const Order = require('./Order');
 const Payment = require('./Payment');
 const Reaction = require('./Reaction');
 const {MessageTypes} = require('../util/Constants');
+const PollVote = require('./PollVote');
 
 /**
  * Represents a Message on WhatsApp
@@ -293,6 +294,34 @@ class Message extends Base {
      */
     getContact() {
         return this.client.getContactById(this.author || this.from);
+    }
+	
+	/**
+     * Refresh the current poll votes
+     * @returns {Promise<void>}
+     */
+    async refreshPollVotes() {
+        if (this.type !== MessageTypes.POLL_CREATION) throw 'Invalid usage! Can only be used with a pollCreation message';
+        const pollVotes = await this.client.pupPage.evaluate((parentMsgId) => {
+            return window.Store.PollVote.getForParent([parentMsgId]).map(a => a.serialize())[0];
+        }, this.id._serialized);
+        this.pollVotes = pollVotes.map((pollVote) => {
+            return new PollVote(this.client, {...pollVote, pollCreationMessage: this});
+        });
+        return;
+    }
+	
+	/**
+     * Vote to the poll.
+     * @param {Array<string>} selectedOptions Array of options selected.
+     * @returns {Promise<void>}
+     */
+    async vote(selectedOptions) {
+        if (this.type !== MessageTypes.POLL_CREATION) throw 'Invalid usage! Can only be used with a pollCreation message';
+        
+        return await this.client.pupPage.evaluate(({ creationMsgId, selectedOptions }) => {
+            window.WWebJS.votePoll(creationMsgId, selectedOptions);
+        }, { creationMsgId: this.id._serialized, selectedOptions });
     }
 
     /**

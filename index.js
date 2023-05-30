@@ -8,6 +8,7 @@ module.exports = {
     version: require('./package.json').version,
 
     // Structures
+    PollVote: require('./src/structures/PollVote'),
     Chat: require('./src/structures/Chat'),
     PrivateChat: require('./src/structures/PrivateChat'),
     GroupChat: require('./src/structures/GroupChat'),
