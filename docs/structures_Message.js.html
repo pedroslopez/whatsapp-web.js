@@ -2,9 +2,9 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.6.7">
+  <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.19.5 &raquo; Source: structures/Message.js</title>
+  <title>whatsapp-web.js 1.21.0 &raquo; Source: structures/Message.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>19.<wbr>5</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>21.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -36,7 +36,8 @@ const MessageMedia &#x3D; require(&#x27;./MessageMedia&#x27;);
 const Location &#x3D; require(&#x27;./Location&#x27;);
 const Order &#x3D; require(&#x27;./Order&#x27;);
 const Payment &#x3D; require(&#x27;./Payment&#x27;);
-const { MessageTypes } &#x3D; require(&#x27;../util/Constants&#x27;);
+const Reaction &#x3D; require(&#x27;./Reaction&#x27;);
+const {MessageTypes} &#x3D; require(&#x27;../util/Constants&#x27;);
 
 /**
  * Represents a Message on WhatsApp
@@ -119,8 +120,7 @@ class Message extends Base {
          * String that represents from which device type the message was sent
          * @type {string}
          */
-        this.deviceType &#x3D; data.id.id.length &gt; 21 ? &#x27;android&#x27; : data.id.id.substring(0, 2) &#x3D;&#x3D; &#x27;3A&#x27; ? &#x27;ios&#x27; : &#x27;web&#x27;;
-
+        this.deviceType &#x3D; typeof data.id.id &#x3D;&#x3D;&#x3D; &#x27;string&#x27; &amp;amp;&amp;amp; data.id.id.length &gt; 21 ? &#x27;android&#x27; : typeof data.id.id &#x3D;&#x3D;&#x3D; &#x27;string&#x27; &amp;amp;&amp;amp; data.id.id.substring(0, 2) &#x3D;&#x3D;&#x3D; &#x27;3A&#x27; ? &#x27;ios&#x27; : &#x27;web&#x27;;
         /**
          * Indicates if the message was forwarded
          * @type {boolean}
@@ -139,7 +139,7 @@ class Message extends Base {
          * Indicates if the message is a status update
          * @type {boolean}
          */
-        this.isStatus &#x3D; data.isStatusV3;
+        this.isStatus &#x3D; data.isStatusV3 || data.id.remote &#x3D;&#x3D;&#x3D; &#x27;status@broadcast&#x27;;
 
         /**
          * Indicates if the message was starred
@@ -164,6 +164,12 @@ class Message extends Base {
          * @type {boolean}
          */
         this.hasQuotedMsg &#x3D; data.quotedMsg ? true : false;
+
+        /**
+         * Indicates whether there are reactions to the message
+         * @type {boolean}
+         */
+        this.hasReaction &#x3D; data.hasReaction ? true : false;
 
         /**
          * Indicates the duration of the message in seconds
@@ -467,15 +473,16 @@ class Message extends Base {
      * @param {?boolean} everyone If true and the message is sent by the current user or the user is an admin, will delete it for everyone in the chat.
      */
     async delete(everyone) {
-        await this.client.pupPage.evaluate((msgId, everyone) &#x3D;&gt; {
+        await this.client.pupPage.evaluate(async (msgId, everyone) &#x3D;&gt; {
             let msg &#x3D; window.Store.Msg.get(msgId);
-
+            let chat &#x3D; await window.Store.Chat.find(msg.id.remote);
+            
             const canRevoke &#x3D; window.Store.MsgActionChecks.canSenderRevokeMsg(msg) || window.Store.MsgActionChecks.canAdminRevokeMsg(msg);
             if (everyone &amp;amp;&amp;amp; canRevoke) {
-                return window.Store.Cmd.sendRevokeMsgs(msg.chat, [msg], { type: msg.id.fromMe ? &#x27;Sender&#x27; : &#x27;Admin&#x27; });
+                return window.Store.Cmd.sendRevokeMsgs(chat, [msg], { clearMedia: true, type: msg.id.fromMe ? &#x27;Sender&#x27; : &#x27;Admin&#x27; });
             }
 
-            return window.Store.Cmd.sendDeleteMsgs(msg.chat, [msg], true);
+            return window.Store.Cmd.sendDeleteMsgs(chat, [msg], true);
         }, this.id._serialized, everyone);
     }
 
@@ -483,11 +490,12 @@ class Message extends Base {
      * Stars this message
      */
     async star() {
-        await this.client.pupPage.evaluate((msgId) &#x3D;&gt; {
+        await this.client.pupPage.evaluate(async (msgId) &#x3D;&gt; {
             let msg &#x3D; window.Store.Msg.get(msgId);
-
+            
             if (window.Store.MsgActionChecks.canStarMsg(msg)) {
-                return window.Store.Cmd.sendStarMsgs(msg.chat, [msg], false);
+                let chat &#x3D; await window.Store.Chat.find(msg.id.remote);
+                return window.Store.Cmd.sendStarMsgs(chat, [msg], false);
             }
         }, this.id._serialized);
     }
@@ -496,11 +504,12 @@ class Message extends Base {
      * Unstars this message
      */
     async unstar() {
-        await this.client.pupPage.evaluate((msgId) &#x3D;&gt; {
+        await this.client.pupPage.evaluate(async (msgId) &#x3D;&gt; {
             let msg &#x3D; window.Store.Msg.get(msgId);
 
             if (window.Store.MsgActionChecks.canStarMsg(msg)) {
-                return window.Store.Cmd.sendUnstarMsgs(msg.chat, [msg], false);
+                let chat &#x3D; await window.Store.Chat.find(msg.id.remote);
+                return window.Store.Cmd.sendUnstarMsgs(chat, [msg], false);
             }
         }, this.id._serialized);
     }
@@ -560,6 +569,44 @@ class Message extends Base {
         }
         return undefined;
     }
+
+
+    /**
+     * Reaction List
+     * @typedef {Object} ReactionList
+     * @property {string} id Original emoji
+     * @property {string} aggregateEmoji aggregate emoji
+     * @property {boolean} hasReactionByMe Flag who sent the reaction
+     * @property {Array&amp;lt;Reaction&gt;} senders Reaction senders, to this message
+     */
+
+    /**
+     * Gets the reactions associated with the given message
+     * @return {Promise&amp;lt;ReactionList[]&gt;}
+     */
+    async getReactions() {
+        if (!this.hasReaction) {
+            return undefined;
+        }
+
+        const reactions &#x3D; await this.client.pupPage.evaluate(async (msgId) &#x3D;&gt; {
+            const msgReactions &#x3D; await window.Store.Reactions.find(msgId);
+            if (!msgReactions || !msgReactions.reactions.length) return null;
+            return msgReactions.reactions.serialize();
+        }, this.id._serialized);
+
+        if (!reactions) {
+            return undefined;
+        }
+
+        return reactions.map(reaction &#x3D;&gt; {
+            reaction.senders &#x3D; reaction.senders.map(sender &#x3D;&gt; {
+                sender.timestamp &#x3D; Math.round(sender.timestamp / 1000);
+                return new Reaction(this.client, sender);
+            });
+            return reaction;
+        });
+    }
 }
 
 module.exports &#x3D; Message;
@@ -573,7 +620,7 @@ module.exports &#x3D; Message;
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on March 18, 2023.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on May 29, 2023.
       </p>
     </div>
   </footer>
