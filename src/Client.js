@@ -757,11 +757,6 @@ class Client extends EventEmitter {
 
         const sendSeen = typeof options.sendSeen === 'undefined' ? true : options.sendSeen;
 
-        if (content.url) {
-            let { url, ...contentOptions } = content;
-            content = fs.existsSync(url) ? await MessageMedia.fromFilePath(url) : await MessageMedia.fromUrl(url, contentOptions);
-        }
-
         if (content instanceof MessageMedia) {
             internalOptions.attachment = content;
             content = '';
