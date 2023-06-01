@@ -10,6 +10,7 @@ const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constan
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
+const WebCacheFactory = require('./webCache/WebCacheFactory');
 const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List, Reaction, Chat } = require('./structures');
 const LegacySessionAuth = require('./authStrategies/LegacySessionAuth');
 const NoAuth = require('./authStrategies/NoAuth');
@@ -19,6 +20,8 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @extends {EventEmitter}
  * @param {object} options - Client options
  * @param {AuthStrategy} options.authStrategy - Determines how to save and restore sessions. Will use LegacySessionAuth if options.session is set. Otherwise, NoAuth will be used.
+ * @param {string} options.webVersion - The version of WhatsApp Web to use. Use options.webVersionCache to configure how the version is retrieved.
+ * @param {object} options.webVersionCache - Determines how to retrieve the WhatsApp Web version. Defaults to a local cache (LocalWebCache) that falls back to latest if the requested version is not found.
  * @param {number} options.authTimeoutMs - Timeout for authentication selector in puppeteer
  * @param {object} options.puppeteer - Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/
  * @param {number} options.qrMaxRetries - How many times should the qrcode be refreshed before giving up
@@ -115,6 +118,7 @@ class Client extends EventEmitter {
         this.pupPage = page;
 
         await this.authStrategy.afterBrowserInitialized();
+        await this.initWebVersionCache();
 
         await page.goto(WhatsWebURL, {
             waitUntil: 'load',
@@ -638,6 +642,35 @@ class Client extends EventEmitter {
         });
     }
 
+    async initWebVersionCache() {
+        const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
+        const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
+
+        const requestedVersion = this.options.webVersion;
+        const versionContent = await webCache.resolve(requestedVersion);
+
+        if(versionContent) {
+            await this.pupPage.setRequestInterception(true);
+            this.pupPage.on('request', async (req) => {
+                if(req.url() === WhatsWebURL) {
+                    req.respond({
+                        status: 200,
+                        contentType: 'text/html',
+                        body: versionContent
+                    }); 
+                } else {
+                    req.continue();
+                }
+            });
+        } else {
+            this.pupPage.on('response', async (res) => {
+                if(res.ok() && res.url() === WhatsWebURL) {
+                    await webCache.persist(await res.text());
+                }
+            });
+        }
+    }
+
     /**
      * Closes the client
      */
@@ -709,6 +742,10 @@ class Client extends EventEmitter {
      * @returns {Promise<Message>} Message that was just sent
      */
     async sendMessage(chatId, content, options = {}) {
+        if (options.mentions && options.mentions.some(possiblyContact => possiblyContact instanceof Contact)) {
+            console.warn('Mentions with an array of Contact are now deprecated. See more at https://github.com/pedroslopez/whatsapp-web.js/pull/2166.');
+            options.mentions = options.mentions.map(a => a.id._serialized);
+        }
         let internalOptions = {
             linkPreview: options.linkPreview === false ? undefined : true,
             sendAudioAsVoice: options.sendAudioAsVoice,
@@ -718,7 +755,7 @@ class Client extends EventEmitter {
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
             parseVCards: options.parseVCards === false ? false : true,
-            mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact => contact.id._serialized) : [],
+            mentionedJidList: Array.isArray(options.mentions) ? options.mentions : [],
             extraOptions: options.extra
         };
 
