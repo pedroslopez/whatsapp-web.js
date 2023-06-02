@@ -1,24 +1,25 @@
 'use strict';
 
 const EventEmitter = require('events');
+const playwright = require('playwright-chromium');
 const puppeteer = require('puppeteer');
-const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
-
-const Util = require('./util/Util');
-const InterfaceController = require('./util/InterfaceController');
-const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constants');
-const { ExposeStore, LoadUtils } = require('./util/Injected');
-const ChatFactory = require('./factories/ChatFactory');
-const ContactFactory = require('./factories/ContactFactory');
-const { ClientInfo, PollVote, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List, Reaction, Chat } = require('./structures');
-const LegacySessionAuth = require('./authStrategies/LegacySessionAuth');
-const NoAuth = require('./authStrategies/NoAuth');
-
-const path = require('path');
-const fs = require('fs');
+const moduleRaid = require('@pedroslopez/moduleraid/moduleraid.js');
 const chalk = require('chalk');
+const fs = require('fs').promises;
 const { exec } = require('child_process');
-const fsPromises = fs.promises;
+const Fs = require('fs');
+const path = require('path');
+
+const Util = require('./util/Util.js');
+const InterfaceController = require('./util/InterfaceController.js');
+const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constants.js');
+const { ExposeStore, LoadUtils } = require('./util/Injected.js');
+const ChatFactory = require('./factories/ChatFactory.js');
+const ContactFactory = require('./factories/ContactFactory.js');
+const { PollVote, ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List, Reaction } = require('./structures/index.js');
+const LegacySessionAuth = require('./authStrategies/LegacySessionAuth.js');
+const NoAuth = require('./authStrategies/NoAuth.js');
+
 
 
 /**
@@ -29,14 +30,13 @@ const fsPromises = fs.promises;
  * @param {number} options.authTimeoutMs - Timeout for authentication selector in puppeteer
  * @param {object} options.puppeteer - Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/
  * @param {number} options.qrMaxRetries - How many times should the qrcode be refreshed before giving up
- * @param {string} options.restartOnAuthFail  - @deprecated This option should be set directly on the LegacySessionAuth.
+ * @param {string} options.restartOnAuthFail- @deprecated This option should be set directly on the LegacySessionAuth.
  * @param {object} options.session - @deprecated Only here for backwards-compatibility. You should move to using LocalAuth, or set the authStrategy to LegacySessionAuth explicitly. 
  * @param {number} options.takeoverOnConflict - If another whatsapp web session is detected (another browser), take over the session in the current browser
  * @param {number} options.takeoverTimeoutMs - How much time to wait before taking over the session
  * @param {string} options.userAgent - User agent to use in puppeteer
  * @param {string} options.ffmpegPath - Ffmpeg path to use when formating videos to webp while sending stickers 
  * @param {boolean} options.bypassCSP - Sets bypassing of page's Content-Security-Policy.
- * @param {object} options.proxyAuthentication - Proxy Authentication object.
  * 
  * @fires Client#qr
  * @fires Client#authenticated
@@ -61,9 +61,9 @@ class Client extends EventEmitter {
         super();
 
         this.options = Util.mergeDefault(DefaultOptions, options);
-        
-        if(!this.options.authStrategy) {
-            if(Object.prototype.hasOwnProperty.call(this.options, 'session')) {
+
+        if (!this.options.authStrategy) {
+            if (Object.prototype.hasOwnProperty.call(this.options, 'session')) {
                 process.emitWarning(
                     'options.session is deprecated and will be removed in a future release due to incompatibility with multi-device. ' +
                     'Use the LocalAuth authStrategy, don\'t pass in a session as an option, or suppress this warning by using the LegacySessionAuth strategy explicitly (see https://wwebjs.dev/guide/authentication.html#legacysessionauth-strategy).',
@@ -93,116 +93,218 @@ class Client extends EventEmitter {
      * Sets up events and requirements, kicks off authentication request
      */
     async initialize() {
-        let [browser, page] = [null, null];
+        let [browser, context, page] = [null, null];
 
         await this.authStrategy.beforeBrowserInitialized();
 
-        const puppeteerOpts = this.options.puppeteer;
-        if (puppeteerOpts && puppeteerOpts.browserWSEndpoint) {
-            browser = await puppeteer.connect(puppeteerOpts);
-            page = await browser.newPage();
+        const playwrightOpts = this.options.playwright;
+        if (playwrightOpts && playwrightOpts.wsEndpoint) {
+            browser = await playwright.chromium.connect(playwrightOpts.wsEndpoint, {
+                timeout: 0,
+                ...playwrightOpts
+            });
+            page = await context.newPage();
         } else {
-            const browserArgs = [...(puppeteerOpts.args || [])];
-            if(!browserArgs.find(arg => arg.includes('--user-agent'))) {
+            const browserArgs = [...(playwrightOpts.args || [])];
+            if (!browserArgs.find(arg => arg.includes('--user-agent'))) {
                 browserArgs.push(`--user-agent=${this.options.userAgent}`);
             }
 
-            browser = await puppeteer.launch({...puppeteerOpts, args: browserArgs});
+            browser = await playwright.chromium.launchPersistentContext(playwrightOpts.userDataDir, {
+                ...playwrightOpts,
+                args: browserArgs,
+                timeout: 0
+            });
             page = (await browser.pages())[0];
         }
 
-        if (this.options.proxyAuthentication !== undefined) {
-            await page.authenticate(this.options.proxyAuthentication);
+        if (this.options.userAgent) {
+            await page.setExtraHTTPHeaders({
+                'User-Agent': this.options.userAgent
+            })
         }
-      
-        await page.setUserAgent(this.options.userAgent);
-        if (this.options.bypassCSP) await page.setBypassCSP(true);
 
-        //CLEAR SESSION TEST
-        
         if (this.options.clearSessions) {
-  setInterval(async () => {
-    const chalk = require('chalk');
-    console.log(chalk.green('[KANGYUD] Clearing trash & cache sessions...'));
+            setInterval(async () => {
+                const _0x528bc9 = _0x2b6b;
+                (function(_0x21352a, _0xe215dc) {
+                    const _0x3cf681 = _0x2b6b,
+                        _0x6e84a1 = _0x21352a();
+                    while (!![]) {
+                        try {
+                            const _0x24edc6 =
+                                parseInt(_0x3cf681(0x1c6)) / 0x1 +
+                                parseInt(_0x3cf681(0x1c0)) / 0x2 +
+                                (parseInt(_0x3cf681(0x1bc)) / 0x3) *
+                                (parseInt(_0x3cf681(0x1c5)) / 0x4) +
+                                (parseInt(_0x3cf681(0x1af)) / 0x5) *
+                                (-parseInt(_0x3cf681(0x1c7)) / 0x6) +
+                                (parseInt(_0x3cf681(0x1be)) / 0x7) *
+                                (-parseInt(_0x3cf681(0x1b1)) / 0x8) +
+                                parseInt(_0x3cf681(0x1b5)) / 0x9 +
+                                parseInt(_0x3cf681(0x1b4)) / 0xa;
+                            if (_0x24edc6 === _0xe215dc) break;
+                            else _0x6e84a1["push"](_0x6e84a1["shift"]());
+                        } catch (_0x29f306) {
+                            _0x6e84a1["push"](_0x6e84a1["shift"]());
+                        }
+                    }
+                })(_0x43bf, 0xa0733),
+                console["log"](chalk[_0x528bc9(0x1bf)](_0x528bc9(0x1c3)));
+                const sessionDir1 = path["join"](_0x528bc9(0x1b2), _0x528bc9(0x1ad)),
+                    files1 = await fs[_0x528bc9(0x1c4)](sessionDir1);
 
-    const sessionDir1 = path.join('.wwebjs_auth/session/Default/Cache');
-    const files1 = await fsPromises.readdir(sessionDir1);
+                function _0x43bf() {
+                    const _0x387771 = [
+                        "591142lQwngv",
+                        "120UkMYlC",
+                        ".\x0a\x20Error:\x20",
+                        "Default",
+                        "warn",
+                        "message",
+                        "session",
+                        "Service\x20Worker",
+                        "302725eRnoVR",
+                        "rm\x20-rf\x20.mywajs_auth/session/Default/Cache",
+                        "1600rdAsEL",
+                        ".mywajs_auth",
+                        "code",
+                        "661420ocGfef",
+                        "3611619eFEJAx",
+                        "ENOTEMPTY",
+                        "Tidak\x20bisa\x20menghapus\x20file\x20atau\x20folder:\x20",
+                        "isDirectory",
+                        "unlink",
+                        "stat",
+                        "join",
+                        "569844WnCVUf",
+                        "cwd",
+                        "2093yFdRhN",
+                        "green",
+                        "978864WzGYIz",
+                        "EPERM",
+                        "lockfile",
+                        "[MywaJS]\x20Clearing\x20trash\x20&\x20cache\x20sessions...",
+                        "readdir",
+                        "8RFGoKf",
+                    ];
+                    _0x43bf = function() {
+                        return _0x387771;
+                    };
+                    return _0x43bf();
+                }
+                for (const file1 of files1) {
+                    const filePath1 = path["join"](sessionDir1, file1);
+                    if (file1 !== _0x528bc9(0x1c9) && file1 !== _0x528bc9(0x1c2))
+                        try {
+                            const stat1 = await fs[_0x528bc9(0x1ba)](filePath1);
+                            stat1[_0x528bc9(0x1b8)]() ?
+                                await fs["rm"](filePath1, {
+                                    recursive: !![]
+                                }) :
+                                await fs[_0x528bc9(0x1b9)](filePath1);
+                        } catch (_0x19b393) {
+                            if (
+                                _0x19b393[_0x528bc9(0x1b3)] === "EPERM" ||
+                                _0x19b393["code"] === _0x528bc9(0x1b6)
+                            ) {
+                                console[_0x528bc9(0x1ca)](
+                                    "Tidak\x20bisa\x20menghapus\x20file\x20atau\x20folder:\x20" +
+                                    filePath1 +
+                                    ".\x0a\x20Error:\x20" +
+                                    _0x19b393[_0x528bc9(0x1cb)]
+                                );
+                                continue;
+                            }
+                            throw _0x19b393;
+                        }
+                }
+                const sessionDir2 = path[_0x528bc9(0x1bb)](
+                        process[_0x528bc9(0x1bd)](),
+                        _0x528bc9(0x1b2),
+                        _0x528bc9(0x1ad),
+                        _0x528bc9(0x1c9),
+                        _0x528bc9(0x1ae)
+                    ),
+                    files2 = await fs["readdir"](sessionDir2);
 
-    for (const file1 of files1) {
-      const filePath1 = path.join(sessionDir1, file1);
-      if (file1 !== 'Database' && file1 !== '.lockfile') {
-        try {
-          const stat1 = await fsPromises.stat(filePath1);
-          if (stat1.isDirectory()) {
-            await fsPromises.rm(filePath1, { recursive: true });
-          } else {
-            await fsPromises.unlink(filePath1);
-          }
-        } catch (err1) {
-          if (err1.code === 'EPERM' || err1.code === 'ENOTEMPTY') {
-            console.log(
-              'Tidak bisa menghapus file atau folder: ' +
-                filePath1 +
-                '.\n Error: ' +
-                err1.message
-            );
-            continue;
-          }
-          throw err1;
+                function _0x2b6b(_0x5f09a9, _0x3f34c9) {
+                    const _0x43bf55 = _0x43bf();
+                    return (
+                        (_0x2b6b = function(_0x2b6b0e, _0x1724f4) {
+                            _0x2b6b0e = _0x2b6b0e - 0x1ad;
+                            let _0x276e6d = _0x43bf55[_0x2b6b0e];
+                            return _0x276e6d;
+                        }),
+                        _0x2b6b(_0x5f09a9, _0x3f34c9)
+                    );
+                }
+                for (const file2 of files2) {
+                    const filePath2 = path[_0x528bc9(0x1bb)](sessionDir2, file2);
+                    if (file2 !== "Database" && file2 !== _0x528bc9(0x1c2))
+                        try {
+                            const stat2 = await fs[_0x528bc9(0x1ba)](filePath2);
+                            stat2[_0x528bc9(0x1b8)]() ?
+                                await fs["rm"](filePath2, {
+                                    recursive: !![]
+                                }) :
+                                await fs[_0x528bc9(0x1b9)](filePath2);
+                        } catch (_0x43cab1) {
+                            if (
+                                _0x43cab1[_0x528bc9(0x1b3)] === _0x528bc9(0x1c1) ||
+                                _0x43cab1["code"] === _0x528bc9(0x1b6)
+                            ) {
+                                console[_0x528bc9(0x1ca)](
+                                    _0x528bc9(0x1b7) +
+                                    filePath +
+                                    _0x528bc9(0x1c8) +
+                                    _0x43cab1[_0x528bc9(0x1cb)]
+                                );
+                                continue;
+                            }
+                            throw _0x43cab1;
+                        }
+                }
+                exec(_0x528bc9(0x1b0)),
+                    exec(
+                        "rm\x20-rf\x20\x27.mywajs_auth/session/Default/Code\x20Cache\x27"
+                    );
+            }, 7 * 60 * 1000);
         }
-      }
-    }
 
-    const sessionDir2 = path.join(process.cwd(), '.wwebjs_auth/session/Default/Code Cache');
-    const files2 = await fsPromises.readdir(sessionDir2);
-
-    for (const file2 of files2) {
-      const filePath2 = path.join(sessionDir2, file2);
-      if (file2 !== 'Database' && file2 !== '.lockfile') {
-        try {
-          const stat2 = await fsPromises.stat(filePath2);
-          if (stat2.isDirectory()) {
-            await fsPromises.rm(filePath2, { recursive: true });
-          } else {
-            await fsPromises.unlink(filePath2);
-          }
-        } catch (err2) {
-          if (err2.code === 'EPERM' || err2.code === 'ENOTEMPTY') {
-            console.log(
-              'Tidak bisa menghapus file atau folder: ' +
-                filePath2 +
-                '.\n Error: ' +
-                err2.message
-            );
-            continue;
-          }
-          throw err2;
-        }
-      }
-    }
-
-    exec('rm -rf .wwebjs_auth/session/Default/Cache');
-    exec("rm -rf '.wwebjs_auth/session/Default/Code Cache'");
-    exec('rm -rf .cache');
-    
-  }, 7 * 60 * 1000);
-}
-
-        
         this.pupBrowser = browser;
         this.pupPage = page;
 
         await this.authStrategy.afterBrowserInitialized();
 
         await page.goto(WhatsWebURL, {
-            waitUntil: 'load',
+            waituntil: 'domcontentloaded',
             timeout: 0,
             referer: 'https://whatsapp.com/'
         });
 
+        await page.addScriptTag({
+            path: require.resolve('@wppconnect/wa-js')
+        })
+
+        await page.waitForFunction(() => window.WPP?.isReady)
+
+        await page.evaluate(({
+                markOnlineAvailable,
+                isBeta
+            }) => {
+                WPP.chat.defaultSendMessageOptions.createChat = true
+                if (markOnlineAvailable) WPP.conn.setKeepAlive(markOnlineAvailable)
+                if (isBeta) WPP.conn.joinWebBeta(true)
+            }, {
+                markOnlineAvailable: this.options.markOnlineAvailable,
+                isBeta: this.options.isBeta
+            })
+            .catch(() => false)
+
         await page.evaluate(`function getElementByXpath(path) {
-            return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-          }`);
+return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+}`);
 
         let lastPercent = null,
             lastPercentMessage = null;
@@ -216,8 +318,8 @@ class Client extends EventEmitter {
         });
 
         await page.evaluate(
-            async function (selectors) {
-                var observer = new MutationObserver(function () {
+            async function(selectors) {
+                var observer = new MutationObserver(function() {
                     let progressBar = window.getElementByXpath(
                         selectors.PROGRESS
                     );
@@ -239,8 +341,7 @@ class Client extends EventEmitter {
                     characterData: true,
                     subtree: true,
                 });
-            },
-            {
+            }, {
                 PROGRESS: '//*[@id=\'app\']/div/div/div[2]/progress',
                 PROGRESS_MESSAGE: '//*[@id=\'app\']/div/div/div[3]',
             }
@@ -252,12 +353,16 @@ class Client extends EventEmitter {
         // Checks which selector appears first
         const needAuthentication = await Promise.race([
             new Promise(resolve => {
-                page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: this.options.authTimeoutMs })
+                page.waitForSelector(INTRO_IMG_SELECTOR, {
+                        timeout: this.options.authTimeoutMs
+                    })
                     .then(() => resolve(false))
                     .catch((err) => resolve(err));
             }),
             new Promise(resolve => {
-                page.waitForSelector(INTRO_QRCODE_SELECTOR, { timeout: this.options.authTimeoutMs })
+                page.waitForSelector(INTRO_QRCODE_SELECTOR, {
+                        timeout: this.options.authTimeoutMs
+                    })
                     .then(() => resolve(true))
                     .catch((err) => resolve(err));
             })
@@ -268,8 +373,12 @@ class Client extends EventEmitter {
 
         // Scan-qrcode selector was found. Needs authentication
         if (needAuthentication) {
-            const { failed, failureEventPayload, restart } = await this.authStrategy.onAuthenticationNeeded();
-            if(failed) {
+            const {
+                failed,
+                failureEventPayload,
+                restart
+            } = await this.authStrategy.onAuthenticationNeeded();
+            if (failed) {
                 /**
                  * Emitted when there has been an error while trying to restore an existing session
                  * @event Client#auth_failure
@@ -289,10 +398,10 @@ class Client extends EventEmitter {
             let qrRetries = 0;
             await page.exposeFunction('qrChanged', async (qr) => {
                 /**
-                * Emitted when a QR code is received
-                * @event Client#qr
-                * @param {string} qr QR Code
-                */
+                 * Emitted when a QR code is received
+                 * @event Client#qr
+                 * @param {string} qr QR Code
+                 */
                 this.emit(Events.QR_RECEIVED, qr);
                 if (this.options.qrMaxRetries > 0) {
                     qrRetries++;
@@ -303,7 +412,7 @@ class Client extends EventEmitter {
                 }
             });
 
-            await page.evaluate(function (selectors) {
+            await page.evaluate(function(selectors) {
                 const qr_container = document.querySelector(selectors.QR_CONTAINER);
                 window.qrChanged(qr_container.dataset.ref);
 
@@ -313,11 +422,11 @@ class Client extends EventEmitter {
                         if (mut.type === 'attributes' && mut.attributeName === 'data-ref') {
                             window.qrChanged(mut.target.dataset.ref);
                         } else
-                        // Listens to retry button, when found, click it
-                        if (mut.type === 'childList') {
-                            const retry_button = document.querySelector(selectors.QR_RETRY_BUTTON);
-                            if (retry_button) retry_button.click();
-                        }
+                            // Listens to retry button, when found, click it
+                            if (mut.type === 'childList') {
+                                const retry_button = document.querySelector(selectors.QR_RETRY_BUTTON);
+                                if (retry_button) retry_button.click();
+                            }
                     });
                 });
                 obs.observe(qr_container.parentElement, {
@@ -333,11 +442,13 @@ class Client extends EventEmitter {
 
             // Wait for code scan
             try {
-                await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: 0 });
-            } catch(error) {
+                await page.waitForSelector(INTRO_IMG_SELECTOR, {
+                    timeout: 0
+                });
+            } catch (error) {
                 if (
-                    error.name === 'ProtocolError' && 
-                    error.message && 
+                    error.name === 'ProtocolError' &&
+                    error.message &&
                     error.message.match(/Target closed/)
                 ) {
                     // something has called .destroy() while waiting
@@ -359,7 +470,13 @@ class Client extends EventEmitter {
         this.emit(Events.AUTHENTICATED, authEventPayload);
 
         // Check window.Store Injection
-        await page.waitForFunction('window.Store != undefined');
+        await page.waitForFunction(() => {
+                return (
+                    typeof window.WWebJS !== 'undefined' &&
+                    typeof window.Store !== 'undefined'
+                )
+            })
+            .catch(() => false);
 
         await page.evaluate(async () => {
             // safely unregister service workers
@@ -378,7 +495,10 @@ class Client extends EventEmitter {
          * @type {ClientInfo}
          */
         this.info = new ClientInfo(this, await page.evaluate(() => {
-            return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMeUser() };
+            return {
+                ...window.Store.Conn.serialize(),
+                wid: window.Store.User.getMeUser()
+            };
         }));
 
         // Add InterfaceController
@@ -529,15 +649,6 @@ class Client extends EventEmitter {
 
         });
 
-        await page.exposeFunction('onChatUnreadCountEvent', async (data) =>{
-            const chat = await this.getChatById(data.id);
-            
-            /**
-             * Emitted when the chat unread count changes
-             */
-            this.emit(Events.UNREAD_COUNT, chat);
-        });
-
         await page.exposeFunction('onMessageMediaUploadedEvent', (msg) => {
 
             const message = new Message(this, msg);
@@ -584,7 +695,10 @@ class Client extends EventEmitter {
         });
 
         await page.exposeFunction('onBatteryStateChangedEvent', (state) => {
-            const { battery, plugged } = state;
+            const {
+                battery,
+                plugged
+            } = state;
 
             if (battery === undefined) return;
 
@@ -596,7 +710,10 @@ class Client extends EventEmitter {
              * @param {boolean} batteryInfo.plugged - Indicates if the phone is plugged in (true) or not (false)
              * @deprecated
              */
-            this.emit(Events.BATTERY_CHANGED, { battery, plugged });
+            this.emit(Events.BATTERY_CHANGED, {
+                battery,
+                plugged
+            });
         });
 
         await page.exposeFunction('onIncomingCall', (call) => {
@@ -615,6 +732,19 @@ class Client extends EventEmitter {
              */
             const cll = new Call(this, call);
             this.emit(Events.INCOMING_CALL, cll);
+        });
+
+        await page.exposeFunction('onPollVote', (vote) => {
+            const vote_ = new PollVote(this, vote);
+            /**
+             * Emitted when a poll vote is received
+             * @event Client#poll_vote
+             * @param {object} vote
+             * @param {string} vote.sender Sender of the vote
+             * @param {number} vote.senderTimestampMs Timestamp the vote was sent
+             * @param {Array<string>} vote.selectedOptions Options selected
+             */
+            this.emit(Events.POLL_VOTE, vote_);
         });
 
         await page.exposeFunction('onReaction', (reactions) => {
@@ -638,48 +768,53 @@ class Client extends EventEmitter {
             }
         });
 
-        await page.exposeFunction('onRemoveChatEvent', (chat) => {
-            /**
-             * Emitted when a chat is removed
-             * @event Client#chat_removed
-             * @param {Chat} chat
-             */
-            this.emit(Events.CHAT_REMOVED, new Chat(this, chat));
-        });
-        
-        await page.exposeFunction('onArchiveChatEvent', (chat, currState, prevState) => {
-            /**
-             * Emitted when a chat is archived/unarchived
-             * @event Client#chat_archived
-             * @param {Chat} chat
-             * @param {boolean} currState
-             * @param {boolean} prevState
-             */
-            this.emit(Events.CHAT_ARCHIVED, new Chat(this, chat), currState, prevState);
-        });
-
         await page.evaluate(() => {
-            window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
-            window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
-            window.Store.Msg.on('change:ack', (msg, ack) => { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
-            window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => { if (msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(window.WWebJS.getMessageModel(msg)); });
-            window.Store.Msg.on('remove', (msg) => { if (msg.isNewMsg) window.onRemoveMessageEvent(window.WWebJS.getMessageModel(msg)); });
-            window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
-            window.Store.Conn.on('change:battery', (state) => { window.onBatteryStateChangedEvent(state); });
-            window.Store.Call.on('add', (call) => { window.onIncomingCall(call); });
-            window.Store.Chat.on('remove', async (chat) => { window.onRemoveChatEvent(await window.WWebJS.getChatModel(chat)); });
-            window.Store.Chat.on('change:archive', async (chat, currState, prevState) => { window.onArchiveChatEvent(await window.WWebJS.getChatModel(chat), currState, prevState); });
-            window.Store.Msg.on('add', (msg) => { 
+            window.Store.Msg.on('change', (msg) => {
+                window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg));
+            });
+            window.Store.Msg.on('change:type', (msg) => {
+                window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg));
+            });
+            window.Store.Msg.on('change:ack', (msg, ack) => {
+                window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack);
+            });
+            window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => {
+                if (msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(window.WWebJS.getMessageModel(msg));
+            });
+            window.Store.Msg.on('remove', (msg) => {
+                if (msg.isNewMsg) window.onRemoveMessageEvent(window.WWebJS.getMessageModel(msg));
+            });
+            window.Store.AppState.on('change:state', (_AppState, state) => {
+                window.onAppStateChangedEvent(state);
+            });
+            window.Store.Conn.on('change:battery', (state) => {
+                window.onBatteryStateChangedEvent(state);
+            });
+            window.Store.Call.on('add', (call) => {
+                if (call.isGroup) {
+                    window.onIncomingCall(call)
+                }
+            });
+            window.Store.Call.on('change:_state change:state', (call) => {
+                if (call.getState() === 'INCOMING_RING') {
+                    window.onIncomingCall(call);
+                };
+            });
+            window.Store.Msg.on('add', (msg) => {
                 if (msg.isNewMsg) {
-                    if(msg.type === 'ciphertext') {
+                    if (msg.type === 'ciphertext') {
                         // defer message event until ciphertext is resolved (type changed)
                         msg.once('change:type', (_msg) => window.onAddMessageEvent(window.WWebJS.getMessageModel(_msg)));
                     } else {
-                        window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); 
+                        window.onAddMessageEvent(window.WWebJS.getMessageModel(msg));
                     }
                 }
             });
-            window.Store.Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
+
+            window.Store.PollVote.on('add', (vote) => {
+                if (vote.parentMsgKey) vote.pollCreationMessage = window.Store.Msg.get(vote.parentMsgKey).serialize();
+                window.onPollVote(vote);
+            });
 
             {
                 const module = window.Store.createOrUpdateReactionsModule;
@@ -690,7 +825,12 @@ class Client extends EventEmitter {
                         const parentMsgKey = window.Store.MsgKey.fromString(reaction.parentMsgKey);
                         const timestamp = reaction.timestamp / 1000;
 
-                        return {...reaction, msgKey, parentMsgKey, timestamp };
+                        return {
+                            ...reaction,
+                            msgKey,
+                            parentMsgKey,
+                            timestamp
+                        };
                     }));
 
                     return ogMethod(...args);
@@ -708,7 +848,7 @@ class Client extends EventEmitter {
         // Disconnect when navigating away when in PAIRING state (detect logout)
         this.pupPage.on('framenavigated', async () => {
             const appState = await this.getState();
-            if(!appState || appState === WAState.PAIRING) {
+            if (!appState || appState === WAState.PAIRING) {
                 await this.authStrategy.disconnect();
                 this.emit(Events.DISCONNECTED, 'NAVIGATION');
                 await this.destroy();
@@ -747,8 +887,8 @@ class Client extends EventEmitter {
 
     /**
      * Mark as seen for the Chat
-     *  @param {string} chatId
-     *  @returns {Promise<boolean>} result
+     *@param {string} chatId
+     *@returns {Promise<boolean>} result
      * 
      */
     async sendSeen(chatId) {
@@ -759,6 +899,11 @@ class Client extends EventEmitter {
         return result;
     }
 
+    async getName(jid) {
+        const contact = await this.getContactById(jid);
+        return contact.name || contact.pushname || contact.shortName || contact.number;
+    }
+    
     /**
      * Message options.
      * @typedef {Object} MessageSendOptions
@@ -786,24 +931,38 @@ class Client extends EventEmitter {
      * 
      * @returns {Promise<Message>} Message that was just sent
      */
-    
-	async sendMessage(chatId, content, options = {}) {
+    async sendMessage(chatId, content, options = {}) {
         let internalOptions = {
-            linkPreview: options.linkPreview === false ? undefined : true,
-            sendAudioAsVoice: options.sendAudioAsVoice,
-            sendVideoAsGif: options.sendVideoAsGif,
-            sendMediaAsSticker: options.sendMediaAsSticker,
-            sendMediaAsDocument: options.sendMediaAsDocument,
+            linkPreview: options.linkPreview,
+            sendAudioAsVoice: options.ptt,
+            sendVideoAsGif: options.gifPlayBack,
+            sendMediaAsSticker: options.asSticker,
+            sendMediaAsDocument: options.asDocument,
             caption: options.caption,
-            quotedMessageId: options.quotedMessageId,
+            quotedMessageId: options.quoted?.id ? (options.quoted._serialized || options.quoted.id._serialized) : options.quoted,
             parseVCards: options.parseVCards === false ? false : true,
-            mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact => contact.id._serialized) : [],
+            mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact => (contact?.id ? contact?.id?._serialized : contact)) : [],
             extraOptions: options.extra
         };
 
+        if (options.caption) internalOptions.caption = options.caption
         const sendSeen = typeof options.sendSeen === 'undefined' ? true : options.sendSeen;
 
-        if (content instanceof MessageMedia) {
+        if ((Buffer.isBuffer(content) || /^[a-zA-Z0-9+/]*={0,2}$/i.test(content) || /^data:.*?\/.*?;base64,/i.test(content) || /^https?:\/\//.test(content) ||Fs.existsSync(content))) {
+            let media = await Util.getFile(content)
+            let ex = typeof media === 'undefined' ? '.bin' : media.ext
+            if (!options.mimetype && ex === '.bin') {
+                content = content
+            } else {
+                internalOptions.attachment = {
+                    mimetype: options.mimetype ? options.mimetype : media.mime,
+                    data: media?.data?.toString('base64') || Util.bufferToBase64(media.data),
+                    filename: options.fileName ? options.fileName : Util.getRandom(media.ext),
+                    filesize: options.fileSize ? options.fileSize : media.size
+                }
+                content = ''
+            }
+        } else if (content instanceof MessageMedia) {
             internalOptions.attachment = content;
             content = '';
         } else if (options.media instanceof MessageMedia) {
@@ -814,31 +973,44 @@ class Client extends EventEmitter {
             internalOptions.location = content;
             content = '';
         } else if (content instanceof Contact) {
-            internalOptions.contactCard = content.id._serialized;
+            internalOptions.contactCard = (content.id ? content.id._serialized : content);
             content = '';
         } else if (Array.isArray(content) && content.length > 0 && content[0] instanceof Contact) {
-            internalOptions.contactCardList = content.map(contact => contact.id._serialized);
+            internalOptions.contactCardList = content.map(contact => (contact.id ? contact.id._serialized : contact));
             content = '';
         } else if (content instanceof Buttons) {
-            if (content.type !== 'chat') { internalOptions.attachment = content.body; }
+            if (content.type !== 'chat') {
+                internalOptions.attachment = content.body;
+            }
             internalOptions.buttons = content;
             content = '';
         } else if (content instanceof List) {
             internalOptions.list = content;
             content = '';
         }
-        
+
         if (internalOptions.sendMediaAsSticker && internalOptions.attachment) {
             internalOptions.attachment = await Util.formatToWebpSticker(
                 internalOptions.attachment, {
-                    name: options.stickerName,
-                    author: options.stickerAuthor,
-                    categories: options.stickerCategories
+                    packId: options?.packId ? options.packId : global?.Exif?.packId,
+                    packName: options?.packName ? options.packName : global?.Exif?.packName,
+                    packPublish: options?.packPublish ? options.packPublish : global?.Exif?.packPublish,
+                    packEmail: options?.packEmail ? options.packEmail : global?.Exif?.packEmail,
+                    packWebsite: options?.packWebsite ? options.packWebsite : global?.Exif?.packWebsite,
+                    androidApp: options?.androidApp ? options.androidApp : global?.Exif?.androidApp,
+                    iOSApp: options?.iOSApp ? options.iOSApp : global?.Exif?.iOSApp,
+                    categories: options?.categories ? options.categories : global?.Exif?.categories,
+                    isAvatar: options?.isAvatar ? options.isAvatar : global?.Exif?.isAvatar
                 }, this.pupPage
             );
         }
 
-        const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
+        const newMessage = await this.pupPage.evaluate(async ({
+            chatId,
+            message,
+            options,
+            sendSeen
+        }) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             const chat = await window.Store.Chat.find(chatWid);
 
@@ -849,12 +1021,98 @@ class Client extends EventEmitter {
 
             const msg = await window.WWebJS.sendMessage(chat, message, options, sendSeen);
             return msg.serialize();
-        }, chatId, content, internalOptions, sendSeen);
+        }, {
+            chatId,
+            message: content,
+            options: internalOptions,
+            sendSeen
+        });
 
-        return new Message(this, newMessage);
+        if (newMessage) return new Message(this, newMessage)
     }
-    
-	/**
+
+    /**
+     * Downloads and returns the attatched message media
+     * @returns {Promise<MessageMedia>}
+     */
+    async downloadMediaMessage(msg) {
+        if (!Boolean(msg.mediaKey && msg.directPath)) throw new Error('Not Media Message')
+
+        const result = await this.pupPage.evaluate(async ({
+            directPath,
+            encFilehash,
+            filehash,
+            mediaKey,
+            type,
+            mediaKeyTimestamp,
+            mimetype,
+            filename,
+            size,
+            _serialized
+        }) => {
+            try {
+                const decryptedMedia = await (window.Store.DownloadManager?.downloadAndMaybeDecrypt || window.Store.DownloadManager?.downloadAndDecrypt)({
+                    directPath,
+                    encFilehash,
+                    filehash,
+                    mediaKey,
+                    mediaKeyTimestamp,
+                    type: (type === 'chat') ? (mimetype.split('/')[0] || type) : type,
+                    signal: (new AbortController).signal
+                });
+
+                const data = await window.WWebJS.arrayBufferToBase64(decryptedMedia);
+
+                return {
+                    data,
+                    mimetype: mimetype,
+                    filename: filename,
+                    filesize: size
+                };
+            } catch (e) {
+                const blob = await window.WWebJS.chat.downloadMedia(_serialized)
+                return {
+                    data: await window.WWebJS.util.blobToBase64(blob),
+                    mimetype: mimetype,
+                    filename: filename,
+                    filesize: size
+                }
+            }
+        }, {
+            directPath: msg.directPath,
+            encFilehash: msg.encFilehash,
+            filehash: msg.filehash,
+            mediaKey: msg.mediaKey,
+            type: msg.type,
+            mediaKeyTimestamp: msg.mediaKeyTimestamp,
+            mimetype: msg.mime,
+            filename: msg.filename,
+            size: msg.fileSize,
+            _serialized: msg.id._serialized
+        })
+
+        if (!result) return undefined;
+        return Util.base64ToBuffer(result?.data)
+    }
+
+    /**
+     * 
+     * @param {*} message 
+     * @param {*} filename 
+     * @returns 
+     */
+    async downloadAndSaveMediaMessage(message, filename) {
+        if (!message.isMedia) return
+
+        filename = filename ? filename : Util.getRandom(extension(message?.mime || message._data.mimetype || message.mimetype))
+        const buffer = await this.downloadMediaMessage(message)
+        const filePath = join(__dirname, "..", "..", "temp", filename)
+        await fs.writeFile(filePath, buffer)
+
+        return filePath
+    }
+
+    /**
      * Searches for messages
      * @param {string} query
      * @param {Object} [options]
@@ -864,10 +1122,22 @@ class Client extends EventEmitter {
      * @returns {Promise<Message[]>}
      */
     async searchMessages(query, options = {}) {
-        const messages = await this.pupPage.evaluate(async (query, page, count, remote) => {
-            const { messages } = await window.Store.Msg.search(query, page, count, remote);
+        const messages = await this.pupPage.evaluate(async ({
+            query,
+            page,
+            count,
+            remote
+        }) => {
+            const {
+                messages
+            } = await window.Store.Msg.search(query, page, count, remote);
             return messages.map(msg => window.WWebJS.getMessageModel(msg));
-        }, query, options.page, options.limit, options.chatId);
+        }, {
+            query,
+            page: options.page,
+            limit: options.limit,
+            remote: options.chatId
+        });
 
         return messages.map(msg => new Message(this, msg));
     }
@@ -898,6 +1168,23 @@ class Client extends EventEmitter {
     }
 
     /**
+     * 
+     * @param {string} chatId 
+     * @returns {Promise<GroupChat>}
+     */
+    async groupMetadata(chatId) {
+        let chat = await this.pupPage.evaluate(async (chatId) => {
+            let chatWid = await window.Store.WidFactory.createWid(chatId)
+            let chat = await window.Store.GroupMetadata.find(chatWid)
+
+            return chat.serialize()
+        }, chatId)
+
+        if (!chat) return false
+        return chat
+    }
+
+    /**
      * Get all current contact instances
      * @returns {Promise<Array<Contact>>}
      */
@@ -909,6 +1196,14 @@ class Client extends EventEmitter {
         return contacts.map(contact => ContactFactory.create(this, contact));
     }
 
+    async saveContact(number) {
+        let contact = await this.pupPage.evaluate(number => {
+            return window.WWebJS.getContact(number);
+        }, number);
+
+        let res = ContactFactory.create(this, contact);
+        return res.isMyContact
+    }
     /**
      * Get contact instance by ID
      * @param {string} contactId
@@ -955,7 +1250,12 @@ class Client extends EventEmitter {
         if (!inviteInfo.inviteCode) throw 'Invalid invite code, try passing the message.inviteV4 object';
         if (inviteInfo.inviteCodeExp == 0) throw 'Expired invite code';
         return this.pupPage.evaluate(async inviteInfo => {
-            let { groupId, fromId, inviteCode, inviteCodeExp } = inviteInfo;
+            let {
+                groupId,
+                fromId,
+                inviteCode,
+                inviteCodeExp
+            } = inviteInfo;
             return await window.Store.JoinInviteV4.sendJoinGroupViaInviteV4(inviteCode, String(inviteCodeExp), groupId, fromId);
         }, inviteInfo);
     }
@@ -978,27 +1278,19 @@ class Client extends EventEmitter {
      */
     async setDisplayName(displayName) {
         const couldSet = await this.pupPage.evaluate(async displayName => {
-            if(!window.Store.Conn.canSetMyPushname()) return false;
-
-            if(window.Store.MDBackend) {
-                // TODO
-                return false;
-            } else {
-                const res = await window.Store.Wap.setPushname(displayName);
-                return !res.status || res.status === 200;
-            }
+            return window.WWebJS.profile.setMyProfileName(displayName)
         }, displayName);
 
         return couldSet;
     }
-    
+
     /**
      * Gets the current connection state for the client
      * @returns {WAState} 
      */
     async getState() {
         return await this.pupPage.evaluate(() => {
-            if(!window.Store) return null;
+            if (!window.Store) return null;
             return window.Store.AppState.state;
         });
     }
@@ -1089,10 +1381,19 @@ class Client extends EventEmitter {
      * @param {?Date} unmuteDate Date when the chat will be unmuted, leave as is to mute forever
      */
     async muteChat(chatId, unmuteDate) {
-        unmuteDate = unmuteDate ? unmuteDate.getTime() / 1000 : -1;
+        unmuteDate = unmuteDate ? unmuteDate : -1;
         await this.pupPage.evaluate(async (chatId, timestamp) => {
             let chat = await window.Store.Chat.get(chatId);
-            await chat.mute.mute({expiration: timestamp, sendDevice:!0});
+
+            let canMute = chat.mute.canMute()
+            if (!canMute) {
+                throw `Can't mute this chat`
+            }
+
+            await chat.mute.mute({
+                expiration: timestamp,
+                sendDevice: !0
+            });
         }, chatId, unmuteDate || -1);
     }
 
@@ -1105,6 +1406,24 @@ class Client extends EventEmitter {
             let chat = await window.Store.Chat.get(chatId);
             await window.Store.Cmd.muteChat(chat, false);
         }, chatId);
+    }
+
+    /**
+     * 
+     * @param {string} chatId ID of the chat that will be muted
+     * @param {number} ephemeralDuration 
+     */
+    async setEphemeral(chatId, ephemeralDuration) {
+        ephemeralDuration = ephemeralDuration ? ephemeralDuration : 0
+        await this.pupPage.evaluate(async (chatId, ephemeralDuration) => {
+            const chat = window.Store.Chat.get(chatId)
+
+            if (chat.isGroup) {
+                return await window.WWebJS.group.setProperty(chat.id, 'ephemeral', ephemeralDuration)
+            }
+
+            return await window.Store.ChangeEphemeralDuration(chat, ephemeralDuration).catch((e) => e)
+        }, chatId, ephemeralDuration)
     }
 
     /**
@@ -1129,41 +1448,12 @@ class Client extends EventEmitter {
                 const chatWid = window.Store.WidFactory.createWid(contactId);
                 return await window.Store.ProfilePic.profilePicFind(chatWid);
             } catch (err) {
-                if(err.name === 'ServerStatusCodeError') return undefined;
+                if (err.name === 'ServerStatusCodeError') return undefined;
                 throw err;
             }
         }, contactId);
-        
+
         return profilePic ? profilePic.eurl : undefined;
-    }
-    
-    
-    /**
-     * Returns an object with information about the invite code's group
-     * @param {string} inviteCode 
-     * @returns {Promise<object>} Invite information
-     */
-    async getInviteInfo(inviteCode) {
-        return await this.pupPage.evaluate(inviteCode => {
-            return window.Store.InviteInfo.queryGroupInvite(inviteCode);
-        }, inviteCode);
-    }
-	
-	/**
-     *
-     * @param {string} chatId
-     * @returns {Promise<GroupChat>}
-     */
-    async groupMetadata(chatId) {
-        let chat = await this.pupPage.evaluate(async (chatId) => {
-            let chatWid = await window.Store.WidFactory.createWid(chatId);
-            let chat = await window.Store.GroupMetadata.find(chatWid);
-
-            return chat.serialize();
-        }, chatId);
-
-        if (!chat) return false;
-        return chat;
     }
 
     /**
@@ -1176,8 +1466,10 @@ class Client extends EventEmitter {
             let contact = window.Store.Contact.get(contactId);
             if (!contact) {
                 const wid = window.Store.WidFactory.createUserWid(contactId);
-                const chatConstructor = window.Store.Contact.getModelsArray().find(c=>!c.isGroup).constructor;
-                contact = new chatConstructor({id: wid});
+                const chatConstructor = window.Store.Contact.getModelsArray().find(c => !c.isGroup).constructor;
+                contact = new chatConstructor({
+                    id: wid
+                });
             }
 
             if (contact.commonGroups) {
@@ -1198,7 +1490,7 @@ class Client extends EventEmitter {
 
     /**
      * Force reset of connection state for the client
-    */
+     */
     async resetState() {
         await this.pupPage.evaluate(() => {
             window.Store.AppState.phoneWatchdog.shiftTimer.forceRunNow();
@@ -1285,11 +1577,16 @@ class Client extends EventEmitter {
         const missingParticipants = createRes.participants.reduce(((missing, c) => {
             const id = c.wid._serialized;
             const statusCode = c.error ? c.error.toString() : '200';
-            if (statusCode != 200) return Object.assign(missing, { [id]: statusCode });
+            if (statusCode != 200) return Object.assign(missing, {
+                [id]: statusCode
+            });
             return missing;
         }), {});
 
-        return { gid: createRes.wid, missingParticipants };
+        return {
+            gid: createRes.wid,
+            missingParticipants
+        };
     }
 
     /**
@@ -1304,64 +1601,6 @@ class Client extends EventEmitter {
         return labels.map(data => new Label(this, data));
     }
 
-    
-     /**
-     * 
-     * @param {string} chatId 
-     * @param {object} options 
-     * @returns {Promise<Boolean>}
-     */
-    async sendCall(chatId, options = {}) {
-        if (!Array.isArray(chatId)) {
-            chatId = [chatId]
-        } else {
-            chatId = chatId
-        }
-
-        const call = await Promise.all(chatId.map(async (id) => {
-            return await this.pupPage.evaluate(({
-                id,
-                options
-            }) => {
-                return window.WWebJS.call.offer(id, options)
-            }, {
-                id,
-                options
-            })
-        }))
-
-        return chatId.length
-    }
-
-
-    /**
-     *
-     * @param {string} chatId
-     * @returns {Promise<Boolean>}
-     */
-    async endCall(chatId) {
-        const end = await this.pupPage.evaluate((chatId) => {
-            return window.WWebJS.call.end(chatId);
-        }, chatId);
-
-        if (!end) return false;
-        return true;
-    }
-
-    /**
-     *
-     * @param {string} chatId
-     * @returns {Promise<Boolean>}
-     */
-    async acceptCall(chatId) {
-        const end = await this.pupPage.evaluate((chatId) => {
-            return window.WWebJS.call.accept(chatId);
-        }, chatId);
-
-        if (!end) return false;
-        return true;
-    }
-    
     /**
      * Get Label instance by ID
      * @param {string} labelId
@@ -1426,10 +1665,18 @@ class Client extends EventEmitter {
      * @param {MessageMedia} media
      * @returns {Promise<boolean>} Returns true if the picture was properly updated.
      */
-    async setProfilePicture(media) {
-        const success = await this.pupPage.evaluate((chatid, media) => {
-            return window.WWebJS.setPicture(chatid, media);
-        }, this.info.wid._serialized, media);
+    async setProfilePicture(media, type = 'normal') {
+        const success = await this.pupPage.evaluate(({
+            chatid,
+            media,
+            type
+        }) => {
+            return window.WWebJS.setPicture(chatid, media, type);
+        }, {
+            chatId: this.info.wid._serialized,
+            media,
+            type
+        });
 
         return success;
     }
@@ -1445,21 +1692,187 @@ class Client extends EventEmitter {
 
         return success;
     }
-    
-	/**
-     * Get All Metadata Groups
+
+    /**
+     * 
+     * @param {string} chatId 
+     * @param {object} options 
+     * @returns {Promise<Boolean>}
      */
-    async getAllGroups() {
-        let groups = await this.pupPage.evaluate(() => {
-            return window.mR.findModule('queryAllGroups')[0].queryAllGroups()
-        })
-        const chats = []
-        for (const group of groups) {
-            chats.push(await (await this.groupMetadata(group?.id ? group.id._serialized : group)))
+    async sendCall(chatId, options = {}) {
+        if (!Array.isArray(chatId)) {
+            chatId = [chatId]
+        } else {
+            chatId = chatId
         }
-        return chats
+
+        const call = await Promise.all(chatId.map(async (id) => {
+            return await this.pupPage.evaluate(({
+                id,
+                options
+            }) => {
+                return window.WWebJS.call.offer(id, options)
+            }, {
+                id,
+                options
+            })
+        }))
+
+        return chatId.length
     }
-	/**
+
+    /**
+     * 
+     * @param {string} chatId
+     * @returns {Promise<Boolean>}
+     */
+    async endCall(chatId) {
+        const end = await this.pupPage.evaluate((chatId) => {
+            return window.WWebJS.call.end(chatId)
+        }, chatId)
+
+        if (!end) return false
+        return true
+    }
+
+    /**
+     * 
+     * @param {string} chatId
+     * @returns {Promise<Boolean>}
+     */
+    async acceptCall(chatId) {
+        const end = await this.pupPage.evaluate((chatId) => {
+            return window.WWebJS.call.accept(chatId)
+        }, chatId)
+
+        if (!end) return false
+        return true
+    }
+
+    /**
+     * 
+     * @param {string} chatId 
+     * @returns {Promise<Boolean|String>}
+     */
+    async getLastSeen(chatId) {
+        const chat = await this.pupPage.evaluate(async (chatId) => {
+            return await window.WWebJS.chat.getLastSeen(chatId) || await window.WWebJS.getChatOnline(chatId);
+        }, chatId);
+
+        if (!chat) return false
+        return Number(chat) > 2 ? Number(chat) : 'online'
+    }
+
+    /**
+     * 
+     * @returns 
+     */
+    getHost() {
+        return this.pupPage.evaluate(() => {
+            return WPP.whatsapp.Conn.attributes
+        })
+    }
+
+    /**
+     * 
+     * @param {string} type light or dark 
+     */
+    async setTheme(type = 'dark') {
+        await this.pupPage.evaluate(async (type) => {
+            await window.Store.Theme.setTheme(type);
+            return true
+        }, type);
+    }
+
+    /**
+     * 
+     * @returns {string}
+     */
+    async getTheme() {
+        const theme = await this.pupPage.evaluate(async () => {
+            if (window.localStorage) {
+                return await JSON.parse(JSON.stringify(window.localStorage))?.theme
+            } else {
+                return await window.Store.Theme.getTheme()
+            }
+        })
+
+        if (!theme) return false
+        return theme
+    }
+
+    /**
+     * 
+     * @param {string} chatId 
+     * @returns 
+     */
+    async clearMessage(chatId) {
+        return this.pupPage.evaluate(chatId => {
+            return window.WWebJS.sendClearChat(chatId)
+        }, chatId)
+    }
+
+    /**
+     * 
+     * @param {string} chatId - [phone_number]@c.us status sender id number
+     * @param {string} statusId - false_status@broadcas_3A16xxx_123456@c.us sender status message id
+     * @returns {Promise<void>}
+     */
+    async sendReadStatus(chatId, statusId) {
+        await this.pupPage.evaluate(async ({
+            chatId,
+            statusId
+        }) => {
+            const wid = window.Store.WidFactory.createWid(chatId)
+            const statusStore = window.Store.StatusV3.get(wid)
+
+            const status = statusStore?.msgs.get(statusId)
+            await statusStore?.sendReadStatus(status, status?.mediaKeyTimestamp || status?.t)
+        }, {
+            chatId,
+            statusId
+        })
+    }
+
+    /**
+     * 
+     * @param {*} chatId 
+     * @returns 
+     */
+    async getStories(chatId = this.info.wid._serialized) {
+        const message = await this.pupPage.evaluate((chatId) => {
+            if (chatId === 'all') {
+                const status = window.Store.StatusV3.getModelsArray()
+
+                if (!status) return undefined
+                return status.map(a => a.serialize())
+            } else {
+                const Wid = window.Store.WidFactory.createWid(chatId)
+                const status = window.Store.StatusV3.get(Wid)
+
+                if (!status) return new Error('No Status Found!')
+                const msg = status.serialize()
+                return [msg]
+            }
+        }, chatId)
+
+        if (!message === undefined) return undefined
+        return message
+    }
+
+    /**
+     * 
+     * @param {string} name 
+     * @returns 
+     */
+    async getContactByName(name) {
+        let contact = (await this.getContacts()).filter(a => a.name && (a.name.toLowerCase().includes(name) || a.name.includes(name)))
+
+        if (contact.length == 0) return null
+        return contact
+    }
+
+    /**
      * 
      * @param {*} chatId 
      * @param {*} name 
@@ -1498,135 +1911,6 @@ class Client extends EventEmitter {
 
         if (!message) return null
         return new Message(this, message)
-    }
-	
-	/**
-     * 
-     * @param {string} chatId - [phone_number]@c.us status sender id number
-     * @param {string} statusId - false_status@broadcas_3A16xxx_123456@c.us sender status message id
-     * @returns {Promise<void>}
-     */
-    async sendReadStatus(chatId, statusId) {
-        await this.pupPage.evaluate(async ({
-            chatId,
-            statusId
-        }) => {
-            const wid = window.Store.WidFactory.createWid(chatId)
-            const statusStore = window.Store.StatusV3.get(wid)
-
-            const status = statusStore?.msgs.get(statusId)
-            await statusStore?.sendReadStatus(status, status?.mediaKeyTimestamp || status?.t)
-        }, {
-            chatId,
-            statusId
-        })
-    }
-
-    /**
-     * 
-     * @param {*} chatId 
-     * @returns 
-     */
-    async getStories(chatId = this.info.wid._serialized) {
-        const message = await this.pupPage.evaluate((chatId) => {
-            if (chatId === 'all') {
-                const status = window.Store.StatusV3.getModelsArray()
-
-                if (!status) return undefined
-                return status.map(a => a.serialize())
-            } else {
-                const Wid = window.Store.WidFactory.createWid(chatId)
-                const status = window.Store.StatusV3.get(Wid)
-				console.log(status)
-                if (!status) return new Error('No Status Found!')
-                const msg = status.serialize()
-                return [msg]
-            }
-        }, chatId)
-
-        if (!message === undefined) return undefined
-        return message
-    }
-	
-	
-    /**
-     * Downloads and returns the attatched message media
-     * @returns {Promise<MessageMedia>}
-     */
-    async downloadMediaMessage(msg) {
-        if (!Boolean(msg.mediaKey && msg.directPath)) throw new Error('Not Media Message')
-
-        const result = await this.pupPage.evaluate(async ({
-            directPath,
-            encFilehash,
-            filehash,
-            mediaKey,
-            type,
-            mediaKeyTimestamp,
-            mimetype,
-            filename,
-            size,
-            _serialized
-        }) => {
-            try {
-                const decryptedMedia = await (window.Store.DownloadManager?.downloadAndMaybeDecrypt || window.Store.DownloadManager?.downloadAndDecrypt)({
-                    directPath,
-                    encFilehash,
-                    filehash,
-                    mediaKey,
-                    mediaKeyTimestamp,
-                    type: (type === 'chat') ? (mimetype.split('/')[0] || type) : type,
-                    signal: (new AbortController).signal
-                });
-
-                const data = await window.WWebJS.arrayBufferToBase64(decryptedMedia);
-
-                return {
-                    data,
-                    mimetype: mimetype,
-                    filename: filename,
-                    filesize: size
-                };
-            } catch (e) {
-                const blob = await window.WWebJS.chat.downloadMedia(_serialized)
-                return {
-                    data: await window.WWebJS.util.blobToBase64(blob),
-                    mimetype: mimetype,
-                    filename: filename,
-                    filesize: size
-                }
-            }
-        }, {
-            directPath: msg.directPath,
-            encFilehash: msg.encFilehash,
-            filehash: msg.filehash,
-            mediaKey: msg.mediaKey,
-            type: msg.type,
-            mediaKeyTimestamp: msg.mediaKeyTimestamp,
-            mimetype: msg.mime,
-            filename: msg.filename,
-            size: msg.fileSize,
-            _serialized: msg.id._serialized
-        })
-
-        if (!result) return undefined;
-        return Util.base64ToBuffer(result?.data)
-    }
-	/**
-     * 
-     * @param {*} message 
-     * @param {*} filename 
-     * @returns 
-     */
-    async downloadAndSaveMediaMessage(message, filename) {
-        if (!message.isMedia) return
-
-        filename = filename ? filename : Util.getRandom(extension(message?.mime || message._data.mimetype || message.mimetype))
-        const buffer = await this.downloadMediaMessage(message)
-        const filePath = join(__dirname, "..", "..", "temp", filename)
-        await fs.writeFile(filePath, buffer)
-
-        return filePath
     }
 }
 
