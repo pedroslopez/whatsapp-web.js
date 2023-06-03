@@ -987,7 +987,14 @@ declare namespace WAWebJS {
         clearState: () => Promise<boolean>,
         /** Deletes the chat */
         delete: () => Promise<boolean>,
-        /** Loads chat messages, sorted from earliest to latest. */
+        /**
+         * Loads chat messages, sorted from earliest to latest.
+         * @param {Object} searchOptions Options for searching messages. Right now only limit is supported.
+         * @param {Number} [searchOptions.limit] The amount of messages to return. If no limit is specified, the available messages will be returned. Note that the actual number of returned messages may be smaller if there aren't enough messages in the conversation. Set this to Infinity to load all messages.
+         * @param {Number} [searchOptions.minTimestamp] If specified, filter message by minimum timestamp.
+         * @param {Number} [searchOptions.maxTimestamp] If specified, filter message by maximum timestamp.
+         * @returns {Promise<Array<Message>>}
+         */
         fetchMessages: (searchOptions: MessageSearchOptions) => Promise<Message[]>,
         /** Mutes this chat forever, unless a date is specified */
         mute: (unmuteDate?: Date) => Promise<void>,

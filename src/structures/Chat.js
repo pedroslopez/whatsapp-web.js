@@ -179,10 +179,10 @@ class Chat extends Base {
     async fetchMessages(searchOptions) {
         let messages = await this.client.pupPage.evaluate(async (chatId, searchOptions) => {
             const msgFilter = m => {
-                return !m.isNotification 
+                return !m.isNotification
                     && (!searchOptions || !searchOptions.minTimestamp || m.t >= searchOptions.minTimestamp)
-                    && (!searchOptions || !searchOptions.maxTimestamp || m.t <= searchOptions.maxTimestamp)
-                }; // dont include notification messages
+                    && (!searchOptions || !searchOptions.maxTimestamp || m.t <= searchOptions.maxTimestamp);
+                }
 
             const chat = window.Store.Chat.get(chatId);
             let msgs = chat.msgs.getModelsArray().filter(msgFilter);
@@ -191,9 +191,13 @@ class Chat extends Base {
                 while (msgs.length < searchOptions.limit) {
                     const loadedMessages = await window.Store.ConversationMsgs.loadEarlierMsgs(chat);
                     if (!loadedMessages || !loadedMessages.length) break;
+
+                    if (searchOptions.minTimestamp && loadedMessages.some(msg => msg.t < searchOptions.minTimestamp))
+                        break;
+
                     msgs = [...loadedMessages.filter(msgFilter), ...msgs];
                 }
-                
+
                 if (msgs.length > searchOptions.limit) {
                     msgs.sort((a, b) => (a.t > b.t) ? 1 : -1);
                     msgs = msgs.splice(msgs.length - searchOptions.limit);
