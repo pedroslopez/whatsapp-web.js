@@ -595,7 +595,8 @@ class Message extends Base {
 
             let catEdit = (msg.type === 'chat' && window.Store.MsgActionChecks.canEditText(msg));
             if (catEdit) {
-                return await window.WWebJS.editMessage(msg, message, options);
+                const msgEdit = await window.WWebJS.editMessage(msg, message, options);
+                return msgEdit.serialize();
             }
             return null;
         }, this.id._serialized, message, internalOptions);
