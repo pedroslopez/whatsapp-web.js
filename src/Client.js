@@ -10,7 +10,8 @@ const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constan
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
-const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List} = require('./structures');
+const WebCacheFactory = require('./webCache/WebCacheFactory');
+const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List, Reaction, Chat } = require('./structures');
 const LegacySessionAuth = require('./authStrategies/LegacySessionAuth');
 const NoAuth = require('./authStrategies/NoAuth');
 
@@ -19,6 +20,8 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @extends {EventEmitter}
  * @param {object} options - Client options
  * @param {AuthStrategy} options.authStrategy - Determines how to save and restore sessions. Will use LegacySessionAuth if options.session is set. Otherwise, NoAuth will be used.
+ * @param {string} options.webVersion - The version of WhatsApp Web to use. Use options.webVersionCache to configure how the version is retrieved.
+ * @param {object} options.webVersionCache - Determines how to retrieve the WhatsApp Web version. Defaults to a local cache (LocalWebCache) that falls back to latest if the requested version is not found.
  * @param {number} options.authTimeoutMs - Timeout for authentication selector in puppeteer
  * @param {object} options.puppeteer - Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/
  * @param {number} options.qrMaxRetries - How many times should the qrcode be refreshed before giving up
@@ -29,6 +32,7 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @param {string} options.userAgent - User agent to use in puppeteer
  * @param {string} options.ffmpegPath - Ffmpeg path to use when formating videos to webp while sending stickers 
  * @param {boolean} options.bypassCSP - Sets bypassing of page's Content-Security-Policy.
+ * @param {object} options.proxyAuthentication - Proxy Authentication object.
  * 
  * @fires Client#qr
  * @fires Client#authenticated
@@ -45,6 +49,8 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @fires Client#group_update
  * @fires Client#disconnected
  * @fires Client#change_state
+ * @fires Client#contact_changed
+ * @fires Client#group_admin_changed
  */
 class Client extends EventEmitter {
     constructor(options = {}) {
@@ -100,6 +106,10 @@ class Client extends EventEmitter {
             browser = await puppeteer.launch({...puppeteerOpts, args: browserArgs});
             page = (await browser.pages())[0];
         }
+
+        if (this.options.proxyAuthentication !== undefined) {
+            await page.authenticate(this.options.proxyAuthentication);
+        }
       
         await page.setUserAgent(this.options.userAgent);
         if (this.options.bypassCSP) await page.setBypassCSP(true);
@@ -108,12 +118,59 @@ class Client extends EventEmitter {
         this.pupPage = page;
 
         await this.authStrategy.afterBrowserInitialized();
+        await this.initWebVersionCache();
 
         await page.goto(WhatsWebURL, {
             waitUntil: 'load',
             timeout: 0,
             referer: 'https://whatsapp.com/'
         });
+
+        await page.evaluate(`function getElementByXpath(path) {
+            return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+          }`);
+
+        let lastPercent = null,
+            lastPercentMessage = null;
+
+        await page.exposeFunction('loadingScreen', async (percent, message) => {
+            if (lastPercent !== percent || lastPercentMessage !== message) {
+                this.emit(Events.LOADING_SCREEN, percent, message);
+                lastPercent = percent;
+                lastPercentMessage = message;
+            }
+        });
+
+        await page.evaluate(
+            async function (selectors) {
+                var observer = new MutationObserver(function () {
+                    let progressBar = window.getElementByXpath(
+                        selectors.PROGRESS
+                    );
+                    let progressMessage = window.getElementByXpath(
+                        selectors.PROGRESS_MESSAGE
+                    );
+
+                    if (progressBar) {
+                        window.loadingScreen(
+                            progressBar.value,
+                            progressMessage.innerText
+                        );
+                    }
+                });
+
+                observer.observe(document, {
+                    attributes: true,
+                    childList: true,
+                    characterData: true,
+                    subtree: true,
+                });
+            },
+            {
+                PROGRESS: '//*[@id=\'app\']/div/div/div[2]/progress',
+                PROGRESS_MESSAGE: '//*[@id=\'app\']/div/div/div[3]',
+            }
+        );
 
         const INTRO_IMG_SELECTOR = '[data-testid="intro-md-beta-logo-dark"], [data-testid="intro-md-beta-logo-light"], [data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
         const INTRO_QRCODE_SELECTOR = 'div[data-ref] canvas';
@@ -271,6 +328,13 @@ class Client extends EventEmitter {
                      * @param {GroupNotification} notification GroupNotification with more information about the action
                      */
                     this.emit(Events.GROUP_LEAVE, notification);
+                } else if (msg.subtype === 'promote' || msg.subtype === 'demote') {
+                    /**
+                     * Emitted when a current user is promoted to an admin or demoted to a regular user.
+                     * @event Client#group_admin_changed
+                     * @param {GroupNotification} notification GroupNotification with more information about the action
+                     */
+                    this.emit(Events.GROUP_ADMIN_CHANGED, notification);
                 } else {
                     /**
                      * Emitted when group settings are updated, such as subject, description or picture.
@@ -330,6 +394,36 @@ class Client extends EventEmitter {
                 last_message = msg;
             }
 
+            /**
+             * The event notification that is received when one of
+             * the group participants changes thier phone number.
+             */
+            const isParticipant = msg.type === 'gp2' && msg.subtype === 'modify';
+
+            /**
+             * The event notification that is received when one of
+             * the contacts changes thier phone number.
+             */
+            const isContact = msg.type === 'notification_template' && msg.subtype === 'change_number';
+
+            if (isParticipant || isContact) {
+                /** {@link GroupNotification} object does not provide enough information about this event, so a {@link Message} object is used. */
+                const message = new Message(this, msg);
+
+                const newId = isParticipant ? msg.recipients[0] : msg.to;
+                const oldId = isParticipant ? msg.author : msg.templateParams.find(id => id !== newId);
+
+                /**
+                 * Emitted when a contact or a group participant changes their phone number.
+                 * @event Client#contact_changed
+                 * @param {Message} message Message with more information about the event.
+                 * @param {String} oldId The user's id (an old one) who changed their phone number
+                 * and who triggered the notification.
+                 * @param {String} newId The user's new id after the change.
+                 * @param {Boolean} isContact Indicates if a contact or a group participant changed their phone number.
+                 */
+                this.emit(Events.CONTACT_CHANGED, message, oldId, newId, isContact);
+            }
         });
 
         await page.exposeFunction('onRemoveMessageEvent', (msg) => {
@@ -361,6 +455,15 @@ class Client extends EventEmitter {
 
         });
 
+        await page.exposeFunction('onChatUnreadCountEvent', async (data) =>{
+            const chat = await this.getChatById(data.id);
+            
+            /**
+             * Emitted when the chat unread count changes
+             */
+            this.emit(Events.UNREAD_COUNT, chat);
+        });
+
         await page.exposeFunction('onMessageMediaUploadedEvent', (msg) => {
 
             const message = new Message(this, msg);
@@ -373,7 +476,7 @@ class Client extends EventEmitter {
             this.emit(Events.MEDIA_UPLOADED, message);
         });
 
-        await page.exposeFunction('onAppStateChangedEvent', (state) => {
+        await page.exposeFunction('onAppStateChangedEvent', async (state) => {
 
             /**
              * Emitted when the connection state changes
@@ -400,6 +503,7 @@ class Client extends EventEmitter {
                  * @event Client#disconnected
                  * @param {WAState|"NAVIGATION"} reason reason that caused the disconnect
                  */
+                await this.authStrategy.disconnect();
                 this.emit(Events.DISCONNECTED, state);
                 this.destroy();
             }
@@ -439,6 +543,47 @@ class Client extends EventEmitter {
             this.emit(Events.INCOMING_CALL, cll);
         });
 
+        await page.exposeFunction('onReaction', (reactions) => {
+            for (const reaction of reactions) {
+                /**
+                 * Emitted when a reaction is sent, received, updated or removed
+                 * @event Client#message_reaction
+                 * @param {object} reaction
+                 * @param {object} reaction.id - Reaction id
+                 * @param {number} reaction.orphan - Orphan
+                 * @param {?string} reaction.orphanReason - Orphan reason
+                 * @param {number} reaction.timestamp - Timestamp
+                 * @param {string} reaction.reaction - Reaction
+                 * @param {boolean} reaction.read - Read
+                 * @param {object} reaction.msgId - Parent message id
+                 * @param {string} reaction.senderId - Sender id
+                 * @param {?number} reaction.ack - Ack
+                 */
+
+                this.emit(Events.MESSAGE_REACTION, new Reaction(this, reaction));
+            }
+        });
+
+        await page.exposeFunction('onRemoveChatEvent', (chat) => {
+            /**
+             * Emitted when a chat is removed
+             * @event Client#chat_removed
+             * @param {Chat} chat
+             */
+            this.emit(Events.CHAT_REMOVED, new Chat(this, chat));
+        });
+        
+        await page.exposeFunction('onArchiveChatEvent', (chat, currState, prevState) => {
+            /**
+             * Emitted when a chat is archived/unarchived
+             * @event Client#chat_archived
+             * @param {Chat} chat
+             * @param {boolean} currState
+             * @param {boolean} prevState
+             */
+            this.emit(Events.CHAT_ARCHIVED, new Chat(this, chat), currState, prevState);
+        });
+
         await page.evaluate(() => {
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
@@ -448,6 +593,8 @@ class Client extends EventEmitter {
             window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
             window.Store.Conn.on('change:battery', (state) => { window.onBatteryStateChangedEvent(state); });
             window.Store.Call.on('add', (call) => { window.onIncomingCall(call); });
+            window.Store.Chat.on('remove', async (chat) => { window.onRemoveChatEvent(await window.WWebJS.getChatModel(chat)); });
+            window.Store.Chat.on('change:archive', async (chat, currState, prevState) => { window.onArchiveChatEvent(await window.WWebJS.getChatModel(chat), currState, prevState); });
             window.Store.Msg.on('add', (msg) => { 
                 if (msg.isNewMsg) {
                     if(msg.type === 'ciphertext') {
@@ -458,6 +605,23 @@ class Client extends EventEmitter {
                     }
                 }
             });
+            window.Store.Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
+
+            {
+                const module = window.Store.createOrUpdateReactionsModule;
+                const ogMethod = module.createOrUpdateReactions;
+                module.createOrUpdateReactions = ((...args) => {
+                    window.onReaction(args[0].map(reaction => {
+                        const msgKey = window.Store.MsgKey.fromString(reaction.msgKey);
+                        const parentMsgKey = window.Store.MsgKey.fromString(reaction.parentMsgKey);
+                        const timestamp = reaction.timestamp / 1000;
+
+                        return {...reaction, msgKey, parentMsgKey, timestamp };
+                    }));
+
+                    return ogMethod(...args);
+                }).bind(module);
+            }
         });
 
         /**
@@ -465,15 +629,46 @@ class Client extends EventEmitter {
          * @event Client#ready
          */
         this.emit(Events.READY);
+        this.authStrategy.afterAuthReady();
 
         // Disconnect when navigating away when in PAIRING state (detect logout)
         this.pupPage.on('framenavigated', async () => {
             const appState = await this.getState();
             if(!appState || appState === WAState.PAIRING) {
+                await this.authStrategy.disconnect();
                 this.emit(Events.DISCONNECTED, 'NAVIGATION');
                 await this.destroy();
             }
         });
+    }
+
+    async initWebVersionCache() {
+        const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
+        const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
+
+        const requestedVersion = this.options.webVersion;
+        const versionContent = await webCache.resolve(requestedVersion);
+
+        if(versionContent) {
+            await this.pupPage.setRequestInterception(true);
+            this.pupPage.on('request', async (req) => {
+                if(req.url() === WhatsWebURL) {
+                    req.respond({
+                        status: 200,
+                        contentType: 'text/html',
+                        body: versionContent
+                    }); 
+                } else {
+                    req.continue();
+                }
+            });
+        } else {
+            this.pupPage.on('response', async (res) => {
+                if(res.ok() && res.url() === WhatsWebURL) {
+                    await webCache.persist(await res.text());
+                }
+            });
+        }
     }
 
     /**
@@ -481,6 +676,7 @@ class Client extends EventEmitter {
      */
     async destroy() {
         await this.pupBrowser.close();
+        await this.authStrategy.destroy();
     }
 
     /**
@@ -546,6 +742,10 @@ class Client extends EventEmitter {
      * @returns {Promise<Message>} Message that was just sent
      */
     async sendMessage(chatId, content, options = {}) {
+        if (options.mentions && options.mentions.some(possiblyContact => possiblyContact instanceof Contact)) {
+            console.warn('Mentions with an array of Contact are now deprecated. See more at https://github.com/pedroslopez/whatsapp-web.js/pull/2166.');
+            options.mentions = options.mentions.map(a => a.id._serialized);
+        }
         let internalOptions = {
             linkPreview: options.linkPreview === false ? undefined : true,
             sendAudioAsVoice: options.sendAudioAsVoice,
@@ -555,7 +755,7 @@ class Client extends EventEmitter {
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
             parseVCards: options.parseVCards === false ? false : true,
-            mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact => contact.id._serialized) : [],
+            mentionedJidList: Array.isArray(options.mentions) ? options.mentions : [],
             extraOptions: options.extra
         };
 
@@ -687,7 +887,7 @@ class Client extends EventEmitter {
      */
     async getInviteInfo(inviteCode) {
         return await this.pupPage.evaluate(inviteCode => {
-            return window.Store.InviteInfo.sendQueryGroupInvite(inviteCode);
+            return window.Store.InviteInfo.queryGroupInvite(inviteCode);
         }, inviteCode);
     }
 
@@ -697,11 +897,11 @@ class Client extends EventEmitter {
      * @returns {Promise<string>} Id of the joined Chat
      */
     async acceptInvite(inviteCode) {
-        const chatId = await this.pupPage.evaluate(async inviteCode => {
-            return await window.Store.Invite.sendJoinGroupViaInvite(inviteCode);
+        const res = await this.pupPage.evaluate(async inviteCode => {
+            return await window.Store.Invite.joinGroupViaInvite(inviteCode);
         }, inviteCode);
 
-        return chatId._serialized;
+        return res.gid._serialized;
     }
 
     /**
@@ -850,7 +1050,7 @@ class Client extends EventEmitter {
         unmuteDate = unmuteDate ? unmuteDate.getTime() / 1000 : -1;
         await this.pupPage.evaluate(async (chatId, timestamp) => {
             let chat = await window.Store.Chat.get(chatId);
-            await chat.mute.mute(timestamp, !0);
+            await chat.mute.mute({expiration: timestamp, sendDevice:!0});
         }, chatId, unmuteDate || -1);
     }
 
@@ -902,7 +1102,13 @@ class Client extends EventEmitter {
      */
     async getCommonGroups(contactId) {
         const commonGroups = await this.pupPage.evaluate(async (contactId) => {
-            const contact = window.Store.Contact.get(contactId);
+            let contact = window.Store.Contact.get(contactId);
+            if (!contact) {
+                const wid = window.Store.WidFactory.createUserWid(contactId);
+                const chatConstructor = window.Store.Contact.getModelsArray().find(c=>!c.isGroup).constructor;
+                contact = new chatConstructor({id: wid});
+            }
+
             if (contact.commonGroups) {
                 return contact.commonGroups.serialize();
             }
@@ -1002,19 +1208,17 @@ class Client extends EventEmitter {
 
         const createRes = await this.pupPage.evaluate(async (name, participantIds) => {
             const participantWIDs = participantIds.map(p => window.Store.WidFactory.createWid(p));
-            const id = window.Store.MsgKey.newId();
-            const res = await window.Store.GroupUtils.sendCreateGroup(name, participantWIDs, undefined, id);
-            return res;
+            return await window.Store.GroupUtils.createGroup(name, participantWIDs, 0);
         }, name, participants);
 
         const missingParticipants = createRes.participants.reduce(((missing, c) => {
-            const id = Object.keys(c)[0];
-            const statusCode = c[id].code;
+            const id = c.wid._serialized;
+            const statusCode = c.error ? c.error.toString() : '200';
             if (statusCode != 200) return Object.assign(missing, { [id]: statusCode });
             return missing;
         }), {});
 
-        return { gid: createRes.gid, missingParticipants };
+        return { gid: createRes.wid, missingParticipants };
     }
 
     /**
@@ -1086,6 +1290,31 @@ class Client extends EventEmitter {
         });
 
         return blockedContacts.map(contact => ContactFactory.create(this.client, contact));
+    }
+
+    /**
+     * Sets the current user's profile picture.
+     * @param {MessageMedia} media
+     * @returns {Promise<boolean>} Returns true if the picture was properly updated.
+     */
+    async setProfilePicture(media) {
+        const success = await this.pupPage.evaluate((chatid, media) => {
+            return window.WWebJS.setPicture(chatid, media);
+        }, this.info.wid._serialized, media);
+
+        return success;
+    }
+
+    /**
+     * Deletes the current user's profile picture.
+     * @returns {Promise<boolean>} Returns true if the picture was properly deleted.
+     */
+    async deleteProfilePicture() {
+        const success = await this.pupPage.evaluate((chatid) => {
+            return window.WWebJS.deletePicture(chatid);
+        }, this.info.wid._serialized);
+
+        return success;
     }
 }
 
