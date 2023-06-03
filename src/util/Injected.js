@@ -313,7 +313,7 @@ exports.LoadUtils = () => {
         return window.Store.Msg.get(newMsgId._serialized);
     };
 
-    window.WWebJS.editMessage = async (chat, msg, content, internalOptions = {}) => {
+    window.WWebJS.editMessage = async (msg, content, internalOptions = {}) => {
 
         const extraOptions = internalOptions.extraOptions || {};
         delete internalOptions.extraOptions;
