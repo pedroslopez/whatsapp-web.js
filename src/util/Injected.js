@@ -339,7 +339,7 @@ exports.LoadUtils = () => {
         };
 
         await window.Store.EditMessage.sendMessageEdit(msg, content, message);
-        return window.Store.Msg.get(msg._serialized);
+        return window.Store.Msg.get(msg.id._serialized);
     };
 
     window.WWebJS.toStickerData = async (mediaInfo) => {
