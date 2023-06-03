@@ -325,7 +325,7 @@ exports.LoadUtils = () => {
             vcardOptions,
             buttonOptions,
             listOptions
-        } = await window.WWebJS.handlerOptions(chat, content, internalOptions);
+        } = await window.WWebJS.handlerOptions(null, content, internalOptions);
         
         const message = {
             ...options,

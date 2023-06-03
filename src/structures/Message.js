@@ -591,16 +591,10 @@ class Message extends Base {
         }
         await this.client.pupPage.evaluate(async (msgId, message, options) => {
             let msg = window.Store.Msg.get(msgId);
-
             let catEdit = (msg.type === 'chat' && window.Store.MsgActionChecks.canEditText(msg));
 
             if (catEdit) {
-                let chat = await window.Store.Chat.find(msg.id.remote);
-                try {
-                    await window.WWebJS.editMessage(chat, msg, message, options);
-                } catch (e) {
-                    throw e;
-                }
+                await window.WWebJS.editMessage(msg, message, options);
             }
             throw 'Editing message not available';
         }, this.id._serialized, message, internalOptions);
