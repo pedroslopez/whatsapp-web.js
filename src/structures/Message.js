@@ -584,7 +584,7 @@ class Message extends Base {
      * @returns {Promise}
      */
     async edit(content, options = []) {
-        const {content, internalOptions} = await this.client.handlerContent(content, options);
+        const {message, internalOptions} = await this.client.handlerContent(content, options);
 
         if (!this.fromMe) {
             throw 'Editing messages is only available for own messages';
@@ -603,7 +603,7 @@ class Message extends Base {
                 }
             }
             throw 'Editing message not available';
-        }, this.id._serialized, content, internalOptions);
+        }, this.id._serialized, message, internalOptions);
     }
 }
 

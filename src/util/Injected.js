@@ -246,7 +246,15 @@ exports.LoadUtils = () => {
             delete listOptions.list.footer;
         }
         
-        return [options, locationOptions, attOptions, quotedMsgOptions, vcardOptions, buttonOptions,listOptions];
+        return {
+            options:options,
+            locationOptions:locationOptions,
+            attOptions: attOptions,
+            quotedMsgOptions: quotedMsgOptions,
+            vcardOptions: vcardOptions,
+            buttonOptions: buttonOptions,
+            listOptions: listOptions
+        };
     } 
     
     window.WWebJS.sendMessage = async (chat, content, internalOptions = {}) => {

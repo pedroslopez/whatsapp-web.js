@@ -738,7 +738,7 @@ class Client extends EventEmitter {
      * @param {string|MessageMedia|Location|Contact|Array<Contact>|Buttons|List} content
      * @param {MessageSendOptions} [options] - Options used when sending the message
      *
-     * @returns {Promise<string,[]>} Content and internalOptions
+     * @returns {Promise<{string,[]}>} Content and internalOptions
      */
     async handlerContent(content, options = {}) {
         if (options.mentions && options.mentions.some(possiblyContact => possiblyContact instanceof Contact)) {
@@ -793,7 +793,7 @@ class Client extends EventEmitter {
             );
         }
 
-        return [content, internalOptions];
+        return {content:content, internalOptions: internalOptions};
     }
 
     /**
