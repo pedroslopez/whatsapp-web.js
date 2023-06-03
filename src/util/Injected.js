@@ -312,7 +312,6 @@ exports.LoadUtils = () => {
             options,
             locationOptions,
             attOptions,
-            quotedMsgOptions,
             vcardOptions,
             buttonOptions,
             listOptions
@@ -323,7 +322,6 @@ exports.LoadUtils = () => {
             ...locationOptions,
             ...attOptions,
             ...(attOptions.toJSON ? attOptions.toJSON() : {}),
-            ...quotedMsgOptions,
             ...vcardOptions,
             ...buttonOptions,
             ...listOptions,
