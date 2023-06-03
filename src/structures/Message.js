@@ -581,23 +581,28 @@ class Message extends Base {
      * Edits the current message.
      * @param {string|MessageMedia|Location|Contact|Array<Contact>|Buttons|List} content
      * @param {MessageSendOptions} [options] - Options used when sending the message
-     * @returns {Promise}
+     * @returns {Promise<?Message>}
      */
     async edit(content, options = []) {
         const {message, internalOptions} = await this.client.handlerContent(content, options);
 
         if (!this.fromMe) {
-            throw 'Editing messages is only available for own messages';
+            return null;
         }
-        await this.client.pupPage.evaluate(async (msgId, message, options) => {
+        const messageEdit = await this.client.pupPage.evaluate(async (msgId, message, options) => {
             let msg = window.Store.Msg.get(msgId);
-            let catEdit = (msg.type === 'chat' && window.Store.MsgActionChecks.canEditText(msg));
+            if (!msg) return null;
 
+            let catEdit = (msg.type === 'chat' && window.Store.MsgActionChecks.canEditText(msg));
             if (catEdit) {
-                await window.WWebJS.editMessage(msg, message, options);
+                return await window.WWebJS.editMessage(msg, message, options);
             }
-            throw 'Editing message not available';
+            return null;
         }, this.id._serialized, message, internalOptions);
+        if (messageEdit) {
+            return new Message(this.client, messageEdit);
+        }
+        return null;
     }
 }
 
