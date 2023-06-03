@@ -576,6 +576,35 @@ class Message extends Base {
             return reaction;
         });
     }
+
+    /**
+     * Edits the current message.
+     * @param {string|MessageMedia|Location|Contact|Array<Contact>|Buttons|List} content
+     * @param {MessageSendOptions} [options] - Options used when sending the message
+     * @returns {Promise}
+     */
+    async edit(content, options = []) {
+        const {content, internalOptions} = await this.client.handlerContent(content, options);
+
+        if (!this.fromMe) {
+            throw 'Editing messages is only available for own messages';
+        }
+        await this.client.pupPage.evaluate(async (msgId, message, options) => {
+            let msg = window.Store.Msg.get(msgId);
+
+            let catEdit = (msg.type === 'chat' && window.Store.MsgActionChecks.canEditText(msg));
+
+            if (catEdit) {
+                let chat = await window.Store.Chat.find(msg.id.remote);
+                try {
+                    await window.WWebJS.editMessage(chat, msg, message, options);
+                } catch (e) {
+                    throw e;
+                }
+            }
+            throw 'Editing message not available';
+        }, this.id._serialized, content, internalOptions);
+    }
 }
 
 module.exports = Message;

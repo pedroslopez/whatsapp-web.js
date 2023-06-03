@@ -846,6 +846,8 @@ declare namespace WAWebJS {
          * Gets the reactions associated with the given message
          */
         getReactions: () => Promise<ReactionList[]>,
+        /** Edits the current message */
+        edit: (content: MessageContent, options?: MessageSendOptions) => Promise<Message>,
     }
 
     /** ID that represents a message */

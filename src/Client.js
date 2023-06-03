@@ -734,14 +734,13 @@ class Client extends EventEmitter {
      */
 
     /**
-     * Send a message to a specific chatId
-     * @param {string} chatId
+     * Handling content to send or edit a message
      * @param {string|MessageMedia|Location|Contact|Array<Contact>|Buttons|List} content
      * @param {MessageSendOptions} [options] - Options used when sending the message
-     * 
-     * @returns {Promise<Message>} Message that was just sent
+     *
+     * @returns {Promise<string,[]>} Content and internalOptions
      */
-    async sendMessage(chatId, content, options = {}) {
+    async handlerContent(content, options = {}) {
         if (options.mentions && options.mentions.some(possiblyContact => possiblyContact instanceof Contact)) {
             console.warn('Mentions with an array of Contact are now deprecated. See more at https://github.com/pedroslopez/whatsapp-web.js/pull/2166.');
             options.mentions = options.mentions.map(a => a.id._serialized);
@@ -758,8 +757,6 @@ class Client extends EventEmitter {
             mentionedJidList: Array.isArray(options.mentions) ? options.mentions : [],
             extraOptions: options.extra
         };
-
-        const sendSeen = typeof options.sendSeen === 'undefined' ? true : options.sendSeen;
 
         if (content instanceof MessageMedia) {
             internalOptions.attachment = content;
@@ -785,7 +782,7 @@ class Client extends EventEmitter {
             internalOptions.list = content;
             content = '';
         }
-        
+
         if (internalOptions.sendMediaAsSticker && internalOptions.attachment) {
             internalOptions.attachment = await Util.formatToWebpSticker(
                 internalOptions.attachment, {
@@ -796,11 +793,27 @@ class Client extends EventEmitter {
             );
         }
 
+        return [content, internalOptions];
+    }
+
+    /**
+     * Send a message to a specific chatId
+     * @param {string} chatId
+     * @param {string|MessageMedia|Location|Contact|Array<Contact>|Buttons|List} content
+     * @param {MessageSendOptions} [options] - Options used when sending the message
+     * 
+     * @returns {Promise<Message>} Message that was just sent
+     */
+    async sendMessage(chatId, content, options = {}) {
+        
+        const {content,internalOptions}  = await this.handlerContent(content,options);
+        
+        const sendSeen = typeof options.sendSeen === 'undefined' ? true : options.sendSeen;
+        
         const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             const chat = await window.Store.Chat.find(chatWid);
-
-
+            
             if (sendSeen) {
                 window.WWebJS.sendSeen(chatId);
             }
@@ -811,7 +824,7 @@ class Client extends EventEmitter {
 
         return new Message(this, newMessage);
     }
-
+    
     /**
      * Searches for messages
      * @param {string} query

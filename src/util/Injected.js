@@ -31,6 +31,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.SendClear = window.mR.findModule('sendClear')[0];
     window.Store.SendDelete = window.mR.findModule('sendDelete')[0];
     window.Store.SendMessage = window.mR.findModule('addAndSendMsgToChat')[0];
+    window.Store.EditMessage = window.mR.findModule('addAndSendMessageEdit')[0];
     window.Store.SendSeen = window.mR.findModule('sendSeen')[0];
     window.Store.User = window.mR.findModule('getMaybeMeUser')[0];
     window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
@@ -108,8 +109,7 @@ exports.LoadUtils = () => {
         return false;
 
     };
-
-    window.WWebJS.sendMessage = async (chat, content, options = {}) => {
+    window.WWebJS.handlerOptions = async (chat, content, options = {}) => {
         let attOptions = {};
         if (options.attachment) {
             attOptions = options.sendMediaAsSticker
@@ -119,9 +119,9 @@ exports.LoadUtils = () => {
                     forceDocument: options.sendMediaAsDocument,
                     forceGif: options.sendVideoAsGif
                 });
-            
+
             if (options.caption){
-                attOptions.caption = options.caption; 
+                attOptions.caption = options.caption;
             }
             content = options.sendMediaAsSticker ? undefined : attOptions.preview;
 
@@ -133,8 +133,8 @@ exports.LoadUtils = () => {
             let quotedMessage = window.Store.Msg.get(options.quotedMessageId);
 
             // TODO remove .canReply() once all clients are updated to >= v2.2241.6
-            const canReply = window.Store.ReplyUtils ? 
-                window.Store.ReplyUtils.canReplyMsg(quotedMessage.unsafe()) : 
+            const canReply = window.Store.ReplyUtils ?
+                window.Store.ReplyUtils.canReplyMsg(quotedMessage.unsafe()) :
                 quotedMessage.canReply();
 
             if (canReply) {
@@ -205,7 +205,7 @@ exports.LoadUtils = () => {
                 }
             }
         }
-        
+
         let buttonOptions = {};
         if(options.buttons){
             let caption;
@@ -245,7 +245,20 @@ exports.LoadUtils = () => {
             delete options.list;
             delete listOptions.list.footer;
         }
-
+        
+        return [options, locationOptions, attOptions, quotedMsgOptions, vcardOptions, buttonOptions,listOptions];
+    } 
+    
+    window.WWebJS.sendMessage = async (chat, content, internalOptions = {}) => {
+        let {
+            options,
+            locationOptions,
+            attOptions,
+            quotedMsgOptions,
+            vcardOptions,
+            buttonOptions,
+            listOptions
+        } = await window.Store.handlerOptions(chat, content, internalOptions);
         const meUser = window.Store.User.getMaybeMeUser();
         const isMD = window.Store.MDBackend;
         const newId = await window.Store.MsgKey.newId();
@@ -288,6 +301,37 @@ exports.LoadUtils = () => {
 
         await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
         return window.Store.Msg.get(newMsgId._serialized);
+    };
+
+    window.WWebJS.editMessage = async (chat, msg, content, internalOptions = {}) => {
+
+        const extraOptions = internalOptions.extraOptions || {};
+        delete internalOptions.extraOptions;
+        
+        const {
+            options,
+            locationOptions,
+            attOptions,
+            quotedMsgOptions,
+            vcardOptions,
+            buttonOptions,
+            listOptions
+        } = await window.Store.handlerOptions(chat, content, internalOptions);
+        
+        const message = {
+            ...options,
+            ...locationOptions,
+            ...attOptions,
+            ...(attOptions.toJSON ? attOptions.toJSON() : {}),
+            ...quotedMsgOptions,
+            ...vcardOptions,
+            ...buttonOptions,
+            ...listOptions,
+            ...extraOptions
+        };
+
+        await window.Store.EditMessage.sendMessageEdit(msg, content, message);
+        return window.Store.Msg.get(msg._serialized);
     };
 
     window.WWebJS.toStickerData = async (mediaInfo) => {
