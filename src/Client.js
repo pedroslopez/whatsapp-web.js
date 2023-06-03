@@ -793,7 +793,7 @@ class Client extends EventEmitter {
             );
         }
 
-        return {content:content, internalOptions: internalOptions};
+        return {message: content, internalOptions: internalOptions};
     }
 
     /**
@@ -806,7 +806,7 @@ class Client extends EventEmitter {
      */
     async sendMessage(chatId, content, options = {}) {
         
-        const {content,internalOptions}  = await this.handlerContent(content,options);
+        const {message,internalOptions}  = await this.handlerContent(content,options);
         
         const sendSeen = typeof options.sendSeen === 'undefined' ? true : options.sendSeen;
         
@@ -820,7 +820,7 @@ class Client extends EventEmitter {
 
             const msg = await window.WWebJS.sendMessage(chat, message, options, sendSeen);
             return msg.serialize();
-        }, chatId, content, internalOptions, sendSeen);
+        }, chatId, message, internalOptions, sendSeen);
 
         return new Message(this, newMessage);
     }

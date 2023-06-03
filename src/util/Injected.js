@@ -247,6 +247,7 @@ exports.LoadUtils = () => {
         }
         
         return {
+            message: content,
             options:options,
             locationOptions:locationOptions,
             attOptions: attOptions,
@@ -259,6 +260,7 @@ exports.LoadUtils = () => {
     
     window.WWebJS.sendMessage = async (chat, content, internalOptions = {}) => {
         let {
+            message,
             options,
             locationOptions,
             attOptions,
@@ -266,7 +268,7 @@ exports.LoadUtils = () => {
             vcardOptions,
             buttonOptions,
             listOptions
-        } = await window.Store.handlerOptions(chat, content, internalOptions);
+        } = await window.WWebJS.handlerOptions(chat, content, internalOptions);
         const meUser = window.Store.User.getMaybeMeUser();
         const isMD = window.Store.MDBackend;
         const newId = await window.Store.MsgKey.newId();
@@ -284,11 +286,11 @@ exports.LoadUtils = () => {
 
         const ephemeralFields = window.Store.EphemeralFields.getEphemeralFields(chat);
 
-        const message = {
+        const messageObject = {
             ...options,
             id: newMsgId,
             ack: 0,
-            body: content,
+            body: message,
             from: meUser,
             to: chat.id,
             local: true,
@@ -307,7 +309,7 @@ exports.LoadUtils = () => {
             ...extraOptions
         };
 
-        await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
+        await window.Store.SendMessage.addAndSendMsgToChat(chat, messageObject);
         return window.Store.Msg.get(newMsgId._serialized);
     };
 
@@ -323,7 +325,7 @@ exports.LoadUtils = () => {
             vcardOptions,
             buttonOptions,
             listOptions
-        } = await window.Store.handlerOptions(chat, content, internalOptions);
+        } = await window.WWebJS.handlerOptions(chat, content, internalOptions);
         
         const message = {
             ...options,
