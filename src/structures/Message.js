@@ -224,6 +224,16 @@ class Message extends Base {
             this.productId = data.productId;
         }
 
+        /** Last edit time */
+        if (data.latestEditSenderTimestampMs) {
+            this.latestEditSenderTimestampMs = data.latestEditSenderTimestampMs;
+        }
+
+        /** Last edit message author */
+        if (data.latestEditMsgKey) {
+            this.latestEditMsgKey = data.latestEditMsgKey;
+        }
+        
         /**
          * Links included in the message.
          * @type {Array<{link: string, isSuspicious: boolean}>}
