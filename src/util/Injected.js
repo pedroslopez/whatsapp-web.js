@@ -256,7 +256,7 @@ exports.LoadUtils = () => {
             buttonOptions: buttonOptions,
             listOptions: listOptions
         };
-    } 
+    }; 
     
     window.WWebJS.sendMessage = async (chat, content, internalOptions = {}) => {
         let {
