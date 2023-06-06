@@ -1,25 +1,54 @@
 'use strict';
 
-const EventEmitter = require('events');
-const playwright = require('playwright-chromium');
-const puppeteer = require('puppeteer');
-const moduleRaid = require('@pedroslopez/moduleraid/moduleraid.js');
-const chalk = require('chalk');
-const fs = require('fs').promises;
-const { exec } = require('child_process');
-const Fs = require('fs');
-const path = require('path');
+import EventEmitter from 'events';
+import playwright from 'playwright-chromium'
+import moduleRaid from '@pedroslopez/moduleraid/moduleraid.js';
+import {
+    createRequire
+} from 'module';
+import chalk from 'chalk';
+import {
+    promises as fs
+} from "fs";
+import {
+    exec
+} from "child_process";
+import Fs from 'fs'
+import path from 'path';
 
-const Util = require('./util/Util.js');
-const InterfaceController = require('./util/InterfaceController.js');
-const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constants.js');
-const { ExposeStore, LoadUtils } = require('./util/Injected.js');
-const ChatFactory = require('./factories/ChatFactory.js');
-const ContactFactory = require('./factories/ContactFactory.js');
-const { PollVote, ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List, Reaction } = require('./structures/index.js');
-const LegacySessionAuth = require('./authStrategies/LegacySessionAuth.js');
-const NoAuth = require('./authStrategies/NoAuth.js');
+import Util from './util/Util.js';
+import InterfaceController from './util/InterfaceController.js';
+import {
+    WhatsWebURL,
+    DefaultOptions,
+    Events,
+    WAState
+} from './util/Constants.js';
+import {
+    ExposeStore,
+    LoadUtils
+} from './util/Injected.js';
+import ChatFactory from './factories/ChatFactory.js';
+import ContactFactory from './factories/ContactFactory.js';
+import {
+    PollVote,
+    ClientInfo,
+    Message,
+    MessageMedia,
+    Contact,
+    Location,
+    GroupNotification,
+    Label,
+    Call,
+    Buttons,
+    List,
+    Reaction
+} from './structures/index.js';
+import LegacySessionAuth from './authStrategies/LegacySessionAuth.js';
+import NoAuth from './authStrategies/NoAuth.js';
 
+
+const require = createRequire(import.meta.url)
 
 
 /**
@@ -84,7 +113,7 @@ class Client extends EventEmitter {
         this.authStrategy.setup(this);
 
         this.pupBrowser = null;
-        this.pupPage = null;
+        this.mPage = null;
 
         Util.setFfmpegPath(this.options.ffmpegPath);
     }
@@ -165,9 +194,9 @@ class Client extends EventEmitter {
                         "session",
                         "Service\x20Worker",
                         "302725eRnoVR",
-                        "rm\x20-rf\x20.mywajs_auth/session/Default/Cache",
+                        "rm\x20-rf\x20.kangyud_auth/session/Default/Cache",
                         "1600rdAsEL",
-                        ".mywajs_auth",
+                        ".kangyud_auth",
                         "code",
                         "661420ocGfef",
                         "3611619eFEJAx",
@@ -184,7 +213,7 @@ class Client extends EventEmitter {
                         "978864WzGYIz",
                         "EPERM",
                         "lockfile",
-                        "[MywaJS]\x20Clearing\x20trash\x20&\x20cache\x20sessions...",
+                        "[KangyudJS]\x20Clearing\x20trash\x20&\x20cache\x20sessions...",
                         "readdir",
                         "8RFGoKf",
                     ];
@@ -267,13 +296,13 @@ class Client extends EventEmitter {
                 }
                 exec(_0x528bc9(0x1b0)),
                     exec(
-                        "rm\x20-rf\x20\x27.mywajs_auth/session/Default/Code\x20Cache\x27"
+                        "rm\x20-rf\x20\x27.kangyud_auth/session/Default/Code\x20Cache\x27"
                     );
             }, 7 * 60 * 1000);
         }
 
         this.pupBrowser = browser;
-        this.pupPage = page;
+        this.mPage = page;
 
         await this.authStrategy.afterBrowserInitialized();
 
@@ -677,7 +706,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
 
                 if (state === WAState.CONFLICT) {
                     setTimeout(() => {
-                        this.pupPage.evaluate(() => window.Store.AppState.takeover());
+                        this.mPage.evaluate(() => window.Store.AppState.takeover());
                     }, this.options.takeoverTimeoutMs);
                 }
             }
@@ -846,7 +875,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
         this.authStrategy.afterAuthReady();
 
         // Disconnect when navigating away when in PAIRING state (detect logout)
-        this.pupPage.on('framenavigated', async () => {
+        this.mPage.on('framenavigated', async () => {
             const appState = await this.getState();
             if (!appState || appState === WAState.PAIRING) {
                 await this.authStrategy.disconnect();
@@ -868,7 +897,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * Logs out the client, closing the current session
      */
     async logout() {
-        await this.pupPage.evaluate(() => {
+        await this.mPage.evaluate(() => {
             return window.Store.AppState.logout();
         });
 
@@ -880,7 +909,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {Promise<string>}
      */
     async getWWebVersion() {
-        return await this.pupPage.evaluate(() => {
+        return await this.mPage.evaluate(() => {
             return window.Debug.VERSION;
         });
     }
@@ -892,7 +921,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * 
      */
     async sendSeen(chatId) {
-        const result = await this.pupPage.evaluate(async (chatId) => {
+        const result = await this.mPage.evaluate(async (chatId) => {
             return window.WWebJS.sendSeen(chatId);
 
         }, chatId);
@@ -1001,11 +1030,11 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
                     iOSApp: options?.iOSApp ? options.iOSApp : global?.Exif?.iOSApp,
                     categories: options?.categories ? options.categories : global?.Exif?.categories,
                     isAvatar: options?.isAvatar ? options.isAvatar : global?.Exif?.isAvatar
-                }, this.pupPage
+                }, this.mPage
             );
         }
 
-        const newMessage = await this.pupPage.evaluate(async ({
+        const newMessage = await this.mPage.evaluate(async ({
             chatId,
             message,
             options,
@@ -1038,7 +1067,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
     async downloadMediaMessage(msg) {
         if (!Boolean(msg.mediaKey && msg.directPath)) throw new Error('Not Media Message')
 
-        const result = await this.pupPage.evaluate(async ({
+        const result = await this.mPage.evaluate(async ({
             directPath,
             encFilehash,
             filehash,
@@ -1122,7 +1151,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {Promise<Message[]>}
      */
     async searchMessages(query, options = {}) {
-        const messages = await this.pupPage.evaluate(async ({
+        const messages = await this.mPage.evaluate(async ({
             query,
             page,
             count,
@@ -1147,7 +1176,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {Promise<Array<Chat>>}
      */
     async getChats() {
-        let chats = await this.pupPage.evaluate(async () => {
+        let chats = await this.mPage.evaluate(async () => {
             return await window.WWebJS.getChats();
         });
 
@@ -1160,7 +1189,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {Promise<Chat>}
      */
     async getChatById(chatId) {
-        let chat = await this.pupPage.evaluate(async chatId => {
+        let chat = await this.mPage.evaluate(async chatId => {
             return await window.WWebJS.getChat(chatId);
         }, chatId);
 
@@ -1173,7 +1202,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {Promise<GroupChat>}
      */
     async groupMetadata(chatId) {
-        let chat = await this.pupPage.evaluate(async (chatId) => {
+        let chat = await this.mPage.evaluate(async (chatId) => {
             let chatWid = await window.Store.WidFactory.createWid(chatId)
             let chat = await window.Store.GroupMetadata.find(chatWid)
 
@@ -1189,7 +1218,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {Promise<Array<Contact>>}
      */
     async getContacts() {
-        let contacts = await this.pupPage.evaluate(() => {
+        let contacts = await this.mPage.evaluate(() => {
             return window.WWebJS.getContacts();
         });
 
@@ -1197,7 +1226,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
     }
 
     async saveContact(number) {
-        let contact = await this.pupPage.evaluate(number => {
+        let contact = await this.mPage.evaluate(number => {
             return window.WWebJS.getContact(number);
         }, number);
 
@@ -1210,7 +1239,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {Promise<Contact>}
      */
     async getContactById(contactId) {
-        let contact = await this.pupPage.evaluate(contactId => {
+        let contact = await this.mPage.evaluate(contactId => {
             return window.WWebJS.getContact(contactId);
         }, contactId);
 
@@ -1223,7 +1252,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {Promise<object>} Invite information
      */
     async getInviteInfo(inviteCode) {
-        return await this.pupPage.evaluate(inviteCode => {
+        return await this.mPage.evaluate(inviteCode => {
             return window.Store.InviteInfo.queryGroupInvite(inviteCode);
         }, inviteCode);
     }
@@ -1234,7 +1263,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {Promise<string>} Id of the joined Chat
      */
     async acceptInvite(inviteCode) {
-        const res = await this.pupPage.evaluate(async inviteCode => {
+        const res = await this.mPage.evaluate(async inviteCode => {
             return await window.Store.Invite.joinGroupViaInvite(inviteCode);
         }, inviteCode);
 
@@ -1249,7 +1278,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
     async acceptGroupV4Invite(inviteInfo) {
         if (!inviteInfo.inviteCode) throw 'Invalid invite code, try passing the message.inviteV4 object';
         if (inviteInfo.inviteCodeExp == 0) throw 'Expired invite code';
-        return this.pupPage.evaluate(async inviteInfo => {
+        return this.mPage.evaluate(async inviteInfo => {
             let {
                 groupId,
                 fromId,
@@ -1265,7 +1294,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @param {string} status New status message
      */
     async setStatus(status) {
-        await this.pupPage.evaluate(async status => {
+        await this.mPage.evaluate(async status => {
             return await window.Store.StatusUtils.setMyStatus(status);
         }, status);
     }
@@ -1277,7 +1306,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {Promise<Boolean>}
      */
     async setDisplayName(displayName) {
-        const couldSet = await this.pupPage.evaluate(async displayName => {
+        const couldSet = await this.mPage.evaluate(async displayName => {
             return window.WWebJS.profile.setMyProfileName(displayName)
         }, displayName);
 
@@ -1289,7 +1318,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {WAState} 
      */
     async getState() {
-        return await this.pupPage.evaluate(() => {
+        return await this.mPage.evaluate(() => {
             if (!window.Store) return null;
             return window.Store.AppState.state;
         });
@@ -1299,7 +1328,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * Marks the client as online
      */
     async sendPresenceAvailable() {
-        return await this.pupPage.evaluate(() => {
+        return await this.mPage.evaluate(() => {
             return window.Store.PresenceUtils.sendPresenceAvailable();
         });
     }
@@ -1308,7 +1337,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * Marks the client as unavailable
      */
     async sendPresenceUnavailable() {
-        return await this.pupPage.evaluate(() => {
+        return await this.mPage.evaluate(() => {
             return window.Store.PresenceUtils.sendPresenceUnavailable();
         });
     }
@@ -1318,7 +1347,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {boolean}
      */
     async archiveChat(chatId) {
-        return await this.pupPage.evaluate(async chatId => {
+        return await this.mPage.evaluate(async chatId => {
             let chat = await window.Store.Chat.get(chatId);
             await window.Store.Cmd.archiveChat(chat, true);
             return true;
@@ -1330,7 +1359,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {boolean}
      */
     async unarchiveChat(chatId) {
-        return await this.pupPage.evaluate(async chatId => {
+        return await this.mPage.evaluate(async chatId => {
             let chat = await window.Store.Chat.get(chatId);
             await window.Store.Cmd.archiveChat(chat, false);
             return false;
@@ -1342,7 +1371,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {Promise<boolean>} New pin state. Could be false if the max number of pinned chats was reached.
      */
     async pinChat(chatId) {
-        return this.pupPage.evaluate(async chatId => {
+        return this.mPage.evaluate(async chatId => {
             let chat = window.Store.Chat.get(chatId);
             if (chat.pin) {
                 return true;
@@ -1365,7 +1394,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {Promise<boolean>} New pin state
      */
     async unpinChat(chatId) {
-        return this.pupPage.evaluate(async chatId => {
+        return this.mPage.evaluate(async chatId => {
             let chat = window.Store.Chat.get(chatId);
             if (!chat.pin) {
                 return false;
@@ -1382,7 +1411,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      */
     async muteChat(chatId, unmuteDate) {
         unmuteDate = unmuteDate ? unmuteDate : -1;
-        await this.pupPage.evaluate(async (chatId, timestamp) => {
+        await this.mPage.evaluate(async (chatId, timestamp) => {
             let chat = await window.Store.Chat.get(chatId);
 
             let canMute = chat.mute.canMute()
@@ -1402,7 +1431,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @param {string} chatId ID of the chat that will be unmuted
      */
     async unmuteChat(chatId) {
-        await this.pupPage.evaluate(async chatId => {
+        await this.mPage.evaluate(async chatId => {
             let chat = await window.Store.Chat.get(chatId);
             await window.Store.Cmd.muteChat(chat, false);
         }, chatId);
@@ -1415,7 +1444,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      */
     async setEphemeral(chatId, ephemeralDuration) {
         ephemeralDuration = ephemeralDuration ? ephemeralDuration : 0
-        await this.pupPage.evaluate(async (chatId, ephemeralDuration) => {
+        await this.mPage.evaluate(async (chatId, ephemeralDuration) => {
             const chat = window.Store.Chat.get(chatId)
 
             if (chat.isGroup) {
@@ -1431,7 +1460,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @param {string} chatId ID of the chat that will be marked as unread
      */
     async markChatUnread(chatId) {
-        await this.pupPage.evaluate(async chatId => {
+        await this.mPage.evaluate(async chatId => {
             let chat = await window.Store.Chat.get(chatId);
             await window.Store.Cmd.markChatUnread(chat, true);
         }, chatId);
@@ -1443,7 +1472,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {Promise<string>}
      */
     async getProfilePicUrl(contactId) {
-        const profilePic = await this.pupPage.evaluate(async contactId => {
+        const profilePic = await this.mPage.evaluate(async contactId => {
             try {
                 const chatWid = window.Store.WidFactory.createWid(contactId);
                 return await window.Store.ProfilePic.profilePicFind(chatWid);
@@ -1462,7 +1491,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {Promise<WAWebJS.ChatId[]>}
      */
     async getCommonGroups(contactId) {
-        const commonGroups = await this.pupPage.evaluate(async (contactId) => {
+        const commonGroups = await this.mPage.evaluate(async (contactId) => {
             let contact = window.Store.Contact.get(contactId);
             if (!contact) {
                 const wid = window.Store.WidFactory.createUserWid(contactId);
@@ -1492,7 +1521,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * Force reset of connection state for the client
      */
     async resetState() {
-        await this.pupPage.evaluate(() => {
+        await this.mPage.evaluate(() => {
             window.Store.AppState.phoneWatchdog.shiftTimer.forceRunNow();
         });
     }
@@ -1517,7 +1546,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
             number += '@c.us';
         }
 
-        return await this.pupPage.evaluate(async number => {
+        return await this.mPage.evaluate(async number => {
             const wid = window.Store.WidFactory.createWid(number);
             const result = await window.Store.QueryExist(wid);
             if (!result || result.wid === undefined) return null;
@@ -1534,7 +1563,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
         if (!number.endsWith('@s.whatsapp.net')) number = number.replace('c.us', 's.whatsapp.net');
         if (!number.includes('@s.whatsapp.net')) number = `${number}@s.whatsapp.net`;
 
-        return await this.pupPage.evaluate(async numberId => {
+        return await this.mPage.evaluate(async numberId => {
             return window.Store.NumberInfo.formattedPhoneNumber(numberId);
         }, number);
     }
@@ -1547,7 +1576,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
     async getCountryCode(number) {
         number = number.replace(' ', '').replace('+', '').replace('@c.us', '');
 
-        return await this.pupPage.evaluate(async numberId => {
+        return await this.mPage.evaluate(async numberId => {
             return window.Store.NumberInfo.findCC(numberId);
         }, number);
     }
@@ -1569,7 +1598,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
             participants = participants.map(c => c.id._serialized);
         }
 
-        const createRes = await this.pupPage.evaluate(async (name, participantIds) => {
+        const createRes = await this.mPage.evaluate(async (name, participantIds) => {
             const participantWIDs = participantIds.map(p => window.Store.WidFactory.createWid(p));
             return await window.Store.GroupUtils.createGroup(name, participantWIDs, 0);
         }, name, participants);
@@ -1594,7 +1623,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {Promise<Array<Label>>}
      */
     async getLabels() {
-        const labels = await this.pupPage.evaluate(async () => {
+        const labels = await this.mPage.evaluate(async () => {
             return window.WWebJS.getLabels();
         });
 
@@ -1607,7 +1636,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {Promise<Label>}
      */
     async getLabelById(labelId) {
-        const label = await this.pupPage.evaluate(async (labelId) => {
+        const label = await this.mPage.evaluate(async (labelId) => {
             return window.WWebJS.getLabel(labelId);
         }, labelId);
 
@@ -1620,7 +1649,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {Promise<Array<Label>>}
      */
     async getChatLabels(chatId) {
-        const labels = await this.pupPage.evaluate(async (chatId) => {
+        const labels = await this.mPage.evaluate(async (chatId) => {
             return window.WWebJS.getChatLabels(chatId);
         }, chatId);
 
@@ -1633,7 +1662,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {Promise<Array<Chat>>}
      */
     async getChatsByLabelId(labelId) {
-        const chatIds = await this.pupPage.evaluate(async (labelId) => {
+        const chatIds = await this.mPage.evaluate(async (labelId) => {
             const label = window.Store.Label.get(labelId);
             const labelItems = label.labelItemCollection.getModelsArray();
             return labelItems.reduce((result, item) => {
@@ -1652,7 +1681,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {Promise<Array<Contact>>}
      */
     async getBlockedContacts() {
-        const blockedContacts = await this.pupPage.evaluate(() => {
+        const blockedContacts = await this.mPage.evaluate(() => {
             let chatIds = window.Store.Blocklist.getModelsArray().map(a => a.id._serialized);
             return Promise.all(chatIds.map(id => window.WWebJS.getContact(id)));
         });
@@ -1666,7 +1695,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {Promise<boolean>} Returns true if the picture was properly updated.
      */
     async setProfilePicture(media, type = 'normal') {
-        const success = await this.pupPage.evaluate(({
+        const success = await this.mPage.evaluate(({
             chatid,
             media,
             type
@@ -1686,7 +1715,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {Promise<boolean>} Returns true if the picture was properly deleted.
      */
     async deleteProfilePicture() {
-        const success = await this.pupPage.evaluate((chatid) => {
+        const success = await this.mPage.evaluate((chatid) => {
             return window.WWebJS.deletePicture(chatid);
         }, this.info.wid._serialized);
 
@@ -1707,7 +1736,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
         }
 
         const call = await Promise.all(chatId.map(async (id) => {
-            return await this.pupPage.evaluate(({
+            return await this.mPage.evaluate(({
                 id,
                 options
             }) => {
@@ -1727,7 +1756,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {Promise<Boolean>}
      */
     async endCall(chatId) {
-        const end = await this.pupPage.evaluate((chatId) => {
+        const end = await this.mPage.evaluate((chatId) => {
             return window.WWebJS.call.end(chatId)
         }, chatId)
 
@@ -1741,7 +1770,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {Promise<Boolean>}
      */
     async acceptCall(chatId) {
-        const end = await this.pupPage.evaluate((chatId) => {
+        const end = await this.mPage.evaluate((chatId) => {
             return window.WWebJS.call.accept(chatId)
         }, chatId)
 
@@ -1755,7 +1784,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {Promise<Boolean|String>}
      */
     async getLastSeen(chatId) {
-        const chat = await this.pupPage.evaluate(async (chatId) => {
+        const chat = await this.mPage.evaluate(async (chatId) => {
             return await window.WWebJS.chat.getLastSeen(chatId) || await window.WWebJS.getChatOnline(chatId);
         }, chatId);
 
@@ -1768,7 +1797,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns 
      */
     getHost() {
-        return this.pupPage.evaluate(() => {
+        return this.mPage.evaluate(() => {
             return WPP.whatsapp.Conn.attributes
         })
     }
@@ -1778,7 +1807,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @param {string} type light or dark 
      */
     async setTheme(type = 'dark') {
-        await this.pupPage.evaluate(async (type) => {
+        await this.mPage.evaluate(async (type) => {
             await window.Store.Theme.setTheme(type);
             return true
         }, type);
@@ -1789,7 +1818,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {string}
      */
     async getTheme() {
-        const theme = await this.pupPage.evaluate(async () => {
+        const theme = await this.mPage.evaluate(async () => {
             if (window.localStorage) {
                 return await JSON.parse(JSON.stringify(window.localStorage))?.theme
             } else {
@@ -1807,7 +1836,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns 
      */
     async clearMessage(chatId) {
-        return this.pupPage.evaluate(chatId => {
+        return this.mPage.evaluate(chatId => {
             return window.WWebJS.sendClearChat(chatId)
         }, chatId)
     }
@@ -1819,7 +1848,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns {Promise<void>}
      */
     async sendReadStatus(chatId, statusId) {
-        await this.pupPage.evaluate(async ({
+        await this.mPage.evaluate(async ({
             chatId,
             statusId
         }) => {
@@ -1840,7 +1869,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns 
      */
     async getStories(chatId = this.info.wid._serialized) {
-        const message = await this.pupPage.evaluate((chatId) => {
+        const message = await this.mPage.evaluate((chatId) => {
             if (chatId === 'all') {
                 const status = window.Store.StatusV3.getModelsArray()
 
@@ -1881,7 +1910,7 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
      * @returns 
      */
     async sendPoll(chatId, name, choices, options = {}) {
-        let message = await this.pupPage.evaluate(async ({
+        let message = await this.mPage.evaluate(async ({
             chatId,
             name,
             choices,
@@ -1914,4 +1943,4 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
     }
 }
 
-module.exports = Client;
+export default Client;
