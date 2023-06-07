@@ -2,9 +2,9 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.6.7">
+  <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.19.5 &raquo; Class: Message</title>
+  <title>whatsapp-web.js 1.21.0 &raquo; Class: Message</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>19.<wbr>5</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>21.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -26,7 +26,7 @@
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
             <h1><small></small><span class="symbol-name">Message</span></h1>
-            <p class="source-link">Source: <a href="structures_Message.js.html#source-line-14">structures/<wbr>Message.<wbr>js:14</a></p>
+            <p class="source-link">Source: <a href="structures_Message.js.html#source-line-15">structures/<wbr>Message.<wbr>js:15</a></p>
             <div class="symbol-classdesc">
               <p>Represents a Message on WhatsApp</p>
             </div>
@@ -76,6 +76,9 @@
                     <dt><a href="Message.html#hasQuotedMsg">hasQuotedMsg</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Message.html#hasReaction">hasReaction</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Message.html#id">id</a></dt>
                     <dd>
                     </dd>
@@ -100,13 +103,13 @@
                     <dt><a href="Message.html#links">links</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Message.html#location">location</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Message.html#location">location</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Message.html#mediaKey">mediaKey</a></dt>
                     <dd>
                     </dd>
@@ -180,13 +183,16 @@
                     <dt><a href="Message.html#getQuotedMessage">getQuotedMessage()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Message.html#react">react(reaction)</a></dt>
+                    <dt><a href="Message.html#getReactions">getReactions()</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Message.html#react">react(reaction)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Message.html#reload">reload()</a></dt>
                     <dd>
                     </dd>
@@ -268,6 +274,11 @@
               <h3 id="hasQuotedMsg"><span class="symbol-name">hasQuotedMsg</span><small class="property-type">
                   &nbsp;boolean</small></h3>
               <p>Indicates if the message was sent as a reply to another message.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="hasReaction"><span class="symbol-name">hasReaction</span><small class="property-type">
+                  &nbsp;boolean</small></h3>
+              <p>Indicates whether there are reactions to the message</p>
               <dl class="dl-compact">
               </dl>
               <h3 id="id"><span class="symbol-name">id</span><small class="property-type">
@@ -518,6 +529,15 @@
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getReactions"><span class="symbol-name">getReactions</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of <a href="global.html#ReactionList">ReactionList</a></span></span></h3>
+              <p>Gets the reactions associated with the given message</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing Array of <a href="global.html#ReactionList">ReactionList</a></code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="react"><span class="symbol-name">react</span><span class="signature"><span class="signature-params">(reaction)</span>&nbsp;&rarr; <span class="signature-returns"> Promise</span></span></h3>
               <p>React to this message with an emoji</p>
               <section>
@@ -650,7 +670,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on March 18, 2023.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on May 29, 2023.
       </p>
     </div>
   </footer>

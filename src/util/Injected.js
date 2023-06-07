@@ -120,7 +120,10 @@ exports.LoadUtils = () => {
                     forceDocument: options.sendMediaAsDocument,
                     forceGif: options.sendVideoAsGif
                 });
-
+            
+            if (options.caption){
+                attOptions.caption = options.caption; 
+            }
             content = options.sendMediaAsSticker ? undefined : attOptions.preview;
 
             delete options.attachment;
@@ -241,11 +244,12 @@ exports.LoadUtils = () => {
 
         const meUser = window.Store.User.getMaybeMeUser();
         const isMD = window.Store.MDBackend;
-
+        const newId = await window.Store.MsgKey.newId();
+        
         const newMsgId = new window.Store.MsgKey({
             from: meUser,
             to: chat.id,
-            id: window.Store.MsgKey.newId(),
+            id: newId,
             participant: isMD && chat.id.isGroup() ? meUser : undefined,
             selfDir: 'out',
         });
