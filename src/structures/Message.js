@@ -492,8 +492,8 @@ class Message extends Base {
      * @param {string[]} mentionedJidList mentions - list of mentions
      */
     async edit(text, mentionedJidList = []) {
-        if (mentionedJidList.length > 0 && !mentionedJidList.every(a => typeof a === "string")) {
-            if (mentionedJidList.every(a => typeof a === "object")) {
+        if (mentionedJidList.length > 0 && !mentionedJidList.every(a => typeof a === 'string')) {
+            if (mentionedJidList.every(a => typeof a === 'object')) {
                 mentionedJidList = mentionedJidList.map(a => a.id);
             }
         }

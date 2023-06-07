@@ -184,28 +184,28 @@ class Util {
     }
 
     static async getLinkPreview(link) {
-        const linkPreview = {};
+        let linkPreview = {};
 
         if (link.includes('http')) {
             const info = await getLinkPreview(link, { headers: { 'user-agent': "WhatsApp/2.23.8.76 A" } }).catch(_ => _);
 
             if (info && info.title) {
-                const [image] = info.images;
+                const [url, title, siteName, description, image] = info.images;
                 let imageData;
                 if (image) {
                     imageData = (await MessageMedia.fromUrl(image)).data;
                 }
 
                 linkPreview = {
-                    url: e.url,
-                    title: e.domain,
-                    description: e.url,
-                    canonicalUrl: e.url,
-                    matchedText: e.url,
+                    url,
+                    title,
+                    description,
+                    canonicalUrl: siteName,
+                    matchedText: description,
                     richPreviewType: 0,
                     thumbnail: imageData,
                     doNotPlayInline: true
-                }
+                };
             }
         }
 

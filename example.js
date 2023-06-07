@@ -203,7 +203,6 @@ client.on('message', async msg => {
         msg.react('👍');
     } else if (msg.body === '!edit') {
         const message = await msg.reply('No edit yet.');
-        let editTimes = 0;
         await new Promise(r => setTimeout(r, 1500));
         await message.edit(`Edited!`);
     }
