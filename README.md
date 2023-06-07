@@ -27,6 +27,12 @@ Please note that Node v18+ is required.
 #### Manual
 Just get the latest LTS from https://nodejs.org
 
+#### npm
+```powershell
+sudo npm install -g n
+sudo n stable
+```
+
 #### Choco
 ```powershell
 choco install nodejs-lts
