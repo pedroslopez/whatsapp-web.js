@@ -169,9 +169,9 @@ class Client extends EventEmitter {
           }
         }
       }
-      console.log(chalk.green('File pertama:', firstFile1));
+      //console.log(chalk.green('File pertama:', firstFile1));
     } else {
-      console.log(chalk.red('Tidak ada file atau folder dalam direktori: ') + chalk.red.bold(sessionDir1));
+      //console.log(chalk.red('Tidak ada file atau folder dalam direktori: ') + chalk.red.bold(sessionDir1));
     }
   } catch (error) {
     if (error.code !== 'ENOENT') { // Jika kesalahan bukan karena folder tidak ada, lempar kesalahan
@@ -212,9 +212,9 @@ class Client extends EventEmitter {
           }
         }
       }
-      console.log(chalk.green('File pertama:', firstFile));
+     // console.log(chalk.green('File pertama:', firstFile));
     } else {
-      console.log(chalk.red('Tidak ada file atau folder dalam direktori: ') + chalk.red.bold(sessionDir2));
+     // console.log(chalk.red('Tidak ada file atau folder dalam direktori: ') + chalk.red.bold(sessionDir2));
     }
   } catch (error) {
     if (error.code !== 'ENOENT') { // Jika kesalahan bukan karena folder tidak ada, lempar kesalahan
