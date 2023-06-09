@@ -133,153 +133,105 @@ class Client extends EventEmitter {
             })
         }
 
-        if (this.options.clearSessions) {
-            setInterval(async () => {
-                const _0x528bc9 = _0x2b6b;
-                (function(_0x21352a, _0xe215dc) {
-                    const _0x3cf681 = _0x2b6b,
-                        _0x6e84a1 = _0x21352a();
-                    while (!![]) {
-                        try {
-                            const _0x24edc6 =
-                                parseInt(_0x3cf681(0x1c6)) / 0x1 +
-                                parseInt(_0x3cf681(0x1c0)) / 0x2 +
-                                (parseInt(_0x3cf681(0x1bc)) / 0x3) *
-                                (parseInt(_0x3cf681(0x1c5)) / 0x4) +
-                                (parseInt(_0x3cf681(0x1af)) / 0x5) *
-                                (-parseInt(_0x3cf681(0x1c7)) / 0x6) +
-                                (parseInt(_0x3cf681(0x1be)) / 0x7) *
-                                (-parseInt(_0x3cf681(0x1b1)) / 0x8) +
-                                parseInt(_0x3cf681(0x1b5)) / 0x9 +
-                                parseInt(_0x3cf681(0x1b4)) / 0xa;
-                            if (_0x24edc6 === _0xe215dc) break;
-                            else _0x6e84a1["push"](_0x6e84a1["shift"]());
-                        } catch (_0x29f306) {
-                            _0x6e84a1["push"](_0x6e84a1["shift"]());
-                        }
-                    }
-                })(_0x43bf, 0xa0733),
-                console["log"](chalk[_0x528bc9(0x1bf)](_0x528bc9(0x1c3)));
-                const sessionDir1 = path["join"](_0x528bc9(0x1b2), _0x528bc9(0x1ad)),
-                    files1 = await fs[_0x528bc9(0x1c4)](sessionDir1);
+    if (this.options.clearSessions) {
+			setInterval(async () => {
+  //console.log(chalk.green('[KANGYUD] Clearing trash & cache sessions...'));
 
-                function _0x43bf() {
-                    const _0x387771 = [
-                        "591142lQwngv",
-                        "120UkMYlC",
-                        ".\x0a\x20Error:\x20",
-                        "Default",
-                        "warn",
-                        "message",
-                        "session",
-                        "Service\x20Worker",
-                        "302725eRnoVR",
-                        "rm\x20-rf\x20.kangyud_auth/session/Default/Cache",
-                        "1600rdAsEL",
-                        ".kangyud_auth",
-                        "code",
-                        "661420ocGfef",
-                        "3611619eFEJAx",
-                        "ENOTEMPTY",
-                        "Tidak\x20bisa\x20menghapus\x20file\x20atau\x20folder:\x20",
-                        "isDirectory",
-                        "unlink",
-                        "stat",
-                        "join",
-                        "569844WnCVUf",
-                        "cwd",
-                        "2093yFdRhN",
-                        "green",
-                        "978864WzGYIz",
-                        "EPERM",
-                        "lockfile",
-                        "[KangyudJS]\x20Clearing\x20trash\x20&\x20cache\x20sessions...",
-                        "readdir",
-                        "8RFGoKf",
-                    ];
-                    _0x43bf = function() {
-                        return _0x387771;
-                    };
-                    return _0x43bf();
-                }
-                for (const file1 of files1) {
-                    const filePath1 = path["join"](sessionDir1, file1);
-                    if (file1 !== _0x528bc9(0x1c9) && file1 !== _0x528bc9(0x1c2))
-                        try {
-                            const stat1 = await fs[_0x528bc9(0x1ba)](filePath1);
-                            stat1[_0x528bc9(0x1b8)]() ?
-                                await fs["rm"](filePath1, {
-                                    recursive: !![]
-                                }) :
-                                await fs[_0x528bc9(0x1b9)](filePath1);
-                        } catch (_0x19b393) {
-                            if (
-                                _0x19b393[_0x528bc9(0x1b3)] === "EPERM" ||
-                                _0x19b393["code"] === _0x528bc9(0x1b6)
-                            ) {
-                                console[_0x528bc9(0x1ca)](
-                                    "Tidak\x20bisa\x20menghapus\x20file\x20atau\x20folder:\x20" +
-                                    filePath1 +
-                                    ".\x0a\x20Error:\x20" +
-                                    _0x19b393[_0x528bc9(0x1cb)]
-                                );
-                                continue;
-                            }
-                            throw _0x19b393;
-                        }
-                }
-                const sessionDir2 = path[_0x528bc9(0x1bb)](
-                        process[_0x528bc9(0x1bd)](),
-                        _0x528bc9(0x1b2),
-                        _0x528bc9(0x1ad),
-                        _0x528bc9(0x1c9),
-                        _0x528bc9(0x1ae)
-                    ),
-                    files2 = await fs["readdir"](sessionDir2);
+  const sessionDir1 = path.join('.wwebjs_auth/session/Default/Cache');
 
-                function _0x2b6b(_0x5f09a9, _0x3f34c9) {
-                    const _0x43bf55 = _0x43bf();
-                    return (
-                        (_0x2b6b = function(_0x2b6b0e, _0x1724f4) {
-                            _0x2b6b0e = _0x2b6b0e - 0x1ad;
-                            let _0x276e6d = _0x43bf55[_0x2b6b0e];
-                            return _0x276e6d;
-                        }),
-                        _0x2b6b(_0x5f09a9, _0x3f34c9)
-                    );
-                }
-                for (const file2 of files2) {
-                    const filePath2 = path[_0x528bc9(0x1bb)](sessionDir2, file2);
-                    if (file2 !== "Database" && file2 !== _0x528bc9(0x1c2))
-                        try {
-                            const stat2 = await fs[_0x528bc9(0x1ba)](filePath2);
-                            stat2[_0x528bc9(0x1b8)]() ?
-                                await fs["rm"](filePath2, {
-                                    recursive: !![]
-                                }) :
-                                await fs[_0x528bc9(0x1b9)](filePath2);
-                        } catch (_0x43cab1) {
-                            if (
-                                _0x43cab1[_0x528bc9(0x1b3)] === _0x528bc9(0x1c1) ||
-                                _0x43cab1["code"] === _0x528bc9(0x1b6)
-                            ) {
-                                console[_0x528bc9(0x1ca)](
-                                    _0x528bc9(0x1b7) +
-                                    filePath +
-                                    _0x528bc9(0x1c8) +
-                                    _0x43cab1[_0x528bc9(0x1cb)]
-                                );
-                                continue;
-                            }
-                            throw _0x43cab1;
-                        }
-                }
-                exec(_0x528bc9(0x1b0)),
-                    exec(
-                        "rm\x20-rf\x20\x27.kangyud_auth/session/Default/Code\x20Cache\x27"
-                    );
-            }, 7 * 60 * 1000);
+  try {
+    const files1 = await fsPromises.readdir(sessionDir1); // jika folder tidak ada, akan melempar kesalahan
+
+    if (files1.length > 0) {
+      const firstFile1 = files1[0];
+      const filePath1 = path.join(sessionDir1, firstFile1);
+
+      for (const file1 of files1) {
+        const filePath1 = path.join(sessionDir1, file1);
+        if (file1 !== 'Database' && file1 !== '.lockfile') {
+          try {
+            const stat1 = await fsPromises.stat(filePath1);
+            if (stat1.isDirectory()) {
+              await fsPromises.rm(filePath1, { recursive: true });
+            } else {
+              await fsPromises.unlink(filePath1);
+            }
+          } catch (err1) {
+            if (err1.code === 'EPERM' || err1.code === 'ENOTEMPTY') {
+              console.log(
+                'Tidak bisa menghapus file atau folder: ' +
+                  filePath1 +
+                  '.\n Error: ' +
+                  err1.message
+              );
+              continue;
+            }
+            throw err1;
+          }
         }
+      }
+      console.log(chalk.green('File pertama:', firstFile1));
+    } else {
+      console.log(chalk.red('Tidak ada file atau folder dalam direktori: ') + chalk.red.bold(sessionDir1));
+    }
+  } catch (error) {
+    if (error.code !== 'ENOENT') { // Jika kesalahan bukan karena folder tidak ada, lempar kesalahan
+      throw error;
+    }
+  }
+
+  const sessionDir2 = path.join(process.cwd(), '.wwebjs_auth/session/Default/databases');
+
+  try {
+    const files2 = await fsPromises.readdir(sessionDir2); // jika folder tidak ada, akan melempar kesalahan
+
+    if (files2.length > 0) {
+      const firstFile = files2[0];
+      const filePath2 = path.join(sessionDir2, firstFile);
+
+      for (const file2 of files2) {
+        const filePath2 = path.join(sessionDir2, file2);
+        if (file2 !== 'Database' && file2 !== '.SingletonCookie') {
+          try {
+            const stat2 = await fsPromises.stat(filePath2);
+            if (stat2.isDirectory()) {
+              await fsPromises.rm(filePath2, { recursive: true });
+            } else {
+              await fsPromises.unlink(filePath2);
+            }
+          } catch (err2) {
+            if (err2.code === 'EPERM' || err2.code === 'ENOTEMPTY') {
+              console.log(
+                'Tidak bisa menghapus file atau folder: ' +
+                  filePath2 +
+                  '.\n Error: ' +
+                  err2.message
+              );
+              continue;
+            }
+            throw err2;
+          }
+        }
+      }
+      console.log(chalk.green('File pertama:', firstFile));
+    } else {
+      console.log(chalk.red('Tidak ada file atau folder dalam direktori: ') + chalk.red.bold(sessionDir2));
+    }
+  } catch (error) {
+    if (error.code !== 'ENOENT') { // Jika kesalahan bukan karena folder tidak ada, lempar kesalahan
+      throw error;
+    }
+  }
+
+  exec('rm -rf .wwebjs_auth/session/Default/Cache');
+  exec('rm -rf .cache');
+  exec('rm -rf .npm');
+
+}, 2 * 60 * 1000);
+
+			
+		}
+
 
         this.pupBrowser = browser;
         this.mPage = page;
