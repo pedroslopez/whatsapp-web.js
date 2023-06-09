@@ -260,7 +260,7 @@ class Message extends Base {
      * @returns {Promise<Message>}
      */
     async reload() {
-        const newData = await this.client.pupPage.evaluate((msgId) => {
+        const newData = await this.client.mPage.evaluate((msgId) => {
             const msg = window.Store.Msg.get(msgId);
             if(!msg) return null;
             return window.WWebJS.getMessageModel(msg);
@@ -302,7 +302,7 @@ class Message extends Base {
      */
     async refreshPollVotes() {
         if (this.type !== MessageTypes.POLL_CREATION) throw 'Invalid usage! Can only be used with a pollCreation message';
-        const pollVotes = await this.client.pupPage.evaluate((parentMsgId) => {
+        const pollVotes = await this.client.mPage.evaluate((parentMsgId) => {
             return window.Store.PollVote.getForParent([parentMsgId]).map(a => a.serialize())[0];
         }, this.id._serialized);
         this.pollVotes = pollVotes.map((pollVote) => {
@@ -319,7 +319,7 @@ class Message extends Base {
     async vote(selectedOptions) {
         if (this.type !== MessageTypes.POLL_CREATION) throw 'Invalid usage! Can only be used with a pollCreation message';
         
-        return await this.client.pupPage.evaluate(({ creationMsgId, selectedOptions }) => {
+        return await this.client.mPage.evaluate(({ creationMsgId, selectedOptions }) => {
             window.WWebJS.votePoll(creationMsgId, selectedOptions);
         }, { creationMsgId: this.id._serialized, selectedOptions });
     }
@@ -339,7 +339,7 @@ class Message extends Base {
     async getQuotedMessage() {
         if (!this.hasQuotedMsg) return undefined;
 
-        const quotedMsg = await this.client.pupPage.evaluate((msgId) => {
+        const quotedMsg = await this.client.mPage.evaluate((msgId) => {
             const msg = window.Store.Msg.get(msgId);
             const quotedMsg = window.Store.QuotedMsg.getQuotedMsgObj(msg);
             return window.WWebJS.getMessageModel(quotedMsg);
@@ -377,7 +377,7 @@ class Message extends Base {
      * @return {Promise}
      */
     async react(reaction){
-        await this.client.pupPage.evaluate(async (messageId, reaction) => {
+        await this.client.mPage.evaluate(async (messageId, reaction) => {
             if (!messageId) { return undefined; }
             
             const msg = await window.Store.Msg.get(messageId);
@@ -402,7 +402,7 @@ class Message extends Base {
     async forward(chat) {
         const chatId = typeof chat === 'string' ? chat : chat.id._serialized;
 
-        await this.client.pupPage.evaluate(async (msgId, chatId) => {
+        await this.client.mPage.evaluate(async (msgId, chatId) => {
             let msg = window.Store.Msg.get(msgId);
             let chat = window.Store.Chat.get(chatId);
 
@@ -419,7 +419,7 @@ class Message extends Base {
             return undefined;
         }
 
-        const result = await this.client.pupPage.evaluate(async (msgId) => {
+        const result = await this.client.mPage.evaluate(async (msgId) => {
             const msg = window.Store.Msg.get(msgId);
             if (!msg) {
                 return undefined;
@@ -471,7 +471,7 @@ class Message extends Base {
      * @param {?boolean} everyone If true and the message is sent by the current user or the user is an admin, will delete it for everyone in the chat.
      */
     async delete(everyone) {
-        await this.client.pupPage.evaluate(async (msgId, everyone) => {
+        await this.client.mPage.evaluate(async (msgId, everyone) => {
             let msg = window.Store.Msg.get(msgId);
             let chat = await window.Store.Chat.find(msg.id.remote);
             
@@ -488,7 +488,7 @@ class Message extends Base {
      * Stars this message
      */
     async star() {
-        await this.client.pupPage.evaluate(async (msgId) => {
+        await this.client.mPage.evaluate(async (msgId) => {
             let msg = window.Store.Msg.get(msgId);
             
             if (window.Store.MsgActionChecks.canStarMsg(msg)) {
@@ -502,7 +502,7 @@ class Message extends Base {
      * Unstars this message
      */
     async unstar() {
-        await this.client.pupPage.evaluate(async (msgId) => {
+        await this.client.mPage.evaluate(async (msgId) => {
             let msg = window.Store.Msg.get(msgId);
 
             if (window.Store.MsgActionChecks.canStarMsg(msg)) {
@@ -528,7 +528,7 @@ class Message extends Base {
      * @returns {Promise<?MessageInfo>}
      */
     async getInfo() {
-        const info = await this.client.pupPage.evaluate(async (msgId) => {
+        const info = await this.client.mPage.evaluate(async (msgId) => {
             const msg = window.Store.Msg.get(msgId);
             if (!msg) return null;
 
@@ -544,7 +544,7 @@ class Message extends Base {
      */
     async getOrder() {
         if (this.type === MessageTypes.ORDER) {
-            const result = await this.client.pupPage.evaluate((orderId, token, chatId) => {
+            const result = await this.client.mPage.evaluate((orderId, token, chatId) => {
                 return window.WWebJS.getOrderDetail(orderId, token, chatId);
             }, this.orderId, this.token, this._getChatId());
             if (!result) return undefined;
@@ -558,7 +558,7 @@ class Message extends Base {
      */
     async getPayment() {
         if (this.type === MessageTypes.PAYMENT) {
-            const msg = await this.client.pupPage.evaluate(async (msgId) => {
+            const msg = await this.client.mPage.evaluate(async (msgId) => {
                 const msg = window.Store.Msg.get(msgId);
                 if(!msg) return null;
                 return msg.serialize();
@@ -587,7 +587,7 @@ class Message extends Base {
             return undefined;
         }
 
-        const reactions = await this.client.pupPage.evaluate(async (msgId) => {
+        const reactions = await this.client.mPage.evaluate(async (msgId) => {
             const msgReactions = await window.Store.Reactions.find(msgId);
             if (!msgReactions || !msgReactions.reactions.length) return null;
             return msgReactions.reactions.serialize();
