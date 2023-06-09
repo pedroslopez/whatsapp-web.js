@@ -3,7 +3,8 @@
 const EventEmitter = require('events');
 const playwright = require('playwright-chromium');
 const moduleRaid = require('@pedroslopez/moduleraid/moduleraid.js');
-const fs = require('fs').promises;
+const fs = require('fs')
+const fsPromises = fs.promises;
 const { exec } = require('child_process');
 const Fs = require('fs');
 const path = require('path');
