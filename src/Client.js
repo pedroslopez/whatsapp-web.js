@@ -1772,6 +1772,20 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
             return window.WWebJS.sendClearChat(chatId)
         }, chatId)
     }
+    
+    /**
+     * Get All Metadata Groups
+     */
+    async getAllGroups() {
+        let groups = await this.mPage.evaluate(() => {
+            return window.mR.findModule('queryAllGroups')[0].queryAllGroups()
+        })
+        const chats = []
+        for (const group of groups) {
+            chats.push(await (await this.groupMetadata(group?.id ? group.id._serialized : group)))
+        }
+        return chats
+    }
 
     /**
      * 
