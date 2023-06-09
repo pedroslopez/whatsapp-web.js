@@ -1,36 +1,22 @@
 'use strict';
 
-import EventEmitter from 'events';
-import playwright from 'playwright-chromium'
-import moduleRaid from '@pedroslopez/moduleraid/moduleraid.js';
-import {
-    createRequire
-} from 'module';
-import chalk from 'chalk';
-import {
-    promises as fs
-} from "fs";
-import {
-    exec
-} from "child_process";
-import Fs from 'fs'
-import path from 'path';
+const EventEmitter = require('events');
+const playwright = require('playwright-chromium');
+const moduleRaid = require('@pedroslopez/moduleraid/moduleraid.js');
+const { createRequire } = require('module');
+const chalk = require('chalk');
+const fs = require('fs').promises;
+const { exec } = require('child_process');
+const Fs = require('fs');
+const path = require('path');
 
-import Util from './util/Util.js';
-import InterfaceController from './util/InterfaceController.js';
-import {
-    WhatsWebURL,
-    DefaultOptions,
-    Events,
-    WAState
-} from './util/Constants.js';
-import {
-    ExposeStore,
-    LoadUtils
-} from './util/Injected.js';
-import ChatFactory from './factories/ChatFactory.js';
-import ContactFactory from './factories/ContactFactory.js';
-import {
+const Util = require('./util/Util.js');
+const InterfaceController = require('./util/InterfaceController.js');
+const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constants.js');
+const { ExposeStore, LoadUtils } = require('./util/Injected.js');
+const ChatFactory = require('./factories/ChatFactory.js');
+const ContactFactory = require('./factories/ContactFactory.js');
+const {
     PollVote,
     ClientInfo,
     Message,
@@ -42,14 +28,12 @@ import {
     Call,
     Buttons,
     List,
-    Reaction
-} from './structures/index.js';
-import LegacySessionAuth from './authStrategies/LegacySessionAuth.js';
-import NoAuth from './authStrategies/NoAuth.js';
+    Reaction,
+} = require('./structures/index.js');
+const LegacySessionAuth = require('./authStrategies/LegacySessionAuth.js');
+const NoAuth = require('./authStrategies/NoAuth.js');
 
-
-const require = createRequire(import.meta.url)
-
+const require = createRequire(import.meta.url);
 
 /**
  * Starting point for interacting with the WhatsApp Web API
@@ -1943,4 +1927,4 @@ return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TY
     }
 }
 
-export default Client;
+module.exports = Client;
