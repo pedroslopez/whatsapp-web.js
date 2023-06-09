@@ -3,13 +3,11 @@
 const EventEmitter = require('events');
 const playwright = require('playwright-chromium');
 const moduleRaid = require('@pedroslopez/moduleraid/moduleraid.js');
-const { createRequire } = require('module');
 const chalk = require('chalk');
 const fs = require('fs').promises;
 const { exec } = require('child_process');
 const Fs = require('fs');
 const path = require('path');
-
 const Util = require('./util/Util.js');
 const InterfaceController = require('./util/InterfaceController.js');
 const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constants.js');
@@ -32,8 +30,6 @@ const {
 } = require('./structures/index.js');
 const LegacySessionAuth = require('./authStrategies/LegacySessionAuth.js');
 const NoAuth = require('./authStrategies/NoAuth.js');
-
-const require = createRequire(import.meta.url);
 
 /**
  * Starting point for interacting with the WhatsApp Web API
