@@ -384,7 +384,7 @@ class Message extends Base {
         let internalOptions = {
             multicast: options.multicast || false,
             withCaption: options.withCaption || false
-        }
+        };
 
         await this.client.pupPage.evaluate(async (msgId, chatId, options) => {
             let msg = window.Store.Msg.get(msgId);

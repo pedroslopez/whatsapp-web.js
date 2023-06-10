@@ -211,10 +211,10 @@ client.on('message', async msg => {
          */
 
         // 1. By default it will be forwarded without a caption text (even if provided):
-        await msg.forward(msg.author)
+        await msg.forward(msg.author);
 
         // 2. To forward with a caption text of original message (if provided) do:
-        await msg.forward(msg.author, { withCaption: true })
+        await msg.forward(msg.author, { withCaption: true });
     }
 });
 
