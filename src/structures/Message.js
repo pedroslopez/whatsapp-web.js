@@ -7,7 +7,7 @@ const Order = require('./Order');
 const Payment = require('./Payment');
 const Reaction = require('./Reaction');
 const {MessageTypes} = require('../util/Constants');
-const {Contact} = require("./index");
+const {Contact} = require('./Contact');
 
 /**
  * Represents a Message on WhatsApp
