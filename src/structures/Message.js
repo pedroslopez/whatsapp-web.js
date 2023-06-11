@@ -7,6 +7,7 @@ const Order = require('./Order');
 const Payment = require('./Payment');
 const Reaction = require('./Reaction');
 const {MessageTypes} = require('../util/Constants');
+const {Contact} = require("./index");
 
 /**
  * Represents a Message on WhatsApp
@@ -589,13 +590,20 @@ class Message extends Base {
 
     /**
      * Edits the current message.
-     * @param {string|MessageMedia|Location|Contact|Array<Contact>|Buttons|List} content
-     * @param {MessageSendOptions} [options] - Options used when sending the message
+     * @param {string} content
+     * @param {MessageEditOptions} [options] - Options used when editing the message
      * @returns {Promise<?Message>}
      */
-    async edit(content, options = []) {
-        const {message, internalOptions} = await this.client.handlerContent(content, options);
-
+    async edit(content, options = {}) {
+        if (options.mentions && options.mentions.some(possiblyContact => possiblyContact instanceof Contact)) {
+            options.mentions = options.mentions.map(a => a.id._serialized);
+        }
+        let internalOptions = {
+            linkPreview: options.linkPreview === false ? undefined : true,
+            mentionedJidList: Array.isArray(options.mentions) ? options.mentions : [],
+            extraOptions: options.extra
+        };
+        
         if (!this.fromMe) {
             return null;
         }
@@ -609,7 +617,7 @@ class Message extends Base {
                 return msgEdit.serialize();
             }
             return null;
-        }, this.id._serialized, message, internalOptions);
+        }, this.id._serialized, content, internalOptions);
         if (messageEdit) {
             return new Message(this.client, messageEdit);
         }

@@ -109,7 +109,7 @@ exports.LoadUtils = () => {
         return false;
 
     };
-    window.WWebJS.handlerOptions = async (chat, content, options = {}) => {
+    window.WWebJS.sendMessage = async (chat, content, options = {}) => {
         let attOptions = {};
         if (options.attachment) {
             attOptions = options.sendMediaAsSticker
@@ -245,34 +245,11 @@ exports.LoadUtils = () => {
             delete options.list;
             delete listOptions.list.footer;
         }
-        
-        return {
-            message: content,
-            options:options,
-            locationOptions:locationOptions,
-            attOptions: attOptions,
-            quotedMsgOptions: quotedMsgOptions,
-            vcardOptions: vcardOptions,
-            buttonOptions: buttonOptions,
-            listOptions: listOptions
-        };
-    }; 
-    
-    window.WWebJS.sendMessage = async (chat, content, internalOptions = {}) => {
-        let {
-            message,
-            options,
-            locationOptions,
-            attOptions,
-            quotedMsgOptions,
-            vcardOptions,
-            buttonOptions,
-            listOptions
-        } = await window.WWebJS.handlerOptions(chat, content, internalOptions);
+
         const meUser = window.Store.User.getMaybeMeUser();
         const isMD = window.Store.MDBackend;
         const newId = await window.Store.MsgKey.newId();
-        
+
         const newMsgId = new window.Store.MsgKey({
             from: meUser,
             to: chat.id,
@@ -286,11 +263,11 @@ exports.LoadUtils = () => {
 
         const ephemeralFields = window.Store.EphemeralFields.getEphemeralFields(chat);
 
-        const messageObject = {
+        const message = {
             ...options,
             id: newMsgId,
             ack: 0,
-            body: message,
+            body: content,
             from: meUser,
             to: chat.id,
             local: true,
@@ -309,36 +286,41 @@ exports.LoadUtils = () => {
             ...extraOptions
         };
 
-        await window.Store.SendMessage.addAndSendMsgToChat(chat, messageObject);
+        await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
         return window.Store.Msg.get(newMsgId._serialized);
     };
 
-    window.WWebJS.editMessage = async (msg, content, internalOptions = {}) => {
+    window.WWebJS.editMessage = async (msg, content, options = {}) => {
 
-        const extraOptions = internalOptions.extraOptions || {};
-        delete internalOptions.extraOptions;
+        const extraOptions = options.extraOptions || {};
+        delete options.extraOptions;
         
-        const {
-            options,
-            locationOptions,
-            attOptions,
-            vcardOptions,
-            buttonOptions,
-            listOptions
-        } = await window.WWebJS.handlerOptions(null, content, internalOptions);
-        
-        const message = {
+        if (options.mentionedJidList) {
+            options.mentionedJidList = options.mentionedJidList.map(cId => window.Store.Contact.get(cId).id);
+        }
+
+        if (options.linkPreview) {
+            options.linkPreview = null;
+
+            // Not supported yet by WhatsApp Web on MD
+            if(!window.Store.MDBackend) {
+                const link = window.Store.Validators.findLink(content);
+                if (link) {
+                    const preview = await window.Store.Wap.queryLinkPreview(link.url);
+                    preview.preview = true;
+                    preview.subtype = 'url';
+                    options = { ...options, ...preview };
+                }
+            }
+        }
+
+
+        const internalOptions = {
             ...options,
-            ...locationOptions,
-            ...attOptions,
-            ...(attOptions.toJSON ? attOptions.toJSON() : {}),
-            ...vcardOptions,
-            ...buttonOptions,
-            ...listOptions,
             ...extraOptions
         };
 
-        await window.Store.EditMessage.sendMessageEdit(msg, content, message);
+        await window.Store.EditMessage.sendMessageEdit(msg, content, internalOptions);
         return window.Store.Msg.get(msg.id._serialized);
     };
 

@@ -862,7 +862,7 @@ declare namespace WAWebJS {
          */
         getReactions: () => Promise<ReactionList[]>,
         /** Edits the current message */
-        edit: (content: MessageContent, options?: MessageSendOptions) => Promise<Message | null>,
+        edit: (content: MessageContent, options?: MessageEditOptions) => Promise<Message | null>,
     }
 
     /** ID that represents a message */
@@ -926,6 +926,16 @@ declare namespace WAWebJS {
         stickerAuthor?: string
         /** Sticker categories, if sendMediaAsSticker is true */
         stickerCategories?: string[]
+    }
+
+    /** Options for editing a message */
+    export interface MessageEditOptions {
+        /** Show links preview. Has no effect on multi-device accounts. */
+        linkPreview?: boolean
+        /** Contacts that are being mentioned in the message */
+        mentions?: Contact[]
+        /** Extra options */
+        extra?: any
     }
 
     export interface MediaFromURLOptions {
