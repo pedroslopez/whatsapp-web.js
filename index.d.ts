@@ -62,6 +62,9 @@ declare namespace WAWebJS {
 
         /** Get all current contact instances */
         getContacts(): Promise<Contact[]>
+
+        /** Get the message with given serializedId **/
+        getMessageById: () => Promise<Message>  
         
         /** Get the country code of a WhatsApp ID. (154185968@c.us) => (1) */
         getCountryCode(number: string): Promise<string>

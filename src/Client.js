@@ -856,6 +856,28 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Get message by serialized ID
+     * @param {string} messageId 
+     * @returns {Promise<Message>}
+     */
+    async getMessageById(messageId) {
+        const msg = await this.pupPage.evaluate(async messageId => {
+            let msg = window.Store.Msg.get(messageId);
+            if(msg) return window.WWebJS.getMessageModel(msg);
+
+            const params = messageId.split('_');
+            if(params.length !== 3) throw new Error('Invalid serialized message id specified');
+
+            let messagesObject = await window.Store.Msg.getMessagesById([messageId]);
+            if (messagesObject && messagesObject.messages.length) msg = messagesObject.messages[0];
+
+            if(msg) return window.WWebJS.getMessageModel(msg);
+        }, messageId);
+
+        if(msg) return new Message(this, msg);
+        return null;
+    }
+    /**
      * Get all current contact instances
      * @returns {Promise<Array<Contact>>}
      */
