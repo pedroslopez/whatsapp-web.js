@@ -585,6 +585,10 @@ class Client extends EventEmitter {
         });
 
         await page.exposeFunction('onEditMessageEvent', (msg, newBody, prevBody) => {
+            
+            if(msg.type === 'revoked'){
+                return;
+            }
             /**
              * Emitted when messages are edited
              * @event Client#message_edit
