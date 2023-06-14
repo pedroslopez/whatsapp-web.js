@@ -291,7 +291,7 @@ exports.LoadUtils = () => {
         return window.Store.Msg.get(newMsgId._serialized);
     };
 	
-	window.WWebJS.editMessage = async (msg, content, options = {}) => {
+    window.WWebJS.editMessage = async (msg, content, options = {}) => {
 
         const extraOptions = options.extraOptions || {};
         delete options.extraOptions;
