@@ -1,4 +1,4 @@
-const { Client, Location, List, Buttons, LocalAuth } = require('./index');
+const { Client, Location, List, Buttons, LocalAuth, WAState } = require('./index');
 
 const client = new Client({
     authStrategy: new LocalAuth(),
@@ -257,8 +257,24 @@ client.on('group_update', (notification) => {
     console.log('update', notification);
 });
 
-client.on('change_state', state => {
-    console.log('CHANGE STATE', state);
+const delay = (msec) => new Promise(resolve => setTimeout(resolve, msec));
+let state;
+
+client.on('change_state', async (_state) => {
+    state = _state;
+    /** 
+     * Once the internet connection is lost the client state will be set to WAState.OPENING.
+     * The resetState function immediately changes the client state to WAState.CONNECTED
+     * after internet reconnection.
+     */
+    while (state === WAState.OPENING) {
+        await client.resetState();
+        /** 
+         * It is recommended to add a delay after each iteration at least 1000 msec
+         * to prevent useless frequent function calls and unexpected behavior.
+         */
+        await delay(3000);
+    }
 });
 
 // Change to false if you don't want to reject incoming calls
