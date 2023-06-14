@@ -109,6 +109,7 @@ exports.LoadUtils = () => {
         return false;
 
     };
+
     window.WWebJS.sendMessage = async (chat, content, options = {}) => {
         let attOptions = {};
         if (options.attachment) {
@@ -119,9 +120,9 @@ exports.LoadUtils = () => {
                     forceDocument: options.sendMediaAsDocument,
                     forceGif: options.sendVideoAsGif
                 });
-
+            
             if (options.caption){
-                attOptions.caption = options.caption;
+                attOptions.caption = options.caption; 
             }
             content = options.sendMediaAsSticker ? undefined : attOptions.preview;
 
@@ -133,8 +134,8 @@ exports.LoadUtils = () => {
             let quotedMessage = window.Store.Msg.get(options.quotedMessageId);
 
             // TODO remove .canReply() once all clients are updated to >= v2.2241.6
-            const canReply = window.Store.ReplyUtils ?
-                window.Store.ReplyUtils.canReplyMsg(quotedMessage.unsafe()) :
+            const canReply = window.Store.ReplyUtils ? 
+                window.Store.ReplyUtils.canReplyMsg(quotedMessage.unsafe()) : 
                 quotedMessage.canReply();
 
             if (canReply) {
@@ -205,7 +206,7 @@ exports.LoadUtils = () => {
                 }
             }
         }
-
+        
         let buttonOptions = {};
         if(options.buttons){
             let caption;
@@ -249,7 +250,7 @@ exports.LoadUtils = () => {
         const meUser = window.Store.User.getMaybeMeUser();
         const isMD = window.Store.MDBackend;
         const newId = await window.Store.MsgKey.newId();
-
+        
         const newMsgId = new window.Store.MsgKey({
             from: meUser,
             to: chat.id,
@@ -289,8 +290,8 @@ exports.LoadUtils = () => {
         await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
         return window.Store.Msg.get(newMsgId._serialized);
     };
-
-    window.WWebJS.editMessage = async (msg, content, options = {}) => {
+	
+	window.WWebJS.editMessage = async (msg, content, options = {}) => {
 
         const extraOptions = options.extraOptions || {};
         delete options.extraOptions;
