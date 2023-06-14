@@ -239,11 +239,11 @@ class Client extends EventEmitter {
                         if (mut.type === 'attributes' && mut.attributeName === 'data-ref') {
                             window.qrChanged(mut.target.dataset.ref);
                         } else
-                            // Listens to retry button, when found, click it
-                            if (mut.type === 'childList') {
-                                const retry_button = document.querySelector(selectors.QR_RETRY_BUTTON);
-                                if (retry_button) retry_button.click();
-                            }
+                        // Listens to retry button, when found, click it
+                        if (mut.type === 'childList') {
+                            const retry_button = document.querySelector(selectors.QR_RETRY_BUTTON);
+                            if (retry_button) retry_button.click();
+                        }
                     });
                 });
                 obs.observe(qr_container.parentElement, {
@@ -789,10 +789,10 @@ class Client extends EventEmitter {
         if (internalOptions.sendMediaAsSticker && internalOptions.attachment) {
             internalOptions.attachment = await Util.formatToWebpSticker(
                 internalOptions.attachment, {
-                name: options.stickerName,
-                author: options.stickerAuthor,
-                categories: options.stickerCategories
-            }, this.pupPage
+                    name: options.stickerName,
+                    author: options.stickerAuthor,
+                    categories: options.stickerCategories
+                }, this.pupPage
             );
         }
 
