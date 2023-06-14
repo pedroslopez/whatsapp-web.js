@@ -207,7 +207,7 @@ client.on('message', async msg => {
             if (quotedMsg.fromMe) {
                 quotedMsg.edit(msg.body.replace('!edit', ''));
             } else {
-                msg.reply('I can only delete my own messages');
+                msg.reply('I can only edit my own messages');
             }
         }
     }
