@@ -212,18 +212,18 @@ client.on('message', async msg => {
         }
     }
     else if (msg.author) {
-        /** Note: forwarding with caption is available for media messages (photo/video) only. */
-
         /**
+         * Note: forwarding with caption is available for media messages (photo/video) only.
+         * 
          * Let's say the message was sent in a group
-         * and I want to forward it to its author.
+         * and you want to forward it to its author.
          */
 
-        // 1. By default it will be forwarded without a caption text (even if provided):
+        // 1. By default it will be forwarded with a caption text (if provided):
         await msg.forward(msg.author);
 
-        // 2. To forward with a caption text of original message (if provided) do:
-        await msg.forward(msg.author, { withCaption: true });
+        // 2. To forward without a caption text (if provided) do:
+        await msg.forward(msg.author, { withCaption: false });
     }
 });
 

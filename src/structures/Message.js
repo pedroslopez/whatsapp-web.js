@@ -380,7 +380,7 @@ class Message extends Base {
      * 
      * @typedef {Object} MessageForwardOptions
      * @property {boolean} [multicast=false]
-     * @property {boolean} [withCaption=false] Forwards this message with the caption text of the original message if provided.
+     * @property {boolean} [withCaption=true] Forwards this message with the caption text of the original message if provided.
      */
 
     /**
@@ -394,7 +394,7 @@ class Message extends Base {
         const chatId = typeof chat === 'string' ? chat : chat.id._serialized;
         let internalOptions = {
             multicast: options.multicast || false,
-            withCaption: options.withCaption || false
+            withCaption: options.withCaption === false ? false : true
         };
 
         await this.client.pupPage.evaluate(async (msgId, chatId, options) => {

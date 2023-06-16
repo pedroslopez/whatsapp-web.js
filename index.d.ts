@@ -931,7 +931,10 @@ declare namespace WAWebJS {
     /** Options for forwarding a message */
     export interface MessageForwardOptions {
         multicast?: boolean
-        /** Adds caption text to forwarded message (if provided), if withCaption is true */
+        /** 
+         * Adds caption text to forwarded message (if provided).
+         * Value is true by default.
+         */
         withCaption?: boolean
     }
 
