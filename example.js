@@ -201,6 +201,15 @@ client.on('message', async msg => {
         client.sendMessage(msg.from, list);
     } else if (msg.body === '!reaction') {
         msg.react('👍');
+    } else if (msg.body === '!edit') {
+        if (msg.hasQuotedMsg) {
+            const quotedMsg = await msg.getQuotedMessage();
+            if (quotedMsg.fromMe) {
+                quotedMsg.edit(msg.body.replace('!edit', ''));
+            } else {
+                msg.reply('I can only edit my own messages');
+            }
+        }
     } else if (msg.body === '!updatelabels') {
         const chat = await msg.getChat();
         await chat.changeLabels([0, 1]);
