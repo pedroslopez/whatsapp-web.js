@@ -599,6 +599,28 @@ class Client extends EventEmitter {
             this.emit(Events.MESSAGE_EDIT, new Message(this, msg), newBody, prevBody);
         });
 
+        await page.exposeFunction('onChatChangeLabelsEvent', async (chat, newIds, prevIds) => {
+            /**
+             * Emitted when chat change labels
+             * @event Client#chat_change_labels
+             * @param {Chat} chat
+             * @param {Label[]} newLabels
+             * @param {Label[]} prevLabels
+             */
+            let newLabels = [];
+            let prevLabels = [];
+            for (let labelId of newIds) {
+                let label = await window.WWebJS.getLabel(labelId);
+                newLabels.push(new Label(this,label));
+            }
+            for (let labelId of prevIds) {
+                let label = await window.WWebJS.getLabel(labelId);
+                prevLabels.push(new Label(this,label));
+            }
+
+            this.emit(Events.CHAT_CHANGE_LABELS, new Chat(this, chat), newLabels, prevLabels);
+        });
+
         await page.evaluate(() => {
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
@@ -611,6 +633,7 @@ class Client extends EventEmitter {
             window.Store.Call.on('add', (call) => { window.onIncomingCall(call); });
             window.Store.Chat.on('remove', async (chat) => { window.onRemoveChatEvent(await window.WWebJS.getChatModel(chat)); });
             window.Store.Chat.on('change:archive', async (chat, currState, prevState) => { window.onArchiveChatEvent(await window.WWebJS.getChatModel(chat), currState, prevState); });
+            window.Store.Chat.on('change:labels', async (chat, newLabels, prevLabels) => { window.onChatChangeLabelsEvent(await window.WWebJS.getChatModel(chat), newLabels, prevLabels); });
             window.Store.Msg.on('add', (msg) => { 
                 if (msg.isNewMsg) {
                     if(msg.type === 'ciphertext') {
