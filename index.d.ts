@@ -913,7 +913,7 @@ declare namespace WAWebJS {
         /** Id of the message that is being quoted (or replied to) */
         quotedMessageId?: string
         /** Contacts that are being mentioned in the message */
-        mentions?: Contact[]
+        mentions?: Contact[] | string[]
         /** Send 'seen' status */
         sendSeen?: boolean
         /** Media to be sent */
