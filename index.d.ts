@@ -305,16 +305,6 @@ declare namespace WAWebJS {
             /** State the chat was previously in */
             prevState: boolean
         ) => void): this
-        
-        /** Emitted when a chat change labels */
-        on(event: 'chat_change_labels', listener: (
-            /** The chat that was archived/unarchived */
-            chat: Chat,
-            /** New Label List */
-            newLabels: Label[],
-            /**  List of shortcuts that the chat room previously had */
-            prevLabels: Label[]
-        ) => void): this
 
         /** Emitted when loading screen is appearing */
         on(event: 'loading_screen', listener: (percent: string, message: string) => void): this
@@ -603,8 +593,7 @@ declare namespace WAWebJS {
         STATE_CHANGED = 'change_state',
         BATTERY_CHANGED = 'change_battery',
         REMOTE_SESSION_SAVED = 'remote_session_saved',
-        CALL = 'call',
-        CHAT_CHANGE_LABELS = 'chat_change_labels',
+        CALL = 'call'
     }
 
     /** Group notification types */
