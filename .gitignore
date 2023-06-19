@@ -71,3 +71,6 @@ typings/
 # Test sessions
 *session.json
 .wwebjs_auth/
+
+# local version cache
+.wwebjs_cache/

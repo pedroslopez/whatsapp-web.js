@@ -7,6 +7,10 @@ exports.DefaultOptions = {
         headless: true,
         defaultViewport: null
     },
+    webVersion: '2.2322.15',
+    webVersionCache: {
+        type: 'local',
+    },
     authTimeoutMs: 0,
     qrMaxRetries: 0,
     takeoverOnConflict: false,
@@ -14,6 +18,7 @@ exports.DefaultOptions = {
     userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36',
     ffmpegPath: 'ffmpeg',
     bypassCSP: false,
+    proxyAuthentication: undefined,
     cipherMsg: false
 };
 
@@ -44,6 +49,7 @@ exports.Events = {
     MESSAGE_REVOKED_EVERYONE: 'message_revoke_everyone',
     MESSAGE_REVOKED_ME: 'message_revoke_me',
     MESSAGE_ACK: 'message_ack',
+    MESSAGE_EDIT: 'message_edit',
     UNREAD_COUNT: 'unread_count',
     MESSAGE_REACTION: 'message_reaction',
     MEDIA_UPLOADED: 'media_uploaded',

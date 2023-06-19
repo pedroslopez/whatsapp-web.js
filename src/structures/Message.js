@@ -7,6 +7,7 @@ const Order = require('./Order');
 const Payment = require('./Payment');
 const Reaction = require('./Reaction');
 const {MessageTypes} = require('../util/Constants');
+const {Contact} = require('./Contact');
 
 /**
  * Represents a Message on WhatsApp
@@ -89,8 +90,7 @@ class Message extends Base {
          * String that represents from which device type the message was sent
          * @type {string}
          */
-        this.deviceType = data.id.id.length > 21 ? 'android' : data.id.id.substring(0, 2) == '3A' ? 'ios' : 'web';
-
+        this.deviceType = typeof data.id.id === 'string' && data.id.id.length > 21 ? 'android' : typeof data.id.id === 'string' && data.id.id.substring(0, 2) === '3A' ? 'ios' : 'web';
         /**
          * Indicates if the message was forwarded
          * @type {boolean}
@@ -225,6 +225,16 @@ class Message extends Base {
             this.productId = data.productId;
         }
 
+        /** Last edit time */
+        if (data.latestEditSenderTimestampMs) {
+            this.latestEditSenderTimestampMs = data.latestEditSenderTimestampMs;
+        }
+
+        /** Last edit message author */
+        if (data.latestEditMsgKey) {
+            this.latestEditMsgKey = data.latestEditMsgKey;
+        }
+        
         /**
          * Links included in the message.
          * @type {Array<{link: string, isSuspicious: boolean}>}
@@ -443,15 +453,16 @@ class Message extends Base {
      * @param {?boolean} everyone If true and the message is sent by the current user or the user is an admin, will delete it for everyone in the chat.
      */
     async delete(everyone) {
-        await this.client.pupPage.evaluate((msgId, everyone) => {
+        await this.client.pupPage.evaluate(async (msgId, everyone) => {
             let msg = window.Store.Msg.get(msgId);
-
+            let chat = await window.Store.Chat.find(msg.id.remote);
+            
             const canRevoke = window.Store.MsgActionChecks.canSenderRevokeMsg(msg) || window.Store.MsgActionChecks.canAdminRevokeMsg(msg);
             if (everyone && canRevoke) {
-                return window.Store.Cmd.sendRevokeMsgs(msg.chat, [msg], { type: msg.id.fromMe ? 'Sender' : 'Admin' });
+                return window.Store.Cmd.sendRevokeMsgs(chat, [msg], { clearMedia: true, type: msg.id.fromMe ? 'Sender' : 'Admin' });
             }
 
-            return window.Store.Cmd.sendDeleteMsgs(msg.chat, [msg], true);
+            return window.Store.Cmd.sendDeleteMsgs(chat, [msg], true);
         }, this.id._serialized, everyone);
     }
 
@@ -459,11 +470,12 @@ class Message extends Base {
      * Stars this message
      */
     async star() {
-        await this.client.pupPage.evaluate((msgId) => {
+        await this.client.pupPage.evaluate(async (msgId) => {
             let msg = window.Store.Msg.get(msgId);
-
+            
             if (window.Store.MsgActionChecks.canStarMsg(msg)) {
-                return window.Store.Cmd.sendStarMsgs(msg.chat, [msg], false);
+                let chat = await window.Store.Chat.find(msg.id.remote);
+                return window.Store.Cmd.sendStarMsgs(chat, [msg], false);
             }
         }, this.id._serialized);
     }
@@ -472,11 +484,12 @@ class Message extends Base {
      * Unstars this message
      */
     async unstar() {
-        await this.client.pupPage.evaluate((msgId) => {
+        await this.client.pupPage.evaluate(async (msgId) => {
             let msg = window.Store.Msg.get(msgId);
 
             if (window.Store.MsgActionChecks.canStarMsg(msg)) {
-                return window.Store.Cmd.sendUnstarMsgs(msg.chat, [msg], false);
+                let chat = await window.Store.Chat.find(msg.id.remote);
+                return window.Store.Cmd.sendUnstarMsgs(chat, [msg], false);
             }
         }, this.id._serialized);
     }
@@ -573,6 +586,42 @@ class Message extends Base {
             });
             return reaction;
         });
+    }
+
+    /**
+     * Edits the current message.
+     * @param {string} content
+     * @param {MessageEditOptions} [options] - Options used when editing the message
+     * @returns {Promise<?Message>}
+     */
+    async edit(content, options = {}) {
+        if (options.mentions && options.mentions.some(possiblyContact => possiblyContact instanceof Contact)) {
+            options.mentions = options.mentions.map(a => a.id._serialized);
+        }
+        let internalOptions = {
+            linkPreview: options.linkPreview === false ? undefined : true,
+            mentionedJidList: Array.isArray(options.mentions) ? options.mentions : [],
+            extraOptions: options.extra
+        };
+        
+        if (!this.fromMe) {
+            return null;
+        }
+        const messageEdit = await this.client.pupPage.evaluate(async (msgId, message, options) => {
+            let msg = window.Store.Msg.get(msgId);
+            if (!msg) return null;
+
+            let catEdit = (msg.type === 'chat' && window.Store.MsgActionChecks.canEditText(msg));
+            if (catEdit) {
+                const msgEdit = await window.WWebJS.editMessage(msg, message, options);
+                return msgEdit.serialize();
+            }
+            return null;
+        }, this.id._serialized, content, internalOptions);
+        if (messageEdit) {
+            return new Message(this.client, messageEdit);
+        }
+        return null;
     }
 }
 
