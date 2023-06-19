@@ -213,7 +213,8 @@ client.on('message', async msg => {
     }
     else if (msg.author) {
         /**
-         * Note: forwarding with caption is available for media messages (photo/video) only.
+         * Note: forwarding with caption is available for media messages (photo/video)
+         * and messages with attachments (documets) also.
          * 
          * Let's say the message was sent in a group
          * and you want to forward it to its author.
