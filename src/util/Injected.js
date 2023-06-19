@@ -299,11 +299,11 @@ exports.LoadUtils = () => {
         const contact = chat.contact;
 
         if (contact.isUser && contact.isContactBlocked) {
-            throw new Error("Attempted forwarding to a blocked contact", contact);
+            throw new Error('Attempted forwarding to a blocked contact', contact);
         }
 
         const isMediaMsg = (msg) => {
-            return Boolean(window.Store.getAsMms(msg) && !msg.ctwaContext)
+            return Boolean(window.Store.getAsMms(msg) && !msg.ctwaContext);
         };
 
         if (isMediaMsg(msg)) {
@@ -311,7 +311,7 @@ exports.LoadUtils = () => {
         }
 
         return await chat._forwardMessageAndSendToChat(msg, chatId, ...Object.values(options));
-    }
+    };
 
     window.WWebJS.forwardMediaMessage = async (chat, msg, options = {}) => {
         const { multicast: multicast, withCaption: withCaption } = options;
@@ -333,7 +333,7 @@ exports.LoadUtils = () => {
 
         const mimetype = {
             mimetype: serializedMediaData.mimetype
-        }
+        };
 
         let mediaType;
         serializedMediaData.isGif ?
@@ -343,7 +343,7 @@ exports.LoadUtils = () => {
             } : mediaType = mimetype;
 
         if (serializedMediaData.type === 'ptt') {
-            serializedMediaData.type = 'audio'
+            serializedMediaData.type = 'audio';
         }
 
         const productMsgOptions = {
@@ -357,7 +357,7 @@ exports.LoadUtils = () => {
             productImageCount: msg.productImageCount,
             title: msg.title,
             description: msg.description
-        }
+        };
 
         const docInTempl =
             serializedMediaData.type === 'document' &&
@@ -390,10 +390,10 @@ exports.LoadUtils = () => {
             multicast: multicast,
             productMsgOptions: productMsgOptions,
             isAvatar: msg.isAvatar !== null && msg.isAvatar !== undefined && msg.isAvatar
-        }
+        };
 
         await mediaPrep.sendToChat(chat, mediaMessageOptions);
-    }
+    };
 	
     window.WWebJS.editMessage = async (msg, content, options = {}) => {
 
