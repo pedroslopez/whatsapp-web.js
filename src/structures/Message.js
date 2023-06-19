@@ -397,13 +397,13 @@ class Message extends Base {
             withCaption: options.withCaption === false ? false : true
         };
 
-        await this.client.pupPage.evaluate(async (msgId, chatId, options) => {
+        await this.client.pupPage.evaluate(async (chatId, msgId, options) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             const chat = await window.Store.Chat.find(chatWid);
-            const msg = window.Store.Msg.get(msgId);
-
-            return await chat.forwardMessages([msg], ...Object.values(options));
-        }, this.id._serialized, chatId, internalOptions);
+            const message = window.Store.Msg.get(msgId);
+            
+            return await window.WWebJS.forwardMessage(chat, message, options);
+        }, chatId, this.id._serialized, internalOptions);
     }
 
     /**
