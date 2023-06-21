@@ -955,8 +955,8 @@ class Client extends EventEmitter {
             if(!window.Store.Conn.canSetMyPushname()) return false;
 
             if(window.Store.MDBackend) {
-                // TODO
-                return false;
+                await window.Store.Settings.setPushname(displayName);
+                return true;
             } else {
                 const res = await window.Store.Wap.setPushname(displayName);
                 return !res.status || res.status === 200;
