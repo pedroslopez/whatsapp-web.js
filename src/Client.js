@@ -1339,7 +1339,12 @@ class Client extends EventEmitter {
      */
     async setAutoDownloadAudio(flag) {
         await this.pupPage.evaluate(async flag => {
+            const autoDownload = Store.Settings.getAutoDownloadAudio();
+            if(autoDownload === flag){
+                return flag;
+            }
             await window.Store.Settings.setAutoDownloadAudio(flag);
+            return flag;
         }, flag);
     }
 
@@ -1349,7 +1354,12 @@ class Client extends EventEmitter {
      */
     async setAutoDownloadDocuments(flag) {
         await this.pupPage.evaluate(async flag => {
+            const autoDownload = Store.Settings.getAutoDownloadDocuments();
+            if(autoDownload === flag){
+                return flag;
+            }
             await window.Store.Settings.setAutoDownloadDocuments(flag);
+            return flag;
         }, flag);
     }
 
@@ -1359,7 +1369,12 @@ class Client extends EventEmitter {
      */
     async setAutoDownloadPhotos(flag) {
         await this.pupPage.evaluate(async flag => {
+            const autoDownload = Store.Settings.getAutoDownloadPhotos();
+            if(autoDownload === flag){
+                return flag;
+            }
             await window.Store.Settings.setAutoDownloadPhotos(flag);
+            return flag;
         }, flag);
     }
 
@@ -1369,7 +1384,12 @@ class Client extends EventEmitter {
      */
     async setAutoDownloadVideos(flag) {
         await this.pupPage.evaluate(async flag => {
+            const autoDownload = Store.Settings.getAutoDownloadVideos();
+            if(autoDownload === flag){
+                return flag;
+            }
             await window.Store.Settings.setAutoDownloadVideos(flag);
+            return flag;
         }, flag);
     }
 }
