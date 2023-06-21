@@ -1332,6 +1332,46 @@ class Client extends EventEmitter {
 
         return success;
     }
+
+    /**
+     * Setting  autoload download audio
+     * @param {boolean} flag true/false
+     */
+    async setAutoDownloadAudio(flag) {
+        await this.pupPage.evaluate(async flag => {
+            await window.Store.Settings.setAutoDownloadAudio(flag);
+        }, flag);
+    }
+
+    /**
+     * Setting  autoload download documents
+     * @param {boolean} flag true/false
+     */
+    async setAutoDownloadDocuments(flag) {
+        await this.pupPage.evaluate(async flag => {
+            await window.Store.Settings.setAutoDownloadDocuments(flag);
+        }, flag);
+    }
+
+    /**
+     * Setting  autoload download photos
+     * @param {boolean} flag true/false
+     */
+    async setAutoDownloadPhotos(flag) {
+        await this.pupPage.evaluate(async flag => {
+            await window.Store.Settings.setAutoDownloadPhotos(flag);
+        }, flag);
+    }
+
+    /**
+     * Setting  autoload download videos
+     * @param {boolean} flag true/false
+     */
+    async setAutoDownloadVideos(flag) {
+        await this.pupPage.evaluate(async flag => {
+            await window.Store.Settings.setAutoDownloadVideos(flag);
+        }, flag);
+    }
 }
 
 module.exports = Client;
