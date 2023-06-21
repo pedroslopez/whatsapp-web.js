@@ -24,7 +24,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.MediaUpload = window.mR.findModule('uploadMedia')[0];
     window.Store.getAsMms = window.mR.findModule('getAsMms')[0].getAsMms;
     window.Store.getIsSentByMe = window.mR.findModule('getIsSentByMe')[0].getIsSentByMe;
-    window.Store.isForwardMediaWithCaptionsEnabled = window.mR.findModule('isForwardMediaWithCaptionsEnabled')[0].isForwardMediaWithCaptionsEnabled;
     window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
     window.Store.MessageInfo = window.mR.findModule('sendQueryMsgInfo')[0];
     window.Store.OpaqueData = window.mR.findModule(module => module.default && module.default.createFromData)[0].default;
@@ -302,11 +301,11 @@ exports.LoadUtils = () => {
             throw new Error('Attempted forwarding to a blocked contact', contact);
         }
 
-        const isMediaMsg = (msg) => {
+        const _isMediaMsg = (msg) => {
             return Boolean(window.Store.getAsMms(msg) && !msg.ctwaContext);
         };
 
-        if (isMediaMsg(msg)) {
+        if (_isMediaMsg(msg)) {
             return await window.WWebJS.forwardMediaMessage(chat, msg, options);
         }
 
@@ -359,18 +358,21 @@ exports.LoadUtils = () => {
             description: msg.description
         };
 
-        const docInTempl =
+        const isImageOrVideo =
+            serializedMediaData.type === 'image' ||
+            serializedMediaData.type === 'video';
+
+        const isBtnOrList =
             serializedMediaData.type === 'document' &&
             (msg.isFromTemplate || msg.isDynamicReplyButtonsMsg);
 
-        let caption = docInTempl || serializedMediaData.type === 'product' ?
-            msg.caption : '';
+        const isProduct = serializedMediaData.type === 'product';
 
-        if (window.Store.isForwardMediaWithCaptionsEnabled() &&
-            withCaption &&
-            msg.isCaptionByUser) {
-            caption = msg.caption;
-        }
+        const caption =
+            (withCaption && (isImageOrVideo || msg.isCaptionByUser)) ||
+                isBtnOrList || isProduct
+                ? msg.caption
+                : undefined;
 
         const mediaPrep = new window.Store.MediaPrep.MediaPrep(
             serializedMediaData.type,
@@ -392,7 +394,7 @@ exports.LoadUtils = () => {
             isAvatar: msg.isAvatar !== null && msg.isAvatar !== undefined && msg.isAvatar
         };
 
-        await mediaPrep.sendToChat(chat, mediaMessageOptions);
+        return await mediaPrep.sendToChat(chat, mediaMessageOptions);
     };
 	
     window.WWebJS.editMessage = async (msg, content, options = {}) => {
