@@ -1339,7 +1339,7 @@ class Client extends EventEmitter {
      */
     async setAutoDownloadAudio(flag) {
         await this.pupPage.evaluate(async flag => {
-            const autoDownload = Store.Settings.getAutoDownloadAudio();
+            const autoDownload = window.Store.Settings.getAutoDownloadAudio();
             if(autoDownload === flag){
                 return flag;
             }
@@ -1354,7 +1354,7 @@ class Client extends EventEmitter {
      */
     async setAutoDownloadDocuments(flag) {
         await this.pupPage.evaluate(async flag => {
-            const autoDownload = Store.Settings.getAutoDownloadDocuments();
+            const autoDownload = window.Store.Settings.getAutoDownloadDocuments();
             if(autoDownload === flag){
                 return flag;
             }
@@ -1369,7 +1369,7 @@ class Client extends EventEmitter {
      */
     async setAutoDownloadPhotos(flag) {
         await this.pupPage.evaluate(async flag => {
-            const autoDownload = Store.Settings.getAutoDownloadPhotos();
+            const autoDownload = window.Store.Settings.getAutoDownloadPhotos();
             if(autoDownload === flag){
                 return flag;
             }
@@ -1384,7 +1384,7 @@ class Client extends EventEmitter {
      */
     async setAutoDownloadVideos(flag) {
         await this.pupPage.evaluate(async flag => {
-            const autoDownload = Store.Settings.getAutoDownloadVideos();
+            const autoDownload = window.Store.Settings.getAutoDownloadVideos();
             if(autoDownload === flag){
                 return flag;
             }
