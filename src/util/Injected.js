@@ -24,6 +24,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.MediaUpload = window.mR.findModule('uploadMedia')[0];
     window.Store.getAsMms = window.mR.findModule('getAsMms')[0].getAsMms;
     window.Store.getIsSentByMe = window.mR.findModule('getIsSentByMe')[0].getIsSentByMe;
+    window.Store.getForwardedMessageFields = window.mR.findModule('Chat')[0].getForwardedMessageFields;
     window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
     window.Store.MessageInfo = window.mR.findModule('sendQueryMsgInfo')[0];
     window.Store.OpaqueData = window.mR.findModule(module => module.default && module.default.createFromData)[0].default;
@@ -294,7 +295,6 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.forwardMessage = async (chat, msg, options = {}) => {
-        const chatId = chat.id;
         const contact = chat.contact;
 
         if (contact.isUser && contact.isContactBlocked) {
@@ -309,7 +309,48 @@ exports.LoadUtils = () => {
             return await window.WWebJS.forwardMediaMessage(chat, msg, options);
         }
 
-        return await chat._forwardMessageAndSendToChat(msg, chatId, ...Object.values(options));
+        const forwardedMsgFields = window.Store.getForwardedMessageFields(msg);
+        const ephemeralFields = window.Store.EphemeralFields.getEphemeralFields(chat);
+        const meUser = window.Store.User.getMaybeMeUser();
+        const newId = await window.Store.MsgKey.newId();
+        const isMD = window.Store.MDBackend;
+
+        const newMsgId = new window.Store.MsgKey({
+            from: meUser,
+            to: chat.id,
+            id: newId,
+            participant: isMD && chat.id.isGroup() ? meUser : undefined,
+            selfDir: 'out',
+        });
+
+        if (msg.ctwaContext) {
+            forwardedMsgFields.body = msg.ctwaContext.sourceUrl;
+            forwardedMsgFields.type = 'chat';
+            forwardedMsgFields.mediaObject = undefined;
+        }
+
+        Object.assign(forwardedMsgFields, ephemeralFields);
+
+        const newMessage = {
+            ...forwardedMsgFields,
+            ...ephemeralFields,
+            id: newMsgId,
+            from: meUser,
+            t: parseInt(new Date().getTime() / 1000),
+            to: chat.id,
+            ack: 0,
+            participant: undefined,
+            local: true,
+            self: 'out',
+            isNewMsg: true,
+            star: false,
+            isForwarded: msg.isForwarded || !window.Store.getIsSentByMe(msg),
+            forwardedFromWeb: true,
+            forwardingScore: msg.getForwardingScoreWhenForwarded(),
+            multicast: options.multicast
+        };
+
+        await window.Store.SendMessage.addAndSendMsgToChat(chat, newMessage);
     };
 
     window.WWebJS.forwardMediaMessage = async (chat, msg, options = {}) => {
