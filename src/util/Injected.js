@@ -1,10 +1,12 @@
 'use strict';
 
 // Exposes the internal Store to the WhatsApp Web client
-exports.ExposeStore = (moduleRaidStr) => {
-    eval('var moduleRaid = ' + moduleRaidStr);
+exports.ExposeStore = (moduleRaidStr,WwebjsEvalName) => {
+    eval('var moduleRaid = ' + moduleRaidStr); // we need to change moduleRaid too;
+    console.log(WwebjsEvalName);
     // eslint-disable-next-line no-undef
     window.mR = moduleRaid();
+    // eval(`window.${WwebjsEvalName} = window.mR `);//Future, any tips?
     window.Store = Object.assign({}, window.mR.findModule(m => m.default && m.default.Chat)[0].default);
     window.Store.AppState = window.mR.findModule('Socket')[0].Socket;
     window.Store.Conn = window.mR.findModule('Conn')[0].Conn;

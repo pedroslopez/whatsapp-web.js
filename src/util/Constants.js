@@ -2,6 +2,15 @@
 
 exports.WhatsWebURL = 'https://web.whatsapp.com/';
 
+/*
+WwebjsEvalName 
+This will be unique each session, to prevent a simple (typeof window.WWebJS != "undefined")
+12: Max size
+7: Min size
+9: length of charset
+ */
+exports.WwebjsEvalName ='w'+Array.from({ length: (Math.floor(Math.random() * (12 - 7 + 1)) + 7) }, () => 'aeioubcdf'[Math.floor(Math.random() * 9)]).join('');
+
 exports.DefaultOptions = {
     puppeteer: {
         headless: true,

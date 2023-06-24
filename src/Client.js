@@ -1,12 +1,15 @@
 'use strict';
 
 const EventEmitter = require('events');
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+const AdblockerPlugin = require('puppeteer-extra-plugin-adblocker'); //not so sure about this plugin
+
 const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
 
 const Util = require('./util/Util');
 const InterfaceController = require('./util/InterfaceController');
-const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constants');
+const { WhatsWebURL, DefaultOptions, Events, WAState, WwebjsEvalName } = require('./util/Constants');
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
@@ -95,6 +98,7 @@ class Client extends EventEmitter {
 
         const puppeteerOpts = this.options.puppeteer;
         if (puppeteerOpts && puppeteerOpts.browserWSEndpoint) {
+            /* No stealth for remote for now */
             browser = await puppeteer.connect(puppeteerOpts);
             page = await browser.newPage();
         } else {
@@ -102,7 +106,12 @@ class Client extends EventEmitter {
             if(!browserArgs.find(arg => arg.includes('--user-agent'))) {
                 browserArgs.push(`--user-agent=${this.options.userAgent}`);
             }
-
+            if(this.options && this.options.stealth) {
+                puppeteer.use(StealthPlugin({
+                    ...(Util.getMyRandomRenderer()),
+                }));
+                puppeteer.use(AdblockerPlugin({blockTrackers: true}));
+            }
             browser = await puppeteer.launch({...puppeteerOpts, args: browserArgs});
             page = (await browser.pages())[0];
         }
@@ -275,7 +284,7 @@ class Client extends EventEmitter {
 
         }
 
-        await page.evaluate(ExposeStore, moduleRaid.toString());
+        await page.evaluate(ExposeStore, moduleRaid.toString(),WwebjsEvalName);
         const authEventPayload = await this.authStrategy.getAuthEventPayload();
 
         /**
