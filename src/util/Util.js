@@ -187,19 +187,19 @@ class Util {
      * Get a renderer based on current machineId as salt them it will always be the same renderer for the same machine
      */
     static getMyRandomRenderer() {
-        let list = ["Intel|Intel(R) HD Graphics 5500 Direct3D11 vs_5_0 ps_5_0","AMD|AMD Radeon(TM) RX Vega 10 Graphics Direct3D11 vs_5_0 ps_5_0, D3D11"];
+        let list = ['Intel|Intel(R) HD Graphics 5500 Direct3D11 vs_5_0 ps_5_0','AMD|AMD Radeon(TM) RX Vega 10 Graphics Direct3D11 vs_5_0 ps_5_0, D3D11'];
         let id,salt,sum;
         try {
             id = os.cpus();
         }catch (_){}
         salt = 'stealthSalt_0001';
-        if(typeof id[0] == "object" && typeof id[0]['model'] == "string"  && typeof id[0]['speed'] != "undefined" ){
+        if(typeof id[0] == 'object' && typeof id[0]['model'] == 'string'  && typeof id[0]['speed'] != 'undefined' ){
             salt += id[0]['model'] +id[0]['speed'];
         }
         sum =0;
         salt.split('').forEach(e=>sum += e.charCodeAt(0));
         let selected =list[sum % list.length].split('|');
-        return {vendor:selected[0],renderer:selected[1]}
+        return {vendor:selected[0],renderer:selected[1]};
     }
 }
 
