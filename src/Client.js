@@ -106,7 +106,7 @@ class Client extends EventEmitter {
             if(!browserArgs.find(arg => arg.includes('--user-agent'))) {
                 browserArgs.push(`--user-agent=${this.options.userAgent}`);
             }
-            if(this.options && this.options.stealth) {
+            if(this.options.stealth) {
                 puppeteer.use(StealthPlugin({
                     ...(Util.getMyRandomRenderer()),
                 }));
@@ -119,21 +119,12 @@ class Client extends EventEmitter {
         if (this.options.proxyAuthentication !== undefined) {
             await page.authenticate(this.options.proxyAuthentication);
         }
-        
         await page.setUserAgent(this.options.userAgent);
         if (this.options.bypassCSP) await page.setBypassCSP(true);
 
         this.pupBrowser = browser;
         this.pupPage = page;
-
-
-        if(this.options && this.options.stealth) {
-            console.log('EvalName: '+WwebjsEvalName);
-            let tmpV2 = Util.changeFunctionNames(ExposeStore.toString(),WwebjsEvalName);
-            console.log(tmpV2);
-          
-        }
-        
+                
         await this.authStrategy.afterBrowserInitialized();
         await this.initWebVersionCache();
 
@@ -293,7 +284,7 @@ class Client extends EventEmitter {
         }
         
         
-        if(this.options && this.options.stealth) {
+        if(this.options.stealth) {
             console.log('EvalName: '+WwebjsEvalName);
             await page.evaluate(eval(Util.changeFunctionNames(ExposeStore.toString(),WwebjsEvalName)), moduleRaid.toString());   
         }else{
@@ -309,7 +300,7 @@ class Client extends EventEmitter {
         this.emit(Events.AUTHENTICATED, authEventPayload);
 
         // Check window.Store Injection
-        await page.waitForFunction(`window.Store${(this.options && this.options.stealth)?WwebjsEvalName:''} != undefined`);
+        await page.waitForFunction(`window.Store${(this.options.stealth)?WwebjsEvalName:''} != undefined`);
 
         await page.evaluate(async () => {
             // safely unregister service workers
@@ -320,17 +311,19 @@ class Client extends EventEmitter {
         });
 
         //Load util functions (serializers, helper functions)
-        await page.evaluate(LoadUtils);
+        if(this.options.stealth) {
+            await page.evaluate(eval(Util.changeFunctionNames(LoadUtils.toString(),WwebjsEvalName)));
+        }else{
+            await page.evaluate(LoadUtils);
+        }
 
         // Expose client info
         /**
          * Current connection information
          * @type {ClientInfo}
          */
-        this.info = new ClientInfo(this, await page.evaluate(() => {
-            return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMeUser() };
-        }));
-
+        this.info = new ClientInfo(this, await page.evaluate(eval(`() => {return { ...window.Store${this.options.stealth?WwebjsEvalName:''}.Conn.serialize(), wid: window.Store${this.options.stealth?WwebjsEvalName:''}.User.getMeUser() };}`)));
+ 
         // Add InterfaceController
         this.interface = new InterfaceController(this);
 
@@ -622,8 +615,7 @@ class Client extends EventEmitter {
              */
             this.emit(Events.MESSAGE_EDIT, new Message(this, msg), newBody, prevBody);
         });
-
-        await page.evaluate(() => {
+        let eventsWwebjs = () =>{
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:ack', (msg, ack) => { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
@@ -635,18 +627,17 @@ class Client extends EventEmitter {
             window.Store.Call.on('add', (call) => { window.onIncomingCall(call); });
             window.Store.Chat.on('remove', async (chat) => { window.onRemoveChatEvent(await window.WWebJS.getChatModel(chat)); });
             window.Store.Chat.on('change:archive', async (chat, currState, prevState) => { window.onArchiveChatEvent(await window.WWebJS.getChatModel(chat), currState, prevState); });
-            window.Store.Msg.on('add', (msg) => { 
+            window.Store.Msg.on('add', (msg) => {
                 if (msg.isNewMsg) {
                     if(msg.type === 'ciphertext') {
                         // defer message event until ciphertext is resolved (type changed)
                         msg.once('change:type', (_msg) => window.onAddMessageEvent(window.WWebJS.getMessageModel(_msg)));
                     } else {
-                        window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); 
+                        window.onAddMessageEvent(window.WWebJS.getMessageModel(msg));
                     }
                 }
             });
             window.Store.Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
-
             {
                 const module = window.Store.createOrUpdateReactionsModule;
                 const ogMethod = module.createOrUpdateReactions;
@@ -655,15 +646,21 @@ class Client extends EventEmitter {
                         const msgKey = window.Store.MsgKey.fromString(reaction.msgKey);
                         const parentMsgKey = window.Store.MsgKey.fromString(reaction.parentMsgKey);
                         const timestamp = reaction.timestamp / 1000;
-
+            
                         return {...reaction, msgKey, parentMsgKey, timestamp };
                     }));
-
+            
                     return ogMethod(...args);
                 }).bind(module);
             }
-        });
+        };
 
+        
+        if(this.options.stealth) {
+            await page.evaluate(eval(Util.changeFunctionNames(eventsWwebjs.toString(),WwebjsEvalName)));
+        }else{
+            await page.evaluate(eventsWwebjs);
+        }
         /**
          * Emitted when the client has initialized and is ready to receive messages.
          * @event Client#ready

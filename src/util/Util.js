@@ -203,7 +203,9 @@ class Util {
         let selected =list[sum % list.length].split('|');
         return {vendor:selected[0],renderer:selected[1]};
     }
-    
+    /**
+     * Function to change WWebJS names from the eval js
+     */
     static changeFunctionNames(str,Wwebjs){
         str = str.replaceAll('window.mR','window.mR'+Wwebjs);
         str = str.replaceAll('window.Store','window.Store'+Wwebjs);
