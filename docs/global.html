@@ -2,9 +2,9 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.6.7">
+  <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.19.5 &raquo; Globals</title>
+  <title>whatsapp-web.js 1.21.0 &raquo; Globals</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>19.<wbr>5</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>21.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -94,6 +94,9 @@
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="global.html#ReactionList">ReactionList</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="global.html#StickerMetadata">StickerMetadata</a></dt>
                     <dd>
                     </dd>
@@ -222,6 +225,32 @@
                     </tr>
                     <tr>
                       <td>
+                        <p>CHAT_REMOVED</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>CHAT_ARCHIVED</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
                         <p>MESSAGE_RECEIVED</p>
                       </td>
                       <td>
@@ -287,6 +316,19 @@
                     </tr>
                     <tr>
                       <td>
+                        <p>UNREAD_COUNT</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
                         <p>MESSAGE_REACTION</p>
                       </td>
                       <td>
@@ -313,6 +355,19 @@
                     </tr>
                     <tr>
                       <td>
+                        <p>CONTACT_CHANGED</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
                         <p>GROUP_JOIN</p>
                       </td>
                       <td>
@@ -327,6 +382,19 @@
                     <tr>
                       <td>
                         <p>GROUP_LEAVE</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>GROUP_ADMIN_CHANGED</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
@@ -1950,6 +2018,82 @@
               </section>
               <dl class="dl-compact">
               </dl>
+              <h3 id="ReactionList"><span class="symbol-name">ReactionList</span><small class="property-type">
+                  &nbsp;Object</small></h3>
+              <p>Reaction List</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>id</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Original emoji</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>aggregateEmoji</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>aggregate emoji</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>hasReactionByMe</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Flag who sent the reaction</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>senders</p>
+                      </td>
+                      <td>
+                        <p>Array of <a href="Reaction.html">Reaction</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Reaction senders, to this message</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="StickerMetadata"><span class="symbol-name">StickerMetadata</span><small class="property-type">
                   &nbsp;Object</small></h3>
               <p>Sticker metadata.</p>
@@ -2019,7 +2163,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on March 18, 2023.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on May 29, 2023.
       </p>
     </div>
   </footer>

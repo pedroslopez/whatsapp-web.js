@@ -2,9 +2,9 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.6.7">
+  <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.19.5 &raquo; Class: Client</title>
+  <title>whatsapp-web.js 1.21.0 &raquo; Class: Client</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>19.<wbr>5</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>21.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -26,7 +26,7 @@
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
             <h1><small></small><span class="symbol-name">Client</span></h1>
-            <p class="source-link">Source: <a href="Client.js.html#source-line-49">Client.<wbr>js:49</a></p>
+            <p class="source-link">Source: <a href="Client.js.html#source-line-55">Client.<wbr>js:55</a></p>
             <div class="symbol-classdesc">
               <p>Starting point for interacting with the WhatsApp Web API</p>
             </div>
@@ -65,6 +65,9 @@
                     <dd>
                     </dd>
                     <dt><a href="Client.html#createGroup">createGroup(name, participants)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#deleteProfilePicture">deleteProfilePicture()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Client.html#destroy">destroy()</a></dt>
@@ -137,13 +140,13 @@
                     <dt><a href="Client.html#markChatUnread">markChatUnread(chatId)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Client.html#muteChat">muteChat(chatId, unmuteDate)</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Client.html#muteChat">muteChat(chatId, unmuteDate)</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="Client.html#pinChat">pinChat()</a></dt>
                     <dd>
                     </dd>
@@ -166,6 +169,9 @@
                     <dd>
                     </dd>
                     <dt><a href="Client.html#setDisplayName">setDisplayName(displayName)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#setProfilePicture">setProfilePicture(media)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Client.html#setStatus">setStatus(status)</a></dt>
@@ -201,16 +207,28 @@
                     <dt><a href="Client.html#event:change_state">change_state</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Client.html#event:disconnected">disconnected</a></dt>
+                    <dt><a href="Client.html#event:chat_archived">chat_archived</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Client.html#event:group_join">group_join</a></dt>
+                    <dt><a href="Client.html#event:chat_removed">chat_removed</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#event:contact_changed">contact_changed</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#event:disconnected">disconnected</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Client.html#event:group_admin_changed">group_admin_changed</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#event:group_join">group_join</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#event:group_leave">group_leave</a></dt>
                     <dd>
                     </dd>
@@ -305,6 +323,34 @@
                             </td>
                             <td>
                               <p>Determines how to save and restore sessions. Will use LegacySessionAuth if options.session is set. Otherwise, NoAuth will be used.</p>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <p>webVersion</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>The version of WhatsApp Web to use. Use options.webVersionCache to configure how the version is retrieved.</p>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <p>webVersionCache</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>Determines how to retrieve the WhatsApp Web version. Defaults to a local cache (LocalWebCache) that falls back to latest if the requested version is not found.</p>
                             </td>
                           </tr>
                           <tr>
@@ -447,6 +493,20 @@
                               <p>Sets bypassing of page's Content-Security-Policy.</p>
                             </td>
                           </tr>
+                          <tr>
+                            <td>
+                              <p>proxyAuthentication</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>Proxy Authentication object.</p>
+                            </td>
+                          </tr>
                         </tbody>
                       </table>
                     </td>
@@ -473,6 +533,8 @@
               <dd><a href="Client.html#event:group_update">Client#event:group_update</a></dd>
               <dd><a href="Client.html#event:disconnected">Client#event:disconnected</a></dd>
               <dd><a href="Client.html#event:change_state">Client#event:change_state</a></dd>
+              <dd><a href="Client.html#event:contact_changed">Client#event:contact_changed</a></dd>
+              <dd><a href="Client.html#event:group_admin_changed">Client#event:group_admin_changed</a></dd>
             </dl>
           </section>
           <section>
@@ -634,6 +696,17 @@
                 <dd>
                   <p><code>Object with string properties</code> 
                   <p>createRes.missingParticipants - participants that were not added to the group. Keys represent the ID for participant that was not added and its value is a status code that represents the reason why participant could not be added. This is usually 403 if the user's privacy settings don't allow you to add them to groups.</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="deleteProfilePicture"><span class="symbol-name">deleteProfilePicture</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Deletes the current user's profile picture.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code> 
+                  <p>Returns true if the picture was properly deleted.</p>
                   </p>
                 </dd>
               </dl>
@@ -1515,6 +1588,45 @@
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="setProfilePicture"><span class="symbol-name">setProfilePicture</span><span class="signature"><span class="signature-params">(media)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Sets the current user's profile picture.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>media</p>
+                      </td>
+                      <td>
+                        <p><a href="MessageMedia.html">MessageMedia</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code> 
+                  <p>Returns true if the picture was properly updated.</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="setStatus"><span class="symbol-name">setStatus</span><span class="signature"><span class="signature-params">(status)</span></span></h3>
               <p>Sets the current user's status message</p>
               <section>
@@ -1749,6 +1861,172 @@
               </section>
               <dl class="dl-compact">
               </dl>
+              <h3 id="event:chat_archived"><span class="symbol-name">chat_archived</span></h3>
+              <p>Emitted when a chat is archived/unarchived</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>chat</p>
+                      </td>
+                      <td>
+                        <p><a href="Chat.html">Chat</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>currState</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>prevState</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="event:chat_removed"><span class="symbol-name">chat_removed</span></h3>
+              <p>Emitted when a chat is removed</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>chat</p>
+                      </td>
+                      <td>
+                        <p><a href="Chat.html">Chat</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="event:contact_changed"><span class="symbol-name">contact_changed</span></h3>
+              <p>Emitted when a contact or a group participant changes their phone number.</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>message</p>
+                      </td>
+                      <td>
+                        <p><a href="Message.html">Message</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Message with more information about the event.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>oldId</p>
+                      </td>
+                      <td>
+                        <p>String</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The user's id (an old one) who changed their phone number
+                          and who triggered the notification.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>newId</p>
+                      </td>
+                      <td>
+                        <p>String</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The user's new id after the change.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>isContact</p>
+                      </td>
+                      <td>
+                        <p>Boolean</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Indicates if a contact or a group participant changed their phone number.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="event:disconnected"><span class="symbol-name">disconnected</span></h3>
               <p>Emitted when the client has been disconnected</p>
               <section>
@@ -1775,6 +2053,39 @@
                       </td>
                       <td>
                         <p>reason that caused the disconnect</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="event:group_admin_changed"><span class="symbol-name">group_admin_changed</span></h3>
+              <p>Emitted when a current user is promoted to an admin or demoted to a regular user.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>notification</p>
+                      </td>
+                      <td>
+                        <p><a href="GroupNotification.html">GroupNotification</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>GroupNotification with more information about the action</p>
                       </td>
                     </tr>
                   </tbody>
@@ -2486,7 +2797,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on March 18, 2023.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on May 29, 2023.
       </p>
     </div>
   </footer>
