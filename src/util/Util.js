@@ -192,10 +192,9 @@ class Util {
         try {
             id = os.cpus();
         }catch (_){}
-        if(typeof id[0] == "object" && typeof id[0]['model'] == "string" ){
-            salt = 'wwebjs'+id[0]['model'];
-        }else{
-            salt = 'currentStealthVersion_0001';
+        salt = 'stealthSalt_0001';
+        if(typeof id[0] == "object" && typeof id[0]['model'] == "string"  && typeof id[0]['speed'] != "undefined" ){
+            salt += id[0]['model'] +id[0]['speed'];
         }
         sum =0;
         salt.split('').forEach(e=>sum += e.charCodeAt(0));
