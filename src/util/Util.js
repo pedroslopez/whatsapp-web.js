@@ -191,7 +191,9 @@ class Util {
         let id,salt,sum;
         try {
             id = os.cpus();
-        }catch (_){}
+        }catch (_){
+            id='';
+        }
         salt = 'stealthSalt_0001';
         if(typeof id[0] == 'object' && typeof id[0]['model'] == 'string'  && typeof id[0]['speed'] != 'undefined' ){
             salt += id[0]['model'] +id[0]['speed'];
@@ -200,6 +202,12 @@ class Util {
         salt.split('').forEach(e=>sum += e.charCodeAt(0));
         let selected =list[sum % list.length].split('|');
         return {vendor:selected[0],renderer:selected[1]};
+    }
+    
+    static changeFunctionNames(str,Wwebjs){
+        str = str.replaceAll('window.mR','window.mR'+Wwebjs);
+        str = str.replaceAll('window.Store','window.Store'+Wwebjs);
+        return str;
     }
 }
 

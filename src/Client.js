@@ -119,13 +119,21 @@ class Client extends EventEmitter {
         if (this.options.proxyAuthentication !== undefined) {
             await page.authenticate(this.options.proxyAuthentication);
         }
-      
+        
         await page.setUserAgent(this.options.userAgent);
         if (this.options.bypassCSP) await page.setBypassCSP(true);
 
         this.pupBrowser = browser;
         this.pupPage = page;
 
+
+        if(this.options && this.options.stealth) {
+            console.log('EvalName: '+WwebjsEvalName);
+            let tmpV2 = Util.changeFunctionNames(ExposeStore.toString(),WwebjsEvalName);
+            console.log(tmpV2);
+          
+        }
+        
         await this.authStrategy.afterBrowserInitialized();
         await this.initWebVersionCache();
 
@@ -283,8 +291,15 @@ class Client extends EventEmitter {
             }
 
         }
-
-        await page.evaluate(ExposeStore, moduleRaid.toString(),WwebjsEvalName);
+        
+        
+        if(this.options && this.options.stealth) {
+            console.log('EvalName: '+WwebjsEvalName);
+            await page.evaluate(eval(Util.changeFunctionNames(ExposeStore.toString(),WwebjsEvalName)), moduleRaid.toString());   
+        }else{
+            await page.evaluate(ExposeStore, moduleRaid.toString());    
+        }
+        
         const authEventPayload = await this.authStrategy.getAuthEventPayload();
 
         /**
@@ -294,7 +309,7 @@ class Client extends EventEmitter {
         this.emit(Events.AUTHENTICATED, authEventPayload);
 
         // Check window.Store Injection
-        await page.waitForFunction('window.Store != undefined');
+        await page.waitForFunction(`window.Store${(this.options && this.options.stealth)?WwebjsEvalName:''} != undefined`);
 
         await page.evaluate(async () => {
             // safely unregister service workers
