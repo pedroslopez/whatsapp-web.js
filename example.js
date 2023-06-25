@@ -210,6 +210,18 @@ client.on('message', async msg => {
                 msg.reply('I can only edit my own messages');
             }
         }
+    } else if (msg.body === '!updatelabels') {
+        const chat = await msg.getChat();
+        await chat.changeLabels([0, 1]);
+    } else if (msg.body === '!addlabels') {
+        const chat = await msg.getChat();
+        let labels = (await chat.getLabels()).map(l => l.id);
+        labels.push('0');
+        labels.push('1');
+        await chat.changeLabels(labels);
+    } else if (msg.body === '!removelabels') {
+        const chat = await msg.getChat();
+        await chat.changeLabels([]);
     }
 });
 
