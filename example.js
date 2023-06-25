@@ -2,7 +2,11 @@ const { Client, Location, List, Buttons, LocalAuth } = require('./index');
 
 const client = new Client({
     authStrategy: new LocalAuth(),
-    puppeteer: { headless: false }
+    // proxyAuthentication: { username: 'username', password: 'password' },
+    puppeteer: { 
+        // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
+        headless: false
+    }
 });
 
 client.initialize();
@@ -216,6 +220,15 @@ client.on('message', async msg => {
                 quotedMsg.vote(options);
             } else {
                 msg.reply('Usage: !vote TEST1//TEST2');
+            }
+        }
+    } else if (msg.body === '!edit') {
+        if (msg.hasQuotedMsg) {
+            const quotedMsg = await msg.getQuotedMessage();
+            if (quotedMsg.fromMe) {
+                quotedMsg.edit(msg.body.replace('!edit', ''));
+            } else {
+                msg.reply('I can only edit my own messages');
             }
         }
     }
