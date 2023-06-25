@@ -8,7 +8,6 @@ const Payment = require('./Payment');
 const { MessageTypes } = require('../util/Constants');
 const PollVote = require('./PollVote');
 const Reaction = require('./Reaction');
-const {MessageTypes} = require('../util/Constants');
 const {Contact} = require('./Contact');
 
 
