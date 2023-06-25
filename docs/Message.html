@@ -2,9 +2,9 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.6.7">
+  <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.14.1 &raquo; Class: Message</title>
+  <title>whatsapp-web.js 1.21.0 &raquo; Class: Message</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>14.<wbr>1</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>21.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -26,7 +26,7 @@
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
             <h1><small></small><span class="symbol-name">Message</span></h1>
-            <p class="source-link">Source: <a href="structures_Message.js.html#source-line-13">structures/<wbr>Message.<wbr>js:13</a></p>
+            <p class="source-link">Source: <a href="structures_Message.js.html#source-line-15">structures/<wbr>Message.<wbr>js:15</a></p>
             <div class="symbol-classdesc">
               <p>Represents a Message on WhatsApp</p>
             </div>
@@ -54,6 +54,9 @@
                     <dt><a href="Message.html#deviceType">deviceType</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Message.html#duration">duration</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Message.html#forwardingScore">forwardingScore</a></dt>
                     <dd>
                     </dd>
@@ -73,13 +76,22 @@
                     <dt><a href="Message.html#hasQuotedMsg">hasQuotedMsg</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Message.html#hasReaction">hasReaction</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Message.html#id">id</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Message.html#inviteV4">inviteV4</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Message.html#isEphemeral">isEphemeral</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Message.html#isForwarded">isForwarded</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Message.html#isGif">isGif</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Message.html#isStarred">isStarred</a></dt>
@@ -91,20 +103,23 @@
                     <dt><a href="Message.html#links">links</a></dt>
                     <dd>
                     </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
                     <dt><a href="Message.html#location">location</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Message.html#mediaKey">mediaKey</a></dt>
                     <dd>
                     </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
                     <dt><a href="Message.html#mentionedIds">mentionedIds</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Message.html#orderId">orderId</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Message.html#rawData">rawData</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Message.html#timestamp">timestamp</a></dt>
@@ -146,13 +161,13 @@
                     <dt><a href="Message.html#getChat">getChat()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Message.html#getContact">getContact()</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Message.html#getContact">getContact()</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="Message.html#getInfo">getInfo()</a></dt>
                     <dd>
                     </dd>
@@ -162,13 +177,25 @@
                     <dt><a href="Message.html#getOrder">getOrder()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Message.html#getPayment">getPayment()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Message.html#getQuotedMessage">getQuotedMessage()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Message.html#getReactions">getReactions()</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Message.html#react">react(reaction)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Message.html#reload">reload()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Message.html#reply">reply(content[, chatId][, options])</a></dt>
                     <dd>
                     </dd>
@@ -218,6 +245,11 @@
               <p>String that represents from which device type the message was sent</p>
               <dl class="dl-compact">
               </dl>
+              <h3 id="duration"><span class="symbol-name">duration</span><small class="property-type">
+                  &nbsp;string</small></h3>
+              <p>Indicates the duration of the message in seconds</p>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="forwardingScore"><span class="symbol-name">forwardingScore</span><small class="property-type">
                   &nbsp;number</small></h3>
               <p>Indicates how many times the message was forwarded.</p>
@@ -244,6 +276,11 @@
               <p>Indicates if the message was sent as a reply to another message.</p>
               <dl class="dl-compact">
               </dl>
+              <h3 id="hasReaction"><span class="symbol-name">hasReaction</span><small class="property-type">
+                  &nbsp;boolean</small></h3>
+              <p>Indicates whether there are reactions to the message</p>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="id"><span class="symbol-name">id</span><small class="property-type">
                   &nbsp;object</small></h3>
               <p>ID that represents the message</p>
@@ -254,9 +291,19 @@
               <p>Group Invite Data</p>
               <dl class="dl-compact">
               </dl>
+              <h3 id="isEphemeral"><span class="symbol-name">isEphemeral</span><small class="property-type">
+                  &nbsp;boolean</small></h3>
+              <p>Indicates if the message will disappear after it expires</p>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="isForwarded"><span class="symbol-name">isForwarded</span><small class="property-type">
                   &nbsp;boolean</small></h3>
               <p>Indicates if the message was forwarded</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="isGif"><span class="symbol-name">isGif</span><small class="property-type">
+                  &nbsp;boolean</small></h3>
+              <p>Indicates whether the message is a Gif</p>
               <dl class="dl-compact">
               </dl>
               <h3 id="isStarred"><span class="symbol-name">isStarred</span><small class="property-type">
@@ -292,6 +339,11 @@
               <h3 id="orderId"><span class="symbol-name">orderId</span><small class="property-type">
                   &nbsp;string</small></h3>
               <p>Order ID for message type ORDER</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="rawData"><span class="symbol-name">rawData</span><small class="property-type">
+                  &nbsp;Object</small></h3>
+              <p>Returns message in a raw format</p>
               <dl class="dl-compact">
               </dl>
               <h3 id="timestamp"><span class="symbol-name">timestamp</span><small class="property-type">
@@ -359,7 +411,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>If true and the message is sent by the current user, will delete it for everyone in the chat.</p>
+                        <p>If true and the message is sent by the current user or the user is an admin, will delete it for everyone in the chat.</p>
                         <p>Value can be null.</p>
                       </td>
                     </tr>
@@ -379,7 +431,7 @@
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="forward"><span class="symbol-name">forward</span><span class="signature"><span class="signature-params">(chat)</span>&nbsp;&rarr; <span class="signature-returns"> Promise</span></span></h3>
-              <p>Forwards this message to another chat</p>
+              <p>Forwards this message to another chat (that you chatted before, otherwise it will fail)</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -459,8 +511,74 @@
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getPayment"><span class="symbol-name">getPayment</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="Payment.html">Payment</a></span></span></h3>
+              <p>Gets the payment details associated with a given message</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing <a href="Payment.html">Payment</a></code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="getQuotedMessage"><span class="symbol-name">getQuotedMessage</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="Message.html">Message</a></span></span></h3>
               <p>Returns the quoted message, if any</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing <a href="Message.html">Message</a></code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getReactions"><span class="symbol-name">getReactions</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of <a href="global.html#ReactionList">ReactionList</a></span></span></h3>
+              <p>Gets the reactions associated with the given message</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing Array of <a href="global.html#ReactionList">ReactionList</a></code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="react"><span class="symbol-name">react</span><span class="signature"><span class="signature-params">(reaction)</span>&nbsp;&rarr; <span class="signature-returns"> Promise</span></span></h3>
+              <p>React to this message with an emoji</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>reaction</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Emoji to react with. Send an empty string to remove the reaction.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise</code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="reload"><span class="symbol-name">reload</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="Message.html">Message</a></span></span></h3>
+              <p>Reloads this Message object's data in-place with the latest values from WhatsApp Web.
+                Note that the Message must still be in the web app cache for this to work, otherwise will return null.</p>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
@@ -552,7 +670,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.7 on September 1, 2021.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on May 29, 2023.
       </p>
     </div>
   </footer>
