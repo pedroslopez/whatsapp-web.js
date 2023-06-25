@@ -123,7 +123,8 @@ class GroupChat extends Chat {
         const success = await this.client.pupPage.evaluate(async (chatId, subject) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             try {
-                return await window.Store.GroupUtils.sendSetGroupSubject(chatWid, subject);
+                await window.Store.GroupUtils.setGroupSubject(chatWid, subject);
+                return true;
             } catch (err) {
                 if(err.name === 'ServerStatusCodeError') return false;
                 throw err;
@@ -145,7 +146,8 @@ class GroupChat extends Chat {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             let descId = window.Store.GroupMetadata.get(chatWid).descId;
             try {
-                return await window.Store.GroupUtils.sendSetGroupDescription(chatWid, description, window.Store.MsgKey.newId(), descId);
+                await window.Store.GroupUtils.setGroupDescription(chatWid, description, window.Store.MsgKey.newId(), descId);
+                return true;
             } catch (err) {
                 if(err.name === 'ServerStatusCodeError') return false;
                 throw err;
@@ -166,7 +168,8 @@ class GroupChat extends Chat {
         const success = await this.client.pupPage.evaluate(async (chatId, adminsOnly) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             try {
-                return await window.Store.GroupUtils.sendSetGroupProperty(chatWid, 'announcement', adminsOnly ? 1 : 0);
+                await window.Store.GroupUtils.setGroupProperty(chatWid, 'announcement', adminsOnly ? 1 : 0);
+                return true;
             } catch (err) {
                 if(err.name === 'ServerStatusCodeError') return false;
                 throw err;
@@ -188,7 +191,8 @@ class GroupChat extends Chat {
         const success = await this.client.pupPage.evaluate(async (chatId, adminsOnly) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             try {
-                return await window.Store.GroupUtils.sendSetGroupProperty(chatWid, 'restrict', adminsOnly ? 1 : 0);
+                await window.Store.GroupUtils.setGroupProperty(chatWid, 'restrict', adminsOnly ? 1 : 0);
+                return true;
             } catch (err) {
                 if(err.name === 'ServerStatusCodeError') return false;
                 throw err;
@@ -202,16 +206,41 @@ class GroupChat extends Chat {
     }
 
     /**
+     * Deletes the group's picture.
+     * @returns {Promise<boolean>} Returns true if the picture was properly deleted. This can return false if the user does not have the necessary permissions.
+     */
+    async deletePicture() {
+        const success = await this.client.pupPage.evaluate((chatid) => {
+            return window.WWebJS.deletePicture(chatid);
+        }, this.id._serialized);
+
+        return success;
+    }
+
+    /**
+     * Sets the group's picture.
+     * @param {MessageMedia} media
+     * @returns {Promise<boolean>} Returns true if the picture was properly updated. This can return false if the user does not have the necessary permissions.
+     */
+    async setPicture(media) {
+        const success = await this.client.pupPage.evaluate((chatid, media) => {
+            return window.WWebJS.setPicture(chatid, media);
+        }, this.id._serialized, media);
+
+        return success;
+    }
+
+    /**
      * Gets the invite code for a specific group
      * @returns {Promise<string>} Group's invite code
      */
     async getInviteCode() {
-        const code = await this.client.pupPage.evaluate(async chatId => {
+        const codeRes = await this.client.pupPage.evaluate(async chatId => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            return window.Store.Invite.sendQueryGroupInviteCode(chatWid);
+            return window.Store.Invite.queryGroupInviteCode(chatWid);
         }, this.id._serialized);
 
-        return code;
+        return codeRes.code;
     }
     
     /**
@@ -219,12 +248,12 @@ class GroupChat extends Chat {
      * @returns {Promise<string>} New invite code
      */
     async revokeInvite() {
-        const code = await this.client.pupPage.evaluate(chatId => {
+        const codeRes = await this.client.pupPage.evaluate(chatId => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            return window.Store.Invite.sendRevokeGroupInviteCode(chatWid);
+            return window.Store.Invite.resetGroupInviteCode(chatWid);
         }, this.id._serialized);
 
-        return code;
+        return codeRes.code;
     }
 
     /**
@@ -232,9 +261,10 @@ class GroupChat extends Chat {
      * @returns {Promise}
      */
     async leave() {
-        await this.client.pupPage.evaluate(chatId => {
+        await this.client.pupPage.evaluate(async chatId => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            return window.Store.GroupUtils.sendExitGroup(chatWid);
+            const chat = await window.Store.Chat.find(chatWid);
+            return window.Store.GroupUtils.sendExitGroup(chat);
         }, this.id._serialized);
     }
 

@@ -7,13 +7,18 @@ exports.DefaultOptions = {
         headless: true,
         defaultViewport: null
     },
+    webVersion: '2.2322.15',
+    webVersionCache: {
+        type: 'local',
+    },
     authTimeoutMs: 0,
     qrMaxRetries: 0,
     takeoverOnConflict: false,
     takeoverTimeoutMs: 0,
     userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36',
     ffmpegPath: 'ffmpeg',
-    bypassCSP: false
+    bypassCSP: false,
+    proxyAuthentication: undefined
 };
 
 /**
@@ -36,22 +41,28 @@ exports.Events = {
     AUTHENTICATED: 'authenticated',
     AUTHENTICATION_FAILURE: 'auth_failure',
     READY: 'ready',
+    CHAT_REMOVED: 'chat_removed',
+    CHAT_ARCHIVED: 'chat_archived',
     MESSAGE_RECEIVED: 'message',
     MESSAGE_CREATE: 'message_create',
     MESSAGE_REVOKED_EVERYONE: 'message_revoke_everyone',
     MESSAGE_REVOKED_ME: 'message_revoke_me',
     MESSAGE_ACK: 'message_ack',
+    MESSAGE_EDIT: 'message_edit',
+    UNREAD_COUNT: 'unread_count',
     MESSAGE_REACTION: 'message_reaction',
     MEDIA_UPLOADED: 'media_uploaded',
+    CONTACT_CHANGED: 'contact_changed',
     GROUP_JOIN: 'group_join',
     GROUP_LEAVE: 'group_leave',
+    GROUP_ADMIN_CHANGED: 'group_admin_changed',
     GROUP_UPDATE: 'group_update',
     QR_RECEIVED: 'qr',
     LOADING_SCREEN: 'loading_screen',
     DISCONNECTED: 'disconnected',
     STATE_CHANGED: 'change_state',
     BATTERY_CHANGED: 'change_battery',
-    INCOMING_CALL: 'incoming_call',
+    INCOMING_CALL: 'call',
     REMOTE_SESSION_SAVED: 'remote_session_saved'
 };
 
