@@ -19,7 +19,6 @@ exports.DefaultOptions = {
     ffmpegPath: 'ffmpeg',
     bypassCSP: false,
     proxyAuthentication: undefined,
-    cipherMsg: false
 };
 
 /**
