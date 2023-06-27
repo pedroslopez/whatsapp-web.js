@@ -1360,6 +1360,8 @@ class Client extends EventEmitter {
 
             return await window.Store.Label.addOrRemoveLabels(actions, chats);
         }, labelIds, chatIds);
+    }
+    
      /**
      * Setting  autoload download audio
      * @param {boolean} flag true/false
@@ -1418,7 +1420,6 @@ class Client extends EventEmitter {
             await window.Store.Settings.setAutoDownloadVideos(flag);
             return flag;
         }, flag);
-    }
     }
 }
 
