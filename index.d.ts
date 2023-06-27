@@ -413,9 +413,6 @@ declare namespace WAWebJS {
         ffmpegPath?: string,
         /** Object with proxy autentication requirements @default: undefined */
         proxyAuthentication?: {username: string, password: string} | undefined
-        /** Sets bypassing of page's Content-Security-Policy.
-         * @default false */
-        bypassCSP?: boolean
     }
 
     export interface LocalWebCacheOptions {
