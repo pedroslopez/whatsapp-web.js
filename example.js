@@ -226,8 +226,8 @@ client.on('message', async msg => {
     else if (msg.author) {
         /**
          * Note:
-         * In order to forward messages with video/animated sticker/gif
-         * you have to use Chrome instead of Chromium with @property {executablePath}
+         * In order to avoid unexpected behaviour while forwarding media and attachment messages
+         * you have to use Chrome instead of Chromium by adding @property {executablePath}
          * @see https://github.com/pedroslopez/whatsapp-web.js/pull/2272
          * @see https://pptr.dev/api/puppeteer.configuration
          * 

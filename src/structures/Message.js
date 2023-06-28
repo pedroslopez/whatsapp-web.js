@@ -386,7 +386,7 @@ class Message extends Base {
     /**
      * Forwards this message to another chat
      *
-     * @note In order to forward messages with video/animated sticker/gif you have to use Chrome instead of Chromium
+     * @note In order to avoid unexpected behaviour while forwarding media and attachment messages you have to use Chrome instead of Chromium
      * @param {string|Chat} chat Chat model or chat ID to which the message will be forwarded
      * @param {MessageForwardOptions} [options] Options used when forwarding the message
      * @returns {Promise}
