@@ -384,15 +384,17 @@ class Message extends Base {
      */
 
     /**
-     * Forwards this message to another chat (that you chatted before, otherwise it will fail)
+     * Forwards this message to another chat
      *
+     * @note In order to forward messages with video/animated sticker/gif you have to use Chrome instead of Chromium
      * @param {string|Chat} chat Chat model or chat ID to which the message will be forwarded
      * @param {MessageForwardOptions} [options] Options used when forwarding the message
      * @returns {Promise}
      */
     async forward(chat, options = {}) {
         const chatId = typeof chat === 'string' ? chat : chat.id._serialized;
-        let internalOptions = {
+
+        const forwardOptions = {
             multicast: options.multicast || false,
             withCaption: options.withCaption === false ? false : true
         };
@@ -403,7 +405,7 @@ class Message extends Base {
             const message = window.Store.Msg.get(msgId);
             
             return await window.WWebJS.forwardMessage(chat, message, options);
-        }, chatId, this.id._serialized, internalOptions);
+        }, chatId, this.id._serialized, forwardOptions);
     }
 
     /**

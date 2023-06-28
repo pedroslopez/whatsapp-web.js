@@ -298,14 +298,12 @@ exports.LoadUtils = () => {
         const contact = chat.contact;
 
         if (contact.isUser && contact.isContactBlocked) {
-            throw new Error('Attempted forwarding to a blocked contact', contact);
+            throw new Error('Attempted forwarding to a blocked contact');
         }
 
-        const _isMediaMsg = (msg) => {
-            return Boolean(window.Store.getAsMms(msg) && !msg.ctwaContext);
-        };
+        const isMediaMsg = Boolean(window.Store.getAsMms(msg) && !msg.ctwaContext);
 
-        if (_isMediaMsg(msg)) {
+        if (isMediaMsg) {
             return await window.WWebJS.forwardMediaMessage(chat, msg, options);
         }
 
@@ -328,8 +326,6 @@ exports.LoadUtils = () => {
             forwardedMsgFields.type = 'chat';
             forwardedMsgFields.mediaObject = undefined;
         }
-
-        Object.assign(forwardedMsgFields, ephemeralFields);
 
         const newMessage = {
             ...forwardedMsgFields,
@@ -358,32 +354,32 @@ exports.LoadUtils = () => {
         const mediaObject = msg.mediaObject;
 
         if (!mediaObject) {
-            throw new Error('Forwarding media message without media object', msg);
+            throw new Error('Forwarding media message without media object');
         }
 
-        const serializedMediaData = msg.mediaData.toJSON();
+        const mediaData = msg.mediaData.toJSON();
 
-        if (serializedMediaData.preview != null) {
-            (serializedMediaData.preview = mediaObject.contentInfo._preview);
+        if (mediaData.preview != null) {
+            (mediaData.preview = mediaObject.contentInfo._preview);
         }
 
-        if (serializedMediaData.mediaBlob instanceof window.Store.OpaqueData) {
-            serializedMediaData.mediaBlob.retain();
+        if (mediaData.mediaBlob instanceof window.Store.OpaqueData) {
+            mediaData.mediaBlob.retain();
         }
 
         const mimetype = {
-            mimetype: serializedMediaData.mimetype
+            mimetype: mediaData.mimetype
         };
 
-        let mediaType;
-        serializedMediaData.isGif ?
-            mediaType = {
+        const mediaType = mediaData.isGif
+            ? {
                 ...mimetype,
                 isGif: true
-            } : mediaType = mimetype;
+            }
+            : mimetype;
 
-        if (serializedMediaData.type === 'ptt') {
-            serializedMediaData.type = 'audio';
+        if (mediaData.type === 'ptt') {
+            mediaData.type = 'audio';
         }
 
         const productMsgOptions = {
@@ -400,24 +396,25 @@ exports.LoadUtils = () => {
         };
 
         const isImageOrVideo =
-            serializedMediaData.type === 'image' ||
-            serializedMediaData.type === 'video';
+            mediaData.type === 'image' ||
+            mediaData.type === 'video';
 
         const isBtnOrList =
-            serializedMediaData.type === 'document' &&
+            mediaData.type === 'document' &&
             (msg.isFromTemplate || msg.isDynamicReplyButtonsMsg);
 
-        const isProduct = serializedMediaData.type === 'product';
+        const isProduct = mediaData.type === 'product';
 
         const caption =
             (withCaption && (isImageOrVideo || msg.isCaptionByUser)) ||
-                isBtnOrList || isProduct
+            isBtnOrList ||
+            isProduct
                 ? msg.caption
                 : undefined;
 
         const mediaPrep = new window.Store.MediaPrep.MediaPrep(
-            serializedMediaData.type,
-            Promise.resolve(serializedMediaData)
+            mediaData.type,
+            Promise.resolve(mediaData)
         );
 
         const mediaMessageOptions = {
@@ -435,7 +432,7 @@ exports.LoadUtils = () => {
             isAvatar: msg.isAvatar !== null && msg.isAvatar !== undefined && msg.isAvatar
         };
 
-        return await mediaPrep.sendToChat(chat, mediaMessageOptions);
+        await mediaPrep.sendToChat(chat, mediaMessageOptions);
     };
 	
     window.WWebJS.editMessage = async (msg, content, options = {}) => {
