@@ -261,6 +261,15 @@ class Chat extends Base {
     async getLabels() {
         return this.client.getChatLabels(this.id._serialized);
     }
+
+    /**
+     * Add or remove labels to this Chat
+     * @param {Array<number|string>} labelIds
+     * @returns {Promise<void>}
+     */
+    async changeLabels(labelIds) {
+        return this.client.addOrRemoveLabels(labelIds, [this.id._serialized]);
+    }
 }
 
 module.exports = Chat;
