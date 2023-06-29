@@ -61,6 +61,22 @@ describe('Chat', function () {
         expect(fetchedMsg.body).to.equal(msg.body);
     });
 
+    it('can use fromMe=true when fetching messages sent in a chat to get only bot messages', async function () {
+        const messages = await chat.fetchMessages({fromMe: true});
+        expect(messages).to.have.lengthOf(2);
+
+        const fetchedMsg = messages[0];
+        expect(fetchedMsg).to.be.instanceOf(Message);
+        expect(fetchedMsg.type).to.equal(MessageTypes.TEXT);
+        expect(fetchedMsg.id._serialized).to.equal(msg.id._serialized);
+        expect(fetchedMsg.body).to.equal(msg.body);
+    });
+
+    it('can use fromMe=false when fetching messages sent in a chat to get only non bot messages', async function () {
+        const messages = await chat.fetchMessages({fromMe: false});
+        expect(messages).to.have.lengthOf(0);
+    });
+
     it('can get the related contact', async function () {
         const contact = await chat.getContact();
         expect(contact).to.be.instanceOf(Contact);
