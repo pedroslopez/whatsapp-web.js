@@ -843,7 +843,7 @@ declare namespace WAWebJS {
         /** React to this message with an emoji*/
         react: (reaction: string) => Promise<void>,
         /** 
-         * Forwards this message to another chat (that you chatted before, otherwise it will fail)
+         * Forwards this message to another chat
          */
         forward: (chat: Chat | string, options?: MessageForwardOptions) => Promise<void>,
         /** Star this message */
