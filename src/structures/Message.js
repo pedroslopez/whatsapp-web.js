@@ -130,6 +130,12 @@ class Message extends Base {
         this.fromMe = data.id.fromMe;
 
         /**
+         * Indicates if the message was sent via whatsapp web
+         * @type {boolean}
+         */
+        this.isWWebJS = data.id.id.startsWith('3EB0') && data.id.id.length === 12;
+
+        /**
          * Indicates if the message was sent as a reply to another message.
          * @type {boolean}
          */
