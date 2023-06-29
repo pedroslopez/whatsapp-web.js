@@ -749,7 +749,7 @@ declare namespace WAWebJS {
         from: string,
         /** Indicates if the message was sent by the current user */
         fromMe: boolean,
-        /** Indicates if the message was sent via whatsapp web */
+        /** Indicates that the message is sent via wa web automatically */
         isWWebJS: boolean,
         /** Indicates if the message has media available for download */
         hasMedia: boolean,
