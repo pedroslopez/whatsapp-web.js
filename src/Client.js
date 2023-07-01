@@ -314,7 +314,7 @@ class Client extends EventEmitter {
         await page.exposeFunction('onAddMessageEvent', msg => {
             if (msg.type === 'gp2') {
                 const notification = new GroupNotification(this, msg);
-                if (msg.subtype === 'add' || msg.subtype === 'invite') {
+                if (['add', 'invite', 'linked_group_join'].includes(msg.subtype)) {
                     /**
                      * Emitted when a user joins the chat via invite link or is added by an admin.
                      * @event Client#group_join
