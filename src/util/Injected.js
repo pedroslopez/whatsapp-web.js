@@ -507,13 +507,28 @@ exports.LoadUtils = () => {
             res.businessProfile = contact.businessProfile.serialize();
         }
 
-        res.isMe = window.Store.ContactMethods.getIsMe(contact);
-        res.isUser = window.Store.ContactMethods.getIsUser(contact);
-        res.isGroup = window.Store.ContactMethods.getIsGroup(contact);
-        res.isWAContact = window.Store.ContactMethods.getIsWAContact(contact);
-        res.isMyContact = window.Store.ContactMethods.getIsMyContact(contact);
+        const useOldImplementation
+            = window.WWebJS.isCurrentWwebVersionLowerThan('2.2327.4');
+
+        res.isMe = useOldImplementation
+            ? contact.isMe
+            : window.Store.ContactMethods.getIsMe(contact);
+        res.isUser = useOldImplementation
+            ? contact.isUser
+            : window.Store.ContactMethods.getIsUser(contact);
+        res.isGroup = useOldImplementation
+            ? contact.isGroup
+            : window.Store.ContactMethods.getIsGroup(contact);
+        res.isWAContact = useOldImplementation
+            ? contact.isWAContact
+            : window.Store.ContactMethods.getIsWAContact(contact);
+        res.isMyContact = useOldImplementation
+            ? contact.isMyContact
+            : window.Store.ContactMethods.getIsMyContact(contact);
         res.isBlocked = contact.isContactBlocked;
-        res.userid = window.Store.ContactMethods.getUserid(contact);
+        res.userid = useOldImplementation
+            ? contact.userid
+            : window.Store.ContactMethods.getUserid(contact);
 
         return res;
     };
@@ -745,5 +760,27 @@ exports.LoadUtils = () => {
             if(err.name === 'ServerStatusCodeError') return false;
             throw err;
         }
+    };
+
+    /**
+     * Inner function that compares the currently used WWeb version with the version that requires the code changes. Its purpose is to ensure the stable operation of the library across different WWeb versions.
+     * @param {string} version The version to compare with the currently used WWeb version 
+     * @returns {boolean} True if the currently used WWeb version is lower than the version it's been compared to, false otherwise
+     */
+    window.WWebJS.isCurrentWwebVersionLowerThan = (version) => {
+        const currentVersion = window.Debug.VERSION.split('.').map(Number);
+        const toCompareWith = version.split('.').map(Number);
+        for (let i = 0; i < Math.max(currentVersion.length, toCompareWith.length); i++) {
+            const v1 = currentVersion[i] || 0;
+            const v2 = toCompareWith[i] || 0;
+            if (v1 !== v2) {
+                if (v1 < v2) {
+                    return true;
+                } else {
+                    throw new Error('The WWeb version to compare with can not be lower than the current one.');
+                }
+            }
+        }
+        return false;
     };
 };
