@@ -619,7 +619,7 @@ exports.LoadUtils = () => {
 
             return waveform;
         } catch (e) {
-            throw new Error('Failed to generate waveform', e);
+            return undefined;
         }
     };
 
