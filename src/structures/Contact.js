@@ -156,7 +156,7 @@ class Contact extends Base {
 
         await this.client.pupPage.evaluate(async (contactId) => {
             const contact = window.Store.Contact.get(contactId);
-            await window.Store.BlockContact.blockContact(contact);
+            await window.Store.BlockContact.blockContact({contact});
         }, this.id._serialized);
 
         return true;
