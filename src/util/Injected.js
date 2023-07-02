@@ -34,6 +34,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.EditMessage = window.mR.findModule('addAndSendMessageEdit')[0];
     window.Store.SendSeen = window.mR.findModule('sendSeen')[0];
     window.Store.User = window.mR.findModule('getMaybeMeUser')[0];
+    window.Store.ContactMethods = window.mR.modules[660666];
     window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
     window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default;
     window.Store.Validators = window.mR.findModule('findLinks')[0];
@@ -506,13 +507,13 @@ exports.LoadUtils = () => {
             res.businessProfile = contact.businessProfile.serialize();
         }
 
-        res.isMe = contact.isMe;
-        res.isUser = contact.isUser;
-        res.isGroup = contact.isGroup;
-        res.isWAContact = contact.isWAContact;
-        res.isMyContact = contact.isMyContact;
+        res.isMe = window.Store.ContactMethods.getIsMe(contact);
+        res.isUser = window.Store.ContactMethods.getIsUser(contact);
+        res.isGroup = window.Store.ContactMethods.getIsGroup(contact);
+        res.isWAContact = window.Store.ContactMethods.getIsWAContact(contact);
+        res.isMyContact = window.Store.ContactMethods.getIsMyContact(contact);
         res.isBlocked = contact.isContactBlocked;
-        res.userid = contact.userid;
+        res.userid = window.Store.ContactMethods.getUserid(contact);
 
         return res;
     };
