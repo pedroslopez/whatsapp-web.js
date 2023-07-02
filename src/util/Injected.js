@@ -507,6 +507,7 @@ exports.LoadUtils = () => {
             res.businessProfile = contact.businessProfile.serialize();
         }
 
+        // TODO: remove useOldImplementation and its checks once all clients are updated to >= v2.2327.4
         const useOldImplementation
             = window.WWebJS.isCurrentWwebVersionLowerThan('2.2327.4');
 
