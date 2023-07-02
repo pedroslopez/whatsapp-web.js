@@ -159,6 +159,7 @@ class Contact extends Base {
             await window.Store.BlockContact.blockContact({contact});
         }, this.id._serialized);
 
+        this.isBlocked = true;
         return true;
     }
 
@@ -174,6 +175,7 @@ class Contact extends Base {
             await window.Store.BlockContact.unblockContact(contact);
         }, this.id._serialized);
 
+        this.isBlocked = false;
         return true;
     }
 
