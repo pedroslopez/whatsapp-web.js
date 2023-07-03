@@ -509,7 +509,7 @@ exports.LoadUtils = () => {
 
         // TODO: remove useOldImplementation and its checks once all clients are updated to >= v2.2327.4
         const useOldImplementation
-            = window.WWebJS.isCurrentWwebVersionLowerThan('2.2327.4');
+            = window.WWebJS.compareWwebVersions(window.Debug.VERSION, '<', '2.2327.4');
 
         res.isMe = useOldImplementation
             ? contact.isMe
@@ -764,24 +764,36 @@ exports.LoadUtils = () => {
     };
 
     /**
-     * Inner function that compares the currently used WWeb version with the version that requires the code changes. Its purpose is to ensure the stable operation of the library across different WWeb versions.
-     * @param {string} version The version to compare with the currently used WWeb version 
-     * @returns {boolean} True if the currently used WWeb version is lower than the version it's been compared to, false otherwise
+     * Inner function that compares between two WWeb versions. Its purpose is to help the developer to choose the right code implementation depending on the comparison value.
+     * @param {string} left The left WWeb version string to compare with
+     * @param {string} operator The comparison operator
+     * @param {string} right The right WWeb version string to compare with
+     * @returns {boolean} Boolean value that indicates the result of the comparison
      */
-    window.WWebJS.isCurrentWwebVersionLowerThan = (version) => {
-        const currentVersion = window.Debug.VERSION.split('.').map(Number);
-        const toCompareWith = version.split('.').map(Number);
-        for (let i = 0; i < Math.max(currentVersion.length, toCompareWith.length); i++) {
-            const v1 = currentVersion[i] || 0;
-            const v2 = toCompareWith[i] || 0;
-            if (v1 !== v2) {
-                if (v1 < v2) {
-                    return true;
-                } else {
-                    throw new Error('The WWeb version to compare with can not be lower than the current one.');
-                }
-            }
+    window.WWebJS.compareWwebVersions = (left, operator, right) => {
+        if (!['>', '>=', '<', '<=', '='].includes(operator)) {
+            throw new Error('Invalid comparison operator is provided.');
         }
-        return false;
+        if (typeof left !== 'string' || typeof right !== 'string') {
+            throw new Error('A non-string WWeb version type is provided.');
+        }
+
+        while (left.length !== right.length) {
+            left.length > right.length
+                ? right = right.concat('0')
+                : left = left.concat('0');
+        }
+
+        left = Number(left.replace(/\./g, ''));
+        right = Number(right.replace(/\./g, ''));
+
+        return (
+            operator === '>' ? left > right :
+                operator === '>=' ? left >= right :
+                    operator === '<' ? left < right :
+                        operator === '<=' ? left <= right :
+                            operator === '=' ? left === right :
+                                false
+        );
     };
 };
