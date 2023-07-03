@@ -764,7 +764,7 @@ exports.LoadUtils = () => {
     };
 
     /**
-     * Inner function that compares between two WWeb versions. Its purpose is to help the developer to choose the right code implementation depending on the comparison value.
+     * Inner function that compares between two WWeb versions. Its purpose is to help the developer to choose the correct code implementation depending on the comparison value and the WWeb version.
      * @param {string} left The left WWeb version string to compare with
      * @param {string} operator The comparison operator
      * @param {string} right The right WWeb version string to compare with
@@ -778,6 +778,11 @@ exports.LoadUtils = () => {
             throw new Error('A non-string WWeb version type is provided.');
         }
 
+        const rightIsBeta = right.endsWith('-beta');
+        const leftIsBeta = left.endsWith('-beta');
+        rightIsBeta && (right = right.replace(/-beta$/, ''));
+        leftIsBeta && (left = left.replace(/-beta$/, ''));
+
         while (left.length !== right.length) {
             left.length > right.length
                 ? right = right.concat('0')
@@ -788,12 +793,22 @@ exports.LoadUtils = () => {
         right = Number(right.replace(/\./g, ''));
 
         return (
-            operator === '>' ? left > right :
-                operator === '>=' ? left >= right :
-                    operator === '<' ? left < right :
-                        operator === '<=' ? left <= right :
-                            operator === '=' ? left === right :
-                                false
+            operator === '>'
+                ? left > right
+                || (left === right && rightIsBeta) :
+                operator === '>='
+                    ? (left === right && !leftIsBeta)
+                    || (left > right) :
+                    operator === '<'
+                        ? left < right
+                        || (left === right && leftIsBeta) :
+                        operator === '<='
+                            ? (left === right && !rightIsBeta)
+                            || left < right :
+                            operator === '='
+                                ? (left === right && !leftIsBeta && !rightIsBeta)
+                                || (left === right && leftIsBeta && rightIsBeta)
+                                : false
         );
     };
 };
