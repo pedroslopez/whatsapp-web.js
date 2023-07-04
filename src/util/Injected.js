@@ -35,6 +35,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.SendSeen = window.mR.findModule('sendSeen')[0];
     window.Store.User = window.mR.findModule('getMaybeMeUser')[0];
     window.Store.ContactMethods = window.mR.modules[660666];
+    window.Store.BusinessProfileCollection = window.mR.modules[778945].BusinessProfileCollection;
     window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
     window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default;
     window.Store.Validators = window.mR.findModule('findLinks')[0];
@@ -501,7 +502,7 @@ exports.LoadUtils = () => {
 
     window.WWebJS.getContactModel = contact => {
         let res = contact.serialize();
-        res.isBusiness = contact.isBusiness;
+        res.isBusiness = contact.isBusiness === undefined ? false : contact.isBusiness;
 
         if (contact.businessProfile) {
             res.businessProfile = contact.businessProfile.serialize();
@@ -530,6 +531,27 @@ exports.LoadUtils = () => {
         res.userid = useOldImplementation
             ? contact.userid
             : window.Store.ContactMethods.getUserid(contact);
+        res.isEnterprise = useOldImplementation
+            ? contact.isEnterprise
+            : window.Store.ContactMethods.getIsEnterprise(contact);
+        res.verifiedName = useOldImplementation
+            ? contact.verifiedName
+            : window.Store.ContactMethods.getVerifiedName(contact);
+        res.verifiedLevel = useOldImplementation
+            ? contact.verifiedLevel
+            : window.Store.ContactMethods.getVerifiedLevel(contact);
+        res.statusMute = useOldImplementation
+            ? contact.statusMute
+            : window.Store.ContactMethods.getStatusMute(contact);
+        res.name = useOldImplementation
+            ? contact.name
+            : window.Store.ContactMethods.getName(contact);
+        res.shortName = useOldImplementation
+            ? contact.shortName
+            : window.Store.ContactMethods.getShortName(contact);
+        res.pushname = useOldImplementation
+            ? contact.pushname
+            : window.Store.ContactMethods.getPushname(contact);
 
         return res;
     };
@@ -537,6 +559,8 @@ exports.LoadUtils = () => {
     window.WWebJS.getContact = async contactId => {
         const wid = window.Store.WidFactory.createWid(contactId);
         const contact = await window.Store.Contact.find(wid);
+        const bizProfile = await window.Store.BusinessProfileCollection.fetchBizProfile(wid);
+        bizProfile.profileOptions && (contact.businessProfile = bizProfile);
         return window.WWebJS.getContactModel(contact);
     };
 
