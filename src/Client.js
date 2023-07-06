@@ -976,12 +976,15 @@ class Client extends EventEmitter {
             if (result.name !== 'AddParticipantsResponseSuccess') {
                 return false;
             }
-            const groupName = group.formattedTitle || group.name;
             const mixins = result.value.addParticipant[0].addParticipantsParticipantMixins;
+            if (!mixins || mixins.name !== 'ParticipantRequestCodeCanBeSent') {
+                return false;
+            }
             const inviteV4 = mixins.value.addRequestCode;
             const inviteV4Exp = mixins.value.addRequestExpiration;
-            await window.Store.GroupUtils.sendGroupInviteMessage(chat, groupId, groupName, inviteV4, inviteV4Exp, comment);
-            return true;
+            const groupName = group.formattedTitle || group.name;
+            const status = await window.Store.GroupUtils.sendGroupInviteMessage(chat, groupId, groupName, inviteV4, inviteV4Exp, comment);
+            return status === 'OK' ? true : false;
         }, userId, groupId, comment);
     }
 
