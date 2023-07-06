@@ -57,16 +57,22 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.SocketWap = window.mR.findModule('wap')[0];
     window.Store.SearchContext = window.mR.findModule('getSearchContext')[0].getSearchContext;
     window.Store.DrawerManager = window.mR.findModule('DrawerManager')[0].DrawerManager;
+    window.Store.LidManipulations = window.mR.findModule('getCurrentLid')[0];
+    window.Store.WidToJid = window.mR.findModule('widToUserJid')[0];
+    window.Store.JidToWid = window.mR.findModule('userJidToUserWid')[0]
     window.Store.StickerTools = {
         ...window.mR.findModule('toWebpSticker')[0],
         ...window.mR.findModule('addWebpMetadata')[0]
     };
-  
     window.Store.GroupUtils = {
         ...window.mR.findModule('createGroup')[0],
         ...window.mR.findModule('setGroupDescription')[0],
         ...window.mR.findModule('sendExitGroup')[0],
-        ...window.mR.findModule('sendSetPicture')[0]
+        ...window.mR.findModule('sendSetPicture')[0],
+        sendAddParticipantsRPC:
+            window.mR.findModule('sendAddParticipantsRPC')[0].sendAddParticipantsRPC,
+        sendGroupInviteMessage:
+            window.mR.findModule('sendGroupInviteMessage')[0].sendGroupInviteMessage
     };
 
     if (!window.Store.Chat._find) {
