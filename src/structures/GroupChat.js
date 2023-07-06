@@ -54,21 +54,85 @@ class GroupChat extends Chat {
     }
 
     /**
+     * An object that handles the result of {@link addParticipants} method
+     * @typedef {Object} AddParticipantsResult
+     * @property {number} [code] The code of the result
+     * @property {string} [message] The result message
+     */
+
+    /**
      * Adds a list of participants by ID to the group
      * @param {Array<string>} participantIds 
-     * @returns {Promise<Object>}
+     * @returns {Promise<AddParticipantsResult>}
      */
     async addParticipants(participantIds) {
-        return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
-            const chat = await window.Store.Chat.find(chatWid);
-            const participants = await Promise.all(participantIds.map(async p => {
-                const wid = window.Store.WidFactory.createWid(p);
-                return await window.Store.Contact.get(wid);
-            }));
-            await window.Store.GroupParticipants.addParticipants(chat, participants);
-            return { status: 200 };
-        }, this.id._serialized, participantIds);
+        try {
+            return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
+                const groupWid = window.Store.WidFactory.createWid(chatId);
+                const group = await window.Store.Chat.find(groupWid);
+                !Array.isArray(participantIds) && (participantIds = [participantIds]);
+                let participantsToAdd = await Promise.all(participantIds.map(async p => {
+                    const wid = window.Store.WidFactory.createWid(p);
+                    return await window.Store.Contact.find(wid);
+                }));
+                const resultCodes = {
+                    200: 'OK',
+                    403: 'The user can be added by sending private invitation only',
+                    409: 'The user is already a group member',
+                    417: 'User/s can\'t be added to the community. You can invite them privately to join this group through its invite link',
+                    419: 'User/s can\'t be added because the community is full',
+                    isGroupEmpty: 'You can\'t add participants to an empty group',
+                    iAmNotAdmin: 'You have no admin rights to add participants to a group',
+                    default: 'An error occupied while adding participant/s'
+                };
+                const groupParticipants = group.groupMetadata?.participants;
+                if (!groupParticipants) {
+                    throw new Error(resultCodes.isGroupEmpty);
+                }
+                if (!(await groupParticipants.canAdd())) {
+                    throw new Error(resultCodes.iAmNotAdmin);
+                }
+                const data = {};
+                participantsToAdd = participantsToAdd.filter(participant => {
+                    const participantId = participant.id._serialized;
+                    if (groupParticipants.some(p => p.id._serialized === participantId)) {
+                        data[participantId] = {
+                            code: 409,
+                            message: resultCodes[409]
+                        };
+                        return false;
+                    }
+                    return true;
+                });
+                const participantsToBeAdded = group.groupMetadata?.isLidAddressingMode
+                    ? participantsToAdd.map((p) => ({
+                        phoneNumber: p.id,
+                        lid: window.Store.LidManipulations.getCurrentLid(p.id)
+                    }))
+                    : participantsToAdd.map((e) => ({
+                        phoneNumber: e.id
+                    }));
+                const preResult =
+                    await window.Store.GroupParticipantsImpl.addGroupParticipants(group.id, participantsToBeAdded);
+                if (!preResult.status === 207) {
+                    throw new Error(resultCodes.default);
+                }
+                for (const p of preResult.participants) {
+                    try {
+                        window.Store.GroupUtils.sendForNeededAddRequest(groupParticipants, preResult);
+                    } catch (err) {
+                        throw new Error(resultCodes[err.status] ?? resultCodes.default);
+                    }
+                    data[p.userWid._serialized] = {
+                        code: parseInt(p.code, 10),
+                        message: resultCodes[p.code]
+                    };
+                }
+                return data;
+            }, this.id._serialized, participantIds);
+        } catch (err) {
+            return err;
+        }
     }
 
     /**
