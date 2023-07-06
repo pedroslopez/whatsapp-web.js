@@ -1224,18 +1224,15 @@ declare namespace WAWebJS {
     export type ChangeParticipantsPermissions = 
         (participantIds: Array<string>) => Promise<{ status: number }>
 
-    /** Adds or removes a list of participants by ID to the group */
-    export type ChangeGroupParticipants = 
-        (participantIds: Array<string>) => Promise<{
-            status: number;
-            participants: Array<{
-                [key: string]: {
-                    code: number
-                }
-            }>
-         } & {
-             [key: string]: number;
-         }>
+    /**
+     * An object that handles the result of addParticipants method
+     */
+    export type AddParticipantsResult = {
+        [participantId: string]: {
+            code: number;
+            message: string;
+        };
+    };
 
     export interface GroupChat extends Chat {
         /** Group owner */
@@ -1247,9 +1244,9 @@ declare namespace WAWebJS {
         /** Group participants */
         participants: Array<GroupParticipant>;
         /** Adds a list of participants by ID to the group */
-        addParticipants: ChangeGroupParticipants;
+        addParticipants: (participantIds: string[]) => Promise<AddParticipantsResult|Error>;
         /** Removes a list of participants by ID to the group */
-        removeParticipants: ChangeGroupParticipants;
+        removeParticipants: (participantIds: string[]) => Promise<{ status: number }>;
         /** Promotes participants by IDs to admins */
         promoteParticipants: ChangeParticipantsPermissions;
         /** Demotes participants by IDs to regular users */
