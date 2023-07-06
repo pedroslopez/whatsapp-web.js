@@ -89,7 +89,7 @@ class GroupChat extends Chat {
                 if (!groupParticipants) {
                     throw new Error(resultCodes.isGroupEmpty);
                 }
-                if (!(await groupParticipants.canAdd())) {
+                if (!groupParticipants.canAdd()) {
                     throw new Error(resultCodes.iAmNotAdmin);
                 }
                 const data = {};
@@ -125,7 +125,7 @@ class GroupChat extends Chat {
                     }
                     data[p.userWid._serialized] = {
                         code: parseInt(p.code, 10),
-                        message: resultCodes[p.code]
+                        message: resultCodes[p.code] ?? resultCodes.default
                     };
                 }
                 return data;
