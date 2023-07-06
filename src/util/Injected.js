@@ -42,7 +42,10 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.ProfilePic = window.mR.findModule('profilePicResync')[0];
     window.Store.PresenceUtils = window.mR.findModule('sendPresenceAvailable')[0];
     window.Store.ChatState = window.mR.findModule('sendChatStateComposing')[0];
-    window.Store.GroupParticipants = window.mR.findModule('promoteParticipants')[0];
+    window.Store.GroupParticipants = {
+        ...window.mR.findModule('promoteParticipants')[0],
+        addGroupParticipants: window.mR.findModule('addGroupParticipants')[0].addGroupParticipants
+    };
     window.Store.JoinInviteV4 = window.mR.findModule('sendJoinGroupViaInviteV4')[0];
     window.Store.findCommonGroups = window.mR.findModule('findCommonGroups')[0].findCommonGroups;
     window.Store.StatusUtils = window.mR.findModule('setMyStatus')[0];
@@ -57,6 +60,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.SocketWap = window.mR.findModule('wap')[0];
     window.Store.SearchContext = window.mR.findModule('getSearchContext')[0].getSearchContext;
     window.Store.DrawerManager = window.mR.findModule('DrawerManager')[0].DrawerManager;
+    window.Store.LidManipulations = window.mR.findModule('getCurrentLid')[0];
     window.Store.StickerTools = {
         ...window.mR.findModule('toWebpSticker')[0],
         ...window.mR.findModule('addWebpMetadata')[0]
@@ -66,7 +70,9 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('createGroup')[0],
         ...window.mR.findModule('setGroupDescription')[0],
         ...window.mR.findModule('sendExitGroup')[0],
-        ...window.mR.findModule('sendSetPicture')[0]
+        ...window.mR.findModule('sendSetPicture')[0],
+        sendForNeededAddRequest:
+            window.mR.findModule('sendForNeededAddRequest')[0].sendForNeededAddRequest
     };
 
     if (!window.Store.Chat._find) {
