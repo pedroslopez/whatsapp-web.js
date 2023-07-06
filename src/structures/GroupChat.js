@@ -63,7 +63,7 @@ class GroupChat extends Chat {
     /**
      * Adds a list of participants by ID to the group
      * @param {Array<string>} participantIds 
-     * @returns {Promise<AddParticipantsResult>}
+     * @returns {Promise<AddParticipantsResult|Error>}
      */
     async addParticipants(participantIds) {
         try {
@@ -113,7 +113,7 @@ class GroupChat extends Chat {
                         phoneNumber: e.id
                     }));
                 const preResult =
-                    await window.Store.GroupParticipantsImpl.addGroupParticipants(group.id, participantsToBeAdded);
+                    await window.Store.GroupParticipants.addGroupParticipants(group.id, participantsToBeAdded);
                 if (!preResult.status === 207) {
                     throw new Error(resultCodes.default);
                 }
@@ -138,7 +138,7 @@ class GroupChat extends Chat {
     /**
      * Removes a list of participants by ID to the group
      * @param {Array<string>} participantIds 
-     * @returns {Promise<Object>}
+     * @returns {Promise<{ status: number }>}
      */
     async removeParticipants(participantIds) {
         return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
