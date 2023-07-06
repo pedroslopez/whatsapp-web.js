@@ -59,7 +59,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.DrawerManager = window.mR.findModule('DrawerManager')[0].DrawerManager;
     window.Store.LidManipulations = window.mR.findModule('getCurrentLid')[0];
     window.Store.WidToJid = window.mR.findModule('widToUserJid')[0];
-    window.Store.JidToWid = window.mR.findModule('userJidToUserWid')[0]
+    window.Store.JidToWid = window.mR.findModule('userJidToUserWid')[0];
     window.Store.StickerTools = {
         ...window.mR.findModule('toWebpSticker')[0],
         ...window.mR.findModule('addWebpMetadata')[0]
