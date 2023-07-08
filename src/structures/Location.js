@@ -46,7 +46,7 @@ class Location {
          * URL address to be shown within a location message
          * @type {string|undefined}
          */
-        this.url = options.url;
+        this.url = !options.url.startsWith('https://') ? 'https://' + options.url : options.url;
 
         /**
          * Location full description
