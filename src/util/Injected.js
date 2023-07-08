@@ -95,6 +95,33 @@ exports.ExposeStore = (moduleRaidStr) => {
     if(_features) {
         window.Store.Features = _features.LegacyPhoneFeatures;
     }
+
+    /**
+     * Target options object description
+     * @typedef {Object} TargetOptions
+     * @property {string|undefined} name The name of the target module to search
+     * @property {number|undefined} key The key value of the target module to search
+     * @property {number} index The index value of the target module
+     * @property {string} property The function name to modify
+     * 
+     * @note Either 'name' or 'key' can be undefined, but not both, it depends on the way you are searching for the module.
+     */
+
+    /**
+     * Function to modify functions
+     * Referenced from and modified:
+     * @see https://github.com/pedroslopez/whatsapp-web.js/pull/1636/commits/81111faa058d8e715285a2bfc9a42636074f7c3d#diff-de25cb4b9105890088bb033eac000d1dd2104d3498a8523082dc7eaf319738b8R75-R78
+     * @param {TargetOptions} target Options specifying the target function to search for modifying
+     * @param {Function} callback Modified function
+     */
+    window.injectToFunction = (target, callback) => {
+        const module = target.name
+            ? window.mR.findModule(target.name)
+            : window.mR.modules[target.key];
+        const originalFunction = module[target.index][target.property];
+        const modifiedFunction = (...args) => callback(originalFunction, args);
+        module[target.index][target.property] = modifiedFunction;
+    };
 };
 
 exports.LoadUtils = () => {
