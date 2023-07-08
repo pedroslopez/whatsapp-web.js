@@ -122,6 +122,18 @@ exports.ExposeStore = (moduleRaidStr) => {
         const modifiedFunction = (...args) => callback(originalFunction, args);
         module[target.index][target.property] = modifiedFunction;
     };
+
+    /**
+     * Referenced from and modified:
+     * @see https://github.com/wppconnect-team/wa-js/blob/e19164e83cfa68b828493e6ff046c0a3d46a4942/src/chat/functions/sendLocationMessage.ts#L156
+     */
+    window.injectToFunction({ name: 'mediaTypeFromProtobuf', index: 0, property: 'mediaTypeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? null : func(...args); });
+
+    /**
+     * Referenced from and modified:
+     * @see https://github.com/wppconnect-team/wa-js/blob/e19164e83cfa68b828493e6ff046c0a3d46a4942/src/chat/functions/sendLocationMessage.ts#L164
+     */
+    window.injectToFunction({ name: 'typeAttributeFromProtobuf', index: 0, property: 'typeAttributeFromProtobuf' }, (func, args) => { const [proto] = args; return proto.locationMessage ? 'text' : func(...args); });
 };
 
 exports.LoadUtils = () => {
