@@ -99,12 +99,9 @@ exports.ExposeStore = (moduleRaidStr) => {
     /**
      * Target options object description
      * @typedef {Object} TargetOptions
-     * @property {string|undefined} name The name of the target module to search
-     * @property {number|undefined} key The key value of the target module to search
+     * @property {string|number} moduleId The name or a key of the target module to search
      * @property {number} index The index value of the target module
-     * @property {string} property The function name to modify
-     * 
-     * @note Either 'name' or 'key' can be undefined, but not both, it depends on the way you are searching for the module.
+     * @property {string} property The function name to get from a module
      */
 
     /**
@@ -115,9 +112,9 @@ exports.ExposeStore = (moduleRaidStr) => {
      * @param {Function} callback Modified function
      */
     window.injectToFunction = (target, callback) => {
-        const module = target.name
-            ? window.mR.findModule(target.name)
-            : window.mR.modules[target.key];
+        const module = typeof target.moduleId === 'string'
+            ? window.mR.findModule(target.moduleId)
+            : window.mR.modules[target.moduleId];
         const originalFunction = module[target.index][target.property];
         const modifiedFunction = (...args) => callback(originalFunction, args);
         module[target.index][target.property] = modifiedFunction;
