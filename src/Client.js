@@ -942,24 +942,31 @@ class Client extends EventEmitter {
      * @returns {Promise<boolean>} Status of an operation: true if an invitation was sent successfully, false otherwise
      */
     async sendGroupV4Invite(userId, groupId, comment) {
-        if (!groupId.endsWith('@g.us')) {
-            return false;
-        }
         !comment && (comment = '');
 
         return this.pupPage.evaluate(async (userId, groupId, comment) => {
-            const userWid = window.Store.WidFactory.createWid(userId);
-            const user = await window.Store.Contact.find(userWid);
-            const chatWid = window.Store.WidFactory.createWid(userId);
-            const chat = await window.Store.Chat.find(chatWid);
-            const groupWid = window.Store.WidFactory.createWid(groupId);
-            const group = await window.Store.Chat.find(groupWid);
-            const userToBeAdded = chat.groupMetadata?.isLidAddressingMode
+            let userWid, userChatWid, groupWid;
+            let user, userChat, group;
+
+            try {
+                userWid = window.Store.WidFactory.createWid(userId);
+                userChatWid = window.Store.WidFactory.createWid(userId);
+                groupWid = window.Store.WidFactory.createWid(groupId);
+
+                user = await window.Store.Contact.find(userWid);
+                userChat = await window.Store.Chat.find(userChatWid);
+                group = await window.Store.Chat.find(groupWid);
+            } catch (err) {
+                return false;
+            }
+
+            const userToBeAdded = userChat.groupMetadata?.isLidAddressingMode
                 ? {
                     phoneNumber: user.id,
                     lid: window.Store.LidManipulations.getCurrentLid(user.id)
                 }
                 : { phoneNumber: user.id };
+
             const participantArgs =
                 userToBeAdded.lid
                     ? [{
@@ -971,19 +978,31 @@ class Client extends EventEmitter {
                     : [{
                         participantJid: window.Store.WidToJid.widToUserJid(userToBeAdded.phoneNumber)
                     }];
+
             const iqTo = window.Store.WidToJid.widToGroupJid(groupWid);
+
             const result = await window.Store.GroupUtils.sendAddParticipantsRPC({ participantArgs, iqTo });
             if (result.name !== 'AddParticipantsResponseSuccess') {
                 return false;
             }
+
             const mixins = result.value.addParticipant[0].addParticipantsParticipantMixins;
             if (!mixins || mixins.name !== 'ParticipantRequestCodeCanBeSent') {
                 return false;
             }
+
             const inviteV4 = mixins.value.addRequestCode;
             const inviteV4Exp = mixins.value.addRequestExpiration;
             const groupName = group.formattedTitle || group.name;
-            const status = await window.Store.GroupUtils.sendGroupInviteMessage(chat, groupId, groupName, inviteV4, inviteV4Exp, comment);
+
+            const status = await window.Store.GroupUtils.sendGroupInviteMessage(
+                userChat,
+                groupId,
+                groupName,
+                inviteV4,
+                inviteV4Exp,
+                comment
+            );
             return status === 'OK' ? true : false;
         }, userId, groupId, comment);
     }
