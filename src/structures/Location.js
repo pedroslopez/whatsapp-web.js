@@ -50,7 +50,7 @@ class Location {
             if (!options.url) {
                 return undefined;
             }
-            return !options.url.startsWith('https://')
+            return !/^(https?:\/\/)/.test(options.url)
                 ? 'https://' + options.url
                 : options.url;
         })();
