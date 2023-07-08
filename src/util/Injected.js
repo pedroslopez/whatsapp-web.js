@@ -189,13 +189,13 @@ exports.LoadUtils = () => {
 
         let locationOptions = {};
         if (options.location) {
-            const { description } = options.location;
+            const { latitude, longitude, description, url } = options.location;
             locationOptions = {
                 type: 'location',
                 loc: description,
-                lat: options.location.latitude,
-                lng: options.location.longitude,
-                clientUrl: description && options.location.url
+                lat: latitude,
+                lng: longitude,
+                clientUrl: description && url
             };
             delete options.location;
         }
