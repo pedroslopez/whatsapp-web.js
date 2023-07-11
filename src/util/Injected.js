@@ -17,6 +17,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.Invite = window.mR.findModule('resetGroupInviteCode')[0];
     window.Store.InviteInfo = window.mR.findModule('queryGroupInvite')[0];
     window.Store.Label = window.mR.findModule('LabelCollection')[0].LabelCollection;
+    window.Store.ContactCollection = window.mR.findModule('ContactCollection')[0].ContactCollection;
     window.Store.MediaPrep = window.mR.findModule('prepRawMedia')[0];
     window.Store.MediaObject = window.mR.findModule('getOrCreateMediaObject')[0];
     window.Store.NumberInfo = window.mR.findModule('formattedPhoneNumber')[0];
@@ -70,9 +71,7 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('createGroup')[0],
         ...window.mR.findModule('setGroupDescription')[0],
         ...window.mR.findModule('sendExitGroup')[0],
-        ...window.mR.findModule('sendSetPicture')[0],
-        sendForNeededAddRequest:
-            window.mR.findModule('sendForNeededAddRequest')[0].sendForNeededAddRequest
+        ...window.mR.findModule('sendSetPicture')[0]
     };
 
     if (!window.Store.Chat._find) {
