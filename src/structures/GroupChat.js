@@ -71,28 +71,36 @@ class GroupChat extends Chat {
                 const groupWid = window.Store.WidFactory.createWid(chatId);
                 const group = await window.Store.Chat.find(groupWid);
                 !Array.isArray(participantIds) && (participantIds = [participantIds]);
+
                 let participantsToAdd = await Promise.all(participantIds.map(async p => {
                     const wid = window.Store.WidFactory.createWid(p);
                     return await window.Store.Contact.find(wid);
                 }));
+
+                const data = {};
+
                 const resultCodes = {
                     200: 'OK',
-                    403: 'The user can be added by sending private invitation only',
-                    409: 'The user is already a group member',
-                    417: 'User/s can\'t be added to the community. You can invite them privately to join this group through its invite link',
-                    419: 'User/s can\'t be added because the community is full',
+                    403: 'The participant can be added by sending private invitation only',
+                    408: 'You cannot add this participant because they recently left the group',
+                    409: 'The participant is already a group member',
+                    417: 'The participant can\'t be added to the community. You can invite them privately to join this group through its invite link',
+                    419: 'The participant/s can\'t be added because the group is full',
                     isGroupEmpty: 'You can\'t add participants to an empty group',
                     iAmNotAdmin: 'You have no admin rights to add participants to a group',
-                    default: 'An error occupied while adding participant/s'
+                    default: 'An unknown error occupied while adding a participant/s'
                 };
+
                 const groupParticipants = group.groupMetadata?.participants;
+
                 if (!groupParticipants) {
                     throw new Error(resultCodes.isGroupEmpty);
                 }
+
                 if (!groupParticipants.canAdd()) {
                     throw new Error(resultCodes.iAmNotAdmin);
                 }
-                const data = {};
+
                 participantsToAdd = participantsToAdd.filter(participant => {
                     const participantId = participant.id._serialized;
                     if (groupParticipants.some(p => p.id._serialized === participantId)) {
@@ -104,6 +112,7 @@ class GroupChat extends Chat {
                     }
                     return true;
                 });
+
                 const participantsToBeAdded = group.groupMetadata?.isLidAddressingMode
                     ? participantsToAdd.map((p) => ({
                         phoneNumber: p.id,
@@ -112,22 +121,29 @@ class GroupChat extends Chat {
                     : participantsToAdd.map((e) => ({
                         phoneNumber: e.id
                     }));
-                const preResult =
-                    await window.Store.GroupParticipants.addGroupParticipants(group.id, participantsToBeAdded);
-                if (!preResult.status === 207) {
-                    throw new Error(resultCodes.default);
+
+                let result;
+
+                try {
+                    result =
+                        await window.Store.GroupParticipants.addGroupParticipants(group.id, participantsToBeAdded);
+                } catch (err) {
+                    throw new Error(resultCodes[err.status] ?? resultCodes.default);
                 }
-                for (const p of preResult.participants) {
-                    try {
-                        window.Store.GroupUtils.sendForNeededAddRequest(groupParticipants, preResult);
-                    } catch (err) {
-                        throw new Error(resultCodes[err.status] ?? resultCodes.default);
+
+                for (const p of result.participants) {
+                    const userId = p.userWid._serialized;
+
+                    if (p.code === '403') {
+                        window.Store.ContactCollection.gadd(p.userWid, { silent: true });
                     }
-                    data[p.userWid._serialized] = {
+
+                    data[userId] = {
                         code: parseInt(p.code, 10),
                         message: resultCodes[p.code] ?? resultCodes.default
                     };
                 }
+
                 return data;
             }, this.id._serialized, participantIds);
         } catch (err) {
