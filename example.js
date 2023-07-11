@@ -91,20 +91,14 @@ client.on('message', async msg => {
         } catch (e) {
             msg.reply('That invite code seems to be invalid.');
         }
-    } else if (msg.body.startsWith('!addmembers ')) {
+    } else if (msg.body.startsWith('!addmembers')) {
         const group = await msg.getChat();
-        const result = await group.addParticipants(['number@c.us', 'number@c.us']);
+        const result = await group.addParticipants(['number1@c.us', 'number2@c.us']);
         /**
          * The example of the {@link result} output:
          * {
-         *     'number1@c.us': {
-         *          code: 200,
-         *          status: 'OK'
-         *     },
-         *     'number2@c.us': {
-         *          code: 408,
-         *          status: 'You cannot add this participant because they recently left the group'
-         *     }
+         *     'number1@c.us': { code: 200, message: 'OK' },
+         *     'number2@c.us': { code: 403, message: 'The participant can be added by sending private invitation only' }
          * }
          */
         console.log(result);
