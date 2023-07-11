@@ -63,92 +63,88 @@ class GroupChat extends Chat {
     /**
      * Adds a list of participants by ID to the group
      * @param {Array<string>} participantIds 
-     * @returns {Promise<AddParticipantsResult|Error>}
+     * @returns {Promise<AddParticipantsResult|string>} Object with resulting data or an error message as a string
      */
     async addParticipants(participantIds) {
-        try {
-            return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
-                const groupWid = window.Store.WidFactory.createWid(chatId);
-                const group = await window.Store.Chat.find(groupWid);
-                !Array.isArray(participantIds) && (participantIds = [participantIds]);
+        return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
+            const groupWid = window.Store.WidFactory.createWid(chatId);
+            const group = await window.Store.Chat.find(groupWid);
+            !Array.isArray(participantIds) && (participantIds = [participantIds]);
 
-                let participantsToAdd = await Promise.all(participantIds.map(async p => {
-                    const wid = window.Store.WidFactory.createWid(p);
-                    return await window.Store.Contact.find(wid);
+            let participantsToAdd = await Promise.all(participantIds.map(async p => {
+                const wid = window.Store.WidFactory.createWid(p);
+                return await window.Store.Contact.find(wid);
+            }));
+
+            const data = {};
+
+            const resultCodes = {
+                200: 'OK',
+                403: 'The participant can be added by sending private invitation only',
+                408: 'You cannot add this participant because they recently left the group',
+                409: 'The participant is already a group member',
+                417: 'The participant can\'t be added to the community. You can invite them privately to join this group through its invite link',
+                419: 'AddParticipantsError: Participants can\'t be added because the group is full',
+                isGroupEmpty: 'AddParticipantsError: You can\'t add participants to an empty group',
+                iAmNotAdmin: 'AddParticipantsError: You have no admin rights to add participants to a group',
+                default: 'AddParticipantsError: An unknown error occupied while adding participants'
+            };
+
+            const groupParticipants = group.groupMetadata?.participants;
+
+            if (!groupParticipants) {
+                return resultCodes.isGroupEmpty;
+            }
+
+            if (!groupParticipants.canAdd()) {
+                return resultCodes.iAmNotAdmin;
+            }
+
+            participantsToAdd = participantsToAdd.filter(participant => {
+                const participantId = participant.id._serialized;
+                if (groupParticipants.some(p => p.id._serialized === participantId)) {
+                    data[participantId] = {
+                        code: 409,
+                        message: resultCodes[409]
+                    };
+                    return false;
+                }
+                return true;
+            });
+
+            const participantsToBeAdded = group.groupMetadata?.isLidAddressingMode
+                ? participantsToAdd.map((p) => ({
+                    phoneNumber: p.id,
+                    lid: window.Store.LidManipulations.getCurrentLid(p.id)
+                }))
+                : participantsToAdd.map((e) => ({
+                    phoneNumber: e.id
                 }));
 
-                const data = {};
+            let result;
 
-                const resultCodes = {
-                    200: 'OK',
-                    403: 'The participant can be added by sending private invitation only',
-                    408: 'You cannot add this participant because they recently left the group',
-                    409: 'The participant is already a group member',
-                    417: 'The participant can\'t be added to the community. You can invite them privately to join this group through its invite link',
-                    419: 'The participant/s can\'t be added because the group is full',
-                    isGroupEmpty: 'You can\'t add participants to an empty group',
-                    iAmNotAdmin: 'You have no admin rights to add participants to a group',
-                    default: 'An unknown error occupied while adding a participant/s'
+            try {
+                result =
+                    await window.Store.GroupParticipants.addGroupParticipants(group.id, participantsToBeAdded);
+            } catch (err) {
+                return resultCodes[err.status] ?? resultCodes.default;
+            }
+
+            for (const p of result.participants) {
+                const userId = p.userWid._serialized;
+
+                if (p.code === '403') {
+                    window.Store.ContactCollection.gadd(p.userWid, { silent: true });
+                }
+
+                data[userId] = {
+                    code: parseInt(p.code, 10),
+                    message: resultCodes[p.code] ?? resultCodes.default
                 };
+            }
 
-                const groupParticipants = group.groupMetadata?.participants;
-
-                if (!groupParticipants) {
-                    throw new Error(resultCodes.isGroupEmpty);
-                }
-
-                if (!groupParticipants.canAdd()) {
-                    throw new Error(resultCodes.iAmNotAdmin);
-                }
-
-                participantsToAdd = participantsToAdd.filter(participant => {
-                    const participantId = participant.id._serialized;
-                    if (groupParticipants.some(p => p.id._serialized === participantId)) {
-                        data[participantId] = {
-                            code: 409,
-                            message: resultCodes[409]
-                        };
-                        return false;
-                    }
-                    return true;
-                });
-
-                const participantsToBeAdded = group.groupMetadata?.isLidAddressingMode
-                    ? participantsToAdd.map((p) => ({
-                        phoneNumber: p.id,
-                        lid: window.Store.LidManipulations.getCurrentLid(p.id)
-                    }))
-                    : participantsToAdd.map((e) => ({
-                        phoneNumber: e.id
-                    }));
-
-                let result;
-
-                try {
-                    result =
-                        await window.Store.GroupParticipants.addGroupParticipants(group.id, participantsToBeAdded);
-                } catch (err) {
-                    throw new Error(resultCodes[err.status] ?? resultCodes.default);
-                }
-
-                for (const p of result.participants) {
-                    const userId = p.userWid._serialized;
-
-                    if (p.code === '403') {
-                        window.Store.ContactCollection.gadd(p.userWid, { silent: true });
-                    }
-
-                    data[userId] = {
-                        code: parseInt(p.code, 10),
-                        message: resultCodes[p.code] ?? resultCodes.default
-                    };
-                }
-
-                return data;
-            }, this.id._serialized, participantIds);
-        } catch (err) {
-            return err;
-        }
+            return data;
+        }, this.id._serialized, participantIds);
     }
 
     /**
