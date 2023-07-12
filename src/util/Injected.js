@@ -796,10 +796,15 @@ exports.LoadUtils = () => {
      */
     window.WWebJS.compareWwebVersions = (left, operator, right) => {
         if (!['>', '>=', '<', '<=', '='].includes(operator)) {
-            throw new Error('Invalid comparison operator is provided.');
+            throw class _ extends Error {
+                constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
+            }('Invalid comparison operator is provided');
+
         }
         if (typeof left !== 'string' || typeof right !== 'string') {
-            throw new Error('A non-string WWeb version type is provided.');
+            throw class _ extends Error {
+                constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
+            }('A non-string WWeb version type is provided');
         }
 
         right = right.replace(/-beta$/, '');
