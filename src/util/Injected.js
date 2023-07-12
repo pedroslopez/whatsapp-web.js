@@ -802,10 +802,8 @@ exports.LoadUtils = () => {
             throw new Error('A non-string WWeb version type is provided.');
         }
 
-        const rightIsBeta = right.endsWith('-beta');
-        const leftIsBeta = left.endsWith('-beta');
-        rightIsBeta && (right = right.replace(/-beta$/, ''));
-        leftIsBeta && (left = left.replace(/-beta$/, ''));
+        right = right.replace(/-beta$/, '');
+        left = left.replace(/-beta$/, '');
 
         while (left.length !== right.length) {
             left.length > right.length
@@ -817,22 +815,12 @@ exports.LoadUtils = () => {
         right = Number(right.replace(/\./g, ''));
 
         return (
-            operator === '>'
-                ? left > right
-                || (left === right && rightIsBeta) :
-                operator === '>='
-                    ? (left === right && !leftIsBeta)
-                    || (left > right) :
-                    operator === '<'
-                        ? left < right
-                        || (left === right && leftIsBeta) :
-                        operator === '<='
-                            ? (left === right && !rightIsBeta)
-                            || left < right :
-                            operator === '='
-                                ? (left === right && !leftIsBeta && !rightIsBeta)
-                                || (left === right && leftIsBeta && rightIsBeta)
-                                : false
+            operator === '>' ? left > right :
+                operator === '>=' ? left >= right :
+                    operator === '<' ? left < right :
+                        operator === '<=' ? left <= right :
+                            operator === '=' ? left === right :
+                                false
         );
     };
 };
