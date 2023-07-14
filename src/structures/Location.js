@@ -3,9 +3,9 @@
 /**
  * Location send options
  * @typedef {Object} LocationSendOptions
- * @property {string|undefined} name Location name
- * @property {string|undefined} address Location address
- * @property {string|undefined} url URL address to be shown within a location message
+ * @property {string} [name] Location name
+ * @property {string} [address] Location address
+ * @property {string} [url] URL address to be shown within a location message
  */
 
 /**
@@ -15,7 +15,7 @@ class Location {
     /**
      * @param {number} latitude
      * @param {number} longitude
-     * @param {LocationSendOptions|object} options Location send options
+     * @param {LocationSendOptions} [options] Location send options
      */
     constructor(latitude, longitude, options = {}) {
         /**

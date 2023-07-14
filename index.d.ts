@@ -890,9 +890,9 @@ declare namespace WAWebJS {
     export class Location {
         latitude: string;
         longitude: string;
-        options?: LocationSendOptions | object;
+        options?: LocationSendOptions;
         
-        constructor(latitude: number, longitude: number, options?: LocationSendOptions | object)
+        constructor(latitude: number, longitude: number, options?: LocationSendOptions)
     }
 
     export interface Label {
