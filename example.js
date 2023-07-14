@@ -102,6 +102,9 @@ client.on('message', async msg => {
          * }
          */
         console.log(result);
+    } else if (msg.body === '!sendinviteV4') {
+        const result = await client.sendGroupV4Invite('number@c.us', 'group@g.us', 'comment is not required');
+        console.log(`${result ? 'Invitation sent' : 'Failure while sending invitation'}`);
     } else if (msg.body === '!groupinfo') {
         let chat = await msg.getChat();
         if (chat.isGroup) {
