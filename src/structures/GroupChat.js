@@ -152,7 +152,8 @@ class GroupChat extends Chat {
                             groupName,
                             result.inviteV4Code,
                             result.inviteV4CodeExp,
-                            comment
+                            comment,
+                            await window.WWebJS.getProfilePictureThumb(groupWid)
                         );
                         isInviteV4Sent = res === 'OK';
                     }

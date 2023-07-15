@@ -752,6 +752,40 @@ exports.LoadUtils = () => {
             throw err;
         }
     };
+    
+    window.WWebJS.getProfilePictureThumb = async (groupWid) => {
+        const profilePicCollection = window.Store.ProfilePicThumb.get(groupWid);
+
+        const _readImageAsBase64 = (imageBlob) => {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = function () {
+                    const base64Image = reader.result;
+                    if (base64Image == null) {
+                        resolve(undefined);
+                    } else {
+                        const base64Data = base64Image.toString().split(',')[1];
+                        resolve(base64Data);
+                    }
+                };
+                reader.readAsDataURL(imageBlob);
+            });
+        };
+
+        if (profilePicCollection?.img) {
+            try {
+                const response = await fetch(profilePicCollection.img);
+                if (response.ok) {
+                    const imageBlob = await response.blob();
+                    if (imageBlob) {
+                        const base64Image = await _readImageAsBase64(imageBlob);
+                        return base64Image;
+                    }
+                }
+            } catch (error) { /* empty */ }
+        }
+        return undefined;
+    };
 
     window.WWebJS.getAddParticipantsRpcResult = async (chatMetadata, chatWid, participantWid) => {
         const participantLidArgs = chatMetadata?.isLidAddressingMode
