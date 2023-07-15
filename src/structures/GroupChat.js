@@ -140,24 +140,21 @@ class GroupChat extends Chat {
                     : resultCodes[code] ?? resultCodes.default;
 
                 if (autoSendInviteV4 && [403, 417].includes(code)) {
-                    let isInviteV4Sent = true;
+                    let userChat, isInviteV4Sent = false;
 
-                    result.name !== 'ParticipantRequestCodeCanBeSent' && (isInviteV4Sent = false);
-                    const userChat = !isInviteV4Sent && await window.Store.Chat.find(participant.id);
-
-                    if (userChat) {
+                    if (result.name === 'ParticipantRequestCodeCanBeSent' &&
+                        (userChat = await window.Store.Chat.find(participant.id))) {
                         const groupName = group.formattedTitle || group.name;
                         const res = await window.Store.GroupUtils.sendGroupInviteMessage(
                             userChat,
-                            group.id,
+                            group.id._serialized,
                             groupName,
-                            result.inviteV4,
-                            result.inviteV4Exp,
+                            result.inviteV4Code,
+                            result.inviteV4CodeExp,
                             comment
                         );
                         isInviteV4Sent = res === 'OK' ? true : false;
                     }
-                    else { isInviteV4Sent = false; }
 
                     data[participantId].isInviteV4Sent = isInviteV4Sent;
                 }
