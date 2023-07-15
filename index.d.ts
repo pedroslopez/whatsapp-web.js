@@ -23,9 +23,6 @@ declare namespace WAWebJS {
         /** Accepts a private invitation to join a group (v4 invite) */
         acceptGroupV4Invite: (inviteV4: InviteV4Data) => Promise<{status: number}>
 
-        /** Sends a private invitation to the user to be added to the group */
-        sendGroupV4Invite: (userId: string, groupId: string, comment?: string) => Promise<boolean>
-
         /**Returns an object with information about the invite code's group */
         getInviteInfo(inviteCode: string): Promise<object>
 
@@ -1227,14 +1224,20 @@ declare namespace WAWebJS {
     export type ChangeParticipantsPermissions = 
         (participantIds: Array<string>) => Promise<{ status: number }>
 
-    /**
-     * An object that handles the result of addParticipants method
-     */
-    export type AddParticipantsResult = {
+    /** An object that handles the result of addParticipants method */
+    export type AddParticipantsResult = [{
         [participantId: string]: {
+            isInviteV4Sent?: boolean,
             code: number;
             message: string;
         };
+    }];
+
+    /** AddParticipnats options */
+    export type AddParticipnatsOptions = {
+        sleep?: number,
+        autoSendInviteV4?: boolean;
+        comment?: string;
     };
 
     export interface GroupChat extends Chat {
@@ -1247,7 +1250,7 @@ declare namespace WAWebJS {
         /** Group participants */
         participants: Array<GroupParticipant>;
         /** Adds a list of participants by ID to the group */
-        addParticipants: (participantIds: string[]) => Promise<AddParticipantsResult|string>;
+        addParticipants: (participantIds: string[], options?: AddParticipnatsOptions) => Promise<[AddParticipantsResult]|string>;
         /** Removes a list of participants by ID to the group */
         removeParticipants: (participantIds: string[]) => Promise<{ status: number }>;
         /** Promotes participants by IDs to admins */
