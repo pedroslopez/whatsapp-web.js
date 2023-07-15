@@ -56,9 +56,9 @@ class GroupChat extends Chat {
     /**
      * An object that handles the result of {@link addParticipants} method
      * @typedef {Object} AddParticipantsResult
-     * @property {boolean} [isInviteV4Sent] Indicates if the inviteV4 was sent to the partitipant
      * @property {number} code The code of the result
      * @property {string} message The result message
+     * @property {boolean} [isInviteV4Sent] Indicates if the inviteV4 was sent to the partitipant
      */
 
     /**
@@ -73,7 +73,7 @@ class GroupChat extends Chat {
      * Adds a list of participants by ID to the group
      * @param {Array<string>} participantIds 
      * @param {AddParticipnatsOptions} [options] AddPartisipants options
-     * @returns {Promise<[AddParticipantsResult]|string>} Object with resulting data or an error message as a string
+     * @returns {Promise<AddParticipantsResult|string>} Object with resulting data or an error message as a string
      */
     async addParticipants(participantIds, options = {}) {
         const data =  await this.client.pupPage.evaluate(async (groupId, participantIds, options) => {
@@ -116,6 +116,8 @@ class GroupChat extends Chat {
                 const participantId = participant.id._serialized;
 
                 data[participantId] = {
+                    code: undefined,
+                    message: undefined,
                     isInviteV4Sent: autoSendInviteV4 === false ? false : undefined
                 };
 
@@ -134,10 +136,9 @@ class GroupChat extends Chat {
                 }
 
                 data[participantId].code = code;
-
                 data[participantId].message = code === -1
                     ? result.message
-                    : resultCodes[code] ?? resultCodes.default;
+                    : resultCodes[code] || resultCodes.default;
 
                 if (autoSendInviteV4 && [403, 417].includes(code)) {
                     let userChat, isInviteV4Sent = false;
@@ -153,14 +154,14 @@ class GroupChat extends Chat {
                             result.inviteV4CodeExp,
                             comment
                         );
-                        isInviteV4Sent = res === 'OK' ? true : false;
+                        isInviteV4Sent = res === 'OK';
                     }
 
                     data[participantId].isInviteV4Sent = isInviteV4Sent;
                 }
 
                 sleep && participantsToAdd.length > 1 &&
-                    await (async (ms) => new Promise(resolve => setTimeout(resolve, ms)))(sleep);
+                    await new Promise(resolve => setTimeout(resolve, sleep));
             }
 
             return JSON.stringify(data);

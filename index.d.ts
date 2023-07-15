@@ -1225,13 +1225,13 @@ declare namespace WAWebJS {
         (participantIds: Array<string>) => Promise<{ status: number }>
 
     /** An object that handles the result of addParticipants method */
-    export type AddParticipantsResult = [{
+    export type AddParticipantsResult = {
         [participantId: string]: {
-            isInviteV4Sent?: boolean,
             code: number;
             message: string;
+            isInviteV4Sent?: boolean,
         };
-    }];
+    };
 
     /** AddParticipnats options */
     export type AddParticipnatsOptions = {
@@ -1250,7 +1250,7 @@ declare namespace WAWebJS {
         /** Group participants */
         participants: Array<GroupParticipant>;
         /** Adds a list of participants by ID to the group */
-        addParticipants: (participantIds: string[], options?: AddParticipnatsOptions) => Promise<[AddParticipantsResult]|string>;
+        addParticipants: (participantIds: string[], options?: AddParticipnatsOptions) => Promise<AddParticipantsResult|string>;
         /** Removes a list of participants by ID to the group */
         removeParticipants: (participantIds: string[]) => Promise<{ status: number }>;
         /** Promotes participants by IDs to admins */

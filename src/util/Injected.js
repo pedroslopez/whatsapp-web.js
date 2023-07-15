@@ -795,8 +795,9 @@ exports.LoadUtils = () => {
 
         if (result.name === 'AddParticipantsResponseSuccess') {
             const participantMixins = participant.addParticipantsParticipantMixins;
+            const code = participantMixins?.value.error ?? '200';
             data.name = participantMixins?.name;
-            data.code = +participantMixins?.value.error ?? 200;
+            data.code = +code;
             data.inviteV4Code = participantMixins?.value.addRequestCode;
             data.inviteV4CodeExp = participantMixins?.value.addRequestExpiration?.toString();
         }
