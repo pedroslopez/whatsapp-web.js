@@ -752,4 +752,67 @@ exports.LoadUtils = () => {
             throw err;
         }
     };
+
+    window.WWebJS.getAddParticipantsRpcResult = async (chatMetadata, chatWid, participantWid) => {
+        const participantLidArgs = chatMetadata?.isLidAddressingMode
+            ? {
+                phoneNumber: participantWid,
+                lid: window.Store.LidManipulations.getCurrentLid(participantWid)
+            }
+            : { phoneNumber: participantWid };
+
+        const iqTo = window.Store.WidToJid.widToGroupJid(chatWid);
+
+        const participantArgs =
+            participantLidArgs.lid
+                ? [{
+                    participantJid: window.Store.WidToJid.widToUserJid(participantLidArgs.lid),
+                    phoneNumberMixinArgs: {
+                        anyPhoneNumber: window.Store.WidToJid.widToUserJid(participantLidArgs.phoneNumber)
+                    }
+                }]
+                : [{
+                    participantJid: window.Store.WidToJid.widToUserJid(participantLidArgs.phoneNumber)
+                }];
+
+        let result, participant;
+        const data = {
+            name: undefined,
+            code: undefined,
+            message: undefined,
+            inviteV4Code: undefined,
+            inviteV4CodeExp: undefined
+        };
+
+        try {
+            result = await window.Store.GroupUtils.sendAddParticipantsRPC({ participantArgs, iqTo });
+            [participant] = result.value.addParticipant;
+        } catch (err) {
+            data.code = -1;
+            data.message = 'SmaxParsingFailure: failed to parse the response of <AddParticipants>';
+            return data;
+        }
+
+        if (result.name === 'AddParticipantsResponseSuccess') {
+            const participantMixins = participant.addParticipantsParticipantMixins;
+            data.name = participantMixins?.name;
+            data.code = +participantMixins?.value.error ?? 200;
+            data.inviteV4Code = participantMixins?.value.addRequestCode;
+            data.inviteV4CodeExp = participantMixins?.value.addRequestExpiration?.toString();
+        }
+
+        else if (result.name === 'AddParticipantsResponseClientError') {
+            const { code: code, text: message } = result.value.errorAddParticipantsClientErrors.value;
+            data.code = +code;
+            data.message = message;
+        }
+
+        else if (result.name === 'AddParticipantsResponseServerError') {
+            const { code: code, text: message } = result.value.errorServerErrors.value;
+            data.code = +code;
+            data.message = message;
+        }
+
+        return data;
+    };
 };
