@@ -116,6 +116,8 @@ class GroupChat extends Chat {
                 const participantId = participant.id._serialized;
 
                 data[participantId] = {
+                    code: undefined,
+                    message: undefined,
                     isInviteV4Sent: false
                 };
 
