@@ -56,18 +56,29 @@ class GroupChat extends Chat {
     /**
      * An object that handles the result of {@link addParticipants} method
      * @typedef {Object} AddParticipantsResult
-     * @property {number} [code] The code of the result
-     * @property {string} [message] The result message
+     * @property {boolean} [isInviteV4Sent] Indicates if the inviteV4 was sent to the partitipant
+     * @property {number} code The code of the result
+     * @property {string} message The result message
+     */
+
+    /**
+     * AddParticipnats options
+     * @typedef {Object} AddParticipnatsOptions
+     * @property {number} [sleep=500] The amount of milliseconds to wait before adding the next participant
+     * @property {boolean} [autoSendInviteV4=true] If true, the inviteV4 will be sent to those participants who have restricted others from being automatically added to groups, otherwise the inviteV4 won't be sent
+     * @property {string} [comment] The comment to be added to an inviteV4
      */
 
     /**
      * Adds a list of participants by ID to the group
      * @param {Array<string>} participantIds 
-     * @returns {Promise<AddParticipantsResult|string>} Object with resulting data or an error message as a string
+     * @param {AddParticipnatsOptions} [options] AddPartisipants options
+     * @returns {Promise<[AddParticipantsResult]|string>} Object with resulting data or an error message as a string
      */
-    async addParticipants(participantIds) {
-        return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
-            const groupWid = window.Store.WidFactory.createWid(chatId);
+    async addParticipants(participantIds, options = {}) {
+        const data =  await this.client.pupPage.evaluate(async (groupId, participantIds, options) => {
+            const { sleep = 500, autoSendInviteV4 = true, comment = '' } = options;
+            const groupWid = window.Store.WidFactory.createWid(groupId);
             const group = await window.Store.Chat.find(groupWid);
             !Array.isArray(participantIds) && (participantIds = [participantIds]);
 
@@ -79,18 +90,19 @@ class GroupChat extends Chat {
             const data = {};
 
             const resultCodes = {
+                default: 'AddParticipantsError: An unknown error occupied while adding a participant',
+                isGroupEmpty: 'AddParticipantsError: You can\'t add a participant to an empty group',
+                iAmNotAdmin: 'AddParticipantsError: You have no admin rights to add a participant to a group',
                 200: 'OK',
                 403: 'The participant can be added by sending private invitation only',
                 408: 'You cannot add this participant because they recently left the group',
                 409: 'The participant is already a group member',
                 417: 'The participant can\'t be added to the community. You can invite them privately to join this group through its invite link',
-                419: 'AddParticipantsError: Participants can\'t be added because the group is full',
-                isGroupEmpty: 'AddParticipantsError: You can\'t add participants to an empty group',
-                iAmNotAdmin: 'AddParticipantsError: You have no admin rights to add participants to a group',
-                default: 'AddParticipantsError: An unknown error occupied while adding participants'
+                419: 'AddParticipantsError: The participant can\'t be added because the group is full'
             };
 
-            const groupParticipants = group.groupMetadata?.participants;
+            const groupMetadata = group.groupMetadata;
+            const groupParticipants = groupMetadata?.participants;
 
             if (!groupParticipants) {
                 return resultCodes.isGroupEmpty;
@@ -100,51 +112,64 @@ class GroupChat extends Chat {
                 return resultCodes.iAmNotAdmin;
             }
 
-            participantsToAdd = participantsToAdd.filter(participant => {
+            for (const participant of participantsToAdd) {
                 const participantId = participant.id._serialized;
-                if (groupParticipants.some(p => p.id._serialized === participantId)) {
-                    data[participantId] = {
-                        code: 409,
-                        message: resultCodes[409]
-                    };
-                    return false;
-                }
-                return true;
-            });
 
-            const participantsToBeAdded = group.groupMetadata?.isLidAddressingMode
-                ? participantsToAdd.map((p) => ({
-                    phoneNumber: p.id,
-                    lid: window.Store.LidManipulations.getCurrentLid(p.id)
-                }))
-                : participantsToAdd.map((e) => ({
-                    phoneNumber: e.id
-                }));
-
-            let result;
-
-            try {
-                result =
-                    await window.Store.GroupParticipants.addGroupParticipants(group.id, participantsToBeAdded);
-            } catch (err) {
-                return resultCodes[err.status] ?? resultCodes.default;
-            }
-
-            for (const p of result.participants) {
-                const userId = p.userWid._serialized;
-
-                if (p.code === '403') {
-                    window.Store.ContactCollection.gadd(p.userWid, { silent: true });
-                }
-
-                data[userId] = {
-                    code: parseInt(p.code, 10),
-                    message: resultCodes[p.code] ?? resultCodes.default
+                data[participantId] = {
+                    isInviteV4Sent: autoSendInviteV4 === false ? false : undefined
                 };
+
+                if (groupParticipants.some(p => p.id._serialized === participantId)) {
+                    data[participantId].code = 409;
+                    data[participantId].message = resultCodes[409];
+                    continue;
+                }
+
+                const result =
+                    await window.WWebJS.getAddParticipantsRpcResult(groupMetadata, groupWid, participant.id);
+                const code = result.code;
+
+                if (code === 403) {
+                    window.Store.ContactCollection.gadd(participant.id, { silent: true });
+                }
+
+                data[participantId].code = code;
+
+                data[participantId].message = code === -1
+                    ? result.message
+                    : resultCodes[code] ?? resultCodes.default;
+
+                if (autoSendInviteV4 && [403, 417].includes(code)) {
+                    let isInviteV4Sent = true;
+
+                    result.name !== 'ParticipantRequestCodeCanBeSent' && (isInviteV4Sent = false);
+                    const userChat = !isInviteV4Sent && await window.Store.Chat.find(participant.id);
+
+                    if (userChat) {
+                        const groupName = group.formattedTitle || group.name;
+                        const res = await window.Store.GroupUtils.sendGroupInviteMessage(
+                            userChat,
+                            group.id,
+                            groupName,
+                            result.inviteV4,
+                            result.inviteV4Exp,
+                            comment
+                        );
+                        isInviteV4Sent = res === 'OK' ? true : false;
+                    }
+                    else { isInviteV4Sent = false; }
+
+                    data[participantId].isInviteV4Sent = isInviteV4Sent;
+                }
+
+                sleep && participantsToAdd.length > 1 &&
+                    await (async (ms) => new Promise(resolve => setTimeout(resolve, ms)))(sleep);
             }
 
-            return data;
-        }, this.id._serialized, participantIds);
+            return JSON.stringify(data);
+        }, this.id._serialized, participantIds, options);
+
+        return JSON.parse(data);
     }
 
     /**
