@@ -58,15 +58,15 @@ class GroupChat extends Chat {
      * @typedef {Object} AddParticipantsResult
      * @property {number} code The code of the result
      * @property {string} message The result message
-     * @property {boolean} [isInviteV4Sent] Indicates if the inviteV4 was sent to the partitipant
+     * @property {boolean} isInviteV4Sent Indicates if the inviteV4 was sent to the partitipant (false by default)
      */
 
     /**
      * AddParticipnats options
      * @typedef {Object} AddParticipnatsOptions
-     * @property {number} [sleep=500] The amount of milliseconds to wait before adding the next participant
-     * @property {boolean} [autoSendInviteV4=true] If true, the inviteV4 will be sent to those participants who have restricted others from being automatically added to groups, otherwise the inviteV4 won't be sent
-     * @property {string} [comment] The comment to be added to an inviteV4
+     * @property {number} [sleep] The amount of milliseconds to wait before adding the next participant (500 by default)
+     * @property {boolean} [autoSendInviteV4] If true, the inviteV4 will be sent to those participants who have restricted others from being automatically added to groups, otherwise the inviteV4 won't be sent (true by default)
+     * @property {string} [comment] The comment to be added to an inviteV4 (empty string by default)
      */
 
     /**
@@ -93,7 +93,7 @@ class GroupChat extends Chat {
                 default: 'AddParticipantsError: An unknown error occupied while adding a participant',
                 isGroupEmpty: 'AddParticipantsError: You can\'t add a participant to an empty group',
                 iAmNotAdmin: 'AddParticipantsError: You have no admin rights to add a participant to a group',
-                200: 'OK',
+                200: 'The participant was added successfully',
                 403: 'The participant can be added by sending private invitation only',
                 408: 'You cannot add this participant because they recently left the group',
                 409: 'The participant is already a group member',
@@ -116,9 +116,7 @@ class GroupChat extends Chat {
                 const participantId = participant.id._serialized;
 
                 data[participantId] = {
-                    code: undefined,
-                    message: undefined,
-                    isInviteV4Sent: autoSendInviteV4 === false ? false : undefined
+                    isInviteV4Sent: false
                 };
 
                 if (groupParticipants.some(p => p.id._serialized === participantId)) {
