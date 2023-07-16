@@ -1235,7 +1235,7 @@ declare namespace WAWebJS {
     };
 
     /** AddParticipnats options */
-    export interface AddParticipnatsOptions {
+    export type AddParticipnatsOptions = {
         /** @default 500 */
         sleep?: number;
         /** @default true */
