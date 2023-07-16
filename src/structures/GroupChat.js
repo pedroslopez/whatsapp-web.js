@@ -98,7 +98,7 @@ class GroupChat extends Chat {
                 408: 'You cannot add this participant because they recently left the group',
                 409: 'The participant is already a group member',
                 417: 'The participant can\'t be added to the community. You can invite them privately to join this group through its invite link',
-                419: 'AddParticipantsError: The participant can\'t be added because the group is full'
+                419: 'The participant can\'t be added because the group is full'
             };
 
             const groupMetadata = group.groupMetadata;
