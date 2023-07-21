@@ -1,0 +1,39 @@
+version 2.4
+-----------
+- removed Norton ConnectSafe as it is discontinued.
+- added many new servers
+- reduced memory usage further
+
+version 2.3
+------------
+- added new servers (Cloudflare DNS)
+- added new servers (Neustar)
+
+
+version 2.2
+------------
+- added new servers (Verisign DNS)
+- added new servers (Yandex DNS)
+- updated the Norton DNS servers to their new IP address
+
+
+version 2.1
+------------
+- now reads servers from servers.ini that should be in same folder as this program
+- if servers.ini is not found, then creates a default one
+- updated servers for the default servers.ini file
+- removed descriptions for servers, as they are not much needed
+- fixed bug of recycling DNS service even when a user clicked 'no'
+
+version 2.0
+------------
+- updated public domain name servers
+- added description for each server set
+- added backup and restore feature
+- removed manual editing of servers
+
+
+Version 0.91
+------------
+- fixed bug when no NIC is found
+- added Comodo Secure DNS
