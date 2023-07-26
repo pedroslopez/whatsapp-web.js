@@ -78,6 +78,8 @@ exports.ExposeStore = (moduleRaidStr) => {
         };
     }
 
+    window.Store.getLinkPreview = window.mR.findModule('getLinkPreview')[0].getLinkPreview;
+
     // TODO remove these once everybody has been updated to WWebJS with legacy sessions removed
     const _linkPreview = window.mR.findModule('queryLinkPreview');
     if (_linkPreview && _linkPreview[0] && _linkPreview[0].default) {
@@ -203,6 +205,15 @@ exports.LoadUtils = () => {
                     preview.preview = true;
                     preview.subtype = 'url';
                     options = { ...options, ...preview };
+                }
+            } else {
+                const link = window.Store.Validators.findLink(content);
+                if (link) {
+                    const preview = await window.Store.getLinkPreview({ url: link.url });
+                    if (preview) {
+                        preview.data.subtype = 'url';
+                        options = { ...options, ...preview.data };
+                    }
                 }
             }
         }
