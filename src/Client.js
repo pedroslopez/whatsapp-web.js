@@ -287,7 +287,8 @@ class Client extends EventEmitter {
                 const LINK_WITH_PHONE_BUTTON = '[data-testid="link-device-qrcode-alt-linking-hint"]';
                 const PHONE_NUMBER_INPUT = '[data-testid="link-device-phone-number-input"]';
                 const NEXT_BUTTON = '[data-testid="link-device-phone-number-entry-next-button"]';
-                const CODE_CONTAINER_PARENT = '[data-testid="link-with-phone-number-code-cells"]';
+                const CODE_CONTAINER = '[data-testid="link-with-phone-number-code-cells"]';
+                const GENERATE_NEW_CODE_BUTTON = '[data-testid="popup-controls-ok"]';
 
                 await page.exposeFunction('codeChanged', async (code) => {
                     /**
@@ -317,8 +318,8 @@ class Client extends EventEmitter {
                 await page.click(NEXT_BUTTON);
                   
                 await page.evaluate(async function (selectors) {
-                    function waitForElementToExist(selector) {
-                        return new Promise((resolve) => {
+                    function waitForElementToExist(selector, timeout = 60000) {
+                        return new Promise((resolve, reject) => {
                             if (document.querySelector(selector)) {
                                 return resolve(document.querySelector(selector));
                             }
@@ -334,24 +335,50 @@ class Client extends EventEmitter {
                                 subtree: true,
                                 childList: true,
                             });
+
+                            if (timeout > 0) {
+                                setTimeout(() => {
+                                    reject(
+                                        new Error(
+                                            `waitForElementToExist: ${selector} not found in time`
+                                        )
+                                    );
+                                }, timeout);
+                            }
                         });
                     }
 
-                    await waitForElementToExist(selectors.CODE_CONTAINER_PARENT);
+                    await waitForElementToExist(selectors.CODE_CONTAINER);
 
                     const getCode = () => {
-                        const codeContainerParent = document.querySelector(selectors.CODE_CONTAINER_PARENT);
-                        const codeContainer = Array.from(codeContainerParent.children)[0];
+                        const codeContainer = document.querySelector(selectors.CODE_CONTAINER);
+                        const code = Array.from(codeContainer.children)[0];
 
-                        const cells = Array.from(codeContainer.children);
+                        const cells = Array.from(code.children);
                         return cells.map((cell) => cell.textContent).join('');
                     };
 
                     window.codeChanged(getCode());
 
-                    // TODO: Implement code regeneration observer
+                    const obs = new MutationObserver(() => {
+                        const codeContainer = document.querySelector(selectors.CODE_CONTAINER);
+                        const generateNewCodeButton = document.querySelector(selectors.GENERATE_NEW_CODE_BUTTON);
+                        if (generateNewCodeButton) {
+                            generateNewCodeButton.click();
+                            return;
+                        }
+
+                        if (codeContainer) {
+                            window.codeChanged(getCode());
+                        }
+                    });
+                    obs.observe(document, {
+                        subtree: true,
+                        childList: true,
+                    });
                 }, {
-                    CODE_CONTAINER_PARENT
+                    CODE_CONTAINER,
+                    GENERATE_NEW_CODE_BUTTON
                 });
             };
 
