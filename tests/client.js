@@ -112,7 +112,7 @@ describe('Client', function() {
                 options: {
                     linkingMethod: new LinkingMethod({
                         phone: {
-                            number: '5521998765432'
+                            number: process.env.WWEBJS_TEST_REMOTE_ID.replace('@c.us', '')
                         }
                     })
                 }
@@ -135,7 +135,7 @@ describe('Client', function() {
                 options: {
                     linkingMethod: new LinkingMethod({
                         phone: {
-                            number: '5521998765432'
+                            number: process.env.WWEBJS_TEST_REMOTE_ID.replace('@c.us', '')
                         }
                     })
                 }
