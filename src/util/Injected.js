@@ -78,7 +78,13 @@ exports.ExposeStore = (moduleRaidStr) => {
         };
     }
 
-    window.Store.getLinkPreview = window.mR.findModule('getLinkPreview')[0].getLinkPreview;
+    const _getLinkPreview = window.mR.findModule('getLinkPreview');
+    // >= 2.2331.7
+    if (_getLinkPreview && _getLinkPreview[0].getLinkPreview && _getLinkPreview[0].getLinkPreview.length === 0) {
+        window.Store.getLinkPreview = _getLinkPreview[0].getLinkPreview;
+    } else {
+        window.Store.getLinkPreview = (_) => null;
+    }
 
     // TODO remove these once everybody has been updated to WWebJS with legacy sessions removed
     const _linkPreview = window.mR.findModule('queryLinkPreview');
@@ -209,11 +215,13 @@ exports.LoadUtils = () => {
             } else {
                 const link = window.Store.Validators.findLink(content);
                 if (link) {
-                    const preview = await window.Store.getLinkPreview({ url: link.url });
-                    if (preview) {
-                        preview.data.subtype = 'url';
-                        options = { ...options, ...preview.data };
-                    }
+                    try {
+                        const preview = await window.Store.getLinkPreview(link);
+                        if (preview) {
+                            preview.data.subtype = 'url';
+                            options = { ...options, ...preview.data };
+                        }
+                    } catch {}
                 }
             }
         }
