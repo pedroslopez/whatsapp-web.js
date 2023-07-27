@@ -232,9 +232,9 @@ class Client extends EventEmitter {
                      * @param {string} qr QR Code
                      */
                     this.emit(Events.QR_RECEIVED, qr);
-                    if (this.options.qrMaxRetries > 0) {
+                    if (this.options.linkingMethod.qr.maxRetries > 0) {
                         qrRetries++;
-                        if (qrRetries > this.options.qrMaxRetries) {
+                        if (qrRetries > this.options.linkingMethod.qr.maxRetries) {
                             this.emit(
                                 Events.DISCONNECTED,
                                 'Max qrcode retries reached'
