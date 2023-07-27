@@ -1504,6 +1504,20 @@ declare namespace WAWebJS {
         senders: Array<Reaction>
     }
 
+    interface LinkWithQR {
+        qr: {
+            maxRetries: number;
+        },
+        phone: never;
+    }
+
+    interface LinkWithPhoneNumber {
+        qr: never;
+        phone: {
+            number: string;
+        }
+    }
+
     export class LinkingMethod {
         qr: {
             maxRetries: number
@@ -1513,7 +1527,7 @@ declare namespace WAWebJS {
         }
         isQR: () => boolean
         isPhone: () => boolean
-        constructor({ qr, phone }: { qr: { maxRetries: number }; phone: { number: string } })
+        constructor({ qr, phone }: LinkWithQR | LinkWithPhoneNumber)
     }
 }
 
