@@ -289,6 +289,7 @@ class Client extends EventEmitter {
                 const NEXT_BUTTON = '[data-testid="link-device-phone-number-entry-next-button"]';
                 const CODE_CONTAINER = '[data-testid="link-with-phone-number-code-cells"]';
                 const GENERATE_NEW_CODE_BUTTON = '[data-testid="popup-controls-ok"]';
+                const LINK_WITH_PHONE_VIEW = '[data-testid="link-device-phone-number-code-view"]';
 
                 await page.exposeFunction('codeChanged', async (code) => {
                     /**
@@ -358,27 +359,39 @@ class Client extends EventEmitter {
                         return cells.map((cell) => cell.textContent).join('');
                     };
 
-                    window.codeChanged(getCode());
+                    let code = getCode();
 
-                    const obs = new MutationObserver(() => {
-                        const codeContainer = document.querySelector(selectors.CODE_CONTAINER);
+                    window.codeChanged(code);
+
+                    const entirePageObserver = new MutationObserver(() => {
                         const generateNewCodeButton = document.querySelector(selectors.GENERATE_NEW_CODE_BUTTON);
                         if (generateNewCodeButton) {
                             generateNewCodeButton.click();
                             return;
                         }
-
-                        if (codeContainer) {
-                            window.codeChanged(getCode());
-                        }
                     });
-                    obs.observe(document, {
+                    entirePageObserver.observe(document, {
                         subtree: true,
                         childList: true,
                     });
+                    
+                    const linkWithPhoneView = document.querySelector(selectors.LINK_WITH_PHONE_VIEW);
+                    const linkWithPhoneViewObserver = new MutationObserver(() => {
+                        const newCode = getCode();
+                        if (newCode !== code) {
+                            window.codeChanged(newCode);
+                            code = newCode;
+                        }
+                    });
+                    linkWithPhoneViewObserver.observe(linkWithPhoneView, {
+                        subtree: true,
+                        childList: true,
+                    });
+
                 }, {
                     CODE_CONTAINER,
-                    GENERATE_NEW_CODE_BUTTON
+                    GENERATE_NEW_CODE_BUTTON,
+                    LINK_WITH_PHONE_VIEW
                 });
             };
 
