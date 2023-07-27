@@ -309,11 +309,18 @@ declare namespace WAWebJS {
         /** Emitted when loading screen is appearing */
         on(event: 'loading_screen', listener: (percent: string, message: string) => void): this
 
-        /** Emitted when the QR code is received */
+        /** Emitted when the linkingMethod is QR and QR code is received */
         on(event: 'qr', listener: (
             /** qr code string
              *  @example ```1@9Q8tWf6bnezr8uVGwVCluyRuBOJ3tIglimzI5dHB0vQW2m4DQ0GMlCGf,f1/vGcW4Z3vBa1eDNl3tOjWqLL5DpYTI84DMVkYnQE8=,ZL7YnK2qdPN8vKo2ESxhOQ==``` */
             qr: string
+        ) => void): this
+
+        /** Emitted when the linkingMethod is phone and code is received */
+        on(event: 'code', listener: (
+            /** code string
+             *  @example ```Q1EW-R2ET``` */
+            code: string
         ) => void): this
 
         /** Emitted when a call is received */
@@ -382,9 +389,14 @@ declare namespace WAWebJS {
         webVersion?: string,
         /**  Determines how to retrieve the WhatsApp Web version specified in options.webVersion. */
         webVersionCache?: WebCacheOptions,
-        /** How many times should the qrcode be refreshed before giving up
-		 * @default 0 (disabled) */
+        /** 
+         * @deprecated This option should be set directly on the linkingMethod
+        */
 		qrMaxRetries?: number,
+        /**
+         * Configures how the client will be linked to a new session. Defaults to using a QR code.
+        */
+        linkingMethod: LinkingMethod
         /** 
          * @deprecated This option should be set directly on the LegacySessionAuth
          */
@@ -1490,6 +1502,18 @@ declare namespace WAWebJS {
         aggregateEmoji: string,
         hasReactionByMe: boolean,
         senders: Array<Reaction>
+    }
+
+    export class LinkingMethod {
+        qr: {
+            maxRetries: number
+        }
+        phone: {
+            number: string
+        }
+        isQR: () => boolean
+        isPhone: () => boolean
+        constructor({ qr, phone }: { qr: { maxRetries: number }; phone: { number: string } })
     }
 }
 
