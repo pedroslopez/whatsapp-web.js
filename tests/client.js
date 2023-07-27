@@ -10,6 +10,7 @@ const MessageMedia = require('../src/structures/MessageMedia');
 const Location = require('../src/structures/Location');
 const LegacySessionAuth = require('../src/authStrategies/LegacySessionAuth');
 const { MessageTypes, WAState, DefaultOptions } = require('../src/util/Constants');
+const { LinkingMethod } = require('..');
 
 const expect = chai.expect;
 chai.use(chaiAsPromised);
@@ -99,6 +100,52 @@ describe('Client', function() {
 
             expect(callback.called).to.equal(true);
             expect(callback.args[0][0]).to.have.length.greaterThanOrEqual(152);
+
+            await client.destroy();
+        });
+
+        it('should not emit QR code if linking method is phone code', async function() {
+            this.timeout(25000);
+            const callback = sinon.spy();
+
+            const client = helper.createClient({
+                options: {
+                    linkingMethod: new LinkingMethod({
+                        phone: {
+                            number: '5521998765432'
+                        }
+                    })
+                }
+            });
+            client.on('qr', callback);
+            client.initialize();
+
+            await helper.sleep(20000);
+
+            expect(callback.called).to.equal(false);
+
+            await client.destroy();
+        });
+
+        it('should emit code if not authenticated and linking method is phone code', async function() {
+            this.timeout(25000);
+            const callback = sinon.spy();
+
+            const client = helper.createClient({
+                options: {
+                    linkingMethod: new LinkingMethod({
+                        phone: {
+                            number: '5521998765432'
+                        }
+                    })
+                }
+            });
+            client.on('code', callback);
+            client.initialize();
+
+            await helper.sleep(20000);
+
+            expect(callback.called).to.equal(true);
 
             await client.destroy();
         });
