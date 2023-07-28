@@ -821,16 +821,18 @@ class Client extends EventEmitter {
         if (isBigFile) {
 			var startDivision = 2
             var middle = internalOptions.attachment.data.length / startDivision;
+            var currentIndex = 0;
+			var passes = 0;
+            
 			while (middle > (1024 * 1024 * 50)){
 				startDivision += 1
 				middle = Math.floor(internalOptions.attachment.data.length / startDivision);
 			}
-			var currentIndex = 0;
-			var passes = 0;
-			while(currentIndex < internalOptions.attachment?.data?.length){
+            
+			while(currentIndex < internalOptions.attachment.data.length){
 				var chunkPiece = middle
-				if(currentIndex + middle > internalOptions.attachment?.data?.length){
-					chunkPiece = internalOptions.attachment?.data?.length - currentIndex
+				if(currentIndex + middle > internalOptions.attachment.data.length){
+					chunkPiece = internalOptions.attachment.data.length - currentIndex
 				}
 				await this.pupPage.evaluate(async (chatId, chunk,passes) => {
 					if (chunk) {
@@ -840,7 +842,9 @@ class Client extends EventEmitter {
 				currentIndex += chunkPiece
 				passes += 1
 			}
-            internalOptions.attachment = new MessageMedia("document","dummy",internalOptions.attachment.filename);
+            
+            internalOptions.attachment = new MessageMedia(internalOptions.attachment.mimetype,"",internalOptions.attachment.filename,internalOptions.attachment.filesize);
+            
 			await this.pupPage.evaluate(async (chatId,passes) => {
 					window.Store[`mediaChunk_${chatId}_passes`] = passes;	
 			}, chatId,passes);
