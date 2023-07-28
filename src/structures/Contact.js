@@ -117,7 +117,7 @@ class Contact extends Base {
      * @returns {Promise<string>}
      */
     async getProfilePicUrl() {
-        return await this.client.getProfilePicUrl(this.id._serialized);
+        return await this.client.getPictureUrl(this.id._serialized);
     }
 
     /**

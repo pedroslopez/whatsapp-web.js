@@ -1093,20 +1093,20 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Returns the contact ID's profile picture URL, if privacy settings allow it
+     * Returns the chat ID's profile picture URL, if the client can view it
      * @param {string} contactId the whatsapp user's ID
-     * @returns {Promise<string>}
+     * @param {string} chatId the whatsapp chat's ID
      */
-    async getProfilePicUrl(contactId) {
-        const profilePic = await this.pupPage.evaluate(async contactId => {
+    async getPictureUrl(chatId) {
+        const profilePic = await this.pupPage.evaluate(async chatId => {
             try {
-                const chatWid = window.Store.WidFactory.createWid(contactId);
+                const chatWid = window.Store.WidFactory.createWid(chatId);
                 return await window.Store.ProfilePic.profilePicFind(chatWid);
             } catch (err) {
                 if(err.name === 'ServerStatusCodeError') return undefined;
                 throw err;
             }
-        }, contactId);
+        }, chatId);
         
         return profilePic ? profilePic.eurl : undefined;
     }

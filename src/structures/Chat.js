@@ -247,6 +247,14 @@ class Chat extends Base {
     }
 
     /**
+     * Returns the chat's picture URL, if privacy settings allow it
+     * @returns {Promise<string>}
+    */
+    async getPictureUrl() {
+        return await this.client.getPictureUrl(this.id._serialized);
+    }
+
+    /**
      * Returns the Contact that corresponds to this Chat.
      * @returns {Promise<Contact>}
      */
