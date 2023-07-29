@@ -819,10 +819,10 @@ class Client extends EventEmitter {
         const isBigFile = internalOptions.attachment?.data?.length > (1024 * 1024 * 79);
 
         if (isBigFile) {
-			var startDivision = 2
-            var middle = internalOptions.attachment.data.length / startDivision;
-            var currentIndex = 0;
-			var passes = 0;
+			let startDivision = 2
+            let middle = internalOptions.attachment.data.length / startDivision;
+            let currentIndex = 0;
+			let passes = 0;
             
 			while (middle > (1024 * 1024 * 50)){
 				startDivision += 1
@@ -830,7 +830,7 @@ class Client extends EventEmitter {
 			}
             
 			while(currentIndex < internalOptions.attachment.data.length){
-				var chunkPiece = middle
+				let chunkPiece = middle
 				if(currentIndex + middle > internalOptions.attachment.data.length){
 					chunkPiece = internalOptions.attachment.data.length - currentIndex
 				}
@@ -862,8 +862,8 @@ class Client extends EventEmitter {
 
             if(window.Store[`mediaChunk_${chatId}_passes`]) {
 				options.attachment.data = ''
-                var maxPasses = window.Store[`mediaChunk_${chatId}_passes`]
-				var currPass = 0;
+                const maxPasses = window.Store[`mediaChunk_${chatId}_passes`]
+				let currPass = 0;
 				while (currPass < maxPasses){
 					options.attachment.data += window.Store[`mediaChunk_${chatId}_${currPass}`]
 					delete window.Store[`mediaChunk_${chatId}_${currPass}`];
