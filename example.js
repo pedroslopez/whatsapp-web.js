@@ -110,8 +110,8 @@ client.on('message', async msg => {
          * }
          * 
          * For more usage examples:
-         * @see https://github.com/pedroslopez/whatsapp-web.js/pull/2344
-        */
+         * @see https://github.com/pedroslopez/whatsapp-web.js/pull/2344#usage-example
+         */
         console.log(result);
     } else if (msg.body === '!groupinfo') {
         let chat = await msg.getChat();
