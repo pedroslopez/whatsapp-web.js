@@ -43,7 +43,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.ProfilePic = window.mR.findModule('profilePicResync')[0];
     window.Store.PresenceUtils = window.mR.findModule('sendPresenceAvailable')[0];
     window.Store.ChatState = window.mR.findModule('sendChatStateComposing')[0];
-    window.Store.GroupParticipants = window.mR.findModule('promoteParticipants')[0];
     window.Store.JoinInviteV4 = window.mR.findModule('sendJoinGroupViaInviteV4')[0];
     window.Store.findCommonGroups = window.mR.findModule('findCommonGroups')[0].findCommonGroups;
     window.Store.StatusUtils = window.mR.findModule('setMyStatus')[0];
@@ -69,7 +68,10 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('createGroup')[0],
         ...window.mR.findModule('setGroupDescription')[0],
         ...window.mR.findModule('sendExitGroup')[0],
-        ...window.mR.findModule('sendSetPicture')[0],
+        ...window.mR.findModule('sendSetPicture')[0]
+    };
+    window.Store.GroupParticipants = {
+        ...window.mR.findModule('promoteParticipants')[0],
         sendAddParticipantsRPC:
             window.mR.findModule('sendAddParticipantsRPC')[0].sendAddParticipantsRPC,
         sendGroupInviteMessage:
@@ -849,7 +851,7 @@ exports.LoadUtils = () => {
         };
 
         try {
-            result = await window.Store.GroupUtils.sendAddParticipantsRPC({ participantArgs, iqTo });
+            result = await window.Store.GroupParticipants.sendAddParticipantsRPC({ participantArgs, iqTo });
             [participant] = result.value.addParticipant;
         } catch (err) {
             data.code = -1;
