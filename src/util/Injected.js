@@ -57,7 +57,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.SocketWap = window.mR.findModule('wap')[0];
     window.Store.SearchContext = window.mR.findModule('getSearchContext')[0].getSearchContext;
     window.Store.DrawerManager = window.mR.findModule('DrawerManager')[0].DrawerManager;
-    window.Store.LidManipulations = window.mR.findModule('getCurrentLid')[0];
+    window.Store.LidUtils = window.mR.findModule('getCurrentLid')[0];
     window.Store.WidToJid = window.mR.findModule('widToUserJid')[0];
     window.Store.JidToWid = window.mR.findModule('userJidToUserWid')[0];
     window.Store.StickerTools = {
@@ -823,7 +823,7 @@ exports.LoadUtils = () => {
         const participantLidArgs = chatMetadata?.isLidAddressingMode
             ? {
                 phoneNumber: participantWid,
-                lid: window.Store.LidManipulations.getCurrentLid(participantWid)
+                lid: window.Store.LidUtils.getCurrentLid(participantWid)
             }
             : { phoneNumber: participantWid };
 
