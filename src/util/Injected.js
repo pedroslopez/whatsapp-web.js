@@ -34,6 +34,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.EditMessage = window.mR.findModule('addAndSendMessageEdit')[0];
     window.Store.SendSeen = window.mR.findModule('sendSeen')[0];
     window.Store.User = window.mR.findModule('getMaybeMeUser')[0];
+    window.Store.ContactMethods = window.mR.findModule('getUserid')[0];
+    window.Store.BusinessProfileCollection = window.mR.findModule('BusinessProfileCollection')[0].BusinessProfileCollection;
     window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
     window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default;
     window.Store.Validators = window.mR.findModule('findLinks')[0];
@@ -500,19 +502,56 @@ exports.LoadUtils = () => {
 
     window.WWebJS.getContactModel = contact => {
         let res = contact.serialize();
-        res.isBusiness = contact.isBusiness;
+        res.isBusiness = contact.isBusiness === undefined ? false : contact.isBusiness;
 
         if (contact.businessProfile) {
             res.businessProfile = contact.businessProfile.serialize();
         }
 
-        res.isMe = contact.isMe;
-        res.isUser = contact.isUser;
-        res.isGroup = contact.isGroup;
-        res.isWAContact = contact.isWAContact;
-        res.isMyContact = contact.isMyContact;
+        // TODO: remove useOldImplementation and its checks once all clients are updated to >= v2.2327.4
+        const useOldImplementation
+            = window.WWebJS.compareWwebVersions(window.Debug.VERSION, '<', '2.2327.4');
+
+        res.isMe = useOldImplementation
+            ? contact.isMe
+            : window.Store.ContactMethods.getIsMe(contact);
+        res.isUser = useOldImplementation
+            ? contact.isUser
+            : window.Store.ContactMethods.getIsUser(contact);
+        res.isGroup = useOldImplementation
+            ? contact.isGroup
+            : window.Store.ContactMethods.getIsGroup(contact);
+        res.isWAContact = useOldImplementation
+            ? contact.isWAContact
+            : window.Store.ContactMethods.getIsWAContact(contact);
+        res.isMyContact = useOldImplementation
+            ? contact.isMyContact
+            : window.Store.ContactMethods.getIsMyContact(contact);
         res.isBlocked = contact.isContactBlocked;
-        res.userid = contact.userid;
+        res.userid = useOldImplementation
+            ? contact.userid
+            : window.Store.ContactMethods.getUserid(contact);
+        res.isEnterprise = useOldImplementation
+            ? contact.isEnterprise
+            : window.Store.ContactMethods.getIsEnterprise(contact);
+        res.verifiedName = useOldImplementation
+            ? contact.verifiedName
+            : window.Store.ContactMethods.getVerifiedName(contact);
+        res.verifiedLevel = useOldImplementation
+            ? contact.verifiedLevel
+            : window.Store.ContactMethods.getVerifiedLevel(contact);
+        res.statusMute = useOldImplementation
+            ? contact.statusMute
+            : window.Store.ContactMethods.getStatusMute(contact);
+        res.name = useOldImplementation
+            ? contact.name
+            : window.Store.ContactMethods.getName(contact);
+        res.shortName = useOldImplementation
+            ? contact.shortName
+            : window.Store.ContactMethods.getShortName(contact);
+        res.pushname = useOldImplementation
+            ? contact.pushname
+            : window.Store.ContactMethods.getPushname(contact);
 
         return res;
     };
@@ -520,6 +559,8 @@ exports.LoadUtils = () => {
     window.WWebJS.getContact = async contactId => {
         const wid = window.Store.WidFactory.createWid(contactId);
         const contact = await window.Store.Contact.find(wid);
+        const bizProfile = await window.Store.BusinessProfileCollection.fetchBizProfile(wid);
+        bizProfile.profileOptions && (contact.businessProfile = bizProfile);
         return window.WWebJS.getContactModel(contact);
     };
 
@@ -744,5 +785,47 @@ exports.LoadUtils = () => {
             if(err.name === 'ServerStatusCodeError') return false;
             throw err;
         }
+    };
+
+    /**
+     * Inner function that compares between two WWeb versions. Its purpose is to help the developer to choose the correct code implementation depending on the comparison value and the WWeb version.
+     * @param {string} lOperand The left operand for the WWeb version string to compare with
+     * @param {string} operator The comparison operator
+     * @param {string} rOperand The right operand for the WWeb version string to compare with
+     * @returns {boolean} Boolean value that indicates the result of the comparison
+     */
+    window.WWebJS.compareWwebVersions = (lOperand, operator, rOperand) => {
+        if (!['>', '>=', '<', '<=', '='].includes(operator)) {
+            throw class _ extends Error {
+                constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
+            }('Invalid comparison operator is provided');
+
+        }
+        if (typeof lOperand !== 'string' || typeof rOperand !== 'string') {
+            throw class _ extends Error {
+                constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
+            }('A non-string WWeb version type is provided');
+        }
+
+        lOperand = lOperand.replace(/-beta$/, '');
+        rOperand = rOperand.replace(/-beta$/, '');
+
+        while (lOperand.length !== rOperand.length) {
+            lOperand.length > rOperand.length
+                ? rOperand = rOperand.concat('0')
+                : lOperand = lOperand.concat('0');
+        }
+
+        lOperand = Number(lOperand.replace(/\./g, ''));
+        rOperand = Number(rOperand.replace(/\./g, ''));
+
+        return (
+            operator === '>' ? lOperand > rOperand :
+                operator === '>=' ? lOperand >= rOperand :
+                    operator === '<' ? lOperand < rOperand :
+                        operator === '<=' ? lOperand <= rOperand :
+                            operator === '=' ? lOperand === rOperand :
+                                false
+        );
     };
 };
