@@ -163,6 +163,7 @@ exports.LoadUtils = () => {
                 attOptions.caption = options.caption; 
             }
             content = options.sendMediaAsSticker ? undefined : attOptions.preview;
+            attOptions.isViewOnce = options.isViewOnce;
 
             delete options.attachment;
             delete options.sendMediaAsSticker;
@@ -270,8 +271,8 @@ exports.LoadUtils = () => {
         }
 
         let listOptions = {};
-        if(options.list){
-            if(window.Store.Conn.platform === 'smba' || window.Store.Conn.platform === 'smbi'){
+        if (options.list) {
+            if (window.Store.Conn.platform === 'smba' || window.Store.Conn.platform === 'smbi') {
                 throw '[LT01] Whatsapp business can\'t send this yet';
             }
             listOptions = {

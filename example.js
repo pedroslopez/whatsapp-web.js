@@ -140,6 +140,12 @@ client.on('message', async msg => {
             const attachmentData = await quotedMsg.downloadMedia();
             client.sendMessage(msg.from, attachmentData, { caption: 'Here\'s your requested media.' });
         }
+    } else if (msg.body === '!isviewonce' && msg.hasQuotedMsg) {
+        const quotedMsg = await msg.getQuotedMessage();
+        if (quotedMsg.hasMedia) {
+            const media = await quotedMsg.downloadMedia();
+            await client.sendMessage(msg.from, media, { isViewOnce: true });
+        }
     } else if (msg.body === '!location') {
         // only latitude and longitude
         await msg.reply(new Location(37.422, -122.084));
