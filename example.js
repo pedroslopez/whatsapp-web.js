@@ -144,6 +144,12 @@ client.on('message', async msg => {
             const audio = await quotedMsg.downloadMedia();
             await client.sendMessage(msg.from, audio, { sendAudioAsVoice: true });
         }
+    } else if (msg.body === '!isviewonce' && msg.hasQuotedMsg) {
+        const quotedMsg = await msg.getQuotedMessage();
+        if (quotedMsg.hasMedia) {
+            const media = await quotedMsg.downloadMedia();
+            await client.sendMessage(msg.from, media, { isViewOnce: true });
+        }
     } else if (msg.body === '!location') {
         msg.reply(new Location(37.422, -122.084, 'Googleplex\nGoogle Headquarters'));
     } else if (msg.location) {
