@@ -153,8 +153,9 @@ class GroupChat extends Chat {
         const success = await this.client.pupPage.evaluate(async (chatId, description) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             let descId = window.Store.GroupMetadata.get(chatWid).descId;
+            let newId = await window.Store.MsgKey.newId();
             try {
-                await window.Store.GroupUtils.setGroupDescription(chatWid, description, window.Store.MsgKey.newId(), descId);
+                await window.Store.GroupUtils.setGroupDescription(chatWid, description, newId, descId);
                 return true;
             } catch (err) {
                 if(err.name === 'ServerStatusCodeError') return false;
@@ -172,22 +173,21 @@ class GroupChat extends Chat {
      * @param {boolean} [adminsOnly=true] Enable or disable this option 
      * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
      */
-    async setMessagesAdminsOnly(adminsOnly=true) {
-        const success = await this.client.pupPage.evaluate(async (chatId, adminsOnly) => {
+    async setMessagesAdminsOnly(adminsOnly = true) {
+        const result = await this.client.pupPage.evaluate(async (chatId, adminsOnly) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             try {
-                await window.Store.GroupUtils.setGroupProperty(chatWid, 'announcement', adminsOnly ? 1 : 0);
-                return true;
+                const response =
+                    await window.Store.GroupUtils.setGroupProperty(chatWid, 'announcement', adminsOnly ? 1 : 0);
+                return response.name === 'SetPropertyResponseSuccess';
             } catch (err) {
-                if(err.name === 'ServerStatusCodeError') return false;
+                if (err.name === 'SmaxParsingFailure') return false;
                 throw err;
             }
         }, this.id._serialized, adminsOnly);
 
-        if(!success) return false;
-
-        this.groupMetadata.announce = adminsOnly;
-        return true;
+        this.groupMetadata.announce = result;
+        return result;
     }
 
     /**
@@ -195,17 +195,22 @@ class GroupChat extends Chat {
      * @param {boolean} [adminsOnly=true] Enable or disable this option 
      * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
      */
-    async setInfoAdminsOnly(adminsOnly=true) {
-        const success = await this.client.pupPage.evaluate(async (chatId, adminsOnly) => {
+    async setInfoAdminsOnly(adminsOnly = true) {
+        const result = await this.client.pupPage.evaluate(async (chatId, adminsOnly) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             try {
-                await window.Store.GroupUtils.setGroupProperty(chatWid, 'restrict', adminsOnly ? 1 : 0);
-                return true;
+                const response =
+                    await window.Store.GroupUtils.setGroupProperty(chatWid, 'restrict', adminsOnly ? 1 : 0);
+                return response.name === 'SetPropertyResponseSuccess';
             } catch (err) {
-                if(err.name === 'ServerStatusCodeError') return false;
+                if (err.name === 'SmaxParsingFailure') return false;
                 throw err;
             }
         }, this.id._serialized, adminsOnly);
+
+        this.groupMetadata.restrict = result;
+        return result;
+    }
 
         if(!success) return false;
         
@@ -266,16 +271,25 @@ class GroupChat extends Chat {
 
     /**
      * Makes the bot leave the group
-     * @returns {Promise}
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
      */
     async leave() {
-        await this.client.pupPage.evaluate(async chatId => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
-            const chat = await window.Store.Chat.find(chatWid);
-            return window.Store.GroupUtils.sendExitGroup(chat);
+        return await this.client.pupPage.evaluate(async groupId => {
+            const groupWid = window.Store.WidFactory.createWid(groupId);
+            const group = await window.Store.Chat.find(groupWid);
+            try {
+                const result = group.groupMetadata.defaultSubgroup
+                    ? await window.Store.GroupUtils.leaveCommunity(groupWid)
+                    : await window.Store.GroupUtils.leaveGroup(groupWid);
+                return result.code === 200
+                    ? true
+                    : false;
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return false;
+                throw err;
+            }
         }, this.id._serialized);
     }
-
 }
 
 module.exports = GroupChat;

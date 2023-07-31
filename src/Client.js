@@ -238,9 +238,9 @@ class Client extends EventEmitter {
                         // Listens to qr token change
                         if (mut.type === 'attributes' && mut.attributeName === 'data-ref') {
                             window.qrChanged(mut.target.dataset.ref);
-                        } else
+                        }
                         // Listens to retry button, when found, click it
-                        if (mut.type === 'childList') {
+                        else if (mut.type === 'childList') {
                             const retry_button = document.querySelector(selectors.QR_RETRY_BUTTON);
                             if (retry_button) retry_button.click();
                         }
@@ -274,6 +274,50 @@ class Client extends EventEmitter {
             }
 
         }
+
+        await page.evaluate(() => {
+            /**
+             * Helper function that compares between two WWeb versions. Its purpose is to help the developer to choose the correct code implementation depending on the comparison value and the WWeb version.
+             * @param {string} lOperand The left operand for the WWeb version string to compare with
+             * @param {string} operator The comparison operator
+             * @param {string} rOperand The right operand for the WWeb version string to compare with
+             * @returns {boolean} Boolean value that indicates the result of the comparison
+             */
+            window.compareWwebVersions = (lOperand, operator, rOperand) => {
+                if (!['>', '>=', '<', '<=', '='].includes(operator)) {
+                    throw class _ extends Error {
+                        constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
+                    }('Invalid comparison operator is provided');
+
+                }
+                if (typeof lOperand !== 'string' || typeof rOperand !== 'string') {
+                    throw class _ extends Error {
+                        constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
+                    }('A non-string WWeb version type is provided');
+                }
+
+                lOperand = lOperand.replace(/-beta$/, '');
+                rOperand = rOperand.replace(/-beta$/, '');
+
+                while (lOperand.length !== rOperand.length) {
+                    lOperand.length > rOperand.length
+                        ? rOperand = rOperand.concat('0')
+                        : lOperand = lOperand.concat('0');
+                }
+
+                lOperand = Number(lOperand.replace(/\./g, ''));
+                rOperand = Number(rOperand.replace(/\./g, ''));
+
+                return (
+                    operator === '>' ? lOperand > rOperand :
+                        operator === '>=' ? lOperand >= rOperand :
+                            operator === '<' ? lOperand < rOperand :
+                                operator === '<=' ? lOperand <= rOperand :
+                                    operator === '=' ? lOperand === rOperand :
+                                        false
+                );
+            };
+        });
 
         await page.evaluate(ExposeStore, moduleRaid.toString());
         const authEventPayload = await this.authStrategy.getAuthEventPayload();
@@ -314,7 +358,7 @@ class Client extends EventEmitter {
         await page.exposeFunction('onAddMessageEvent', msg => {
             if (msg.type === 'gp2') {
                 const notification = new GroupNotification(this, msg);
-                if (msg.subtype === 'add' || msg.subtype === 'invite') {
+                if (['add', 'invite', 'linked_group_join'].includes(msg.subtype)) {
                     /**
                      * Emitted when a user joins the chat via invite link or is added by an admin.
                      * @event Client#group_join
@@ -396,18 +440,18 @@ class Client extends EventEmitter {
 
             /**
              * The event notification that is received when one of
-             * the group participants changes thier phone number.
+             * the group participants changes their phone number.
              */
             const isParticipant = msg.type === 'gp2' && msg.subtype === 'modify';
 
             /**
              * The event notification that is received when one of
-             * the contacts changes thier phone number.
+             * the contacts changes their phone number.
              */
             const isContact = msg.type === 'notification_template' && msg.subtype === 'change_number';
 
             if (isParticipant || isContact) {
-                /** {@link GroupNotification} object does not provide enough information about this event, so a {@link Message} object is used. */
+                /** @type {GroupNotification} object does not provide enough information about this event, so a @type {Message} object is used. */
                 const message = new Message(this, msg);
 
                 const newId = isParticipant ? msg.recipients[0] : msg.to;
@@ -702,7 +746,14 @@ class Client extends EventEmitter {
         await this.pupPage.evaluate(() => {
             return window.Store.AppState.logout();
         });
-
+        await this.pupBrowser.close();
+        
+        let maxDelay = 0;
+        while (this.pupBrowser.isConnected() && (maxDelay < 10)) { // waits a maximum of 1 second before calling the AuthStrategy
+            await new Promise(resolve => setTimeout(resolve, 100));
+            maxDelay++; 
+        }
+        
         await this.authStrategy.logout();
     }
 
@@ -734,10 +785,11 @@ class Client extends EventEmitter {
      * Message options.
      * @typedef {Object} MessageSendOptions
      * @property {boolean} [linkPreview=true] - Show links preview. Has no effect on multi-device accounts.
-     * @property {boolean} [sendAudioAsVoice=false] - Send audio as voice message
+     * @property {boolean} [sendAudioAsVoice=false] - Send audio as voice message with a generated waveform
      * @property {boolean} [sendVideoAsGif=false] - Send video as gif
      * @property {boolean} [sendMediaAsSticker=false] - Send media as a sticker
      * @property {boolean} [sendMediaAsDocument=false] - Send media as a document
+     * @property {boolean} [isViewOnce=false] - Send photo/video as a view once message
      * @property {boolean} [parseVCards=true] - Automatically parse vCards and send them as contacts
      * @property {string} [caption] - Image or video caption
      * @property {string} [quotedMessageId] - Id of the message that is being quoted (or replied to)
@@ -779,10 +831,12 @@ class Client extends EventEmitter {
 
         if (content instanceof MessageMedia) {
             internalOptions.attachment = content;
+            internalOptions.isViewOnce = options.isViewOnce,
             content = '';
         } else if (options.media instanceof MessageMedia) {
             internalOptions.attachment = options.media;
             internalOptions.caption = content;
+            internalOptions.isViewOnce = options.isViewOnce,
             content = '';
         } else if (content instanceof Location) {
             internalOptions.location = content;
@@ -895,6 +949,24 @@ class Client extends EventEmitter {
 
         return ContactFactory.create(this, contact);
     }
+    
+    async getMessageById(messageId) {
+        const msg = await this.pupPage.evaluate(async messageId => {
+            let msg = window.Store.Msg.get(messageId);
+            if(msg) return window.WWebJS.getMessageModel(msg);
+
+            const params = messageId.split('_');
+            if(params.length !== 3) throw new Error('Invalid serialized message id specified');
+
+            let messagesObject = await window.Store.Msg.getMessagesById([messageId]);
+            if (messagesObject && messagesObject.messages.length) msg = messagesObject.messages[0];
+            
+            if(msg) return window.WWebJS.getMessageModel(msg);
+        }, messageId);
+
+        if(msg) return new Message(this, msg);
+        return null;
+    }
 
     /**
      * Returns an object with information about the invite code's group
@@ -930,7 +1002,8 @@ class Client extends EventEmitter {
         if (inviteInfo.inviteCodeExp == 0) throw 'Expired invite code';
         return this.pupPage.evaluate(async inviteInfo => {
             let { groupId, fromId, inviteCode, inviteCodeExp } = inviteInfo;
-            return await window.Store.JoinInviteV4.sendJoinGroupViaInviteV4(inviteCode, String(inviteCodeExp), groupId, fromId);
+            let userWid = window.Store.WidFactory.createWid(fromId);
+            return await window.Store.JoinInviteV4.joinGroupViaInviteV4(inviteCode, String(inviteCodeExp), groupId, userWid);
         }, inviteInfo);
     }
 
