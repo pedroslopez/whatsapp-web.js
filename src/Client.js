@@ -825,32 +825,33 @@ class Client extends EventEmitter {
 			let startDivision = 2
             let middle = internalOptions.attachment.data.length / startDivision;
             let currentIndex = 0;
-			let passes = 0;
+
             
 			while (middle > (1024 * 1024 * 50)){
 				startDivision += 1
 				middle = Math.floor(internalOptions.attachment.data.length / startDivision);
 			}
             
+            const randomId = Util.generateHash(32);
+            
 			while(currentIndex < internalOptions.attachment.data.length){
 				let chunkPiece = middle
 				if(currentIndex + middle > internalOptions.attachment.data.length){
 					chunkPiece = internalOptions.attachment.data.length - currentIndex
 				}
-				await this.pupPage.evaluate(async (chatId, chunk,passes) => {
-					if (chunk) {
-						window.Store[`mediaChunk_${chatId}_${passes}`] = chunk;
+				await this.pupPage.evaluate(async (chatId, chunk, randomId) => {
+					if (chunk && window[`mediaChunk_${randomId}`]) {
+						window[`mediaChunk_${randomId}`] += chunk;
 					}
-				}, chatId, internalOptions.attachment.data.substring(currentIndex, currentIndex+chunkPiece),passes);
+                    else {
+                        window[`mediaChunk_${randomId}`] = chunk;
+                    }
+				}, chatId, internalOptions.attachment.data.substring(currentIndex, currentIndex+chunkPiece), randomId);
 				currentIndex += chunkPiece
-				passes += 1
+
 			}
             
-            internalOptions.attachment = new MessageMedia(internalOptions.attachment.mimetype,"",internalOptions.attachment.filename,internalOptions.attachment.filesize);
-            
-			await this.pupPage.evaluate(async (chatId,passes) => {
-					window.Store[`mediaChunk_${chatId}_passes`] = passes;	
-			}, chatId,passes);
+            internalOptions.attachment = new MessageMedia(internalOptions.attachment.mimetype,`mediaChunk_${randomId}`, internalOptions.attachment.filename,internalOptions.attachment.filesize);
         }
 
         const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
@@ -863,18 +864,10 @@ class Client extends EventEmitter {
                 window.WWebJS.sendSeen(chatId);
             }
 
-            if(window.Store[`mediaChunk_${chatId}_passes`]) {
-				options.attachment.data = ''
-                const maxPasses = window.Store[`mediaChunk_${chatId}_passes`]
-				let currPass = 0;
-				while (currPass < maxPasses){
-					options.attachment.data += window.Store[`mediaChunk_${chatId}_${currPass}`]
-					delete window.Store[`mediaChunk_${chatId}_${currPass}`];
-					currPass += 1;			
-				}
-				delete window.Store[`mediaChunk_${chatId}_passes`];
+            if(options?.attachment?.data?.startsWith('mediaChunk')) {
+				options.attachment.data = window[options.attachment.data];
+				delete window[options.attachment.data];
             }
-
 
             const msg = await window.WWebJS.sendMessage(chat, message, options, sendSeen);
             return msg.serialize();
