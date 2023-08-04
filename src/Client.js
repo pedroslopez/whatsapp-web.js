@@ -822,23 +822,23 @@ class Client extends EventEmitter {
         const isBigFile = internalOptions.attachment?.data?.length > (1024 * 1024 * 79);
 
         if (isBigFile) {
-			let startDivision = 2
+            let startDivision = 2
             let middle = internalOptions.attachment.data.length / startDivision;
             let currentIndex = 0;
 
             
-			while (middle > (1024 * 1024 * 50)){
-				startDivision += 1
-				middle = Math.floor(internalOptions.attachment.data.length / startDivision);
-			}
+            while (middle > (1024 * 1024 * 50)){
+                startDivision += 1;
+                middle = Math.floor(internalOptions.attachment.data.length / startDivision);
+            }
             
             const randomId = Util.generateHash(32);
             
-			while(currentIndex < internalOptions.attachment.data.length){
-				let chunkPiece = middle
-				if(currentIndex + middle > internalOptions.attachment.data.length){
-					chunkPiece = internalOptions.attachment.data.length - currentIndex
-				}
+            while(currentIndex < internalOptions.attachment.data.length){
+                let chunkPiece = middle;
+                if(currentIndex + middle > internalOptions.attachment.data.length){
+                    chunkPiece = internalOptions.attachment.data.length - currentIndex;
+                }
 				await this.pupPage.evaluate(async (chatId, chunk, randomId) => {
 					if (chunk && window[`mediaChunk_${randomId}`]) {
 						window[`mediaChunk_${randomId}`] += chunk;
@@ -847,9 +847,9 @@ class Client extends EventEmitter {
                         window[`mediaChunk_${randomId}`] = chunk;
                     }
 				}, chatId, internalOptions.attachment.data.substring(currentIndex, currentIndex+chunkPiece), randomId);
-				currentIndex += chunkPiece
+                currentIndex += chunkPiece;
 
-			}
+            }
             
             internalOptions.attachment = new MessageMedia(internalOptions.attachment.mimetype,`mediaChunk_${randomId}`, internalOptions.attachment.filename,internalOptions.attachment.filesize);
         }
@@ -865,8 +865,8 @@ class Client extends EventEmitter {
             }
 
             if(options?.attachment?.data?.startsWith('mediaChunk')) {
-				options.attachment.data = window[options.attachment.data];
-				delete window[options.attachment.data];
+                options.attachment.data = window[options.attachment.data];
+                delete window[options.attachment.data];
             }
 
             const msg = await window.WWebJS.sendMessage(chat, message, options, sendSeen);
