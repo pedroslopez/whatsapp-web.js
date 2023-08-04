@@ -1111,62 +1111,62 @@ declare namespace WAWebJS {
      *   archived: false
      * }
      */
-    export class Chat {
+    export interface Chat {
         /** Indicates if the Chat is archived */
-        archived: boolean;
+        archived: boolean,
         /** ID that represents the chat */
-        id: ChatId;
+        id: ChatId,
         /** Indicates if the Chat is a Group Chat */
-        isGroup: boolean;
+        isGroup: boolean,
         /** Indicates if the Chat is readonly */
-        isReadOnly: boolean;
+        isReadOnly: boolean,
         /** Indicates if the Chat is muted */
-        isMuted: boolean;
+        isMuted: boolean,
         /** Unix timestamp for when the mute expires */
-        muteExpiration: number;
+        muteExpiration: number,
         /** Title of the chat */
-        name: string;
+        name: string,
         /** Unix timestamp for when the last activity occurred */
-        timestamp: number;
+        timestamp: number,
         /** Amount of messages unread */
-        unreadCount: number;
+        unreadCount: number,
         /** Last message fo chat */
-        lastMessage: Message;
+        lastMessage: Message,
 
         /** Archives this chat */
-        archive: () => Promise<void>;
+        archive: () => Promise<void>,
         /** Pins this chat and returns its new Pin state */
-        pin: () => Promise<boolean>;
+        pin: () => Promise<boolean>,
         /** Unpins this chat and returns its new Pin state */
-        unpin: () => Promise<boolean>;
+        unpin: () => Promise<boolean>,
         /** Clears all messages from the chat */
-        clearMessages: () => Promise<boolean>;
+        clearMessages: () => Promise<boolean>,
         /** Stops typing or recording in chat immediately. */
-        clearState: () => Promise<boolean>;
+        clearState: () => Promise<boolean>,
         /** Deletes the chat */
-        delete: () => Promise<boolean>;
+        delete: () => Promise<boolean>,
         /** Loads chat messages, sorted from earliest to latest. */
-        fetchMessages: (searchOptions: MessageSearchOptions) => Promise<Message[]>;
+        fetchMessages: (searchOptions: MessageSearchOptions) => Promise<Message[]>,
         /** Mutes this chat forever, unless a date is specified */
-        mute: (unmuteDate?: Date) => Promise<void>;
+        mute: (unmuteDate?: Date) => Promise<void>,
         /** Send a message to this chat */
-        sendMessage: (content: MessageContent, options?: MessageSendOptions) => Promise<Message>;
+        sendMessage: (content: MessageContent, options?: MessageSendOptions) => Promise<Message>,
         /** Set the message as seen */
-        sendSeen: () => Promise<void>;
+        sendSeen: () => Promise<void>,
         /** Simulate recording audio in chat. This will last for 25 seconds */
-        sendStateRecording: () => Promise<void>;
+        sendStateRecording: () => Promise<void>,
         /** Simulate typing in chat. This will last for 25 seconds. */
-        sendStateTyping: () => Promise<void>;
+        sendStateTyping: () => Promise<void>,
         /** un-archives this chat */
-        unarchive: () => Promise<void>;
+        unarchive: () => Promise<void>,
         /** Unmutes this chat */
-        unmute: () => Promise<void>;
+        unmute: () => Promise<void>,
         /** Returns the Contact that corresponds to this Chat. */
-        getContact: () => Promise<Contact>;
+        getContact: () => Promise<Contact>,
         /** Marks this Chat as unread */
-        markUnread: () => Promise<void>
+        markUnread: () => Promise<void>,
         /** Returns array of all Labels assigned to this Chat */
-        getLabels: () => Promise<Label[]>
+        getLabels: () => Promise<Label[]>,
         /** Add or remove labels to this Chat */
         changeLabels: (labelIds: Array<string | number>) => Promise<void>
     }
