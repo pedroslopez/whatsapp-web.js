@@ -140,6 +140,12 @@ client.on('message', async msg => {
             const attachmentData = await quotedMsg.downloadMedia();
             client.sendMessage(msg.from, attachmentData, { caption: 'Here\'s your requested media.' });
         }
+    } else if (msg.body === '!isviewonce' && msg.hasQuotedMsg) {
+        const quotedMsg = await msg.getQuotedMessage();
+        if (quotedMsg.hasMedia) {
+            const media = await quotedMsg.downloadMedia();
+            await client.sendMessage(msg.from, media, { isViewOnce: true });
+        }
     } else if (msg.body === '!location') {
         msg.reply(new Location(37.422, -122.084, 'Googleplex\nGoogle Headquarters'));
     } else if (msg.location) {
@@ -231,6 +237,18 @@ client.on('message', async msg => {
                 msg.reply('I can only edit my own messages');
             }
         }
+    } else if (msg.body === '!updatelabels') {
+        const chat = await msg.getChat();
+        await chat.changeLabels([0, 1]);
+    } else if (msg.body === '!addlabels') {
+        const chat = await msg.getChat();
+        let labels = (await chat.getLabels()).map(l => l.id);
+        labels.push('0');
+        labels.push('1');
+        await chat.changeLabels(labels);
+    } else if (msg.body === '!removelabels') {
+        const chat = await msg.getChat();
+        await chat.changeLabels([]);
     }
 });
 
