@@ -238,9 +238,9 @@ class Client extends EventEmitter {
                         // Listens to qr token change
                         if (mut.type === 'attributes' && mut.attributeName === 'data-ref') {
                             window.qrChanged(mut.target.dataset.ref);
-                        } else
+                        }
                         // Listens to retry button, when found, click it
-                        if (mut.type === 'childList') {
+                        else if (mut.type === 'childList') {
                             const retry_button = document.querySelector(selectors.QR_RETRY_BUTTON);
                             if (retry_button) retry_button.click();
                         }
@@ -584,12 +584,28 @@ class Client extends EventEmitter {
             this.emit(Events.CHAT_ARCHIVED, new Chat(this, chat), currState, prevState);
         });
 
+        await page.exposeFunction('onEditMessageEvent', (msg, newBody, prevBody) => {
+            
+            if(msg.type === 'revoked'){
+                return;
+            }
+            /**
+             * Emitted when messages are edited
+             * @event Client#message_edit
+             * @param {Message} message
+             * @param {string} newBody
+             * @param {string} prevBody
+             */
+            this.emit(Events.MESSAGE_EDIT, new Message(this, msg), newBody, prevBody);
+        });
+
         await page.evaluate(() => {
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:ack', (msg, ack) => { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
             window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => { if (msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('remove', (msg) => { if (msg.isNewMsg) window.onRemoveMessageEvent(window.WWebJS.getMessageModel(msg)); });
+            window.Store.Msg.on('change:body', (msg, newBody, prevBody) => { window.onEditMessageEvent(window.WWebJS.getMessageModel(msg), newBody, prevBody); });
             window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
             window.Store.Conn.on('change:battery', (state) => { window.onBatteryStateChangedEvent(state); });
             window.Store.Call.on('add', (call) => { window.onIncomingCall(call); });
@@ -722,6 +738,7 @@ class Client extends EventEmitter {
      * @property {boolean} [sendVideoAsGif=false] - Send video as gif
      * @property {boolean} [sendMediaAsSticker=false] - Send media as a sticker
      * @property {boolean} [sendMediaAsDocument=false] - Send media as a document
+     * @property {boolean} [isViewOnce=false] - Send photo/video as a view once message
      * @property {boolean} [parseVCards=true] - Automatically parse vCards and send them as contacts
      * @property {string} [caption] - Image or video caption
      * @property {string} [quotedMessageId] - Id of the message that is being quoted (or replied to)
@@ -732,7 +749,7 @@ class Client extends EventEmitter {
      * @property {string[]} [stickerCategories=undefined] - Sets the categories of the sticker, (if sendMediaAsSticker is true). Provide emoji char array, can be null.
      * @property {MessageMedia} [media] - Media to be sent
      */
-
+    
     /**
      * Send a message to a specific chatId
      * @param {string} chatId
@@ -763,10 +780,12 @@ class Client extends EventEmitter {
 
         if (content instanceof MessageMedia) {
             internalOptions.attachment = content;
+            internalOptions.isViewOnce = options.isViewOnce,
             content = '';
         } else if (options.media instanceof MessageMedia) {
             internalOptions.attachment = options.media;
             internalOptions.caption = content;
+            internalOptions.isViewOnce = options.isViewOnce,
             content = '';
         } else if (content instanceof Location) {
             internalOptions.location = content;
@@ -785,7 +804,7 @@ class Client extends EventEmitter {
             internalOptions.list = content;
             content = '';
         }
-        
+
         if (internalOptions.sendMediaAsSticker && internalOptions.attachment) {
             internalOptions.attachment = await Util.formatToWebpSticker(
                 internalOptions.attachment, {
@@ -811,7 +830,7 @@ class Client extends EventEmitter {
 
         return new Message(this, newMessage);
     }
-
+    
     /**
      * Searches for messages
      * @param {string} query
@@ -1315,6 +1334,35 @@ class Client extends EventEmitter {
         }, this.info.wid._serialized);
 
         return success;
+    }
+    
+    /**
+     * Change labels in chats
+     * @param {Array<number|string>} labelIds
+     * @param {Array<string>} chatIds
+     * @returns {Promise<void>}
+     */
+    async addOrRemoveLabels(labelIds, chatIds) {
+
+        return this.pupPage.evaluate(async (labelIds, chatIds) => {
+            if (['smba', 'smbi'].indexOf(window.Store.Conn.platform) === -1) {
+                throw '[LT01] Only Whatsapp business';
+            }
+            const labels = window.WWebJS.getLabels().filter(e => labelIds.find(l => l == e.id) !== undefined);
+            const chats = window.Store.Chat.filter(e => chatIds.includes(e.id._serialized));
+
+            let actions = labels.map(label => ({id: label.id, type: 'add'}));
+
+            chats.forEach(chat => {
+                (chat.labels || []).forEach(n => {
+                    if (!actions.find(e => e.id == n)) {
+                        actions.push({id: n, type: 'remove'});
+                    }
+                });
+            });
+
+            return await window.Store.Label.addOrRemoveLabels(actions, chats);
+        }, labelIds, chatIds);
     }
 }
 
