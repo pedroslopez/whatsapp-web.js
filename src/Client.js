@@ -762,8 +762,7 @@ class Client extends EventEmitter {
         if (options.mentions && options.mentions.some(possiblyContact => possiblyContact instanceof Contact)) {
             console.warn('Mentions with an array of Contact are now deprecated. See more at https://github.com/pedroslopez/whatsapp-web.js/pull/2166.');
             options.mentions = options.mentions.map(a => a.id._serialized);
-        }
-        
+        }     
         let internalOptions = {
             linkPreview: options.linkPreview === false ? undefined : true,
             sendAudioAsVoice: options.sendAudioAsVoice,
@@ -819,9 +818,7 @@ class Client extends EventEmitter {
         }
 
 
-        const isBigFile = internalOptions.attachment?.data?.length > (1024 * 1024 * 79);
-
-        if (isBigFile) {
+        if (internalOptions.attachment?.data?.length > (1024 * 1024 * 79)) {
             let startDivision = 2
             let middle = internalOptions.attachment.data.length / startDivision;
             let currentIndex = 0;
