@@ -2,7 +2,6 @@
 import { EventEmitter } from 'events'
 import { RequestInit } from 'node-fetch'
 import * as puppeteer from 'puppeteer'
-import PollVote from './src/structures/PollVote'
 
 declare namespace WAWebJS {
 
@@ -600,7 +599,7 @@ declare namespace WAWebJS {
         STATE_CHANGED = 'change_state',
         BATTERY_CHANGED = 'change_battery',
         REMOTE_SESSION_SAVED = 'remote_session_saved',
-        POLL_VOTE = 'poll_vote'
+        POLL_VOTE = 'poll_vote',
         CALL = 'call'
     }
 
@@ -824,6 +823,9 @@ declare namespace WAWebJS {
         selectedRowId?: string,
         /** Returns message in a raw format */
         rawData: object,
+        pollName: string,
+        /** If 1 it is a single choice poll, if 0 it is a multiple choice poll */
+        pollSelectableOptionsCount: number,
         /** Avaiaible poll voting options */
         pollOptions: string[],
         /** The current poll votes, refresh with .refreshPollVotes() */
@@ -905,6 +907,15 @@ declare namespace WAWebJS {
         longitude: string
         
         constructor(latitude: number, longitude: number, description?: string)
+    }
+
+    /** Poll information */
+    export class Poll {
+        pollName: string
+        pollOptions: Array<Object<string, number>>
+        allowMultipleAnswers?: boolean
+
+        constructor(pollName: string, pollOptions: Array<string>, allowMultipleAnswers?: boolean)
     }
 
     export interface Label {
@@ -998,7 +1009,7 @@ declare namespace WAWebJS {
         static fromUrl: (url: string, options?: MediaFromURLOptions) => Promise<MessageMedia>
     }
 
-    export type MessageContent = string | MessageMedia | Location | Contact | Contact[] | List | Buttons
+    export type MessageContent = string | MessageMedia | Location | Poll | Contact | Contact[] | List | Buttons
 
     /**
      * Represents a Contact on WhatsApp

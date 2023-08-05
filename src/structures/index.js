@@ -8,6 +8,7 @@ module.exports = {
     Location: require('./Location'),
     Message: require('./Message'),
     MessageMedia: require('./MessageMedia'),
+    Poll: require('./Poll'),
     PrivateChat: require('./PrivateChat'),
     PrivateContact: require('./PrivateContact'),
     GroupNotification: require('./GroupNotification'),
