@@ -164,6 +164,19 @@ exports.LoadUtils = () => {
             delete options.location;
         }
 
+        let _pollOptions = {};
+        if (options.poll) {
+            const { pollName, pollOptions, allowMultipleAnswers } = options.poll;
+            _pollOptions = {
+                type: 'poll_creation',
+                pollName: pollName,
+                pollOptions: pollOptions,
+                pollSelectableOptionsCount: allowMultipleAnswers ? 0 : 1,
+                messageSecret: window.WWebJS.generateRandomUnit8Array(32)
+            };
+            delete options.poll;
+        }
+
         let vcardOptions = {};
         if (options.contactCard) {
             let contact = window.Store.Contact.get(options.contactCard);
@@ -283,6 +296,7 @@ exports.LoadUtils = () => {
             type: 'chat',
             ...ephemeralFields,
             ...locationOptions,
+            ..._pollOptions,
             ...attOptions,
             ...(attOptions.toJSON ? attOptions.toJSON() : {}),
             ...quotedMsgOptions,
@@ -630,6 +644,10 @@ exports.LoadUtils = () => {
             result += characters.charAt(Math.floor(Math.random() * charactersLength));
         }
         return result;
+    };
+
+    window.WWebJS.generateRandomUnit8Array = (length) => {
+        return window.crypto.getRandomValues(new Uint8Array(length));
     };
 
     window.WWebJS.sendClearChat = async (chatId) => {
