@@ -260,16 +260,19 @@ class Message extends Base {
         }
 
         if (this.type == MessageTypes.POLL_CREATION) {
-
             /** Selectable poll options */
-            this.pollOptions = data.pollOptions.map(option => {
+            this._data.pollOptions = data.pollOptions.map(option => {
                 return option.name;
             });
 
             /** Current poll votes, refresh with Message.refreshPollVotes() */
-            this.pollVotes = data.pollVotes.map((pollVote) => {
-                return new PollVote(this.client, {...pollVote, pollCreationMessage: this});
-            });
+            if (data.pollVotes) {
+                this._data.pollVotes = data.pollVotes.map((pollVote) => {
+                    return new PollVote(this.client, { ...pollVote, pollCreationMessage: this });
+                });
+            }
+
+            delete this._data.messageSecret;
         }
 
         return super._patch(data);
