@@ -173,7 +173,7 @@ exports.LoadUtils = () => {
                 pollName: pollName,
                 pollOptions: pollOptions,
                 pollSelectableOptionsCount: allowMultipleAnswers ? 0 : 1,
-                messageSecret: window.WWebJS.generateRandomUnit8Array(32)
+                messageSecret: window.crypto.getRandomValues(new Uint8Array(32))
             };
             delete options.poll;
         }
@@ -645,10 +645,6 @@ exports.LoadUtils = () => {
             result += characters.charAt(Math.floor(Math.random() * charactersLength));
         }
         return result;
-    };
-
-    window.WWebJS.generateRandomUnit8Array = (length) => {
-        return window.crypto.getRandomValues(new Uint8Array(length));
     };
 
     window.WWebJS.sendClearChat = async (chatId) => {
