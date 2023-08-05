@@ -166,7 +166,8 @@ exports.LoadUtils = () => {
 
         let _pollOptions = {};
         if (options.poll) {
-            const { pollName, pollOptions, allowMultipleAnswers } = options.poll;
+            const { pollName, pollOptions } = options.poll;
+            const { allowMultipleAnswers } = options.poll.pollSendOptions;
             _pollOptions = {
                 type: 'poll_creation',
                 pollName: pollName,

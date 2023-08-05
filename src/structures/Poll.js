@@ -1,15 +1,21 @@
 'use strict';
 
 /**
+ * Poll send options
+ * @typedef {Object} PollSendOptions
+ * @property {boolean} [allowMultipleAnswers=false] If false it is a single choice poll, otherwise it is a multiple choice poll (false by default)
+ */
+
+/**
  * Poll information
  */
 class Poll {
     /**
      * @param {string} pollName
      * @param {Array<string>} pollOptions
-     * @param {?boolean} [allowMultipleAnswers=false] 
+     * @param {PollSendOptions} pollSendOptions
      */
-    constructor(pollName, pollOptions, allowMultipleAnswers) {
+    constructor(pollName, pollOptions, pollSendOptions = {}) {
         /**
          * Poll name
          * @type {string}
@@ -26,13 +32,11 @@ class Poll {
         }));
 
         /**
-         * Boolean parameter,
-         * if false it is a single choice poll,
-         * otherwise it is a multiple choice poll (false by default)
-         * @type {?boolean}
-         * @default false
+         * @type {PollSendOptions}
          */
-        this.allowMultipleAnswers = allowMultipleAnswers === undefined ? false : allowMultipleAnswers;
+        this.pollSendOptions = {
+            allowMultipleAnswers: pollSendOptions.allowMultipleAnswers === true
+        };
     }
 }
 

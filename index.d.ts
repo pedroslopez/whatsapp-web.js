@@ -909,13 +909,19 @@ declare namespace WAWebJS {
         constructor(latitude: number, longitude: number, description?: string)
     }
 
+    /** Poll send options */
+    export interface PollSendOptions {
+        /** If false it is a single choice poll, otherwise it is a multiple choice poll (false by default) */
+        allowMultipleAnswers?: boolean
+    }
+
     /** Poll information */
     export class Poll {
         pollName: string
         pollOptions: Array<Object<string, number>>
-        allowMultipleAnswers?: boolean
+        pollSendOptions: PollSendOptions
 
-        constructor(pollName: string, pollOptions: Array<string>, allowMultipleAnswers?: boolean)
+        constructor(pollName: string, pollOptions: Array<string>, pollSendOptions: PollSendOptions)
     }
 
     export interface Label {
