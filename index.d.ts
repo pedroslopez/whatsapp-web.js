@@ -1246,7 +1246,7 @@ declare namespace WAWebJS {
         comment?: string;
     };
 
-    export class GroupChat extends Chat {
+    export interface GroupChat extends Chat {
         /** Group owner */
         owner: ContactId;
         /** Date at which the group was created */
