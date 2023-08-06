@@ -819,7 +819,7 @@ class Client extends EventEmitter {
 
 
         if (internalOptions.attachment?.data?.length > (1024 * 1024 * 79)) {
-            let startDivision = 2
+            let startDivision = 2;
             let middle = internalOptions.attachment.data.length / startDivision;
             let currentIndex = 0;
 
@@ -836,14 +836,14 @@ class Client extends EventEmitter {
                 if(currentIndex + middle > internalOptions.attachment.data.length){
                     chunkPiece = internalOptions.attachment.data.length - currentIndex;
                 }
-				await this.pupPage.evaluate(async (chatId, chunk, randomId) => {
-					if (chunk && window[`mediaChunk_${randomId}`]) {
-						window[`mediaChunk_${randomId}`] += chunk;
-					}
+                await this.pupPage.evaluate(async (chatId, chunk, randomId) => {
+                    if (chunk && window[`mediaChunk_${randomId}`]) {
+                        window[`mediaChunk_${randomId}`] += chunk;
+                    }
                     else {
                         window[`mediaChunk_${randomId}`] = chunk;
                     }
-				}, chatId, internalOptions.attachment.data.substring(currentIndex, currentIndex+chunkPiece), randomId);
+                }, chatId, internalOptions.attachment.data.substring(currentIndex, currentIndex+chunkPiece), randomId);
                 currentIndex += chunkPiece;
 
             }
