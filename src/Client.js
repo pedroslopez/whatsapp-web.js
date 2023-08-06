@@ -314,7 +314,7 @@ class Client extends EventEmitter {
         await page.exposeFunction('onAddMessageEvent', msg => {
             if (msg.type === 'gp2') {
                 const notification = new GroupNotification(this, msg);
-                if (msg.subtype === 'add' || msg.subtype === 'invite') {
+                if (['add', 'invite', 'linked_group_join'].includes(msg.subtype)) {
                     /**
                      * Emitted when a user joins the chat via invite link or is added by an admin.
                      * @event Client#group_join
@@ -396,18 +396,18 @@ class Client extends EventEmitter {
 
             /**
              * The event notification that is received when one of
-             * the group participants changes thier phone number.
+             * the group participants changes their phone number.
              */
             const isParticipant = msg.type === 'gp2' && msg.subtype === 'modify';
 
             /**
              * The event notification that is received when one of
-             * the contacts changes thier phone number.
+             * the contacts changes their phone number.
              */
             const isContact = msg.type === 'notification_template' && msg.subtype === 'change_number';
 
             if (isParticipant || isContact) {
-                /** {@link GroupNotification} object does not provide enough information about this event, so a {@link Message} object is used. */
+                /** @type {GroupNotification} object does not provide enough information about this event, so a @type {Message} object is used. */
                 const message = new Message(this, msg);
 
                 const newId = isParticipant ? msg.recipients[0] : msg.to;
