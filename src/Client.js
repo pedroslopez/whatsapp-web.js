@@ -238,9 +238,9 @@ class Client extends EventEmitter {
                         // Listens to qr token change
                         if (mut.type === 'attributes' && mut.attributeName === 'data-ref') {
                             window.qrChanged(mut.target.dataset.ref);
-                        } else
+                        }
                         // Listens to retry button, when found, click it
-                        if (mut.type === 'childList') {
+                        else if (mut.type === 'childList') {
                             const retry_button = document.querySelector(selectors.QR_RETRY_BUTTON);
                             if (retry_button) retry_button.click();
                         }
@@ -314,7 +314,7 @@ class Client extends EventEmitter {
         await page.exposeFunction('onAddMessageEvent', msg => {
             if (msg.type === 'gp2') {
                 const notification = new GroupNotification(this, msg);
-                if (msg.subtype === 'add' || msg.subtype === 'invite') {
+                if (['add', 'invite', 'linked_group_join'].includes(msg.subtype)) {
                     /**
                      * Emitted when a user joins the chat via invite link or is added by an admin.
                      * @event Client#group_join
@@ -396,18 +396,18 @@ class Client extends EventEmitter {
 
             /**
              * The event notification that is received when one of
-             * the group participants changes thier phone number.
+             * the group participants changes their phone number.
              */
             const isParticipant = msg.type === 'gp2' && msg.subtype === 'modify';
 
             /**
              * The event notification that is received when one of
-             * the contacts changes thier phone number.
+             * the contacts changes their phone number.
              */
             const isContact = msg.type === 'notification_template' && msg.subtype === 'change_number';
 
             if (isParticipant || isContact) {
-                /** {@link GroupNotification} object does not provide enough information about this event, so a {@link Message} object is used. */
+                /** @type {GroupNotification} object does not provide enough information about this event, so a @type {Message} object is used. */
                 const message = new Message(this, msg);
 
                 const newId = isParticipant ? msg.recipients[0] : msg.to;
@@ -738,6 +738,7 @@ class Client extends EventEmitter {
      * @property {boolean} [sendVideoAsGif=false] - Send video as gif
      * @property {boolean} [sendMediaAsSticker=false] - Send media as a sticker
      * @property {boolean} [sendMediaAsDocument=false] - Send media as a document
+     * @property {boolean} [isViewOnce=false] - Send photo/video as a view once message
      * @property {boolean} [parseVCards=true] - Automatically parse vCards and send them as contacts
      * @property {string} [caption] - Image or video caption
      * @property {string} [quotedMessageId] - Id of the message that is being quoted (or replied to)
@@ -779,10 +780,12 @@ class Client extends EventEmitter {
 
         if (content instanceof MessageMedia) {
             internalOptions.attachment = content;
+            internalOptions.isViewOnce = options.isViewOnce,
             content = '';
         } else if (options.media instanceof MessageMedia) {
             internalOptions.attachment = options.media;
             internalOptions.caption = content;
+            internalOptions.isViewOnce = options.isViewOnce,
             content = '';
         } else if (content instanceof Location) {
             internalOptions.location = content;
