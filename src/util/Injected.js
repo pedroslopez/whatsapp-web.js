@@ -129,7 +129,7 @@ exports.ExposeStore = (moduleRaidStr) => {
             ? window.mR.findModule(target.moduleId)
             : window.mR.modules[target.moduleId];
         const originalFunction = module[target.index][target.property];
-        const modifiedFunction = (...args) => callback(originalFunction, args);
+        const modifiedFunction = (...args) => callback(originalFunction, ...args);
         module[target.index][target.property] = modifiedFunction;
     };
 
@@ -137,7 +137,7 @@ exports.ExposeStore = (moduleRaidStr) => {
      * Referenced from and modified:
      * @see https://github.com/wppconnect-team/wa-js/blob/e19164e83cfa68b828493e6ff046c0a3d46a4942/src/chat/functions/sendLocationMessage.ts#L164
      */
-    window.injectToFunction({ moduleId: 'typeAttributeFromProtobuf', index: 0, property: 'typeAttributeFromProtobuf' }, (func, args) => { const [proto] = args; return proto.groupInviteMessage ? 'text' : func(...args); });
+    window.injectToFunction({ moduleId: 'typeAttributeFromProtobuf', index: 0, property: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.groupInviteMessage ? 'text' : func(...args); });
 };
 
 exports.LoadUtils = () => {
