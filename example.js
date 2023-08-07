@@ -313,28 +313,28 @@ client.on('contact_changed', async (message, oldId, newId, isContact) => {
         `Their new phone number is ${newId.slice(0, -5)}.\n`);
 
     /**
-     * Information about the {@name message}:
+     * Information about the @param {message}:
      * 
      * 1. If a notification was emitted due to a group participant changing their phone number:
-     * {@name message.author} is a participant's id before the change.
-     * {@name message.recipients[0]} is a participant's id after the change (a new one).
+     * @param {message.author} is a participant's id before the change.
+     * @param {message.recipients[0]} is a participant's id after the change (a new one).
      * 
      * 1.1 If the contact who changed their number WAS in the current user's contact list at the time of the change:
-     * {@name message.to} is a group chat id the event was emitted in.
-     * {@name message.from} is a current user's id that got an notification message in the group.
-     * Also the {@name message.fromMe} is TRUE.
+     * @param {message.to} is a group chat id the event was emitted in.
+     * @param {message.from} is a current user's id that got an notification message in the group.
+     * Also the @param {message.fromMe} is TRUE.
      * 
      * 1.2 Otherwise:
-     * {@name message.from} is a group chat id the event was emitted in.
-     * {@name message.to} is @type {undefined}.
-     * Also {@name message.fromMe} is FALSE.
+     * @param {message.from} is a group chat id the event was emitted in.
+     * @param {message.to} is @type {undefined}.
+     * Also @param {message.fromMe} is FALSE.
      * 
      * 2. If a notification was emitted due to a contact changing their phone number:
-     * {@name message.templateParams} is an array of two user's ids:
+     * @param {message.templateParams} is an array of two user's ids:
      * the old (before the change) and a new one, stored in alphabetical order.
-     * {@name message.from} is a current user's id that has a chat with a user,
+     * @param {message.from} is a current user's id that has a chat with a user,
      * whos phone number was changed.
-     * {@name message.to} is a user's id (after the change), the current user has a chat with.
+     * @param {message.to} is a user's id (after the change), the current user has a chat with.
      */
 });
 
