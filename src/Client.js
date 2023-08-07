@@ -702,7 +702,14 @@ class Client extends EventEmitter {
         await this.pupPage.evaluate(() => {
             return window.Store.AppState.logout();
         });
-
+        await this.pupBrowser.close();
+        
+        let maxDelay = 0;
+        while (this.pupBrowser.isConnected() && (maxDelay < 10)) { // waits a maximum of 1 second before calling the AuthStrategy
+            await new Promise(resolve => setTimeout(resolve, 100));
+            maxDelay++; 
+        }
+        
         await this.authStrategy.logout();
     }
 
@@ -897,6 +904,24 @@ class Client extends EventEmitter {
         }, contactId);
 
         return ContactFactory.create(this, contact);
+    }
+    
+    async getMessageById(messageId) {
+        const msg = await this.pupPage.evaluate(async messageId => {
+            let msg = window.Store.Msg.get(messageId);
+            if(msg) return window.WWebJS.getMessageModel(msg);
+
+            const params = messageId.split('_');
+            if(params.length !== 3) throw new Error('Invalid serialized message id specified');
+
+            let messagesObject = await window.Store.Msg.getMessagesById([messageId]);
+            if (messagesObject && messagesObject.messages.length) msg = messagesObject.messages[0];
+            
+            if(msg) return window.WWebJS.getMessageModel(msg);
+        }, messageId);
+
+        if(msg) return new Message(this, msg);
+        return null;
     }
 
     /**
