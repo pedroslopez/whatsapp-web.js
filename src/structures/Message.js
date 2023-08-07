@@ -7,6 +7,7 @@ const Order = require('./Order');
 const Payment = require('./Payment');
 const Reaction = require('./Reaction');
 const {MessageTypes} = require('../util/Constants');
+const {Contact} = require('./Contact');
 
 /**
  * Represents a Message on WhatsApp
@@ -167,8 +168,8 @@ class Message extends Base {
             inviteCodeExp: data.inviteCodeExp,
             groupId: data.inviteGrp,
             groupName: data.inviteGrpName,
-            fromId: data.from._serialized,
-            toId: data.to._serialized
+            fromId: data.from?._serialized ? data.from._serialized : data.from,
+            toId: data.to?._serialized ? data.to._serialized : data.to
         } : undefined;
 
         /**
@@ -224,6 +225,16 @@ class Message extends Base {
             this.productId = data.productId;
         }
 
+        /** Last edit time */
+        if (data.latestEditSenderTimestampMs) {
+            this.latestEditSenderTimestampMs = data.latestEditSenderTimestampMs;
+        }
+
+        /** Last edit message author */
+        if (data.latestEditMsgKey) {
+            this.latestEditMsgKey = data.latestEditMsgKey;
+        }
+        
         /**
          * Links included in the message.
          * @type {Array<{link: string, isSuspicious: boolean}>}
@@ -575,6 +586,42 @@ class Message extends Base {
             });
             return reaction;
         });
+    }
+
+    /**
+     * Edits the current message.
+     * @param {string} content
+     * @param {MessageEditOptions} [options] - Options used when editing the message
+     * @returns {Promise<?Message>}
+     */
+    async edit(content, options = {}) {
+        if (options.mentions && options.mentions.some(possiblyContact => possiblyContact instanceof Contact)) {
+            options.mentions = options.mentions.map(a => a.id._serialized);
+        }
+        let internalOptions = {
+            linkPreview: options.linkPreview === false ? undefined : true,
+            mentionedJidList: Array.isArray(options.mentions) ? options.mentions : [],
+            extraOptions: options.extra
+        };
+        
+        if (!this.fromMe) {
+            return null;
+        }
+        const messageEdit = await this.client.pupPage.evaluate(async (msgId, message, options) => {
+            let msg = window.Store.Msg.get(msgId);
+            if (!msg) return null;
+
+            let catEdit = (msg.type === 'chat' && window.Store.MsgActionChecks.canEditText(msg));
+            if (catEdit) {
+                const msgEdit = await window.WWebJS.editMessage(msg, message, options);
+                return msgEdit.serialize();
+            }
+            return null;
+        }, this.id._serialized, content, internalOptions);
+        if (messageEdit) {
+            return new Message(this.client, messageEdit);
+        }
+        return null;
     }
 }
 
