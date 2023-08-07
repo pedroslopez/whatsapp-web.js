@@ -78,8 +78,8 @@ exports.ExposeStore = (moduleRaidStr) => {
         };
     }
 
+    // VERSION >= 2.2330.X
     const _getLinkPreview = window.mR.findModule('getLinkPreview');
-    // >= 2.2330.x
     if (_getLinkPreview && _getLinkPreview[0].getLinkPreview && _getLinkPreview[0].getLinkPreview.length === 0) {
         window.Store.getLinkPreview = _getLinkPreview[0].getLinkPreview;
     } else {
