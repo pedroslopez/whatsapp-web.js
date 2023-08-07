@@ -915,7 +915,7 @@ declare namespace WAWebJS {
         allowMultipleAnswers?: boolean
     }
 
-    /** Poll information */
+    /** Represents a Poll on WhatsApp */
     export class Poll {
         pollName: string
         pollOptions: Array<Object<string, number>>

@@ -6,9 +6,7 @@
  * @property {boolean} [allowMultipleAnswers=false] If false it is a single choice poll, otherwise it is a multiple choice poll (false by default)
  */
 
-/**
- * Poll information
- */
+/** Represents a Poll on WhatsApp */
 class Poll {
     /**
      * @param {string} pollName
@@ -17,13 +15,13 @@ class Poll {
      */
     constructor(pollName, pollOptions, pollSendOptions = {}) {
         /**
-         * Poll name
+         * The name of the poll
          * @type {string}
          */
         this.pollName = pollName.trim();
 
         /**
-         * Poll options
+         * The array of poll options
          * @type {Array<Object<string, number>>}
          */
         this.pollOptions = pollOptions.map((option, index) => ({
@@ -32,6 +30,7 @@ class Poll {
         }));
 
         /**
+         * The send options for the poll
          * @type {PollSendOptions}
          */
         this.pollSendOptions = {
