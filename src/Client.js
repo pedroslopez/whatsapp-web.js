@@ -702,7 +702,14 @@ class Client extends EventEmitter {
         await this.pupPage.evaluate(() => {
             return window.Store.AppState.logout();
         });
-
+        await this.pupBrowser.close();
+        
+        let maxDelay = 0;
+        while (this.pupBrowser.isConnected() && (maxDelay < 10)) { // waits a maximum of 1 second before calling the AuthStrategy
+            await new Promise(resolve => setTimeout(resolve, 100));
+            maxDelay++; 
+        }
+        
         await this.authStrategy.logout();
     }
 
