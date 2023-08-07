@@ -77,7 +77,7 @@ exports.ExposeStore = (moduleRaidStr) => {
             window.mR.findModule('sendAddParticipantsRPC')[0].sendAddParticipantsRPC
     };
     window.Store.GroupInviteV4 = {
-        ...window.mR.findModule('sendJoinGroupViaInviteV4')[0],
+        ...window.mR.findModule('queryGroupInviteV4')[0],
         sendGroupInviteMessage:
             window.mR.findModule('sendGroupInviteMessage')[0].sendGroupInviteMessage
     };
@@ -516,7 +516,7 @@ exports.LoadUtils = () => {
         
         res.lastMessage = null;
         if (res.msgs && res.msgs.length) {
-            const lastMessage = window.Store.Msg.get(chat.lastReceivedKey._serialized);
+            const lastMessage = chat.lastReceivedKey ? window.Store.Msg.get(chat.lastReceivedKey._serialized) : null;
             if (lastMessage) {
                 res.lastMessage = window.WWebJS.getMessageModel(lastMessage);
             }
