@@ -45,7 +45,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.PresenceUtils = window.mR.findModule('sendPresenceAvailable')[0];
     window.Store.ChatState = window.mR.findModule('sendChatStateComposing')[0];
     window.Store.GroupParticipants = window.mR.findModule('promoteParticipants')[0];
-    window.Store.JoinInviteV4 = window.mR.findModule('sendJoinGroupViaInviteV4')[0];
+    window.Store.JoinInviteV4 = window.mR.findModule('queryGroupInviteV4')[0];
     window.Store.findCommonGroups = window.mR.findModule('findCommonGroups')[0].findCommonGroups;
     window.Store.StatusUtils = window.mR.findModule('setMyStatus')[0];
     window.Store.ConversationMsgs = window.mR.findModule('loadEarlierMsgs')[0];
@@ -127,6 +127,7 @@ exports.LoadUtils = () => {
                 attOptions.caption = options.caption; 
             }
             content = options.sendMediaAsSticker ? undefined : attOptions.preview;
+            attOptions.isViewOnce = options.isViewOnce;
 
             delete options.attachment;
             delete options.sendMediaAsSticker;
@@ -232,8 +233,8 @@ exports.LoadUtils = () => {
         }
 
         let listOptions = {};
-        if(options.list){
-            if(window.Store.Conn.platform === 'smba' || window.Store.Conn.platform === 'smbi'){
+        if (options.list) {
+            if (window.Store.Conn.platform === 'smba' || window.Store.Conn.platform === 'smbi') {
                 throw '[LT01] Whatsapp business can\'t send this yet';
             }
             listOptions = {
@@ -474,7 +475,7 @@ exports.LoadUtils = () => {
         
         res.lastMessage = null;
         if (res.msgs && res.msgs.length) {
-            const lastMessage = window.Store.Msg.get(chat.lastReceivedKey._serialized);
+            const lastMessage = chat.lastReceivedKey ? window.Store.Msg.get(chat.lastReceivedKey._serialized) : null;
             if (lastMessage) {
                 res.lastMessage = window.WWebJS.getMessageModel(lastMessage);
             }
