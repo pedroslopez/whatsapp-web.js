@@ -74,6 +74,9 @@ declare namespace WAWebJS {
 
         /** Get all current Labels  */
         getLabels(): Promise<Label[]>
+        
+        /** Change labels in chats  */
+        addOrRemoveLabels(labelIds: Array<number|string>, chatIds: Array<string>): Promise<void>
 
         /** Get Label instance by ID */
         getLabelById(labelId: string): Promise<Label>
@@ -245,6 +248,16 @@ declare namespace WAWebJS {
             ack: MessageAck
         ) => void): this
         
+        /** Emitted when an ack event occurrs on message type */
+        on(event: 'message_edit', listener: (
+            /** The message that was affected */
+            message: Message,
+            /** New text message */
+            newBody: String,
+            /** Prev text message */
+            prevBody: String
+        ) => void): this
+        
         /** Emitted when a chat unread count changes */
         on(event: 'unread_count', listener: (
             /** The chat that was affected */
@@ -368,6 +381,10 @@ declare namespace WAWebJS {
         puppeteer?: puppeteer.PuppeteerNodeLaunchOptions & puppeteer.ConnectOptions
 		/** Determines how to save and restore sessions. Will use LegacySessionAuth if options.session is set. Otherwise, NoAuth will be used. */
         authStrategy?: AuthStrategy,
+        /** The version of WhatsApp Web to use. Use options.webVersionCache to configure how the version is retrieved. */
+        webVersion?: string,
+        /**  Determines how to retrieve the WhatsApp Web version specified in options.webVersion. */
+        webVersionCache?: WebCacheOptions,
         /** How many times should the qrcode be refreshed before giving up
 		 * @default 0 (disabled) */
 		qrMaxRetries?: number,
@@ -394,6 +411,24 @@ declare namespace WAWebJS {
         /** Object with proxy autentication requirements @default: undefined */
         proxyAuthentication?: {username: string, password: string} | undefined
     }
+
+    export interface LocalWebCacheOptions {
+        type: 'local',
+        path?: string,
+        strict?: boolean
+    }
+
+    export interface RemoteWebCacheOptions {
+        type: 'remote',
+        remotePath: string,
+        strict?: boolean
+    }
+
+    export interface NoWebCacheOptions {
+        type: 'none'
+    }
+
+    export type WebCacheOptions = NoWebCacheOptions | LocalWebCacheOptions | RemoteWebCacheOptions;
 
     /**
      * Base class which all authentication strategies extend
@@ -548,6 +583,7 @@ declare namespace WAWebJS {
         MESSAGE_REVOKED_EVERYONE = 'message_revoke_everyone',
         MESSAGE_REVOKED_ME = 'message_revoke_me',
         MESSAGE_ACK = 'message_ack',
+        MESSAGE_EDIT = 'message_edit',
         MEDIA_UPLOADED = 'media_uploaded',
         CONTACT_CHANGED = 'contact_changed',
         GROUP_JOIN = 'group_join',
@@ -770,6 +806,10 @@ declare namespace WAWebJS {
         businessOwnerJid?: string,
         /** Product JID */
         productId?: string,
+        /** Last edit time */
+        latestEditSenderTimestampMs?: number,
+        /** Last edit message author */
+        latestEditMsgKey?: MessageId,
         /** Message buttons */
         dynamicReplyButtons?: object,
         /** Selected button ID */
@@ -827,6 +867,8 @@ declare namespace WAWebJS {
          * Gets the reactions associated with the given message
          */
         getReactions: () => Promise<ReactionList[]>,
+        /** Edits the current message */
+        edit: (content: MessageContent, options?: MessageEditOptions) => Promise<Message | null>,
     }
 
     /** ID that represents a message */
@@ -870,6 +912,8 @@ declare namespace WAWebJS {
         sendMediaAsSticker?: boolean
         /** Send media as document */
         sendMediaAsDocument?: boolean
+        /** Send photo/video as a view once message */
+        isViewOnce?: boolean
         /** Automatically parse vCards and send them as contacts */
         parseVCards?: boolean
         /** Image or videos caption */
@@ -890,6 +934,16 @@ declare namespace WAWebJS {
         stickerAuthor?: string
         /** Sticker categories, if sendMediaAsSticker is true */
         stickerCategories?: string[]
+    }
+
+    /** Options for editing a message */
+    export interface MessageEditOptions {
+        /** Show links preview. Has no effect on multi-device accounts. */
+        linkPreview?: boolean
+        /** Contacts that are being mentioned in the message */
+        mentions?: Contact[]
+        /** Extra options */
+        extra?: any
     }
 
     export interface MediaFromURLOptions {
@@ -1116,6 +1170,8 @@ declare namespace WAWebJS {
         markUnread: () => Promise<void>
         /** Returns array of all Labels assigned to this Chat */
         getLabels: () => Promise<Label[]>
+        /** Add or remove labels to this Chat */
+        changeLabels: (labelIds: Array<string | number>) => Promise<void>
     }
 
     export interface MessageSearchOptions {
