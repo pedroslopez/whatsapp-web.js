@@ -72,6 +72,9 @@ declare namespace WAWebJS {
 
         /** Get all current Labels  */
         getLabels(): Promise<Label[]>
+        
+        /** Change labels in chats  */
+        addOrRemoveLabels(labelIds: Array<number|string>, chatIds: Array<string>): Promise<void>
 
         /** Get Label instance by ID */
         getLabelById(labelId: string): Promise<Label>
@@ -928,6 +931,8 @@ declare namespace WAWebJS {
         sendMediaAsSticker?: boolean
         /** Send media as document */
         sendMediaAsDocument?: boolean
+        /** Send photo/video as a view once message */
+        isViewOnce?: boolean
         /** Automatically parse vCards and send them as contacts */
         parseVCards?: boolean
         /** Image or videos caption */
@@ -1184,6 +1189,8 @@ declare namespace WAWebJS {
         markUnread: () => Promise<void>
         /** Returns array of all Labels assigned to this Chat */
         getLabels: () => Promise<Label[]>
+        /** Add or remove labels to this Chat */
+        changeLabels: (labelIds: Array<string | number>) => Promise<void>
     }
 
     export interface MessageSearchOptions {
