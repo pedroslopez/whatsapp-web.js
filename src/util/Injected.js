@@ -472,7 +472,9 @@ exports.LoadUtils = () => {
         }
 
         if (msg.type == 'poll_creation') {
-            msg.pollVotes = window.Store.PollVote.getForParent(msg.id).getModelsArray().map(a => a.serialize());
+            try {
+                msg.pollVotes = window.Store.PollVote.getForParent(msg.id).getModelsArray().map(a => a.serialize());
+            } catch (err) { /** empty */ }
         }
 
         delete msg.pendingAckUpdate;
