@@ -218,11 +218,13 @@ exports.LoadUtils = () => {
             } else {
                 const link = window.Store.Validators.findLink(content);
                 if (link) {
-                    const preview = await window.Store.getLinkPreview(link).catch(() => null);
-                    if (preview) {
-                        preview.data.subtype = 'url';
-                        options = { ...options, ...preview.data };
-                    }
+                    try {
+                        const preview = await window.Store.getLinkPreview(link);
+                        if (preview) {
+                            preview.data.subtype = 'url';
+                            options = { ...options, ...preview.data };
+                        }
+                    } catch { /** empty */ }
                 }
             }
         }
