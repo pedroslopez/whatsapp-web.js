@@ -1,8 +1,12 @@
-const { Client, Location, List, Buttons, LocalAuth} = require('./index');
+const { Client, Location, List, Buttons, LocalAuth } = require('./index');
 
 const client = new Client({
     authStrategy: new LocalAuth(),
-    puppeteer: { headless: false }
+    // proxyAuthentication: { username: 'username', password: 'password' },
+    puppeteer: { 
+        // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
+        headless: false
+    }
 });
 
 client.initialize();
@@ -136,6 +140,12 @@ client.on('message', async msg => {
             const attachmentData = await quotedMsg.downloadMedia();
             client.sendMessage(msg.from, attachmentData, { caption: 'Here\'s your requested media.' });
         }
+    } else if (msg.body === '!isviewonce' && msg.hasQuotedMsg) {
+        const quotedMsg = await msg.getQuotedMessage();
+        if (quotedMsg.hasMedia) {
+            const media = await quotedMsg.downloadMedia();
+            await client.sendMessage(msg.from, media, { isViewOnce: true });
+        }
     } else if (msg.body === '!location') {
         msg.reply(new Location(37.422, -122.084, 'Googleplex\nGoogle Headquarters'));
     } else if (msg.location) {
@@ -189,14 +199,35 @@ client.on('message', async msg => {
             client.interface.openChatWindowAt(quotedMsg.id._serialized);
         }
     } else if (msg.body === '!buttons') {
-        let button = new Buttons('Button body',[{body:'bt1'},{body:'bt2'},{body:'bt3'}],'title','footer');
+        let button = new Buttons('Button body', [{ body: 'bt1' }, { body: 'bt2' }, { body: 'bt3' }], 'title', 'footer');
         client.sendMessage(msg.from, button);
     } else if (msg.body === '!list') {
-        let sections = [{title:'sectionTitle',rows:[{title:'ListItem1', description: 'desc'},{title:'ListItem2'}]}];
-        let list = new List('List body','btnText',sections,'Title','footer');
+        let sections = [{ title: 'sectionTitle', rows: [{ title: 'ListItem1', description: 'desc' }, { title: 'ListItem2' }] }];
+        let list = new List('List body', 'btnText', sections, 'Title', 'footer');
         client.sendMessage(msg.from, list);
     } else if (msg.body === '!reaction') {
         msg.react('👍');
+    } else if (msg.body === '!edit') {
+        if (msg.hasQuotedMsg) {
+            const quotedMsg = await msg.getQuotedMessage();
+            if (quotedMsg.fromMe) {
+                quotedMsg.edit(msg.body.replace('!edit', ''));
+            } else {
+                msg.reply('I can only edit my own messages');
+            }
+        }
+    } else if (msg.body === '!updatelabels') {
+        const chat = await msg.getChat();
+        await chat.changeLabels([0, 1]);
+    } else if (msg.body === '!addlabels') {
+        const chat = await msg.getChat();
+        let labels = (await chat.getLabels()).map(l => l.id);
+        labels.push('0');
+        labels.push('1');
+        await chat.changeLabels(labels);
+    } else if (msg.body === '!removelabels') {
+        const chat = await msg.getChat();
+        await chat.changeLabels([]);
     }
 });
 
@@ -231,7 +262,7 @@ client.on('message_ack', (msg, ack) => {
         ACK_PLAYED: 4
     */
 
-    if(ack == 3) {
+    if (ack == 3) {
         // The message was read
     }
 });
@@ -254,7 +285,7 @@ client.on('group_update', (notification) => {
 });
 
 client.on('change_state', state => {
-    console.log('CHANGE STATE', state );
+    console.log('CHANGE STATE', state);
 });
 
 // Change to false if you don't want to reject incoming calls
@@ -270,3 +301,51 @@ client.on('disconnected', (reason) => {
     console.log('Client was logged out', reason);
 });
 
+client.on('contact_changed', async (message, oldId, newId, isContact) => {
+    /** The time the event occurred. */
+    const eventTime = (new Date(message.timestamp * 1000)).toLocaleString();
+
+    console.log(
+        `The contact ${oldId.slice(0, -5)}` +
+        `${!isContact ? ' that participates in group ' +
+            `${(await client.getChatById(message.to ?? message.from)).name} ` : ' '}` +
+        `changed their phone number\nat ${eventTime}.\n` +
+        `Their new phone number is ${newId.slice(0, -5)}.\n`);
+
+    /**
+     * Information about the @param {message}:
+     * 
+     * 1. If a notification was emitted due to a group participant changing their phone number:
+     * @param {message.author} is a participant's id before the change.
+     * @param {message.recipients[0]} is a participant's id after the change (a new one).
+     * 
+     * 1.1 If the contact who changed their number WAS in the current user's contact list at the time of the change:
+     * @param {message.to} is a group chat id the event was emitted in.
+     * @param {message.from} is a current user's id that got an notification message in the group.
+     * Also the @param {message.fromMe} is TRUE.
+     * 
+     * 1.2 Otherwise:
+     * @param {message.from} is a group chat id the event was emitted in.
+     * @param {message.to} is @type {undefined}.
+     * Also @param {message.fromMe} is FALSE.
+     * 
+     * 2. If a notification was emitted due to a contact changing their phone number:
+     * @param {message.templateParams} is an array of two user's ids:
+     * the old (before the change) and a new one, stored in alphabetical order.
+     * @param {message.from} is a current user's id that has a chat with a user,
+     * whos phone number was changed.
+     * @param {message.to} is a user's id (after the change), the current user has a chat with.
+     */
+});
+
+client.on('group_admin_changed', (notification) => {
+    if (notification.type === 'promote') {
+        /** 
+          * Emitted when a current user is promoted to an admin.
+          * {@link notification.author} is a user who performs the action of promoting/demoting the current user.
+          */
+        console.log(`You were promoted by ${notification.author}`);
+    } else if (notification.type === 'demote')
+        /** Emitted when a current user is demoted to a regular user. */
+        console.log(`You were demoted by ${notification.author}`);
+});
