@@ -189,13 +189,15 @@ exports.LoadUtils = () => {
 
         let locationOptions = {};
         if (options.location) {
-            const { latitude, longitude, description, url } = options.location;
+            let { latitude, longitude, description, url } = options.location;
+            url = window.Store.Validators.findLink(url)?.href;
+            url && !description && (description = url);
             locationOptions = {
                 type: 'location',
                 loc: description,
                 lat: latitude,
                 lng: longitude,
-                clientUrl: description && url
+                clientUrl: url
             };
             delete options.location;
         }

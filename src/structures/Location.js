@@ -46,14 +46,7 @@ class Location {
          * URL address to be shown within a location message
          * @type {string|undefined}
          */
-        this.url = (() => {
-            if (!options.url) {
-                return undefined;
-            }
-            return !/^(https?:\/\/)/.test(options.url)
-                ? 'https://' + options.url
-                : options.url;
-        })();
+        this.url = options.url;
 
         /**
          * Location full description
