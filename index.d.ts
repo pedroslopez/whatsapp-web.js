@@ -60,6 +60,9 @@ declare namespace WAWebJS {
         /** Get contact instance by ID */
         getContactById(contactId: string): Promise<Contact>
 
+        /** Get message by ID */
+        getMessageById(messageId: string): Promise<Message>
+
         /** Get all current contact instances */
         getContacts(): Promise<Contact[]>
         
@@ -901,7 +904,7 @@ declare namespace WAWebJS {
     export interface MessageSendOptions {
         /** Show links preview. Has no effect on multi-device accounts. */
         linkPreview?: boolean
-        /** Send audio as voice message */
+        /** Send audio as voice message with a generated waveform */
         sendAudioAsVoice?: boolean
         /** Send video as gif */
         sendVideoAsGif?: boolean
@@ -909,6 +912,8 @@ declare namespace WAWebJS {
         sendMediaAsSticker?: boolean
         /** Send media as document */
         sendMediaAsDocument?: boolean
+        /** Send photo/video as a view once message */
+        isViewOnce?: boolean
         /** Automatically parse vCards and send them as contacts */
         parseVCards?: boolean
         /** Image or videos caption */
