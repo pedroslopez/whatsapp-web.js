@@ -459,7 +459,7 @@ exports.LoadUtils = () => {
         return msg;
     };
 
-    window.WWebJS.getChatModel = async (chat, lastMessage = true) => {
+    window.WWebJS.getChatModel = async (chat, findLastMessage = true) => {
 
         let res = chat.serialize();
         res.isGroup = chat.isGroup;
@@ -473,7 +473,7 @@ exports.LoadUtils = () => {
         }
 
         res.lastMessage = null;
-        if (res.msgs && res.msgs.length) {
+        if (res.msgs && res.msgs.length && findLastMessage) {
             const lastMessage = chat.lastReceivedKey ? window.Store.Msg.get(chat.lastReceivedKey._serialized) : null;
             if (lastMessage) {
                 res.lastMessage = window.WWebJS.getMessageModel(lastMessage);
