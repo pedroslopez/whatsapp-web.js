@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.21.0 &raquo; Source: Client.js</title>
+  <title>whatsapp-web.js 1.22.1 &raquo; Source: Client.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>21.<wbr>0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>22.<wbr>1</a>
       </div>
     </div>
   </nav>
@@ -269,9 +269,9 @@ class Client extends EventEmitter {
                         // Listens to qr token change
                         if (mut.type &#x3D;&#x3D;&#x3D; &#x27;attributes&#x27; &amp;amp;&amp;amp; mut.attributeName &#x3D;&#x3D;&#x3D; &#x27;data-ref&#x27;) {
                             window.qrChanged(mut.target.dataset.ref);
-                        } else
+                        }
                         // Listens to retry button, when found, click it
-                        if (mut.type &#x3D;&#x3D;&#x3D; &#x27;childList&#x27;) {
+                        else if (mut.type &#x3D;&#x3D;&#x3D; &#x27;childList&#x27;) {
                             const retry_button &#x3D; document.querySelector(selectors.QR_RETRY_BUTTON);
                             if (retry_button) retry_button.click();
                         }
@@ -305,6 +305,50 @@ class Client extends EventEmitter {
             }
 
         }
+
+        await page.evaluate(() &#x3D;&gt; {
+            /**
+             * Helper function that compares between two WWeb versions. Its purpose is to help the developer to choose the correct code implementation depending on the comparison value and the WWeb version.
+             * @param {string} lOperand The left operand for the WWeb version string to compare with
+             * @param {string} operator The comparison operator
+             * @param {string} rOperand The right operand for the WWeb version string to compare with
+             * @returns {boolean} Boolean value that indicates the result of the comparison
+             */
+            window.compareWwebVersions &#x3D; (lOperand, operator, rOperand) &#x3D;&gt; {
+                if (![&#x27;&gt;&#x27;, &#x27;&gt;&#x3D;&#x27;, &#x27;&amp;lt;&#x27;, &#x27;&amp;lt;&#x3D;&#x27;, &#x27;&#x3D;&#x27;].includes(operator)) {
+                    throw class _ extends Error {
+                        constructor(m) { super(m); this.name &#x3D; &#x27;CompareWwebVersionsError&#x27;; }
+                    }(&#x27;Invalid comparison operator is provided&#x27;);
+
+                }
+                if (typeof lOperand !&#x3D;&#x3D; &#x27;string&#x27; || typeof rOperand !&#x3D;&#x3D; &#x27;string&#x27;) {
+                    throw class _ extends Error {
+                        constructor(m) { super(m); this.name &#x3D; &#x27;CompareWwebVersionsError&#x27;; }
+                    }(&#x27;A non-string WWeb version type is provided&#x27;);
+                }
+
+                lOperand &#x3D; lOperand.replace(/-beta$/, &#x27;&#x27;);
+                rOperand &#x3D; rOperand.replace(/-beta$/, &#x27;&#x27;);
+
+                while (lOperand.length !&#x3D;&#x3D; rOperand.length) {
+                    lOperand.length &gt; rOperand.length
+                        ? rOperand &#x3D; rOperand.concat(&#x27;0&#x27;)
+                        : lOperand &#x3D; lOperand.concat(&#x27;0&#x27;);
+                }
+
+                lOperand &#x3D; Number(lOperand.replace(/\./g, &#x27;&#x27;));
+                rOperand &#x3D; Number(rOperand.replace(/\./g, &#x27;&#x27;));
+
+                return (
+                    operator &#x3D;&#x3D;&#x3D; &#x27;&gt;&#x27; ? lOperand &gt; rOperand :
+                        operator &#x3D;&#x3D;&#x3D; &#x27;&gt;&#x3D;&#x27; ? lOperand &gt;&#x3D; rOperand :
+                            operator &#x3D;&#x3D;&#x3D; &#x27;&amp;lt;&#x27; ? lOperand &amp;lt; rOperand :
+                                operator &#x3D;&#x3D;&#x3D; &#x27;&amp;lt;&#x3D;&#x27; ? lOperand &amp;lt;&#x3D; rOperand :
+                                    operator &#x3D;&#x3D;&#x3D; &#x27;&#x3D;&#x27; ? lOperand &#x3D;&#x3D;&#x3D; rOperand :
+                                        false
+                );
+            };
+        });
 
         await page.evaluate(ExposeStore, moduleRaid.toString());
         const authEventPayload &#x3D; await this.authStrategy.getAuthEventPayload();
@@ -345,7 +389,7 @@ class Client extends EventEmitter {
         await page.exposeFunction(&#x27;onAddMessageEvent&#x27;, msg &#x3D;&gt; {
             if (msg.type &#x3D;&#x3D;&#x3D; &#x27;gp2&#x27;) {
                 const notification &#x3D; new GroupNotification(this, msg);
-                if (msg.subtype &#x3D;&#x3D;&#x3D; &#x27;add&#x27; || msg.subtype &#x3D;&#x3D;&#x3D; &#x27;invite&#x27;) {
+                if ([&#x27;add&#x27;, &#x27;invite&#x27;, &#x27;linked_group_join&#x27;].includes(msg.subtype)) {
                     /**
                      * Emitted when a user joins the chat via invite link or is added by an admin.
                      * @event Client#group_join
@@ -427,18 +471,18 @@ class Client extends EventEmitter {
 
             /**
              * The event notification that is received when one of
-             * the group participants changes thier phone number.
+             * the group participants changes their phone number.
              */
             const isParticipant &#x3D; msg.type &#x3D;&#x3D;&#x3D; &#x27;gp2&#x27; &amp;amp;&amp;amp; msg.subtype &#x3D;&#x3D;&#x3D; &#x27;modify&#x27;;
 
             /**
              * The event notification that is received when one of
-             * the contacts changes thier phone number.
+             * the contacts changes their phone number.
              */
             const isContact &#x3D; msg.type &#x3D;&#x3D;&#x3D; &#x27;notification_template&#x27; &amp;amp;&amp;amp; msg.subtype &#x3D;&#x3D;&#x3D; &#x27;change_number&#x27;;
 
             if (isParticipant || isContact) {
-                /** {@link GroupNotification} object does not provide enough information about this event, so a {@link Message} object is used. */
+                /** @type {GroupNotification} object does not provide enough information about this event, so a @type {Message} object is used. */
                 const message &#x3D; new Message(this, msg);
 
                 const newId &#x3D; isParticipant ? msg.recipients[0] : msg.to;
@@ -615,12 +659,28 @@ class Client extends EventEmitter {
             this.emit(Events.CHAT_ARCHIVED, new Chat(this, chat), currState, prevState);
         });
 
+        await page.exposeFunction(&#x27;onEditMessageEvent&#x27;, (msg, newBody, prevBody) &#x3D;&gt; {
+            
+            if(msg.type &#x3D;&#x3D;&#x3D; &#x27;revoked&#x27;){
+                return;
+            }
+            /**
+             * Emitted when messages are edited
+             * @event Client#message_edit
+             * @param {Message} message
+             * @param {string} newBody
+             * @param {string} prevBody
+             */
+            this.emit(Events.MESSAGE_EDIT, new Message(this, msg), newBody, prevBody);
+        });
+
         await page.evaluate(() &#x3D;&gt; {
             window.Store.Msg.on(&#x27;change&#x27;, (msg) &#x3D;&gt; { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on(&#x27;change:type&#x27;, (msg) &#x3D;&gt; { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on(&#x27;change:ack&#x27;, (msg, ack) &#x3D;&gt; { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
             window.Store.Msg.on(&#x27;change:isUnsentMedia&#x27;, (msg, unsent) &#x3D;&gt; { if (msg.id.fromMe &amp;amp;&amp;amp; !unsent) window.onMessageMediaUploadedEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on(&#x27;remove&#x27;, (msg) &#x3D;&gt; { if (msg.isNewMsg) window.onRemoveMessageEvent(window.WWebJS.getMessageModel(msg)); });
+            window.Store.Msg.on(&#x27;change:body&#x27;, (msg, newBody, prevBody) &#x3D;&gt; { window.onEditMessageEvent(window.WWebJS.getMessageModel(msg), newBody, prevBody); });
             window.Store.AppState.on(&#x27;change:state&#x27;, (_AppState, state) &#x3D;&gt; { window.onAppStateChangedEvent(state); });
             window.Store.Conn.on(&#x27;change:battery&#x27;, (state) &#x3D;&gt; { window.onBatteryStateChangedEvent(state); });
             window.Store.Call.on(&#x27;add&#x27;, (call) &#x3D;&gt; { window.onIncomingCall(call); });
@@ -717,7 +777,14 @@ class Client extends EventEmitter {
         await this.pupPage.evaluate(() &#x3D;&gt; {
             return window.Store.AppState.logout();
         });
-
+        await this.pupBrowser.close();
+        
+        let maxDelay &#x3D; 0;
+        while (this.pupBrowser.isConnected() &amp;amp;&amp;amp; (maxDelay &amp;lt; 10)) { // waits a maximum of 1 second before calling the AuthStrategy
+            await new Promise(resolve &#x3D;&gt; setTimeout(resolve, 100));
+            maxDelay++; 
+        }
+        
         await this.authStrategy.logout();
     }
 
@@ -753,6 +820,7 @@ class Client extends EventEmitter {
      * @property {boolean} [sendVideoAsGif&#x3D;false] - Send video as gif
      * @property {boolean} [sendMediaAsSticker&#x3D;false] - Send media as a sticker
      * @property {boolean} [sendMediaAsDocument&#x3D;false] - Send media as a document
+     * @property {boolean} [isViewOnce&#x3D;false] - Send photo/video as a view once message
      * @property {boolean} [parseVCards&#x3D;true] - Automatically parse vCards and send them as contacts
      * @property {string} [caption] - Image or video caption
      * @property {string} [quotedMessageId] - Id of the message that is being quoted (or replied to)
@@ -763,7 +831,7 @@ class Client extends EventEmitter {
      * @property {string[]} [stickerCategories&#x3D;undefined] - Sets the categories of the sticker, (if sendMediaAsSticker is true). Provide emoji char array, can be null.
      * @property {MessageMedia} [media] - Media to be sent
      */
-
+    
     /**
      * Send a message to a specific chatId
      * @param {string} chatId
@@ -773,6 +841,10 @@ class Client extends EventEmitter {
      * @returns {Promise&amp;lt;Message&gt;} Message that was just sent
      */
     async sendMessage(chatId, content, options &#x3D; {}) {
+        if (options.mentions &amp;amp;&amp;amp; options.mentions.some(possiblyContact &#x3D;&gt; possiblyContact instanceof Contact)) {
+            console.warn(&#x27;Mentions with an array of Contact are now deprecated. See more at https://github.com/pedroslopez/whatsapp-web.js/pull/2166.&#x27;);
+            options.mentions &#x3D; options.mentions.map(a &#x3D;&gt; a.id._serialized);
+        }
         let internalOptions &#x3D; {
             linkPreview: options.linkPreview &#x3D;&#x3D;&#x3D; false ? undefined : true,
             sendAudioAsVoice: options.sendAudioAsVoice,
@@ -782,7 +854,7 @@ class Client extends EventEmitter {
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
             parseVCards: options.parseVCards &#x3D;&#x3D;&#x3D; false ? false : true,
-            mentionedJidList: Array.isArray(options.mentions) ? options.mentions.map(contact &#x3D;&gt; contact.id._serialized) : [],
+            mentionedJidList: Array.isArray(options.mentions) ? options.mentions : [],
             extraOptions: options.extra
         };
 
@@ -790,10 +862,12 @@ class Client extends EventEmitter {
 
         if (content instanceof MessageMedia) {
             internalOptions.attachment &#x3D; content;
+            internalOptions.isViewOnce &#x3D; options.isViewOnce,
             content &#x3D; &#x27;&#x27;;
         } else if (options.media instanceof MessageMedia) {
             internalOptions.attachment &#x3D; options.media;
             internalOptions.caption &#x3D; content;
+            internalOptions.isViewOnce &#x3D; options.isViewOnce,
             content &#x3D; &#x27;&#x27;;
         } else if (content instanceof Location) {
             internalOptions.location &#x3D; content;
@@ -812,7 +886,7 @@ class Client extends EventEmitter {
             internalOptions.list &#x3D; content;
             content &#x3D; &#x27;&#x27;;
         }
-        
+
         if (internalOptions.sendMediaAsSticker &amp;amp;&amp;amp; internalOptions.attachment) {
             internalOptions.attachment &#x3D; await Util.formatToWebpSticker(
                 internalOptions.attachment, {
@@ -838,7 +912,7 @@ class Client extends EventEmitter {
 
         return new Message(this, newMessage);
     }
-
+    
     /**
      * Searches for messages
      * @param {string} query
@@ -906,6 +980,24 @@ class Client extends EventEmitter {
 
         return ContactFactory.create(this, contact);
     }
+    
+    async getMessageById(messageId) {
+        const msg &#x3D; await this.pupPage.evaluate(async messageId &#x3D;&gt; {
+            let msg &#x3D; window.Store.Msg.get(messageId);
+            if(msg) return window.WWebJS.getMessageModel(msg);
+
+            const params &#x3D; messageId.split(&#x27;_&#x27;);
+            if(params.length !&#x3D;&#x3D; 3) throw new Error(&#x27;Invalid serialized message id specified&#x27;);
+
+            let messagesObject &#x3D; await window.Store.Msg.getMessagesById([messageId]);
+            if (messagesObject &amp;amp;&amp;amp; messagesObject.messages.length) msg &#x3D; messagesObject.messages[0];
+            
+            if(msg) return window.WWebJS.getMessageModel(msg);
+        }, messageId);
+
+        if(msg) return new Message(this, msg);
+        return null;
+    }
 
     /**
      * Returns an object with information about the invite code&#x27;s group
@@ -941,7 +1033,8 @@ class Client extends EventEmitter {
         if (inviteInfo.inviteCodeExp &#x3D;&#x3D; 0) throw &#x27;Expired invite code&#x27;;
         return this.pupPage.evaluate(async inviteInfo &#x3D;&gt; {
             let { groupId, fromId, inviteCode, inviteCodeExp } &#x3D; inviteInfo;
-            return await window.Store.JoinInviteV4.sendJoinGroupViaInviteV4(inviteCode, String(inviteCodeExp), groupId, fromId);
+            let userWid &#x3D; window.Store.WidFactory.createWid(fromId);
+            return await window.Store.JoinInviteV4.joinGroupViaInviteV4(inviteCode, String(inviteCodeExp), groupId, userWid);
         }, inviteInfo);
     }
 
@@ -1343,6 +1436,35 @@ class Client extends EventEmitter {
 
         return success;
     }
+    
+    /**
+     * Change labels in chats
+     * @param {Array&amp;lt;number|string&gt;} labelIds
+     * @param {Array&amp;lt;string&gt;} chatIds
+     * @returns {Promise&amp;lt;void&gt;}
+     */
+    async addOrRemoveLabels(labelIds, chatIds) {
+
+        return this.pupPage.evaluate(async (labelIds, chatIds) &#x3D;&gt; {
+            if ([&#x27;smba&#x27;, &#x27;smbi&#x27;].indexOf(window.Store.Conn.platform) &#x3D;&#x3D;&#x3D; -1) {
+                throw &#x27;[LT01] Only Whatsapp business&#x27;;
+            }
+            const labels &#x3D; window.WWebJS.getLabels().filter(e &#x3D;&gt; labelIds.find(l &#x3D;&gt; l &#x3D;&#x3D; e.id) !&#x3D;&#x3D; undefined);
+            const chats &#x3D; window.Store.Chat.filter(e &#x3D;&gt; chatIds.includes(e.id._serialized));
+
+            let actions &#x3D; labels.map(label &#x3D;&gt; ({id: label.id, type: &#x27;add&#x27;}));
+
+            chats.forEach(chat &#x3D;&gt; {
+                (chat.labels || []).forEach(n &#x3D;&gt; {
+                    if (!actions.find(e &#x3D;&gt; e.id &#x3D;&#x3D; n)) {
+                        actions.push({id: n, type: &#x27;remove&#x27;});
+                    }
+                });
+            });
+
+            return await window.Store.Label.addOrRemoveLabels(actions, chats);
+        }, labelIds, chatIds);
+    }
 }
 
 module.exports &#x3D; Client;
@@ -1356,7 +1478,7 @@ module.exports &#x3D; Client;
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on May 29, 2023.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on August 10, 2023.
       </p>
     </div>
   </footer>

@@ -80,6 +80,12 @@ exports.ExposeStore = (moduleRaidStr) => {
         };
     }
 
+    if (window.mR.findModule('ChatCollection')[0] && window.mR.findModule('ChatCollection')[0].ChatCollection) {
+        if (typeof window.mR.findModule('ChatCollection')[0].ChatCollection.findImpl === 'undefined' && typeof window.mR.findModule('ChatCollection')[0].ChatCollection._find != 'undefined') {
+            window.mR.findModule('ChatCollection')[0].ChatCollection.findImpl = window.mR.findModule('ChatCollection')[0].ChatCollection._find;
+        }
+    }
+
     // TODO remove these once everybody has been updated to WWebJS with legacy sessions removed
     const _linkPreview = window.mR.findModule('queryLinkPreview');
     if (_linkPreview && _linkPreview[0] && _linkPreview[0].default) {
@@ -384,6 +390,9 @@ exports.LoadUtils = () => {
 
         if (forceVoice && mediaData.type === 'audio') {
             mediaData.type = 'ptt';
+            const waveform = mediaObject.contentInfo.waveform;
+            mediaData.waveform =
+                waveform ?? await window.WWebJS.generateWaveform(file);
         }
 
         if (forceGif && mediaData.type === 'video') {
@@ -624,6 +633,42 @@ exports.LoadUtils = () => {
             result += characters.charAt(Math.floor(Math.random() * charactersLength));
         }
         return result;
+    };
+
+    /**
+     * Referenced from and modified:
+     * @see https://github.com/wppconnect-team/wa-js/commit/290ebfefe6021b3d17f7fdfdda5545bb0473b26f
+     */
+    window.WWebJS.generateWaveform = async (audioFile) => {
+        try {
+            const audioData = await audioFile.arrayBuffer();
+            const audioContext = new AudioContext();
+            const audioBuffer = await audioContext.decodeAudioData(audioData);
+
+            const rawData = audioBuffer.getChannelData(0);
+            const samples = 64;
+            const blockSize = Math.floor(rawData.length / samples);
+            const filteredData = [];
+            for (let i = 0; i < samples; i++) {
+                const blockStart = blockSize * i;
+                let sum = 0;
+                for (let j = 0; j < blockSize; j++) {
+                    sum = sum + Math.abs(rawData[blockStart + j]);
+                }
+                filteredData.push(sum / blockSize);
+            }
+
+            const multiplier = Math.pow(Math.max(...filteredData), -1);
+            const normalizedData = filteredData.map((n) => n * multiplier);
+
+            const waveform = new Uint8Array(
+                normalizedData.map((n) => Math.floor(100 * n))
+            );
+
+            return waveform;
+        } catch (e) {
+            return undefined;
+        }
     };
 
     window.WWebJS.sendClearChat = async (chatId) => {
