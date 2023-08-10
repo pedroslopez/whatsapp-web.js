@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.21.0 &raquo; Class: Message</title>
+  <title>whatsapp-web.js 1.22.1 &raquo; Class: Message</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>21.<wbr>0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>22.<wbr>1</a>
       </div>
     </div>
   </nav>
@@ -26,7 +26,7 @@
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
             <h1><small></small><span class="symbol-name">Message</span></h1>
-            <p class="source-link">Source: <a href="structures_Message.js.html#source-line-15">structures/<wbr>Message.<wbr>js:15</a></p>
+            <p class="source-link">Source: <a href="structures_Message.js.html#source-line-16">structures/<wbr>Message.<wbr>js:16</a></p>
             <div class="symbol-classdesc">
               <p>Represents a Message on WhatsApp</p>
             </div>
@@ -155,19 +155,22 @@
                     <dt><a href="Message.html#downloadMedia">downloadMedia()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Message.html#edit">edit(content[, options])</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Message.html#forward">forward(chat)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Message.html#getChat">getChat()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Message.html#getContact">getContact()</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Message.html#getContact">getContact()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Message.html#getInfo">getInfo()</a></dt>
                     <dd>
                     </dd>
@@ -183,13 +186,13 @@
                     <dt><a href="Message.html#getQuotedMessage">getQuotedMessage()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Message.html#getReactions">getReactions()</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Message.html#getReactions">getReactions()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Message.html#react">react(reaction)</a></dt>
                     <dd>
                     </dd>
@@ -427,6 +430,57 @@
                 <dt>Returns</dt>
                 <dd>
                   <p><code>Promise containing <a href="MessageMedia.html">MessageMedia</a></code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="edit"><span class="symbol-name">edit</span><span class="signature"><span class="signature-params">(content[, options])</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing nullable <a href="Message.html">Message</a></span></span></h3>
+              <p>Edits the current message.</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>content</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>options</p>
+                      </td>
+                      <td>
+                        <p>MessageEditOptions</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Options used when editing the message</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing nullable <a href="Message.html">Message</a></code> </p>
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
@@ -670,7 +724,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on May 29, 2023.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on August 10, 2023.
       </p>
     </div>
   </footer>
