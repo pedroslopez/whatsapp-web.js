@@ -904,7 +904,7 @@ declare namespace WAWebJS {
     export interface MessageSendOptions {
         /** Show links preview. Has no effect on multi-device accounts. */
         linkPreview?: boolean
-        /** Send audio as voice message */
+        /** Send audio as voice message with a generated waveform */
         sendAudioAsVoice?: boolean
         /** Send video as gif */
         sendVideoAsGif?: boolean

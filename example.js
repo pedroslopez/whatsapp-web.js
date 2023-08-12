@@ -140,6 +140,10 @@ client.on('message', async msg => {
             const attachmentData = await quotedMsg.downloadMedia();
             client.sendMessage(msg.from, attachmentData, { caption: 'Here\'s your requested media.' });
         }
+        if (quotedMsg.hasMedia && quotedMsg.type === 'audio') {
+            const audio = await quotedMsg.downloadMedia();
+            await client.sendMessage(msg.from, audio, { sendAudioAsVoice: true });
+        }
     } else if (msg.body === '!isviewonce' && msg.hasQuotedMsg) {
         const quotedMsg = await msg.getQuotedMessage();
         if (quotedMsg.hasMedia) {
