@@ -76,7 +76,7 @@ class GroupChat extends Chat {
      * @returns {Promise<AddParticipantsResult|string>} Object with resulting data or an error message as a string
      */
     async addParticipants(participantIds, options = {}) {
-        const data =  await this.client.pupPage.evaluate(async (groupId, participantIds, options) => {
+        return await this.client.pupPage.evaluate(async (groupId, participantIds, options) => {
             const { sleep = 500, autoSendInviteV4 = true, comment = '' } = options;
             const groupWid = window.Store.WidFactory.createWid(groupId);
             const group = await window.Store.Chat.find(groupWid);
@@ -165,10 +165,8 @@ class GroupChat extends Chat {
                     await new Promise(resolve => setTimeout(resolve, sleep));
             }
 
-            return JSON.stringify(data);
+            return data;
         }, this.id._serialized, participantIds, options);
-
-        return JSON.parse(data);
     }
 
     /**
