@@ -904,9 +904,9 @@ declare namespace WAWebJS {
     export class Poll {
         pollName: string
         pollOptions: Array<Object<string, number>>
-        pollSendOptions: PollSendOptions
+        options: PollSendOptions
 
-        constructor(pollName: string, pollOptions: Array<string>, pollSendOptions: PollSendOptions)
+        constructor(pollName: string, pollOptions: Array<string>, options: PollSendOptions)
     }
 
     export interface Label {

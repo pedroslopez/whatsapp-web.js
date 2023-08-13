@@ -11,9 +11,9 @@ class Poll {
     /**
      * @param {string} pollName
      * @param {Array<string>} pollOptions
-     * @param {PollSendOptions} pollSendOptions
+     * @param {PollSendOptions} options
      */
-    constructor(pollName, pollOptions, pollSendOptions = {}) {
+    constructor(pollName, pollOptions, options = {}) {
         /**
          * The name of the poll
          * @type {string}
@@ -33,8 +33,8 @@ class Poll {
          * The send options for the poll
          * @type {PollSendOptions}
          */
-        this.pollSendOptions = {
-            allowMultipleAnswers: pollSendOptions.allowMultipleAnswers === true
+        this.options = {
+            allowMultipleAnswers: options.allowMultipleAnswers === true
         };
     }
 }
