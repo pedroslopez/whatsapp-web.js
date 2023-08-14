@@ -126,7 +126,8 @@ exports.LoadUtils = () => {
                 : await window.WWebJS.processMediaData(options.attachment, {
                     forceVoice: options.sendAudioAsVoice,
                     forceDocument: options.sendMediaAsDocument,
-                    forceGif: options.sendVideoAsGif
+                    forceGif: options.sendVideoAsGif,
+                    isViewOnce: options.isViewOnce
                 });
             
             if (options.caption){
@@ -381,9 +382,7 @@ exports.LoadUtils = () => {
         const mData = await window.Store.OpaqueData.createFromData(file, file.type);
         const mediaPrep = window.Store.MediaPrep.prepRawMedia(mData, { asDocument: forceDocument });
         const mediaData = await mediaPrep.waitForPrep();
-        const mediaObject = window.Store.MediaObject.getOrCreateMediaObject(mediaData.filehash);
-        
-        //TODO: Find proper way of handling these
+        const mediaObject = window.Store.MediaObject.getOrCreateMediaObject(mediaData.filehash);       
         const uploadOrigin = 2;
         const forwardedFromWeb = false;
         
@@ -414,14 +413,17 @@ exports.LoadUtils = () => {
         mediaData.renderableUrl = mediaData.mediaBlob.url();
         mediaObject.consolidate(mediaData.toJSON());
         mediaData.mediaBlob.autorelease();
-
+        let mediaKeyInfoKey = await window.WWebJS.generateHash(32);
+        const mediaKeyInfoTimestamp = Date.now();
+        
         const uploadedMedia = await window.Store.MediaUpload.uploadMedia({
             mimetype: mediaData.mimetype,
             mediaObject,
             mediaType,
             isViewOnce: isViewOnce,
             uploadOrigin: uploadOrigin,
-            forwardedFromWeb: forwardedFromWeb
+            forwardedFromWeb: forwardedFromWeb,
+            mediaKeyInfo: { key: mediaKeyInfoKey, timestamp: mediaKeyInfoTimestamp }
         });
 
         const mediaEntry = uploadedMedia.mediaEntry;
