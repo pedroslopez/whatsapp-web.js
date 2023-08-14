@@ -89,8 +89,8 @@ class GroupChat extends Chat {
 
             const data = {};
 
-            const resultCodes = {
-                default: 'AddParticipantsError: An unknown error occupied while adding a participant',
+            const result = {
+                default: 'An unknown error occupied while adding a participant',
                 isGroupEmpty: 'AddParticipantsError: You can\'t add a participant to an empty group',
                 iAmNotAdmin: 'AddParticipantsError: You have no admin rights to add a participant to a group',
                 200: 'The participant was added successfully',
@@ -105,11 +105,11 @@ class GroupChat extends Chat {
             const groupParticipants = groupMetadata?.participants;
 
             if (!groupParticipants) {
-                return resultCodes.isGroupEmpty;
+                return result.isGroupEmpty;
             }
 
             if (!groupParticipants.canAdd()) {
-                return resultCodes.iAmNotAdmin;
+                return result.iAmNotAdmin;
             }
 
             const _getSleepTime = (sleep) => {
@@ -134,35 +134,35 @@ class GroupChat extends Chat {
 
                 if (groupParticipants.some(p => p.id._serialized === participantId)) {
                     data[participantId].code = 409;
-                    data[participantId].message = resultCodes[409];
+                    data[participantId].message = result[409];
                     continue;
                 }
 
-                const result =
+                const rpcResult =
                     await window.WWebJS.getAddParticipantsRpcResult(groupMetadata, groupWid, participant.id);
-                const code = result.code;
+                const rpcResultCode = rpcResult.code;
 
-                if (code === 403) {
+                if (rpcResultCode === 403) {
                     window.Store.ContactCollection.gadd(participant.id, { silent: true });
                 }
 
-                data[participantId].code = code;
-                data[participantId].message = code === -1
-                    ? result.message
-                    : resultCodes[code] || resultCodes.default;
+                data[participantId].code = rpcResultCode;
+                data[participantId].message = rpcResultCode === -1
+                    ? rpcResult.message
+                    : result[rpcResultCode] || result.default;
 
-                if (autoSendInviteV4 && [403, 417].includes(code)) {
+                if (autoSendInviteV4 && [403, 417].includes(rpcResultCode)) {
                     let userChat, isInviteV4Sent = false;
 
-                    if (result.name === 'ParticipantRequestCodeCanBeSent' &&
+                    if (rpcResult.name === 'ParticipantRequestCodeCanBeSent' &&
                         (userChat = await window.Store.Chat.find(participant.id))) {
                         const groupName = group.formattedTitle || group.name;
                         const res = await window.Store.GroupInviteV4.sendGroupInviteMessage(
                             userChat,
                             group.id._serialized,
                             groupName,
-                            result.inviteV4Code,
-                            result.inviteV4CodeExp,
+                            rpcResult.inviteV4Code,
+                            rpcResult.inviteV4CodeExp,
                             comment,
                             await window.WWebJS.getProfilePicThumbBase64(groupWid)
                         );
