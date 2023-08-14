@@ -1485,7 +1485,7 @@ class Client extends EventEmitter {
     */
     async getUploadLimits(messageType) {
         const uploadLimit = await this.pupPage.evaluate(async (messageType) => {
-            return await window.WWebJS.getUploadLimits(mediaType);
+            return await window.WWebJS.getUploadLimits(messageType);
         }, messageType);
 
         return uploadLimit;
