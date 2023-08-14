@@ -119,8 +119,8 @@ exports.LoadUtils = () => {
 
     };
 
-    window.WWebJS.getUploadLimits = async (mediaType) => {
-        const uploadLimit = window.Store.UploadLimits(mediaType);
+    window.WWebJS.getUploadLimits = async (messageType) => {
+        const uploadLimit = window.Store.UploadLimits(messageType);
         return uploadLimit;
     };
     
