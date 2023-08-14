@@ -1479,14 +1479,14 @@ class Client extends EventEmitter {
     }
     
     /***
-    * Returns the maximum file size for the given MediaType (mimeType)
-    * @param {string} mediaType
+    * Returns the maximum file size for the given MessageType
+    * @param {string} messageType (valid values are = 'audio', 'document', 'video', 'sticker')
     * @returns {Promise<string>}
     */
-    async getUploadLimits(mediaType) {
-        const uploadLimit = await this.pupPage.evaluate(async (mediaType) => {
+    async getUploadLimits(messageType) {
+        const uploadLimit = await this.pupPage.evaluate(async (messageType) => {
             return await window.WWebJS.getUploadLimits(mediaType);
-        }, mediaType);
+        }, messageType);
 
         return uploadLimit;
     }
