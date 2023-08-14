@@ -1242,7 +1242,7 @@ declare namespace WAWebJS {
     /** AddParticipnats options */
     export type AddParticipnatsOptions = {
         /** @default 500 */
-        sleep?: number;
+        sleep?: number|Array<number>;
         /** @default true */
         autoSendInviteV4?: boolean;
         /** @default '' */
@@ -1259,7 +1259,7 @@ declare namespace WAWebJS {
         /** Group participants */
         participants: Array<GroupParticipant>;
         /** Adds a list of participants by ID to the group */
-        addParticipants: (participantIds: string[], options?: AddParticipnatsOptions) => Promise<AddParticipantsResult|string>;
+        addParticipants: (participantIds: string|string[], options?: AddParticipnatsOptions) => Promise<AddParticipantsResult|string>;
         /** Removes a list of participants by ID to the group */
         removeParticipants: (participantIds: string[]) => Promise<{ status: number }>;
         /** Promotes participants by IDs to admins */

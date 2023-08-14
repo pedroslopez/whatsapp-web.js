@@ -64,15 +64,15 @@ class GroupChat extends Chat {
     /**
      * AddParticipnats options
      * @typedef {Object} AddParticipnatsOptions
-     * @property {number} [sleep] The amount of milliseconds to wait before adding the next participant (500 by default)
+     * @property {number|Array<number>} [sleep] The number of milliseconds to wait before adding the next participant. If it is an array, a random sleep time will be added between the sleep[0] and sleep[1] values (the difference must be >=100 ms, otherwise, a random sleep time will be added between sleep[1] and sleep[1] + 100). If sleep is not an array, a sleep time equal to its value will be added. By default, sleep is an array with a value of [250, 500]
      * @property {boolean} [autoSendInviteV4] If true, the inviteV4 will be sent to those participants who have restricted others from being automatically added to groups, otherwise the inviteV4 won't be sent (true by default)
      * @property {string} [comment] The comment to be added to an inviteV4 (empty string by default)
      */
 
     /**
      * Adds a list of participants by ID to the group
-     * @param {Array<string>} participantIds 
-     * @param {AddParticipnatsOptions} [options] AddPartisipants options
+     * @param {string|Array<string>} participantIds 
+     * @param {AddParticipnatsOptions} options AddPartisipants options
      * @returns {Promise<AddParticipantsResult|string>} Object with resulting data or an error message as a string
      */
     async addParticipants(participantIds, options = {}) {
