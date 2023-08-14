@@ -51,7 +51,7 @@ class MessageMedia {
         const filename = path.basename(filePath);
         const fileSize = fs.statSync(filePath).size;
 
-        return new MessageMedia(mimetype, b64data, filename);
+        return new MessageMedia(mimetype, b64data, filename, fileSize);
     }
 
     /**
