@@ -431,9 +431,9 @@ exports.LoadUtils = () => {
             mimetype: mediaData.mimetype,
             mediaObject,
             mediaType,
-            isViewOnce: isViewOnce,
-            uploadOrigin: uploadOrigin,
-            forwardedFromWeb: forwardedFromWeb,
+            isViewOnce,
+            uploadOrigin,
+            forwardedFromWeb,
             mediaKeyInfo: { key: mediaKeyInfoKey, timestamp: mediaKeyInfoTimestamp }
         });
 
@@ -443,9 +443,9 @@ exports.LoadUtils = () => {
                 mimetype: mediaData.mimetype,
                 mediaObject,
                 mediaType,
-                isViewOnce: isViewOnce,
-                uploadOrigin: uploadOrigin,
-                forwardedFromWeb: forwardedFromWeb
+                isViewOnce,
+                uploadOrigin,
+                forwardedFromWeb
             });
 			
             mediaEntry = uploadedMedia.mediaEntry;
