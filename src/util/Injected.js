@@ -119,6 +119,11 @@ exports.LoadUtils = () => {
 
     };
 
+    window.WWebJS.getUploadLimits = async (mediaType) => {
+        const uploadLimit = window.Store.UploadLimits(mediaType);
+        return uploadLimit;
+    }
+    
     window.WWebJS.sendMessage = async (chat, content, options = {}) => {
         let attOptions = {};
         if (options.attachment) {
