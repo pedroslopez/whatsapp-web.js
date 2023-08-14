@@ -416,7 +416,7 @@ exports.LoadUtils = () => {
         let mediaKeyInfoKey = await window.WWebJS.generateHash(32);
         const mediaKeyInfoTimestamp = Date.now();
         
-        const uploadedMedia = await window.Store.MediaUpload.uploadMedia({
+        let uploadedMedia = await window.Store.MediaUpload.uploadMedia({
             mimetype: mediaData.mimetype,
             mediaObject,
             mediaType,
@@ -426,9 +426,21 @@ exports.LoadUtils = () => {
             mediaKeyInfo: { key: mediaKeyInfoKey, timestamp: mediaKeyInfoTimestamp }
         });
 
-        const mediaEntry = uploadedMedia.mediaEntry;
+        let mediaEntry = uploadedMedia.mediaEntry;
         if (!mediaEntry) {
-            throw new Error('upload failed: media entry was not created');
+            uploadedMedia = await window.Store.MediaUpload.uploadMedia({
+				mimetype: mediaData.mimetype,
+				mediaObject,
+				mediaType,
+				isViewOnce: isViewOnce,
+				uploadOrigin: uploadOrigin,
+				forwardedFromWeb: forwardedFromWeb
+			});
+			
+			mediaEntry = uploadedMedia.mediaEntry;
+			if(!mediaEntry){
+				throw new Error('upload failed: media entry was not created');
+			}
         }
 
         mediaData.set({
