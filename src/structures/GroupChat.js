@@ -77,7 +77,7 @@ class GroupChat extends Chat {
      */
     async addParticipants(participantIds, options = {}) {
         return await this.client.pupPage.evaluate(async (groupId, participantIds, options) => {
-            const { sleep = 500, autoSendInviteV4 = true, comment = '' } = options;
+            const { sleep = [250, 500], autoSendInviteV4 = true, comment = '' } = options;
             const groupWid = window.Store.WidFactory.createWid(groupId);
             const group = await window.Store.Chat.find(groupWid);
             !Array.isArray(participantIds) && (participantIds = [participantIds]);
@@ -111,6 +111,17 @@ class GroupChat extends Chat {
             if (!groupParticipants.canAdd()) {
                 return resultCodes.iAmNotAdmin;
             }
+
+            const _getSleepTime = (sleep) => {
+                if (!Array.isArray(sleep) || sleep.length === 2 && sleep[0] === sleep[1]) {
+                    return sleep;
+                } else if (sleep.length === 1) {
+                    return sleep[0];
+                } else {
+                    (sleep[1] - sleep[0]) < 100 && (sleep[0] = sleep[1]) && (sleep[1] += 100);
+                    return Math.floor(Math.random() * (sleep[1] - sleep[0] + 1)) + sleep[0];
+                }
+            };
 
             for (const participant of participantsToAdd) {
                 const participantId = participant.id._serialized;
@@ -162,7 +173,7 @@ class GroupChat extends Chat {
                 }
 
                 sleep && participantsToAdd.length > 1 &&
-                    await new Promise(resolve => setTimeout(resolve, sleep));
+                    await new Promise(resolve => setTimeout(resolve, _getSleepTime(sleep)));
             }
 
             return data;
