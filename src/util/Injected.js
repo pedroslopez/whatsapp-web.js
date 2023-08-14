@@ -122,7 +122,7 @@ exports.LoadUtils = () => {
     window.WWebJS.getUploadLimits = async (mediaType) => {
         const uploadLimit = window.Store.UploadLimits(mediaType);
         return uploadLimit;
-    }
+    };
     
     window.WWebJS.sendMessage = async (chat, content, options = {}) => {
         let attOptions = {};
@@ -414,7 +414,7 @@ exports.LoadUtils = () => {
         }
 
         if(mediaInfo.filesize && maxFileSize > mediaInfo.file){
-            throw new Error(`Media size ({$mediaInfo.filesize}) exceeds client's upload limit ({$maxFileSize})`);
+            throw new Error(`Media size ({$mediaInfo.filesize}) exceeds current upload limit ({$maxFileSize})`);
         }
 
         if (!(mediaData.mediaBlob instanceof window.Store.OpaqueData)) {
@@ -440,18 +440,18 @@ exports.LoadUtils = () => {
         let mediaEntry = uploadedMedia.mediaEntry;
         if (!mediaEntry) {
             uploadedMedia = await window.Store.MediaUpload.uploadMedia({
-				mimetype: mediaData.mimetype,
-				mediaObject,
-				mediaType,
-				isViewOnce: isViewOnce,
-				uploadOrigin: uploadOrigin,
-				forwardedFromWeb: forwardedFromWeb
-			});
+                mimetype: mediaData.mimetype,
+                mediaObject,
+                mediaType,
+                isViewOnce: isViewOnce,
+                uploadOrigin: uploadOrigin,
+                forwardedFromWeb: forwardedFromWeb
+            });
 			
-			mediaEntry = uploadedMedia.mediaEntry;
-			if(!mediaEntry){
-				throw new Error('upload failed: media entry was not created');
-			}
+            mediaEntry = uploadedMedia.mediaEntry;
+            if(!mediaEntry){
+                throw new Error('upload failed: media entry was not created');
+            }
         }
 
         mediaData.set({
