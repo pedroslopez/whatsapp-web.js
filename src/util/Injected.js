@@ -376,13 +376,17 @@ exports.LoadUtils = () => {
         return stickerInfo;
     };
 
-    window.WWebJS.processMediaData = async (mediaInfo, { forceVoice, forceDocument, forceGif }) => {
+    window.WWebJS.processMediaData = async (mediaInfo, { forceVoice, forceDocument, forceGif, isViewOnce }) => {
         const file = window.WWebJS.mediaInfoToFile(mediaInfo);
         const mData = await window.Store.OpaqueData.createFromData(file, file.type);
         const mediaPrep = window.Store.MediaPrep.prepRawMedia(mData, { asDocument: forceDocument });
         const mediaData = await mediaPrep.waitForPrep();
         const mediaObject = window.Store.MediaObject.getOrCreateMediaObject(mediaData.filehash);
-
+        
+        //TODO: Find proper way of handling these
+        const uploadOrigin = 2;
+        const forwardedFromWeb = false;
+        
         const mediaType = window.Store.MediaTypes.msgToMediaType({
             type: mediaData.type,
             isGif: mediaData.isGif
@@ -414,7 +418,10 @@ exports.LoadUtils = () => {
         const uploadedMedia = await window.Store.MediaUpload.uploadMedia({
             mimetype: mediaData.mimetype,
             mediaObject,
-            mediaType
+            mediaType,
+            isViewOnce: isViewOnce,
+            uploadOrigin: uploadOrigin,
+            forwardedFromWeb: forwardedFromWeb
         });
 
         const mediaEntry = uploadedMedia.mediaEntry;
