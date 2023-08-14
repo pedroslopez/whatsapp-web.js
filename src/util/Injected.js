@@ -37,6 +37,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.ContactMethods = window.mR.findModule('getUserid')[0];
     window.Store.BusinessProfileCollection = window.mR.findModule('BusinessProfileCollection')[0].BusinessProfileCollection;
     window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
+    window.Store.UploadLimits = window.mR.findModule('getUploadLimit')[0].getUploadLimit;
     window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default;
     window.Store.Validators = window.mR.findModule('findLinks')[0];
     window.Store.VCard = window.mR.findModule('vcardFromContactModel')[0];
@@ -385,6 +386,7 @@ exports.LoadUtils = () => {
         const mediaObject = window.Store.MediaObject.getOrCreateMediaObject(mediaData.filehash);       
         const uploadOrigin = 2;
         const forwardedFromWeb = false;
+        const maxFileSize = window.Store.UploadLimits(mediaData.type);
         
         const mediaType = window.Store.MediaTypes.msgToMediaType({
             type: mediaData.type,
@@ -404,6 +406,10 @@ exports.LoadUtils = () => {
 
         if (forceDocument) {
             mediaData.type = 'document';
+        }
+
+        if(mediaInfo.filesize && maxFileSize > mediaInfo.file){
+            throw new Error('Media size exceeds client upload limit');
         }
 
         if (!(mediaData.mediaBlob instanceof window.Store.OpaqueData)) {
