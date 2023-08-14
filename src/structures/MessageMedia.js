@@ -38,6 +38,11 @@ class MessageMedia {
          * @type {?number}
          */
         this.filesize = filesize;
+
+        if(!filesize){
+            const paddingCount = (data.endsWith("==")) ? 2 :(data.endsWith("=")) ? 1 : 0
+            this.filesize = Math.floor(data.length * 3 / 4) - paddingCount;
+        }
     }
 
     /**
