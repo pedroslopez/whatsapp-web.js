@@ -414,7 +414,7 @@ exports.LoadUtils = () => {
         }
 
         if(mediaInfo.filesize && maxFileSize > mediaInfo.file){
-            throw new Error('Media size exceeds client upload limit');
+            throw new Error(`Media size ({$mediaInfo.filesize}) exceeds client's upload limit ({$maxFileSize})`);
         }
 
         if (!(mediaData.mediaBlob instanceof window.Store.OpaqueData)) {
