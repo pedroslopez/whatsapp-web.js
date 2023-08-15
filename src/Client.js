@@ -869,7 +869,7 @@ class Client extends EventEmitter {
         }
 
 
-        if (internalOptions.attachment?.filesize > 42428800) {
+        if (internalOptions.attachment?.filesize > 50000000) {
             let startDivision = 2;
             let middle = internalOptions.attachment.data.length / startDivision;
             let currentIndex = 0;
