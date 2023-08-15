@@ -392,6 +392,8 @@ exports.LoadUtils = () => {
         const uploadOrigin = 2;
         const forwardedFromWeb = false;
         const maxFileSize = window.Store.UploadLimits(mediaData.type);
+        let mediaKeyInfoKey = await window.WWebJS.generateHash(32);
+        const mediaKeyInfoTimestamp = Date.now();
         
         const mediaType = window.Store.MediaTypes.msgToMediaType({
             type: mediaData.type,
@@ -413,6 +415,10 @@ exports.LoadUtils = () => {
             mediaData.type = 'document';
         }
 
+        if(!isViewOnce){
+            isViewOnce = false;
+        }
+
         if(mediaInfo.filesize && maxFileSize > mediaInfo.file){
             throw new Error('Media size (' +mediaInfo.filesize +') exceeds current upload limit (' + maxFileSize + ')');
         }
@@ -424,19 +430,46 @@ exports.LoadUtils = () => {
         mediaData.renderableUrl = mediaData.mediaBlob.url();
         mediaObject.consolidate(mediaData.toJSON());
         mediaData.mediaBlob.autorelease();
-        
-        const uploadedMedia = await window.Store.MediaUpload.uploadMedia({
-            mimetype: mediaData.mimetype,
-            mediaObject,
-            mediaType,
-            isViewOnce,
-            uploadOrigin,
-            forwardedFromWeb
-        });
+        if(mediaInfo.filesize > 50000000){
+            let uploadedMedia = await window.Store.MediaUpload.uploadMedia({
+                mimetype: mediaData.mimetype,
+                mediaObject,
+                mediaType,
+                isViewOnce,
+                uploadOrigin,
+                forwardedFromWeb,
+                mediaKeyInfo: { key: mediaKeyInfoKey, timestamp: mediaKeyInfoTimestamp }
+            });            
+        }
 
-        const mediaEntry = uploadedMedia.mediaEntry;
+        else {
+            let uploadedMedia = await window.Store.MediaUpload.uploadMedia({
+                mimetype: mediaData.mimetype,
+                mediaObject,
+                mediaType,
+                isViewOnce,
+                uploadOrigin,
+                forwardedFromWeb
+             });
+        }
+
+        let mediaEntry = uploadedMedia.mediaEntry;
         if (!mediaEntry) {
-            throw new Error('upload failed: media entry was not created');
+            if(mediaInfo.filesize > 50000000){
+                uploadedMedia = await window.Store.MediaUpload.uploadMedia({
+                    mimetype: mediaData.mimetype,
+                    mediaObject,
+                    mediaType,
+                    isViewOnce,
+                    uploadOrigin,
+                    forwardedFromWeb
+                });
+                mediaEntry = uploadedMedia.mediaEntry;
+            }
+
+            if(!mediaEntry){
+                throw new Error('upload failed: media entry was not created');
+            }
         }
 
         mediaData.set({
