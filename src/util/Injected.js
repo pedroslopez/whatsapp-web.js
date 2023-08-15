@@ -394,7 +394,7 @@ exports.LoadUtils = () => {
         const maxFileSize = window.Store.UploadLimits(mediaData.type);
         const mediaKeyInfoTimestamp = Date.now();
         let mediaKeyInfoKey = await window.WWebJS.generateHash(32);
-        let uploadedMedia = {}
+        let uploadedMedia = {};
 
         const mediaType = window.Store.MediaTypes.msgToMediaType({
             type: mediaData.type,
@@ -444,14 +444,14 @@ exports.LoadUtils = () => {
         }
 
         else {
-             uploadedMedia = await window.Store.MediaUpload.uploadMedia({
+            uploadedMedia = await window.Store.MediaUpload.uploadMedia({
                 mimetype: mediaData.mimetype,
                 mediaObject,
                 mediaType,
                 isViewOnce,
                 uploadOrigin,
                 forwardedFromWeb
-             });
+            });
         }
 
         let mediaEntry = uploadedMedia.mediaEntry;
