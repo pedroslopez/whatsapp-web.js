@@ -392,9 +392,10 @@ exports.LoadUtils = () => {
         const uploadOrigin = 2;
         const forwardedFromWeb = false;
         const maxFileSize = window.Store.UploadLimits(mediaData.type);
-        let mediaKeyInfoKey = await window.WWebJS.generateHash(32);
         const mediaKeyInfoTimestamp = Date.now();
-        
+        let mediaKeyInfoKey = await window.WWebJS.generateHash(32);
+        let uploadedMedia = {}
+
         const mediaType = window.Store.MediaTypes.msgToMediaType({
             type: mediaData.type,
             isGif: mediaData.isGif
@@ -431,7 +432,7 @@ exports.LoadUtils = () => {
         mediaObject.consolidate(mediaData.toJSON());
         mediaData.mediaBlob.autorelease();
         if(mediaInfo.filesize > 50000000){
-            let uploadedMedia = await window.Store.MediaUpload.uploadMedia({
+            uploadedMedia = await window.Store.MediaUpload.uploadMedia({
                 mimetype: mediaData.mimetype,
                 mediaObject,
                 mediaType,
@@ -443,7 +444,7 @@ exports.LoadUtils = () => {
         }
 
         else {
-            let uploadedMedia = await window.Store.MediaUpload.uploadMedia({
+             uploadedMedia = await window.Store.MediaUpload.uploadMedia({
                 mimetype: mediaData.mimetype,
                 mediaObject,
                 mediaType,
