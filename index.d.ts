@@ -37,10 +37,12 @@ declare namespace WAWebJS {
 
         /**
          * Create a new group
-         * @param name group title
-         * @param participants an array of Contacts or contact IDs to add to the group
+         * @param {string} title Group title
+         * @param {Array<Contact|string>} participants An array of Contacts or contact IDs to add to the group
+         * @param {CreateGroupOptions} options CreateGroup options
+         * @returns {CreateGroupResult|string} Object with resulting data or an error message as a string
          */
-        createGroup(name: string, participants: Contact[] | string[]): Promise<CreateGroupResult>
+        createGroup(title: string, participants?: Contact[] | string[], options?: CreateGroupOptions): Promise<CreateGroupResult|string>
 
         /** Closes the client */
         destroy(): Promise<void>
@@ -522,14 +524,41 @@ declare namespace WAWebJS {
         plugged: boolean,
     }
 
+    export interface CreateGroupOptions {
+        /**
+         * The number of seconds for the messages to disappear in the group
+         * @default 0
+         */
+        messageTimer?: number
+        /**
+         * The ID of a parent community group to link the newly created group with
+         */
+        parentGroupId?: string
+        /** If true, the inviteV4 will be sent to those participants
+         * who have restricted others from being automatically added to groups,
+         * otherwise the inviteV4 won't be sent
+         * @default true
+         */
+        autoSendInviteV4?: boolean,
+        /**
+         * The comment to be added to an inviteV4 (empty string by default)
+         * @default ''
+         */
+        comment?: string
+    }
+
     export interface CreateGroupResult {
         /** ID for the group that was just created */
         gid: string,
-        /** participants that were not added to the group. 
-         * Keys represent the ID for participant that was not added and its value is a status code
-         * that represents the reason why participant could not be added. 
-         * This is usually 403 if the user's privacy settings don't allow you to add them to groups. */
-        missingParticipants: Record<string, string>
+        /** An object that handles the result value for each participant */
+        participants: {
+            [participantId: string]: {
+                code: number,
+                message: string,
+                isGroupCreator: boolean,
+                isInviteV4Sent: boolean
+            }
+        }
     }
 
     export interface GroupNotification {
@@ -1230,23 +1259,36 @@ declare namespace WAWebJS {
         (participantIds: Array<string>) => Promise<{ status: number }>
 
     /** An object that handles the result of addParticipants method */
-    export type AddParticipantsResult = {
+    export interface AddParticipantsResult {
         [participantId: string]: {
             code: number;
             message: string;
-            /** @default false */
             isInviteV4Sent: boolean,
         };
     };
 
-    /** AddParticipnats options */
-    export type AddParticipnatsOptions = {
-        /** @default 500 */
-        sleep?: number|Array<number>;
-        /** @default true */
-        autoSendInviteV4?: boolean;
-        /** @default '' */
-        comment?: string;
+    /** AddParticipants options */
+    export interface AddParticipantsOptions {
+        /**
+         * The number of milliseconds to wait before adding the next participant.
+         * If it is an array, a random sleep time between the sleep[0] and sleep[1] values will be added
+         * (the difference must be >=100 ms, otherwise, a random sleep time between sleep[1] and sleep[1] + 100
+         * will be added). If sleep is a number, a sleep time equal to its value will be added
+         * @default [250,500]
+         */
+        sleep?: Array<number>|number,
+        /**
+         * If true, the inviteV4 will be sent to those participants
+         * who have restricted others from being automatically added to groups,
+         * otherwise the inviteV4 won't be sent
+         * @default true
+         */
+        autoSendInviteV4?: boolean,
+        /**
+         * The comment to be added to an inviteV4 (empty string by default)
+         * @default ''
+         */
+        comment?: string
     };
 
     export interface GroupChat extends Chat {
@@ -1259,7 +1301,7 @@ declare namespace WAWebJS {
         /** Group participants */
         participants: Array<GroupParticipant>;
         /** Adds a list of participants by ID to the group */
-        addParticipants: (participantIds: string|string[], options?: AddParticipnatsOptions) => Promise<AddParticipantsResult|string>;
+        addParticipants: (participantIds: string|string[], options?: AddParticipantsOptions) => Promise<AddParticipantsResult|string>;
         /** Removes a list of participants by ID to the group */
         removeParticipants: (participantIds: string[]) => Promise<{ status: number }>;
         /** Promotes participants by IDs to admins */
