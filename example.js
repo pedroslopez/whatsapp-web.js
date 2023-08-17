@@ -110,7 +110,40 @@ client.on('message', async msg => {
          * }
          * 
          * For more usage examples:
-         * @see https://github.com/pedroslopez/whatsapp-web.js/pull/2344#usage-example
+         * @see https://github.com/pedroslopez/whatsapp-web.js/pull/2344#usage-example1
+         */
+        console.log(result);
+    } else if (msg.body === '!creategroup') {
+        const partitipantsToAdd = ['number1@c.us', 'number2@c.us'];
+        const result = await client.createGroup('Group Title', partitipantsToAdd);
+        /**
+         * The example of the {@link result} output:
+         * {
+         *     gid: 'createdGroupId@g.us',
+         *     participants: {
+         *         'botNumber@c.us': {
+         *             code: 200,
+         *             message: 'The participant was added successfully',
+         *             isGroupCreator: true,
+         *             isInviteV4Sent: false
+         *         },
+         *         'number1@c.us': {
+         *             code: 403,
+         *             message: 'The participant can be added by sending private invitation only',
+         *             isGroupCreator: false,
+         *             isInviteV4Sent: true
+         *         },
+         *         'number2@c.us': {
+         *             code: 403,
+         *             message: 'The participant can be added by sending private invitation only',
+         *             isGroupCreator: false,
+         *             isInviteV4Sent: true
+         *         }
+         *     }
+         * }
+         * 
+         * For more usage examples:
+         * @see https://github.com/pedroslopez/whatsapp-web.js/pull/2344#usage-example2
          */
         console.log(result);
     } else if (msg.body === '!groupinfo') {
