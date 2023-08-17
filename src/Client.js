@@ -1279,35 +1279,96 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Create a new group
-     * @param {string} name group title
-     * @param {Array<Contact|string>} participants an array of Contacts or contact IDs to add to the group
-     * @returns {Object} createRes
-     * @returns {string} createRes.gid - ID for the group that was just created
-     * @returns {Object.<string,string>} createRes.missingParticipants - participants that were not added to the group. Keys represent the ID for participant that was not added and its value is a status code that represents the reason why participant could not be added. This is usually 403 if the user's privacy settings don't allow you to add them to groups.
+     * CreateGroup options
+     * @typedef {Object} CreateGroupOptions
+     * @property {number} messageTimer The number of seconds for the messages to disappear in the group (0 by default)
+     * @property {string} [parentGroupId] The ID of a parent community group to link the newly created group with
+     * @property {boolean} autoSendInviteV4 If true, the inviteV4 will be sent to those participants who have restricted others from being automatically added to groups, otherwise the inviteV4 won't be sent (true by default)
+     * @property {string} comment The comment to be added to an inviteV4 (empty string by default)
      */
-    async createGroup(name, participants) {
-        if (!Array.isArray(participants) || participants.length == 0) {
-            throw 'You need to add at least one other participant to the group';
-        }
 
+    /**
+     * An object that handles the result value for each participant
+     * @typedef {Object} ParticipantsResult
+     * @property {number} code The code of the result
+     * @property {string} message The result message
+     * @property {boolean} isInviteV4Sent Indicates if the inviteV4 was sent to the partitipant
+     */
+
+    /**
+     * An object that handles the result of {@link createGroup} method
+     * @typedef {Object} CreateGroupResult
+     * @property {string} gid ID for the group that was just created
+     * @property {ParticipantsResult} participants An object that handles the result value for each participant
+     */
+
+    /**
+     * Create a new group
+     * @param {string} title Group title
+     * @param {Array<Contact|string>} participants An array of Contacts or contact IDs to add to the group
+     * @param {CreateGroupOptions} options CreateGroup options
+     * @returns {CreateGroupResult|string} Object with resulting data or an error message as a string
+     */
+    async createGroup(title, participants, options = {}) {
+        if (!Array.isArray(participants) || !participants.length) {
+            throw 'You need to add at least one participant to the group';
+        }
+        
         if (participants.every(c => c instanceof Contact)) {
             participants = participants.map(c => c.id._serialized);
         }
+        
+        return await this.pupPage.evaluate(async (title, participants, options) => {
+            const { messageTimer = 0, parentGroupId, autoSendInviteV4 = true, comment = '' } = options;
+            const participantData = {};
+            const addParticipantResultCodes = {
+                default: 'An unknown error occupied while adding a participant',
+                200: 'The participant was added successfully',
+                403: 'The participant can be added by sending private invitation only'
+            };
 
-        const createRes = await this.pupPage.evaluate(async (name, participantIds) => {
-            const participantWIDs = participantIds.map(p => window.Store.WidFactory.createWid(p));
-            return await window.Store.GroupUtils.createGroup(name, participantWIDs, 0);
-        }, name, participants);
+            let createGroupResult, parentGroupWid;
+            const participantWids = participants.map(p => window.Store.WidFactory.createWid(p));
+            parentGroupId && (parentGroupWid = window.Store.WidFactory.createWid(parentGroupId));
 
-        const missingParticipants = createRes.participants.reduce(((missing, c) => {
-            const id = c.wid._serialized;
-            const statusCode = c.error ? c.error.toString() : '200';
-            if (statusCode != 200) return Object.assign(missing, { [id]: statusCode });
-            return missing;
-        }), {});
+            try {
+                createGroupResult = await window.Store.GroupUtils.createGroup(
+                    title,
+                    participantWids,
+                    messageTimer,
+                    parentGroupWid
+                );
+            } catch (err) {
+                return 'ServerStatusCodeError: An error occupied while creating a group';
+            }
 
-        return { gid: createRes.wid, missingParticipants };
+            for (const participant of createGroupResult.participants) {
+                let addParticipantResult;
+                const participantId = participant.wid._serialized;
+                const statusCode = participant.error ?? 200;
+                if (autoSendInviteV4 && statusCode === 403) {
+                    window.Store.ContactCollection.gadd(participant.wid, { silent: true });
+                    addParticipantResult =
+                        await window.Store.GroupInviteV4.sendGroupInviteMessage(
+                            await window.Store.Chat.find(participant.wid),
+                            createGroupResult.wid._serialized,
+                            createGroupResult.subject,
+                            participant.invite_code,
+                            participant.invite_code_exp,
+                            comment,
+                            await window.WWebJS.getProfilePicThumbBase64(createGroupResult.wid)
+                        );
+                }
+                participantData[participantId] = {
+                    code: statusCode,
+                    message: addParticipantResultCodes[statusCode] || addParticipantResultCodes.default,
+                    isGroupCreator: createGroupResult.creator._serialized === participantId,
+                    isInviteV4Sent: addParticipantResult === 'OK'
+                };
+            }
+
+            return { gid: createGroupResult.wid._serialized, participants: participantData };
+        }, title, participants, options);
     }
 
     /**
