@@ -1279,19 +1279,11 @@ class Client extends EventEmitter {
     }
 
     /**
-     * CreateGroup options
-     * @typedef {Object} CreateGroupOptions
-     * @property {number} messageTimer The number of seconds for the messages to disappear in the group (0 by default)
-     * @property {string} [parentGroupId] The ID of a parent community group to link the newly created group with
-     * @property {boolean} autoSendInviteV4 If true, the inviteV4 will be sent to those participants who have restricted others from being automatically added to groups, otherwise the inviteV4 won't be sent (true by default)
-     * @property {string} comment The comment to be added to an inviteV4 (empty string by default)
-     */
-
-    /**
      * An object that handles the result value for each participant
      * @typedef {Object} ParticipantsResult
      * @property {number} code The code of the result
      * @property {string} message The result message
+     * @property {boolean} isGroupCreator Indicates if the partitipant is a group creator
      * @property {boolean} isInviteV4Sent Indicates if the inviteV4 was sent to the partitipant
      */
 
@@ -1303,23 +1295,32 @@ class Client extends EventEmitter {
      */
 
     /**
+     * CreateGroup options
+     * @typedef {Object} CreateGroupOptions
+     * @property {number} [messageTimer] The number of seconds for the messages to disappear in the group (0 by default)
+     * @property {string} [parentGroupId] The ID of a parent community group to link the newly created group with
+     * @property {boolean} [autoSendInviteV4] If true, the inviteV4 will be sent to those participants who have restricted others from being automatically added to groups, otherwise the inviteV4 won't be sent (true by default)
+     * @property {string} [comment] The comment to be added to an inviteV4 (empty string by default)
+     */
+
+    /**
      * Create a new group
      * @param {string} title Group title
-     * @param {Array<Contact|string>} participants An array of Contacts or contact IDs to add to the group
-     * @param {CreateGroupOptions} options CreateGroup options
+     * @param {Array<Contact|string>} [participants] An array of Contacts or contact IDs to add to the group
+     * @param {CreateGroupOptions} [options] CreateGroup options
      * @returns {CreateGroupResult|string} Object with resulting data or an error message as a string
      */
-    async createGroup(title, participants, options = {}) {
-        if (!Array.isArray(participants) || !participants.length) {
-            throw 'You need to add at least one participant to the group';
-        }
-        
-        if (participants.every(c => c instanceof Contact)) {
-            participants = participants.map(c => c.id._serialized);
+    async createGroup(title, participants = [], options = {}) {
+        try {
+            if (participants.every(c => c instanceof Contact)) {
+                participants = participants.map(c => c.id._serialized);
+            }
+        } catch (err) {
+            participants = [];
         }
         
         return await this.pupPage.evaluate(async (title, participants, options) => {
-            const { messageTimer = 0, parentGroupId, autoSendInviteV4 = true, comment = '' } = options;
+            const { messageTimer = 0, parentGroupId = null, autoSendInviteV4 = true, comment = '' } = options;
             const participantData = {};
             const addParticipantResultCodes = {
                 default: 'An unknown error occupied while adding a participant',
@@ -1334,7 +1335,7 @@ class Client extends EventEmitter {
             try {
                 createGroupResult = await window.Store.GroupUtils.createGroup(
                     title,
-                    participantWids,
+                    participantWids || [],
                     messageTimer,
                     parentGroupWid
                 );
