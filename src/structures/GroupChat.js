@@ -58,15 +58,15 @@ class GroupChat extends Chat {
      * @typedef {Object} AddParticipantsResult
      * @property {number} code The code of the result
      * @property {string} message The result message
-     * @property {boolean} isInviteV4Sent Indicates if the inviteV4 was sent to the partitipant (false by default)
+     * @property {boolean} isInviteV4Sent Indicates if the inviteV4 was sent to the partitipant
      */
 
     /**
      * AddParticipnats options
      * @typedef {Object} AddParticipnatsOptions
-     * @property {number|Array<number>} [sleep] The number of milliseconds to wait before adding the next participant. If it is an array, a random sleep time will be added between the sleep[0] and sleep[1] values (the difference must be >=100 ms, otherwise, a random sleep time will be added between sleep[1] and sleep[1] + 100). If sleep is not an array, a sleep time equal to its value will be added. By default, sleep is an array with a value of [250, 500]
-     * @property {boolean} [autoSendInviteV4] If true, the inviteV4 will be sent to those participants who have restricted others from being automatically added to groups, otherwise the inviteV4 won't be sent (true by default)
-     * @property {string} [comment] The comment to be added to an inviteV4 (empty string by default)
+     * @property {Array<number>|number} sleep The number of milliseconds to wait before adding the next participant. If it is an array, a random sleep time between the sleep[0] and sleep[1] values will be added (the difference must be >=100 ms, otherwise, a random sleep time between sleep[1] and sleep[1] + 100 will be added). If sleep is a number, a sleep time equal to its value will be added. By default, sleep is an array with a value of [250, 500]
+     * @property {boolean} autoSendInviteV4 If true, the inviteV4 will be sent to those participants who have restricted others from being automatically added to groups, otherwise the inviteV4 won't be sent (true by default)
+     * @property {string} comment The comment to be added to an inviteV4 (empty string by default)
      */
 
     /**
@@ -87,9 +87,9 @@ class GroupChat extends Chat {
                 return await window.Store.Contact.find(wid);
             }));
 
-            const data = {};
+            const participantData = {};
 
-            const result = {
+            const addParticipantResultCodes = {
                 default: 'An unknown error occupied while adding a participant',
                 isGroupEmpty: 'AddParticipantsError: You can\'t add a participant to an empty group',
                 iAmNotAdmin: 'AddParticipantsError: You have no admin rights to add a participant to a group',
@@ -105,36 +105,36 @@ class GroupChat extends Chat {
             const groupParticipants = groupMetadata?.participants;
 
             if (!groupParticipants) {
-                return result.isGroupEmpty;
+                return addParticipantResultCodes.isGroupEmpty;
             }
 
             if (!groupParticipants.canAdd()) {
-                return result.iAmNotAdmin;
+                return addParticipantResultCodes.iAmNotAdmin;
             }
 
             const _getSleepTime = (sleep) => {
                 if (!Array.isArray(sleep) || sleep.length === 2 && sleep[0] === sleep[1]) {
                     return sleep;
-                } else if (sleep.length === 1) {
-                    return sleep[0];
-                } else {
-                    (sleep[1] - sleep[0]) < 100 && (sleep[0] = sleep[1]) && (sleep[1] += 100);
-                    return Math.floor(Math.random() * (sleep[1] - sleep[0] + 1)) + sleep[0];
                 }
+                if (sleep.length === 1) {
+                    return sleep[0];
+                }
+                (sleep[1] - sleep[0]) < 100 && (sleep[0] = sleep[1]) && (sleep[1] += 100);
+                return Math.floor(Math.random() * (sleep[1] - sleep[0] + 1)) + sleep[0];
             };
 
             for (const participant of participantsToAdd) {
                 const participantId = participant.id._serialized;
 
-                data[participantId] = {
+                participantData[participantId] = {
                     code: undefined,
                     message: undefined,
                     isInviteV4Sent: false
                 };
 
                 if (groupParticipants.some(p => p.id._serialized === participantId)) {
-                    data[participantId].code = 409;
-                    data[participantId].message = result[409];
+                    participantData[participantId].code = 409;
+                    participantData[participantId].message = addParticipantResultCodes[409];
                     continue;
                 }
 
@@ -146,12 +146,12 @@ class GroupChat extends Chat {
                     window.Store.ContactCollection.gadd(participant.id, { silent: true });
                 }
 
-                data[participantId].code = rpcResultCode;
-                data[participantId].message = rpcResultCode === -1
+                participantData[participantId].code = rpcResultCode;
+                participantData[participantId].message = rpcResultCode === -1
                     ? rpcResult.message
-                    : result[rpcResultCode] || result.default;
+                    : addParticipantResultCodes[rpcResultCode] || addParticipantResultCodes.default;
 
-                if (autoSendInviteV4 && [403, 417].includes(rpcResultCode)) {
+                if (autoSendInviteV4 && rpcResultCode === 403) {
                     let userChat, isInviteV4Sent = false;
 
                     if (rpcResult.name === 'ParticipantRequestCodeCanBeSent' &&
@@ -169,14 +169,14 @@ class GroupChat extends Chat {
                         isInviteV4Sent = res === 'OK';
                     }
 
-                    data[participantId].isInviteV4Sent = isInviteV4Sent;
+                    participantData[participantId].isInviteV4Sent = isInviteV4Sent;
                 }
 
                 sleep && participantsToAdd.length > 1 &&
                     await new Promise(resolve => setTimeout(resolve, _getSleepTime(sleep)));
             }
 
-            return data;
+            return participantData;
         }, this.id._serialized, participantIds, options);
     }
 
