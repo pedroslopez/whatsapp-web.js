@@ -526,12 +526,14 @@ declare namespace WAWebJS {
 
     export interface CreateGroupOptions {
         /**
-         * The number of seconds for the messages to disappear in the group
+         * The number of seconds for the messages to disappear in the group,
+         * won't take an effect if the group is been creating with myself only
          * @default 0
          */
         messageTimer?: number
         /**
-         * The ID of a parent community group to link the newly created group with
+         * The ID of a parent community group to link the newly created group with,
+         * won't take an effect if the group is been creating with myself only
          */
         parentGroupId?: string
         /** If true, the inviteV4 will be sent to those participants

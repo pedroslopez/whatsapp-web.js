@@ -1297,8 +1297,8 @@ class Client extends EventEmitter {
     /**
      * CreateGroup options
      * @typedef {Object} CreateGroupOptions
-     * @property {number} [messageTimer] The number of seconds for the messages to disappear in the group (0 by default)
-     * @property {string} [parentGroupId] The ID of a parent community group to link the newly created group with
+     * @property {number} [messageTimer] The number of seconds for the messages to disappear in the group (0 by default, won't take an effect if the group is been creating with myself only)
+     * @property {string} [parentGroupId] The ID of a parent community group to link the newly created group with (won't take an effect if the group is been creating with myself only)
      * @property {boolean} [autoSendInviteV4] If true, the inviteV4 will be sent to those participants who have restricted others from being automatically added to groups, otherwise the inviteV4 won't be sent (true by default)
      * @property {string} [comment] The comment to be added to an inviteV4 (empty string by default)
      */
@@ -1320,7 +1320,7 @@ class Client extends EventEmitter {
         }
         
         return await this.pupPage.evaluate(async (title, participants, options) => {
-            const { messageTimer = 0, parentGroupId = null, autoSendInviteV4 = true, comment = '' } = options;
+            const { messageTimer = 0, parentGroupId, autoSendInviteV4 = true, comment = '' } = options;
             const participantData = {};
             const addParticipantResultCodes = {
                 default: 'An unknown error occupied while adding a participant',
