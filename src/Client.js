@@ -1357,7 +1357,7 @@ class Client extends EventEmitter {
                             participant.invite_code,
                             participant.invite_code_exp,
                             comment,
-                            await window.WWebJS.getProfilePicThumbBase64(createGroupResult.wid)
+                            await window.WWebJS.getProfilePicThumbToBase64(createGroupResult.wid)
                         );
                 }
                 participantData[participantId] = {

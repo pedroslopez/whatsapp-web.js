@@ -874,7 +874,7 @@ exports.LoadUtils = () => {
         }
     };
     
-    window.WWebJS.getProfilePicThumbBase64 = async (chatWid) => {
+    window.WWebJS.getProfilePicThumbToBase64 = async (chatWid) => {
         const profilePicCollection = window.Store.ProfilePicThumb.get(chatWid);
 
         const _readImageAsBase64 = (imageBlob) => {

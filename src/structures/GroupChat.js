@@ -164,7 +164,7 @@ class GroupChat extends Chat {
                             rpcResult.inviteV4Code,
                             rpcResult.inviteV4CodeExp,
                             comment,
-                            await window.WWebJS.getProfilePicThumbBase64(groupWid)
+                            await window.WWebJS.getProfilePicThumbToBase64(groupWid)
                         );
                         isInviteV4Sent = res === 'OK';
                     }
