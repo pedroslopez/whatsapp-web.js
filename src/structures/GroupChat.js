@@ -258,6 +258,29 @@ class GroupChat extends Chat {
     }
 
     /**
+     * Sets the 'Report To Admin Mode', if turned on, every group participant could
+     * report every message sent in the group, these reports will be sent to group admins for review,
+     * group admin could see those reports in 'Sent for admin review' section in the group
+     * @param {boolean} value True for turning the 'Report To Admin Mode' on, false fot turning it off
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async setReportToAdminMode(value) {
+        const result = await this.client.pupPage.evaluate(async (chatId, value) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            try {
+                const response =
+                    await window.Store.GroupUtils.setGroupProperty(chatWid, 'report_to_admin_mode', value);
+                return response.name === 'SetPropertyResponseSuccess';
+            } catch (err) {
+                if (err.name === 'SmaxParsingFailure') return false;
+                throw err;
+            }
+        }, this.id._serialized, value ? 1 : 0);
+
+        return result;
+    }
+
+    /**
      * Deletes the group's picture.
      * @returns {Promise<boolean>} Returns true if the picture was properly deleted. This can return false if the user does not have the necessary permissions.
      */
