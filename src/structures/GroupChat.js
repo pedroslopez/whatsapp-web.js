@@ -212,10 +212,49 @@ class GroupChat extends Chat {
         return result;
     }
 
-        if(!success) return false;
-        
-        this.groupMetadata.restrict = adminsOnly;
-        return true;
+    /**
+     * Updates message expiration timer for the group
+     * Valid values for passing to the method are:
+     * 0 for message expiration removal,
+     * 1 for 24 hours message expiration,
+     * 2 for 7 days message expiration,
+     * 3 for 90 days message expiration
+     * @param {number} value The value to set the message expiration for
+     * @returns {Promise<boolean} Returns true if the operation completed successfully, false otherwise
+     */
+    async setMessageExpiration(value) {
+        switch (value) {
+        case 0:
+            value = 0;
+            break;
+        case 1:
+            value = 86400;
+            break;
+        case 2:
+            value = 604800;
+            break;
+        case 3:
+            value = 7776000;
+            break;
+        default:
+            throw class _ extends Error {
+                constructor(m) { super(m); this.name = 'SetMessageExpirationError'; }
+            }(`Invalid message expiration value = ${value} is provided\nValid values are:\n0 for message expiration removal,\n1 for 24 hours message expiration,\n2 for 7 days message expiration,\n3 for 90 days message expiration`);
+        }
+
+        const result = await this.client.pupPage.evaluate(async (chatId, value) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            try {
+                const response =
+                    await window.Store.GroupUtils.setGroupProperty(chatWid, 'ephemeral', value);
+                return response.name === 'SetPropertyResponseSuccess';
+            } catch (err) {
+                if (err.name === 'SmaxParsingFailure') return false;
+                throw err;
+            }
+        }, this.id._serialized, value);
+
+        return result;
     }
 
     /**
