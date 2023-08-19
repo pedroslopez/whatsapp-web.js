@@ -1285,6 +1285,14 @@ declare namespace WAWebJS {
          * @returns  {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
          */
         setMessageExpiration: (value: number) => Promise<boolean>;
+        /**
+         * Sets the 'Report To Admin Mode', if turned on, every group participant could
+         * report every message sent in the group, these reports will be sent to group admins for review,
+         * group admin could see those reports in 'Sent for admin review' section in the group
+         * @param value True for turning the 'Report To Admin Mode' on, false fot turning it off
+         * @returns Returns true if the operation completed successfully, false otherwise
+         */
+        setReportToAdminMode: (value: boolean) => Promise<boolean>;
         /** Gets the invite code for a specific group */
         getInviteCode: () => Promise<string>;
         /** Invalidates the current group invite code and generates a new one */
