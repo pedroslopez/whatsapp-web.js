@@ -850,7 +850,7 @@ declare namespace WAWebJS {
         /** MediaKey that represents the sticker 'ID' */
         mediaKey?: string,
         /** Indicates the mentions in the message body. */
-        mentionedIds: [],
+        mentionedIds: string[],
         /** Unix timestamp for when the message was created */
         timestamp: number,
         /**
