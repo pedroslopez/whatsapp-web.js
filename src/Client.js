@@ -275,6 +275,50 @@ class Client extends EventEmitter {
 
         }
 
+        await page.evaluate(() => {
+            /**
+             * Helper function that compares between two WWeb versions. Its purpose is to help the developer to choose the correct code implementation depending on the comparison value and the WWeb version.
+             * @param {string} lOperand The left operand for the WWeb version string to compare with
+             * @param {string} operator The comparison operator
+             * @param {string} rOperand The right operand for the WWeb version string to compare with
+             * @returns {boolean} Boolean value that indicates the result of the comparison
+             */
+            window.compareWwebVersions = (lOperand, operator, rOperand) => {
+                if (!['>', '>=', '<', '<=', '='].includes(operator)) {
+                    throw class _ extends Error {
+                        constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
+                    }('Invalid comparison operator is provided');
+
+                }
+                if (typeof lOperand !== 'string' || typeof rOperand !== 'string') {
+                    throw class _ extends Error {
+                        constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
+                    }('A non-string WWeb version type is provided');
+                }
+
+                lOperand = lOperand.replace(/-beta$/, '');
+                rOperand = rOperand.replace(/-beta$/, '');
+
+                while (lOperand.length !== rOperand.length) {
+                    lOperand.length > rOperand.length
+                        ? rOperand = rOperand.concat('0')
+                        : lOperand = lOperand.concat('0');
+                }
+
+                lOperand = Number(lOperand.replace(/\./g, ''));
+                rOperand = Number(rOperand.replace(/\./g, ''));
+
+                return (
+                    operator === '>' ? lOperand > rOperand :
+                        operator === '>=' ? lOperand >= rOperand :
+                            operator === '<' ? lOperand < rOperand :
+                                operator === '<=' ? lOperand <= rOperand :
+                                    operator === '=' ? lOperand === rOperand :
+                                        false
+                );
+            };
+        });
+
         await page.evaluate(ExposeStore, moduleRaid.toString());
         const authEventPayload = await this.authStrategy.getAuthEventPayload();
 
@@ -741,7 +785,7 @@ class Client extends EventEmitter {
      * Message options.
      * @typedef {Object} MessageSendOptions
      * @property {boolean} [linkPreview=true] - Show links preview. Has no effect on multi-device accounts.
-     * @property {boolean} [sendAudioAsVoice=false] - Send audio as voice message
+     * @property {boolean} [sendAudioAsVoice=false] - Send audio as voice message with a generated waveform
      * @property {boolean} [sendVideoAsGif=false] - Send video as gif
      * @property {boolean} [sendMediaAsSticker=false] - Send media as a sticker
      * @property {boolean} [sendMediaAsDocument=false] - Send media as a document
