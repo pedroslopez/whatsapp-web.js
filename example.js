@@ -87,6 +87,14 @@ client.on('message', async msg => {
             /** For message expiration removal: */
             await group.setMessageExpiration(0);
         }
+    } else if (msg.body === '!reportToAdminMode') {
+        const group = await client.getChatById('groupId@g.us');
+        if (group.isGroup) {
+            /** Turn the 'Report To Admin Mode' on: */
+            await group.setReportToAdminMode(true);
+            /** Turn the 'Report To Admin Mode' off: */
+            await group.setReportToAdminMode(false);
+        }
     } else if (msg.body === '!leave') {
         // Leave the group
         let chat = await msg.getChat();
