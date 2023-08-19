@@ -75,6 +75,18 @@ client.on('message', async msg => {
         } else {
             msg.reply('This command can only be used in a group!');
         }
+    } else if (msg.body === '!msgtimer') {
+        const group = await client.getChatById('groupId@g.us');
+        if (group.isGroup) {
+            /** For 24 hours message expiration: */
+            await group.setMessageExpiration(1);
+            /** For 7 days message expiration: */
+            await group.setMessageExpiration(2);
+            /** For 90 days message expiration: */
+            await group.setMessageExpiration(3);
+            /** For message expiration removal: */
+            await group.setMessageExpiration(0);
+        }
     } else if (msg.body === '!leave') {
         // Leave the group
         let chat = await msg.getChat();
