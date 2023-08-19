@@ -477,9 +477,14 @@ exports.LoadUtils = () => {
         res.isMuted = chat.mute && chat.mute.isMuted;
 
         if (chat.groupMetadata) {
-            const chatWid = window.Store.WidFactory.createWid((chat.id._serialized));
+            const chatWid = window.Store.WidFactory.createWid(chat.id._serialized);
             await window.Store.GroupMetadata.update(chatWid);
+            const ephemeralFields = window.Store.EphemeralFields.getEphemeralFields(chat);
             res.groupMetadata = chat.groupMetadata.serialize();
+            res.groupMetadata.ephemeralDuration = ephemeralFields.ephemeralDuration;
+            res.groupMetadata.iAmAdmin = chat.groupMetadata.participants.iAmAdmin();
+            res.groupMetadata.iAmSuperAdmin = chat.groupMetadata.participants.iAmSuperAdmin();
+            res.groupMetadata.iAmMember = chat.groupMetadata.participants.iAmMember();
         }
         
         res.lastMessage = null;

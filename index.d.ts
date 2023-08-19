@@ -1251,6 +1251,8 @@ declare namespace WAWebJS {
         description: string;
         /** Group participants */
         participants: Array<GroupParticipant>;
+        /** Gets the group participants who are in the current user's contact list */
+        getMyContacts: () => Promise<Array<string>>
         /** Adds a list of participants by ID to the group */
         addParticipants: ChangeGroupParticipants;
         /** Removes a list of participants by ID to the group */
