@@ -225,7 +225,7 @@ class GroupChat extends Chat {
     }
 
     /**
-     * Updates message expiration timer for the group
+     * Sets message expiration timer for the group.
      * Valid values for passing to the method are:
      * 0 for message expiration removal,
      * 1 for 24 hours message expiration,
@@ -270,7 +270,7 @@ class GroupChat extends Chat {
     }
 
     /**
-     * Sets the 'Report To Admin Mode', if turned on, every group participant could
+     * Sets the 'Report To Admin Mode', when turned on, every group participant could
      * report every message sent in the group, these reports will be sent to group admins for review,
      * group admin could see those reports in 'Sent for admin review' section in the group
      * @param {boolean} value True for turning the 'Report To Admin Mode' on, false fot turning it off
@@ -282,6 +282,29 @@ class GroupChat extends Chat {
             try {
                 const response =
                     await window.Store.GroupUtils.setGroupProperty(chatWid, 'report_to_admin_mode', value);
+                return response.name === 'SetPropertyResponseSuccess';
+            } catch (err) {
+                if (err.name === 'SmaxParsingFailure') return false;
+                throw err;
+            }
+        }, this.id._serialized, value ? 1 : 0);
+
+        return result;
+    }
+
+    /**
+     * Sets the 'Membership Approval Mode', when turned on, admin must approve anyone who wants
+     * to join the group.
+     * Note: if the mode is turned off, all pending requests to join the group will be approved
+     * @param {boolean} value True for turning the 'Membership Approval Mode' on, false fot turning it off
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async setMembershipApprovalMode(value) {
+        const result = await this.client.pupPage.evaluate(async (chatId, value) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            try {
+                const response =
+                    await window.Store.GroupUtils.setGroupProperty(chatWid, 'membership_approval_mode', value);
                 return response.name === 'SetPropertyResponseSuccess';
             } catch (err) {
                 if (err.name === 'SmaxParsingFailure') return false;
