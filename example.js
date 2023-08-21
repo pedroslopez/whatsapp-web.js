@@ -95,6 +95,17 @@ client.on('message', async msg => {
             /** Turn the 'Report To Admin Mode' off: */
             await group.setReportToAdminMode(false);
         }
+    } else if (msg.body === '!membershipApprovalMode') {
+        const group = await client.getChatById('groupId@g.us');
+        if (group.isGroup) {
+            /** Turn the 'Membership Approval Mode' on: */
+            await group.setMembershipApprovalMode(true);
+            /**
+             * Turn the 'Membership Approval Mode' off
+             * Note: if the mode is turned off, all pending requests to join the group will be approved
+             */
+            await group.setMembershipApprovalMode(false);
+        }
     } else if (msg.body === '!leave') {
         // Leave the group
         let chat = await msg.getChat();
