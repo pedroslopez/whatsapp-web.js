@@ -1277,7 +1277,7 @@ declare namespace WAWebJS {
          */
         setInfoAdminsOnly: (adminsOnly?: boolean) => Promise<boolean>;
         /**
-         * Updates message expiration timer for the group
+         * Sets message expiration timer for the group.
          * Valid values for passing to the method are:
          * 0 for message expiration removal,
          * 1 for 24 hours message expiration,
@@ -1295,6 +1295,14 @@ declare namespace WAWebJS {
          * @returns Returns true if the operation completed successfully, false otherwise
          */
         setReportToAdminMode: (value: boolean) => Promise<boolean>;
+        /**
+         * Sets the 'Membership Approval Mode', when turned on, admin must approve anyone who wants
+         * to join the group.
+         * Note: if the mode is turned off, all pending requests to join the group will be approved
+         * @param value True for turning the 'Membership Approval Mode' on, false fot turning it off
+         * @returns Returns true if the operation completed successfully, false otherwise
+         */
+        setMembershipApprovalMode: (value: boolean) => Promise<boolean>;
         /** Gets the invite code for a specific group */
         getInviteCode: () => Promise<string>;
         /** Invalidates the current group invite code and generates a new one */
