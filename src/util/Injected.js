@@ -51,7 +51,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.ConversationMsgs = window.mR.findModule('loadEarlierMsgs')[0];
     window.Store.sendReactionToMsg = window.mR.findModule('sendReactionToMsg')[0].sendReactionToMsg;
     window.Store.createOrUpdateReactionsModule = window.mR.findModule('createOrUpdateReactions')[0];
-    window.Store.EphemeralFields = window.mR.findModule('getEphemeralFields')[0];
     window.Store.ReplyUtils = window.mR.findModule('canReplyMsg').length > 0 && window.mR.findModule('canReplyMsg')[0];
     window.Store.MsgActionChecks = window.mR.findModule('canSenderRevokeMsg')[0];
     window.Store.QuotedMsg = window.mR.findModule('getQuotedMsgObj')[0];
@@ -59,6 +58,12 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.SocketWap = window.mR.findModule('wap')[0];
     window.Store.SearchContext = window.mR.findModule('getSearchContext')[0].getSearchContext;
     window.Store.DrawerManager = window.mR.findModule('DrawerManager')[0].DrawerManager;
+    window.Store.Ephemeral = {
+        getEphemeralFields:
+        window.mR.findModule('getEphemeralFields')[0].getEphemeralFields,
+        changeEphemeralDuration:
+            window.mR.findModule('changeEphemeralDuration')[0].changeEphemeralDuration
+    };
     window.Store.StickerTools = {
         ...window.mR.findModule('toWebpSticker')[0],
         ...window.mR.findModule('addWebpMetadata')[0]
@@ -271,7 +276,7 @@ exports.LoadUtils = () => {
         const extraOptions = options.extraOptions || {};
         delete options.extraOptions;
 
-        const ephemeralFields = window.Store.EphemeralFields.getEphemeralFields(chat);
+        const ephemeralFields = window.Store.Ephemeral.getEphemeralFields(chat);
 
         const message = {
             ...options,
@@ -475,13 +480,12 @@ exports.LoadUtils = () => {
         res.isGroup = chat.isGroup;
         res.formattedTitle = chat.formattedTitle;
         res.isMuted = chat.mute && chat.mute.isMuted;
+        res.ephemeralDuration = window.Store.Ephemeral.getEphemeralFields(chat).ephemeralDuration;
 
         if (chat.groupMetadata) {
             const chatWid = window.Store.WidFactory.createWid(chat.id._serialized);
             await window.Store.GroupMetadata.update(chatWid);
-            const ephemeralFields = window.Store.EphemeralFields.getEphemeralFields(chat);
             res.groupMetadata = chat.groupMetadata.serialize();
-            res.groupMetadata.ephemeralDuration = ephemeralFields.ephemeralDuration;
             res.groupMetadata.iAmAdmin = chat.groupMetadata.participants.iAmAdmin();
             res.groupMetadata.iAmSuperAdmin = chat.groupMetadata.participants.iAmSuperAdmin();
             res.groupMetadata.iAmMember = chat.groupMetadata.participants.iAmMember();
