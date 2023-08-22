@@ -405,7 +405,7 @@ exports.LoadUtils = () => {
             mediaData.type = 'ptt';
         }
 
-        if(mediaData.type === 'ptt' || (mediaData.type === 'audio' && mediaData.mimetype === 'audio/ogg; codecs=opus' && mediaInfo.filesize < maxFileSize){
+        if(mediaData.type === 'ptt' || (mediaData.type === 'audio' && mediaData.mimetype === 'audio/ogg; codecs=opus' && mediaInfo.filesize < maxFileSize)){
             const waveform = mediaObject.contentInfo.waveform;
             mediaData.waveform =
                 waveform ?? await window.WWebJS.generateWaveform(file);
