@@ -1167,11 +1167,23 @@ declare namespace WAWebJS {
         /** Returns the Contact that corresponds to this Chat. */
         getContact: () => Promise<Contact>,
         /** Marks this Chat as unread */
-        markUnread: () => Promise<void>
+        markUnread: () => Promise<void>,
         /** Returns array of all Labels assigned to this Chat */
-        getLabels: () => Promise<Label[]>
+        getLabels: () => Promise<Label[]>,
         /** Add or remove labels to this Chat */
-        changeLabels: (labelIds: Array<string | number>) => Promise<void>
+        changeLabels: (labelIds: Array<string | number>) => Promise<void>,
+        /**
+         * Sets message expiration timer for the chat.
+         * Valid values for passing to the method are:
+         * 0 for message expiration removal,
+         * 1 for 24 hours message expiration,
+         * 2 for 7 days message expiration,
+         * 3 for 90 days message expiration
+         * @see https://faq.whatsapp.com/673193694148537
+         * @param {number} value The value to set the message expiration for
+         * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+         */
+        setMessageExpiration: (value: number) => Promise<boolean>
     }
 
     export interface MessageSearchOptions {
@@ -1277,32 +1289,30 @@ declare namespace WAWebJS {
          */
         setInfoAdminsOnly: (adminsOnly?: boolean) => Promise<boolean>;
         /**
-         * Sets message expiration timer for the group.
-         * Valid values for passing to the method are:
-         * 0 for message expiration removal,
-         * 1 for 24 hours message expiration,
-         * 2 for 7 days message expiration,
-         * 3 for 90 days message expiration
-         * @param value The value to set the message expiration for
-         * @returns  {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
-         */
-        setMessageExpiration: (value: number) => Promise<boolean>;
-        /**
          * Sets the 'Report To Admin Mode', if turned on, every group participant could
          * report every message sent in the group, these reports will be sent to group admins for review,
          * group admin could see those reports in 'Sent for admin review' section in the group
-         * @param value True for turning the 'Report To Admin Mode' on, false fot turning it off
-         * @returns Returns true if the operation completed successfully, false otherwise
+         * @see https://faq.whatsapp.com/919039336073667
+         * @param {boolean} [value=true] True for turning the 'Report To Admin Mode' on, false fot turning it off
+         * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
          */
         setReportToAdminMode: (value: boolean) => Promise<boolean>;
         /**
          * Sets the 'Membership Approval Mode', when turned on, admin must approve anyone who wants
          * to join the group.
          * Note: if the mode is turned off, all pending requests to join the group will be approved
-         * @param value True for turning the 'Membership Approval Mode' on, false fot turning it off
-         * @returns Returns true if the operation completed successfully, false otherwise
+         * @see https://faq.whatsapp.com/1110600769849613
+         * @param {boolean} [value=true] True for turning the 'Membership Approval Mode' on, false fot turning it off
+         * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
          */
         setMembershipApprovalMode: (value: boolean) => Promise<boolean>;
+        /**
+         * Allows or disallows for non admin community members to add groups to the community
+         * @see https://faq.whatsapp.com/205306122327447
+         * @param {boolean} [value=true] True to allow all community members to add groups to the community, false to disallow
+         * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+         */
+        setNonAdminSubGroupCreation: (value: boolean) => Promise<boolean>;
         /** Gets the invite code for a specific group */
         getInviteCode: () => Promise<string>;
         /** Invalidates the current group invite code and generates a new one */
