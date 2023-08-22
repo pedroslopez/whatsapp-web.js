@@ -75,18 +75,16 @@ client.on('message', async msg => {
         } else {
             msg.reply('This command can only be used in a group!');
         }
-    } else if (msg.body === '!msgtimer') {
-        const group = await client.getChatById('groupId@g.us');
-        if (group.isGroup) {
-            /** For 24 hours message expiration: */
-            await group.setMessageExpiration(1);
-            /** For 7 days message expiration: */
-            await group.setMessageExpiration(2);
-            /** For 90 days message expiration: */
-            await group.setMessageExpiration(3);
-            /** For message expiration removal: */
-            await group.setMessageExpiration(0);
-        }
+    } else if (msg.body === '!msgTimer') {
+        const chat = await client.getChatById('groupId@g.us'/** or number@c.us */);
+        /** For 24 hours message expiration: */
+        await chat.setMessageExpiration(1);
+        /** For 7 days message expiration: */
+        await chat.setMessageExpiration(2);
+        /** For 90 days message expiration: */
+        await chat.setMessageExpiration(3);
+        /** For message expiration removal: */
+        await chat.setMessageExpiration(0);
     } else if (msg.body === '!reportToAdminMode') {
         const group = await client.getChatById('groupId@g.us');
         if (group.isGroup) {
@@ -105,6 +103,14 @@ client.on('message', async msg => {
              * Note: if the mode is turned off, all pending requests to join the group will be approved
              */
             await group.setMembershipApprovalMode(false);
+        }
+    } else if (msg.body === '!allowNonAdminSubGroupCreation') {
+        const group = await client.getChatById('groupId@g.us');
+        if (group.isGroup && group.groupMetadata.isParentGroup) {
+            /** Allow all community members to add groups to the community: */
+            await group.setNonAdminSubGroupCreation(true);
+            /** Allow only community admins to add groups to the community: */
+            await group.setNonAdminSubGroupCreation(false);
         }
     } else if (msg.body === '!leave') {
         // Leave the group
