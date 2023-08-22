@@ -270,6 +270,52 @@ class Chat extends Base {
     async changeLabels(labelIds) {
         return this.client.addOrRemoveLabels(labelIds, [this.id._serialized]);
     }
+
+    /**
+     * Sets message expiration timer for the chat.
+     * Valid values for passing to the method are:
+     * 0 for message expiration removal,
+     * 1 for 24 hours message expiration,
+     * 2 for 7 days message expiration,
+     * 3 for 90 days message expiration
+     * @see https://faq.whatsapp.com/673193694148537
+     * @param {number} value The value to set the message expiration for
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async setMessageExpiration(value) {
+        switch (value) {
+        case 0:
+            value = 0;
+            break;
+        case 1:
+            value = 86400;
+            break;
+        case 2:
+            value = 604800;
+            break;
+        case 3:
+            value = 7776000;
+            break;
+        default:
+            throw class _ extends Error {
+                constructor(m) { super(m); this.name = 'SetMessageExpirationError'; }
+            }(`Invalid message expiration value = ${value} is provided\nValid values are:\n0 for message expiration removal,\n1 for 24 hours message expiration,\n2 for 7 days message expiration,\n3 for 90 days message expiration`);
+        }
+
+        const result = await this.client.pupPage.evaluate(async (chatId, value) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = await window.Store.Chat.find(chatWid);
+            try {
+                await window.Store.Ephemeral.changeEphemeralDuration(chat, value, 1);
+                return true;
+            } catch (err) {
+                return false;
+            }
+        }, this.id._serialized, value);
+
+        result && (this.ephemeralDuration = value);
+        return result;
+    }
 }
 
 module.exports = Chat;
