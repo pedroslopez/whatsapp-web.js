@@ -355,7 +355,7 @@ class GroupChat extends Chat {
     async getInviteCode() {
         const codeRes = await this.client.pupPage.evaluate(async chatId => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            return window.Store.Invite.queryGroupInviteCode(chatWid);
+            return window.Store.GroupInvite.queryGroupInviteCode(chatWid);
         }, this.id._serialized);
 
         return codeRes.code;
@@ -368,7 +368,7 @@ class GroupChat extends Chat {
     async revokeInvite() {
         const codeRes = await this.client.pupPage.evaluate(chatId => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            return window.Store.Invite.resetGroupInviteCode(chatWid);
+            return window.Store.GroupInvite.resetGroupInviteCode(chatWid);
         }, this.id._serialized);
 
         return codeRes.code;

@@ -975,7 +975,7 @@ class Client extends EventEmitter {
      */
     async getInviteInfo(inviteCode) {
         return await this.pupPage.evaluate(inviteCode => {
-            return window.Store.InviteInfo.queryGroupInvite(inviteCode);
+            return window.Store.GroupInvite.queryGroupInvite(inviteCode);
         }, inviteCode);
     }
 
@@ -986,7 +986,7 @@ class Client extends EventEmitter {
      */
     async acceptInvite(inviteCode) {
         const res = await this.pupPage.evaluate(async inviteCode => {
-            return await window.Store.Invite.joinGroupViaInvite(inviteCode);
+            return await window.Store.GroupInvite.joinGroupViaInvite(inviteCode);
         }, inviteCode);
 
         return res.gid._serialized;

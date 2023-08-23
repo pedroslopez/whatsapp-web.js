@@ -14,8 +14,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
     window.Store.DownloadManager = window.mR.findModule('downloadManager')[0].downloadManager;
     window.Store.GroupMetadata = window.mR.findModule('GroupMetadata')[0].default.GroupMetadata;
-    window.Store.Invite = window.mR.findModule('resetGroupInviteCode')[0];
-    window.Store.InviteInfo = window.mR.findModule('queryGroupInvite')[0];
     window.Store.Label = window.mR.findModule('LabelCollection')[0].LabelCollection;
     window.Store.ContactCollection = window.mR.findModule('ContactCollection')[0].ContactCollection;
     window.Store.MediaPrep = window.mR.findModule('prepRawMedia')[0];
@@ -75,6 +73,10 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('promoteParticipants')[0],
         sendAddParticipantsRPC:
             window.mR.findModule('sendAddParticipantsRPC')[0].sendAddParticipantsRPC
+    };
+    window.Store.GroupInvite = {
+        ...window.mR.findModule('resetGroupInviteCode')[0],
+        ...window.mR.findModule('queryGroupInvite')[0]
     };
     window.Store.GroupInviteV4 = {
         ...window.mR.findModule('queryGroupInviteV4')[0],
