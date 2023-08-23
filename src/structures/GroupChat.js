@@ -231,19 +231,6 @@ class GroupChat extends Chat {
     }
 
     /**
-     * Allows or disallows for non admin community members to add groups to the community
-     * @see https://faq.whatsapp.com/205306122327447
-     * @param {boolean} [value=true] True to allow all community members to add groups to the community, false to disallow
-     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
-     */
-    async setNonAdminSubGroupCreation(value = true) {
-        if (!this.groupMetadata.isParentGroup) return false;
-        const result = await this._setGroupProperty('allow_non_admin_sub_group_creation', value);
-        result && (this.groupMetadata.allowNonAdminSubGroupCreation = value);
-        return result;
-    }
-
-    /**
      * Deletes the group's picture.
      * @returns {Promise<boolean>} Returns true if the picture was properly deleted. This can return false if the user does not have the necessary permissions.
      */
@@ -301,11 +288,8 @@ class GroupChat extends Chat {
     async leave() {
         return await this.client.pupPage.evaluate(async groupId => {
             const groupWid = window.Store.WidFactory.createWid(groupId);
-            const group = await window.Store.Chat.find(groupWid);
             try {
-                const result = group.groupMetadata.defaultSubgroup
-                    ? await window.Store.GroupUtils.leaveCommunity(groupWid)
-                    : await window.Store.GroupUtils.leaveGroup(groupWid);
+                const result = await window.Store.GroupUtils.leaveGroup(groupWid);
                 return result.code === 200
                     ? true
                     : false;

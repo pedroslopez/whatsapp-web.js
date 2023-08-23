@@ -193,7 +193,7 @@ class Chat extends Base {
                 return true;
             };
 
-            const chat = window.Store.Chat.get(chatId);
+            const chat = await window.Store.Chat.find(chatId);
             let msgs = chat.msgs.getModelsArray().filter(msgFilter);
 
             if (searchOptions && searchOptions.limit > 0) {
@@ -297,7 +297,7 @@ class Chat extends Base {
             value = 7776000;
             break;
         default:
-            throw class _ extends Error {
+            throw new class _ extends Error {
                 constructor(m) { super(m); this.name = 'SetMessageExpirationError'; }
             }(`Invalid message expiration value = ${value} is provided\nValid values are:\n0 for message expiration removal,\n1 for 24 hours message expiration,\n2 for 7 days message expiration,\n3 for 90 days message expiration`);
         }
@@ -315,6 +315,31 @@ class Chat extends Base {
 
         result && (this.ephemeralDuration = value);
         return result;
+    }
+
+    /**
+     * Indicates if there are kept messages in a chat (messages that can't disappear if message expiration is on)
+     * @returns {Promise<boolean>} True if there are kept messages in a chat, false otherwise
+     */
+    async hasKeptMessages() {
+        return await this.client.pupPage.evaluate(async (chatId) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = await window.Store.Chat.find(chatWid);
+            return chat.hasKeptMsgs();
+        }, this.id._serialized);
+    }
+
+    /**
+     * Gets kept messages from a chat (messages that can't disappear if message expiration is on), if any
+     * @returns {Promise<Array<Message>>} An array of kept messages if any, otherwise an empty array
+     */
+    async getKeptMessages() {
+        const keptMsgs = await this.client.pupPage.evaluate(async (chatId) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = await window.Store.Chat.find(chatWid);
+            return chat.getKeptMsgs().map(m => window.WWebJS.getMessageModel(m));
+        }, this.id._serialized);
+        return keptMsgs.map(m => new Message(this.client, m));
     }
 }
 
