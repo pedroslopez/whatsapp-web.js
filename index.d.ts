@@ -1183,7 +1183,17 @@ declare namespace WAWebJS {
          * @param {number} value The value to set the message expiration for
          * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
          */
-        setMessageExpiration: (value: number) => Promise<boolean>
+        setMessageExpiration: (value: number) => Promise<boolean>,
+        /**
+         * Indicates if there are kept messages in a chat (messages that can't disappear if message expiration is on)
+         * @returns {Promise<boolean>} True if there are kept messages in a chat, false otherwise
+         */
+        hasKeptMessages: () => Promise<boolean>,
+        /**
+         * Gets kept messages from a chat (messages that can't disappear if message expiration is on), if any
+         * @returns {Promise<Array<Message>>} An array of kept messages if any, otherwise an empty array
+         */
+        getKeptMessages: () => Promise<Array<Message>>
     }
 
     export interface MessageSearchOptions {
@@ -1263,8 +1273,6 @@ declare namespace WAWebJS {
         description: string;
         /** Group participants */
         participants: Array<GroupParticipant>;
-        /** Gets the group participants who are in the current user's contact list */
-        getMyContacts: () => Promise<Array<string>>
         /** Adds a list of participants by ID to the group */
         addParticipants: ChangeGroupParticipants;
         /** Removes a list of participants by ID to the group */
@@ -1306,21 +1314,11 @@ declare namespace WAWebJS {
          * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
          */
         setMembershipApprovalMode: (value: boolean) => Promise<boolean>;
-        /**
-         * Allows or disallows for non admin community members to add groups to the community
-         * @see https://faq.whatsapp.com/205306122327447
-         * @param {boolean} [value=true] True to allow all community members to add groups to the community, false to disallow
-         * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
-         */
-        setNonAdminSubGroupCreation: (value: boolean) => Promise<boolean>;
         /** Gets the invite code for a specific group */
         getInviteCode: () => Promise<string>;
         /** Invalidates the current group invite code and generates a new one */
         revokeInvite: () => Promise<void>;
-        /**
-         * Makes the bot leave the group
-         * @note The creator of announcement group cannot leave it but can only deactivate it instead
-         */
+        /** Makes the bot leave the group */
         leave: () => Promise<boolean>;
         /** Sets the group's picture.*/
         setPicture: (media: MessageMedia) => Promise<boolean>;
