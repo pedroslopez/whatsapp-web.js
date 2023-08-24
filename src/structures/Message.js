@@ -182,8 +182,8 @@ class Message extends Base {
             inviteCodeExp: data.inviteCodeExp,
             groupId: data.inviteGrp,
             groupName: data.inviteGrpName,
-            fromId: data.from?._serialized ? data.from._serialized : data.from,
-            toId: data.to?._serialized ? data.to._serialized : data.to
+            fromId: '_serialized' in data.from ? data.from._serialized : data.from,
+            toId: '_serialized' in data.to ? data.to._serialized : data.to
         } : undefined;
 
         /**
