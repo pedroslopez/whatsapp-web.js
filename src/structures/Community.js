@@ -14,6 +14,19 @@ class Community extends GroupChat {
     }
 
     /**
+     * Allows or disallows for non admin community members to add groups to the community
+     * @see https://faq.whatsapp.com/205306122327447
+     * @param {boolean} [value=true] True to allow all community members to add groups to the community, false to disallow
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async setNonAdminSubGroupCreation(value = true) {
+        if (!this.groupMetadata.isParentGroup) return false;
+        const result = await this._setGroupProperty('allow_non_admin_sub_group_creation', value);
+        result && (this.groupMetadata.allowNonAdminSubGroupCreation = value);
+        return result;
+    }
+
+    /**
      * Makes the bot leave the community announcement group
      * @note The community creator cannot leave the announcement group but can only deactivate the community instead
      * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
@@ -32,7 +45,6 @@ class Community extends GroupChat {
             }
         }, this.id._serialized);
     }
-
 }
 
 module.exports = Community;
