@@ -51,6 +51,7 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @fires Client#change_state
  * @fires Client#contact_changed
  * @fires Client#group_admin_changed
+ * @fires Client#group_membership_request
  */
 class Client extends EventEmitter {
     constructor(options = {}) {
@@ -379,6 +380,17 @@ class Client extends EventEmitter {
                      * @param {GroupNotification} notification GroupNotification with more information about the action
                      */
                     this.emit(Events.GROUP_ADMIN_CHANGED, notification);
+                } else if (msg.subtype === 'created_membership_requests') {
+                    /**
+                     * Emitted when some user requested to join the group
+                     * that has the membership approval mode turned on
+                     * @event Client#group_membership_request
+                     * @param {GroupNotification} notification GroupNotification with more information about the action
+                     * @param {string} notification.chatId The group ID the request was made for
+                     * @param {string} notification.author The user ID that made a request
+                     * @param {number} notification.timestamp The timestamp the request was made at
+                     */
+                    this.emit(Events.GROUP_MEMBERSHIP_REQUEST, notification);
                 } else {
                     /**
                      * Emitted when group settings are updated, such as subject, description or picture.
