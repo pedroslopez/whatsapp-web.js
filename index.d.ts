@@ -210,6 +210,15 @@ declare namespace WAWebJS {
             notification: GroupNotification
         ) => void): this
 
+        /**
+         * Emitted when some user requested to join the group
+         * that has the membership approval mode turned on
+         */
+        on(event: 'group_membership_request', listener: (
+            /** GroupNotification with more information about the action */
+            notification: GroupNotification
+        ) => void): this
+
         /** Emitted when group settings are updated, such as subject, description or picture */
         on(event: 'group_update', listener: (
             /** GroupNotification with more information about the action */
@@ -589,6 +598,7 @@ declare namespace WAWebJS {
         GROUP_JOIN = 'group_join',
         GROUP_LEAVE = 'group_leave',
         GROUP_ADMIN_CHANGED = 'group_admin_changed',
+        GROUP_MEMBERSHIP_REQUEST = 'group_membership_request',
         GROUP_UPDATE = 'group_update',
         QR_RECEIVED = 'qr',
         LOADING_SCREEN = 'loading_screen',
