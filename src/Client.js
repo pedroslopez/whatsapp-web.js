@@ -52,6 +52,7 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @fires Client#contact_changed
  * @fires Client#group_admin_changed
  * @fires Client#group_membership_request
+ * @fires Client#message_kept_unkept
  */
 class Client extends EventEmitter {
     constructor(options = {}) {
@@ -660,9 +661,20 @@ class Client extends EventEmitter {
             this.emit(Events.MESSAGE_EDIT, new Message(this, msg), newBody, prevBody);
         });
 
+        await page.exposeFunction('onKeptUnkeptMessageEvent', (msg, status) => {
+            /**
+             * Emitted when message was kept or unkept
+             * @event Client#message_kept_unkept
+             * @param {Message} message The message that was affected
+             * @param {string} status The message status: whether was kept or unkept
+             */
+            this.emit(Events.MESSAGE_KEPT_UNKEPT, new Message(this, msg), status);
+        });
+
         await page.evaluate(() => {
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
+            window.Store.Msg.on('change:kicState', (msg, status) => { window.onKeptUnkeptMessageEvent(window.WWebJS.getMessageModel(msg), status); });
             window.Store.Msg.on('change:ack', (msg, ack) => { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
             window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => { if (msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('remove', (msg) => { if (msg.isNewMsg) window.onRemoveMessageEvent(window.WWebJS.getMessageModel(msg)); });
