@@ -192,7 +192,7 @@ declare namespace WAWebJS {
             reason: WAState | "NAVIGATION"
         ) => void): this
 
-        /** Emitted when a user joins the chat via invite link or is added by an admin */
+        /** Emitted when a user joins the chat via invite link, request approval or is added by an admin */
         on(event: 'group_join', listener: (
             /** GroupNotification with more information about the action */
             notification: GroupNotification
