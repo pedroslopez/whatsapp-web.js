@@ -1291,7 +1291,17 @@ declare namespace WAWebJS {
          * @param {number} value The value to set the message expiration for
          * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
          */
-        setMessageExpiration: (value: number) => Promise<boolean>
+        setMessageExpiration: (value: number) => Promise<boolean>,
+        /**
+         * Indicates if there are kept messages in a chat (messages that can't disappear if message expiration is on)
+         * @returns {Promise<boolean>} True if there are kept messages in a chat, false otherwise
+         */
+        hasKeptMessages: () => Promise<boolean>,
+        /**
+         * Gets kept messages from a chat (messages that can't disappear if message expiration is on), if any
+         * @returns {Promise<Array<Message>>} An array of kept messages if any, otherwise an empty array
+         */
+        getKeptMessages: () => Promise<Array<Message>>
     }
 
     export interface MessageSearchOptions {
