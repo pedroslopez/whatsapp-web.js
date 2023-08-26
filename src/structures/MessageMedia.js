@@ -54,6 +54,17 @@ class MessageMedia {
     }
 
     /**
+     * Creates a MessageMedia instance directly from other variables
+     * @param {string} b64data
+     * @param {string} mimetype
+     * @param {string} filename
+     * @returns {MessageMedia}
+     */
+    static fromVars(mimetype,b64data,filename) {
+        return new MessageMedia(mimetype, b64data, filename);
+    }
+
+    /**
      * Creates a MessageMedia instance from a URL
      * @param {string} url
      * @param {Object} [options]
