@@ -975,6 +975,9 @@ declare namespace WAWebJS {
         /** Creates a MessageMedia instance from a local file path */
         static fromFilePath: (filePath: string) => MessageMedia
 
+        /** Creates a MessageMedia instance from variables */
+        static fromVars: (mimetype: string, b64data: string, filename: string) => MessageMedia
+
         /** Creates a MessageMedia instance from a URL */
         static fromUrl: (url: string, options?: MediaFromURLOptions) => Promise<MessageMedia>
     }
