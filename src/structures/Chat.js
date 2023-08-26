@@ -328,6 +328,19 @@ class Chat extends Base {
             return chat.hasKeptMsgs();
         }, this.id._serialized);
     }
+
+    /**
+     * Gets kept messages from a chat (messages that can't disappear if message expiration is on), if any
+     * @returns {Promise<Array<Message>>} An array of kept messages if any, otherwise an empty array
+     */
+    async getKeptMessages() {
+        const keptMsgs = await this.client.pupPage.evaluate(async (chatId) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = await window.Store.Chat.find(chatWid);
+            return chat.getKeptMsgs().map(m => window.WWebJS.getMessageModel(m));
+        }, this.id._serialized);
+        return keptMsgs.map(m => new Message(this.client, m));
+    }
 }
 
 module.exports = Chat;
