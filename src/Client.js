@@ -1450,9 +1450,9 @@ class Client extends EventEmitter {
     /**
      * An object that handles the information about the group membership request
      * @typedef {Object} GroupMembershipRequest
-     * @property {Object<Wid>} id The wid of a user who requests to enter the group
-     * @property {Object<Wid>} addedBy The wid of a user who created that request
-     * @property {Object<Wid>|null} parentGroupId The wid of a community parent group to which the current group is linked
+     * @property {Object} id The wid of a user who requests to enter the group
+     * @property {Object} addedBy The wid of a user who created that request
+     * @property {Object|null} parentGroupId The wid of a community parent group to which the current group is linked
      * @property {string} requestMethod The method used to create the request: NonAdminAdd/InviteLink/LinkedGroupJoin
      * @property {number} t The timestamp the request was created at
      */
@@ -1467,6 +1467,32 @@ class Client extends EventEmitter {
             const groupWid = window.Store.WidFactory.createWid(gropId);
             return await window.Store.GroupUtils.getMembershipApprovalRequests(groupWid);
         }, groupId);
+    }
+
+    /**
+     * Tries to get the membership request and approve it so that the requester can join the group
+     * @param {string} groupId The group ID to get the membership request for
+     * @param {string} requesterId The user ID who requested to join the group
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async approveGroupMembershipRequest(groupId, requesterId) {
+        return await this.pupPage.evaluate(async (groupId, requesterId) => {
+            const groupWid = window.Store.WidFactory.createWid(groupId);
+            const group = await window.Store.Chat.find(groupWid);
+            const membershipRequest =
+                group.groupMetadata.membershipApprovalRequests._models.find(m => m.id._serialized === requesterId);
+            if (!membershipRequest) return false;
+            try {
+                const [response] =
+                    await window.Store.MembershipRequestUtils.approveRequest(group.id, [membershipRequest.id]);
+                return response.error
+                    ? false
+                    : true;
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return false;
+                throw err;
+            }
+        }, groupId, requesterId);
     }
 }
 

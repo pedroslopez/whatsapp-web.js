@@ -268,9 +268,9 @@ class GroupChat extends Chat {
     /**
      * An object that handles the information about the group membership request
      * @typedef {Object} GroupMembershipRequest
-     * @property {Object<Wid>} id The wid of a user who requests to enter the group
-     * @property {Object<Wid>} addedBy The wid of a user who created that request
-     * @property {Object<Wid>|null} parentGroupId The wid of a community parent group to which the current group is linked
+     * @property {Object} id The wid of a user who requests to enter the group
+     * @property {Object} addedBy The wid of a user who created that request
+     * @property {Object|null} parentGroupId The wid of a community parent group to which the current group is linked
      * @property {string} requestMethod The method used to create the request: NonAdminAdd/InviteLink/LinkedGroupJoin
      * @property {number} t The timestamp the request was created at
      */
@@ -281,6 +281,15 @@ class GroupChat extends Chat {
      */
     async getGroupMembershipRequests() {
         return await this.client.getGroupMembershipRequests(this.id._serialized);
+    }
+
+    /**
+     * Tries to get the membership request and approve it so that the requester can join the group
+     * @param {string} requesterId The user ID who requested to join the group
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async approveGroupMembershipRequest(requesterId) {
+        return await this.client.approveGroupMembershipRequest(this.id._serialized, requesterId);
     }
 
     /**

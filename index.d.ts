@@ -163,6 +163,9 @@ declare namespace WAWebJS {
         /** Gets an array of membership requests */
         getGroupMembershipRequests: (groupId: string) => Promise<Array<GroupMembershipRequest>>
 
+        /** Tries to get the membership request and approve it so that the requester can join the group */
+        approveGroupMembershipRequest: (groupId: string, requesterId: string) => Promise<boolean>;
+
         /** Generic event */
         on(event: string, listener: (...args: any) => void): this
 
@@ -1258,16 +1261,16 @@ declare namespace WAWebJS {
     /** An object that handles the information about the group membership request */
     export interface GroupMembershipRequest {
         /** The wid of a user who requests to enter the group */
-        id: Object<Wid>,
+        id: Object;
         /** The wid of a user who created that request */
-        addedBy: Object<Wid>,
+        addedBy: Object;
         /** The wid of a community parent group to which the current group is linked */
-        parentGroupId: Object<Wid> | null,
+        parentGroupId: Object | null;
         /** The method used to create the request: NonAdminAdd/InviteLink/LinkedGroupJoin */
         requestMethod: string,
         /** The timestamp the request was created at */
         t: number
-    };
+    }
 
     export interface GroupChat extends Chat {
         /** Group owner */
@@ -1306,6 +1309,12 @@ declare namespace WAWebJS {
          * @returns {Promise<Array<GroupMembershipRequest>>} An array of membership requests
          */
         getGroupMembershipRequests: () => Promise<Array<GroupMembershipRequest>>;
+        /**
+         * Tries to get the membership request and approve it so that the requester can join the group
+         * @param {string} requesterId The user ID who requested to join the group
+         * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+         */
+        approveGroupMembershipRequest: (requesterId: string) => Promise<boolean>;
         /** Gets the invite code for a specific group */
         getInviteCode: () => Promise<string>;
         /** Invalidates the current group invite code and generates a new one */

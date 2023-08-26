@@ -63,16 +63,15 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('toWebpSticker')[0],
         ...window.mR.findModule('addWebpMetadata')[0]
     };
-  
     window.Store.GroupUtils = {
         ...window.mR.findModule('createGroup')[0],
         ...window.mR.findModule('setGroupDescription')[0],
         ...window.mR.findModule('sendExitGroup')[0],
         ...window.mR.findModule('sendSetPicture')[0]
     };
-
     window.Store.MembershipRequestUtils = {
-        ...window.mR.findModule('getMembershipApprovalRequests')[0]
+        ...window.mR.findModule('getMembershipApprovalRequests')[0],
+        approveRequest: window.mR.findModule('membershipApprovalRequestAction')[0].membershipApprovalRequestAction,
     };
 
     if (!window.Store.Chat._find) {
