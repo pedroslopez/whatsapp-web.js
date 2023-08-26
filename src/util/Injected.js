@@ -71,6 +71,10 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('sendSetPicture')[0]
     };
 
+    window.Store.MembershipRequestUtils = {
+        ...window.mR.findModule('getMembershipApprovalRequests')[0]
+    };
+
     if (!window.Store.Chat._find) {
         window.Store.Chat._find = e => {
             const target = window.Store.Chat.get(e);

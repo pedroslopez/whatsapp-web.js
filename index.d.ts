@@ -160,6 +160,9 @@ declare namespace WAWebJS {
         /** Deletes the current user's profile picture */
         deleteProfilePicture(): Promise<boolean>
 
+        /** Gets an array of membership requests */
+        getGroupMembershipRequests: (groupId: string) => Promise<Array<GroupMembershipRequest>>
+
         /** Generic event */
         on(event: string, listener: (...args: any) => void): this
 
@@ -1252,6 +1255,20 @@ declare namespace WAWebJS {
              [key: string]: number;
          }>
 
+    /** An object that handles the information about the group membership request */
+    export interface GroupMembershipRequest {
+        /** The wid of a user who requests to enter the group */
+        id: Object<Wid>,
+        /** The wid of a user who created that request */
+        addedBy: Object<Wid>,
+        /** The wid of a community parent group to which the current group is linked */
+        parentGroupId: Object<Wid> | null,
+        /** The method used to create the request: NonAdminAdd/InviteLink/LinkedGroupJoin */
+        requestMethod: string,
+        /** The timestamp the request was created at */
+        t: number
+    };
+
     export interface GroupChat extends Chat {
         /** Group owner */
         owner: ContactId;
@@ -1284,6 +1301,11 @@ declare namespace WAWebJS {
          * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
          */
         setInfoAdminsOnly: (adminsOnly?: boolean) => Promise<boolean>;
+        /**
+         * Gets an array of membership requests
+         * @returns {Promise<Array<GroupMembershipRequest>>} An array of membership requests
+         */
+        getGroupMembershipRequests: () => Promise<Array<GroupMembershipRequest>>;
         /** Gets the invite code for a specific group */
         getInviteCode: () => Promise<string>;
         /** Invalidates the current group invite code and generates a new one */

@@ -1446,6 +1446,28 @@ class Client extends EventEmitter {
             return await window.Store.Label.addOrRemoveLabels(actions, chats);
         }, labelIds, chatIds);
     }
+
+    /**
+     * An object that handles the information about the group membership request
+     * @typedef {Object} GroupMembershipRequest
+     * @property {Object<Wid>} id The wid of a user who requests to enter the group
+     * @property {Object<Wid>} addedBy The wid of a user who created that request
+     * @property {Object<Wid>|null} parentGroupId The wid of a community parent group to which the current group is linked
+     * @property {string} requestMethod The method used to create the request: NonAdminAdd/InviteLink/LinkedGroupJoin
+     * @property {number} t The timestamp the request was created at
+     */
+
+    /**
+     * Gets an array of membership requests
+     * @param {string} groupId The ID of a group to get membership requests for
+     * @returns {Promise<Array<GroupMembershipRequest>>} An array of membership requests
+     */
+    async getGroupMembershipRequests(groupId) {
+        return await this.pupPage.evaluate(async (gropId) => {
+            const groupWid = window.Store.WidFactory.createWid(gropId);
+            return await window.Store.GroupUtils.getMembershipApprovalRequests(groupWid);
+        }, groupId);
+    }
 }
 
 module.exports = Client;
