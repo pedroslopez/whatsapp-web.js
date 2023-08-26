@@ -54,18 +54,6 @@ class GroupChat extends Chat {
     }
 
     /**
-     * Gets the group participants who are in the current user's contact list
-     * @returns {Promise<Array<string>>}
-     */
-    async getMyContacts() {
-        return await this.client.pupPage.evaluate(async (groupId) => {
-            const groupWid = window.Store.WidFactory.createWid(groupId);
-            const group = await window.Store.Chat.find(groupWid);
-            return group.groupMetadata.participants.getMyContacts().map(c => c.id._serialized);
-        }, this.id._serialized);
-    }
-
-    /**
      * Adds a list of participants by ID to the group
      * @param {Array<string>} participantIds 
      * @returns {Promise<Object>}
@@ -283,20 +271,13 @@ class GroupChat extends Chat {
 
     /**
      * Makes the bot leave the group
-     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     * @returns {Promise<void>}
      */
     async leave() {
-        return await this.client.pupPage.evaluate(async groupId => {
-            const groupWid = window.Store.WidFactory.createWid(groupId);
-            try {
-                const result = await window.Store.GroupUtils.leaveGroup(groupWid);
-                return result.code === 200
-                    ? true
-                    : false;
-            } catch (err) {
-                if (err.name === 'ServerStatusCodeError') return false;
-                throw err;
-            }
+        await this.client.pupPage.evaluate(async chatId => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = await window.Store.Chat.find(chatWid);
+            return window.Store.GroupUtils.sendExitGroup(chat);
         }, this.id._serialized);
     }
 

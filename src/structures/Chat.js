@@ -306,7 +306,7 @@ class Chat extends Base {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             const chat = await window.Store.Chat.find(chatWid);
             try {
-                await window.Store.Ephemeral.changeEphemeralDuration(chat, value, 1);
+                await window.Store.Ephemeral.changeEphemeralDuration(chat, value);
                 return true;
             } catch (err) {
                 return false;
@@ -315,31 +315,6 @@ class Chat extends Base {
 
         result && (this.ephemeralDuration = value);
         return result;
-    }
-
-    /**
-     * Indicates if there are kept messages in a chat (messages that can't disappear if message expiration is on)
-     * @returns {Promise<boolean>} True if there are kept messages in a chat, false otherwise
-     */
-    async hasKeptMessages() {
-        return await this.client.pupPage.evaluate(async (chatId) => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
-            const chat = await window.Store.Chat.find(chatWid);
-            return chat.hasKeptMsgs();
-        }, this.id._serialized);
-    }
-
-    /**
-     * Gets kept messages from a chat (messages that can't disappear if message expiration is on), if any
-     * @returns {Promise<Array<Message>>} An array of kept messages if any, otherwise an empty array
-     */
-    async getKeptMessages() {
-        const keptMsgs = await this.client.pupPage.evaluate(async (chatId) => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
-            const chat = await window.Store.Chat.find(chatWid);
-            return chat.getKeptMsgs().map(m => window.WWebJS.getMessageModel(m));
-        }, this.id._serialized);
-        return keptMsgs.map(m => new Message(this.client, m));
     }
 }
 

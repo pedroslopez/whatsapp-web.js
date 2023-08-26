@@ -210,15 +210,6 @@ declare namespace WAWebJS {
             notification: GroupNotification
         ) => void): this
 
-        /**
-         * Emitted when some user requested to join the group
-         * that has the membership approval mode turned on
-         */
-        on(event: 'group_membership_request', listener: (
-            /** GroupNotification with more information about the action */
-            notification: GroupNotification
-        ) => void): this
-
         /** Emitted when group settings are updated, such as subject, description or picture */
         on(event: 'group_update', listener: (
             /** GroupNotification with more information about the action */
@@ -598,7 +589,6 @@ declare namespace WAWebJS {
         GROUP_JOIN = 'group_join',
         GROUP_LEAVE = 'group_leave',
         GROUP_ADMIN_CHANGED = 'group_admin_changed',
-        GROUP_MEMBERSHIP_REQUEST = 'group_membership_request',
         GROUP_UPDATE = 'group_update',
         QR_RECEIVED = 'qr',
         LOADING_SCREEN = 'loading_screen',
@@ -1193,17 +1183,7 @@ declare namespace WAWebJS {
          * @param {number} value The value to set the message expiration for
          * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
          */
-        setMessageExpiration: (value: number) => Promise<boolean>,
-        /**
-         * Indicates if there are kept messages in a chat (messages that can't disappear if message expiration is on)
-         * @returns {Promise<boolean>} True if there are kept messages in a chat, false otherwise
-         */
-        hasKeptMessages: () => Promise<boolean>,
-        /**
-         * Gets kept messages from a chat (messages that can't disappear if message expiration is on), if any
-         * @returns {Promise<Array<Message>>} An array of kept messages if any, otherwise an empty array
-         */
-        getKeptMessages: () => Promise<Array<Message>>
+        setMessageExpiration: (value: number) => Promise<boolean>
     }
 
     export interface MessageSearchOptions {
@@ -1329,7 +1309,7 @@ declare namespace WAWebJS {
         /** Invalidates the current group invite code and generates a new one */
         revokeInvite: () => Promise<void>;
         /** Makes the bot leave the group */
-        leave: () => Promise<boolean>;
+        leave: () => Promise<void>;
         /** Sets the group's picture.*/
         setPicture: (media: MessageMedia) => Promise<boolean>;
         /** Deletes the group's picture */
