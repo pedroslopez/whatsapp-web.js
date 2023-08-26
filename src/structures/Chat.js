@@ -316,6 +316,18 @@ class Chat extends Base {
         result && (this.ephemeralDuration = value);
         return result;
     }
+
+    /**
+     * Indicates if there are kept messages in a chat (messages that can't disappear if message expiration is on)
+     * @returns {Promise<boolean>} True if there are kept messages in a chat, false otherwise
+     */
+    async hasKeptMessages() {
+        return await this.client.pupPage.evaluate(async (chatId) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = await window.Store.Chat.find(chatWid);
+            return chat.hasKeptMsgs();
+        }, this.id._serialized);
+    }
 }
 
 module.exports = Chat;
