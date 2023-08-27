@@ -67,7 +67,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.GroupUtils = {
         ...window.mR.findModule('createGroup')[0],
         ...window.mR.findModule('setGroupDescription')[0],
-        ...window.mR.findModule('sendExitGroup')[0],
+        ...window.mR.findModule('leaveGroup')[0],
         ...window.mR.findModule('sendSetPicture')[0]
     };
 

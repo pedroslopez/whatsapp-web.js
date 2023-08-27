@@ -1296,7 +1296,7 @@ declare namespace WAWebJS {
         setNonAdminSubGroupCreation: (value: boolean) => Promise<boolean>;
         
         /**
-         * Makes the bot leave the community announcement group
+         * Makes the bot leave the group or the community announcement group
          * @note The community creator cannot leave the announcement group but can only deactivate the community instead
          * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
          */
