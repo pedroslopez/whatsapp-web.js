@@ -24,7 +24,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.MediaUpload = window.mR.findModule('uploadMedia')[0];
     window.Store.getAsMms = window.mR.findModule('getAsMms')[0].getAsMms;
     window.Store.getIsSentByMe = window.mR.findModule('getIsSentByMe')[0].getIsSentByMe;
-    window.Store.getForwardedMessageFields = window.mR.findModule('Chat')[0].getForwardedMessageFields;
+    window.Store.getForwardedMessageFields = window.mR.findModule('getForwardedMessageFields')[0].getForwardedMessageFields;
     window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
     window.Store.MessageInfo = window.mR.findModule('sendQueryMsgInfo')[0];
     window.Store.OpaqueData = window.mR.findModule(module => module.default && module.default.createFromData)[0].default;
