@@ -360,7 +360,8 @@ class Client extends EventEmitter {
                 const notification = new GroupNotification(this, msg);
                 if (['add', 'invite', 'linked_group_join', 'v4_add_invite_join'].includes(msg.subtype)) {
                     /**
-                     * Emitted when a user joins the chat via invite link, request approval or is added by an admin.
+                     * Emitted when a user joins the chat via invite link, is added by an admin or
+                     * the user's request to join the group was approved by one of the group admins
                      * @event Client#group_join
                      * @param {GroupNotification} notification GroupNotification with more information about the action
                      */
