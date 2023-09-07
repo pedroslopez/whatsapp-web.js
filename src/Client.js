@@ -1361,14 +1361,14 @@ class Client extends EventEmitter {
                         );
                 }
                 participantData[participantId] = {
-                    code: statusCode,
+                    statusCode: statusCode,
                     message: addParticipantResultCodes[statusCode] || addParticipantResultCodes.default,
-                    isGroupCreator: createGroupResult.creator._serialized === participantId,
+                    isGroupCreator: participant.type === 'superadmin',
                     isInviteV4Sent: addParticipantResult === 'OK'
                 };
             }
 
-            return { gid: createGroupResult.wid._serialized, participants: participantData };
+            return { gid: createGroupResult.wid, participants: participantData };
         }, title, participants, options);
     }
 
