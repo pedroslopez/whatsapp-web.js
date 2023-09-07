@@ -119,27 +119,31 @@ client.on('message', async msg => {
         /**
          * The example of the {@link result} output:
          * {
-         *     gid: 'createdGroupId@g.us',
-         *     participants: {
-         *         'botNumber@c.us': {
-         *             code: 200,
-         *             message: 'The participant was added successfully',
-         *             isGroupCreator: true,
-         *             isInviteV4Sent: false
-         *         },
-         *         'number1@c.us': {
-         *             code: 403,
-         *             message: 'The participant can be added by sending private invitation only',
-         *             isGroupCreator: false,
-         *             isInviteV4Sent: true
-         *         },
-         *         'number2@c.us': {
-         *             code: 403,
-         *             message: 'The participant can be added by sending private invitation only',
-         *             isGroupCreator: false,
-         *             isInviteV4Sent: true
-         *         }
+         *   gid: {
+         *     server: 'g.us',
+         *     user: 'createdGroupId',
+         *     _serialized: 'createdGroupId@g.us'
+         *   },
+         *   participants: {
+         *     'groupCreatorNumber@c.us': {
+         *       statusCode: 200,
+         *       message: 'The participant was added successfully',
+         *       isGroupCreator: true,
+         *       isInviteV4Sent: false
+         *     },
+         *     'number1@c.us': {
+         *       statusCode: 403,
+         *       message: 'The participant can be added by sending private invitation only',
+         *       isGroupCreator: false,
+         *       isInviteV4Sent: true
+         *     },
+         *     'number2@c.us': {
+         *       statusCode: 200,
+         *       message: 'The participant was added successfully',
+         *       isGroupCreator: false,
+         *       isInviteV4Sent: false
          *     }
+         *   }
          * }
          * 
          * For more usage examples:

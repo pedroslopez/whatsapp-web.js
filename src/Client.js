@@ -1281,7 +1281,7 @@ class Client extends EventEmitter {
     /**
      * An object that handles the result value for each participant
      * @typedef {Object} ParticipantsResult
-     * @property {number} code The code of the result
+     * @property {number} statusCode The code of the result
      * @property {string} message The result message
      * @property {boolean} isGroupCreator Indicates if the partitipant is a group creator
      * @property {boolean} isInviteV4Sent Indicates if the inviteV4 was sent to the partitipant
@@ -1290,7 +1290,7 @@ class Client extends EventEmitter {
     /**
      * An object that handles the result of {@link createGroup} method
      * @typedef {Object} CreateGroupResult
-     * @property {string} gid ID for the group that was just created
+     * @property {Object} gid Object (wid) for the group that was just created
      * @property {ParticipantsResult} participants An object that handles the result value for each participant
      */
 

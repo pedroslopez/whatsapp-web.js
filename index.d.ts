@@ -551,11 +551,11 @@ declare namespace WAWebJS {
 
     export interface CreateGroupResult {
         /** ID for the group that was just created */
-        gid: string,
+        gid: ChatId,
         /** An object that handles the result value for each participant */
         participants: {
             [participantId: string]: {
-                code: number,
+                statusCode: number,
                 message: string,
                 isGroupCreator: boolean,
                 isInviteV4Sent: boolean
