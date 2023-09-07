@@ -172,7 +172,7 @@ class Client extends EventEmitter {
             }
         );
 
-        const INTRO_IMG_SELECTOR = '[data-icon=\'chat\']';
+        const INTRO_IMG_SELECTOR = '[data-icon=\'menu\']';
         const INTRO_QRCODE_SELECTOR = 'div[data-ref] canvas';
 
         // Checks which selector appears first
@@ -737,6 +737,7 @@ class Client extends EventEmitter {
     async destroy() {
         await this.pupBrowser.close();
         await this.authStrategy.destroy();
+        this.emit(Events.DISCONNECTED, 'DISCONNECTED');
     }
 
     /**
@@ -755,6 +756,7 @@ class Client extends EventEmitter {
         }
         
         await this.authStrategy.logout();
+        this.emit(Events.DISCONNECTED, 'DISCONNECTED');
     }
 
     /**
