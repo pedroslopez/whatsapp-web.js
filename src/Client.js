@@ -172,7 +172,7 @@ class Client extends EventEmitter {
             }
         );
 
-        const INTRO_IMG_SELECTOR = '[data-icon=\'chat\']';
+        const INTRO_IMG_SELECTOR = ['.selectable-text:not([style*="display: none"])'];
         const INTRO_QRCODE_SELECTOR = 'div[data-ref] canvas';
 
         // Checks which selector appears first
