@@ -115,6 +115,30 @@ class Client extends EventEmitter {
             referer: 'https://whatsapp.com/'
         });
 
+        // wait till page load
+        await page.waitForSelector("[class=web]", { timeout: this.options.authTimeoutMs });
+
+
+        await page.evaluate(ExposeStore, moduleRaid.toString());
+        // Check window.Store Injection
+        await page.waitForFunction('window.Store != undefined');
+
+
+        await page.evaluate(async () => {
+            // safely unregister service workers
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (let registration of registrations) {
+                registration.unregister();
+            }
+        });
+
+        //Load util functions (serializers, helper functions)
+        await page.evaluate(LoadUtils);
+
+
+        // Add InterfaceController
+        this.interface = new InterfaceController(this);
+
         await page.evaluate(`function getElementByXpath(path) {
             return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
           }`);
@@ -161,25 +185,28 @@ class Client extends EventEmitter {
             }
         );
 
-        const INTRO_IMG_SELECTOR = '[data-testid="intro-md-beta-logo-dark"], [data-testid="intro-md-beta-logo-light"], [data-asset-intro-image-light="true"], [data-asset-intro-image-dark="true"]';
-        const INTRO_QRCODE_SELECTOR = 'div[data-ref] canvas';
+        const needAuthentication = await page.evaluate(() => {
+            let state = window.Store.AppState.state
+            return state == "UNPAIRED" || state == "UNPAIRED_IDLE"
+        });
 
-        // Checks which selector appears first
-        const needAuthentication = await Promise.race([
-            new Promise(resolve => {
-                page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: this.options.authTimeoutMs })
-                    .then(() => resolve(false))
-                    .catch((err) => resolve(err));
-            }),
-            new Promise(resolve => {
-                page.waitForSelector(INTRO_QRCODE_SELECTOR, { timeout: this.options.authTimeoutMs })
-                    .then(() => resolve(true))
-                    .catch((err) => resolve(err));
-            })
-        ]);
-
-        // Checks if an error occurred on the first found selector. The second will be discarded and ignored by .race;
-        if (needAuthentication instanceof Error) throw needAuthentication;
+        // Register qr events
+        let qrRetries = 0;
+        await page.exposeFunction('onQRChanged', async (qr) => {
+            /**
+            * Emitted when a QR code is received
+            * @event Client#qr
+            * @param {string} qr QR Code
+            */
+            this.emit(Events.QR_RECEIVED, qr);
+            if (this.options.qrMaxRetries > 0) {
+                qrRetries++;
+                if (qrRetries > this.options.qrMaxRetries) {
+                    this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
+                    await this.destroy();
+                }
+            }
+        });
 
         // Scan-qrcode selector was found. Needs authentication
         if (needAuthentication) {
@@ -198,108 +225,13 @@ class Client extends EventEmitter {
                 }
                 return;
             }
-
-            const QR_CONTAINER = 'div[data-ref]';
-            const QR_RETRY_BUTTON = 'div[data-ref] > span > button';
-            let qrRetries = 0;
-            await page.exposeFunction('qrChanged', async (qr) => {
-                /**
-                * Emitted when a QR code is received
-                * @event Client#qr
-                * @param {string} qr QR Code
-                */
-                this.emit(Events.QR_RECEIVED, qr);
-                if (this.options.qrMaxRetries > 0) {
-                    qrRetries++;
-                    if (qrRetries > this.options.qrMaxRetries) {
-                        this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
-                        await this.destroy();
-                    }
-                }
-            });
-
-            await page.evaluate(function (selectors) {
-                const qr_container = document.querySelector(selectors.QR_CONTAINER);
-                window.qrChanged(qr_container.dataset.ref);
-
-                const obs = new MutationObserver((muts) => {
-                    muts.forEach(mut => {
-                        // Listens to qr token change
-                        if (mut.type === 'attributes' && mut.attributeName === 'data-ref') {
-                            window.qrChanged(mut.target.dataset.ref);
-                        } else
-                        // Listens to retry button, when found, click it
-                        if (mut.type === 'childList') {
-                            const retry_button = document.querySelector(selectors.QR_RETRY_BUTTON);
-                            if (retry_button) retry_button.click();
-                        }
-                    });
-                });
-                obs.observe(qr_container.parentElement, {
-                    subtree: true,
-                    childList: true,
-                    attributes: true,
-                    attributeFilter: ['data-ref'],
-                });
-            }, {
-                QR_CONTAINER,
-                QR_RETRY_BUTTON
-            });
-
-            // Wait for code scan
-            try {
-                await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: 0 });
-            } catch(error) {
-                if (
-                    error.name === 'ProtocolError' && 
-                    error.message && 
-                    error.message.match(/Target closed/)
-                ) {
-                    // something has called .destroy() while waiting
-                    return;
-                }
-
-                throw error;
-            }
-
+            await page.evaluate(() => {
+                const conn = window.Store.Conn;
+                window.onQRChanged(conn.ref)
+            })
         }
-
-        await page.evaluate(ExposeStore, moduleRaid.toString());
-        const authEventPayload = await this.authStrategy.getAuthEventPayload();
-
-        /**
-         * Emitted when authentication is successful
-         * @event Client#authenticated
-         */
-        this.emit(Events.AUTHENTICATED, authEventPayload);
-
-        // Check window.Store Injection
-        await page.waitForFunction('window.Store != undefined');
-
-        await page.evaluate(async () => {
-            // safely unregister service workers
-            const registrations = await navigator.serviceWorker.getRegistrations();
-            for (let registration of registrations) {
-                registration.unregister();
-            }
-        });
-
-        //Load util functions (serializers, helper functions)
-        await page.evaluate(LoadUtils);
-
-        // Expose client info
-        /**
-         * Current connection information
-         * @type {ClientInfo}
-         */
-        this.info = new ClientInfo(this, await page.evaluate(() => {
-            return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMeUser() };
-        }));
-
-        // Add InterfaceController
-        this.interface = new InterfaceController(this);
-
-        // Register events
+        
+        // Register other events
         await page.exposeFunction('onAddMessageEvent', msg => {
             if (msg.type === 'gp2') {
                 const notification = new GroupNotification(this, msg);
@@ -420,6 +352,38 @@ class Client extends EventEmitter {
         });
 
         await page.exposeFunction('onAppStateChangedEvent', async (state) => {
+            if (state == "CONNECTED") {
+                const authEventPayload = await this.authStrategy.getAuthEventPayload();
+
+                /**
+                 * Emitted when authentication is successful
+                 * @event Client#authenticated
+                 */
+                this.emit(Events.AUTHENTICATED, authEventPayload);
+                // Expose client info
+
+                /**
+                 * Current connection information
+                 * @type {ClientInfo}
+                 */
+                this.info = new ClientInfo(this, await page.evaluate(() => {
+                    return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMeUser() };
+                }));
+
+                /**
+                 * Emitted when the client has initialized and is ready to receive messages.
+                 * @event Client#ready
+                 */
+                this.emit(Events.READY);
+                this.authStrategy.afterAuthReady();
+
+                return;
+            } else if (state == "UNPAIRED_IDLE") {
+                // refresh qr code
+                window.Store.Cmd.refreshQR();
+                
+                return;
+            }
 
             /**
              * Emitted when the connection state changes
@@ -526,6 +490,7 @@ class Client extends EventEmitter {
                     }
                 }
             });
+            window.Store.Conn.on("change:ref", (_Conn, before, after) => {window.onQRChanged(after)})
             
             {
                 const module = window.Store.createOrUpdateReactionsModule;
@@ -543,13 +508,6 @@ class Client extends EventEmitter {
                 }).bind(module);
             }
         });
-
-        /**
-         * Emitted when the client has initialized and is ready to receive messages.
-         * @event Client#ready
-         */
-        this.emit(Events.READY);
-        this.authStrategy.afterAuthReady();
 
         // Disconnect when navigating away when in PAIRING state (detect logout)
         this.pupPage.on('framenavigated', async () => {
