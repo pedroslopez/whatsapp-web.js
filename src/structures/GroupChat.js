@@ -293,6 +293,15 @@ class GroupChat extends Chat {
     }
 
     /**
+     * Rejects the membership request if exists
+     * @param {string} requesterId The user ID who requested to join the group
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async rejectGroupMembershipRequest(requesterId) {
+        return await this.client.rejectGroupMembershipRequest(this.id._serialized, requesterId);
+    }
+
+    /**
      * Makes the bot leave the group
      * @returns {Promise}
      */

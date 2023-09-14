@@ -166,6 +166,9 @@ declare namespace WAWebJS {
         /** Approves the membership request if exists */
         approveGroupMembershipRequest: (groupId: string, requesterId: string) => Promise<boolean>;
 
+        /** Rejects the membership request if exists */
+        rejectGroupMembershipRequest: (groupId: string, requesterId: string) => Promise<boolean>;
+
         /** Generic event */
         on(event: string, listener: (...args: any) => void): this
 
@@ -1315,6 +1318,12 @@ declare namespace WAWebJS {
          * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
          */
         approveGroupMembershipRequest: (requesterId: string) => Promise<boolean>;
+        /**
+         * Rejects the membership request if exists
+         * @param {string} requesterId The user ID who requested to join the group
+         * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+         */
+        rejectGroupMembershipRequest: (requesterId: string) => Promise<boolean>;
         /** Gets the invite code for a specific group */
         getInviteCode: () => Promise<string>;
         /** Invalidates the current group invite code and generates a new one */

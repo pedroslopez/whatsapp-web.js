@@ -1480,6 +1480,18 @@ class Client extends EventEmitter {
             return await window.WWebJS.membershipRequestAction(groupId, requesterId, 'Approve');
         }, groupId, requesterId);
     }
+
+    /**
+     * Rejects the membership request if exists
+     * @param {string} groupId The group ID to get the membership request for
+     * @param {string} requesterId The user ID who requested to join the group
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async rejectGroupMembershipRequest(groupId, requesterId) {
+        return await this.pupPage.evaluate(async (groupId, requesterId) => {
+            return await window.WWebJS.membershipRequestAction(groupId, requesterId, 'Reject');
+        }, groupId, requesterId);
+    }
 }
 
 module.exports = Client;
