@@ -1,0 +1,10 @@
+Keep Your Fork Up-to-Date:
+    Periodically, you should sync your fork with the original repository to get the latest updates. To do this, run the following commands:
+        git fetch upstream
+        git checkout main
+        git merge upstream/main
+    This will update your fork's main branch with changes from the original repository.
+
+Push Your Changes:
+    Whenever you have new custom changes or want to sync with the original repository, push your changes to your fork:
+        git push origin my-custom-changes
