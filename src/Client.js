@@ -10,8 +10,8 @@ const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constan
 const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
-const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List, Reaction, Chat } = require('./structures');
 const WebCacheFactory = require('./webCache/WebCacheFactory');
+const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List, Reaction, Chat } = require('./structures');
 const LegacySessionAuth = require('./authStrategies/LegacySessionAuth');
 const NoAuth = require('./authStrategies/NoAuth');
 
