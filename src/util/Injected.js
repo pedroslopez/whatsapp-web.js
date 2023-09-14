@@ -832,4 +832,24 @@ exports.LoadUtils = () => {
             throw err;
         }
     };
+
+    window.WWebJS.membershipRequestAction = async (groupId, requesterId, action) => {
+        const groupWid = window.Store.WidFactory.createWid(groupId);
+        const group = await window.Store.Chat.find(groupWid);
+        const membershipRequest = group.groupMetadata.membershipApprovalRequests._models.find(
+            (m) => m.id._serialized === requesterId
+        );
+        if (!membershipRequest) return false;
+        try {
+            const [response] = await window.Store.MembershipRequestUtils.approveRequest(
+                group.id,
+                [membershipRequest.id],
+                action
+            );
+            return response.error ? false : true;
+        } catch (err) {
+            if (err.name === 'ServerStatusCodeError') return false;
+            throw err;
+        }
+    };
 };

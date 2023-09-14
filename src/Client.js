@@ -1477,21 +1477,7 @@ class Client extends EventEmitter {
      */
     async approveGroupMembershipRequest(groupId, requesterId) {
         return await this.pupPage.evaluate(async (groupId, requesterId) => {
-            const groupWid = window.Store.WidFactory.createWid(groupId);
-            const group = await window.Store.Chat.find(groupWid);
-            const membershipRequest =
-                group.groupMetadata.membershipApprovalRequests._models.find(m => m.id._serialized === requesterId);
-            if (!membershipRequest) return false;
-            try {
-                const [response] =
-                    await window.Store.MembershipRequestUtils.approveRequest(group.id, [membershipRequest.id]);
-                return response.error
-                    ? false
-                    : true;
-            } catch (err) {
-                if (err.name === 'ServerStatusCodeError') return false;
-                throw err;
-            }
+            return await window.WWebJS.membershipRequestAction(groupId, requesterId, 'Approve');
         }, groupId, requesterId);
     }
 }
