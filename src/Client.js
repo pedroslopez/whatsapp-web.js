@@ -116,7 +116,7 @@ class Client extends EventEmitter {
         });
 
         // wait till page load
-        await page.waitForSelector("[class=web]", { timeout: this.options.authTimeoutMs });
+        await page.waitForSelector('[class=web]', { timeout: this.options.authTimeoutMs });
 
 
         await page.evaluate(ExposeStore, moduleRaid.toString());
@@ -186,8 +186,8 @@ class Client extends EventEmitter {
         );
 
         const needAuthentication = await page.evaluate(() => {
-            let state = window.Store.AppState.state
-            return state == "UNPAIRED" || state == "UNPAIRED_IDLE"
+            let state = window.Store.AppState.state;
+            return state == 'UNPAIRED' || state == 'UNPAIRED_IDLE';
         });
 
         // Register qr events
@@ -227,8 +227,8 @@ class Client extends EventEmitter {
             }
             await page.evaluate(() => {
                 const conn = window.Store.Conn;
-                window.onQRChanged(conn.ref)
-            })
+                window.onQRChanged(conn.ref);
+            });
         }
         
         // Register other events
@@ -352,7 +352,7 @@ class Client extends EventEmitter {
         });
 
         await page.exposeFunction('onAppStateChangedEvent', async (state) => {
-            if (state == "CONNECTED") {
+            if (state == 'CONNECTED') {
                 const authEventPayload = await this.authStrategy.getAuthEventPayload();
 
                 /**
@@ -378,7 +378,7 @@ class Client extends EventEmitter {
                 this.authStrategy.afterAuthReady();
 
                 return;
-            } else if (state == "UNPAIRED_IDLE") {
+            } else if (state == 'UNPAIRED_IDLE') {
                 // refresh qr code
                 window.Store.Cmd.refreshQR();
                 
@@ -490,7 +490,7 @@ class Client extends EventEmitter {
                     }
                 }
             });
-            window.Store.Conn.on("change:ref", (_Conn, before, after) => {window.onQRChanged(after)})
+            window.Store.Conn.on('change:ref', (_Conn, before, after) => {window.onQRChanged(after);});
             
             {
                 const module = window.Store.createOrUpdateReactionsModule;
