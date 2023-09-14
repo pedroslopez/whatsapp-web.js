@@ -1465,7 +1465,7 @@ class Client extends EventEmitter {
     async getGroupMembershipRequests(groupId) {
         return await this.pupPage.evaluate(async (gropId) => {
             const groupWid = window.Store.WidFactory.createWid(gropId);
-            return await window.Store.GroupUtils.getMembershipApprovalRequests(groupWid);
+            return await window.Store.MembershipRequestUtils.getMembershipApprovalRequests(groupWid);
         }, groupId);
     }
 
