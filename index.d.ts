@@ -163,7 +163,7 @@ declare namespace WAWebJS {
         /** Gets an array of membership requests */
         getGroupMembershipRequests: (groupId: string) => Promise<Array<GroupMembershipRequest>>
 
-        /** Tries to get the membership request and approve it so that the requester can join the group */
+        /** Approves the membership request if exists */
         approveGroupMembershipRequest: (groupId: string, requesterId: string) => Promise<boolean>;
 
         /** Generic event */
@@ -1310,7 +1310,7 @@ declare namespace WAWebJS {
          */
         getGroupMembershipRequests: () => Promise<Array<GroupMembershipRequest>>;
         /**
-         * Tries to get the membership request and approve it so that the requester can join the group
+         * Approves the membership request if exists
          * @param {string} requesterId The user ID who requested to join the group
          * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
          */
