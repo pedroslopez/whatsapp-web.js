@@ -172,13 +172,19 @@ class Client extends EventEmitter {
             }
         );
 
-        const INTRO_IMG_SELECTOR = '[data-icon=\'search\']';
+        const DAFAULT_USER_SELECTOR = '[data-icon=\'default-user\']';
+        const INTRO_IMG_SELECTOR = '[data-icon=\'chat\']';
         const INTRO_QRCODE_SELECTOR = 'div[data-ref] canvas';
 
         // Checks which selector appears first
         const needAuthentication = await Promise.race([
             new Promise(resolve => {
                 page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: this.options.authTimeoutMs })
+                    .then(() => resolve(false))
+                    .catch((err) => resolve(err));
+            }),
+            new Promise(resolve => {
+                page.waitForSelector(DAFAULT_USER_SELECTOR, { timeout: this.options.authTimeoutMs })
                     .then(() => resolve(false))
                     .catch((err) => resolve(err));
             }),
