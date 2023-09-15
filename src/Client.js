@@ -408,6 +408,18 @@ class Client extends EventEmitter {
             this.emit(Events.MEDIA_UPLOADED, message);
         });
 
+        await page.exposeFuncton('onReady', (done) => {
+            // if done syncing
+            if (done) {
+                /**
+                 * Emitted when the client has initialized and is ready to receive messages.
+                 * @event Client#ready
+                 */
+                this.emit(Events.READY);
+                this.authStrategy.afterAuthReady();
+            }
+        });
+
         await page.exposeFunction('onAppStateChangedEvent', async (state) => {
             if (state == 'CONNECTED') {
                 const authEventPayload = await this.authStrategy.getAuthEventPayload();
@@ -426,14 +438,6 @@ class Client extends EventEmitter {
                 this.info = new ClientInfo(this, await page.evaluate(() => {
                     return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMeUser() };
                 }));
-
-                /**
-                 * Emitted when the client has initialized and is ready to receive messages.
-                 * @event Client#ready
-                 */
-                this.emit(Events.READY);
-                this.authStrategy.afterAuthReady();
-
                 return;
             } else if (state == 'UNPAIRED_IDLE') {
                 // refresh qr code
@@ -587,6 +591,8 @@ class Client extends EventEmitter {
             });
             window.Store.Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
             window.Store.Conn.on('change:ref', (_Conn, before, after) => {window.onQRChanged(after);});
+            window.Store.Conn.on('change:hasSynced', (_Conn, hasSynced) => {window.onReady(hasSynced);});
+            
             
             {
                 const module = window.Store.createOrUpdateReactionsModule;
