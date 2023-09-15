@@ -71,7 +71,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     };
     window.Store.MembershipRequestUtils = {
         ...window.mR.findModule('getMembershipApprovalRequests')[0],
-        approveRequest: window.mR.findModule('membershipApprovalRequestAction')[0].membershipApprovalRequestAction,
+        ...window.mR.findModule('membershipApprovalRequestAction')[0],
     };
 
     if (!window.Store.Chat._find) {
@@ -841,7 +841,7 @@ exports.LoadUtils = () => {
         );
         if (!membershipRequest) return false;
         try {
-            const [response] = await window.Store.MembershipRequestUtils.approveRequest(
+            const [response] = await window.Store.MembershipRequestUtils.membershipApprovalRequestAction(
                 group.id,
                 [membershipRequest.id],
                 action
