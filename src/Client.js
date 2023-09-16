@@ -236,6 +236,7 @@ class Client extends EventEmitter {
                 }
                 return;
             }
+            // if we are logged out, print the current qr code
             await page.evaluate(() => {
                 const conn = window.Store.Conn;
                 window.onQRChanged(conn.ref);
