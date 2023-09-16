@@ -71,7 +71,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     };
     window.Store.MembershipRequestUtils = {
         ...window.mR.findModule('getMembershipApprovalRequests')[0],
-        ...window.mR.findModule('membershipApprovalRequestAction')[0],
+        ...window.mR.findModule('sendMembershipRequestsActionRPC')[0]
     };
 
     if (!window.Store.Chat._find) {
@@ -833,23 +833,77 @@ exports.LoadUtils = () => {
         }
     };
 
-    window.WWebJS.membershipRequestAction = async (groupId, requesterId, action) => {
+    window.WWebJS.membershipRequestAction = async (groupId, action, requesterIds = null, sleep = [250, 500]) => {
         const groupWid = window.Store.WidFactory.createWid(groupId);
         const group = await window.Store.Chat.find(groupWid);
-        const membershipRequest = group.groupMetadata.membershipApprovalRequests._models.find(
-            (m) => m.id._serialized === requesterId
-        );
-        if (!membershipRequest) return false;
+        const toApprove = action === 'Approve';
+        let membershipRequests;
+        let response;
+        let result = [];
+
+        if (!requesterIds?.length) {
+            membershipRequests = group.groupMetadata.membershipApprovalRequests._models.map(({ id }) => id);
+        } else {
+            !Array.isArray(requesterIds) && (requesterIds = [requesterIds]);
+            membershipRequests = group.groupMetadata.membershipApprovalRequests._models
+                .filter((m) => requesterIds.includes(m.id._serialized))
+                .map(({ id }) => id);
+        }
+
+        if (!membershipRequests.length) return [];
+
+        const participantArgs = membershipRequests.map((m) => ({
+            participantArgs: [
+                {
+                    participantJid: window.Store.WidToJid.widToUserJid(m)
+                }
+            ]
+        }));
+
+        const groupJid = window.Store.WidToJid.widToGroupJid(groupWid);
+        
+        const _getSleepTime = (sleep) => {
+            if (!Array.isArray(sleep) || (sleep.length === 2 && sleep[0] === sleep[1])) {
+                return sleep;
+            }
+            if (sleep.length === 1) {
+                return sleep[0];
+            }
+            sleep[1] - sleep[0] < 100 && (sleep[0] = sleep[1]) && (sleep[1] += 100);
+            return Math.floor(Math.random() * (sleep[1] - sleep[0] + 1)) + sleep[0];
+        };
+
         try {
-            const [response] = await window.Store.MembershipRequestUtils.membershipApprovalRequestAction(
-                group.id,
-                [membershipRequest.id],
-                action
-            );
-            return response.error ? false : true;
+            for (const args of participantArgs) {
+                response = await window.Store.MembershipRequestUtils.sendMembershipRequestsActionRPC({
+                    iqTo: groupJid,
+                    [toApprove ? 'approveArgs' : 'rejectArgs']: args
+                });
+
+                if (response.name === 'MembershipRequestsActionResponseSuccess') {
+                    const value = toApprove
+                        ? response.value.membershipRequestsActionApprove
+                        : response.value.membershipRequestsActionReject;
+                    if (value?.participant) {
+                        const [_] = value.participant.map((p) => {
+                            const error = toApprove
+                                ? value.participant.membershipRequestsActionAcceptParticipantMixins
+                                : value.participant.membershipRequestsActionRejectParticipantMixins;
+                            return {
+                                requesterId: window.Store.WidFactory.createWid(p.jid)._serialized,
+                                ...(error ? { error: error } : {})
+                            };
+                        });
+                        _ && result.push(_);
+                    }
+                }
+
+                sleep && participantArgs.length > 1 &&
+                    (await new Promise((resolve) => setTimeout(resolve, _getSleepTime(sleep))));
+            }
+            return result;
         } catch (err) {
-            if (err.name === 'ServerStatusCodeError') return false;
-            throw err;
+            return [];
         }
     };
 };
