@@ -591,8 +591,8 @@ class Client extends EventEmitter {
                 }
             });
             window.Store.Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
-            window.Store.Conn.on('change:ref', (_Conn, before, after) => {window.onQRChanged(after);});
-            window.Store.Conn.on('change:hasSynced', (_Conn, hasSynced) => {window.onReady(hasSynced);});
+            window.Store.Conn.on('change:ref', (_Conn, before, after) => {window.onQRChanged(after);}); // change in qr code "ref"
+            window.Store.Conn.on('change:hasSynced', (_Conn, hasSynced) => {window.onReady(hasSynced);}); // have we finished syncing so that we can be "ready" ? 
             
             
             {
