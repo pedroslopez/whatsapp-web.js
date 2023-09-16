@@ -103,7 +103,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     if(_features) {
         window.Store.Features = _features.LegacyPhoneFeatures;
     }
-                
+
     /**
      * Helper function that compares between two WWeb versions. Its purpose is to help the developer to choose the correct code implementation depending on the comparison value and the WWeb version.
      * @param {string} lOperand The left operand for the WWeb version string to compare with
@@ -119,7 +119,7 @@ exports.ExposeStore = (moduleRaidStr) => {
 
         }
         if (typeof lOperand !== 'string' || typeof rOperand !== 'string') {
-            throw class _ extends Error {
+            throw new class _ extends Error {
                 constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
             }('A non-string WWeb version type is provided');
         }

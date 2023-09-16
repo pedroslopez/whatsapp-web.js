@@ -219,7 +219,7 @@ class Client extends EventEmitter {
             }
         });
 
-        // Scan-qrcode selector was found. Needs authentication
+        // Connection is unpaired. Needs authentication
         if (needAuthentication) {
             const { failed, failureEventPayload, restart } = await this.authStrategy.onAuthenticationNeeded();
             if(failed) {
@@ -241,7 +241,7 @@ class Client extends EventEmitter {
                 window.onQRChanged(conn.ref);
             });
         }
-        
+
         // Register other events
         await page.exposeFunction('onAddMessageEvent', msg => {
             if (msg.type === 'gp2') {
