@@ -113,7 +113,7 @@ exports.ExposeStore = (moduleRaidStr) => {
      */
     window.compareWwebVersions = (lOperand, operator, rOperand) => {
         if (!['>', '>=', '<', '<=', '='].includes(operator)) {
-            throw class _ extends Error {
+            throw new class _ extends Error {
                 constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
             }('Invalid comparison operator is provided');
 
