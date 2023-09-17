@@ -74,7 +74,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.MembershipRequestUtils = {
         ...window.mR.findModule('getMembershipApprovalRequests')[0],
         ...window.mR.findModule('sendMembershipRequestsActionRPC')[0],
-        ...window.mR.findModule('queryAndUpdateGroupMembershipApprovalRequests')[0]
+        ...window.mR.findModule('queryAndUpdateGroupMetadataById')[0]
     };
 
     if (!window.Store.Chat._find) {
@@ -844,8 +844,7 @@ exports.LoadUtils = () => {
         let response;
         let result = [];
 
-        await window.Store.MembershipRequestUtils.queryAndUpdateGroupMembershipApprovalRequests(groupWid);
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await window.Store.MembershipRequestUtils.queryAndUpdateGroupMetadataById(groupWid);
 
         if (!requesterIds?.length) {
             membershipRequests = group.groupMetadata.membershipApprovalRequests._models.map(({ id }) => id);
