@@ -902,7 +902,9 @@ exports.LoadUtils = () => {
                     }
                 }
 
-                sleep && participantArgs.length > 1 &&
+                sleep &&
+                    participantArgs.length > 1 &&
+                    participantArgs.indexOf(args) !== participantArgs.length - 1 &&
                     (await new Promise((resolve) => setTimeout(resolve, _getSleepTime(sleep))));
             }
             return result;
