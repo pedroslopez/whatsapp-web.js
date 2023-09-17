@@ -172,8 +172,10 @@ class GroupChat extends Chat {
                     participantData[participantId].isInviteV4Sent = isInviteV4Sent;
                 }
 
-                sleep && participantsToAdd.length > 1 &&
-                    (await new Promise(resolve => setTimeout(resolve, _getSleepTime(sleep))));
+                sleep &&
+                    participantsToAdd.length > 1 &&
+                    participantsToAdd.indexOf(participant) !== participantsToAdd.length - 1 &&
+                    (await new Promise((resolve) => setTimeout(resolve, _getSleepTime(sleep))));
             }
 
             return participantData;
