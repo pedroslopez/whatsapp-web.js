@@ -232,6 +232,39 @@ client.on('message', async msg => {
     } else if (msg.body === '!removelabels') {
         const chat = await msg.getChat();
         await chat.changeLabels([]);
+    } else if (msg.body === '!approverequest') {
+        /**
+         * Presented an example for membership request approvals, the same examples are for the request rejections.
+         * To approve the membership request from a specific user:
+         */
+        await client.approveGroupMembershipRequests(msg.from, 'number@c.us');
+        /** The same for execution on group object (no need to provide the group ID): */
+        const group = await msg.getChat();
+        await group.approveGroupMembershipRequests('number@c.us');
+        /** To approve several membership requests: */
+        const approval = await client.approveGroupMembershipRequests(msg.from, ['number1@c.us', 'number2@c.us']);
+        /**
+         * The example of the {@link approval} output:
+         * [
+         *     {
+         *         requesterId: 'number1@c.us'
+         *     },
+         *     {
+         *         requesterId: 'number2@c.us',
+         *         error: {...}
+         *     }
+         * ]
+         *
+         */
+        console.log(approval);
+        /** To approve all the existing membership requests (simply don't provide any user IDs): */
+        await client.approveGroupMembershipRequests(msg.from);
+        /** To change the sleep value to 300 ms: */
+        await client.approveGroupMembershipRequests(msg.from, ['number1@c.us', 'number2@c.us'], 300);
+        /** To change the sleep value to random value between 100 and 300 ms: */
+        await client.approveGroupMembershipRequests(msg.from, ['number1@c.us', 'number2@c.us'], [100, 300]);
+        /** To explicitly disable the sleep: */
+        await client.approveGroupMembershipRequests(msg.from, ['number1@c.us', 'number2@c.us'], null);
     }
 });
 
@@ -352,4 +385,30 @@ client.on('group_admin_changed', (notification) => {
     } else if (notification.type === 'demote')
         /** Emitted when a current user is demoted to a regular user. */
         console.log(`You were demoted by ${notification.author}`);
+});
+
+client.on('group_membership_request', async (notification) => {
+    /**
+     * The example of the {@link notification} output:
+     * {
+     *     id: {
+     *         fromMe: false,
+     *         remote: 'group@g.us',
+     *         id: '123123123132132132',
+     *         participant: 'requester@c.us',
+     *         _serialized: 'false_groupId@g.us_123123123132132132_requester@c.us'
+     *     },
+     *     body: '',
+     *     type: 'created_membership_requests',
+     *     timestamp: 1694456538,
+     *     chatId: 'group@g.us',
+     *     author: 'requester@c.us',
+     *     recipientIds: []
+     * }
+     *
+     */
+    console.log(notification);
+    /** You can approve or reject the newly appeared membership request: */
+    await client.approveGroupMembershipRequestss('groupId@g.us', notification.author);
+    await client.rejectGroupMembershipRequests('groupId@g.us', notification.author);
 });
