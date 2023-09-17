@@ -173,7 +173,7 @@ class GroupChat extends Chat {
                 }
 
                 sleep && participantsToAdd.length > 1 &&
-                    await new Promise(resolve => setTimeout(resolve, _getSleepTime(sleep)));
+                    (await new Promise(resolve => setTimeout(resolve, _getSleepTime(sleep))));
             }
 
             return participantData;
