@@ -393,22 +393,22 @@ client.on('group_membership_request', async (notification) => {
      * {
      *     id: {
      *         fromMe: false,
-     *         remote: 'group@g.us',
+     *         remote: 'groupId@g.us',
      *         id: '123123123132132132',
-     *         participant: 'requester@c.us',
-     *         _serialized: 'false_groupId@g.us_123123123132132132_requester@c.us'
+     *         participant: 'number@c.us',
+     *         _serialized: 'false_groupId@g.us_123123123132132132_number@c.us'
      *     },
      *     body: '',
      *     type: 'created_membership_requests',
      *     timestamp: 1694456538,
-     *     chatId: 'group@g.us',
-     *     author: 'requester@c.us',
+     *     chatId: 'groupId@g.us',
+     *     author: 'number@c.us',
      *     recipientIds: []
      * }
      *
      */
     console.log(notification);
     /** You can approve or reject the newly appeared membership request: */
-    await client.approveGroupMembershipRequestss('groupId@g.us', notification.author);
-    await client.rejectGroupMembershipRequests('groupId@g.us', notification.author);
+    await client.approveGroupMembershipRequestss(notification.chatId, notification.author);
+    await client.rejectGroupMembershipRequests(notification.chatId, notification.author);
 });
