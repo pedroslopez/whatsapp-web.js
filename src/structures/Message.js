@@ -151,7 +151,21 @@ class Message extends Base {
          * Location information contained in the message, if the message is type "location"
          * @type {Location}
          */
-        this.location = data.type === MessageTypes.LOCATION ? new Location(data.lat, data.lng, data.loc) : undefined;
+        this.location = (() => {
+            if (data.type !== MessageTypes.LOCATION) {
+                return undefined;
+            }
+            let description;
+            if (data.loc && typeof data.loc === 'string') {
+                let splitted = data.loc.split('\n');
+                description = {
+                    name: splitted[0],
+                    address: splitted[1],
+                    url: data.clientUrl
+                };
+            }
+            return new Location(data.lat, data.lng, description);
+        })();
 
         /**
          * List of vCards contained in the message.
