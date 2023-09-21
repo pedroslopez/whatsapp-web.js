@@ -1364,7 +1364,9 @@ class Client extends EventEmitter {
                     statusCode: statusCode,
                     message: addParticipantResultCodes[statusCode] || addParticipantResultCodes.default,
                     isGroupCreator: participant.type === 'superadmin',
-                    isInviteV4Sent: addParticipantResult === 'OK'
+                    isInviteV4Sent: window.compareWwebVersions(window.Debug.VERSION, '<', '2.2335.6')
+                        ? addParticipantResult === 'OK'
+                        : addParticipantResult.messageSendResult === 'OK'
                 };
             }
 

@@ -166,7 +166,9 @@ class GroupChat extends Chat {
                             comment,
                             await window.WWebJS.getProfilePicThumbToBase64(groupWid)
                         );
-                        isInviteV4Sent = res === 'OK';
+                        isInviteV4Sent = window.compareWwebVersions(window.Debug.VERSION, '<', '2.2335.6')
+                            ? res === 'OK'
+                            : res.messageSendResult === 'OK';
                     }
 
                     participantData[participantId].isInviteV4Sent = isInviteV4Sent;
