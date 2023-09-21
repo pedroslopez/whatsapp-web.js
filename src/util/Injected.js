@@ -105,6 +105,32 @@ exports.ExposeStore = (moduleRaidStr) => {
     if(_features) {
         window.Store.Features = _features.LegacyPhoneFeatures;
     }
+
+    /**
+     * Target options object description
+     * @typedef {Object} TargetOptions
+     * @property {string|number} moduleId The name or a key of the target module to search
+     * @property {number} index The index value of the target module
+     * @property {string} property The function name to get from a module
+     */
+
+    /**
+     * Function to modify functions
+     * @param {TargetOptions} target Options specifying the target function to search for modifying
+     * @param {Function} callback Modified function
+     */
+    window.injectToFunction = (target, callback) => {
+        const module = typeof target.moduleId === 'string'
+            ? window.mR.findModule(target.moduleId)
+            : window.mR.modules[target.moduleId];
+        const originalFunction = module[target.index][target.property];
+        const modifiedFunction = (...args) => callback(originalFunction, ...args);
+        module[target.index][target.property] = modifiedFunction;
+    };
+    
+    window.injectToFunction({ moduleId: 'mediaTypeFromProtobuf', index: 0, property: 'mediaTypeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? null : func(...args); });
+
+    window.injectToFunction({ moduleId: 'typeAttributeFromProtobuf', index: 0, property: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? 'text' : func(...args); });
 };
 
 exports.LoadUtils = () => {
@@ -161,11 +187,15 @@ exports.LoadUtils = () => {
 
         let locationOptions = {};
         if (options.location) {
+            let { latitude, longitude, description, url } = options.location;
+            url = window.Store.Validators.findLink(url)?.href;
+            url && !description && (description = url);
             locationOptions = {
                 type: 'location',
-                loc: options.location.description,
-                lat: options.location.latitude,
-                lng: options.location.longitude
+                loc: description,
+                lat: latitude,
+                lng: longitude,
+                clientUrl: url
             };
             delete options.location;
         }
