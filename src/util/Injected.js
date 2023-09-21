@@ -124,8 +124,6 @@ exports.ExposeStore = (moduleRaidStr) => {
 
     /**
      * Function to modify functions
-     * Referenced from and modified:
-     * @see https://github.com/pedroslopez/whatsapp-web.js/pull/1636/commits/81111faa058d8e715285a2bfc9a42636074f7c3d#diff-de25cb4b9105890088bb033eac000d1dd2104d3498a8523082dc7eaf319738b8R75-R78
      * @param {TargetOptions} target Options specifying the target function to search for modifying
      * @param {Function} callback Modified function
      */
@@ -137,12 +135,10 @@ exports.ExposeStore = (moduleRaidStr) => {
         const modifiedFunction = (...args) => callback(originalFunction, ...args);
         module[target.index][target.property] = modifiedFunction;
     };
+    
+    window.injectToFunction({ moduleId: 'mediaTypeFromProtobuf', index: 0, property: 'mediaTypeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? null : func(...args); });
 
-    /**
-     * Referenced from and modified:
-     * @see https://github.com/wppconnect-team/wa-js/blob/e19164e83cfa68b828493e6ff046c0a3d46a4942/src/chat/functions/sendLocationMessage.ts#L164
-     */
-    window.injectToFunction({ moduleId: 'typeAttributeFromProtobuf', index: 0, property: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.groupInviteMessage ? 'text' : func(...args); });
+    window.injectToFunction({ moduleId: 'typeAttributeFromProtobuf', index: 0, property: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage || proto.groupInviteMessage ? 'text' : func(...args); });
 };
 
 exports.LoadUtils = () => {
@@ -199,11 +195,15 @@ exports.LoadUtils = () => {
 
         let locationOptions = {};
         if (options.location) {
+            let { latitude, longitude, description, url } = options.location;
+            url = window.Store.Validators.findLink(url)?.href;
+            url && !description && (description = url);
             locationOptions = {
                 type: 'location',
-                loc: options.location.description,
-                lat: options.location.latitude,
-                lng: options.location.longitude
+                loc: description,
+                lat: latitude,
+                lng: longitude,
+                clientUrl: url
             };
             delete options.location;
         }
