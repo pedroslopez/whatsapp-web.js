@@ -14,6 +14,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
     window.Store.DownloadManager = window.mR.findModule('downloadManager')[0].downloadManager;
     window.Store.GroupMetadata = window.mR.findModule('GroupMetadata')[0].default.GroupMetadata;
+    window.Store.GroupMetadata.queryAndUpdate = window.mR.findModule('queryAndUpdateGroupMetadataById')[0].queryAndUpdateGroupMetadataById;
     window.Store.Invite = window.mR.findModule('resetGroupInviteCode')[0];
     window.Store.InviteInfo = window.mR.findModule('queryGroupInvite')[0];
     window.Store.Label = window.mR.findModule('LabelCollection')[0].LabelCollection;
@@ -73,8 +74,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     };
     window.Store.MembershipRequestUtils = {
         ...window.mR.findModule('getMembershipApprovalRequests')[0],
-        ...window.mR.findModule('sendMembershipRequestsActionRPC')[0],
-        ...window.mR.findModule('queryAndUpdateGroupMetadataById')[0]
+        ...window.mR.findModule('sendMembershipRequestsActionRPC')[0]
     };
 
     if (!window.Store.Chat._find) {
@@ -874,7 +874,7 @@ exports.LoadUtils = () => {
         let response;
         let result = [];
 
-        await window.Store.MembershipRequestUtils.queryAndUpdateGroupMetadataById(groupWid);
+        await window.Store.GroupMetadata.queryAndUpdate(groupWid);
 
         if (!requesterIds?.length) {
             membershipRequests = group.groupMetadata.membershipApprovalRequests._models.map(({ id }) => id);
