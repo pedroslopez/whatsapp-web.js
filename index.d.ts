@@ -882,13 +882,23 @@ declare namespace WAWebJS {
         _serialized: string,
     }
 
+    /** Options for sending a location */
+    export interface LocationSendOptions {
+        /** Location name */
+        name?: string;
+        /** Location address */
+        address?: string;
+        /** URL address to be shown within a location message */
+        url?: string;
+    }
+
     /** Location information */
     export class Location {
-        description?: string | null
-        latitude: string
-        longitude: string
+        latitude: string;
+        longitude: string;
+        options?: LocationSendOptions;
         
-        constructor(latitude: number, longitude: number, description?: string)
+        constructor(latitude: number, longitude: number, options?: LocationSendOptions)
     }
 
     export interface Label {
