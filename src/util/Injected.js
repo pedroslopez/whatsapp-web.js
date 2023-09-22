@@ -14,7 +14,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
     window.Store.DownloadManager = window.mR.findModule('downloadManager')[0].downloadManager;
     window.Store.GroupMetadata = window.mR.findModule('GroupMetadata')[0].default.GroupMetadata;
-    window.Store.GroupMetadata.updateById = window.mR.findModule('queryAndUpdateGroupMetadataById')[0].queryAndUpdateGroupMetadataById;
+    window.Store.GroupMetadata.queryAndUpdate = window.mR.findModule('queryAndUpdateGroupMetadataById')[0].queryAndUpdateGroupMetadataById;
     window.Store.Label = window.mR.findModule('LabelCollection')[0].LabelCollection;
     window.Store.ContactCollection = window.mR.findModule('ContactCollection')[0].ContactCollection;
     window.Store.MediaPrep = window.mR.findModule('prepRawMedia')[0];
@@ -875,7 +875,7 @@ exports.LoadUtils = () => {
     };
     
     window.WWebJS.getProfilePicThumbToBase64 = async (chatWid) => {
-        const profilePicCollection = window.Store.ProfilePicThumb.get(chatWid);
+        const profilePicCollection = await window.Store.ProfilePicThumb.find(chatWid);
 
         const _readImageAsBase64 = (imageBlob) => {
             return new Promise((resolve) => {
