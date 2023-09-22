@@ -908,15 +908,15 @@ exports.LoadUtils = () => {
         return undefined;
     };
 
-    window.WWebJS.getAddParticipantsRpcResult = async (chatMetadata, chatWid, participantWid) => {
-        const participantLidArgs = chatMetadata?.isLidAddressingMode
+    window.WWebJS.getAddParticipantsRpcResult = async (groupMetadata, groupWid, participantWid) => {
+        const participantLidArgs = groupMetadata?.isLidAddressingMode
             ? {
                 phoneNumber: participantWid,
                 lid: window.Store.LidUtils.getCurrentLid(participantWid)
             }
             : { phoneNumber: participantWid };
 
-        const iqTo = window.Store.WidToJid.widToGroupJid(chatWid);
+        const iqTo = window.Store.WidToJid.widToGroupJid(groupWid);
 
         const participantArgs =
             participantLidArgs.lid
@@ -930,7 +930,8 @@ exports.LoadUtils = () => {
                     participantJid: window.Store.WidToJid.widToUserJid(participantLidArgs.phoneNumber)
                 }];
 
-        let result, participant;
+        let rpcResult, resultArgs;
+        const isOldImpl = window.compareWwebVersions(window.Debug.VERSION, '<=', '2.2335.9');
         const data = {
             name: undefined,
             code: undefined,
@@ -940,31 +941,35 @@ exports.LoadUtils = () => {
         };
 
         try {
-            result = await window.Store.GroupParticipants.sendAddParticipantsRPC({ participantArgs, iqTo });
-            [participant] = result.value.addParticipant;
+            rpcResult = await window.Store.GroupParticipants.sendAddParticipantsRPC({ participantArgs, iqTo });
+            resultArgs = isOldImpl
+                ? rpcResult.value.addParticipant[0].addParticipantsParticipantMixins
+                : rpcResult.value.addParticipant[0]
+                    .addParticipantsParticipantAddedOrNonRegisteredWaUserParticipantErrorLidResponseMixinGroup
+                    .value
+                    .addParticipantsParticipantMixins;
         } catch (err) {
             data.code = -1;
-            data.message = 'SmaxParsingFailure: failed to parse the response of <AddParticipants>';
+            data.message = 'SmaxParsingFailure: failed to parse the response of AddParticipants';
             return data;
         }
 
-        if (result.name === 'AddParticipantsResponseSuccess') {
-            const participantMixins = participant.addParticipantsParticipantMixins;
-            const code = participantMixins?.value.error ?? '200';
-            data.name = participantMixins?.name;
+        if (rpcResult.name === 'AddParticipantsResponseSuccess') {
+            const code = resultArgs?.value.error ?? '200';
+            data.name = resultArgs?.name;
             data.code = +code;
-            data.inviteV4Code = participantMixins?.value.addRequestCode;
-            data.inviteV4CodeExp = participantMixins?.value.addRequestExpiration?.toString();
+            data.inviteV4Code = resultArgs?.value.addRequestCode;
+            data.inviteV4CodeExp = resultArgs?.value.addRequestExpiration?.toString();
         }
 
-        else if (result.name === 'AddParticipantsResponseClientError') {
-            const { code: code, text: message } = result.value.errorAddParticipantsClientErrors.value;
+        else if (rpcResult.name === 'AddParticipantsResponseClientError') {
+            const { code: code, text: message } = rpcResult.value.errorAddParticipantsClientErrors.value;
             data.code = +code;
             data.message = message;
         }
 
-        else if (result.name === 'AddParticipantsResponseServerError') {
-            const { code: code, text: message } = result.value.errorServerErrors.value;
+        else if (rpcResult.name === 'AddParticipantsResponseServerError') {
+            const { code: code, text: message } = rpcResult.value.errorServerErrors.value;
             data.code = +code;
             data.message = message;
         }

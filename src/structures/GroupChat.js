@@ -141,7 +141,7 @@ class GroupChat extends Chat {
 
                 const rpcResult =
                     await window.WWebJS.getAddParticipantsRpcResult(groupMetadata, groupWid, participant.id);
-                const rpcResultCode = rpcResult.code;
+                const { code: rpcResultCode } = rpcResult;
 
                 if (rpcResultCode === 403) {
                     window.Store.ContactCollection.gadd(participant.id, { silent: true });
