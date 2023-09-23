@@ -63,12 +63,14 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('toWebpSticker')[0],
         ...window.mR.findModule('addWebpMetadata')[0]
     };
-  
     window.Store.GroupUtils = {
         ...window.mR.findModule('createGroup')[0],
         ...window.mR.findModule('setGroupDescription')[0],
         ...window.mR.findModule('leaveGroup')[0],
         ...window.mR.findModule('sendSetPicture')[0]
+    };
+    window.Store.CommunityUtils = {
+        ...window.mR.findModule('getDefaultSubgroup')[0],
     };
 
     if (!window.Store.Chat._find) {
@@ -474,8 +476,11 @@ exports.LoadUtils = () => {
         res.isMuted = chat.mute && chat.mute.isMuted;
 
         if (chat.groupMetadata) {
-            const chatWid = window.Store.WidFactory.createWid((chat.id._serialized));
+            const chatWid = window.Store.WidFactory.createWid(chat.id._serialized);
             await window.Store.GroupMetadata.update(chatWid);
+            if (chat.groupMetadata.isParentGroup) {
+                chat.groupMetadata.defaultSubgroupId = window.Store.CommunityUtils.getDefaultSubgroup(chatWid);
+            }
             res.groupMetadata = chat.groupMetadata.serialize();
         }
         
