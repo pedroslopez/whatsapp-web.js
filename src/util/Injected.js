@@ -510,6 +510,7 @@ exports.LoadUtils = () => {
             await window.Store.GroupMetadata.update(chatWid);
             if (chat.groupMetadata.isParentGroup) {
                 chat.groupMetadata.defaultSubgroupId = window.Store.CommunityUtils.getDefaultSubgroup(chatWid);
+                res.isCommunity = true;
             }
             res.groupMetadata = chat.groupMetadata.serialize();
         }
