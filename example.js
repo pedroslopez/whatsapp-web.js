@@ -76,12 +76,12 @@ client.on('message', async msg => {
             msg.reply('This command can only be used in a group!');
         }
     } else if (msg.body === '!allowNonAdminSubGroupCreation') {
-        const group = await client.getChatById('groupId@g.us');
-        if (group.isGroup && group.groupMetadata.isParentGroup) {
+        const community = await client.getChatById('groupId@g.us');
+        if (community.isCommunity) {
             /** Allow all community members to add groups to the community: */
-            await group.setNonAdminSubGroupCreation(true);
+            await community.setNonAdminSubGroupCreation(true);
             /** Allow only community admins to add groups to the community: */
-            await group.setNonAdminSubGroupCreation(false);
+            await community.setNonAdminSubGroupCreation(false);
         }
     } else if (msg.body === '!leave') {
         // Leave the group/community announcement group
