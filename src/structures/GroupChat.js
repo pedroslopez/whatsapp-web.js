@@ -283,6 +283,28 @@ class GroupChat extends Chat {
         }, this.id._serialized);
     }
 
+    /**
+     * Internal method to operate the change of group property settings
+     * @param {string} property The string value of a group property to change
+     * @param {boolean} value The boolean value to set the group property with
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async _setGroupProperty(property, value) {
+        return await this.client.pupPage.evaluate(async (chatId, property, value) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            try {
+                const response = await window.Store.GroupUtils.setGroupProperty(
+                    chatWid,
+                    property,
+                    value
+                );
+                return response.name === 'SetPropertyResponseSuccess';
+            } catch (err) {
+                if (err.name === 'SmaxParsingFailure') return false;
+                throw err;
+            }
+        }, this.id._serialized, property, value ? 1 : 0);
+    }
 }
 
 module.exports = GroupChat;

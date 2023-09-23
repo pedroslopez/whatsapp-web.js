@@ -1288,13 +1288,19 @@ declare namespace WAWebJS {
 
     export interface Community extends GroupChat {
         /**
+         * Gets all current community subgroups
+         * @returns {Promise<Array<ChatId>>} Returns an array of @type {ChatId} objects
+         */
+        getSubgroups: () => Promise<Array<ChatId>>;
+
+        /**
          * Allows or disallows for non admin community members to add groups to the community
          * @see https://faq.whatsapp.com/205306122327447
          * @param {boolean} [value=true] True to allow all community members to add groups to the community, false to disallow
          * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
          */
         setNonAdminSubGroupCreation: (value: boolean) => Promise<boolean>;
-        
+
         /**
          * Makes the bot leave the group or the community announcement group
          * @note The community creator cannot leave the announcement group but can only deactivate the community instead

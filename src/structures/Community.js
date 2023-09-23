@@ -3,6 +3,14 @@
 const GroupChat = require('./GroupChat');
 
 /**
+ * Chat ID
+ * @typedef {Object} ChatId
+ * @property {string} server
+ * @property {string} user
+ * @property {string} _serialized
+ */
+
+/**
  * Represents a Community on WhatsApp
  * @extends {GroupChat}
  */
@@ -11,6 +19,17 @@ class Community extends GroupChat {
         this.groupMetadata = data.groupMetadata;
 
         return super._patch(data);
+    }
+
+    /**
+     * Gets all current community subgroups
+     * @returns {Promise<Array<ChatId>>} Returns an array of @type {ChatId} objects
+     */
+    async getSubgroups() {
+        return await this.client.pupPage.evaluate(communityId => {
+            const communityWid = window.Store.WidFactory.createWid(communityId);
+            return window.Store.CommunityUtils.getSubgroups(communityWid);
+        }, this.id._serialized);
     }
 
     /**
