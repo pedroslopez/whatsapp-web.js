@@ -39,7 +39,7 @@ declare namespace WAWebJS {
          * Create a new group
          * @param {string} title Group title
          * @param {Array<Contact|string>} participants An array of Contacts or contact IDs to add to the group
-         * @param {CreateGroupOptions} options CreateGroup options
+         * @param {CreateGroupOptions} options An object that handles options for group creation
          * @returns {CreateGroupResult|string} Object with resulting data or an error message as a string
          */
         createGroup(title: string, participants?: Contact[] | string[], options?: CreateGroupOptions): Promise<CreateGroupResult|string>
@@ -524,6 +524,7 @@ declare namespace WAWebJS {
         plugged: boolean,
     }
 
+    /** An object that handles options for group creation */
     export interface CreateGroupOptions {
         /**
          * The number of seconds for the messages to disappear in the group,
@@ -549,6 +550,7 @@ declare namespace WAWebJS {
         comment?: string
     }
 
+    /** An object that handles the result for createGroup method */
     export interface CreateGroupResult {
         /** ID for the group that was just created */
         gid: ChatId,
@@ -1270,7 +1272,7 @@ declare namespace WAWebJS {
     export type ChangeParticipantsPermissions = 
         (participantIds: Array<string>) => Promise<{ status: number }>
 
-    /** An object that handles the result of addParticipants method */
+    /** An object that handles the result for addParticipants method */
     export interface AddParticipantsResult {
         [participantId: string]: {
             code: number;
@@ -1279,7 +1281,7 @@ declare namespace WAWebJS {
         };
     };
 
-    /** AddParticipants options */
+    /** An object that handles options for adding participants */
     export interface AddParticipantsOptions {
         /**
          * The number of milliseconds to wait before adding the next participant.

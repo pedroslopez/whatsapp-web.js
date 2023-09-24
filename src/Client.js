@@ -1288,14 +1288,14 @@ class Client extends EventEmitter {
      */
 
     /**
-     * An object that handles the result of {@link createGroup} method
+     * An object that handles the result for {@link createGroup} method
      * @typedef {Object} CreateGroupResult
      * @property {Object} gid Object (wid) for the group that was just created
      * @property {ParticipantsResult} participants An object that handles the result value for each participant
      */
 
     /**
-     * CreateGroup options
+     * An object that handles options for group creation
      * @typedef {Object} CreateGroupOptions
      * @property {number} [messageTimer] The number of seconds for the messages to disappear in the group (0 by default, won't take an effect if the group is been creating with myself only)
      * @property {string} [parentGroupId] The ID of a parent community group to link the newly created group with (won't take an effect if the group is been creating with myself only)
@@ -1304,10 +1304,10 @@ class Client extends EventEmitter {
      */
 
     /**
-     * Create a new group
+     * Creates a new group
      * @param {string} title Group title
      * @param {Array<Contact|string>} [participants] An array of Contacts or contact IDs to add to the group
-     * @param {CreateGroupOptions} [options] CreateGroup options
+     * @param {CreateGroupOptions} [options] An object that handles options for group creation
      * @returns {CreateGroupResult|string} Object with resulting data or an error message as a string
      */
     async createGroup(title, participants = [], options = {}) {
