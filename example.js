@@ -255,13 +255,15 @@ client.on('message', async msg => {
         /**
          * The example of the {@link approval} output:
          * [
-         *     {
-         *         requesterId: 'number1@c.us'
-         *     },
-         *     {
-         *         requesterId: 'number2@c.us',
-         *         error: {...}
-         *     }
+         *   {
+         *     requesterId: 'number1@c.us',
+         *     message: 'Rejected successfully'
+         *   },
+         *   {
+         *     requesterId: 'number2@c.us',
+         *     error: 404,
+         *     message: 'ParticipantRequestNotFoundError'
+         *   }
          * ]
          *
          */
