@@ -1311,6 +1311,97 @@ class Client extends EventEmitter {
     }
 
     /**
+     * An object that handles the result of {@link createCommunity} method
+     * @typedef {Object} CreateCommunityResult
+     * @property {ChatId} cid An object that handels the newly created community ID
+     * @property {string} cid.server
+     * @property {string} cid.user
+     * @property {string} cid._serialized
+     * @property {Object} subGroupIds An object that handles information about groups that were attempted to be linked to the community
+     * @property {Array<string>} subGroupIds.linkedGroupIds An array of group IDs that were successfully linked
+     * @property {Array<Object>} subGroupIds.failedGroups An object that handles groups that failed to be linked to the community and an information about it
+     * @property {string} subGroupIds.failedGroups[].groupId The group ID, in a format of 'xxxxxxxxxx@g.us'
+     * @property {number} subGroupIds.failedGroups[].error The code of an error
+     * @property {string} subGroupIds.failedGroups[].message The message that describes an error
+     */
+
+    /**
+     * Create community options
+     * @typedef {Object} CreateCommunityOptions
+     * @property {string|Array<string>|null} subGroupIds The single group ID or an array of group IDs to link to the created community
+     * @see https://faq.whatsapp.com/1110600769849613
+     * @property {boolean} [membershipApprovalMode = true] If true, admins must approve anyone who wants to join the group, true by default
+     * @see https://faq.whatsapp.com/205306122327447
+     * @property {boolean} [allowNonAdminSubGroupCreation = false] If false, only community admins can add groups to that community, members can suggest groups for admin approval. If true, every community member can add groups to that community. False by default
+     */
+
+    /**
+     * Creates a new community, optionally it is possible to link groups to that community within its creation
+     * @param {string} name The community name
+     * @param {string} description The community description
+     * @param {CreateCommunityOptions} options 
+     * @returns {Promise<CreateCommunityResult>} The object that handles the result of the community creation
+     */
+    async createCommunity(name, description, options = {}) {
+        return await this.pupPage.evaluate(async (name, desc, options = {}) => {
+            let { subGroupIds = null, membershipApprovalMode: closed = true, allowNonAdminSubGroupCreation: hasAllowNonAdminSubGroupCreation = false } = options;
+            let communityCreationResult, linkingSubGroupsResult;
+
+            try {
+                communityCreationResult = await window.Store.CommunityUtils.sendCreateCommunity({
+                    name,
+                    desc,
+                    closed,
+                    hasAllowNonAdminSubGroupCreation
+                });
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') {
+                    return 'ServerStatusCodeError: An error occupied while creating a community';
+                }
+                throw err;
+            }
+
+            if (subGroupIds) {
+                !Array.isArray(subGroupIds) && (subGroupIds = [subGroupIds]);
+                const subGroupWids = subGroupIds.map(s => window.Store.WidFactory.createWid(s));
+
+                try {
+                    linkingSubGroupsResult = await window.Store.CommunityUtils.sendLinkSubgroups({ parentGroupId: communityCreationResult.wid, subgroupIds: subGroupWids });
+                } catch (err) {
+                    if (err.name === 'ServerStatusCodeError') linkingSubGroupsResult = {};
+                    else throw err;
+                }
+
+                const { linkedGroupJids, failedGroups } = linkingSubGroupsResult;
+                const linkingGroupsResultCodes = {
+                    default: 'An unknown error occupied while linking the group to the comunity',
+                    401: 'SubGroupNotAuthorizedError',
+                    403: 'SubGroupForbiddenError',
+                    404: 'SubGroupNotExistError',
+                    406: 'SubGroupNotAcceptableError',
+                    409: 'SubGroupConflictError',
+                    419: 'SubGroupResourceLimitError',
+                    500: 'SubGroupServerError'
+                };
+
+                linkingSubGroupsResult = {
+                    linkedGroupIds: linkedGroupJids,
+                    failedGroups: failedGroups.map(g => ({
+                        groupId: g.jid,
+                        error: g.error,
+                        message: linkingGroupsResultCodes[g.error]
+                    }))
+                };
+            }
+            
+            return {
+                cid: communityCreationResult.wid,
+                ...(subGroupIds ? { subGroupIds: linkingSubGroupsResult } : {})
+            };
+        }, name, description, options);
+    }
+
+    /**
      * Get all current Labels
      * @returns {Promise<Array<Label>>}
      */

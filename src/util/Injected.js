@@ -71,6 +71,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     };
     window.Store.CommunityUtils = {
         ...window.mR.findModule('getDefaultSubgroup')[0],
+        ...window.mR.findModule('sendCreateCommunity')[0]
     };
 
     if (!window.Store.Chat._find) {

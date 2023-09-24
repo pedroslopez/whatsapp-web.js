@@ -3,7 +3,7 @@
 const GroupChat = require('./GroupChat');
 
 /**
- * Chat ID
+ * Chat ID structure
  * @typedef {Object} ChatId
  * @property {string} server
  * @property {string} user

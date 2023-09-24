@@ -42,6 +42,12 @@ declare namespace WAWebJS {
          */
         createGroup(name: string, participants: Contact[] | string[]): Promise<CreateGroupResult>
 
+        /**
+         * Creates a new community,
+         * optionally it is possible to link groups to that community within its creation
+         */
+        createCommunity(name: string, description: string, options: CreateCommunityOptions): Promise<CreateCommunityResult>
+
         /** Closes the client */
         destroy(): Promise<void>
 
@@ -1273,14 +1279,14 @@ declare namespace WAWebJS {
         setSubject: (subject: string) => Promise<boolean>;
         /** Updates the group description */
         setDescription: (description: string) => Promise<boolean>;
-        /** Updates the group settings to only allow admins to send messages 
-         * @param {boolean} [adminsOnly=true] Enable or disable this option 
+        /** Updates the group settings to only allow admins to send messages
+         * @param {boolean} [adminsOnly=true] Enable or disable this option
          * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
          */
         setMessagesAdminsOnly: (adminsOnly?: boolean) => Promise<boolean>;
         /**
          * Updates the group settings to only allow admins to edit group info (title, description, photo).
-         * @param {boolean} [adminsOnly=true] Enable or disable this option 
+         * @param {boolean} [adminsOnly=true] Enable or disable this option
          * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
          */
         setInfoAdminsOnly: (adminsOnly?: boolean) => Promise<boolean>;
@@ -1288,8 +1294,12 @@ declare namespace WAWebJS {
         getInviteCode: () => Promise<string>;
         /** Invalidates the current group invite code and generates a new one */
         revokeInvite: () => Promise<void>;
-        /** Makes the bot leave the group */
-        leave: () => Promise<void>;
+        /**
+         * Makes the bot leave the group or the community announcement group
+         * @note The community creator cannot leave the announcement group but can only deactivate the community instead
+         * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+         */
+        leave: () => Promise<boolean>;
         /** Sets the group's picture.*/
         setPicture: (media: MessageMedia) => Promise<boolean>;
         /** Deletes the group's picture */
@@ -1310,13 +1320,46 @@ declare namespace WAWebJS {
          * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
          */
         setNonAdminSubGroupCreation: (value: boolean) => Promise<boolean>;
+    }
 
+    /** Create community options */
+    export interface CreateCommunityOptions {
+        /** The single group ID or an array of group IDs to link to the created community */
+        subGroupIds: string|Array<string>|null
         /**
-         * Makes the bot leave the group or the community announcement group
-         * @note The community creator cannot leave the announcement group but can only deactivate the community instead
-         * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+         * If true, admins must approve anyone who wants to join the group, true by default
+         * @see https://faq.whatsapp.com/1110600769849613
+         * @default true
          */
-        leave: () => Promise<boolean>;
+        membershipApprovalMode: boolean
+        /**
+         * If false, only community admins can add groups to that community,
+         * members can suggest groups for admin approval.
+         * If true, every community member can add groups to that community. False by default
+         * @see https://faq.whatsapp.com/205306122327447
+         * @default false
+         */
+        allowNonAdminSubGroupCreation: boolean
+    }
+
+    /** An object that handles the result of createCommunity method */
+    export interface CreateCommunityResult {
+        /** An object that handels the newly created community ID */
+        cid: ChatId;
+        /** An object that handles information about groups that were attempted to be linked to the community */
+        subGroupIds?: {
+            /** An array of group IDs that were successfully linked */
+            linkedGroupIds: string[];
+            /** An object that handles groups that failed to be linked to the community and an information about it */
+            failedGroups: {
+                /** The group ID, in a format of 'xxxxxxxxxx@g.us' */
+                groupId: string;
+                /** The code of an error */
+                error: number;
+                /** The message that describes an error */
+                message: string;
+            }[];
+        };
     }
 
     /**
