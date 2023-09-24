@@ -943,6 +943,11 @@ exports.LoadUtils = () => {
                         });
                         _ && result.push(_);
                     }
+                } else {
+                    result.push({
+                        requesterId: window.Store.JidToWid.userJidToUserWid(participant.participantArgs[0].participantJid)._serialized,
+                        message: 'ServerStatusCodeError'
+                    });
                 }
 
                 sleep &&
