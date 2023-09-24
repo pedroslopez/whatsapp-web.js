@@ -287,7 +287,8 @@ class GroupChat extends Chat {
      * An object that handles the result for membership request action
      * @typedef {Object} MembershipRequestActionResult
      * @property {string} requesterId User ID whos membership request was approved/rejected
-     * @property {Object|null} error An error that occurred during the operation for the participant, if any
+     * @property {number} error An error code that occurred during the operation for the participant
+     * @property {string} message A message with a result of membership request action
      */
 
     /**
@@ -300,7 +301,7 @@ class GroupChat extends Chat {
     /**
      * Approves membership requests if any
      * @param {MembershipRequestActionOptions} options Options for performing a membership request action
-     * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were approved and an error for each requester, if any occurred during the operation
+     * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were approved and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned
      */
     async approveGroupMembershipRequests(options = {}) {
         return await this.client.approveGroupMembershipRequests(this.id._serialized, options);
@@ -309,7 +310,7 @@ class GroupChat extends Chat {
     /**
      * Rejects membership requests if any
      * @param {MembershipRequestActionOptions} options Options for performing a membership request action
-     * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were approved and an error for each requester, if any occurred during the operation
+     * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were rejected and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned
      */
     async rejectGroupMembershipRequests(options = {}) {
         return await this.client.rejectGroupMembershipRequests(this.id._serialized, options);

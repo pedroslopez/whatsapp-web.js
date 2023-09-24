@@ -880,14 +880,12 @@ exports.LoadUtils = () => {
             membershipRequests = group.groupMetadata.membershipApprovalRequests._models.map(({ id }) => id);
         } else {
             !Array.isArray(requesterIds) && (requesterIds = [requesterIds]);
-            membershipRequests = group.groupMetadata.membershipApprovalRequests._models
-                .filter((m) => requesterIds.includes(m.id._serialized))
-                .map(({ id }) => id);
+            membershipRequests = requesterIds.map(r => window.Store.WidFactory.createWid(r));
         }
 
         if (!membershipRequests.length) return [];
 
-        const participantArgs = membershipRequests.map((m) => ({
+        const participantArgs = membershipRequests.map(m => ({
             participantArgs: [
                 {
                     participantJid: window.Store.WidToJid.widToUserJid(m)
@@ -908,11 +906,23 @@ exports.LoadUtils = () => {
             return Math.floor(Math.random() * (sleep[1] - sleep[0] + 1)) + sleep[0];
         };
 
+        const membReqResCodes = {
+            default: `An unknown error occupied while ${toApprove ? 'approving' : 'rejecting'} the participant membership request`,
+            400: 'ParticipantNotFoundError',
+            401: 'ParticipantNotAuthorizedError',
+            403: 'ParticipantForbiddenError',
+            404: 'ParticipantRequestNotFoundError',
+            408: 'ParticipantTemporarilyBlockedError',
+            409: 'ParticipantConflictError',
+            412: 'ParticipantParentLinkedGroupsResourceConstraintError',
+            500: 'ParticipantResourceConstraintError'
+        };
+
         try {
-            for (const args of participantArgs) {
+            for (const participant of participantArgs) {
                 response = await window.Store.MembershipRequestUtils.sendMembershipRequestsActionRPC({
                     iqTo: groupJid,
-                    [toApprove ? 'approveArgs' : 'rejectArgs']: args
+                    [toApprove ? 'approveArgs' : 'rejectArgs']: participant
                 });
 
                 if (response.name === 'MembershipRequestsActionResponseSuccess') {
@@ -920,13 +930,15 @@ exports.LoadUtils = () => {
                         ? response.value.membershipRequestsActionApprove
                         : response.value.membershipRequestsActionReject;
                     if (value?.participant) {
-                        const [_] = value.participant.map((p) => {
+                        const [_] = value.participant.map(p => {
                             const error = toApprove
-                                ? value.participant.membershipRequestsActionAcceptParticipantMixins
-                                : value.participant.membershipRequestsActionRejectParticipantMixins;
+                                ? value.participant[0].membershipRequestsActionAcceptParticipantMixins?.value.error
+                                : value.participant[0].membershipRequestsActionRejectParticipantMixins?.value.error;
                             return {
                                 requesterId: window.Store.WidFactory.createWid(p.jid)._serialized,
-                                ...(error ? { error: error } : {})
+                                ...(error
+                                    ? { error: +error, message: membReqResCodes[error] }
+                                    : { message: `${toApprove ? 'Approved' : 'Rejected'} successfully` })
                             };
                         });
                         _ && result.push(_);
@@ -935,7 +947,7 @@ exports.LoadUtils = () => {
 
                 sleep &&
                     participantArgs.length > 1 &&
-                    participantArgs.indexOf(args) !== participantArgs.length - 1 &&
+                    participantArgs.indexOf(participant) !== participantArgs.length - 1 &&
                     (await new Promise((resolve) => setTimeout(resolve, _getSleepTime(sleep))));
             }
             return result;

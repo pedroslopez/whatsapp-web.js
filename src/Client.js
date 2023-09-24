@@ -1473,7 +1473,8 @@ class Client extends EventEmitter {
      * An object that handles the result for membership request action
      * @typedef {Object} MembershipRequestActionResult
      * @property {string} requesterId User ID whos membership request was approved/rejected
-     * @property {Object|null} error An error that occurred during the operation for the participant, if any
+     * @property {number|undefined} error An error code that occurred during the operation for the participant
+     * @property {string} message A message with a result of membership request action
      */
 
     /**
@@ -1487,7 +1488,7 @@ class Client extends EventEmitter {
      * Approves membership requests if any
      * @param {string} groupId The group ID to get the membership request for
      * @param {MembershipRequestActionOptions} options Options for performing a membership request action
-     * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were approved and an error for each requester, if any occurred during the operation
+     * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were approved and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned
      */
     async approveGroupMembershipRequests(groupId, options = {}) {
         return await this.pupPage.evaluate(async (groupId, options) => {
@@ -1500,7 +1501,7 @@ class Client extends EventEmitter {
      * Rejects membership requests if any
      * @param {string} groupId The group ID to get the membership request for
      * @param {MembershipRequestActionOptions} options Options for performing a membership request action
-     * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were rejected and an error for each requester, if any occurred during the operation
+     * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were rejected and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned
      */
     async rejectGroupMembershipRequests(groupId, options = {}) {
         return await this.pupPage.evaluate(async (groupId, options) => {
