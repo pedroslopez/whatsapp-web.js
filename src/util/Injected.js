@@ -866,7 +866,7 @@ exports.LoadUtils = () => {
         }
     };
 
-    window.WWebJS.membershipRequestAction = async (groupId, action, requesterIds = null, sleep = [250, 500]) => {
+    window.WWebJS.membershipRequestAction = async (groupId, action, requesterIds, sleep) => {
         const groupWid = window.Store.WidFactory.createWid(groupId);
         const group = await window.Store.Chat.find(groupWid);
         const toApprove = action === 'Approve';
