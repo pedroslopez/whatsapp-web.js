@@ -244,12 +244,14 @@ client.on('message', async msg => {
          * Presented an example for membership request approvals, the same examples are for the request rejections.
          * To approve the membership request from a specific user:
          */
-        await client.approveGroupMembershipRequests(msg.from, 'number@c.us');
+        await client.approveGroupMembershipRequests(msg.from, { requesterIds: 'number@c.us' });
         /** The same for execution on group object (no need to provide the group ID): */
         const group = await msg.getChat();
-        await group.approveGroupMembershipRequests('number@c.us');
+        await group.approveGroupMembershipRequests({ requesterIds: 'number@c.us' });
         /** To approve several membership requests: */
-        const approval = await client.approveGroupMembershipRequests(msg.from, ['number1@c.us', 'number2@c.us']);
+        const approval = await client.approveGroupMembershipRequests(msg.from, {
+            requesterIds: ['number1@c.us', 'number2@c.us']
+        });
         /**
          * The example of the {@link approval} output:
          * [
@@ -267,11 +269,20 @@ client.on('message', async msg => {
         /** To approve all the existing membership requests (simply don't provide any user IDs): */
         await client.approveGroupMembershipRequests(msg.from);
         /** To change the sleep value to 300 ms: */
-        await client.approveGroupMembershipRequests(msg.from, ['number1@c.us', 'number2@c.us'], 300);
+        await client.approveGroupMembershipRequests(msg.from, {
+            requesterIds: ['number1@c.us', 'number2@c.us'],
+            sleep: 300
+        });
         /** To change the sleep value to random value between 100 and 300 ms: */
-        await client.approveGroupMembershipRequests(msg.from, ['number1@c.us', 'number2@c.us'], [100, 300]);
+        await client.approveGroupMembershipRequests(msg.from, {
+            requesterIds: ['number1@c.us', 'number2@c.us'],
+            sleep: [100, 300]
+        });
         /** To explicitly disable the sleep: */
-        await client.approveGroupMembershipRequests(msg.from, ['number1@c.us', 'number2@c.us'], null);
+        await client.approveGroupMembershipRequests(msg.from, {
+            requesterIds: ['number1@c.us', 'number2@c.us'],
+            sleep: null
+        });
     }
 });
 
