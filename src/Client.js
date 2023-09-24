@@ -1470,36 +1470,43 @@ class Client extends EventEmitter {
     }
 
     /**
-     * An object that handles the result of membership request action
+     * An object that handles the result for membership request action
      * @typedef {Object} MembershipRequestActionResult
      * @property {string} requesterId User ID whos membership request was approved/rejected
      * @property {Object|null} error An error that occurred during the operation for the participant, if any
      */
 
     /**
+     * An object that handles options for {@link approveGroupMembershipRequests} and {@link rejectGroupMembershipRequests} methods
+     * @typedef {Object} MembershipRequestActionOptions
+     * @property {Array<string>|string|null} requesterIds User ID/s who requested to join the group, if no value is provided, the method will search for all membership requests for that group
+     * @property {Array<number>|number|null} sleep The number of milliseconds to wait before performing an operation for the next requester. If it is an array, a random sleep time between the sleep[0] and sleep[1] values will be added (the difference must be >=100 ms, otherwise, a random sleep time between sleep[1] and sleep[1] + 100 will be added). If sleep is a number, a sleep time equal to its value will be added. By default, sleep is an array with a value of [250, 500]
+     */
+
+    /**
      * Approves membership requests if any
      * @param {string} groupId The group ID to get the membership request for
-     * @param {Array<string>|string|null} requesterIds User ID/s who requested to join the group, if no value is provided, the method will search for all membership requests for that group
-     * @param {Array<number>|number|null} sleep The number of milliseconds to wait before performing an operation for the next requester. If it is an array, a random sleep time between the sleep[0] and sleep[1] values will be added (the difference must be >=100 ms, otherwise, a random sleep time between sleep[1] and sleep[1] + 100 will be added). If sleep is a number, a sleep time equal to its value will be added. By default, sleep is an array with a value of [250, 500]
+     * @param {MembershipRequestActionOptions} options Options for performing a membership request action
      * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were approved and an error for each requester, if any occurred during the operation
      */
-    async approveGroupMembershipRequests(groupId, requesterIds = null, sleep = [250, 500]) {
-        return await this.pupPage.evaluate(async (groupId, requesterIds, sleep) => {
+    async approveGroupMembershipRequests(groupId, options = {}) {
+        return await this.pupPage.evaluate(async (groupId, options) => {
+            const { requesterIds = null, sleep = [250, 500] } = options;
             return await window.WWebJS.membershipRequestAction(groupId, 'Approve', requesterIds, sleep);
-        }, groupId, requesterIds, sleep);
+        }, groupId, options);
     }
 
     /**
      * Rejects membership requests if any
      * @param {string} groupId The group ID to get the membership request for
-     * @param {Array<string>|string|null} requesterIds User ID/s who requested to join the group, if no value is provided, the method will search for all membership requests for that group
-     * @param {Array<number>|number|null} sleep The number of milliseconds to wait before performing an operation for the next requester. If it is an array, a random sleep time between the sleep[0] and sleep[1] values will be added (the difference must be >=100 ms, otherwise, a random sleep time between sleep[1] and sleep[1] + 100 will be added). If sleep is a number, a sleep time equal to its value will be added. By default, sleep is an array with a value of [250, 500]
+     * @param {MembershipRequestActionOptions} options Options for performing a membership request action
      * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were rejected and an error for each requester, if any occurred during the operation
      */
-    async rejectGroupMembershipRequests(groupId, requesterIds = null, sleep = [250, 500]) {
-        return await this.pupPage.evaluate(async (groupId, requesterIds, sleep) => {
+    async rejectGroupMembershipRequests(groupId, options = {}) {
+        return await this.pupPage.evaluate(async (groupId, options) => {
+            const { requesterIds = null, sleep = [250, 500] } = options;
             return await window.WWebJS.membershipRequestAction(groupId, 'Reject', requesterIds, sleep);
-        }, groupId, requesterIds, sleep);
+        }, groupId, options);
     }
 }
 
