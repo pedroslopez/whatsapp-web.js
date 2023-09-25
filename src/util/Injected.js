@@ -937,7 +937,7 @@ exports.LoadUtils = () => {
                             return {
                                 requesterId: window.Store.WidFactory.createWid(p.jid)._serialized,
                                 ...(error
-                                    ? { error: +error, message: membReqResCodes[error] }
+                                    ? { error: +error, message: membReqResCodes[error] || membReqResCodes.default }
                                     : { message: `${toApprove ? 'Approved' : 'Rejected'} successfully` })
                             };
                         });
