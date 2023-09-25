@@ -1342,7 +1342,7 @@ declare namespace WAWebJS {
         allowNonAdminSubGroupCreation: boolean
     }
 
-    /** An object that handles the result of createCommunity method */
+    /** An object that handles the result for createCommunity method */
     export interface CreateCommunityResult {
         /** An object that handels the newly created community ID */
         cid: ChatId;

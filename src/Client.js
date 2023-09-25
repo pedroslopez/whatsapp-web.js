@@ -1311,7 +1311,7 @@ class Client extends EventEmitter {
     }
 
     /**
-     * An object that handles the result of {@link createCommunity} method
+     * An object that handles the result for {@link createCommunity} method
      * @typedef {Object} CreateCommunityResult
      * @property {ChatId} cid An object that handels the newly created community ID
      * @property {string} cid.server
@@ -1340,7 +1340,7 @@ class Client extends EventEmitter {
      * @param {string} name The community name
      * @param {string} description The community description
      * @param {CreateCommunityOptions} options 
-     * @returns {Promise<CreateCommunityResult>} The object that handles the result of the community creation
+     * @returns {Promise<CreateCommunityResult>} The object that handles the result for the community creation
      */
     async createCommunity(name, description, options = {}) {
         return await this.pupPage.evaluate(async (name, desc, options = {}) => {
