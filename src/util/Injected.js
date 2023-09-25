@@ -866,4 +866,43 @@ exports.LoadUtils = () => {
             throw err;
         }
     };
+
+    window.WWebJS.linkSubgroups = async (parentGroupId, subGroupIds) => {
+        !Array.isArray(subGroupIds) && (subGroupIds = [subGroupIds]);
+        const subGroupWids = subGroupIds.map((s) => window.Store.WidFactory.createWid(s));
+        let linkingSubGroupsResult;
+
+        try {
+            linkingSubGroupsResult = await window.Store.CommunityUtils.sendLinkSubgroups({
+                parentGroupId: window.Store.WidFactory.createWid(parentGroupId),
+                subgroupIds: subGroupWids
+            });
+        } catch (err) {
+            if (err.name === 'ServerStatusCodeError') linkingSubGroupsResult = {};
+            else throw err;
+        }
+
+        const { linkedGroupJids, failedGroups } = linkingSubGroupsResult;
+        const linkingGroupsResultCodes = {
+            default: 'An unknown error occupied while linking the group to the comunity',
+            401: 'SubGroupNotAuthorizedError',
+            403: 'SubGroupForbiddenError',
+            404: 'SubGroupNotExistError',
+            406: 'SubGroupNotAcceptableError',
+            409: 'SubGroupConflictError',
+            419: 'SubGroupResourceLimitError',
+            500: 'SubGroupServerError'
+        };
+
+        linkingSubGroupsResult = {
+            linkedGroupIds: linkedGroupJids,
+            failedGroups: failedGroups.map((g) => ({
+                groupId: g.jid,
+                error: +g.error,
+                message: linkingGroupsResultCodes[g.error] || linkingGroupsResultCodes.default
+            }))
+        };
+
+        return linkingSubGroupsResult;
+    };
 };

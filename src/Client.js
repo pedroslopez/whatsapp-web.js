@@ -1362,36 +1362,10 @@ class Client extends EventEmitter {
             }
 
             if (subGroupIds) {
-                !Array.isArray(subGroupIds) && (subGroupIds = [subGroupIds]);
-                const subGroupWids = subGroupIds.map(s => window.Store.WidFactory.createWid(s));
-
-                try {
-                    linkingSubGroupsResult = await window.Store.CommunityUtils.sendLinkSubgroups({ parentGroupId: communityCreationResult.wid, subgroupIds: subGroupWids });
-                } catch (err) {
-                    if (err.name === 'ServerStatusCodeError') linkingSubGroupsResult = {};
-                    else throw err;
-                }
-
-                const { linkedGroupJids, failedGroups } = linkingSubGroupsResult;
-                const linkingGroupsResultCodes = {
-                    default: 'An unknown error occupied while linking the group to the comunity',
-                    401: 'SubGroupNotAuthorizedError',
-                    403: 'SubGroupForbiddenError',
-                    404: 'SubGroupNotExistError',
-                    406: 'SubGroupNotAcceptableError',
-                    409: 'SubGroupConflictError',
-                    419: 'SubGroupResourceLimitError',
-                    500: 'SubGroupServerError'
-                };
-
-                linkingSubGroupsResult = {
-                    linkedGroupIds: linkedGroupJids,
-                    failedGroups: failedGroups.map(g => ({
-                        groupId: g.jid,
-                        error: +g.error,
-                        message: linkingGroupsResultCodes[g.error] || linkingGroupsResultCodes.default
-                    }))
-                };
+                linkingSubGroupsResult = await window.WWebJS.linkSubgroups(
+                    communityCreationResult.wid._serialized,
+                    subGroupIds
+                );
             }
             
             return {
