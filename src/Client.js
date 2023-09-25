@@ -1389,7 +1389,7 @@ class Client extends EventEmitter {
                     failedGroups: failedGroups.map(g => ({
                         groupId: g.jid,
                         error: +g.error,
-                        message: linkingGroupsResultCodes[g.error]
+                        message: linkingGroupsResultCodes[g.error] || linkingGroupsResultCodes.default
                     }))
                 };
             }
