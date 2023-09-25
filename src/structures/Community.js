@@ -33,6 +33,30 @@ class Community extends GroupChat {
     }
 
     /**
+     * An object that handles the result for {@link linkSubgroups} method
+     * @typedef {Object} LinkSubGroupsResult
+     * @property {Array<string>} linkedGroupIds An array of group IDs that were successfully linked
+     * @property {Array<Object>} failedGroups An object that handles groups that failed to be linked to the community and an information about it
+     * @property {string} failedGroups[].groupId The group ID, in a format of 'xxxxxxxxxx@g.us'
+     * @property {number} failedGroups[].error The code of an error
+     * @property {string} failedGroups[].message The message that describes an error
+     */
+
+    /**
+     * Links a single subgroup or an array of subgroups to the community
+     * @param {string} parentGroupId The ID of a community parent group
+     * @param {string|Array<string>} subGroupIds The single group ID or an array of group IDs to link to the created community
+     * @returns {Promise<LinkSubGroupsResult>} Returns an object that handles the result for the linking subgroups action
+     */
+    async linkSubgroups(parentGroupId, subGroupIds) {
+        return await this.client.pupPage.evaluate(
+            async (parentGroupId, subGroupIds) => {
+                return await window.WWebJS.linkSubgroups(parentGroupId, subGroupIds);
+            }, parentGroupId, subGroupIds
+        );
+    }
+
+    /**
      * Allows or disallows for non admin community members to add groups to the community
      * @see https://faq.whatsapp.com/205306122327447
      * @param {boolean} [value=true] True to allow all community members to add groups to the community, false to disallow

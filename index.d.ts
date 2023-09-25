@@ -1313,6 +1313,9 @@ declare namespace WAWebJS {
          */
         getSubgroups: () => Promise<Array<ChatId>>;
 
+        /** Links a single subgroup or an array of subgroups to the community */
+        linkSubgroups: (parentGroupId: string, subGroupIds: string | Array<string>) => Promise<LinkSubGroupsResult>;
+
         /**
          * Allows or disallows for non admin community members to add groups to the community
          * @see https://faq.whatsapp.com/205306122327447
@@ -1360,6 +1363,21 @@ declare namespace WAWebJS {
                 message: string;
             }[];
         };
+    }
+
+    /** An object that handles the result for linkSubgroups method */
+    export interface LinkSubGroupsResult {
+        /** An array of group IDs that were successfully linked */
+        linkedGroupIds: string[];
+        /** An object that handles groups that failed to be linked to the community and an information about it */
+        failedGroups: {
+            /** The group ID, in a format of 'xxxxxxxxxx@g.us' */
+            groupId: string;
+            /** The code of an error */
+            error: number;
+            /** The message that describes an error */
+            message: string;
+        }[];
     }
 
     /**
