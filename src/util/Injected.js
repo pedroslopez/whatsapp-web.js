@@ -46,11 +46,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.ChatState = window.mR.findModule('sendChatStateComposing')[0];
     window.Store.GroupParticipants = window.mR.findModule('promoteParticipants')[0];
     window.Store.JoinInviteV4 = window.mR.findModule('queryGroupInviteV4')[0];
-    window.Store.findCommonGroups = window.mR.findModule('findCommonGroups')[0].findCommonGroups;
     window.Store.StatusUtils = window.mR.findModule('setMyStatus')[0];
     window.Store.ConversationMsgs = window.mR.findModule('loadEarlierMsgs')[0];
-    window.Store.sendReactionToMsg = window.mR.findModule('sendReactionToMsg')[0].sendReactionToMsg;
-    window.Store.createOrUpdateReactionsModule = window.mR.findModule('createOrUpdateReactions')[0];
     window.Store.EphemeralFields = window.mR.findModule('getEphemeralFields')[0];
     window.Store.ReplyUtils = window.mR.findModule('canReplyMsg').length > 0 && window.mR.findModule('canReplyMsg')[0];
     window.Store.MsgActionChecks = window.mR.findModule('canSenderRevokeMsg')[0];
@@ -103,6 +100,48 @@ exports.ExposeStore = (moduleRaidStr) => {
     }
 
     /**
+     * Helper function that compares between two WWeb versions. Its purpose is to help the developer to choose the correct code implementation depending on the comparison value and the WWeb version.
+     * @param {string} lOperand The left operand for the WWeb version string to compare with
+     * @param {string} operator The comparison operator
+     * @param {string} rOperand The right operand for the WWeb version string to compare with
+     * @returns {boolean} Boolean value that indicates the result of the comparison
+     */
+    window.compareWwebVersions = (lOperand, operator, rOperand) => {
+        if (!['>', '>=', '<', '<=', '='].includes(operator)) {
+            throw new class _ extends Error {
+                constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
+            }('Invalid comparison operator is provided');
+
+        }
+        if (typeof lOperand !== 'string' || typeof rOperand !== 'string') {
+            throw new class _ extends Error {
+                constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
+            }('A non-string WWeb version type is provided');
+        }
+
+        lOperand = lOperand.replace(/-beta$/, '');
+        rOperand = rOperand.replace(/-beta$/, '');
+
+        while (lOperand.length !== rOperand.length) {
+            lOperand.length > rOperand.length
+                ? rOperand = rOperand.concat('0')
+                : lOperand = lOperand.concat('0');
+        }
+
+        lOperand = Number(lOperand.replace(/\./g, ''));
+        rOperand = Number(rOperand.replace(/\./g, ''));
+
+        return (
+            operator === '>' ? lOperand > rOperand :
+                operator === '>=' ? lOperand >= rOperand :
+                    operator === '<' ? lOperand < rOperand :
+                        operator === '<=' ? lOperand <= rOperand :
+                            operator === '=' ? lOperand === rOperand :
+                                false
+        );
+    };
+  
+    /**
      * Target options object description
      * @typedef {Object} TargetOptions
      * @property {string|number} moduleId The name or a key of the target module to search
@@ -137,6 +176,25 @@ exports.ExposeStore = (moduleRaidStr) => {
      * @see https://github.com/wppconnect-team/wa-js/blob/e19164e83cfa68b828493e6ff046c0a3d46a4942/src/chat/functions/sendLocationMessage.ts#L164
      */
     window.injectToFunction({ moduleId: 'typeAttributeFromProtobuf', index: 0, property: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? 'text' : func(...args); });
+};
+
+exports.ExposeReadyStore = () => {
+    window.Store.findCommonGroups = window.mR.findModule('findCommonGroups')[0].findCommonGroups;
+    window.Store.createOrUpdateReactionsModule = window.mR.findModule('createOrUpdateReactions')[0];
+    window.Store.sendReactionToMsg = window.mR.findModule('sendReactionToMsg')[0].sendReactionToMsg;
+    const module = window.Store.createOrUpdateReactionsModule;
+    const ogMethod = module.createOrUpdateReactions;
+    module.createOrUpdateReactions = ((...args) => {
+        window.onReaction(args[0].map(reaction => {
+            const msgKey = window.Store.MsgKey.fromString(reaction.msgKey);
+            const parentMsgKey = window.Store.MsgKey.fromString(reaction.parentMsgKey);
+            const timestamp = reaction.timestamp / 1000;
+
+            return {...reaction, msgKey, parentMsgKey, timestamp };
+        }));
+
+        return ogMethod(...args);
+    }).bind(module);
 };
 
 exports.LoadUtils = () => {
