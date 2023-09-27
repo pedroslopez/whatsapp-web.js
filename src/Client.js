@@ -7,7 +7,7 @@ const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
 const Util = require('./util/Util');
 const InterfaceController = require('./util/InterfaceController');
 const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constants');
-const { ExposeStore, LoadUtils } = require('./util/Injected');
+const { ExposeStore, LoadUtils, ExposeReadyStore } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
 const WebCacheFactory = require('./webCache/WebCacheFactory');
@@ -129,11 +129,15 @@ class Client extends EventEmitter {
         // wait till page load
         await page.waitForSelector('[class=landing-main]', { timeout: this.options.authTimeoutMs });
 
-        await page.evaluate(ExposeStore, moduleRaid.toString()).catch(async a => {
-            if (a.message.includes('EmojiUtil')) {
-                await page.evaluate(ExposeStore, moduleRaid.toString());
-            }
-        });
+        const inject = async () => {
+            await page.evaluate(ExposeStore, moduleRaid.toString()).catch(async a => {
+                if (a.message.includes('EmojiUtil') || a.message.includes('Prism') || a.message.includes('createOrUpdateReactions')) {
+                    await inject();
+                }
+                console.log(a.message);
+            });
+        };
+        await inject();
 
         // Check window.Store Injection
         await page.waitForFunction('window.Store != undefined');
@@ -242,7 +246,7 @@ class Client extends EventEmitter {
             }
             // if we are logged out, print the current qr code
             await page.evaluate(() => {
-                const conn = window.Store.Conn;
+                const conn = window.Store.Conn.serialize();
                 window.onQRChanged(conn.ref);
             });
         }
@@ -459,6 +463,10 @@ class Client extends EventEmitter {
 
             const ACCEPTED_STATES = [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING, WAState.TIMEOUT];
 
+            if (state == WAState.PAIRING) {
+                ExposeReadyStore();
+            }
+
             if (this.options.takeoverOnConflict) {
                 ACCEPTED_STATES.push(WAState.CONFLICT);
 
@@ -571,6 +579,10 @@ class Client extends EventEmitter {
             this.emit(Events.MESSAGE_EDIT, new Message(this, msg), newBody, prevBody);
         });
 
+        await page.exposeFunction('logConsole', (...log) => {
+            console.log(...log);
+        });
+
         await page.evaluate(() => {
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
@@ -594,25 +606,9 @@ class Client extends EventEmitter {
                 }
             });
             window.Store.Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
-            window.Store.Conn.on('change:ref', (_Conn, before, after) => {window.onQRChanged(after);}); // change in qr code "ref"
+            window.Store.Conn.on('change:ref', (_Conn, before, after) => {window.onQRChanged(!after ? before : after);}); // change in qr code "ref"
             window.Store.Conn.on('change:hasSynced', (_Conn, hasSynced) => {window.onReady(hasSynced);}); // have we finished syncing so that we can be "ready" ? 
             
-            
-            {
-                const module = window.Store.createOrUpdateReactionsModule;
-                const ogMethod = module.createOrUpdateReactions;
-                module.createOrUpdateReactions = ((...args) => {
-                    window.onReaction(args[0].map(reaction => {
-                        const msgKey = window.Store.MsgKey.fromString(reaction.msgKey);
-                        const parentMsgKey = window.Store.MsgKey.fromString(reaction.parentMsgKey);
-                        const timestamp = reaction.timestamp / 1000;
-
-                        return {...reaction, msgKey, parentMsgKey, timestamp };
-                    }));
-
-                    return ogMethod(...args);
-                }).bind(module);
-            }
         });
 
         // Disconnect when navigating away when in PAIRING state (detect logout)

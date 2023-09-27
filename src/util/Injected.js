@@ -46,11 +46,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.ChatState = window.mR.findModule('sendChatStateComposing')[0];
     window.Store.GroupParticipants = window.mR.findModule('promoteParticipants')[0];
     window.Store.JoinInviteV4 = window.mR.findModule('queryGroupInviteV4')[0];
-    window.Store.findCommonGroups = window.mR.findModule('findCommonGroups')[0].findCommonGroups;
     window.Store.StatusUtils = window.mR.findModule('setMyStatus')[0];
     window.Store.ConversationMsgs = window.mR.findModule('loadEarlierMsgs')[0];
-    window.Store.sendReactionToMsg = window.mR.findModule('sendReactionToMsg')[0].sendReactionToMsg;
-    window.Store.createOrUpdateReactionsModule = window.mR.findModule('createOrUpdateReactions')[0];
     window.Store.EphemeralFields = window.mR.findModule('getEphemeralFields')[0];
     window.Store.ReplyUtils = window.mR.findModule('canReplyMsg').length > 0 && window.mR.findModule('canReplyMsg')[0];
     window.Store.MsgActionChecks = window.mR.findModule('canSenderRevokeMsg')[0];
@@ -179,6 +176,25 @@ exports.ExposeStore = (moduleRaidStr) => {
      * @see https://github.com/wppconnect-team/wa-js/blob/e19164e83cfa68b828493e6ff046c0a3d46a4942/src/chat/functions/sendLocationMessage.ts#L164
      */
     window.injectToFunction({ moduleId: 'typeAttributeFromProtobuf', index: 0, property: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? 'text' : func(...args); });
+};
+
+exports.ExposeReadyStore = () => {
+    window.Store.findCommonGroups = window.mR.findModule('findCommonGroups')[0].findCommonGroups;
+    window.Store.createOrUpdateReactionsModule = window.mR.findModule('createOrUpdateReactions')[0];
+    window.Store.sendReactionToMsg = window.mR.findModule('sendReactionToMsg')[0].sendReactionToMsg;
+    const module = window.Store.createOrUpdateReactionsModule;
+    const ogMethod = module.createOrUpdateReactions;
+    module.createOrUpdateReactions = ((...args) => {
+        window.onReaction(args[0].map(reaction => {
+            const msgKey = window.Store.MsgKey.fromString(reaction.msgKey);
+            const parentMsgKey = window.Store.MsgKey.fromString(reaction.parentMsgKey);
+            const timestamp = reaction.timestamp / 1000;
+
+            return {...reaction, msgKey, parentMsgKey, timestamp };
+        }));
+
+        return ogMethod(...args);
+    }).bind(module);
 };
 
 exports.LoadUtils = () => {
