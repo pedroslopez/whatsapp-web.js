@@ -865,7 +865,8 @@ class Client extends EventEmitter {
                 }, this.pupPage
             );
         }
-
+        console.log("chatId")
+        console.log(chatId)
         const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             const chat = await window.Store.Chat.find(chatWid);
@@ -878,6 +879,7 @@ class Client extends EventEmitter {
             const msg = await window.WWebJS.sendMessage(chat, message, options, sendSeen);
             return msg.serialize();
         }, chatId, content, internalOptions, sendSeen);
+
 
         return new Message(this, newMessage);
     }
