@@ -1377,6 +1377,24 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Deactivates the community
+     * @param {string} parentGroupId The ID of a community parent group
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async deactivateCommunity(parentGroupId) {
+        return await this.pupPage.evaluate(async (parentGroupId) => {
+            const communityWid = window.Store.WidFactory.createWid(parentGroupId);
+            try {
+                const response = await window.Store.CommunityUtils.sendDeactivateCommunity(communityWid);
+                return response ? true : false;
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return false;
+                throw err;
+            }
+        }, parentGroupId);
+    }
+
+    /**
      * Get all current Labels
      * @returns {Promise<Array<Label>>}
      */

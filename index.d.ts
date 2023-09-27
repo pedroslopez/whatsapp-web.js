@@ -48,6 +48,9 @@ declare namespace WAWebJS {
          */
         createCommunity(name: string, description: string, options: CreateCommunityOptions): Promise<CreateCommunityResult>
 
+        /** Deactivates the community */
+        deactivateCommunity: (parentGroupId: string) => Promise<boolean>;
+
         /** Closes the client */
         destroy(): Promise<void>
 
@@ -1325,6 +1328,9 @@ declare namespace WAWebJS {
 
         /** Allows or disallows for non admin community members to add groups to the community */
         setNonAdminSubGroupCreation: (value: boolean) => Promise<boolean>;
+
+        /** Deactivates the community */
+        deactivate: () => Promise<boolean>;
     }
 
     /** Create community options */

@@ -52,11 +52,7 @@ class Community extends GroupChat {
     async linkSubgroups(parentGroupId, subGroupIds) {
         return await this.client.pupPage.evaluate(
             async (parentGroupId, subGroupIds) => {
-                return await window.WWebJS.linkUnlinkSubgroups(
-                    'LinkSubgroups',
-                    parentGroupId,
-                    subGroupIds
-                );
+                return await window.WWebJS.linkUnlinkSubgroups('LinkSubgroups', parentGroupId, subGroupIds);
             },
             parentGroupId,
             subGroupIds
@@ -103,10 +99,15 @@ class Community extends GroupChat {
      * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
      */
     async setNonAdminSubGroupCreation(value = true) {
-        if (!this.groupMetadata.isParentGroup) return false;
-        const result = await this._setGroupProperty('allow_non_admin_sub_group_creation', value);
-        result && (this.groupMetadata.allowNonAdminSubGroupCreation = value);
-        return result;
+        return await this._setGroupProperty('allow_non_admin_sub_group_creation', value);
+    }
+
+    /**
+     * Deactivates the community
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async deactivate() {
+        return await this.client.deactivateCommunity(this.id._serialized);
     }
 }
 
