@@ -130,11 +130,11 @@ class Client extends EventEmitter {
         await page.waitForSelector('[class=landing-main]', { timeout: this.options.authTimeoutMs });
 
         const inject = async () => {
-            await page.evaluate(ExposeStore, moduleRaid.toString()).catch(async a => {
-                if (a.message.includes('EmojiUtil') || a.message.includes('Prism') || a.message.includes('createOrUpdateReactions')) {
+            await page.evaluate(ExposeStore, moduleRaid.toString()).catch(async error => {
+                // These error, not as a result of injection directly, but since we use moduleRaid. nothing to do about this but do it again till it works
+                if (error.message.includes('EmojiUtil') || error.message.includes('Prism') || error.message.includes('createOrUpdateReactions')) {
                     await inject();
                 }
-                console.log(a.message);
             });
         };
         await inject();
@@ -461,7 +461,7 @@ class Client extends EventEmitter {
              */
             this.emit(Events.STATE_CHANGED, state);
 
-            const ACCEPTED_STATES = [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING, WAState.TIMEOUT];
+            const ACCEPTED_STATES = [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING, WAState.TIMEOUT, WAState.UNPAIRED, WAState.UNPAIRED_IDLE];
 
             if (state == WAState.PAIRING) {
                 ExposeReadyStore();
