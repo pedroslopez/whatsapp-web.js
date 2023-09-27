@@ -1344,29 +1344,29 @@ class Client extends EventEmitter {
             }
 
             for (const participant of createGroupResult.participants) {
-                let addParticipantResult;
+                let isInviteV4Sent = false;
                 const participantId = participant.wid._serialized;
                 const statusCode = participant.error ?? 200;
                 if (autoSendInviteV4 && statusCode === 403) {
                     window.Store.ContactCollection.gadd(participant.wid, { silent: true });
-                    addParticipantResult =
-                        await window.Store.GroupInviteV4.sendGroupInviteMessage(
-                            await window.Store.Chat.find(participant.wid),
-                            createGroupResult.wid._serialized,
-                            createGroupResult.subject,
-                            participant.invite_code,
-                            participant.invite_code_exp,
-                            comment,
-                            await window.WWebJS.getProfilePicThumbToBase64(createGroupResult.wid)
-                        );
+                    const addParticipantResult = await window.Store.GroupInviteV4.sendGroupInviteMessage(
+                        await window.Store.Chat.find(participant.wid),
+                        createGroupResult.wid._serialized,
+                        createGroupResult.subject,
+                        participant.invite_code,
+                        participant.invite_code_exp,
+                        comment,
+                        await window.WWebJS.getProfilePicThumbToBase64(createGroupResult.wid)
+                    );
+                    isInviteV4Sent = window.compareWwebVersions(window.Debug.VERSION, '<', '2.2335.6')
+                        ? addParticipantResult === 'OK'
+                        : addParticipantResult.messageSendResult === 'OK';
                 }
                 participantData[participantId] = {
                     statusCode: statusCode,
                     message: addParticipantResultCodes[statusCode] || addParticipantResultCodes.default,
                     isGroupCreator: participant.type === 'superadmin',
-                    isInviteV4Sent: window.compareWwebVersions(window.Debug.VERSION, '<', '2.2335.6')
-                        ? addParticipantResult === 'OK'
-                        : addParticipantResult.messageSendResult === 'OK'
+                    isInviteV4Sent: isInviteV4Sent
                 };
             }
 
