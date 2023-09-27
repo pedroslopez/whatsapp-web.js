@@ -242,7 +242,6 @@ class Client extends EventEmitter {
                 window.onQRChanged(conn.ref);
             });
         }
-
         // Register other events
         await page.exposeFunction('onAddMessageEvent', msg => {
             if (msg.type === 'gp2') {
