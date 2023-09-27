@@ -17,6 +17,7 @@ const GroupChat = require('./GroupChat');
 class Community extends GroupChat {
     _patch(data) {
         this.groupMetadata = data.groupMetadata;
+        this.isCommunity = true;
 
         return super._patch(data);
     }

@@ -509,11 +509,10 @@ exports.LoadUtils = () => {
         if (chat.groupMetadata) {
             const chatWid = window.Store.WidFactory.createWid(chat.id._serialized);
             await window.Store.GroupMetadata.update(chatWid);
-            if (chat.groupMetadata.isParentGroup) {
-                chat.groupMetadata.defaultSubgroupId = window.Store.CommunityUtils.getDefaultSubgroup(chatWid);
-                res.isCommunity = true;
-            }
             res.groupMetadata = chat.groupMetadata.serialize();
+            if (res.groupMetadata.isParentGroup) {
+                res.groupMetadata.defaultSubgroup = await window.Store.CommunityUtils.getDefaultSubgroup(chatWid);
+            }
         }
         
         res.lastMessage = null;
