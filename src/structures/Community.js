@@ -26,7 +26,7 @@ class Community extends GroupChat {
      * @returns {Promise<Array<ChatId>>} Returns an array of @type {ChatId} objects
      */
     async getSubgroups() {
-        return await this.client.pupPage.evaluate(communityId => {
+        return await this.client.pupPage.evaluate((communityId) => {
             const communityWid = window.Store.WidFactory.createWid(communityId);
             return window.Store.CommunityUtils.getSubgroups(communityWid);
         }, this.id._serialized);
@@ -36,7 +36,7 @@ class Community extends GroupChat {
      * An object that handles the result for {@link linkSubgroups} method
      * @typedef {Object} LinkSubGroupsResult
      * @property {Array<string>} linkedGroupIds An array of group IDs that were successfully linked
-     * @property {Array<Object>} failedGroups An object that handles groups that failed to be linked to the community and an information about it
+     * @property {Array<Object>} failedGroups An array of objects that handles groups that failed to be linked to the community and an information about it
      * @property {string} failedGroups[].groupId The group ID, in a format of 'xxxxxxxxxx@g.us'
      * @property {number} failedGroups[].error The code of an error
      * @property {string} failedGroups[].message The message that describes an error
@@ -51,8 +51,47 @@ class Community extends GroupChat {
     async linkSubgroups(parentGroupId, subGroupIds) {
         return await this.client.pupPage.evaluate(
             async (parentGroupId, subGroupIds) => {
-                return await window.WWebJS.linkSubgroups(parentGroupId, subGroupIds);
-            }, parentGroupId, subGroupIds
+                return await window.WWebJS.linkUnlinkSubgroups(
+                    'LinkSubgroups',
+                    parentGroupId,
+                    subGroupIds
+                );
+            },
+            parentGroupId,
+            subGroupIds
+        );
+    }
+
+    /**
+     * An object that handles the result for {@link unlinkSubgroups} method
+     * @typedef {Object} UnlinkSubGroupsResult
+     * @property {Array<string>} unlinkedGroupIds An array of group IDs that were successfully unlinked
+     * @property {Array<Object>} failedGroups An array of objects that handles groups that failed to be unlinked from the community and an information about it
+     * @property {string} failedGroups[].groupId The group ID, in a format of 'xxxxxxxxxx@g.us'
+     * @property {number} failedGroups[].error The code of an error
+     * @property {string} failedGroups[].message The message that describes an error
+     */
+
+    /**
+     * Links a single subgroup or an array of subgroups to the community
+     * @param {string} parentGroupId The ID of a community parent group
+     * @param {string|Array<string>} subGroupIds The single group ID or an array of group IDs to link to the created community
+     * @param {boolean} [removeOrphanMembers = false] An optional parameter. If true, the method will remove specified subgroups along with their members who are not part of any other subgroups within the community. False by default
+     * @returns {Promise<UnlinkSubGroupsResult>} Returns an object that handles the result for the unlinking subgroups action
+     */
+    async unlinkSubgroups(parentGroupId, subGroupIds, removeOrphanMembers) {
+        return await this.client.pupPage.evaluate(
+            async (parentGroupId, subGroupIds, removeOrphanMembers) => {
+                return await window.WWebJS.linkUnlinkSubgroups(
+                    'UnlinkSubgroups',
+                    parentGroupId,
+                    subGroupIds,
+                    removeOrphanMembers
+                );
+            },
+            parentGroupId,
+            subGroupIds,
+            removeOrphanMembers
         );
     }
 

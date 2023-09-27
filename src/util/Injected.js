@@ -867,23 +867,30 @@ exports.LoadUtils = () => {
         }
     };
 
-    window.WWebJS.linkSubgroups = async (parentGroupId, subGroupIds) => {
+    window.WWebJS.linkUnlinkSubgroups = async (action, parentGroupId, subGroupIds, removeOrphanMembers = false) => {
         !Array.isArray(subGroupIds) && (subGroupIds = [subGroupIds]);
+        const parentGroupWid = window.Store.WidFactory.createWid(parentGroupId);
         const subGroupWids = subGroupIds.map((s) => window.Store.WidFactory.createWid(s));
-        let linkingSubGroupsResult;
+        const isLinking = action === 'LinkSubgroups';
+        let result;
 
         try {
-            linkingSubGroupsResult = await window.Store.CommunityUtils.sendLinkSubgroups({
-                parentGroupId: window.Store.WidFactory.createWid(parentGroupId),
-                subgroupIds: subGroupWids
-            });
+            result = isLinking
+                ? await window.Store.CommunityUtils.sendLinkSubgroups({
+                    parentGroupId: parentGroupWid,
+                    subgroupIds: subGroupWids
+                })
+                : await window.Store.CommunityUtils.sendUnlinkSubgroups({
+                    parentGroupId: parentGroupWid,
+                    subgroupIds: subGroupWids,
+                    removeOrphanMembers: removeOrphanMembers
+                });
         } catch (err) {
-            if (err.name === 'ServerStatusCodeError') linkingSubGroupsResult = {};
+            if (err.name === 'ServerStatusCodeError') result = {};
             else throw err;
         }
 
-        const { linkedGroupJids, failedGroups } = linkingSubGroupsResult;
-        const linkingGroupsResultCodes = {
+        const resultCodes = {
             default: 'An unknown error occupied while linking the group to the comunity',
             401: 'SubGroupNotAuthorizedError',
             403: 'SubGroupForbiddenError',
@@ -894,15 +901,17 @@ exports.LoadUtils = () => {
             500: 'SubGroupServerError'
         };
 
-        linkingSubGroupsResult = {
-            linkedGroupIds: linkedGroupJids,
-            failedGroups: failedGroups.map((g) => ({
-                groupId: g.jid,
-                error: +g.error,
-                message: linkingGroupsResultCodes[g.error] || linkingGroupsResultCodes.default
+        result = {
+            ...(isLinking
+                ? { linkedGroupIds: result.linkedGroupJids }
+                : { unlinkedGroupIds: result.unlinkedGroupJids }),
+            failedGroups: result.failedGroups.map(group => ({
+                groupId: group.jid,
+                error: +group.error,
+                message: resultCodes[group.error] || resultCodes.default
             }))
         };
 
-        return linkingSubGroupsResult;
+        return result;
     };
 };

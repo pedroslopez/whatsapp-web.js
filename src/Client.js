@@ -1362,7 +1362,8 @@ class Client extends EventEmitter {
             }
 
             if (subGroupIds) {
-                linkingSubGroupsResult = await window.WWebJS.linkSubgroups(
+                linkingSubGroupsResult = await window.WWebJS.linkUnlinkSubgroups(
+                    'LinkSubgroups',
                     communityCreationResult.wid._serialized,
                     subGroupIds
                 );

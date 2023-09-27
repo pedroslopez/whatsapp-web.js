@@ -1316,12 +1316,14 @@ declare namespace WAWebJS {
         /** Links a single subgroup or an array of subgroups to the community */
         linkSubgroups: (parentGroupId: string, subGroupIds: string | Array<string>) => Promise<LinkSubGroupsResult>;
 
-        /**
-         * Allows or disallows for non admin community members to add groups to the community
-         * @see https://faq.whatsapp.com/205306122327447
-         * @param {boolean} [value=true] True to allow all community members to add groups to the community, false to disallow
-         * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
-         */
+        /** Unlinks a single subgroup or an array of subgroups from the community */
+        unlinkSubgroups: (
+            parentGroupId: string,
+            subGroupIds: string | Array<string>,
+            removeOrphanMembers: boolean
+        ) => Promise<UnlinkSubGroupsResultinkSubGroupsResult>;
+
+        /** Allows or disallows for non admin community members to add groups to the community */
         setNonAdminSubGroupCreation: (value: boolean) => Promise<boolean>;
     }
 
@@ -1369,7 +1371,22 @@ declare namespace WAWebJS {
     export interface LinkSubGroupsResult {
         /** An array of group IDs that were successfully linked */
         linkedGroupIds: string[];
-        /** An object that handles groups that failed to be linked to the community and an information about it */
+        /** An array of objects that handles groups that failed to be linked to the community and an information about it */
+        failedGroups: {
+            /** The group ID, in a format of 'xxxxxxxxxx@g.us' */
+            groupId: string;
+            /** The code of an error */
+            error: number;
+            /** The message that describes an error */
+            message: string;
+        }[];
+    }
+
+    /** An object that handles the result for unlinkSubgroups method */
+    export interface UnlinkSubGroupsResult {
+        /** An array of group IDs that were successfully unlinked */
+        unlinkedGroupIds: string[];
+        /** An array of objects that handles groups that failed to be unlinked from the community and an information about it */
         failedGroups: {
             /** The group ID, in a format of 'xxxxxxxxxx@g.us' */
             groupId: string;
