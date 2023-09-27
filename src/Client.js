@@ -127,10 +127,14 @@ class Client extends EventEmitter {
         });
 
         // wait till page load
-        await page.waitForSelector('[class=web]', { timeout: this.options.authTimeoutMs });
+        await page.waitForSelector('[class=landing-main]', { timeout: this.options.authTimeoutMs });
 
+        await page.evaluate(ExposeStore, moduleRaid.toString()).catch(async a => {
+            if (a.message.includes('EmojiUtil')) {
+                await page.evaluate(ExposeStore, moduleRaid.toString());
+            }
+        });
 
-        await page.evaluate(ExposeStore, moduleRaid.toString());
         // Check window.Store Injection
         await page.waitForFunction('window.Store != undefined');
 
@@ -408,7 +412,7 @@ class Client extends EventEmitter {
             this.emit(Events.MEDIA_UPLOADED, message);
         });
 
-        await page.exposeFuncton('onReady', (done) => {
+        await page.exposeFunction('onReady', (done) => {
             // if done syncing
             if (done) {
                 /**
