@@ -35,14 +35,8 @@ declare namespace WAWebJS {
         /** Unpins the Chat and returns its new Pin state */
         unpinChat(chatId: string): Promise<boolean>
 
-        /**
-         * Create a new group
-         * @param {string} title Group title
-         * @param {Array<Contact|string>} participants An array of Contacts or contact IDs to add to the group
-         * @param {CreateGroupOptions} options An object that handles options for group creation
-         * @returns {CreateGroupResult|string} Object with resulting data or an error message as a string
-         */
-        createGroup(title: string, participants?: Contact[] | string[], options?: CreateGroupOptions): Promise<CreateGroupResult|string>
+        /** Creates a new group */
+        createGroup(title: string, participants?: string | Contact | Contact[] | string[], options?: CreateGroupOptions): Promise<CreateGroupResult|string>
 
         /** Closes the client */
         destroy(): Promise<void>
@@ -552,17 +546,19 @@ declare namespace WAWebJS {
 
     /** An object that handles the result for createGroup method */
     export interface CreateGroupResult {
-        /** ID for the group that was just created */
-        gid: ChatId,
-        /** An object that handles the result value for each participant */
+        /** A group title */
+        title: string;
+        /** An object that handles the newly created group ID */
+        gid: ChatId;
+        /** An object that handles the result value for each added to the group participant */
         participants: {
             [participantId: string]: {
                 statusCode: number,
                 message: string,
                 isGroupCreator: boolean,
                 isInviteV4Sent: boolean
-            }
-        }
+            };
+        };
     }
 
     export interface GroupNotification {
