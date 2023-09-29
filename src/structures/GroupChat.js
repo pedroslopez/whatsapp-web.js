@@ -64,9 +64,9 @@ class GroupChat extends Chat {
     /**
      * An object that handles options for adding participants
      * @typedef {Object} AddParticipnatsOptions
-     * @property {Array<number>|number} sleep The number of milliseconds to wait before adding the next participant. If it is an array, a random sleep time between the sleep[0] and sleep[1] values will be added (the difference must be >=100 ms, otherwise, a random sleep time between sleep[1] and sleep[1] + 100 will be added). If sleep is a number, a sleep time equal to its value will be added. By default, sleep is an array with a value of [250, 500]
-     * @property {boolean} autoSendInviteV4 If true, the inviteV4 will be sent to those participants who have restricted others from being automatically added to groups, otherwise the inviteV4 won't be sent (true by default)
-     * @property {string} comment The comment to be added to an inviteV4 (empty string by default)
+     * @property {Array<number>|number} [sleep = [250, 500]] The number of milliseconds to wait before adding the next participant. If it is an array, a random sleep time between the sleep[0] and sleep[1] values will be added (the difference must be >=100 ms, otherwise, a random sleep time between sleep[1] and sleep[1] + 100 will be added). If sleep is a number, a sleep time equal to its value will be added. By default, sleep is an array with a value of [250, 500]
+     * @property {boolean} [autoSendInviteV4 = true] If true, the inviteV4 will be sent to those participants who have restricted others from being automatically added to groups, otherwise the inviteV4 won't be sent (true by default)
+     * @property {string} [comment = ''] The comment to be added to an inviteV4 (empty string by default)
      */
 
     /**
@@ -78,23 +78,24 @@ class GroupChat extends Chat {
     async addParticipants(participantIds, options = {}) {
         return await this.client.pupPage.evaluate(async (groupId, participantIds, options) => {
             const { sleep = [250, 500], autoSendInviteV4 = true, comment = '' } = options;
+            const participantData = {};
+
             const groupWid = window.Store.WidFactory.createWid(groupId);
             const group = await window.Store.Chat.find(groupWid);
             !Array.isArray(participantIds) && (participantIds = [participantIds]);
 
-            let participantsToAdd = await Promise.all(participantIds.map(async p => {
+            const participantsToAdd = await Promise.all(participantIds.map(async p => {
                 const wid = window.Store.WidFactory.createWid(p);
                 return await window.Store.Contact.find(wid);
             }));
 
-            const participantData = {};
-
             const addParticipantResultCodes = {
                 default: 'An unknown error occupied while adding a participant',
-                isGroupEmpty: 'AddParticipantsError: You can\'t add a participant to an empty group',
+                isGroupEmpty: 'AddParticipantsError: The participant can\'t be added to an empty group',
                 iAmNotAdmin: 'AddParticipantsError: You have no admin rights to add a participant to a group',
                 200: 'The participant was added successfully',
                 403: 'The participant can be added by sending private invitation only',
+                404: 'The phone number is not registered on WhatsApp',
                 408: 'You cannot add this participant because they recently left the group',
                 409: 'The participant is already a group member',
                 417: 'The participant can\'t be added to the community. You can invite them privately to join this group through its invite link',
@@ -139,21 +140,23 @@ class GroupChat extends Chat {
                     continue;
                 }
 
+                if (!(await window.Store.QueryExist(participant.id))?.wid) {
+                    participantData[participantId].code = 404;
+                    participantData[participantId].message = addParticipantResultCodes[404];
+                    continue;
+                }
+
                 const rpcResult =
                     await window.WWebJS.getAddParticipantsRpcResult(groupMetadata, groupWid, participant.id);
                 const { code: rpcResultCode } = rpcResult;
 
-                if (rpcResultCode === 403) {
-                    window.Store.ContactCollection.gadd(participant.id, { silent: true });
-                }
-
                 participantData[participantId].code = rpcResultCode;
-                participantData[participantId].message = rpcResultCode === -1
-                    ? rpcResult.message
-                    : addParticipantResultCodes[rpcResultCode] || addParticipantResultCodes.default;
+                participantData[participantId].message =
+                    addParticipantResultCodes[rpcResultCode] || addParticipantResultCodes.default;
 
                 if (autoSendInviteV4 && rpcResultCode === 403) {
                     let userChat, isInviteV4Sent = false;
+                    window.Store.ContactCollection.gadd(participant.id, { silent: true });
 
                     if (rpcResult.name === 'ParticipantRequestCodeCanBeSent' &&
                         (userChat = await window.Store.Chat.find(participant.id))) {

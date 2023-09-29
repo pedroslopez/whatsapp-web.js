@@ -935,7 +935,6 @@ exports.LoadUtils = () => {
         const data = {
             name: undefined,
             code: undefined,
-            message: undefined,
             inviteV4Code: undefined,
             inviteV4CodeExp: undefined
         };
@@ -949,8 +948,7 @@ exports.LoadUtils = () => {
                     .value
                     .addParticipantsParticipantMixins;
         } catch (err) {
-            data.code = -1;
-            data.message = 'SmaxParsingFailure: failed to parse the response of AddParticipants';
+            data.code = 400;
             return data;
         }
 
@@ -963,15 +961,13 @@ exports.LoadUtils = () => {
         }
 
         else if (rpcResult.name === 'AddParticipantsResponseClientError') {
-            const { code: code, text: message } = rpcResult.value.errorAddParticipantsClientErrors.value;
+            const { code: code } = rpcResult.value.errorAddParticipantsClientErrors.value;
             data.code = +code;
-            data.message = message;
         }
 
         else if (rpcResult.name === 'AddParticipantsResponseServerError') {
-            const { code: code, text: message } = rpcResult.value.errorServerErrors.value;
+            const { code: code } = rpcResult.value.errorServerErrors.value;
             data.code = +code;
-            data.message = message;
         }
 
         return data;
