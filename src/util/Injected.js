@@ -72,8 +72,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     };
     window.Store.GroupParticipants = {
         ...window.mR.findModule('promoteParticipants')[0],
-        sendAddParticipantsRPC:
-            window.mR.findModule('sendAddParticipantsRPC')[0].sendAddParticipantsRPC
+        ...window.mR.findModule('sendAddParticipantsRPC')[0]
     };
     window.Store.GroupInvite = {
         ...window.mR.findModule('resetGroupInviteCode')[0],

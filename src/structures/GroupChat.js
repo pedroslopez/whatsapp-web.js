@@ -80,16 +80,12 @@ class GroupChat extends Chat {
             const { sleep = [250, 500], autoSendInviteV4 = true, comment = '' } = options;
             const participantData = {};
 
+            !Array.isArray(participantIds) && (participantIds = [participantIds]);
             const groupWid = window.Store.WidFactory.createWid(groupId);
             const group = await window.Store.Chat.find(groupWid);
-            !Array.isArray(participantIds) && (participantIds = [participantIds]);
+            const participantWids = participantIds.map((p) => window.Store.WidFactory.createWid(p));
 
-            const participantsToAdd = await Promise.all(participantIds.map(async p => {
-                const wid = window.Store.WidFactory.createWid(p);
-                return await window.Store.Contact.find(wid);
-            }));
-
-            const addParticipantResultCodes = {
+            const errorCodes = {
                 default: 'An unknown error occupied while adding a participant',
                 isGroupEmpty: 'AddParticipantsError: The participant can\'t be added to an empty group',
                 iAmNotAdmin: 'AddParticipantsError: You have no admin rights to add a participant to a group',
@@ -107,11 +103,11 @@ class GroupChat extends Chat {
             const groupParticipants = groupMetadata?.participants;
 
             if (!groupParticipants) {
-                return addParticipantResultCodes.isGroupEmpty;
+                return errorCodes.isGroupEmpty;
             }
 
             if (!groupParticipants.canAdd()) {
-                return addParticipantResultCodes.iAmNotAdmin;
+                return errorCodes.iAmNotAdmin;
             }
 
             const _getSleepTime = (sleep) => {
@@ -125,41 +121,41 @@ class GroupChat extends Chat {
                 return Math.floor(Math.random() * (sleep[1] - sleep[0] + 1)) + sleep[0];
             };
 
-            for (const participant of participantsToAdd) {
-                const participantId = participant.id._serialized;
+            for (const pWid of participantWids) {
+                const pId = pWid._serialized;
 
-                participantData[participantId] = {
+                participantData[pId] = {
                     code: undefined,
                     message: undefined,
                     isInviteV4Sent: false
                 };
 
-                if (groupParticipants.some(p => p.id._serialized === participantId)) {
-                    participantData[participantId].code = 409;
-                    participantData[participantId].message = addParticipantResultCodes[409];
+                if (groupParticipants.some(p => p.id._serialized === pId)) {
+                    participantData[pId].code = 409;
+                    participantData[pId].message = errorCodes[409];
                     continue;
                 }
 
-                if (!(await window.Store.QueryExist(participant.id))?.wid) {
-                    participantData[participantId].code = 404;
-                    participantData[participantId].message = addParticipantResultCodes[404];
+                if (!(await window.Store.QueryExist(pWid))?.wid) {
+                    participantData[pId].code = 404;
+                    participantData[pId].message = errorCodes[404];
                     continue;
                 }
 
                 const rpcResult =
-                    await window.WWebJS.getAddParticipantsRpcResult(groupMetadata, groupWid, participant.id);
+                    await window.WWebJS.getAddParticipantsRpcResult(groupMetadata, groupWid, pWid);
                 const { code: rpcResultCode } = rpcResult;
 
-                participantData[participantId].code = rpcResultCode;
-                participantData[participantId].message =
-                    addParticipantResultCodes[rpcResultCode] || addParticipantResultCodes.default;
+                participantData[pId].code = rpcResultCode;
+                participantData[pId].message =
+                    errorCodes[rpcResultCode] || errorCodes.default;
 
                 if (autoSendInviteV4 && rpcResultCode === 403) {
                     let userChat, isInviteV4Sent = false;
-                    window.Store.ContactCollection.gadd(participant.id, { silent: true });
+                    window.Store.ContactCollection.gadd(pWid, { silent: true });
 
                     if (rpcResult.name === 'ParticipantRequestCodeCanBeSent' &&
-                        (userChat = await window.Store.Chat.find(participant.id))) {
+                        (userChat = await window.Store.Chat.find(pWid))) {
                         const groupName = group.formattedTitle || group.name;
                         const res = await window.Store.GroupInviteV4.sendGroupInviteMessage(
                             userChat,
@@ -175,12 +171,12 @@ class GroupChat extends Chat {
                             : res.messageSendResult === 'OK';
                     }
 
-                    participantData[participantId].isInviteV4Sent = isInviteV4Sent;
+                    participantData[pId].isInviteV4Sent = isInviteV4Sent;
                 }
 
                 sleep &&
-                    participantsToAdd.length > 1 &&
-                    participantsToAdd.indexOf(participant) !== participantsToAdd.length - 1 &&
+                    participantWids.length > 1 &&
+                    participantWids.indexOf(pWid) !== participantWids.length - 1 &&
                     (await new Promise((resolve) => setTimeout(resolve, _getSleepTime(sleep))));
             }
 
