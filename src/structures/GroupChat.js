@@ -73,7 +73,7 @@ class GroupChat extends Chat {
      * Adds a list of participants by ID to the group
      * @param {string|Array<string>} participantIds 
      * @param {AddParticipnatsOptions} options An object thay handles options for adding participants
-     * @returns {Promise<AddParticipantsResult|string>} Object with resulting data or an error message as a string
+     * @returns {Promise<Object.<string, AddParticipantsResult>|string>} Returns an object with the resulting data or an error message as a string
      */
     async addParticipants(participantIds, options = {}) {
         return await this.client.pupPage.evaluate(async (groupId, participantIds, options) => {
