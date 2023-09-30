@@ -1311,7 +1311,7 @@ declare namespace WAWebJS {
         /** Group participants */
         participants: Array<GroupParticipant>;
         /** Adds a list of participants by ID to the group */
-        addParticipants: (participantIds: string|string[], options?: AddParticipantsOptions) => Promise<AddParticipantsResult|string>;
+        addParticipants: (participantIds: string|string[], options?: AddParticipantsOptions) => Promise<Object.<string, AddParticipantsResult>|string>;
         /** Removes a list of participants by ID to the group */
         removeParticipants: (participantIds: string[]) => Promise<{ status: number }>;
         /** Promotes participants by IDs to admins */

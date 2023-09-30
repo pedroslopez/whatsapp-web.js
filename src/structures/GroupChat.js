@@ -106,7 +106,7 @@ class GroupChat extends Chat {
                 return errorCodes.isGroupEmpty;
             }
 
-            if (!groupParticipants.canAdd()) {
+            if (!group.iAmAdmin()) {
                 return errorCodes.iAmNotAdmin;
             }
 
