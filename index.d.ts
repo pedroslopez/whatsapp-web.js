@@ -1326,6 +1326,15 @@ declare namespace WAWebJS {
             removeOrphanMembers: boolean
         ) => Promise<UnlinkSubGroupsResultinkSubGroupsResult>;
 
+        /**
+         * Removes participants from the community
+         * @note Provided participants will be also remove from all community subgroups
+         */
+        removeParticipants: (
+            participantIds: string | Array<string>,
+            options?: RemoveCommunityParticipantsOptions
+        ) => Promise<Object<string, RemoveCommunityParticipantsResult> | string>;
+
         /** Allows or disallows for non admin community members to add groups to the community */
         setNonAdminSubGroupCreation: (value: boolean) => Promise<boolean>;
 
@@ -1336,13 +1345,13 @@ declare namespace WAWebJS {
     /** Create community options */
     export interface CreateCommunityOptions {
         /** The single group ID or an array of group IDs to link to the created community */
-        subGroupIds: string|Array<string>|null
+        subGroupIds?: string|Array<string>
         /**
          * If true, admins must approve anyone who wants to join the group, true by default
          * @see https://faq.whatsapp.com/1110600769849613
          * @default true
          */
-        membershipApprovalMode: boolean
+        membershipApprovalMode?: boolean
         /**
          * If false, only community admins can add groups to that community,
          * members can suggest groups for admin approval.
@@ -1350,7 +1359,19 @@ declare namespace WAWebJS {
          * @see https://faq.whatsapp.com/205306122327447
          * @default false
          */
-        allowNonAdminSubGroupCreation: boolean
+        allowNonAdminSubGroupCreation?: boolean
+    }
+
+    /** An object that handles options for removing participants */
+    export interface RemoveCommunityParticipantsOptions {
+        /**
+         * The number of milliseconds to wait before removing the next participant.
+         * If it is an array, a random sleep time between the sleep[0] and sleep[1] values will be added
+         * (the difference must be >=100 ms, otherwise, a random sleep time between sleep[1] and sleep[1] + 100
+         * will be added). If sleep is a number, a sleep time equal to its value will be added
+         * @default [250,500]
+         */
+        sleep?: Array<number>|number
     }
 
     /** An object that handles the result for createCommunity method */
@@ -1402,6 +1423,17 @@ declare namespace WAWebJS {
             message: string;
         }[];
     }
+
+    /**
+     * An object that handles the result for removeParticipants method for the community
+     * or an error as a string
+     */
+    export interface RemoveCommunityParticipantsResult {
+        [participantId: string]: {
+            code: number;
+            message: string;
+        }|string;
+    };
 
     /**
      * Represents the metadata associated with a given product
