@@ -89,21 +89,32 @@ client.on('message', async msg => {
     } else if (msg.body === '!reportToAdminMode') {
         const group = await client.getChatById('groupId@g.us');
         if (group.isGroup) {
-            /** Turn the 'Report To Admin Mode' on: */
+            /** Turns the 'Report To Admin Mode' on: */
             await group.setReportToAdminMode(true);
-            /** Turn the 'Report To Admin Mode' off: */
+            /** Turns the 'Report To Admin Mode' off: */
             await group.setReportToAdminMode(false);
         }
     } else if (msg.body === '!membershipApprovalMode') {
         const group = await client.getChatById('groupId@g.us');
         if (group.isGroup) {
-            /** Turn the 'Membership Approval Mode' on: */
+            /** Turns the 'Membership Approval Mode' on: */
             await group.setMembershipApprovalMode(true);
             /**
-             * Turn the 'Membership Approval Mode' off
+             * Turns the 'Membership Approval Mode' off
              * Note: if the mode is turned off, all pending requests to join the group will be approved
              */
             await group.setMembershipApprovalMode(false);
+        }
+    } else if (msg.body === '!setGroupMemberAddMode') {
+        const group = await client.getChatById('groupId@g.us');
+        if (group.isGroup) {
+            /** Turns the 'Group Member Add Mode' on: */
+            await group.setGroupMemberAddMode();
+            /**
+             * Turns the 'Group Member Add Mode' off
+             * Note: if the mode is turned off, all participants can add others to this group
+             */
+            await group.setGroupMemberAddMode(false);
         }
     } else if (msg.body === '!leave') {
         // Leave the group
