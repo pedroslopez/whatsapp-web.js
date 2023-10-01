@@ -1285,14 +1285,14 @@ declare namespace WAWebJS {
         setSubject: (subject: string) => Promise<boolean>;
         /** Updates the group description */
         setDescription: (description: string) => Promise<boolean>;
-        /** Updates the group settings to only allow admins to send messages 
-         * @param {boolean} [adminsOnly=true] Enable or disable this option 
+        /** Updates the group settings to only allow admins to send messages
+         * @param {boolean} [adminsOnly=true] Enable or disable this option
          * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
          */
         setMessagesAdminsOnly: (adminsOnly?: boolean) => Promise<boolean>;
         /**
          * Updates the group settings to only allow admins to edit group info (title, description, photo).
-         * @param {boolean} [adminsOnly=true] Enable or disable this option 
+         * @param {boolean} [adminsOnly=true] Enable or disable this option
          * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
          */
         setInfoAdminsOnly: (adminsOnly?: boolean) => Promise<boolean>;
@@ -1314,6 +1314,13 @@ declare namespace WAWebJS {
          * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
          */
         setMembershipApprovalMode: (value: boolean) => Promise<boolean>;
+        /**
+         * Sets the 'Group Member Add Mode', when turned on, only group admins can add others to the group,
+         * when turned off, all group participants can add others to the group.
+         * @param {boolean} [value=true] True for turning the 'Group Member Add Mode' on, false for turning it off
+         * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+         */
+        setGroupMemberAddMode: (value: boolean) => Promise<boolean>;
         /** Gets the invite code for a specific group */
         getInviteCode: () => Promise<string>;
         /** Invalidates the current group invite code and generates a new one */

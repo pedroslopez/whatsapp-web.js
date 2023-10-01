@@ -219,6 +219,51 @@ class GroupChat extends Chat {
     }
 
     /**
+     * Sets the 'Group Member Add Mode', when turned on, only group admins can add others to the group,
+     * when turned off, all group participants can add others to the group.
+     * @param {boolean} [value=true] True for turning the 'Group Member Add Mode' on, false for turning it off
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async setGroupMemberAddMode(value = true) {
+        return await this.client.pupPage.evaluate(async (chatId, value) => {
+            const mode = value
+                ? { isAdminAddMode: true }
+                : { isAllMembersAddMode: true };
+            const memberAddModeMixin = {
+                iqTo: chatId,
+                adminOrAllMembersOrUnknownAddModeMixinGroupArgs: mode
+            };
+
+            const stanza = window.Store.GroupUtils.mergeGroupMemberAddModeMixin(
+                window.Store.GroupUtils.mergeBaseSetGroupMixin(
+                    {
+                        tag: 'iq',
+                        attrs: {},
+                        content: null
+                    },
+                    memberAddModeMixin
+                ),
+                memberAddModeMixin
+            );
+
+            const response = await window.Store.Socket.sendSmaxStanza(stanza);
+
+            const parsedResponse = (() => {
+                const isTagValid = window.Store.ParseResponse.assertTag(response, 'iq');
+                if (!isTagValid.success) return isTagValid;
+                const isIQResultValid = window.Store.ParseResponse.parseIQResultResponseMixin(response, stanza);
+                if (!isIQResultValid.success) return isIQResultValid;
+                return isIQResultValid;
+            })();
+
+            if (parsedResponse.success) return true;
+            return false;
+        },
+        this.id._serialized,
+        value);
+    }
+
+    /**
      * Deletes the group's picture.
      * @returns {Promise<boolean>} Returns true if the picture was properly deleted. This can return false if the user does not have the necessary permissions.
      */

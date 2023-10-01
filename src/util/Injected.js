@@ -58,6 +58,10 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.SocketWap = window.mR.findModule('wap')[0];
     window.Store.SearchContext = window.mR.findModule('getSearchContext')[0].getSearchContext;
     window.Store.DrawerManager = window.mR.findModule('DrawerManager')[0].DrawerManager;
+    window.Store.ParseResponse = {
+        ...window.mR.findModule('assertTag')[0],
+        ...window.mR.findModule('parseIQResultResponseMixin')[0]
+    };
     window.Store.Ephemeral = {
         getEphemeralFields:
         window.mR.findModule('getEphemeralFields')[0].getEphemeralFields,
@@ -68,12 +72,13 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('toWebpSticker')[0],
         ...window.mR.findModule('addWebpMetadata')[0]
     };
-  
     window.Store.GroupUtils = {
         ...window.mR.findModule('createGroup')[0],
         ...window.mR.findModule('setGroupDescription')[0],
         ...window.mR.findModule('sendExitGroup')[0],
-        ...window.mR.findModule('sendSetPicture')[0]
+        ...window.mR.findModule('sendSetPicture')[0],
+        ...window.mR.findModule('mergeGroupMemberAddModeMixin')[0],
+        ...window.mR.findModule('mergeBaseSetGroupMixin')[0]
     };
 
     if (!window.Store.Chat._find) {
