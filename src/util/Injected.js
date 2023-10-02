@@ -73,11 +73,12 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.GroupParticipants = {
         ...window.mR.findModule('promoteParticipants')[0],
         ...window.mR.findModule('sendRemoveParticipantsRPC')[0],
-        ...window.mR.findModule('queryAndUpdateCommunityParticipants')[0]
     };
     window.Store.CommunityUtils = {
         ...window.mR.findModule('getDefaultSubgroup')[0],
-        ...window.mR.findModule('sendCreateCommunity')[0]
+        ...window.mR.findModule('sendCreateCommunity')[0],
+        ...window.mR.findModule('queryAndUpdateCommunityParticipants')[0],
+        ...window.mR.findModule('getCommunityParticipants')[0]
     };
 
     if (!window.Store.Chat._find) {
@@ -517,7 +518,11 @@ exports.LoadUtils = () => {
             await window.Store.GroupMetadata.update(chatWid);
             res.groupMetadata = chat.groupMetadata.serialize();
             if (res.groupMetadata.isParentGroup) {
+                res.groupMetadata.isDefaultSubgroup = res.groupMetadata.defaultSubgroup;
                 res.groupMetadata.defaultSubgroup = await window.Store.CommunityUtils.getDefaultSubgroup(chatWid);
+            } else if (res.groupMetadata.defaultSubgroup) {
+                res.groupMetadata.isDefaultSubgroup = res.groupMetadata.defaultSubgroup;
+                delete res.groupMetadata.defaultSubgroup;
             }
         }
         
