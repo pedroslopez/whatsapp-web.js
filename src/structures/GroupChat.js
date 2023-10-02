@@ -266,17 +266,18 @@ class GroupChat extends Chat {
     }
 
     /**
-     * Makes the bot leave the group or the community announcement group
-     * @note The creator of announcement group cannot leave it but can only deactivate it instead
+     * Makes the bot leave the group or the community
+     * @note The community creator cannot leave it but can only deactivate the community instead
      * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
      */
     async leave() {
         return await this.client.pupPage.evaluate(async groupId => {
             const groupWid = window.Store.WidFactory.createWid(groupId);
             const group = await window.Store.Chat.find(groupWid);
-            const result = group.groupMetadata.defaultSubgroup
-                ? await window.Store.GroupUtils.leaveCommunity(groupWid)
-                : await window.Store.GroupUtils.leaveGroup(groupWid);
+            const result =
+                group.groupMetadata.isDefaultSubgroup || group.groupMetadata.isParentGroup
+                    ? await window.Store.GroupUtils.leaveCommunity(groupWid)
+                    : await window.Store.GroupUtils.leaveGroup(groupWid);
             return result.code === 200
                 ? true
                 : false;

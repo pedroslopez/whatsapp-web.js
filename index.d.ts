@@ -46,7 +46,7 @@ declare namespace WAWebJS {
          * Creates a new community,
          * optionally it is possible to link groups to that community within its creation
          */
-        createCommunity(name: string, description: string, options: CreateCommunityOptions): Promise<CreateCommunityResult>
+        createCommunity(name: string, description: string, options: CreateCommunityOptions): Promise<CreateCommunityResult | undefined>
 
         /** Deactivates the community */
         deactivateCommunity: (parentGroupId: string) => Promise<boolean>;
@@ -1298,8 +1298,8 @@ declare namespace WAWebJS {
         /** Invalidates the current group invite code and generates a new one */
         revokeInvite: () => Promise<void>;
         /**
-         * Makes the bot leave the group or the community announcement group
-         * @note The community creator cannot leave the announcement group but can only deactivate the community instead
+         * Makes the bot leave the group or the community
+         * @note The community creator cannot leave it but can only deactivate the community instead
          * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
          */
         leave: () => Promise<boolean>;
@@ -1310,21 +1310,26 @@ declare namespace WAWebJS {
     }
 
     export interface Community extends GroupChat {
+        /** The community default subgroup (announcement group) */
+        defaultSubgroup: ChatId;
+        
         /**
          * Gets all current community subgroups
          * @returns {Promise<Array<ChatId>>} Returns an array of @type {ChatId} objects
          */
         getSubgroups: () => Promise<Array<ChatId>>;
 
+        /** Allows or disallows for non admin community members to add groups to the community */
+        setNonAdminSubGroupCreation: (value: boolean) => Promise<boolean>;
+
         /** Links a single subgroup or an array of subgroups to the community */
-        linkSubgroups: (parentGroupId: string, subGroupIds: string | Array<string>) => Promise<LinkSubGroupsResult>;
+        linkSubgroups: (subGroupIds: string | Array<string>) => Promise<LinkSubGroupsResult>;
 
         /** Unlinks a single subgroup or an array of subgroups from the community */
         unlinkSubgroups: (
-            parentGroupId: string,
             subGroupIds: string | Array<string>,
             removeOrphanMembers: boolean
-        ) => Promise<UnlinkSubGroupsResultinkSubGroupsResult>;
+        ) => Promise<UnlinkSubGroupsResult>;
 
         /**
          * Removes participants from the community
@@ -1334,9 +1339,6 @@ declare namespace WAWebJS {
             participantIds: string | Array<string>,
             options?: RemoveCommunityParticipantsOptions
         ) => Promise<Object<string, RemoveCommunityParticipantsResult> | string>;
-
-        /** Allows or disallows for non admin community members to add groups to the community */
-        setNonAdminSubGroupCreation: (value: boolean) => Promise<boolean>;
 
         /** Deactivates the community */
         deactivate: () => Promise<boolean>;
@@ -1403,7 +1405,7 @@ declare namespace WAWebJS {
             /** The group ID, in a format of 'xxxxxxxxxx@g.us' */
             groupId: string;
             /** The code of an error */
-            error: number;
+            code: number;
             /** The message that describes an error */
             message: string;
         }[];
@@ -1418,7 +1420,7 @@ declare namespace WAWebJS {
             /** The group ID, in a format of 'xxxxxxxxxx@g.us' */
             groupId: string;
             /** The code of an error */
-            error: number;
+            code: number;
             /** The message that describes an error */
             message: string;
         }[];
@@ -1432,7 +1434,7 @@ declare namespace WAWebJS {
         [participantId: string]: {
             code: number;
             message: string;
-        }|string;
+        };
     };
 
     /**

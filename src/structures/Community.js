@@ -21,6 +21,14 @@ class Community extends GroupChat {
 
         return super._patch(data);
     }
+    
+    /**
+     * The community default subgroup (announcement group)
+     * @type {ChatId}
+     */
+    get defaultSubgroup() {
+        return this.groupMetadata.defaultSubgroup;
+    }
 
     /**
      * Gets all current community subgroups
@@ -34,27 +42,50 @@ class Community extends GroupChat {
     }
 
     /**
+     * Allows or disallows for non admin community members to add groups to the community
+     * @see https://faq.whatsapp.com/205306122327447
+     * @param {boolean} [value=true] True to allow all community members to add groups to the community, false to disallow
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async setNonAdminSubGroupCreation(value = true) {
+        return await this._setGroupProperty('allow_non_admin_sub_group_creation', value);
+    }
+
+    async setMessagesAdminsOnly() {
+        console.warn('Setting this property will not have any effect on the community');
+        return false;
+    }
+
+    async setInfoAdminsOnly() {
+        console.warn('Setting this property will not have any effect on the community');
+        return false;
+    }
+
+    /**
      * An object that handles the result for {@link linkSubgroups} method
      * @typedef {Object} LinkSubGroupsResult
      * @property {Array<string>} linkedGroupIds An array of group IDs that were successfully linked
      * @property {Array<Object>} failedGroups An array of objects that handles groups that failed to be linked to the community and an information about it
      * @property {string} failedGroups[].groupId The group ID, in a format of 'xxxxxxxxxx@g.us'
-     * @property {number} failedGroups[].error The code of an error
+     * @property {number} failedGroups[].code The code of an error
      * @property {string} failedGroups[].message The message that describes an error
      */
 
     /**
      * Links a single subgroup or an array of subgroups to the community
-     * @param {string} parentGroupId The ID of a community parent group
      * @param {string|Array<string>} subGroupIds The single group ID or an array of group IDs to link to the created community
      * @returns {Promise<LinkSubGroupsResult>} Returns an object that handles the result for the linking subgroups action
      */
-    async linkSubgroups(parentGroupId, subGroupIds) {
+    async linkSubgroups(subGroupIds) {
         return await this.client.pupPage.evaluate(
             async (parentGroupId, subGroupIds) => {
-                return await window.WWebJS.linkUnlinkSubgroups('LinkSubgroups', parentGroupId, subGroupIds);
+                return await window.WWebJS.linkUnlinkSubgroups(
+                    'LinkSubgroups',
+                    parentGroupId,
+                    subGroupIds
+                );
             },
-            parentGroupId,
+            this.id._serialized,
             subGroupIds
         );
     }
@@ -65,18 +96,17 @@ class Community extends GroupChat {
      * @property {Array<string>} unlinkedGroupIds An array of group IDs that were successfully unlinked
      * @property {Array<Object>} failedGroups An array of objects that handles groups that failed to be unlinked from the community and an information about it
      * @property {string} failedGroups[].groupId The group ID, in a format of 'xxxxxxxxxx@g.us'
-     * @property {number} failedGroups[].error The code of an error
+     * @property {number} failedGroups[].code The code of an error
      * @property {string} failedGroups[].message The message that describes an error
      */
 
     /**
      * Links a single subgroup or an array of subgroups to the community
-     * @param {string} parentGroupId The ID of a community parent group
      * @param {string|Array<string>} subGroupIds The single group ID or an array of group IDs to link to the created community
      * @param {boolean} [removeOrphanMembers = false] An optional parameter. If true, the method will remove specified subgroups along with their members who are not part of any other subgroups within the community. False by default
      * @returns {Promise<UnlinkSubGroupsResult>} Returns an object that handles the result for the unlinking subgroups action
      */
-    async unlinkSubgroups(parentGroupId, subGroupIds, removeOrphanMembers) {
+    async unlinkSubgroups(subGroupIds, removeOrphanMembers = false) {
         return await this.client.pupPage.evaluate(
             async (parentGroupId, subGroupIds, removeOrphanMembers) => {
                 return await window.WWebJS.linkUnlinkSubgroups(
@@ -86,7 +116,7 @@ class Community extends GroupChat {
                     removeOrphanMembers
                 );
             },
-            parentGroupId,
+            this.id._serialized,
             subGroupIds,
             removeOrphanMembers
         );
@@ -117,7 +147,7 @@ class Community extends GroupChat {
             async (communityId, participantIds, options) => {
                 const { sleep = [250, 500] } = options;
                 const communityWid = window.Store.WidFactory.createWid(communityId);
-                const community = await window.Store.Chat.find(communityId);
+                const community = await window.Store.Chat.find(communityWid);
                 const participantData = {};
 
                 !Array.isArray(participantIds) && (participantIds = [participantIds]);
@@ -125,7 +155,8 @@ class Community extends GroupChat {
 
                 const errorCodes = {
                     default: 'An unknown error occupied while removing a participant',
-                    iAmNotAdmin: 'RemoveParticipantsError: You have no admin rights to remove participants from the community',
+                    iAmNotAdmin:
+                        'RemoveParticipantsError: You have no admin rights to remove participants from the community',
                     200: 'The participant was removed successfully from the community and its subgroups',
                     404: 'The phone number is not registered on WhatsApp',
                     405: 'The participant is not allowed to be removed from the community',
@@ -225,16 +256,6 @@ class Community extends GroupChat {
             participantIds,
             options
         );
-    }
-
-    /**
-     * Allows or disallows for non admin community members to add groups to the community
-     * @see https://faq.whatsapp.com/205306122327447
-     * @param {boolean} [value=true] True to allow all community members to add groups to the community, false to disallow
-     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
-     */
-    async setNonAdminSubGroupCreation(value = true) {
-        return await this._setGroupProperty('allow_non_admin_sub_group_creation', value);
     }
 
     /**

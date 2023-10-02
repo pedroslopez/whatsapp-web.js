@@ -72,7 +72,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     };
     window.Store.GroupParticipants = {
         ...window.mR.findModule('promoteParticipants')[0],
-        ...window.mR.findModule('sendRemoveParticipantsRPC')[0],
+        ...window.mR.findModule('sendRemoveParticipantsRPC')[0]
     };
     window.Store.CommunityUtils = {
         ...window.mR.findModule('getDefaultSubgroup')[0],
@@ -901,7 +901,7 @@ exports.LoadUtils = () => {
         }
 
         const errorCodes = {
-            default: 'An unknown error occupied while linking the group to the comunity',
+            default: `An unknown error occupied while ${isLinking ? 'linking' : 'unlinking'} the group ${isLinking ? 'to' : 'from'} the comunity`,
             401: 'SubGroupNotAuthorizedError',
             403: 'SubGroupForbiddenError',
             404: 'SubGroupNotExistError',
@@ -917,7 +917,7 @@ exports.LoadUtils = () => {
                 : { unlinkedGroupIds: result.unlinkedGroupJids }),
             failedGroups: result.failedGroups.map(group => ({
                 groupId: group.jid,
-                error: +group.error,
+                code: +group.error,
                 message: errorCodes[group.error] || errorCodes.default
             }))
         };

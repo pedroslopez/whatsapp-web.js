@@ -1340,7 +1340,7 @@ class Client extends EventEmitter {
      * @param {string} name The community name
      * @param {string} description The community description
      * @param {CreateCommunityOptions} options 
-     * @returns {Promise<CreateCommunityResult>} The object that handles the result for the community creation
+     * @returns {Promise<CreateCommunityResult|string>} Returns an object that handles the result for the community creation
      */
     async createCommunity(name, description, options = {}) {
         return await this.pupPage.evaluate(async (name, desc, options = {}) => {
@@ -1356,7 +1356,7 @@ class Client extends EventEmitter {
                 });
             } catch (err) {
                 if (err.name === 'ServerStatusCodeError') {
-                    return 'ServerStatusCodeError: An error occupied while creating a community';
+                    return 'CreateCommunityError: An error occupied while creating a community';
                 }
                 throw err;
             }
