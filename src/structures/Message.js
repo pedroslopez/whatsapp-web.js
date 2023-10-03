@@ -417,7 +417,7 @@ class Message extends Base {
 
         const result = await this.client.pupPage.evaluate(async (msgId) => {
             const msg = window.Store.Msg.get(msgId);
-            if (!msg) {
+            if (!msg?.mediaData) {
                 return undefined;
             }
             if (msg.mediaData.mediaStage != 'RESOLVED') {
