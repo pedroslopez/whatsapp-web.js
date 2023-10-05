@@ -36,6 +36,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.User = window.mR.findModule('getMaybeMeUser')[0];
     window.Store.ContactMethods = window.mR.findModule('getUserid')[0];
     window.Store.BusinessProfileCollection = window.mR.findModule('BusinessProfileCollection')[0].BusinessProfileCollection;
+    window.Store.CommunityCollection = window.mR.findModule((m) => m.default && m.default._handleIsParentGroupChange)[0].default;
     window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
     window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default;
     window.Store.Validators = window.mR.findModule('findLinks')[0];
@@ -72,7 +73,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     };
     window.Store.GroupParticipants = {
         ...window.mR.findModule('promoteParticipants')[0],
-        ...window.mR.findModule('sendRemoveParticipantsRPC')[0]
+        ...window.mR.findModule('sendRemoveParticipantsRPC')[0],
+        ...window.mR.findModule('updateGroupParticipantTableWithoutDeviceSyncJob')[0]
     };
     window.Store.CommunityUtils = {
         ...window.mR.findModule('getDefaultSubgroup')[0],

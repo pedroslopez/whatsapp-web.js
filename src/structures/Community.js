@@ -11,6 +11,14 @@ const GroupChat = require('./GroupChat');
  */
 
 /**
+ * Community participant information
+ * @typedef {Object} CommunityParticipant
+ * @property {ChatId} id
+ * @property {boolean} isAdmin
+ * @property {boolean} isSuperAdmin
+ */
+
+/**
  * Represents a Community on WhatsApp
  * @extends {GroupChat}
  */
@@ -21,7 +29,7 @@ class Community extends GroupChat {
 
         return super._patch(data);
     }
-    
+
     /**
      * The community default subgroup (announcement group)
      * @type {ChatId}
@@ -39,6 +47,62 @@ class Community extends GroupChat {
             const communityWid = window.Store.WidFactory.createWid(communityId);
             return window.Store.CommunityUtils.getSubgroups(communityWid);
         }, this.id._serialized);
+    }
+
+    /**
+     * Gets the full list of community participants and updates the community groupMetadata
+     * @note To get the full results, you need to be a community admin. Otherwise, you will only get the participants that a regular community member can see
+     * @returns {Promise<Array<CommunityParticipant>>}
+     */
+    async getParticipants() {
+        const participants = await this.client.pupPage.evaluate(async (communityId) => {
+            const communityWid = window.Store.WidFactory.createWid(communityId);
+
+            const community = window.Store.CommunityCollection.get(communityWid);
+            if (!community) return [];
+
+            const communityParticipants = community.participants;
+            if (!communityParticipants.iAmAdmin()) return this.participants;
+
+            let participants;
+            try {
+                participants = await window.Store.CommunityUtils.getCommunityParticipants(communityWid);
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return this.participants;
+                throw err;
+            }
+
+            participants = participants.map((participantWid) => {
+                const participant = communityParticipants.get(participantWid);
+                return {
+                    id: participantWid,
+                    isAdmin: !!(participant && participant.isAdmin),
+                    isSuperAdmin: !!(participant && participantWid === community.owner)
+                };
+            });
+
+            const result = Array.from(participants);
+            const updatedData = {
+                id: communityWid,
+                announce: false,
+                participants: participants,
+                owner: community.owner,
+                subject: community.subject,
+                creation: community.creation,
+                membershipApprovalMode: community.membershipApprovalMode,
+                reportToAdminMode: community.reportToAdminMode,
+                noFrequentlyForwarded: community.noFrequentlyForwarded,
+                restrict: community.restrict
+            };
+
+            await window.Store.GroupParticipants.updateGroupParticipantTableWithoutDeviceSyncJob([updatedData]);
+            communityParticipants.set(participants);
+
+            return result;
+        }, this.id._serialized);
+
+        this.groupMetadata.participants = participants;
+        return participants;
     }
 
     /**

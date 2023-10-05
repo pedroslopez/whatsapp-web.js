@@ -1312,12 +1312,19 @@ declare namespace WAWebJS {
     export interface Community extends GroupChat {
         /** The community default subgroup (announcement group) */
         defaultSubgroup: ChatId;
-        
+
         /**
          * Gets all current community subgroups
          * @returns {Promise<Array<ChatId>>} Returns an array of @type {ChatId} objects
          */
         getSubgroups: () => Promise<Array<ChatId>>;
+
+        /**
+         * Gets the full list of community participants and updates the community groupMetadata
+         * @note To get the full results, you need to be a community admin. Otherwise, you will only get the participants that a regular community member can see
+         * @returns {Promise<Array<GroupParticipant>>}
+         */
+        getParticipants: () => Promise<Array<GroupParticipant>>;
 
         /** Allows or disallows for non admin community members to add groups to the community */
         setNonAdminSubGroupCreation: (value: boolean) => Promise<boolean>;
