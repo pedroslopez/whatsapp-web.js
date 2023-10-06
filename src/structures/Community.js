@@ -106,6 +106,44 @@ class Community extends GroupChat {
     }
 
     /**
+     * An object that handles the result for {@link promoteParticipants} and {@link demoteParticipants} methods
+     * @typedef {Object} PromoteDemoteResult
+     * @property {ChatId} id The participant ID
+     * @property {number} code The code of an error
+     * @property {string} message The result message
+     */
+
+    /**
+     * Promotes community participant/s
+     * @param {string|Array<string>} participantIds A single participant ID or an array of IDs to promote
+     * @returns {Promise<PromoteDemoteResult[]|[]>} Returns an array with the resulting data
+     */
+    async promoteParticipants(participantIds) {
+        return await this.client.pupPage.evaluate(
+            async (communityId, participantIds) => {
+                return await window.WWebJS.promoteDemoteCommunityParticipants(communityId, participantIds, true);
+            },
+            this.id._serialized,
+            participantIds
+        );
+    }
+
+    /**
+     * Demotes community participant/s
+     * @param {string|Array<string>} participantIds A single participant ID or an array of IDs to demote
+     * @returns {Promise<PromoteDemoteResult[]|[]>} Returns an array with the resulting data
+     */
+    async demoteParticipants(participantIds) {
+        return await this.client.pupPage.evaluate(
+            async (communityId, participantIds) => {
+                return await window.WWebJS.promoteDemoteCommunityParticipants(communityId, participantIds, false);
+            },
+            this.id._serialized,
+            participantIds
+        );
+    }
+
+    /**
      * Allows or disallows for non admin community members to add groups to the community
      * @see https://faq.whatsapp.com/205306122327447
      * @param {boolean} [value=true] True to allow all community members to add groups to the community, false to disallow
@@ -143,11 +181,7 @@ class Community extends GroupChat {
     async linkSubgroups(subGroupIds) {
         return await this.client.pupPage.evaluate(
             async (parentGroupId, subGroupIds) => {
-                return await window.WWebJS.linkUnlinkSubgroups(
-                    'LinkSubgroups',
-                    parentGroupId,
-                    subGroupIds
-                );
+                return await window.WWebJS.linkUnlinkSubgroups('LinkSubgroups', parentGroupId, subGroupIds);
             },
             this.id._serialized,
             subGroupIds

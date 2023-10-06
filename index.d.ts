@@ -1313,18 +1313,20 @@ declare namespace WAWebJS {
         /** The community default subgroup (announcement group) */
         defaultSubgroup: ChatId;
 
-        /**
-         * Gets all current community subgroups
-         * @returns {Promise<Array<ChatId>>} Returns an array of @type {ChatId} objects
-         */
+        /** Gets all current community subgroups */
         getSubgroups: () => Promise<Array<ChatId>>;
 
         /**
          * Gets the full list of community participants and updates the community groupMetadata
          * @note To get the full results, you need to be a community admin. Otherwise, you will only get the participants that a regular community member can see
-         * @returns {Promise<Array<GroupParticipant>>}
          */
         getParticipants: () => Promise<Array<GroupParticipant>>;
+
+        /** Promotes community participant/s */
+        promoteParticipants: (participantIds: string | Array<string>) => Promise<PromoteDemoteResult[] | []>;
+        
+        /** Demotes community participant/s */
+        demoteParticipants: (participantIds: string | Array<string>) => Promise<PromoteDemoteResult[] | []>;
 
         /** Allows or disallows for non admin community members to add groups to the community */
         setNonAdminSubGroupCreation: (value: boolean) => Promise<boolean>;
@@ -1443,6 +1445,16 @@ declare namespace WAWebJS {
             message: string;
         };
     };
+
+    /**
+     * An object that handles the result for
+     * {@link Community.promoteParticipants} and {@link Community.demoteParticipants} methods
+     */
+    export interface PromoteDemoteResult {
+        id: ContactId;
+        code: number;
+        message: string;
+    }
 
     /**
      * Represents the metadata associated with a given product

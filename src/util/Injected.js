@@ -80,7 +80,8 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('getDefaultSubgroup')[0],
         ...window.mR.findModule('sendCreateCommunity')[0],
         ...window.mR.findModule('queryAndUpdateCommunityParticipants')[0],
-        ...window.mR.findModule('getCommunityParticipants')[0]
+        ...window.mR.findModule('getCommunityParticipants')[0],
+        ...window.mR.findModule('sendPromoteDemoteAdminRPC')[0]
     };
 
     if (!window.Store.Chat._find) {
@@ -898,8 +899,8 @@ exports.LoadUtils = () => {
                     removeOrphanMembers: removeOrphanMembers
                 });
         } catch (err) {
-            if (err.name === 'ServerStatusCodeError') result = {};
-            else throw err;
+            if (err.name === 'ServerStatusCodeError') return {};
+            throw err;
         }
 
         const errorCodes = {
@@ -925,5 +926,61 @@ exports.LoadUtils = () => {
         };
 
         return result;
+    };
+
+    window.WWebJS.promoteDemoteCommunityParticipants = async (communityId, participantIds, toPromote) => {
+        !Array.isArray(participantIds) && (participantIds = [participantIds]);
+        const communityWid = window.Store.WidFactory.createWid(communityId);
+        const participantWids = [], failedParticipants = [];
+
+        const responseCodes = {
+            200: `The participant was ${toPromote ? 'promoted' : 'demoted'} successfully`,
+            403: `The participant can't be ${toPromote ? 'promoted' : 'demoted'}, maybe they are not a community member`,
+            404: 'The phone number is not registered on WhatsApp'
+        };
+
+        for (const pId of participantIds) {
+            const pWid = window.Store.WidFactory.createWid(pId);
+            if ((await window.Store.QueryExist(pWid))?.wid) participantWids.push(pWid);
+            else failedParticipants.push({
+                id: pWid,
+                code: 404,
+                message: responseCodes[404]
+            });
+        }
+
+        const iqTo = window.Store.WidToJid.widToGroupJid(communityWid);
+        const participantArgs = {
+            participantArgs: participantWids.map((p) => ({
+                participantJid: window.Store.WidToJid.widToUserJid(p)
+            }))
+        };
+
+        let response;
+        try {
+            response = await window.Store.CommunityUtils.sendPromoteDemoteAdminRPC({
+                ...(toPromote
+                    ? { promoteArgs: participantArgs }
+                    : { demoteArgs: participantArgs }),
+                iqTo: iqTo
+            });
+        } catch (err) {
+            if (err.name === 'ServerStatusCodeError') return [];
+            throw err;
+        }
+
+        if (response.name === 'PromoteDemoteAdminResponseSuccessMultiAdmin') {
+            const result = response.value.adminParticipant.map((p) => {
+                const error = +p.error || 200;
+                return {
+                    id: window.Store.JidToWid.userJidToUserWid(p.jid),
+                    code: error,
+                    message: responseCodes[error]
+                };
+            });
+            return [...result, ...failedParticipants];
+        }
+        
+        return [];
     };
 };
