@@ -364,7 +364,7 @@ class Message extends Base {
             quotedMessageId: this.id._serialized
         };
 
-        return this.client.sendMessage(chatId, content, options);
+        return await this.client.sendMessage(chatId, content, options);
     }
 
     /**
