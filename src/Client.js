@@ -172,7 +172,7 @@ class Client extends EventEmitter {
             }
         );
 
-        const INTRO_IMG_SELECTOR = '[data-icon=\'chat\']';
+        const INTRO_IMG_SELECTOR = '[data-icon=\'search\']';
         const INTRO_QRCODE_SELECTOR = 'div[data-ref] canvas';
 
         // Checks which selector appears first
@@ -285,13 +285,13 @@ class Client extends EventEmitter {
              */
             window.compareWwebVersions = (lOperand, operator, rOperand) => {
                 if (!['>', '>=', '<', '<=', '='].includes(operator)) {
-                    throw class _ extends Error {
+                    throw new class _ extends Error {
                         constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
                     }('Invalid comparison operator is provided');
 
                 }
                 if (typeof lOperand !== 'string' || typeof rOperand !== 'string') {
-                    throw class _ extends Error {
+                    throw new class _ extends Error {
                         constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
                     }('A non-string WWeb version type is provided');
                 }
