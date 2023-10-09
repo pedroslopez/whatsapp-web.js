@@ -83,7 +83,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     // eslint-disable-next-line no-undef
     if ((m = window.mR.findModule('ChatCollection')[0]) && m.ChatCollection && typeof m.ChatCollection.findImpl === 'undefined' && typeof m.ChatCollection._find !== 'undefined') m.ChatCollection.findImpl = m.ChatCollection._find;
 
-
     // TODO remove these once everybody has been updated to WWebJS with legacy sessions removed
     const _linkPreview = window.mR.findModule('queryLinkPreview');
     if (_linkPreview && _linkPreview[0] && _linkPreview[0].default) {
@@ -112,8 +111,6 @@ exports.ExposeStore = (moduleRaidStr) => {
 
     /**
      * Function to modify functions
-     * Referenced from and modified:
-     * @see https://github.com/pedroslopez/whatsapp-web.js/pull/1636/commits/81111faa058d8e715285a2bfc9a42636074f7c3d#diff-de25cb4b9105890088bb033eac000d1dd2104d3498a8523082dc7eaf319738b8R75-R78
      * @param {TargetOptions} target Options specifying the target function to search for modifying
      * @param {Function} callback Modified function
      */
@@ -126,16 +123,8 @@ exports.ExposeStore = (moduleRaidStr) => {
         module[target.index][target.property] = modifiedFunction;
     };
 
-    /**
-     * Referenced from and modified:
-     * @see https://github.com/wppconnect-team/wa-js/blob/e19164e83cfa68b828493e6ff046c0a3d46a4942/src/chat/functions/sendLocationMessage.ts#L156
-     */
     window.injectToFunction({ moduleId: 'mediaTypeFromProtobuf', index: 0, property: 'mediaTypeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? null : func(...args); });
 
-    /**
-     * Referenced from and modified:
-     * @see https://github.com/wppconnect-team/wa-js/blob/e19164e83cfa68b828493e6ff046c0a3d46a4942/src/chat/functions/sendLocationMessage.ts#L164
-     */
     window.injectToFunction({ moduleId: 'typeAttributeFromProtobuf', index: 0, property: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? 'text' : func(...args); });
 };
 
@@ -204,6 +193,20 @@ exports.LoadUtils = () => {
                 clientUrl: url
             };
             delete options.location;
+        }
+
+        let _pollOptions = {};
+        if (options.poll) {
+            const { pollName, pollOptions } = options.poll;
+            const { allowMultipleAnswers } = options.poll.options;
+            _pollOptions = {
+                type: 'poll_creation',
+                pollName: pollName,
+                pollOptions: pollOptions,
+                pollSelectableOptionsCount: allowMultipleAnswers ? 0 : 1,
+                messageSecret: window.crypto.getRandomValues(new Uint8Array(32))
+            };
+            delete options.poll;
         }
 
         let vcardOptions = {};
@@ -325,6 +328,7 @@ exports.LoadUtils = () => {
             type: 'chat',
             ...ephemeralFields,
             ...locationOptions,
+            ..._pollOptions,
             ...attOptions,
             ...(attOptions.toJSON ? attOptions.toJSON() : {}),
             ...quotedMsgOptions,
