@@ -926,14 +926,17 @@ declare namespace WAWebJS {
 
     /** Represents a Poll Vote on WhatsApp */
     export interface PollVote {
-        /** The selected poll option */
-        selectedOption: SelectedPollOption;
-
         /** The person who voted */
         voter: string;
 
+        /** Indicates if the vote was unvoted, if true the selected option was unvoted */
+        isUnvote: boolean;
+
+        /** The selected poll option */
+        selectedOption: SelectedPollOption;
+
         /** Timestamp the the poll was voted */
-        senderTimestampMs: number;
+        votedAtTimestamp: number;
 
         /** The poll creation message associated with the poll vote */
         parentMessage: Message;

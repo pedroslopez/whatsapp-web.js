@@ -23,6 +23,18 @@ class PollVote extends Base {
 
     _patch(data) {
         /**
+         * The person who voted
+         * @type {string}
+         */
+        this.voter = data.sender;
+
+        /**
+         * Indicates if the vote was unvouted, if true the selected option was unvoted
+         * @type {boolean}
+         */
+        this.isUnvote = data.isUnvote;
+
+        /**
          * The selected poll option
          * @type {SelectedPollOption}
          */
@@ -32,16 +44,10 @@ class PollVote extends Base {
         };
 
         /**
-         * The person who voted
-         * @type {string}
-         */
-        this.voter = data.sender;
-
-        /**
          * Timestamp the the poll was voted
          * @type {number}
          */
-        this.senderTimestampMs = data.senderTimestampMs;
+        this.votedAtTimestamp = data.senderTimestampMs;
 
         /**
          * The poll creation message associated with the poll vote

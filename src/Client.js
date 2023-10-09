@@ -691,6 +691,7 @@ class Client extends EventEmitter {
                 if (vote.parentMsgKey) {
                     _vote = vote.serialize();
                     _vote.parentMessage = window.WWebJS.getMessageModel(window.Store.Msg.get(vote.parentMsgKey));
+                    _vote.isUnvote = vote.isUnvote;
                 }
                 window.onPollVoteEvent(_vote);
             });
@@ -1464,6 +1465,34 @@ class Client extends EventEmitter {
 
             return await window.Store.Label.addOrRemoveLabels(actions, chats);
         }, labelIds, chatIds);
+    }
+
+    async getVotes(message) {
+        const votes = await window.Store.PollUtils.getVotes([message.id]);
+        if (!message.pollName) {
+            return [];
+        }
+        const returnData = {
+            msgId: message.id,
+            chatId: message.from,
+            votes: []
+        };
+        for (const vote of votes) {
+            const voteData = {
+                selectedOptions: [],
+                timestamp: vote.senderTimestampMs,
+                sender: vote.sender
+            };
+            for (const selectedOptionLocalId of vote.selectedOptionLocalIds) {
+                voteData.selectedOptions.push(
+                    message.pollOptions.filter((pollOption) => pollOption.localId === selectedOptionLocalId)[0]
+                );
+            }
+            if (voteData.selectedOptions.length > 0) {
+                returnData.votes.push(voteData);
+            }
+        }
+        return returnData;
     }
 }
 
