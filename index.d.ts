@@ -1351,8 +1351,7 @@ declare namespace WAWebJS {
          * @param {MembershipRequestActionOptions} options Options for performing a membership request action
          * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were rejected and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned
          */
-        rejectGroupMembershipRequests: (options: MembershipRequestActionOptions
-        ) => Promise<Array<MembershipRequestActionResult>>;
+        rejectGroupMembershipRequests: (options: MembershipRequestActionOptions) => Promise<Array<MembershipRequestActionResult>>;
         /** Gets the invite code for a specific group */
         getInviteCode: () => Promise<string>;
         /** Invalidates the current group invite code and generates a new one */
