@@ -51,6 +51,7 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @fires Client#change_state
  * @fires Client#contact_changed
  * @fires Client#group_admin_changed
+ * @fires Client#group_membership_request
  */
 class Client extends EventEmitter {
     constructor(options = {}) {
@@ -379,6 +380,17 @@ class Client extends EventEmitter {
                      * @param {GroupNotification} notification GroupNotification with more information about the action
                      */
                     this.emit(Events.GROUP_ADMIN_CHANGED, notification);
+                } else if (msg.subtype === 'created_membership_requests') {
+                    /**
+                     * Emitted when some user requested to join the group
+                     * that has the membership approval mode turned on
+                     * @event Client#group_membership_request
+                     * @param {GroupNotification} notification GroupNotification with more information about the action
+                     * @param {string} notification.chatId The group ID the request was made for
+                     * @param {string} notification.author The user ID that made a request
+                     * @param {number} notification.timestamp The timestamp the request was made at
+                     */
+                    this.emit(Events.GROUP_MEMBERSHIP_REQUEST, notification);
                 } else {
                     /**
                      * Emitted when group settings are updated, such as subject, description or picture.
@@ -1433,6 +1445,69 @@ class Client extends EventEmitter {
 
             return await window.Store.Label.addOrRemoveLabels(actions, chats);
         }, labelIds, chatIds);
+    }
+
+    /**
+     * An object that handles the information about the group membership request
+     * @typedef {Object} GroupMembershipRequest
+     * @property {Object} id The wid of a user who requests to enter the group
+     * @property {Object} addedBy The wid of a user who created that request
+     * @property {Object|null} parentGroupId The wid of a community parent group to which the current group is linked
+     * @property {string} requestMethod The method used to create the request: NonAdminAdd/InviteLink/LinkedGroupJoin
+     * @property {number} t The timestamp the request was created at
+     */
+
+    /**
+     * Gets an array of membership requests
+     * @param {string} groupId The ID of a group to get membership requests for
+     * @returns {Promise<Array<GroupMembershipRequest>>} An array of membership requests
+     */
+    async getGroupMembershipRequests(groupId) {
+        return await this.pupPage.evaluate(async (gropId) => {
+            const groupWid = window.Store.WidFactory.createWid(gropId);
+            return await window.Store.MembershipRequestUtils.getMembershipApprovalRequests(groupWid);
+        }, groupId);
+    }
+
+    /**
+     * An object that handles the result for membership request action
+     * @typedef {Object} MembershipRequestActionResult
+     * @property {string} requesterId User ID whos membership request was approved/rejected
+     * @property {number|undefined} error An error code that occurred during the operation for the participant
+     * @property {string} message A message with a result of membership request action
+     */
+
+    /**
+     * An object that handles options for {@link approveGroupMembershipRequests} and {@link rejectGroupMembershipRequests} methods
+     * @typedef {Object} MembershipRequestActionOptions
+     * @property {Array<string>|string|null} requesterIds User ID/s who requested to join the group, if no value is provided, the method will search for all membership requests for that group
+     * @property {Array<number>|number|null} sleep The number of milliseconds to wait before performing an operation for the next requester. If it is an array, a random sleep time between the sleep[0] and sleep[1] values will be added (the difference must be >=100 ms, otherwise, a random sleep time between sleep[1] and sleep[1] + 100 will be added). If sleep is a number, a sleep time equal to its value will be added. By default, sleep is an array with a value of [250, 500]
+     */
+
+    /**
+     * Approves membership requests if any
+     * @param {string} groupId The group ID to get the membership request for
+     * @param {MembershipRequestActionOptions} options Options for performing a membership request action
+     * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were approved and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned
+     */
+    async approveGroupMembershipRequests(groupId, options = {}) {
+        return await this.pupPage.evaluate(async (groupId, options) => {
+            const { requesterIds = null, sleep = [250, 500] } = options;
+            return await window.WWebJS.membershipRequestAction(groupId, 'Approve', requesterIds, sleep);
+        }, groupId, options);
+    }
+
+    /**
+     * Rejects membership requests if any
+     * @param {string} groupId The group ID to get the membership request for
+     * @param {MembershipRequestActionOptions} options Options for performing a membership request action
+     * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were rejected and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned
+     */
+    async rejectGroupMembershipRequests(groupId, options = {}) {
+        return await this.pupPage.evaluate(async (groupId, options) => {
+            const { requesterIds = null, sleep = [250, 500] } = options;
+            return await window.WWebJS.membershipRequestAction(groupId, 'Reject', requesterIds, sleep);
+        }, groupId, options);
     }
 }
 
