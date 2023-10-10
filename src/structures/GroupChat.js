@@ -264,6 +264,57 @@ class GroupChat extends Chat {
 
         return codeRes.code;
     }
+    
+    /**
+     * An object that handles the information about the group membership request
+     * @typedef {Object} GroupMembershipRequest
+     * @property {Object} id The wid of a user who requests to enter the group
+     * @property {Object} addedBy The wid of a user who created that request
+     * @property {Object|null} parentGroupId The wid of a community parent group to which the current group is linked
+     * @property {string} requestMethod The method used to create the request: NonAdminAdd/InviteLink/LinkedGroupJoin
+     * @property {number} t The timestamp the request was created at
+     */
+    
+    /**
+     * Gets an array of membership requests
+     * @returns {Promise<Array<GroupMembershipRequest>>} An array of membership requests
+     */
+    async getGroupMembershipRequests() {
+        return await this.client.getGroupMembershipRequests(this.id._serialized);
+    }
+
+    /**
+     * An object that handles the result for membership request action
+     * @typedef {Object} MembershipRequestActionResult
+     * @property {string} requesterId User ID whos membership request was approved/rejected
+     * @property {number} error An error code that occurred during the operation for the participant
+     * @property {string} message A message with a result of membership request action
+     */
+
+    /**
+     * An object that handles options for {@link approveGroupMembershipRequests} and {@link rejectGroupMembershipRequests} methods
+     * @typedef {Object} MembershipRequestActionOptions
+     * @property {Array<string>|string|null} requesterIds User ID/s who requested to join the group, if no value is provided, the method will search for all membership requests for that group
+     * @property {Array<number>|number|null} sleep The number of milliseconds to wait before performing an operation for the next requester. If it is an array, a random sleep time between the sleep[0] and sleep[1] values will be added (the difference must be >=100 ms, otherwise, a random sleep time between sleep[1] and sleep[1] + 100 will be added). If sleep is a number, a sleep time equal to its value will be added. By default, sleep is an array with a value of [250, 500]
+     */
+
+    /**
+     * Approves membership requests if any
+     * @param {MembershipRequestActionOptions} options Options for performing a membership request action
+     * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were approved and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned
+     */
+    async approveGroupMembershipRequests(options = {}) {
+        return await this.client.approveGroupMembershipRequests(this.id._serialized, options);
+    }
+
+    /**
+     * Rejects membership requests if any
+     * @param {MembershipRequestActionOptions} options Options for performing a membership request action
+     * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were rejected and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned
+     */
+    async rejectGroupMembershipRequests(options = {}) {
+        return await this.client.rejectGroupMembershipRequests(this.id._serialized, options);
+    }
 
     /**
      * Makes the bot leave the group
