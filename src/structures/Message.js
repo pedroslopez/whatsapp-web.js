@@ -528,7 +528,7 @@ class Message extends Base {
             const msg = window.Store.Msg.get(msgId);
             if (!msg) return null;
 
-            return await window.Store.MessageInfo.sendQueryMsgInfo(msg.id);
+            return await window.Store.sendQueryMsgInfo(msg.id);
         }, this.id._serialized);
 
         return info;
