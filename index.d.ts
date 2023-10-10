@@ -160,6 +160,15 @@ declare namespace WAWebJS {
         /** Deletes the current user's profile picture */
         deleteProfilePicture(): Promise<boolean>
 
+        /** Gets an array of membership requests */
+        getGroupMembershipRequests: (groupId: string) => Promise<Array<GroupMembershipRequest>>
+
+        /** Approves membership requests if any */
+        approveGroupMembershipRequests: (groupId: string, options: MembershipRequestActionOptions) => Promise<Array<MembershipRequestActionResult>>;
+
+        /** Rejects membership requests if any */
+        rejectGroupMembershipRequests: (groupId: string, options: MembershipRequestActionOptions) => Promise<Array<MembershipRequestActionResult>>;
+
         /** Generic event */
         on(event: string, listener: (...args: any) => void): this
 
@@ -206,6 +215,15 @@ declare namespace WAWebJS {
 
         /** Emitted when a current user is promoted to an admin or demoted to a regular user */
         on(event: 'group_admin_changed', listener: (
+            /** GroupNotification with more information about the action */
+            notification: GroupNotification
+        ) => void): this
+
+        /**
+         * Emitted when some user requested to join the group
+         * that has the membership approval mode turned on
+         */
+        on(event: 'group_membership_request', listener: (
             /** GroupNotification with more information about the action */
             notification: GroupNotification
         ) => void): this
@@ -589,6 +607,7 @@ declare namespace WAWebJS {
         GROUP_JOIN = 'group_join',
         GROUP_LEAVE = 'group_leave',
         GROUP_ADMIN_CHANGED = 'group_admin_changed',
+        GROUP_MEMBERSHIP_REQUEST = 'group_membership_request',
         GROUP_UPDATE = 'group_update',
         QR_RECEIVED = 'qr',
         LOADING_SCREEN = 'loading_screen',
@@ -1252,6 +1271,38 @@ declare namespace WAWebJS {
              [key: string]: number;
          }>
 
+    /** An object that handles the information about the group membership request */
+    export interface GroupMembershipRequest {
+        /** The wid of a user who requests to enter the group */
+        id: Object;
+        /** The wid of a user who created that request */
+        addedBy: Object;
+        /** The wid of a community parent group to which the current group is linked */
+        parentGroupId: Object | null;
+        /** The method used to create the request: NonAdminAdd/InviteLink/LinkedGroupJoin */
+        requestMethod: string,
+        /** The timestamp the request was created at */
+        t: number
+    }
+
+    /** An object that handles the result for membership request action */
+    export interface MembershipRequestActionResult {
+        /** User ID whos membership request was approved/rejected */
+        requesterId: Array<string> | string | null;
+        /** An error code that occurred during the operation for the participant */
+        error?: number;
+        /** A message with a result of membership request action */
+        message: string;
+    }
+
+    /** Options for performing a membership request action  */
+    export interface MembershipRequestActionOptions {
+        /** User ID/s who requested to join the group, if no value is provided, the method will search for all membership requests for that group */
+        requesterIds: Array<string> | string | null;
+        /** The number of milliseconds to wait before performing an operation for the next requester. If it is an array, a random sleep time between the sleep[0] and sleep[1] values will be added (the difference must be >=100 ms, otherwise, a random sleep time between sleep[1] and sleep[1] + 100 will be added). If sleep is a number, a sleep time equal to its value will be added. By default, sleep is an array with a value of [250, 500] */
+        sleep: Array<number> | number | null;
+    }
+
     export interface GroupChat extends Chat {
         /** Group owner */
         owner: ContactId;
@@ -1273,17 +1324,34 @@ declare namespace WAWebJS {
         setSubject: (subject: string) => Promise<boolean>;
         /** Updates the group description */
         setDescription: (description: string) => Promise<boolean>;
-        /** Updates the group settings to only allow admins to send messages 
-         * @param {boolean} [adminsOnly=true] Enable or disable this option 
+        /** Updates the group settings to only allow admins to send messages
+         * @param {boolean} [adminsOnly=true] Enable or disable this option
          * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
          */
         setMessagesAdminsOnly: (adminsOnly?: boolean) => Promise<boolean>;
         /**
          * Updates the group settings to only allow admins to edit group info (title, description, photo).
-         * @param {boolean} [adminsOnly=true] Enable or disable this option 
+         * @param {boolean} [adminsOnly=true] Enable or disable this option
          * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
          */
         setInfoAdminsOnly: (adminsOnly?: boolean) => Promise<boolean>;
+        /**
+         * Gets an array of membership requests
+         * @returns {Promise<Array<GroupMembershipRequest>>} An array of membership requests
+         */
+        getGroupMembershipRequests: () => Promise<Array<GroupMembershipRequest>>;
+        /**
+         * Approves membership requests if any
+         * @param {MembershipRequestActionOptions} options Options for performing a membership request action
+         * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were approved and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned
+         */
+        approveGroupMembershipRequests: (options: MembershipRequestActionOptions) => Promise<Array<MembershipRequestActionResult>>;
+        /**
+         * Rejects membership requests if any
+         * @param {MembershipRequestActionOptions} options Options for performing a membership request action
+         * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were rejected and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned
+         */
+        rejectGroupMembershipRequests: (options: MembershipRequestActionOptions) => Promise<Array<MembershipRequestActionResult>>;
         /** Gets the invite code for a specific group */
         getInviteCode: () => Promise<string>;
         /** Invalidates the current group invite code and generates a new one */
