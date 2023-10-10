@@ -14,6 +14,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
     window.Store.DownloadManager = window.mR.findModule('downloadManager')[0].downloadManager;
     window.Store.GroupMetadata = window.mR.findModule('GroupMetadata')[0].default.GroupMetadata;
+    window.Store.GroupMetadata.queryAndUpdate = window.mR.findModule('queryAndUpdateGroupMetadataById')[0].queryAndUpdateGroupMetadataById;
     window.Store.Invite = window.mR.findModule('resetGroupInviteCode')[0];
     window.Store.InviteInfo = window.mR.findModule('queryGroupInvite')[0];
     window.Store.Label = window.mR.findModule('LabelCollection')[0].LabelCollection;
@@ -59,16 +60,21 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.SocketWap = window.mR.findModule('wap')[0];
     window.Store.SearchContext = window.mR.findModule('getSearchContext')[0].getSearchContext;
     window.Store.DrawerManager = window.mR.findModule('DrawerManager')[0].DrawerManager;
+    window.Store.WidToJid = window.mR.findModule('widToUserJid')[0];
+    window.Store.JidToWid = window.mR.findModule('userJidToUserWid')[0];
     window.Store.StickerTools = {
         ...window.mR.findModule('toWebpSticker')[0],
         ...window.mR.findModule('addWebpMetadata')[0]
     };
-  
     window.Store.GroupUtils = {
         ...window.mR.findModule('createGroup')[0],
         ...window.mR.findModule('setGroupDescription')[0],
         ...window.mR.findModule('sendExitGroup')[0],
         ...window.mR.findModule('sendSetPicture')[0]
+    };
+    window.Store.MembershipRequestUtils = {
+        ...window.mR.findModule('getMembershipApprovalRequests')[0],
+        ...window.mR.findModule('sendMembershipRequestsActionRPC')[0]
     };
 
     if (!window.Store.Chat._find) {
@@ -82,7 +88,6 @@ exports.ExposeStore = (moduleRaidStr) => {
 
     // eslint-disable-next-line no-undef
     if ((m = window.mR.findModule('ChatCollection')[0]) && m.ChatCollection && typeof m.ChatCollection.findImpl === 'undefined' && typeof m.ChatCollection._find !== 'undefined') m.ChatCollection.findImpl = m.ChatCollection._find;
-
 
     // TODO remove these once everybody has been updated to WWebJS with legacy sessions removed
     const _linkPreview = window.mR.findModule('queryLinkPreview');
@@ -112,8 +117,6 @@ exports.ExposeStore = (moduleRaidStr) => {
 
     /**
      * Function to modify functions
-     * Referenced from and modified:
-     * @see https://github.com/pedroslopez/whatsapp-web.js/pull/1636/commits/81111faa058d8e715285a2bfc9a42636074f7c3d#diff-de25cb4b9105890088bb033eac000d1dd2104d3498a8523082dc7eaf319738b8R75-R78
      * @param {TargetOptions} target Options specifying the target function to search for modifying
      * @param {Function} callback Modified function
      */
@@ -125,17 +128,9 @@ exports.ExposeStore = (moduleRaidStr) => {
         const modifiedFunction = (...args) => callback(originalFunction, ...args);
         module[target.index][target.property] = modifiedFunction;
     };
-
-    /**
-     * Referenced from and modified:
-     * @see https://github.com/wppconnect-team/wa-js/blob/e19164e83cfa68b828493e6ff046c0a3d46a4942/src/chat/functions/sendLocationMessage.ts#L156
-     */
+    
     window.injectToFunction({ moduleId: 'mediaTypeFromProtobuf', index: 0, property: 'mediaTypeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? null : func(...args); });
 
-    /**
-     * Referenced from and modified:
-     * @see https://github.com/wppconnect-team/wa-js/blob/e19164e83cfa68b828493e6ff046c0a3d46a4942/src/chat/functions/sendLocationMessage.ts#L164
-     */
     window.injectToFunction({ moduleId: 'typeAttributeFromProtobuf', index: 0, property: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? 'text' : func(...args); });
 };
 
@@ -868,6 +863,101 @@ exports.LoadUtils = () => {
         } catch (err) {
             if(err.name === 'ServerStatusCodeError') return false;
             throw err;
+        }
+    };
+
+    window.WWebJS.membershipRequestAction = async (groupId, action, requesterIds, sleep) => {
+        const groupWid = window.Store.WidFactory.createWid(groupId);
+        const group = await window.Store.Chat.find(groupWid);
+        const toApprove = action === 'Approve';
+        let membershipRequests;
+        let response;
+        let result = [];
+
+        await window.Store.GroupMetadata.queryAndUpdate(groupWid);
+
+        if (!requesterIds?.length) {
+            membershipRequests = group.groupMetadata.membershipApprovalRequests._models.map(({ id }) => id);
+        } else {
+            !Array.isArray(requesterIds) && (requesterIds = [requesterIds]);
+            membershipRequests = requesterIds.map(r => window.Store.WidFactory.createWid(r));
+        }
+
+        if (!membershipRequests.length) return [];
+
+        const participantArgs = membershipRequests.map(m => ({
+            participantArgs: [
+                {
+                    participantJid: window.Store.WidToJid.widToUserJid(m)
+                }
+            ]
+        }));
+
+        const groupJid = window.Store.WidToJid.widToGroupJid(groupWid);
+        
+        const _getSleepTime = (sleep) => {
+            if (!Array.isArray(sleep) || (sleep.length === 2 && sleep[0] === sleep[1])) {
+                return sleep;
+            }
+            if (sleep.length === 1) {
+                return sleep[0];
+            }
+            sleep[1] - sleep[0] < 100 && (sleep[0] = sleep[1]) && (sleep[1] += 100);
+            return Math.floor(Math.random() * (sleep[1] - sleep[0] + 1)) + sleep[0];
+        };
+
+        const membReqResCodes = {
+            default: `An unknown error occupied while ${toApprove ? 'approving' : 'rejecting'} the participant membership request`,
+            400: 'ParticipantNotFoundError',
+            401: 'ParticipantNotAuthorizedError',
+            403: 'ParticipantForbiddenError',
+            404: 'ParticipantRequestNotFoundError',
+            408: 'ParticipantTemporarilyBlockedError',
+            409: 'ParticipantConflictError',
+            412: 'ParticipantParentLinkedGroupsResourceConstraintError',
+            500: 'ParticipantResourceConstraintError'
+        };
+
+        try {
+            for (const participant of participantArgs) {
+                response = await window.Store.MembershipRequestUtils.sendMembershipRequestsActionRPC({
+                    iqTo: groupJid,
+                    [toApprove ? 'approveArgs' : 'rejectArgs']: participant
+                });
+
+                if (response.name === 'MembershipRequestsActionResponseSuccess') {
+                    const value = toApprove
+                        ? response.value.membershipRequestsActionApprove
+                        : response.value.membershipRequestsActionReject;
+                    if (value?.participant) {
+                        const [_] = value.participant.map(p => {
+                            const error = toApprove
+                                ? value.participant[0].membershipRequestsActionAcceptParticipantMixins?.value.error
+                                : value.participant[0].membershipRequestsActionRejectParticipantMixins?.value.error;
+                            return {
+                                requesterId: window.Store.WidFactory.createWid(p.jid)._serialized,
+                                ...(error
+                                    ? { error: +error, message: membReqResCodes[error] || membReqResCodes.default }
+                                    : { message: `${toApprove ? 'Approved' : 'Rejected'} successfully` })
+                            };
+                        });
+                        _ && result.push(_);
+                    }
+                } else {
+                    result.push({
+                        requesterId: window.Store.JidToWid.userJidToUserWid(participant.participantArgs[0].participantJid)._serialized,
+                        message: 'ServerStatusCodeError'
+                    });
+                }
+
+                sleep &&
+                    participantArgs.length > 1 &&
+                    participantArgs.indexOf(participant) !== participantArgs.length - 1 &&
+                    (await new Promise((resolve) => setTimeout(resolve, _getSleepTime(sleep))));
+            }
+            return result;
+        } catch (err) {
+            return [];
         }
     };
 };
