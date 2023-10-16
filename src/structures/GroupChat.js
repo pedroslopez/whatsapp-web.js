@@ -439,7 +439,7 @@ class GroupChat extends Chat {
             const groupWid = window.Store.WidFactory.createWid(groupId);
             const group = await window.Store.Chat.find(groupWid);
             const result =
-                group.groupMetadata.isDefaultSubgroup || group.groupMetadata.isParentGroup
+                group.groupMetadata.isParentGroup
                     ? await window.Store.GroupUtils.leaveCommunity(groupWid)
                     : await window.Store.GroupUtils.leaveGroup(groupWid);
             return result.code === 200

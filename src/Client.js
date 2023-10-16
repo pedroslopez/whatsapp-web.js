@@ -359,7 +359,7 @@ class Client extends EventEmitter {
         await page.exposeFunction('onAddMessageEvent', msg => {
             if (msg.type === 'gp2') {
                 const notification = new GroupNotification(this, msg);
-                if (['add', 'invite', 'linked_group_join'].includes(msg.subtype)) {
+                if (['add', 'invite', 'linked_group_join', 'auto_add'].includes(msg.subtype)) {
                     /**
                      * Emitted when a user joins the chat via invite link or is added by an admin.
                      * @event Client#group_join
@@ -1421,9 +1421,10 @@ class Client extends EventEmitter {
     /**
      * Create community options
      * @typedef {Object} CreateCommunityOptions
-     * @property {string|Array<string>|null} subGroupIds The single group ID or an array of group IDs to link to the created community
+     * @property {?string} description The community description
+     * @property {?string|Array<string>} subGroupIds The single group ID or an array of group IDs to link to the created community
      * @see https://faq.whatsapp.com/1110600769849613
-     * @property {boolean} [membershipApprovalMode = true] If true, admins must approve anyone who wants to join the group, true by default
+     * @property {boolean} [membershipApprovalMode = false] If true, admins must approve anyone who wants to join the group, false by default
      * @see https://faq.whatsapp.com/205306122327447
      * @property {boolean} [allowNonAdminSubGroupCreation = false] If false, only community admins can add groups to that community, members can suggest groups for admin approval. If true, every community member can add groups to that community. False by default
      */
@@ -1431,13 +1432,12 @@ class Client extends EventEmitter {
     /**
      * Creates a new community, optionally it is possible to link groups to that community within its creation
      * @param {string} name The community name
-     * @param {string} description The community description
      * @param {CreateCommunityOptions} options 
-     * @returns {Promise<CreateCommunityResult|string>} Returns an object that handles the result for the community creation
+     * @returns {Promise<CreateCommunityResult|string>} Returns an object that handles the result for the community creation or an error message as a string
      */
-    async createCommunity(name, description, options = {}) {
-        return await this.pupPage.evaluate(async (name, desc, options = {}) => {
-            let { subGroupIds = null, membershipApprovalMode: closed = true, allowNonAdminSubGroupCreation: hasAllowNonAdminSubGroupCreation = false } = options;
+    async createCommunity(name, options = {}) {
+        return await this.pupPage.evaluate(async (name, options = {}) => {
+            let { description: desc = '', subGroupIds = null, membershipApprovalMode: closed = true, allowNonAdminSubGroupCreation: hasAllowNonAdminSubGroupCreation = false } = options;
             let communityCreationResult, linkingSubGroupsResult;
 
             try {
@@ -1463,10 +1463,11 @@ class Client extends EventEmitter {
             }
             
             return {
+                title: name,
                 cid: communityCreationResult.wid,
                 ...(subGroupIds ? { subGroupIds: linkingSubGroupsResult } : {})
             };
-        }, name, description, options);
+        }, name, options);
     }
 
     /**
@@ -1478,7 +1479,9 @@ class Client extends EventEmitter {
         return await this.pupPage.evaluate(async (parentGroupId) => {
             const communityWid = window.Store.WidFactory.createWid(parentGroupId);
             try {
-                const response = await window.Store.CommunityUtils.sendDeactivateCommunity(communityWid);
+                const response = await window.Store.CommunityUtils.sendDeactivateCommunity({
+                    parentGroupId: communityWid
+                });
                 return response ? true : false;
             } catch (err) {
                 if (err.name === 'ServerStatusCodeError') return false;

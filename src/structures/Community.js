@@ -51,7 +51,7 @@ class Community extends GroupChat {
 
     /**
      * Gets the full list of community participants and updates the community groupMetadata
-     * @note To get the full results, you need to be a community admin. Otherwise, you will only get the participants that a regular community member can see
+     * @note To get the full result, you need to be a community admin. Otherwise, you will only get the participants that a regular community member can see
      * @returns {Promise<Array<CommunityParticipant>>}
      */
     async getParticipants() {
@@ -146,10 +146,10 @@ class Community extends GroupChat {
     /**
      * Allows or disallows for non admin community members to add groups to the community
      * @see https://faq.whatsapp.com/205306122327447
-     * @param {boolean} [value=true] True to allow all community members to add groups to the community, false to disallow
+     * @param {boolean} [value=false] True to allow all community members to add groups to the community, false to allow only community admins to add groups to the community
      * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
      */
-    async setNonAdminSubGroupCreation(value = true) {
+    async setNonAdminSubGroupCreation(value = false) {
         return await this._setGroupProperty('allow_non_admin_sub_group_creation', value);
     }
 
@@ -181,7 +181,11 @@ class Community extends GroupChat {
     async linkSubgroups(subGroupIds) {
         return await this.client.pupPage.evaluate(
             async (parentGroupId, subGroupIds) => {
-                return await window.WWebJS.linkUnlinkSubgroups('LinkSubgroups', parentGroupId, subGroupIds);
+                return await window.WWebJS.linkUnlinkSubgroups(
+                    'LinkSubgroups',
+                    parentGroupId,
+                    subGroupIds
+                );
             },
             this.id._serialized,
             subGroupIds
@@ -199,24 +203,30 @@ class Community extends GroupChat {
      */
 
     /**
+     * An object that handles options for unlinking subgroups
+     * @typedef {Object} UnlinkSubGroupsOptions
+     * @property {boolean} [removeOrphanMembers = false] If true, the method will remove specified subgroups along with their members who are not part of any other subgroups within the community. False by default
+     */
+
+    /**
      * Links a single subgroup or an array of subgroups to the community
      * @param {string|Array<string>} subGroupIds The single group ID or an array of group IDs to link to the created community
-     * @param {boolean} [removeOrphanMembers = false] An optional parameter. If true, the method will remove specified subgroups along with their members who are not part of any other subgroups within the community. False by default
+     * @param {UnlinkSubGroupsOptions} options Options to unlink subgroups
      * @returns {Promise<UnlinkSubGroupsResult>} Returns an object that handles the result for the unlinking subgroups action
      */
-    async unlinkSubgroups(subGroupIds, removeOrphanMembers = false) {
+    async unlinkSubgroups(subGroupIds, options = {}) {
         return await this.client.pupPage.evaluate(
-            async (parentGroupId, subGroupIds, removeOrphanMembers) => {
+            async (parentGroupId, subGroupIds, options) => {
                 return await window.WWebJS.linkUnlinkSubgroups(
                     'UnlinkSubgroups',
                     parentGroupId,
                     subGroupIds,
-                    removeOrphanMembers
+                    options
                 );
             },
             this.id._serialized,
             subGroupIds,
-            removeOrphanMembers
+            options
         );
     }
 

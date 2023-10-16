@@ -996,8 +996,9 @@ exports.LoadUtils = () => {
         return data;
     };
 
-    window.WWebJS.linkUnlinkSubgroups = async (action, parentGroupId, subGroupIds, removeOrphanMembers = false) => {
+    window.WWebJS.linkUnlinkSubgroups = async (action, parentGroupId, subGroupIds, options = {}) => {
         !Array.isArray(subGroupIds) && (subGroupIds = [subGroupIds]);
+        const { removeOrphanMembers = false } = options;
         const parentGroupWid = window.Store.WidFactory.createWid(parentGroupId);
         const subGroupWids = subGroupIds.map((s) => window.Store.WidFactory.createWid(s));
         const isLinking = action === 'LinkSubgroups';

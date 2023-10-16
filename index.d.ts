@@ -38,11 +38,8 @@ declare namespace WAWebJS {
         /** Creates a new group */
         createGroup(title: string, participants?: string | Contact | Contact[] | string[], options?: CreateGroupOptions): Promise<CreateGroupResult|string>
 
-        /**
-         * Creates a new community,
-         * optionally it is possible to link groups to that community within its creation
-         */
-        createCommunity(name: string, description: string, options: CreateCommunityOptions): Promise<CreateCommunityResult | undefined>
+        /** Creates a new community */
+        createCommunity(name: string, options: CreateCommunityOptions): Promise<CreateCommunityResult | undefined>
 
         /** Deactivates the community */
         deactivateCommunity: (parentGroupId: string) => Promise<boolean>;
@@ -1435,13 +1432,13 @@ declare namespace WAWebJS {
 
         /**
          * Gets the full list of community participants and updates the community groupMetadata
-         * @note To get the full results, you need to be a community admin. Otherwise, you will only get the participants that a regular community member can see
+         * @note To get the full result, you need to be a community admin. Otherwise, you will only get the participants that a regular community member can see
          */
         getParticipants: () => Promise<Array<GroupParticipant>>;
 
         /** Promotes community participant/s */
         promoteParticipants: (participantIds: string | Array<string>) => Promise<PromoteDemoteResult[] | []>;
-        
+
         /** Demotes community participant/s */
         demoteParticipants: (participantIds: string | Array<string>) => Promise<PromoteDemoteResult[] | []>;
 
@@ -1454,7 +1451,7 @@ declare namespace WAWebJS {
         /** Unlinks a single subgroup or an array of subgroups from the community */
         unlinkSubgroups: (
             subGroupIds: string | Array<string>,
-            removeOrphanMembers: boolean
+            options?: UnlinkSubGroupsOptions
         ) => Promise<UnlinkSubGroupsResult>;
 
         /**
@@ -1464,7 +1461,7 @@ declare namespace WAWebJS {
         removeParticipants: (
             participantIds: string | Array<string>,
             options?: RemoveCommunityParticipantsOptions
-        ) => Promise<Object<string, RemoveCommunityParticipantsResult> | string>;
+        ) => Promise<RemoveCommunityParticipantsResult | string>;
 
         /** Deactivates the community */
         deactivate: () => Promise<boolean>;
@@ -1472,14 +1469,16 @@ declare namespace WAWebJS {
 
     /** Create community options */
     export interface CreateCommunityOptions {
+        /** The community description */
+        description?: string;
         /** The single group ID or an array of group IDs to link to the created community */
-        subGroupIds?: string|Array<string>
+        subGroupIds?: string | Array<string>;
         /**
-         * If true, admins must approve anyone who wants to join the group, true by default
+         * If true, admins must approve anyone who wants to join the group, false by default
          * @see https://faq.whatsapp.com/1110600769849613
-         * @default true
+         * @default false
          */
-        membershipApprovalMode?: boolean
+        membershipApprovalMode?: boolean;
         /**
          * If false, only community admins can add groups to that community,
          * members can suggest groups for admin approval.
@@ -1487,7 +1486,17 @@ declare namespace WAWebJS {
          * @see https://faq.whatsapp.com/205306122327447
          * @default false
          */
-        allowNonAdminSubGroupCreation?: boolean
+        allowNonAdminSubGroupCreation?: boolean;
+    }
+
+    /** Unlink subgroups options */
+    export interface UnlinkSubGroupsOptions {
+        /**
+         * If true, the method will remove specified subgroups along with their members
+         * who are not part of any other subgroups within the community.
+         * @default false
+         */
+        removeOrphanMembers: boolean;
     }
 
     /** An object that handles options for removing participants */
