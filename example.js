@@ -75,21 +75,21 @@ client.on('message', async msg => {
         } else {
             msg.reply('This command can only be used in a group!');
         }
-    } else if (msg.body === '!allowNonAdminSubGroupCreation') {
-        const community = await client.getChatById('groupId@g.us');
+    } else if (msg.body === '!memberAddMode') {
+        const community = await client.getChatById('communityId@g.us');
         if (community.isCommunity) {
-            /** Allow all community members to add groups to the community: */
+            /** Allows all community members to add groups to the community: */
             await community.setNonAdminSubGroupCreation(true);
-            /** Allow only community admins to add groups to the community: */
+            /** Allows only community admins to add groups to the community: */
             await community.setNonAdminSubGroupCreation(false);
         }
     } else if (msg.body === '!leave') {
         // Leave the group/community announcement group
         let chat = await msg.getChat();
-        if (chat.isGroup) {
-            chat.leave();
+        if (chat.isGroup || chat.isCommunity) {
+            await chat.leave();
         } else {
-            msg.reply('This command can only be used in a group!');
+            msg.reply('This command can only be used in a group or a community!');
         }
     } else if (msg.body.startsWith('!join ')) {
         const inviteCode = msg.body.split(' ')[1];
@@ -185,6 +185,117 @@ client.on('message', async msg => {
         } else {
             msg.reply('This command can only be used in a group!');
         }
+    } else if (msg.body === '!createcommunity') {
+        let createdCommunity;
+        createdCommunity = await client.createCommunity('CommunityName');
+        /**
+         * The example of the {@link createdCommunity}:
+         * {
+         *   title: 'CommunityName',
+         *   cid: {
+         *     server: 'g.us',
+         *     user: 'ZZZZZZZZZZ',
+         *     _serialized: 'ZZZZZZZZZZ@g.us'
+         *   }
+         * }
+         */
+        console.log(createdCommunity);
+
+        // You can also provide optional parametes:
+        createdCommunity = await client.createCommunity('CommunityName', {
+            description: 'Description',
+            subGroupIds: ['groupId1@g.us', 'groupId2@g.us', 'groupId3@g.us'], // group IDs to link to the community
+            membershipApprovalMode: true, // false by default
+            allowNonAdminSubGroupCreation: true // false by default
+        });
+    } else if (msg.body === '!linksubgroups') {
+        const community = await client.getChatById('communityId@g.us');
+        /**
+         * The example output of the method execution:
+         * {
+         *   linkedGroupIds: [ 'groupId1@g.us' ],
+         *   failedGroups: [
+         *     {
+         *       groupId: 'groupId2@g.us',
+         *       code: 409,
+         *       message: 'SubGroupConflictError'
+         *     },
+         *     {
+         *       groupId: 'groupId3@g.us',
+         *       code: 403,
+         *       message: 'SubGroupForbiddenError'
+         *     }
+         *   ]
+         * }
+         */
+        console.log(await community.linkSubgroups(['groupId1@g.us', 'groupId2@g.us', 'groupId3@g.us']));
+    } else if (msg.body === '!unlinksubgroups') {
+        const community = await client.getChatById('communityId@g.us');
+        /**
+         * The example output of the unlinking result is as the linking one
+         * but also you can provide an optional parameter 'removeOrphanMembers':
+         */
+        console.log(
+            await community.unlinkSubgroups(
+                ['groupId1@g.us', 'groupId2@g.us', 'groupId3@g.us'],
+                { removeOrphanMembers: true } // false by default
+            )
+        );
+    } else if (msg.body === '!getsubgroups') {
+        const community = await client.getChatById('communityId@g.us');
+        if (community.isCommunity) {
+            const subGroups = await community.getSubgroups();
+            /**
+             * The example of {@link subGroups}:
+             * [
+             *   {
+             *     server: 'g.us',
+             *     user: 'XXXXXXXXXX',
+             *     _serialized: 'XXXXXXXXXX@g.us'
+             *   },
+             *   {
+             *     server: 'g.us',
+             *     user: 'YYYYYYYYYY',
+             *     _serialized: 'YYYYYYYYYY@g.us'
+             *   },
+             *   ...
+             * ]
+             */
+            console.log(subGroups);
+        }
+    } else if (msg.body === '!communitymembers') {
+        const community = await client.getChatById('communityId@g.us');
+        if (community.isCommunity) {
+            const members = await community.getParticipants();
+            /**
+             * The example of {@link members}:
+             * [
+             *   {
+             *     id: {
+             *       server: 'c.us',
+             *       user: 'XXXXXXXXXX',
+             *       _serialized: 'XXXXXXXXXX@c.us'
+             *     },
+             *     isAdmin: false,
+             *     isSuperAdmin: false
+             *   },
+             *   {
+             *     id: {
+             *       server: 'c.us',
+             *       user: 'YYYYYYYYYY',
+             *       _serialized: 'YYYYYYYYYY@c.us'
+             *     },
+             *     isAdmin: true,
+             *     isSuperAdmin: false
+             *   },
+             *   ...
+             * ]
+             */
+            console.log(members);
+        }
+    } else if (msg.body === '!deactivatecommunity') {
+        const community = await client.getChatById('communityId@g.us');
+        await community.deactivate();
     } else if (msg.body === '!chats') {
         const chats = await client.getChats();
         client.sendMessage(msg.from, `The bot has ${chats.length} chats open.`);
