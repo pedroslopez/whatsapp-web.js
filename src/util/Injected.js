@@ -516,7 +516,7 @@ exports.LoadUtils = () => {
     };
 
 
-    window.WWebJS.getChatModel = async chat => {
+    window.WWebJS.getChatModel = async(chat, options) => {
 
         let res = chat.serialize();
         res.isGroup = chat.isGroup;
@@ -531,9 +531,9 @@ exports.LoadUtils = () => {
         
         res.lastMessage = null;
         if (res.msgs && res.msgs.length) {
-            const lastMessage = chat.lastReceivedKey ? window.Store.Msg.get(chat.lastReceivedKey._serialized) : null;
-            if (lastMessage) {
-                res.lastMessage = window.WWebJS.getMessageModel(lastMessage);
+            const message = chat.lastReceivedKey && options.lastMessage ? window.Store.Msg.get(chat.lastReceivedKey._serialized) : null;
+            if (message) {
+                res.lastMessage = window.WWebJS.getMessageModel(message);
             }
         }
         
@@ -550,10 +550,10 @@ exports.LoadUtils = () => {
         return await window.WWebJS.getChatModel(chat);
     };
 
-    window.WWebJS.getChats = async () => {
+    window.WWebJS.getChats = async (options = { lastMessage: true }) => {
         const chats = window.Store.Chat.getModelsArray();
 
-        const chatPromises = chats.map(chat => window.WWebJS.getChatModel(chat));
+        const chatPromises = chats.map(chat => window.WWebJS.getChatModel(chat, options));
         return await Promise.all(chatPromises);
     };
 

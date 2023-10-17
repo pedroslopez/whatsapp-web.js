@@ -50,8 +50,11 @@ declare namespace WAWebJS {
         /** Get chat instance by ID */
         getChatById(chatId: string): Promise<Chat>
 
-        /** Get all current chat instances */
-        getChats(): Promise<Chat[]>
+        /** Get all current chat instances
+        * @param {object} [options]
+        * @param {boolean} [options.lastMessage] - fetches last message of each chat. default true
+        */
+        getChats(options?: { lastMessage?: boolean }): Promise<Chat[]>
 
         /** Get contact instance by ID */
         getContactById(contactId: string): Promise<Contact>

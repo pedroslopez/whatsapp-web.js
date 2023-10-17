@@ -914,12 +914,14 @@ class Client extends EventEmitter {
 
     /**
      * Get all current chat instances
+     * @param {object} [options]
+     * @param {boolean} [options.lastMessage]
      * @returns {Promise<Array<Chat>>}
      */
-    async getChats() {
-        let chats = await this.pupPage.evaluate(async () => {
-            return await window.WWebJS.getChats();
-        });
+    async getChats(options) {
+        let chats = await this.pupPage.evaluate(async (options) => {
+            return await window.WWebJS.getChats(options);
+        }, options);
 
         return chats.map(chat => ChatFactory.create(this, chat));
     }
