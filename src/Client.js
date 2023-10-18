@@ -987,7 +987,7 @@ class Client extends EventEmitter {
      */
     async getInviteInfo(inviteCode) {
         return await this.pupPage.evaluate(inviteCode => {
-            return window.Store.InviteInfo.queryGroupInvite(inviteCode);
+            return window.Store.GroupInvite.queryGroupInvite(inviteCode);
         }, inviteCode);
     }
 
@@ -998,7 +998,7 @@ class Client extends EventEmitter {
      */
     async acceptInvite(inviteCode) {
         const res = await this.pupPage.evaluate(async inviteCode => {
-            return await window.Store.Invite.joinGroupViaInvite(inviteCode);
+            return await window.Store.GroupInvite.joinGroupViaInvite(inviteCode);
         }, inviteCode);
 
         return res.gid._serialized;
@@ -1015,7 +1015,7 @@ class Client extends EventEmitter {
         return this.pupPage.evaluate(async inviteInfo => {
             let { groupId, fromId, inviteCode, inviteCodeExp } = inviteInfo;
             let userWid = window.Store.WidFactory.createWid(fromId);
-            return await window.Store.JoinInviteV4.joinGroupViaInviteV4(inviteCode, String(inviteCodeExp), groupId, userWid);
+            return await window.Store.GroupInviteV4.joinGroupViaInviteV4(inviteCode, String(inviteCodeExp), groupId, userWid);
         }, inviteInfo);
     }
 
@@ -1291,35 +1291,116 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Create a new group
-     * @param {string} name group title
-     * @param {Array<Contact|string>} participants an array of Contacts or contact IDs to add to the group
-     * @returns {Object} createRes
-     * @returns {string} createRes.gid - ID for the group that was just created
-     * @returns {Object.<string,string>} createRes.missingParticipants - participants that were not added to the group. Keys represent the ID for participant that was not added and its value is a status code that represents the reason why participant could not be added. This is usually 403 if the user's privacy settings don't allow you to add them to groups.
+     * An object that represents the result for a participant added to a group
+     * @typedef {Object} ParticipantResult
+     * @property {number} statusCode The status code of the result
+     * @property {string} message The result message
+     * @property {boolean} isGroupCreator Indicates if the participant is a group creator
+     * @property {boolean} isInviteV4Sent Indicates if the inviteV4 was sent to the participant
      */
-    async createGroup(name, participants) {
-        if (!Array.isArray(participants) || participants.length == 0) {
-            throw 'You need to add at least one other participant to the group';
-        }
 
-        if (participants.every(c => c instanceof Contact)) {
-            participants = participants.map(c => c.id._serialized);
-        }
+    /**
+     * An object that handles the result for {@link createGroup} method
+     * @typedef {Object} CreateGroupResult
+     * @property {string} title A group title
+     * @property {Object} gid An object that handles the newly created group ID
+     * @property {string} gid.server
+     * @property {string} gid.user
+     * @property {string} gid._serialized
+     * @property {Object.<string, ParticipantResult>} participants An object that handles the result value for each added to the group participant
+     */
 
-        const createRes = await this.pupPage.evaluate(async (name, participantIds) => {
-            const participantWIDs = participantIds.map(p => window.Store.WidFactory.createWid(p));
-            return await window.Store.GroupUtils.createGroup(name, participantWIDs, 0);
-        }, name, participants);
+    /**
+     * An object that handles options for group creation
+     * @typedef {Object} CreateGroupOptions
+     * @property {number} [messageTimer = 0] The number of seconds for the messages to disappear in the group (0 by default, won't take an effect if the group is been creating with myself only)
+     * @property {string|undefined} parentGroupId The ID of a parent community group to link the newly created group with (won't take an effect if the group is been creating with myself only)
+     * @property {boolean} [autoSendInviteV4 = true] If true, the inviteV4 will be sent to those participants who have restricted others from being automatically added to groups, otherwise the inviteV4 won't be sent (true by default)
+     * @property {string} [comment = ''] The comment to be added to an inviteV4 (empty string by default)
+     */
 
-        const missingParticipants = createRes.participants.reduce(((missing, c) => {
-            const id = c.wid._serialized;
-            const statusCode = c.error ? c.error.toString() : '200';
-            if (statusCode != 200) return Object.assign(missing, { [id]: statusCode });
-            return missing;
-        }), {});
+    /**
+     * Creates a new group
+     * @param {string} title Group title
+     * @param {string|Contact|Array<Contact|string>|undefined} participants A single Contact object or an ID as a string or an array of Contact objects or contact IDs to add to the group
+     * @param {CreateGroupOptions} options An object that handles options for group creation
+     * @returns {Promise<CreateGroupResult|string>} Object with resulting data or an error message as a string
+     */
+    async createGroup(title, participants = [], options = {}) {
+        !Array.isArray(participants) && (participants = [participants]);
+        participants.map(p => (p instanceof Contact) ? p.id._serialized : p);
 
-        return { gid: createRes.wid, missingParticipants };
+        return await this.pupPage.evaluate(async (title, participants, options) => {
+            const { messageTimer = 0, parentGroupId, autoSendInviteV4 = true, comment = '' } = options;
+            const participantData = {}, participantWids = [], failedParticipants = [];
+            let createGroupResult, parentGroupWid;
+
+            const addParticipantResultCodes = {
+                default: 'An unknown error occupied while adding a participant',
+                200: 'The participant was added successfully',
+                403: 'The participant can be added by sending private invitation only',
+                404: 'The phone number is not registered on WhatsApp'
+            };
+
+            for (const participant of participants) {
+                const pWid = window.Store.WidFactory.createWid(participant);
+                if ((await window.Store.QueryExist(pWid))?.wid) participantWids.push(pWid);
+                else failedParticipants.push(participant);
+            }
+
+            parentGroupId && (parentGroupWid = window.Store.WidFactory.createWid(parentGroupId));
+
+            try {
+                createGroupResult = await window.Store.GroupUtils.createGroup(
+                    title,
+                    participantWids,
+                    messageTimer,
+                    parentGroupWid
+                );
+            } catch (err) {
+                return 'CreateGroupError: An unknown error occupied while creating a group';
+            }
+
+            for (const participant of createGroupResult.participants) {
+                let isInviteV4Sent = false;
+                const participantId = participant.wid._serialized;
+                const statusCode = participant.error ?? 200;
+
+                if (autoSendInviteV4 && statusCode === 403) {
+                    window.Store.ContactCollection.gadd(participant.wid, { silent: true });
+                    const addParticipantResult = await window.Store.GroupInviteV4.sendGroupInviteMessage(
+                        await window.Store.Chat.find(participant.wid),
+                        createGroupResult.wid._serialized,
+                        createGroupResult.subject,
+                        participant.invite_code,
+                        participant.invite_code_exp,
+                        comment,
+                        await window.WWebJS.getProfilePicThumbToBase64(createGroupResult.wid)
+                    );
+                    isInviteV4Sent = window.compareWwebVersions(window.Debug.VERSION, '<', '2.2335.6')
+                        ? addParticipantResult === 'OK'
+                        : addParticipantResult.messageSendResult === 'OK';
+                }
+
+                participantData[participantId] = {
+                    statusCode: statusCode,
+                    message: addParticipantResultCodes[statusCode] || addParticipantResultCodes.default,
+                    isGroupCreator: participant.type === 'superadmin',
+                    isInviteV4Sent: isInviteV4Sent
+                };
+            }
+
+            for (const f of failedParticipants) {
+                participantData[f] = {
+                    statusCode: 404,
+                    message: addParticipantResultCodes[404],
+                    isGroupCreator: false,
+                    isInviteV4Sent: false
+                };
+            }
+
+            return { title: title, gid: createGroupResult.wid, participants: participantData };
+        }, title, participants, options);
     }
 
     /**
