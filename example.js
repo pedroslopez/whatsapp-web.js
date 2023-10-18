@@ -91,6 +91,78 @@ client.on('message', async msg => {
         } catch (e) {
             msg.reply('That invite code seems to be invalid.');
         }
+    } else if (msg.body.startsWith('!addmembers')) {
+        const group = await msg.getChat();
+        const result = await group.addParticipants(['number1@c.us', 'number2@c.us', 'number3@c.us']);
+        /**
+         * The example of the {@link result} output:
+         *
+         * {
+         *   'number1@c.us': {
+         *     code: 200,
+         *     message: 'The participant was added successfully',
+         *     isInviteV4Sent: false
+         *   },
+         *   'number2@c.us': {
+         *     code: 403,
+         *     message: 'The participant can be added by sending private invitation only',
+         *     isInviteV4Sent: true
+         *   },
+         *   'number3@c.us': {
+         *     code: 404,
+         *     message: 'The phone number is not registered on WhatsApp',
+         *     isInviteV4Sent: false
+         *   }
+         * }
+         *
+         * For more usage examples:
+         * @see https://github.com/pedroslopez/whatsapp-web.js/pull/2344#usage-example1
+         */
+        console.log(result);
+    } else if (msg.body === '!creategroup') {
+        const partitipantsToAdd = ['number1@c.us', 'number2@c.us', 'number3@c.us'];
+        const result = await client.createGroup('Group Title', partitipantsToAdd);
+        /**
+         * The example of the {@link result} output:
+         * {
+         *   title: 'Group Title',
+         *   gid: {
+         *     server: 'g.us',
+         *     user: '1111111111',
+         *     _serialized: '1111111111@g.us'
+         *   },
+         *   participants: {
+         *     'botNumber@c.us': {
+         *       statusCode: 200,
+         *       message: 'The participant was added successfully',
+         *       isGroupCreator: true,
+         *       isInviteV4Sent: false
+         *     },
+         *     'number1@c.us': {
+         *       statusCode: 200,
+         *       message: 'The participant was added successfully',
+         *       isGroupCreator: false,
+         *       isInviteV4Sent: false
+         *     },
+         *     'number2@c.us': {
+         *       statusCode: 403,
+         *       message: 'The participant can be added by sending private invitation only',
+         *       isGroupCreator: false,
+         *       isInviteV4Sent: true
+         *     },
+         *     'number3@c.us': {
+         *       statusCode: 404,
+         *       message: 'The phone number is not registered on WhatsApp',
+         *       isGroupCreator: false,
+         *       isInviteV4Sent: false
+         *     }
+         *   }
+         * }
+         *
+         * For more usage examples:
+         * @see https://github.com/pedroslopez/whatsapp-web.js/pull/2344#usage-example2
+         */
+        console.log(result);
     } else if (msg.body === '!groupinfo') {
         let chat = await msg.getChat();
         if (chat.isGroup) {
@@ -239,6 +311,52 @@ client.on('message', async msg => {
     } else if (msg.body === '!removelabels') {
         const chat = await msg.getChat();
         await chat.changeLabels([]);
+    } else if (msg.body === '!approverequest') {
+        /**
+         * Presented an example for membership request approvals, the same examples are for the request rejections.
+         * To approve the membership request from a specific user:
+         */
+        await client.approveGroupMembershipRequests(msg.from, { requesterIds: 'number@c.us' });
+        /** The same for execution on group object (no need to provide the group ID): */
+        const group = await msg.getChat();
+        await group.approveGroupMembershipRequests({ requesterIds: 'number@c.us' });
+        /** To approve several membership requests: */
+        const approval = await client.approveGroupMembershipRequests(msg.from, {
+            requesterIds: ['number1@c.us', 'number2@c.us']
+        });
+        /**
+         * The example of the {@link approval} output:
+         * [
+         *   {
+         *     requesterId: 'number1@c.us',
+         *     message: 'Rejected successfully'
+         *   },
+         *   {
+         *     requesterId: 'number2@c.us',
+         *     error: 404,
+         *     message: 'ParticipantRequestNotFoundError'
+         *   }
+         * ]
+         *
+         */
+        console.log(approval);
+        /** To approve all the existing membership requests (simply don't provide any user IDs): */
+        await client.approveGroupMembershipRequests(msg.from);
+        /** To change the sleep value to 300 ms: */
+        await client.approveGroupMembershipRequests(msg.from, {
+            requesterIds: ['number1@c.us', 'number2@c.us'],
+            sleep: 300
+        });
+        /** To change the sleep value to random value between 100 and 300 ms: */
+        await client.approveGroupMembershipRequests(msg.from, {
+            requesterIds: ['number1@c.us', 'number2@c.us'],
+            sleep: [100, 300]
+        });
+        /** To explicitly disable the sleep: */
+        await client.approveGroupMembershipRequests(msg.from, {
+            requesterIds: ['number1@c.us', 'number2@c.us'],
+            sleep: null
+        });
     }
 });
 
@@ -359,4 +477,30 @@ client.on('group_admin_changed', (notification) => {
     } else if (notification.type === 'demote')
         /** Emitted when a current user is demoted to a regular user. */
         console.log(`You were demoted by ${notification.author}`);
+});
+
+client.on('group_membership_request', async (notification) => {
+    /**
+     * The example of the {@link notification} output:
+     * {
+     *     id: {
+     *         fromMe: false,
+     *         remote: 'groupId@g.us',
+     *         id: '123123123132132132',
+     *         participant: 'number@c.us',
+     *         _serialized: 'false_groupId@g.us_123123123132132132_number@c.us'
+     *     },
+     *     body: '',
+     *     type: 'created_membership_requests',
+     *     timestamp: 1694456538,
+     *     chatId: 'groupId@g.us',
+     *     author: 'number@c.us',
+     *     recipientIds: []
+     * }
+     *
+     */
+    console.log(notification);
+    /** You can approve or reject the newly appeared membership request: */
+    await client.approveGroupMembershipRequestss(notification.chatId, notification.author);
+    await client.rejectGroupMembershipRequests(notification.chatId, notification.author);
 });
