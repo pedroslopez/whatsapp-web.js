@@ -11,7 +11,7 @@ const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
 const WebCacheFactory = require('./webCache/WebCacheFactory');
-const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List, Reaction, Chat } = require('./structures');
+const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List, Reaction } = require('./structures');
 const LegacySessionAuth = require('./authStrategies/LegacySessionAuth');
 const NoAuth = require('./authStrategies/NoAuth');
 
@@ -620,16 +620,20 @@ class Client extends EventEmitter {
             }
         });
 
-        await page.exposeFunction('onRemoveChatEvent', (chat) => {
+        await page.exposeFunction('onRemoveChatEvent', async (chat) => {
+            const _chat = await this.getChatById(chat.id);
+
             /**
              * Emitted when a chat is removed
              * @event Client#chat_removed
              * @param {Chat} chat
              */
-            this.emit(Events.CHAT_REMOVED, new Chat(this, chat));
+            this.emit(Events.CHAT_REMOVED, _chat);
         });
         
-        await page.exposeFunction('onArchiveChatEvent', (chat, currState, prevState) => {
+        await page.exposeFunction('onArchiveChatEvent', async (chat, currState, prevState) => {
+            const _chat = await this.getChatById(chat.id);
+            
             /**
              * Emitted when a chat is archived/unarchived
              * @event Client#chat_archived
@@ -637,7 +641,7 @@ class Client extends EventEmitter {
              * @param {boolean} currState
              * @param {boolean} prevState
              */
-            this.emit(Events.CHAT_ARCHIVED, new Chat(this, chat), currState, prevState);
+            this.emit(Events.CHAT_ARCHIVED, _chat, currState, prevState);
         });
 
         await page.exposeFunction('onEditMessageEvent', (msg, newBody, prevBody) => {
