@@ -525,10 +525,12 @@ class Message extends Base {
      */
     async getInfo() {
         const info = await this.client.pupPage.evaluate(async (msgId) => {
-            const msg = window.Store.Msg.get(msgId);
+            const msg = await window.Store.Msg.find(msgId);
             if (!msg) return null;
 
-            return await window.Store.sendQueryMsgInfo(msg.id);
+            return await new Promise(resolve => setTimeout(async () => {
+                resolve(await window.Store.sendQueryMsgInfo(msg.id));
+            }, (Date.now() / 1000 - msg.t < 1) && 1000 || 0));
         }, this.id._serialized);
 
         return info;
