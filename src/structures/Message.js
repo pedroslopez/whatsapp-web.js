@@ -273,7 +273,7 @@ class Message extends Base {
 
         if (this.type === MessageTypes.POLL_CREATION) {
             this.pollName = data.pollName;
-            this.pollOptions = data.pollOptions.map(option => option.name);
+            this.pollOptions = data.pollOptions;
             this.allowMultipleAnswers = Boolean(!data.pollSelectableOptionsCount);
             this.pollInvalidated = data.pollInvalidated;
             this.isSentCagPollCreation = data.isSentCagPollCreation;
@@ -283,7 +283,6 @@ class Message extends Base {
             delete this._data.pollSelectableOptionsCount;
             delete this._data.pollInvalidated;
             delete this._data.isSentCagPollCreation;
-            delete this._data.messageSecret;
         }
 
         return super._patch(data);

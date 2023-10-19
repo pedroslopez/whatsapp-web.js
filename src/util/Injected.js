@@ -218,13 +218,16 @@ exports.LoadUtils = () => {
         let _pollOptions = {};
         if (options.poll) {
             const { pollName, pollOptions } = options.poll;
-            const { allowMultipleAnswers } = options.poll.options;
+            const { allowMultipleAnswers, messageSecret } = options.poll.options;
             _pollOptions = {
                 type: 'poll_creation',
                 pollName: pollName,
                 pollOptions: pollOptions,
                 pollSelectableOptionsCount: allowMultipleAnswers ? 0 : 1,
-                messageSecret: window.crypto.getRandomValues(new Uint8Array(32))
+                messageSecret:
+                Array.isArray(messageSecret) && messageSecret.length === 32
+                    ? new Uint8Array(messageSecret)
+                    : window.crypto.getRandomValues(new Uint8Array(32))
             };
             delete options.poll;
         }
