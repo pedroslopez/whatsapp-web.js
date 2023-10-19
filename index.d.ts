@@ -955,16 +955,22 @@ declare namespace WAWebJS {
     /** Poll send options */
     export interface PollSendOptions {
         /** False for a single choice poll, true for a multiple choice poll (false by default) */
-        allowMultipleAnswers?: boolean
+        allowMultipleAnswers?: boolean,
+        /**
+         * The custom message secret, can be used as a poll ID
+         * @note It has to be a unique vector with a length of 32
+         */
+        messageSecret: ?Array<number>
     }
 
     /** Represents a Poll on WhatsApp */
-    export class Poll {
-        pollName: string
-        pollOptions: Array<Object<string, number>>
+    export interface Poll {
+        pollName: string,
+        pollOptions: Array<{
+            name: string,
+            localId: number
+        }>,
         options: PollSendOptions
-
-        constructor(pollName: string, pollOptions: Array<string>, options: PollSendOptions)
     }
 
     export interface Label {
