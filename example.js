@@ -295,6 +295,17 @@ client.on('message', async msg => {
         await msg.reply(new Poll('Winter or Summer?', ['Winter', 'Summer']));
         /** If you want to provide a multiple choice poll, add allowMultipleAnswers as true: */
         await msg.reply(new Poll('Cats or Dogs?', ['Cats', 'Dogs'], { allowMultipleAnswers: true }));
+        /**
+         * You can provide a custom message secret, it can be used as a poll ID:
+         * @note It has to be a unique vector with a length of 32
+         */
+        await msg.reply(
+            new Poll('Cats or Dogs?', ['Cats', 'Dogs'], {
+                messageSecret: [
+                    1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+                ]
+            })
+        );
     } else if (msg.body === '!edit') {
         if (msg.hasQuotedMsg) {
             const quotedMsg = await msg.getQuotedMessage();
