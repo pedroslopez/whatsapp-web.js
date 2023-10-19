@@ -142,7 +142,7 @@ exports.ExposeStore = (moduleRaidStr) => {
         const modifiedFunction = (...args) => callback(originalFunction, ...args);
         module[target.index][target.property] = modifiedFunction;
     };
-    
+
     window.injectToFunction({ moduleId: 'mediaTypeFromProtobuf', index: 0, property: 'mediaTypeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? null : func(...args); });
 
     window.injectToFunction({ moduleId: 'typeAttributeFromProtobuf', index: 0, property: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage || proto.groupInviteMessage ? 'text' : func(...args); });
@@ -213,6 +213,23 @@ exports.LoadUtils = () => {
                 clientUrl: url
             };
             delete options.location;
+        }
+
+        let _pollOptions = {};
+        if (options.poll) {
+            const { pollName, pollOptions } = options.poll;
+            const { allowMultipleAnswers, messageSecret } = options.poll.options;
+            _pollOptions = {
+                type: 'poll_creation',
+                pollName: pollName,
+                pollOptions: pollOptions,
+                pollSelectableOptionsCount: allowMultipleAnswers ? 0 : 1,
+                messageSecret:
+                Array.isArray(messageSecret) && messageSecret.length === 32
+                    ? new Uint8Array(messageSecret)
+                    : window.crypto.getRandomValues(new Uint8Array(32))
+            };
+            delete options.poll;
         }
 
         let vcardOptions = {};
@@ -334,6 +351,7 @@ exports.LoadUtils = () => {
             type: 'chat',
             ...ephemeralFields,
             ...locationOptions,
+            ..._pollOptions,
             ...attOptions,
             ...(attOptions.toJSON ? attOptions.toJSON() : {}),
             ...quotedMsgOptions,

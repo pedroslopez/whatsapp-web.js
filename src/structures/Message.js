@@ -51,7 +51,7 @@ class Message extends Base {
          * Message content
          * @type {string}
          */
-        this.body = this.hasMedia ? data.caption || '' : data.body || '';
+        this.body = this.hasMedia ? data.caption || '' : data.body || data.pollName || '';
 
         /**
          * Message type
@@ -269,6 +269,20 @@ class Message extends Base {
         /** Selected List row Id **/
         if (data.listResponse && data.listResponse.singleSelectReply.selectedRowId) {
             this.selectedRowId = data.listResponse.singleSelectReply.selectedRowId;
+        }
+
+        if (this.type === MessageTypes.POLL_CREATION) {
+            this.pollName = data.pollName;
+            this.pollOptions = data.pollOptions;
+            this.allowMultipleAnswers = Boolean(!data.pollSelectableOptionsCount);
+            this.pollInvalidated = data.pollInvalidated;
+            this.isSentCagPollCreation = data.isSentCagPollCreation;
+
+            delete this._data.pollName;
+            delete this._data.pollOptions;
+            delete this._data.pollSelectableOptionsCount;
+            delete this._data.pollInvalidated;
+            delete this._data.isSentCagPollCreation;
         }
 
         return super._patch(data);
