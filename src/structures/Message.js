@@ -534,13 +534,14 @@ class Message extends Base {
      */
 
     /**
-     * Get information about message delivery status. May return null if the message does not exist or is not sent by you.
+     * Get information about message delivery status.
+     * May return null if the message does not exist or is not sent by you.
      * @returns {Promise<?MessageInfo>}
      */
     async getInfo() {
         const info = await this.client.pupPage.evaluate(async (msgId) => {
-            const msg = await window.Store.Msg.find(msgId);
-            if (!msg) return null;
+            const msg = window.Store.Msg.get(msgId);
+            if (!msg?.fromMe) return null;
 
             return await new Promise(resolve => setTimeout(async () => {
                 resolve(await window.Store.getMsgInfo(msg.id));

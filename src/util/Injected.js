@@ -61,7 +61,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     /* eslint-disable no-undef, no-cond-assign */
     window.Store.QueryExist = ((m = window.mR.findModule('queryExists')[0]) ? m.queryExists : window.mR.findModule('queryExist')[0].queryWidExists);
     window.Store.ReplyUtils = (m = window.mR.findModule('canReplyMsg')).length > 0 && m[0];
-    window.Store.sendQueryMsgInfo = m = window.mR.findModule('sendQueryMsgInfo')[0] ? m.sendQueryMsgInfo : window.mR.findModule('queryMsgInfo')[0].queryMsgInfo;
+    window.Store.getMsgInfo = m = window.mR.findModule('sendQueryMsgInfo')[0] ? m.sendQueryMsgInfo : window.mR.findModule('queryMsgInfo')[0].queryMsgInfo;
     /* eslint-enable no-undef, no-cond-assign */
 
     window.Store.StickerTools = {
@@ -101,7 +101,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     }
     
     // eslint-disable-next-line no-undef
-    (!(chat = window.Store.Chat).findImpl) && (chat.findImpl = chat._find);
+    if ((m = window.mR.findModule('ChatCollection')[0]) && m.ChatCollection && typeof m.ChatCollection.findImpl === 'undefined' && typeof m.ChatCollection._find !== 'undefined') m.ChatCollection.findImpl = m.ChatCollection._find;
 
     // TODO remove these once everybody has been updated to WWebJS with legacy sessions removed
     const _linkPreview = window.mR.findModule('queryLinkPreview');
