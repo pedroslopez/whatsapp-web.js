@@ -105,6 +105,20 @@ declare namespace WAWebJS {
         getNumberId(number: string): Promise<ContactId | null>
 
         /**
+         * If message expiration timer is on in the chat,
+         * indicates if there are kept messages in that chat
+         * @param chatId
+         */
+        hasKeptMessages: (chatId: string) => Promise<boolean>
+        
+        /**
+         * If message expiration timer is on in the chat,
+         * gets kept messages from this chat, if any
+         * @param chatId
+         */
+        getKeptMessages: (chatId: string) => Promise<Message[]|[]>
+
+        /**
          * Mutes this chat forever, unless a date is specified
          * @param chatId ID of the chat that will be muted
          * @param unmuteDate Date when the chat will be unmuted, leave as is to mute forever
@@ -1293,15 +1307,15 @@ declare namespace WAWebJS {
          */
         setMessageExpiration: (value: number) => Promise<boolean>,
         /**
-         * Indicates if there are kept messages in a chat (messages that can't disappear if message expiration is on)
-         * @returns {Promise<boolean>} True if there are kept messages in a chat, false otherwise
+         * If message expiration timer is on in the chat,
+         * indicates if there are kept messages in that chat
          */
         hasKeptMessages: () => Promise<boolean>,
         /**
-         * Gets kept messages from a chat (messages that can't disappear if message expiration is on), if any
-         * @returns {Promise<Array<Message>>} An array of kept messages if any, otherwise an empty array
+         * If message expiration timer is on in the chat,
+         * gets kept messages from this chat, if any
          */
-        getKeptMessages: () => Promise<Array<Message>>
+        getKeptMessages: () => Promise<Message[]|[]>
     }
 
     export interface MessageSearchOptions {

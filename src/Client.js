@@ -1668,6 +1668,39 @@ class Client extends EventEmitter {
             message: new Message(this, obj.message)
         }));
     }
+
+    /**
+     * If message expiration timer is on in the chat,
+     * indicates if there are kept messages in that chat
+     * @param {string} chatId 
+     * @returns {Promise<boolean>} True if there are kept messages in a chat, false otherwise
+     */
+    async hasKeptMessages(chatId) {
+        return await this.client.pupPage.evaluate(async (chatId) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = await window.Store.Chat.find(chatWid);
+            return chat.hasKeptMsgs();
+        }, chatId);
+    }
+
+    /**
+     * If message expiration timer is on in the chat,
+     * gets kept messages from this chat, if any
+     * @param {string} chatId 
+     * @returns {Promise<Message[]|[]>} An array of kept messages, or an empty array if no those
+     */
+    async getKeptMessages(chatId) {
+        const result =  await this.pupPage.evaluate(async (chatId) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = await window.Store.Chat.find(chatWid);
+            if (chat.isGroup) {
+                await window.Store.GroupMetadata.queryAndUpdate(chatWid);
+            }
+            return chat.getKeptMsgs().getModelsArray().map(m => window.WWebJS.getMessageModel(m));
+        }, chatId);
+
+        return result.map((m) => new Message(this, m));
+    }
 }
 
 module.exports = Client;
