@@ -83,7 +83,8 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('sendExitGroup')[0],
         ...window.mR.findModule('sendSetPicture')[0],
         ...window.mR.findModule('mergeGroupMemberAddModeMixin')[0],
-        ...window.mR.findModule('mergeBaseSetGroupMixin')[0]
+        ...window.mR.findModule('mergeBaseSetGroupMixin')[0],
+        ...window.mR.findModule('sendForAdminReview')[0]
     };
     window.Store.GroupParticipants = {
         ...window.mR.findModule('promoteParticipants')[0],

@@ -923,6 +923,12 @@ declare namespace WAWebJS {
         getReactions: () => Promise<ReactionList[]>,
         /** Edits the current message */
         edit: (content: MessageContent, options?: MessageEditOptions) => Promise<Message | null>,
+        /**
+         * If the 'Report To Admin Mode' is turned on in the group,
+         * you can report a message sent in the group to be reviewed by admins of that group
+         * @see https://faq.whatsapp.com/286279577291174
+         */
+        sendForAdminReview: () => Promise<boolean>
     }
 
     /** ID that represents a message */
