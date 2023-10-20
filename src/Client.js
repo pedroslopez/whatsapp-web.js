@@ -1598,6 +1598,64 @@ class Client extends EventEmitter {
             return await window.WWebJS.membershipRequestAction(groupId, 'Reject', requesterIds, sleep);
         }, groupId, options);
     }
+
+    /**
+     * The result of {@link getReportedMessages}
+     * @typedef {Object} ReportedMessage
+     * @property {{reporterId:{server: string, user: string, _serialized: string}, reportedAt: number}[]} reporters Users that repoted that message
+     * @property {Message} message The message that has been reported
+     */
+
+    /**
+     * Gets the reported to group admin messages sent in that group
+     * Will work if:
+     * 1. The 'Report To Admin Mode' is turned on in the group
+     * 2. The current user is an admin of that group
+     * @param {string} groupId The group ID to retrieve reported messages from
+     * @returns {Promise<ReportedMessage[]|[]>}
+     */
+    async getReportedMessages(groupId) {
+        let result = await this.client.pupPage.evaluate(async (groupId) => {
+            const groupWid = window.Store.WidFactory.createWid(groupId);
+            let response, result = [];
+
+            try {
+                response = await window.Store.GroupUtils.getReportedMsgs(groupWid);
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return [];
+                throw err;
+            }
+
+            for (const report of response.reportsReport) {
+                let message;
+                try {
+                    message = await (async () => {
+                        const [msgProp] = await window.Store.MessageGetter.getMsgsByMsgIdsAndChatId([report.messageId], groupWid);
+                        const msg = new window.Store.MessageGetter.Msg(window.Store.MessageGetter.messageFromDbRow(msgProp));
+                        await msg.waitForPrep();
+                        return window.WWebJS.getMessageModel(msg);
+                    })();
+                } catch (err) {
+                    continue;
+                }
+
+                const reporters = report.reporter.map((r) => ({
+                    reporterId: window.Store.JidToWid.userJidToUserWid(r.jid),
+                    reportedAt: r.timestamp,
+                }));
+
+                return result.push({
+                    reporters,
+                    message,
+                });
+            }
+        }, groupId);
+
+        return result.map(obj => ({
+            ...obj,
+            message: new Message(this, obj.message)
+        }));
+    }
 }
 
 module.exports = Client;

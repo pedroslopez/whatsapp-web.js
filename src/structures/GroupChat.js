@@ -426,6 +426,24 @@ class GroupChat extends Chat {
 
         return codeRes.code;
     }
+
+    /**
+     * The result of {@link getReportedMessages}
+     * @typedef {Object} ReportedMessage
+     * @property {{reporterId:{server: string, user: string, _serialized: string}, reportedAt: number}[]} reporters Users that repoted that message
+     * @property {Message} message The message that has been reported
+     */
+
+    /**
+     * Gets the reported to group admin messages sent in that group
+     * Will work if:
+     * 1. The 'Report To Admin Mode' is turned on in the group
+     * 2. The current user is an admin of that group
+     * @returns {Promise<ReportedMessage[]|[]>}
+     */
+    async getReportedMessages() {
+        return await this.client.getReportedMessages(this.id._serialized);
+    }
     
     /**
      * An object that handles the information about the group membership request

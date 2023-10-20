@@ -165,6 +165,14 @@ declare namespace WAWebJS {
         /** Rejects membership requests if any */
         rejectGroupMembershipRequests: (groupId: string, options: MembershipRequestActionOptions) => Promise<Array<MembershipRequestActionResult>>;
 
+        /**
+         * Gets the reported to group admin messages sent in that group
+         * Will work if:
+         * 1. The 'Report To Admin Mode' is turned on in the group
+         * 2. The current user is an admin of that group
+         */
+        getReportedMessages: (groupId: string) => Promise<ReportedMessage[]|[]>
+
         /** Generic event */
         on(event: string, listener: (...args: any) => void): this
 
@@ -1397,6 +1405,19 @@ declare namespace WAWebJS {
         sleep: Array<number> | number | null;
     }
 
+    /** The result of {@link Client.getReportedMessages} */
+    export interface ReportedMessage {
+        reporters: Array<{
+            reporterId: {
+                server: string;
+                user: string;
+                _serialized: string;
+            };
+            reportedAt: number;
+        }>;
+        message: Message;
+    }
+
     export interface GroupChat extends Chat {
         /** Group owner */
         owner: ContactId;
@@ -1454,6 +1475,14 @@ declare namespace WAWebJS {
          * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
          */
         setGroupMemberAddMode: (value: boolean) => Promise<boolean>;
+        /**
+         * Gets the reported to group admin messages sent in that group
+         * Will work if:
+         * 1. The 'Report To Admin Mode' is turned on in the group
+         * 2. The current user is an admin of that group
+         * @returns {Promise<ReportedMessage[]|[]>}
+         */
+        getReportedMessages: () => Promise<ReportedMessage|[]>;
         /**
          * Gets an array of membership requests
          * @returns {Promise<Array<GroupMembershipRequest>>} An array of membership requests
