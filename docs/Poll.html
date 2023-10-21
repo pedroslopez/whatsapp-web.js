@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.23.0 &raquo; Class: Product</title>
+  <title>whatsapp-web.js 1.23.0 &raquo; Class: Poll</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -25,10 +25,10 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
-            <h1><small></small><span class="symbol-name">Product</span></h1>
-            <p class="source-link">Source: <a href="structures_Product.js.html#source-line-10">structures/<wbr>Product.<wbr>js:10</a></p>
+            <h1><small></small><span class="symbol-name">Poll</span></h1>
+            <p class="source-link">Source: <a href="structures_Poll.js.html#source-line-11">structures/<wbr>Poll.<wbr>js:11</a></p>
             <div class="symbol-classdesc">
-              <p>Represents a Product on WhatsAppBusiness</p>
+              <p>Represents a Poll on WhatsApp</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -39,33 +39,21 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Product.html#currency">currency</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="Product.html#data">data</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="Product.html#id">id</a></dt>
+                    <dt><a href="Poll.html#options">options</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Product.html#name">name</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="Product.html#price">price</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="Product.html#quantity">quantity</a></dt>
+                    <dt><a href="Poll.html#pollName">pollName</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Product.html#thumbnailUrl">thumbnailUrl</a></dt>
+                    <dt><a href="Poll.html#pollOptions">pollOptions</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -74,47 +62,80 @@
             </div>
           </section>
           <section>
-            <h2 id="Product">new&nbsp;<span class="symbol-name">Product</span><span class="signature"><span class="signature-params">()</span></span></h2>
+            <h2 id="Poll">new&nbsp;<span class="symbol-name">Poll</span><span class="signature"><span class="signature-params">(pollName, pollOptions, options)</span></span></h2>
+            <section>
+              <h3>Parameters</h3>
+              <table class="jsdoc-details-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p>pollName</p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p>pollOptions</p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p>options</p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
             <dl class="dl-compact">
-              <dt>Extends</dt>
-              <dd><a href="Base.html">Base</a></dd>
             </dl>
           </section>
           <section>
             <h2>Properties</h2>
             <section>
-              <h3 id="currency"><span class="symbol-name">currency</span><small class="property-type">
+              <h3 id="options"><span class="symbol-name">options</span><small class="property-type">
+                  &nbsp;<a href="global.html#PollSendOptions">PollSendOptions</a></small></h3>
+              <p>The send options for the poll</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="pollName"><span class="symbol-name">pollName</span><small class="property-type">
                   &nbsp;string</small></h3>
-              <p>Currency</p>
+              <p>The name of the poll</p>
               <dl class="dl-compact">
               </dl>
-              <h3 id="data"><span class="symbol-name">data</span></h3>
-              <p>Product metadata</p>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="id"><span class="symbol-name">id</span><small class="property-type">
-                  &nbsp;string</small></h3>
-              <p>Product ID</p>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="name"><span class="symbol-name">name</span><small class="property-type">
-                  &nbsp;string</small></h3>
-              <p>Product Name</p>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="price"><span class="symbol-name">price</span><small class="property-type">
-                  &nbsp;string</small></h3>
-              <p>Price</p>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="quantity"><span class="symbol-name">quantity</span><small class="property-type">
-                  &nbsp;number</small></h3>
-              <p>Product Quantity</p>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="thumbnailUrl"><span class="symbol-name">thumbnailUrl</span><small class="property-type">
-                  &nbsp;string</small></h3>
-              <p>Product Thumbnail</p>
+              <h3 id="pollOptions"><span class="symbol-name">pollOptions</span><small class="property-type">
+                  &nbsp;Array of {name: string, localId: number}</small></h3>
+              <p>The array of poll options</p>
               <dl class="dl-compact">
               </dl>
             </section>

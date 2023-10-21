@@ -142,7 +142,7 @@ exports.ExposeStore = (moduleRaidStr) => {
         const modifiedFunction = (...args) => callback(originalFunction, ...args);
         module[target.index][target.property] = modifiedFunction;
     };
-    
+
     window.injectToFunction({ moduleId: 'mediaTypeFromProtobuf', index: 0, property: 'mediaTypeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? null : func(...args); });
 
     window.injectToFunction({ moduleId: 'typeAttributeFromProtobuf', index: 0, property: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage || proto.groupInviteMessage ? 'text' : func(...args); });
