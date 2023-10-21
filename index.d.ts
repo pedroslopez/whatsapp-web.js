@@ -1514,12 +1514,13 @@ declare namespace WAWebJS {
          */
         setMembershipApprovalMode: (value: boolean) => Promise<boolean>;
         /**
-         * Sets the 'Group Member Add Mode', when turned on, only group admins can add others to the group,
+         * Sets the 'Group Member Add Mode'
+         * When turned on, only group admins can add others to the group,
          * when turned off, all group participants can add others to the group.
-         * @param {boolean} [value=true] True for turning the 'Group Member Add Mode' on, false for turning it off
+         * @param {boolean} [onlyAdmins=true] True for turning the 'Group Member Add Mode' on, false for turning it off
          * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
          */
-        setGroupMemberAddMode: (value: boolean) => Promise<boolean>;
+        setGroupMemberAddMode: (onlyAdmins: boolean) => Promise<boolean>;
         /**
          * Gets the reported to group admin messages sent in that group
          * Will work if:

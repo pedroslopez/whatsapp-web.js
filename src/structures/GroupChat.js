@@ -334,12 +334,12 @@ class GroupChat extends Chat {
     /**
      * Sets the 'Group Member Add Mode', when turned on, only group admins can add others to the group,
      * when turned off, all group participants can add others to the group.
-     * @param {boolean} [value=true] True for turning the 'Group Member Add Mode' on, false for turning it off
+     * @param {boolean} [onlyAdmins=true] True for turning the 'Group Member Add Mode' on, false for turning it off
      * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
      */
-    async setGroupMemberAddMode(value = true) {
-        return await this.client.pupPage.evaluate(async (chatId, value) => {
-            const mode = value
+    async setGroupMemberAddMode(onlyAdmins = true) {
+        return await this.client.pupPage.evaluate(async (chatId, onlyAdmins) => {
+            const mode = onlyAdmins
                 ? { isAdminAddMode: true }
                 : { isAllMembersAddMode: true };
             const memberAddModeMixin = {
@@ -373,7 +373,7 @@ class GroupChat extends Chat {
             return false;
         },
         this.id._serialized,
-        value);
+        onlyAdmins);
     }
 
     /**
