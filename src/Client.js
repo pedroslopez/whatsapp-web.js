@@ -1670,9 +1670,9 @@ class Client extends EventEmitter {
     }
 
     /**
-     * If message expiration timer is on in the chat,
-     * indicates if there are kept messages in that chat
-     * @param {string} chatId 
+     * Indicates if there are kept messages in that chat
+     * @see https://faq.whatsapp.com/728928448599090
+     * @param {string} chatId ID of the chat to check for kept messages
      * @returns {Promise<boolean>} True if there are kept messages in a chat, false otherwise
      */
     async hasKeptMessages(chatId) {
@@ -1684,9 +1684,9 @@ class Client extends EventEmitter {
     }
 
     /**
-     * If message expiration timer is on in the chat,
-     * gets kept messages from this chat, if any
-     * @param {string} chatId 
+     * Gets kept messages from this chat, if any
+     * @see https://faq.whatsapp.com/728928448599090
+     * @param {string} chatId ID of the chat to get kept messages from
      * @returns {Promise<Message[]|[]>} An array of kept messages, or an empty array if no those
      */
     async getKeptMessages(chatId) {

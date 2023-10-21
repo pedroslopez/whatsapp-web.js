@@ -105,16 +105,16 @@ declare namespace WAWebJS {
         getNumberId(number: string): Promise<ContactId | null>
 
         /**
-         * If message expiration timer is on in the chat,
-         * indicates if there are kept messages in that chat
-         * @param chatId
+         * Indicates if there are kept messages in that chat
+         * @see https://faq.whatsapp.com/728928448599090
+         * @param chatId ID of the chat to check for kept messages
          */
         hasKeptMessages: (chatId: string) => Promise<boolean>
         
         /**
-         * If message expiration timer is on in the chat,
-         * gets kept messages from this chat, if any
-         * @param chatId
+         * Gets kept messages from this chat, if any
+         * @see https://faq.whatsapp.com/728928448599090
+         * @param chatId ID of the chat to get kept messages from
          */
         getKeptMessages: (chatId: string) => Promise<Message[]|[]>
 
@@ -959,7 +959,19 @@ declare namespace WAWebJS {
          * you can report a message sent in the group to be reviewed by admins of that group
          * @see https://faq.whatsapp.com/286279577291174
          */
-        sendForAdminReview: () => Promise<boolean>
+        sendForAdminReview: () => Promise<boolean>,
+        /**
+         * If 'Message Exipiration Mode' is turned on in the chat,
+         * keeps messages in that chat to prevent them from disappearing
+         * @see https://faq.whatsapp.com/728928448599090
+         */
+        keepMessage: () => Promise<boolean>,
+        /**
+         * If 'Message Exipiration Mode' is turned on in the chat,
+         * unkeeps messages in that chat to prevent them from disappearing
+         * @see https://faq.whatsapp.com/728928448599090
+         */
+        unkeepMessage: () => Promise<boolean>
     }
 
     /** ID that represents a message */
@@ -1307,13 +1319,13 @@ declare namespace WAWebJS {
          */
         setMessageExpiration: (value: number) => Promise<boolean>,
         /**
-         * If message expiration timer is on in the chat,
-         * indicates if there are kept messages in that chat
+         * Indicates if there are kept messages in that chat
+         * @see https://faq.whatsapp.com/728928448599090
          */
         hasKeptMessages: () => Promise<boolean>,
         /**
-         * If message expiration timer is on in the chat,
-         * gets kept messages from this chat, if any
+         * Gets kept messages from this chat, if any
+         * @see https://faq.whatsapp.com/728928448599090
          */
         getKeptMessages: () => Promise<Message[]|[]>
     }

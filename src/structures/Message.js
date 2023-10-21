@@ -679,6 +679,30 @@ class Message extends Base {
             this.id.remote
         );
     }
+
+    /**
+     * If 'Message Exipiration Mode' is turned on in the chat,
+     * keeps messages in that chat to prevent them from disappearing
+     * @see https://faq.whatsapp.com/728928448599090
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async keepMessage() {
+        return await this.client.pupPage.evaluate(async (msgId) => {
+            return await window.WWebJS.keepUnkeepMessage(msgId, 'Keep');
+        }, this.id._serialized);
+    }
+
+    /**
+     * If 'Message Exipiration Mode' is turned on in the chat,
+     * unkeeps messages in that chat to prevent them from disappearing
+     * @see https://faq.whatsapp.com/728928448599090
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async unkeepMessage(options = {}) {
+        return await this.client.pupPage.evaluate(async (msgId, options) => {
+            return await window.WWebJS.keepUnkeepMessage(msgId, 'Unkeep', options);
+        }, this.id._serialized, options);
+    }
 }
 
 module.exports = Message;

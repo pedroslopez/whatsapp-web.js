@@ -57,6 +57,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.LidUtils = window.mR.findModule('getCurrentLid')[0];
     window.Store.WidToJid = window.mR.findModule('widToUserJid')[0];
     window.Store.JidToWid = window.mR.findModule('userJidToUserWid')[0];
+    window.Store.KeepUnkeepMsg = window.mR.findModule('keepMessage')[0];
+    window.Store.getChatByMsg = window.mR.findModule('getChat')[0].getChat;
     
     /* eslint-disable no-undef, no-cond-assign */
     window.Store.QueryExist = ((m = window.mR.findModule('queryExists')[0]) ? m.queryExists : window.mR.findModule('queryExist')[0].queryWidExists);
@@ -75,7 +77,9 @@ exports.ExposeStore = (moduleRaidStr) => {
     };
     window.Store.Ephemeral = {
         getEphemeralFields:
-        window.mR.findModule('getEphemeralFields')[0].getEphemeralFields,
+            window.mR.findModule('getEphemeralFields')[0].getEphemeralFields,
+        getEphemeralSetting:
+            window.mR.findModule('getEphemeralSetting')[0].getEphemeralSetting,
         changeEphemeralDuration:
             window.mR.findModule('changeEphemeralDuration')[0].changeEphemeralDuration
     };
@@ -1112,5 +1116,22 @@ exports.LoadUtils = () => {
         } catch (err) {
             return [];
         }
+    };
+
+    window.WWebJS.keepUnkeepMessage = async (msgId, action, options = {}) => {
+        const msg = window.Store.Msg.get(msgId);
+        if (!msg) return false;
+        
+        const chat = window.Store.getChatByMsg(msg);
+        const isMessageExpirationModeOn = window.Store.Ephemeral.getEphemeralSetting(chat) > 0;
+        if (!isMessageExpirationModeOn) return false;
+
+        const toKeepMsg = action === 'Keep';
+        const { deleteExpired = true } = options;
+
+        const response = toKeepMsg
+            ? await window.Store.KeepUnkeepMsg.keepMessage(msg, 3)
+            : await window.Store.KeepUnkeepMsg.undoKeepMessage(msg, { deleteExpired }, 3);
+        return response.messageSendResult === 'OK';
     };
 };
