@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.22.1 &raquo; Class: GroupChat</title>
+  <title>whatsapp-web.js 1.23.0 &raquo; Class: GroupChat</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>22.<wbr>1</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>23.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -101,7 +101,10 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="GroupChat.html#addParticipants">addParticipants(participantIds)</a></dt>
+                    <dt><a href="GroupChat.html#addParticipants">addParticipants(participantIds, options)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="GroupChat.html#approveGroupMembershipRequests">approveGroupMembershipRequests(options)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="GroupChat.html#archive">archive()</a></dt>
@@ -131,13 +134,16 @@
                     <dt><a href="GroupChat.html#getContact">getContact()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="GroupChat.html#getInviteCode">getInviteCode()</a></dt>
+                    <dt><a href="GroupChat.html#getGroupMembershipRequests">getGroupMembershipRequests()</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="GroupChat.html#getInviteCode">getInviteCode()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="GroupChat.html#getLabels">getLabels()</a></dt>
                     <dd>
                     </dd>
@@ -156,6 +162,9 @@
                     <dt><a href="GroupChat.html#promoteParticipants">promoteParticipants(participantIds)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="GroupChat.html#rejectGroupMembershipRequests">rejectGroupMembershipRequests(options)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="GroupChat.html#removeParticipants">removeParticipants(participantIds)</a></dt>
                     <dd>
                     </dd>
@@ -168,13 +177,13 @@
                     <dt><a href="GroupChat.html#sendSeen">sendSeen()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="GroupChat.html#sendStateRecording">sendStateRecording()</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="GroupChat.html#sendStateRecording">sendStateRecording()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="GroupChat.html#sendStateTyping">sendStateTyping()</a></dt>
                     <dd>
                     </dd>
@@ -318,10 +327,10 @@
             <h2>Methods</h2>
             <section>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
-              <h3 id="addParticipants"><span class="symbol-name">addParticipants</span><span class="signature"><span class="signature-params">(participantIds)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Object</span></span></h3>
+              <h3 id="addParticipants"><span class="symbol-name">addParticipants</span><span class="signature"><span class="signature-params">(participantIds, options)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing (Object with <a href="global.html#AddParticipantsResult">AddParticipantsResult</a> properties or string)</span></span></h3>
               <p>Adds a list of participants by ID to the group</p>
               <section>
-                <h4>Parameter</h4>
+                <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
                   <thead>
                     <tr>
@@ -337,12 +346,26 @@
                         <p>participantIds</p>
                       </td>
                       <td>
-                        <p>Array of string</p>
+                        <p>(string or Array of string)</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>options</p>
+                      </td>
+                      <td>
+                        <p><a href="global.html#AddParticipnatsOptions">AddParticipnatsOptions</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>An object thay handles options for adding participants</p>
                       </td>
                     </tr>
                   </tbody>
@@ -351,7 +374,49 @@
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Promise containing Object</code> </p>
+                  <p><code>Promise containing (Object with <a href="global.html#AddParticipantsResult">AddParticipantsResult</a> properties or string)</code> 
+                  <p>Returns an object with the resulting data or an error message as a string</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="approveGroupMembershipRequests"><span class="symbol-name">approveGroupMembershipRequests</span><span class="signature"><span class="signature-params">(options)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of <a href="global.html#MembershipRequestActionResult">MembershipRequestActionResult</a></span></span></h3>
+              <p>Approves membership requests if any</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>options</p>
+                      </td>
+                      <td>
+                        <p><a href="global.html#MembershipRequestActionOptions">MembershipRequestActionOptions</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Options for performing a membership request action</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing Array of <a href="global.html#MembershipRequestActionResult">MembershipRequestActionResult</a></code> 
+                  <p>Returns an array of requester IDs whose membership requests were approved and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned</p>
+                  </p>
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
@@ -566,6 +631,17 @@
                 <dd></dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getGroupMembershipRequests"><span class="symbol-name">getGroupMembershipRequests</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of <a href="global.html#GroupMembershipRequest">GroupMembershipRequest</a></span></span></h3>
+              <p>Gets an array of membership requests</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing Array of <a href="global.html#GroupMembershipRequest">GroupMembershipRequest</a></code> 
+                  <p>An array of membership requests</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="getInviteCode"><span class="symbol-name">getInviteCode</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing string</span></span></h3>
               <p>Gets the invite code for a specific group</p>
               <dl class="dl-compact">
@@ -689,7 +765,47 @@
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
-              <h3 id="removeParticipants"><span class="symbol-name">removeParticipants</span><span class="signature"><span class="signature-params">(participantIds)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Object</span></span></h3>
+              <h3 id="rejectGroupMembershipRequests"><span class="symbol-name">rejectGroupMembershipRequests</span><span class="signature"><span class="signature-params">(options)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of <a href="global.html#MembershipRequestActionResult">MembershipRequestActionResult</a></span></span></h3>
+              <p>Rejects membership requests if any</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>options</p>
+                      </td>
+                      <td>
+                        <p><a href="global.html#MembershipRequestActionOptions">MembershipRequestActionOptions</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Options for performing a membership request action</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing Array of <a href="global.html#MembershipRequestActionResult">MembershipRequestActionResult</a></code> 
+                  <p>Returns an array of requester IDs whose membership requests were rejected and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="removeParticipants"><span class="symbol-name">removeParticipants</span><span class="signature"><span class="signature-params">(participantIds)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing {status: number}</span></span></h3>
               <p>Removes a list of participants by ID to the group</p>
               <section>
                 <h4>Parameter</h4>
@@ -722,7 +838,7 @@
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Promise containing Object</code> </p>
+                  <p><code>Promise containing {status: number}</code> </p>
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
@@ -1047,7 +1163,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on August 10, 2023.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on October 21, 2023.
       </p>
     </div>
   </footer>
