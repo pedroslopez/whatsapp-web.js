@@ -338,42 +338,19 @@ class GroupChat extends Chat {
      * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
      */
     async setGroupMemberAddMode(onlyAdmins = true) {
-        return await this.client.pupPage.evaluate(async (chatId, onlyAdmins) => {
+        return await this.client.pupPage.evaluate(async (groupId, onlyAdmins) => {
+            const groupWid = window.Store.WidFactory.createWid(groupId);
             const mode = onlyAdmins
                 ? { isAdminAddMode: true }
                 : { isAllMembersAddMode: true };
-            const memberAddModeMixin = {
-                iqTo: chatId,
-                adminOrAllMembersOrUnknownAddModeMixinGroupArgs: mode
-            };
-
-            const stanza = window.Store.GroupUtils.mergeGroupMemberAddModeMixin(
-                window.Store.GroupUtils.mergeBaseSetGroupMixin(
-                    {
-                        tag: 'iq',
-                        attrs: {},
-                        content: null
-                    },
-                    memberAddModeMixin
-                ),
-                memberAddModeMixin
-            );
-
-            const response = await window.Store.Socket.sendSmaxStanza(stanza);
-
-            const parsedResponse = (() => {
-                const isTagValid = window.Store.ParseResponse.assertTag(response, 'iq');
-                if (!isTagValid.success) return isTagValid;
-                const isIQResultValid = window.Store.ParseResponse.parseIQResultResponseMixin(response, stanza);
-                if (!isIQResultValid.success) return isIQResultValid;
-                return isIQResultValid;
-            })();
-
-            if (parsedResponse.success) return true;
-            return false;
-        },
-        this.id._serialized,
-        onlyAdmins);
+            try {
+                const response = await window.Store.GroupUtils.setGroupMemberAddMode(groupWid, null, mode);
+                return response.name === 'SetMemberAddModeResponseSuccess';
+            } catch (err) {
+                if (err.name === 'SmaxParsingFailure') return false;
+                throw err;
+            }
+        }, this.id._serialized, onlyAdmins);
     }
 
     /**

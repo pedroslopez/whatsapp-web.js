@@ -71,10 +71,6 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('getMsgsByMsgIdsAndChatId')[0],
         ...window.mR.findModule('messageFromDbRow')[0]
     };
-    window.Store.ParseResponse = {
-        ...window.mR.findModule('assertTag')[0],
-        ...window.mR.findModule('parseIQResultResponseMixin')[0]
-    };
     window.Store.Ephemeral = {
         getEphemeralFields:
             window.mR.findModule('getEphemeralFields')[0].getEphemeralFields,
@@ -92,8 +88,6 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('setGroupDescription')[0],
         ...window.mR.findModule('sendExitGroup')[0],
         ...window.mR.findModule('sendSetPicture')[0],
-        ...window.mR.findModule('mergeGroupMemberAddModeMixin')[0],
-        ...window.mR.findModule('mergeBaseSetGroupMixin')[0],
         ...window.mR.findModule('sendForAdminReview')[0]
     };
     window.Store.GroupParticipants = {
