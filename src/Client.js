@@ -1589,7 +1589,7 @@ class Client extends EventEmitter {
         }, messageType);
 
         return uploadLimit;
-
+    }
     /**
      * An object that handles the information about the group membership request
      * @typedef {Object} GroupMembershipRequest
