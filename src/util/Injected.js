@@ -65,6 +65,10 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.ReplyUtils = (m = window.mR.findModule('canReplyMsg')).length > 0 && m[0];
     /* eslint-enable no-undef, no-cond-assign */
 
+    window.Store.Settings = {
+        ...window.mR.findModule('ChatlistPanelState')[0],
+        setPushname: window.mR.findModule((m) => m.setPushname && !m.ChatlistPanelState)[0].setPushname
+    };
     window.Store.StickerTools = {
         ...window.mR.findModule('toWebpSticker')[0],
         ...window.mR.findModule('addWebpMetadata')[0]
