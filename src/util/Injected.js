@@ -533,6 +533,14 @@ exports.LoadUtils = () => {
         return msg;
     };
 
+    window.WWebJS.getPollVoteModel = (vote) => {
+        let _vote;
+        if (vote.parentMsgKey) {
+            _vote = vote.serialize();
+            _vote.parentMessage = window.WWebJS.getMessageModel(window.Store.Msg.get(vote.parentMsgKey));
+        }
+        return _vote;
+    };
 
     window.WWebJS.getChatModel = async chat => {
 

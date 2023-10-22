@@ -349,6 +349,11 @@ declare namespace WAWebJS {
         on(event: 'vote_received', listener: (
             vote: PollVote
         ) => void): this
+
+        /** Emitted when the poll vote is removed */
+        on(event: 'vote_removed', listener: (
+            vote: PollVote
+        ) => void): this
     }
 
     /** Current connection information */

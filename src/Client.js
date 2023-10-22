@@ -52,6 +52,7 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @fires Client#contact_changed
  * @fires Client#group_admin_changed
  * @fires Client#vote_received
+ * @fires Client#vote_removed
  * @fires Client#group_membership_request
  */
 class Client extends EventEmitter {
@@ -660,11 +661,14 @@ class Client extends EventEmitter {
             this.emit(Events.MESSAGE_EDIT, new Message(this, msg), newBody, prevBody);
         });
 
-        await page.exposeFunction('onPollVoteEvent', (vote) => {
+        await page.exposeFunction('onPollVoteEvent', (vote, isUnvote) => {
+            vote.isUnvote = isUnvote;
             const _vote = new PollVote(this, vote);
             /**
-             * Emitted when a poll vote is received
+             * Emitted when a poll vote is received or removed
              * @event Client#vote_received
+             * @event Client#vote_removed
+             * 
              * @param {Object} _vote The received vote
              * @property {Object} _vote.sender Sender of the vote
              * @property {string} _vote.sender.server
@@ -676,7 +680,9 @@ class Client extends EventEmitter {
              * @property {string} _vote.selectedOption.name The option name
              * @property {Message} _vote.parentMessage The vote parent message
              */
-            this.emit(Events.VOTE_RECEIVED, _vote);
+            !isUnvote
+                ? this.emit(Events.VOTE_RECEIVED, _vote)
+                : this.emit(Events.VOTE_REMOVED, _vote);
         });
 
         await page.evaluate(() => {
@@ -702,15 +708,8 @@ class Client extends EventEmitter {
                 }
             });
             window.Store.Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
-            window.Store.PollVote.on('add', (vote) => {
-                let _vote;
-                if (vote.parentMsgKey) {
-                    _vote = vote.serialize();
-                    _vote.parentMessage = window.WWebJS.getMessageModel(window.Store.Msg.get(vote.parentMsgKey));
-                    _vote.isUnvote = vote.isUnvote;
-                }
-                window.onPollVoteEvent(_vote);
-            });
+            window.Store.PollVote.on('add', (vote) => { window.onPollVoteEvent(window.WWebJS.getPollVoteModel(vote), false); });
+            window.Store.PollVote.on('remove', (vote) => { window.onPollVoteEvent(window.WWebJS.getPollVoteModel(vote), true); });
 
             {
                 const module = window.Store.createOrUpdateReactionsModule;
