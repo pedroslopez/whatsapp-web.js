@@ -58,13 +58,17 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.WidToJid = window.mR.findModule('widToUserJid')[0];
     window.Store.JidToWid = window.mR.findModule('userJidToUserWid')[0];
     window.Store.KeepUnkeepMsg = window.mR.findModule('keepMessage')[0];
-    window.Store.getChatByMsg = window.mR.findModule('getChat')[0].getChat;
+    window.Store.Chat.getChatByMsg = window.mR.findModule('getChat')[0].getChat;
     
     /* eslint-disable no-undef, no-cond-assign */
     window.Store.QueryExist = ((m = window.mR.findModule('queryExists')[0]) ? m.queryExists : window.mR.findModule('queryExist')[0].queryWidExists);
     window.Store.ReplyUtils = (m = window.mR.findModule('canReplyMsg')).length > 0 && m[0];
     /* eslint-enable no-undef, no-cond-assign */
 
+    window.Store.Settings = {
+        ...window.mR.findModule('ChatlistPanelState')[0],
+        setPushname: window.mR.findModule((m) => m.setPushname && !m.ChatlistPanelState)[0].setPushname
+    };
     window.Store.MessageGetter = {
         ...window.mR.findModule((m) => m.Msg && typeof m.Msg === 'function')[0],
         ...window.mR.findModule((m) => m.getMsgByMsgKey && m.msgFindQuery)[0],
@@ -1116,7 +1120,7 @@ exports.LoadUtils = () => {
         const msg = window.Store.Msg.get(msgId);
         if (!msg) return false;
         
-        const chat = window.Store.getChatByMsg(msg);
+        const chat = window.Store.Chat.getChatByMsg(msg);
         const isMessageExpirationModeOn = window.Store.Ephemeral.getEphemeralSetting(chat) > 0;
         if (!isMessageExpirationModeOn) return false;
 

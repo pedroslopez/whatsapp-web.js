@@ -1060,8 +1060,8 @@ class Client extends EventEmitter {
             if(!window.Store.Conn.canSetMyPushname()) return false;
 
             if(window.Store.MDBackend) {
-                // TODO
-                return false;
+                await window.Store.Settings.setPushname(displayName);
+                return true;
             } else {
                 const res = await window.Store.Wap.setPushname(displayName);
                 return !res.status || res.status === 200;
@@ -1700,6 +1700,66 @@ class Client extends EventEmitter {
         }, chatId);
 
         return result.map((m) => new Message(this, m));
+    }
+
+    /**
+     * Setting  autoload download audio
+     * @param {boolean} flag true/false
+     */
+    async setAutoDownloadAudio(flag) {
+        await this.pupPage.evaluate(async flag => {
+            const autoDownload = window.Store.Settings.getAutoDownloadAudio();
+            if (autoDownload === flag) {
+                return flag;
+            }
+            await window.Store.Settings.setAutoDownloadAudio(flag);
+            return flag;
+        }, flag);
+    }
+
+    /**
+     * Setting  autoload download documents
+     * @param {boolean} flag true/false
+     */
+    async setAutoDownloadDocuments(flag) {
+        await this.pupPage.evaluate(async flag => {
+            const autoDownload = window.Store.Settings.getAutoDownloadDocuments();
+            if (autoDownload === flag) {
+                return flag;
+            }
+            await window.Store.Settings.setAutoDownloadDocuments(flag);
+            return flag;
+        }, flag);
+    }
+
+    /**
+     * Setting  autoload download photos
+     * @param {boolean} flag true/false
+     */
+    async setAutoDownloadPhotos(flag) {
+        await this.pupPage.evaluate(async flag => {
+            const autoDownload = window.Store.Settings.getAutoDownloadPhotos();
+            if (autoDownload === flag) {
+                return flag;
+            }
+            await window.Store.Settings.setAutoDownloadPhotos(flag);
+            return flag;
+        }, flag);
+    }
+
+    /**
+     * Setting  autoload download videos
+     * @param {boolean} flag true/false
+     */
+    async setAutoDownloadVideos(flag) {
+        await this.pupPage.evaluate(async flag => {
+            const autoDownload = window.Store.Settings.getAutoDownloadVideos();
+            if (autoDownload === flag) {
+                return flag;
+            }
+            await window.Store.Settings.setAutoDownloadVideos(flag);
+            return flag;
+        }, flag);
     }
 }
 
