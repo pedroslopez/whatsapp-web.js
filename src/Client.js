@@ -11,7 +11,7 @@ const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
 const WebCacheFactory = require('./webCache/WebCacheFactory');
-const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List, Reaction, Chat } = require('./structures');
+const { ClientInfo, Message, MessageMedia, Contact, Location, Poll, GroupNotification, Label, Call, Buttons, List, Reaction } = require('./structures');
 const LegacySessionAuth = require('./authStrategies/LegacySessionAuth');
 const NoAuth = require('./authStrategies/NoAuth');
 
@@ -51,6 +51,7 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @fires Client#change_state
  * @fires Client#contact_changed
  * @fires Client#group_admin_changed
+ * @fires Client#group_membership_request
  */
 class Client extends EventEmitter {
     constructor(options = {}) {
@@ -379,6 +380,17 @@ class Client extends EventEmitter {
                      * @param {GroupNotification} notification GroupNotification with more information about the action
                      */
                     this.emit(Events.GROUP_ADMIN_CHANGED, notification);
+                } else if (msg.subtype === 'created_membership_requests') {
+                    /**
+                     * Emitted when some user requested to join the group
+                     * that has the membership approval mode turned on
+                     * @event Client#group_membership_request
+                     * @param {GroupNotification} notification GroupNotification with more information about the action
+                     * @param {string} notification.chatId The group ID the request was made for
+                     * @param {string} notification.author The user ID that made a request
+                     * @param {number} notification.timestamp The timestamp the request was made at
+                     */
+                    this.emit(Events.GROUP_MEMBERSHIP_REQUEST, notification);
                 } else {
                     /**
                      * Emitted when group settings are updated, such as subject, description or picture.
@@ -608,16 +620,20 @@ class Client extends EventEmitter {
             }
         });
 
-        await page.exposeFunction('onRemoveChatEvent', (chat) => {
+        await page.exposeFunction('onRemoveChatEvent', async (chat) => {
+            const _chat = await this.getChatById(chat.id);
+
             /**
              * Emitted when a chat is removed
              * @event Client#chat_removed
              * @param {Chat} chat
              */
-            this.emit(Events.CHAT_REMOVED, new Chat(this, chat));
+            this.emit(Events.CHAT_REMOVED, _chat);
         });
         
-        await page.exposeFunction('onArchiveChatEvent', (chat, currState, prevState) => {
+        await page.exposeFunction('onArchiveChatEvent', async (chat, currState, prevState) => {
+            const _chat = await this.getChatById(chat.id);
+            
             /**
              * Emitted when a chat is archived/unarchived
              * @event Client#chat_archived
@@ -625,7 +641,7 @@ class Client extends EventEmitter {
              * @param {boolean} currState
              * @param {boolean} prevState
              */
-            this.emit(Events.CHAT_ARCHIVED, new Chat(this, chat), currState, prevState);
+            this.emit(Events.CHAT_ARCHIVED, _chat, currState, prevState);
         });
 
         await page.exposeFunction('onEditMessageEvent', (msg, newBody, prevBody) => {
@@ -804,7 +820,7 @@ class Client extends EventEmitter {
     /**
      * Send a message to a specific chatId
      * @param {string} chatId
-     * @param {string|MessageMedia|Location|Contact|Array<Contact>|Buttons|List} content
+     * @param {string|MessageMedia|Location|Poll|Contact|Array<Contact>|Buttons|List} content
      * @param {MessageSendOptions} [options] - Options used when sending the message
      * 
      * @returns {Promise<Message>} Message that was just sent
@@ -840,6 +856,9 @@ class Client extends EventEmitter {
             content = '';
         } else if (content instanceof Location) {
             internalOptions.location = content;
+            content = '';
+        } else if (content instanceof Poll) {
+            internalOptions.poll = content;
             content = '';
         } else if (content instanceof Contact) {
             internalOptions.contactCard = content.id._serialized;
@@ -975,7 +994,7 @@ class Client extends EventEmitter {
      */
     async getInviteInfo(inviteCode) {
         return await this.pupPage.evaluate(inviteCode => {
-            return window.Store.InviteInfo.queryGroupInvite(inviteCode);
+            return window.Store.GroupInvite.queryGroupInvite(inviteCode);
         }, inviteCode);
     }
 
@@ -986,7 +1005,7 @@ class Client extends EventEmitter {
      */
     async acceptInvite(inviteCode) {
         const res = await this.pupPage.evaluate(async inviteCode => {
-            return await window.Store.Invite.joinGroupViaInvite(inviteCode);
+            return await window.Store.GroupInvite.joinGroupViaInvite(inviteCode);
         }, inviteCode);
 
         return res.gid._serialized;
@@ -1003,7 +1022,7 @@ class Client extends EventEmitter {
         return this.pupPage.evaluate(async inviteInfo => {
             let { groupId, fromId, inviteCode, inviteCodeExp } = inviteInfo;
             let userWid = window.Store.WidFactory.createWid(fromId);
-            return await window.Store.JoinInviteV4.joinGroupViaInviteV4(inviteCode, String(inviteCodeExp), groupId, userWid);
+            return await window.Store.GroupInviteV4.joinGroupViaInviteV4(inviteCode, String(inviteCodeExp), groupId, userWid);
         }, inviteInfo);
     }
 
@@ -1028,8 +1047,8 @@ class Client extends EventEmitter {
             if(!window.Store.Conn.canSetMyPushname()) return false;
 
             if(window.Store.MDBackend) {
-                // TODO
-                return false;
+                await window.Store.Settings.setPushname(displayName);
+                return true;
             } else {
                 const res = await window.Store.Wap.setPushname(displayName);
                 return !res.status || res.status === 200;
@@ -1279,35 +1298,116 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Create a new group
-     * @param {string} name group title
-     * @param {Array<Contact|string>} participants an array of Contacts or contact IDs to add to the group
-     * @returns {Object} createRes
-     * @returns {string} createRes.gid - ID for the group that was just created
-     * @returns {Object.<string,string>} createRes.missingParticipants - participants that were not added to the group. Keys represent the ID for participant that was not added and its value is a status code that represents the reason why participant could not be added. This is usually 403 if the user's privacy settings don't allow you to add them to groups.
+     * An object that represents the result for a participant added to a group
+     * @typedef {Object} ParticipantResult
+     * @property {number} statusCode The status code of the result
+     * @property {string} message The result message
+     * @property {boolean} isGroupCreator Indicates if the participant is a group creator
+     * @property {boolean} isInviteV4Sent Indicates if the inviteV4 was sent to the participant
      */
-    async createGroup(name, participants) {
-        if (!Array.isArray(participants) || participants.length == 0) {
-            throw 'You need to add at least one other participant to the group';
-        }
 
-        if (participants.every(c => c instanceof Contact)) {
-            participants = participants.map(c => c.id._serialized);
-        }
+    /**
+     * An object that handles the result for {@link createGroup} method
+     * @typedef {Object} CreateGroupResult
+     * @property {string} title A group title
+     * @property {Object} gid An object that handles the newly created group ID
+     * @property {string} gid.server
+     * @property {string} gid.user
+     * @property {string} gid._serialized
+     * @property {Object.<string, ParticipantResult>} participants An object that handles the result value for each added to the group participant
+     */
 
-        const createRes = await this.pupPage.evaluate(async (name, participantIds) => {
-            const participantWIDs = participantIds.map(p => window.Store.WidFactory.createWid(p));
-            return await window.Store.GroupUtils.createGroup(name, participantWIDs, 0);
-        }, name, participants);
+    /**
+     * An object that handles options for group creation
+     * @typedef {Object} CreateGroupOptions
+     * @property {number} [messageTimer = 0] The number of seconds for the messages to disappear in the group (0 by default, won't take an effect if the group is been creating with myself only)
+     * @property {string|undefined} parentGroupId The ID of a parent community group to link the newly created group with (won't take an effect if the group is been creating with myself only)
+     * @property {boolean} [autoSendInviteV4 = true] If true, the inviteV4 will be sent to those participants who have restricted others from being automatically added to groups, otherwise the inviteV4 won't be sent (true by default)
+     * @property {string} [comment = ''] The comment to be added to an inviteV4 (empty string by default)
+     */
 
-        const missingParticipants = createRes.participants.reduce(((missing, c) => {
-            const id = c.wid._serialized;
-            const statusCode = c.error ? c.error.toString() : '200';
-            if (statusCode != 200) return Object.assign(missing, { [id]: statusCode });
-            return missing;
-        }), {});
+    /**
+     * Creates a new group
+     * @param {string} title Group title
+     * @param {string|Contact|Array<Contact|string>|undefined} participants A single Contact object or an ID as a string or an array of Contact objects or contact IDs to add to the group
+     * @param {CreateGroupOptions} options An object that handles options for group creation
+     * @returns {Promise<CreateGroupResult|string>} Object with resulting data or an error message as a string
+     */
+    async createGroup(title, participants = [], options = {}) {
+        !Array.isArray(participants) && (participants = [participants]);
+        participants.map(p => (p instanceof Contact) ? p.id._serialized : p);
 
-        return { gid: createRes.wid, missingParticipants };
+        return await this.pupPage.evaluate(async (title, participants, options) => {
+            const { messageTimer = 0, parentGroupId, autoSendInviteV4 = true, comment = '' } = options;
+            const participantData = {}, participantWids = [], failedParticipants = [];
+            let createGroupResult, parentGroupWid;
+
+            const addParticipantResultCodes = {
+                default: 'An unknown error occupied while adding a participant',
+                200: 'The participant was added successfully',
+                403: 'The participant can be added by sending private invitation only',
+                404: 'The phone number is not registered on WhatsApp'
+            };
+
+            for (const participant of participants) {
+                const pWid = window.Store.WidFactory.createWid(participant);
+                if ((await window.Store.QueryExist(pWid))?.wid) participantWids.push(pWid);
+                else failedParticipants.push(participant);
+            }
+
+            parentGroupId && (parentGroupWid = window.Store.WidFactory.createWid(parentGroupId));
+
+            try {
+                createGroupResult = await window.Store.GroupUtils.createGroup(
+                    title,
+                    participantWids,
+                    messageTimer,
+                    parentGroupWid
+                );
+            } catch (err) {
+                return 'CreateGroupError: An unknown error occupied while creating a group';
+            }
+
+            for (const participant of createGroupResult.participants) {
+                let isInviteV4Sent = false;
+                const participantId = participant.wid._serialized;
+                const statusCode = participant.error ?? 200;
+
+                if (autoSendInviteV4 && statusCode === 403) {
+                    window.Store.ContactCollection.gadd(participant.wid, { silent: true });
+                    const addParticipantResult = await window.Store.GroupInviteV4.sendGroupInviteMessage(
+                        await window.Store.Chat.find(participant.wid),
+                        createGroupResult.wid._serialized,
+                        createGroupResult.subject,
+                        participant.invite_code,
+                        participant.invite_code_exp,
+                        comment,
+                        await window.WWebJS.getProfilePicThumbToBase64(createGroupResult.wid)
+                    );
+                    isInviteV4Sent = window.compareWwebVersions(window.Debug.VERSION, '<', '2.2335.6')
+                        ? addParticipantResult === 'OK'
+                        : addParticipantResult.messageSendResult === 'OK';
+                }
+
+                participantData[participantId] = {
+                    statusCode: statusCode,
+                    message: addParticipantResultCodes[statusCode] || addParticipantResultCodes.default,
+                    isGroupCreator: participant.type === 'superadmin',
+                    isInviteV4Sent: isInviteV4Sent
+                };
+            }
+
+            for (const f of failedParticipants) {
+                participantData[f] = {
+                    statusCode: 404,
+                    message: addParticipantResultCodes[404],
+                    isGroupCreator: false,
+                    isInviteV4Sent: false
+                };
+            }
+
+            return { title: title, gid: createGroupResult.wid, participants: participantData };
+        }, title, participants, options);
     }
 
     /**
@@ -1433,6 +1533,130 @@ class Client extends EventEmitter {
 
             return await window.Store.Label.addOrRemoveLabels(actions, chats);
         }, labelIds, chatIds);
+    }
+
+    /**
+     * An object that handles the information about the group membership request
+     * @typedef {Object} GroupMembershipRequest
+     * @property {Object} id The wid of a user who requests to enter the group
+     * @property {Object} addedBy The wid of a user who created that request
+     * @property {Object|null} parentGroupId The wid of a community parent group to which the current group is linked
+     * @property {string} requestMethod The method used to create the request: NonAdminAdd/InviteLink/LinkedGroupJoin
+     * @property {number} t The timestamp the request was created at
+     */
+
+    /**
+     * Gets an array of membership requests
+     * @param {string} groupId The ID of a group to get membership requests for
+     * @returns {Promise<Array<GroupMembershipRequest>>} An array of membership requests
+     */
+    async getGroupMembershipRequests(groupId) {
+        return await this.pupPage.evaluate(async (gropId) => {
+            const groupWid = window.Store.WidFactory.createWid(gropId);
+            return await window.Store.MembershipRequestUtils.getMembershipApprovalRequests(groupWid);
+        }, groupId);
+    }
+
+    /**
+     * An object that handles the result for membership request action
+     * @typedef {Object} MembershipRequestActionResult
+     * @property {string} requesterId User ID whos membership request was approved/rejected
+     * @property {number|undefined} error An error code that occurred during the operation for the participant
+     * @property {string} message A message with a result of membership request action
+     */
+
+    /**
+     * An object that handles options for {@link approveGroupMembershipRequests} and {@link rejectGroupMembershipRequests} methods
+     * @typedef {Object} MembershipRequestActionOptions
+     * @property {Array<string>|string|null} requesterIds User ID/s who requested to join the group, if no value is provided, the method will search for all membership requests for that group
+     * @property {Array<number>|number|null} sleep The number of milliseconds to wait before performing an operation for the next requester. If it is an array, a random sleep time between the sleep[0] and sleep[1] values will be added (the difference must be >=100 ms, otherwise, a random sleep time between sleep[1] and sleep[1] + 100 will be added). If sleep is a number, a sleep time equal to its value will be added. By default, sleep is an array with a value of [250, 500]
+     */
+
+    /**
+     * Approves membership requests if any
+     * @param {string} groupId The group ID to get the membership request for
+     * @param {MembershipRequestActionOptions} options Options for performing a membership request action
+     * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were approved and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned
+     */
+    async approveGroupMembershipRequests(groupId, options = {}) {
+        return await this.pupPage.evaluate(async (groupId, options) => {
+            const { requesterIds = null, sleep = [250, 500] } = options;
+            return await window.WWebJS.membershipRequestAction(groupId, 'Approve', requesterIds, sleep);
+        }, groupId, options);
+    }
+
+    /**
+     * Rejects membership requests if any
+     * @param {string} groupId The group ID to get the membership request for
+     * @param {MembershipRequestActionOptions} options Options for performing a membership request action
+     * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were rejected and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned
+     */
+    async rejectGroupMembershipRequests(groupId, options = {}) {
+        return await this.pupPage.evaluate(async (groupId, options) => {
+            const { requesterIds = null, sleep = [250, 500] } = options;
+            return await window.WWebJS.membershipRequestAction(groupId, 'Reject', requesterIds, sleep);
+        }, groupId, options);
+    }
+
+
+    /**
+     * Setting  autoload download audio
+     * @param {boolean} flag true/false
+     */
+    async setAutoDownloadAudio(flag) {
+        await this.pupPage.evaluate(async flag => {
+            const autoDownload = window.Store.Settings.getAutoDownloadAudio();
+            if (autoDownload === flag) {
+                return flag;
+            }
+            await window.Store.Settings.setAutoDownloadAudio(flag);
+            return flag;
+        }, flag);
+    }
+
+    /**
+     * Setting  autoload download documents
+     * @param {boolean} flag true/false
+     */
+    async setAutoDownloadDocuments(flag) {
+        await this.pupPage.evaluate(async flag => {
+            const autoDownload = window.Store.Settings.getAutoDownloadDocuments();
+            if (autoDownload === flag) {
+                return flag;
+            }
+            await window.Store.Settings.setAutoDownloadDocuments(flag);
+            return flag;
+        }, flag);
+    }
+
+    /**
+     * Setting  autoload download photos
+     * @param {boolean} flag true/false
+     */
+    async setAutoDownloadPhotos(flag) {
+        await this.pupPage.evaluate(async flag => {
+            const autoDownload = window.Store.Settings.getAutoDownloadPhotos();
+            if (autoDownload === flag) {
+                return flag;
+            }
+            await window.Store.Settings.setAutoDownloadPhotos(flag);
+            return flag;
+        }, flag);
+    }
+
+    /**
+     * Setting  autoload download videos
+     * @param {boolean} flag true/false
+     */
+    async setAutoDownloadVideos(flag) {
+        await this.pupPage.evaluate(async flag => {
+            const autoDownload = window.Store.Settings.getAutoDownloadVideos();
+            if (autoDownload === flag) {
+                return flag;
+            }
+            await window.Store.Settings.setAutoDownloadVideos(flag);
+            return flag;
+        }, flag);
     }
 }
 
