@@ -521,16 +521,12 @@ client.on('group_membership_request', async (notification) => {
     await client.rejectGroupMembershipRequests(notification.chatId, notification.author);
 });
 
-client.on('vote_received', (vote) => {
+client.on('vote_current_state', (vote) => {
     /** The vote that was affected: */
     console.log(vote);
 });
 
-client.on('vote_removed', (vote) => {
+client.on('vote_previous_state', (vote) => {
     /** The vote that was affected: */
     console.log(vote);
-    /**
-     * @note
-     * If the vote was unvoted, the {@param vote.isUnvote} will be true
-     */
 });
