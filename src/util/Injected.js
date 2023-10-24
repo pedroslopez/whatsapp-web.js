@@ -537,9 +537,8 @@ exports.LoadUtils = () => {
         return msg;
     };
 
-    window.WWebJS.getPollVoteModel = (vote, isCurrentState) => {
+    window.WWebJS.getPollVoteModel = (vote) => {
         const _vote = vote.serialize();
-        _vote.isCurrentState = isCurrentState;
         if (vote.parentMsgKey) {
             const msg = window.Store.Msg.get(vote.parentMsgKey);
             msg && (_vote.parentMessage = window.WWebJS.getMessageModel(msg));

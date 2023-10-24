@@ -370,20 +370,7 @@ declare namespace WAWebJS {
          * Emitted when some poll option is selected or deselected,
          * shows a user's current selected option(s) on the poll
          */
-        on(event: 'vote_current_state', listener: (
-            vote: PollVote
-        ) => void): this
-
-        /**
-         * Emitted when the user interacts with a poll (selects or deselects its option(s)),
-         * shows a user's previous selected option(s)
-         * The event can be used for:
-         * 1. In a case of a single-optional poll, to check what poll option was deselected
-         * 2. In a case of a multiple-optional poll, to check what option(s) was(were) selected
-         * before the user currently changed their selection
-         * @note The event will not emitted if it is a first user's iteraction with a poll
-         */
-        on(event: 'vote_previous_state', listener: (
+        on(event: 'vote_update', listener: (
             vote: PollVote
         ) => void): this
     }

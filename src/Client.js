@@ -663,26 +663,12 @@ class Client extends EventEmitter {
 
         await page.exposeFunction('onPollVoteEvent', (vote) => {
             const _vote = new PollVote(this, vote);
-
-            if (vote.isCurrentState) {
-                /**
-                 * Emitted when some poll option is selected or deselected,
-                 * shows a user's current selected option(s) on the poll
-                 * @event Client#vote_current_state
-                 */
-                this.emit(Events.VOTE_CURRENT_STATE, _vote);
-            }
             /**
-             * Emitted when the user interacts with a poll (selects or deselects its option(s)),
-             * shows a user's previous selected option(s)
-             * The event can be used for:
-             * 1. In a case of a single-optional poll, to check what poll option was deselected
-             * 2. In a case of a multiple-optional poll, to check what option(s) was(were) selected
-             * before the user currently changed their selection
-             * @note The event will not emitted if it is a first user's iterraction with a poll
-             * @event Client#vote_previous_state
+             * Emitted when some poll option is selected or deselected,
+             * shows a user's current selected option(s) on the poll
+             * @event Client#vote_current_state
              */
-            else this.emit(Events.VOTE_PREVIOUS_STATE, _vote);
+            this.emit(Events.VOTE_UPDATE, _vote);
         });
 
         await page.evaluate(() => {
@@ -709,11 +695,7 @@ class Client extends EventEmitter {
             });
             window.Store.Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
             window.Store.PollVote.on('add', (vote) => {
-                const pollVoteModel = window.WWebJS.getPollVoteModel(vote, true);
-                pollVoteModel && window.onPollVoteEvent(pollVoteModel);
-            });
-            window.Store.PollVote.on('remove', (vote) => {
-                const pollVoteModel = window.WWebJS.getPollVoteModel(vote, false);
+                const pollVoteModel = window.WWebJS.getPollVoteModel(vote);
                 pollVoteModel && window.onPollVoteEvent(pollVoteModel);
             });
 

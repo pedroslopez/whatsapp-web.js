@@ -29,14 +29,6 @@ class PollVote extends Base {
         this.voter = data.sender;
 
         /**
-         * Indicates whether it is the current user's choice on the poll:
-         * - If true: it is the user's current selected option(s)
-         * - If false: it is a user's previous selected option(s)
-         * @type {boolean}
-         */
-        this.isCurrentState = data.isCurrentState;
-
-        /**
          * The selected poll option(s)
          * If it's an empty array, the user hasn't selected any options on the poll,
          * may occur when they deselected all poll options
@@ -60,7 +52,7 @@ class PollVote extends Base {
          * The message secret key of a poll creation message
          * @type {Array}
          */
-        this.messageSecret = data.parentMessage.messageSecret;
+        this.messageSecret = Object.keys(data.parentMessage.messageSecret).map((key) =>  data.parentMessage.messageSecret[key]);
 
         /**
          * The poll creation message associated with the poll vote
