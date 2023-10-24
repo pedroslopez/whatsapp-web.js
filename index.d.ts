@@ -143,6 +143,27 @@ declare namespace WAWebJS {
          * @param displayName New display name
          */
         setDisplayName(displayName: string): Promise<boolean>
+        
+        /**
+         * Changes the autoload Audio
+         * @param flag true/false on or off
+         */
+        setAutoDownloadAudio(flag: boolean): Promise<void>
+        /**
+         * Changes the autoload Documents
+         * @param flag true/false on or off
+         */
+        setAutoDownloadDocuments(flag: boolean): Promise<void>
+        /**
+         * Changes the autoload Photos
+         * @param flag true/false on or off
+         */
+        setAutoDownloadPhotos(flag: boolean): Promise<void>
+        /**
+         * Changes the autoload Videos
+         * @param flag true/false on or off
+         */
+        setAutoDownloadVideos(flag: boolean): Promise<void>
                 
         /** Changes and returns the archive state of the Chat */
         unarchiveChat(chatId: string): Promise<boolean>
