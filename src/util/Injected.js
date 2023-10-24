@@ -537,13 +537,15 @@ exports.LoadUtils = () => {
         return msg;
     };
 
-    window.WWebJS.getPollVoteModel = (vote) => {
-        let _vote;
+    window.WWebJS.getPollVoteModel = (vote, isCurrentState) => {
+        const _vote = vote.serialize();
+        _vote.isCurrentState = isCurrentState;
         if (vote.parentMsgKey) {
-            _vote = vote.serialize();
-            _vote.parentMessage = window.WWebJS.getMessageModel(window.Store.Msg.get(vote.parentMsgKey));
+            const msg = window.Store.Msg.get(vote.parentMsgKey);
+            msg && (_vote.parentMessage = window.WWebJS.getMessageModel(msg));
+            return _vote;
         }
-        return _vote;
+        return null;
     };
 
     window.WWebJS.getChatModel = async chat => {

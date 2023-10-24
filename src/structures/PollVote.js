@@ -6,7 +6,7 @@ const Base = require('./Base');
 /**
  * Selected poll option structure
  * @typedef {Object} SelectedPollOption
- * @property {number} id The local selected option ID
+ * @property {number} id The local selected or deselected option ID
  * @property {string} name The option name
  */
 
@@ -29,25 +29,38 @@ class PollVote extends Base {
         this.voter = data.sender;
 
         /**
-         * Indicates if the vote was unvouted, if true the selected option was unvoted
+         * Indicates whether it is the current user's choice on the poll:
+         * - If true: it is the user's current selected option(s)
+         * - If false: it is a user's previous selected option(s)
          * @type {boolean}
          */
-        this.isUnvote = data.isUnvote;
+        this.isCurrentState = data.isCurrentState;
 
         /**
-         * The selected poll option
-         * @type {SelectedPollOption}
+         * The selected poll option(s)
+         * If it's an empty array, the user hasn't selected any options on the poll,
+         * may occur when they deselected all poll options
+         * @type {SelectedPollOption[]}
          */
-        this.selectedOption = {
-            id: data.selectedOptionLocalIds[0],
-            name: data.parentMessage.pollOptions.find((x) => x.localId === data.selectedOptionLocalIds[0]).name
-        };
+        this.selectedOptions =
+            data.selectedOptionLocalIds.length > 0
+                ? data.selectedOptionLocalIds.map((e) => ({
+                    id: e,
+                    name: data.parentMessage.pollOptions.find((x) => x.localId === e).name
+                }))
+                : [];
 
         /**
-         * Timestamp the the poll was voted
+         * Timestamp the option was selected or deselected
          * @type {number}
          */
-        this.votedAtTimestamp = data.senderTimestampMs;
+        this.interractedAt = data.senderTimestampMs;
+
+        /**
+         * The message secret key of a poll creation message
+         * @type {Array}
+         */
+        this.messageSecret = data.parentMessage.messageSecret;
 
         /**
          * The poll creation message associated with the poll vote

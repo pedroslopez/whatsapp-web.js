@@ -65,8 +65,8 @@ exports.Events = {
     BATTERY_CHANGED: 'change_battery',
     INCOMING_CALL: 'call',
     REMOTE_SESSION_SAVED: 'remote_session_saved',
-    VOTE_RECEIVED: 'vote_received',
-    VOTE_REMOVED: 'vote_removed'
+    VOTE_CURRENT_STATE: 'vote_current_state',
+    VOTE_PREVIOUS_STATE: 'vote_previous_state'
 };
 
 /**

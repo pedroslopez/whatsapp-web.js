@@ -51,9 +51,9 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @fires Client#change_state
  * @fires Client#contact_changed
  * @fires Client#group_admin_changed
- * @fires Client#vote_received
- * @fires Client#vote_removed
  * @fires Client#group_membership_request
+ * @fires Client#vote_current_state
+ * @fires Client#vote_previous_state
  */
 class Client extends EventEmitter {
     constructor(options = {}) {
@@ -661,28 +661,28 @@ class Client extends EventEmitter {
             this.emit(Events.MESSAGE_EDIT, new Message(this, msg), newBody, prevBody);
         });
 
-        await page.exposeFunction('onPollVoteEvent', (vote, isUnvote) => {
-            vote.isUnvote = isUnvote;
+        await page.exposeFunction('onPollVoteEvent', (vote) => {
             const _vote = new PollVote(this, vote);
+
+            if (vote.isCurrentState) {
+                /**
+                 * Emitted when some poll option is selected or deselected,
+                 * shows a user's current selected option(s) on the poll
+                 * @event Client#vote_current_state
+                 */
+                this.emit(Events.VOTE_CURRENT_STATE, _vote);
+            }
             /**
-             * Emitted when a poll vote is received or removed
-             * @event Client#vote_received
-             * @event Client#vote_removed
-             * 
-             * @param {Object} _vote The received vote
-             * @property {Object} _vote.sender Sender of the vote
-             * @property {string} _vote.sender.server
-             * @property {string} _vote.sender.user
-             * @property {string} _vote.sender._serialized
-             * @property {number} _vote.senderTimestampMs Timestamp the the poll was voted
-             * @property {Object} _vote.selectedOption The selected poll option
-             * @property {number} _vote.selectedOption.id The local selected option ID
-             * @property {string} _vote.selectedOption.name The option name
-             * @property {Message} _vote.parentMessage The vote parent message
+             * Emitted when the user interacts with a poll (selects or deselects its option(s)),
+             * shows a user's previous selected option(s)
+             * The event can be used for:
+             * 1. In a case of a single-optional poll, to check what poll option was deselected
+             * 2. In a case of a multiple-optional poll, to check what option(s) was(were) selected
+             * before the user currently changed their selection
+             * @note The event will not emitted if it is a first user's iterraction with a poll
+             * @event Client#vote_previous_state
              */
-            !isUnvote
-                ? this.emit(Events.VOTE_RECEIVED, _vote)
-                : this.emit(Events.VOTE_REMOVED, _vote);
+            else this.emit(Events.VOTE_PREVIOUS_STATE, _vote);
         });
 
         await page.evaluate(() => {
@@ -708,8 +708,14 @@ class Client extends EventEmitter {
                 }
             });
             window.Store.Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
-            window.Store.PollVote.on('add', (vote) => { window.onPollVoteEvent(window.WWebJS.getPollVoteModel(vote), false); });
-            window.Store.PollVote.on('remove', (vote) => { window.onPollVoteEvent(window.WWebJS.getPollVoteModel(vote), true); });
+            window.Store.PollVote.on('add', (vote) => {
+                const pollVoteModel = window.WWebJS.getPollVoteModel(vote, true);
+                pollVoteModel && window.onPollVoteEvent(pollVoteModel);
+            });
+            window.Store.PollVote.on('remove', (vote) => {
+                const pollVoteModel = window.WWebJS.getPollVoteModel(vote, false);
+                pollVoteModel && window.onPollVoteEvent(pollVoteModel);
+            });
 
             {
                 const module = window.Store.createOrUpdateReactionsModule;

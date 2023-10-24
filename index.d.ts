@@ -366,13 +366,24 @@ declare namespace WAWebJS {
         /** Emitted when the RemoteAuth session is saved successfully on the external Database */
         on(event: 'remote_session_saved', listener: () => void): this
 
-        /** Emitted when the poll vote is received */
-        on(event: 'vote_received', listener: (
+        /**
+         * Emitted when some poll option is selected or deselected,
+         * shows a user's current selected option(s) on the poll
+         */
+        on(event: 'vote_current_state', listener: (
             vote: PollVote
         ) => void): this
 
-        /** Emitted when the poll vote is removed */
-        on(event: 'vote_removed', listener: (
+        /**
+         * Emitted when the user interacts with a poll (selects or deselects its option(s)),
+         * shows a user's previous selected option(s)
+         * The event can be used for:
+         * 1. In a case of a single-optional poll, to check what poll option was deselected
+         * 2. In a case of a multiple-optional poll, to check what option(s) was(were) selected
+         * before the user currently changed their selection
+         * @note The event will not emitted if it is a first user's iteraction with a poll
+         */
+        on(event: 'vote_previous_state', listener: (
             vote: PollVote
         ) => void): this
     }
@@ -1009,14 +1020,25 @@ declare namespace WAWebJS {
         /** The person who voted */
         voter: string;
 
-        /** Indicates if the vote was unvoted, if true the selected option was unvoted */
-        isUnvote: boolean;
+        /**
+         * Indicates whether it is the current user's choice on the poll:
+         * - If true: it is the user's current selected option(s)
+         * - If false: it is a user's previous selected option(s)
+         */
+        isCurrentState: boolean;
 
-        /** The selected poll option */
-        selectedOption: SelectedPollOption;
+        /**
+         * The selected poll option(s)
+         * If it's an empty array, the user hasn't selected any options on the poll,
+         * may occur when they deselected all poll options
+         */
+        selectedOptions: SelectedPollOption[];
 
-        /** Timestamp the the poll was voted */
-        votedAtTimestamp: number;
+        /** Timestamp the option was selected or deselected */
+        interractedAt: number;
+
+        /** The message secret key of a poll creation message */
+        messageSecret: Array;
 
         /** The poll creation message associated with the poll vote */
         parentMessage: Message;
