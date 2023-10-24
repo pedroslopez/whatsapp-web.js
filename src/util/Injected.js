@@ -201,7 +201,22 @@ exports.LoadUtils = () => {
         }
 
         if (options.mentionedJidList) {
-            options.mentionedJidList = options.mentionedJidList.map(cId => window.Store.Contact.get(cId).id);
+            options.mentionedJidList = await Promise.all(
+                options.mentionedJidList.map(async (id) => {
+                    const wid = window.Store.WidFactory.createWid(id);
+                    if (await window.Store.QueryExist(wid)) {
+                        return wid;
+                    }
+                })
+            );
+            options.mentionedJidList = options.mentionedJidList.filter(Boolean);
+        }
+
+        if (options.groupMentions) {
+            options.groupMentions = options.groupMentions.map((e) => ({
+                groupSubject: e.subject,
+                groupJid: window.Store.WidFactory.createWid(e.id)
+            }));
         }
 
         let locationOptions = {};
@@ -375,7 +390,22 @@ exports.LoadUtils = () => {
         delete options.extraOptions;
         
         if (options.mentionedJidList) {
-            options.mentionedJidList = options.mentionedJidList.map(cId => window.Store.Contact.get(cId).id);
+            options.mentionedJidList = await Promise.all(
+                options.mentionedJidList.map(async (id) => {
+                    const wid = window.Store.WidFactory.createWid(id);
+                    if (await window.Store.QueryExist(wid)) {
+                        return wid;
+                    }
+                })
+            );
+            options.mentionedJidList = options.mentionedJidList.filter(Boolean);
+        }
+
+        if (options.groupMentions) {
+            options.groupMentions = options.groupMentions.map((e) => ({
+                groupSubject: e.subject,
+                groupJid: window.Store.WidFactory.createWid(e.id)
+            }));
         }
 
         if (options.linkPreview) {
