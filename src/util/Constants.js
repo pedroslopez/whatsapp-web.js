@@ -7,7 +7,7 @@ exports.DefaultOptions = {
         headless: true,
         defaultViewport: null
     },
-    webVersion: '2.2333.11',
+    webVersion: '2.2346.52',
     webVersionCache: {
         type: 'local',
     },
@@ -56,6 +56,7 @@ exports.Events = {
     GROUP_JOIN: 'group_join',
     GROUP_LEAVE: 'group_leave',
     GROUP_ADMIN_CHANGED: 'group_admin_changed',
+    GROUP_MEMBERSHIP_REQUEST: 'group_membership_request',
     GROUP_UPDATE: 'group_update',
     QR_RECEIVED: 'qr',
     LOADING_SCREEN: 'loading_screen',
@@ -107,6 +108,7 @@ exports.MessageTypes = {
     PROTOCOL: 'protocol',
     REACTION: 'reaction',
     TEMPLATE_BUTTON_REPLY: 'template_button_reply',
+    POLL_CREATION: 'poll_creation',
 };
 
 /**
