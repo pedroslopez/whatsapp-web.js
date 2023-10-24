@@ -237,12 +237,43 @@ client.on('message', async msg => {
         const newStatus = msg.body.split(' ')[1];
         await client.setStatus(newStatus);
         msg.reply(`Status was updated to *${newStatus}*`);
-    } else if (msg.body === '!mention') {
-        const contact = await msg.getContact();
+    } else if (msg.body === '!mentionUsers') {
         const chat = await msg.getChat();
-        chat.sendMessage(`Hi @${contact.number}!`, {
-            mentions: [contact]
+        // To mention one user you can pass the ID as is without wrapping it in Array:
+        await chat.sendMessage('Hi @number!', {
+            mentions: 'number@c.us'
         });
+        // To mention a list of users:
+        await chat.sendMessage('Hi @number1, @number2!', {
+            mentions: ['number1@c.us', 'number2@c.us']
+        });
+    } else if (msg.body === '!mentionGroups') {
+        const chat = await msg.getChat();
+        /**
+         * Sends clickable group mentions, the same as user mentions.
+         * When the mentions are clicked, it opens a chat with the mentioned group
+         * @note The user that does not participate in the mentioned group,
+         * will not be able to click on that mentioned group, the same if the group does not exist
+         *
+         * To mention one group you can pass the ID as is without wrapping it in Array:
+         */
+        await chat.sendMessage('Check the last message here: @group@g.us', {
+            groupMentions: { subject: 'GroupSubject', id: 'group@g.us' }
+        });
+        // To mention a list of groups:
+        await chat.sendMessage('Check the last message in these groups: @group1@g.us, @group2@g.us', {
+            groupMentions: [
+                { subject: 'FirstGroup', id: 'group1@g.us' },
+                { subject: 'SecondGroup', id: 'group2@g.us' }
+            ]
+        });
+    } else if (msg.body === '!getGroupMentions') {
+        const m = await client.sendMessage('chatId', 'Check the last message here: @group@g.us', {
+            groupMentions: { subject: 'GroupSubject', id: 'group@g.us' }
+        });
+        /** {@link groupMentions} is an array of `GroupChat` */
+        const groupMentions = await m.getGroupMentions();
+        console.log(groupMentions);
     } else if (msg.body === '!delete') {
         if (msg.hasQuotedMsg) {
             const quotedMsg = await msg.getQuotedMessage();
@@ -285,7 +316,9 @@ client.on('message', async msg => {
         let button = new Buttons('Button body', [{ body: 'bt1' }, { body: 'bt2' }, { body: 'bt3' }], 'title', 'footer');
         client.sendMessage(msg.from, button);
     } else if (msg.body === '!list') {
-        let sections = [{ title: 'sectionTitle', rows: [{ title: 'ListItem1', description: 'desc' }, { title: 'ListItem2' }] }];
+        let sections = [
+            { title: 'sectionTitle', rows: [{ title: 'ListItem1', description: 'desc' }, { title: 'ListItem2' }] }
+        ];
         let list = new List('List body', 'btnText', sections, 'Title', 'footer');
         client.sendMessage(msg.from, list);
     } else if (msg.body === '!reaction') {
@@ -320,7 +353,7 @@ client.on('message', async msg => {
         await chat.changeLabels([0, 1]);
     } else if (msg.body === '!addlabels') {
         const chat = await msg.getChat();
-        let labels = (await chat.getLabels()).map(l => l.id);
+        let labels = (await chat.getLabels()).map((l) => l.id);
         labels.push('0');
         labels.push('1');
         await chat.changeLabels(labels);
