@@ -52,8 +52,7 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @fires Client#contact_changed
  * @fires Client#group_admin_changed
  * @fires Client#group_membership_request
- * @fires Client#vote_current_state
- * @fires Client#vote_previous_state
+ * @fires Client#vote_update
  */
 class Client extends EventEmitter {
     constructor(options = {}) {
@@ -666,7 +665,7 @@ class Client extends EventEmitter {
             /**
              * Emitted when some poll option is selected or deselected,
              * shows a user's current selected option(s) on the poll
-             * @event Client#vote_current_state
+             * @event Client#vote_update
              */
             this.emit(Events.VOTE_UPDATE, _vote);
         });

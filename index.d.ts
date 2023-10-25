@@ -1008,13 +1008,6 @@ declare namespace WAWebJS {
         voter: string;
 
         /**
-         * Indicates whether it is the current user's choice on the poll:
-         * - If true: it is the user's current selected option(s)
-         * - If false: it is a user's previous selected option(s)
-         */
-        isCurrentState: boolean;
-
-        /**
          * The selected poll option(s)
          * If it's an empty array, the user hasn't selected any options on the poll,
          * may occur when they deselected all poll options
