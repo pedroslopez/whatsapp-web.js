@@ -1017,9 +1017,6 @@ declare namespace WAWebJS {
         /** Timestamp the option was selected or deselected */
         interractedAt: number;
 
-        /** The message secret key of a poll creation message */
-        messageSecret: Array;
-
         /** The poll creation message associated with the poll vote */
         parentMessage: Message;
     }

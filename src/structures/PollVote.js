@@ -49,12 +49,6 @@ class PollVote extends Base {
         this.interractedAt = data.senderTimestampMs;
 
         /**
-         * The message secret key of a poll creation message
-         * @type {Array}
-         */
-        this.messageSecret = Object.keys(data.parentMessage.messageSecret).map((key) =>  data.parentMessage.messageSecret[key]);
-
-        /**
          * The poll creation message associated with the poll vote
          * @type {Message}
          */
