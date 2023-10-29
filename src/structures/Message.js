@@ -541,7 +541,7 @@ class Message extends Base {
     async getInfo() {
         const info = await this.client.pupPage.evaluate(async (msgId) => {
             const msg = window.Store.Msg.get(msgId);
-            if (!msg || !msg.fromMe) return null;
+            if (!msg || !msg.id.fromMe) return null;
 
             return await new Promise(resolve => setTimeout(async () => {
                 resolve(await window.Store.getMsgInfo(msg.id));
