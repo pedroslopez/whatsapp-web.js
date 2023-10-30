@@ -1,4 +1,4 @@
-const { Client, Location, List, Buttons, LocalAuth } = require('./index');
+const { Client, Location, Poll, List, Buttons, LocalAuth } = require('./index');
 
 const client = new Client({
     restartOnAuthFail: true,
@@ -112,6 +112,78 @@ client.on('message', async msg => {
         } catch (e) {
             msg.reply('That invite code seems to be invalid.');
         }
+    } else if (msg.body.startsWith('!addmembers')) {
+        const group = await msg.getChat();
+        const result = await group.addParticipants(['number1@c.us', 'number2@c.us', 'number3@c.us']);
+        /**
+         * The example of the {@link result} output:
+         *
+         * {
+         *   'number1@c.us': {
+         *     code: 200,
+         *     message: 'The participant was added successfully',
+         *     isInviteV4Sent: false
+         *   },
+         *   'number2@c.us': {
+         *     code: 403,
+         *     message: 'The participant can be added by sending private invitation only',
+         *     isInviteV4Sent: true
+         *   },
+         *   'number3@c.us': {
+         *     code: 404,
+         *     message: 'The phone number is not registered on WhatsApp',
+         *     isInviteV4Sent: false
+         *   }
+         * }
+         *
+         * For more usage examples:
+         * @see https://github.com/pedroslopez/whatsapp-web.js/pull/2344#usage-example1
+         */
+        console.log(result);
+    } else if (msg.body === '!creategroup') {
+        const partitipantsToAdd = ['number1@c.us', 'number2@c.us', 'number3@c.us'];
+        const result = await client.createGroup('Group Title', partitipantsToAdd);
+        /**
+         * The example of the {@link result} output:
+         * {
+         *   title: 'Group Title',
+         *   gid: {
+         *     server: 'g.us',
+         *     user: '1111111111',
+         *     _serialized: '1111111111@g.us'
+         *   },
+         *   participants: {
+         *     'botNumber@c.us': {
+         *       statusCode: 200,
+         *       message: 'The participant was added successfully',
+         *       isGroupCreator: true,
+         *       isInviteV4Sent: false
+         *     },
+         *     'number1@c.us': {
+         *       statusCode: 200,
+         *       message: 'The participant was added successfully',
+         *       isGroupCreator: false,
+         *       isInviteV4Sent: false
+         *     },
+         *     'number2@c.us': {
+         *       statusCode: 403,
+         *       message: 'The participant can be added by sending private invitation only',
+         *       isGroupCreator: false,
+         *       isInviteV4Sent: true
+         *     },
+         *     'number3@c.us': {
+         *       statusCode: 404,
+         *       message: 'The phone number is not registered on WhatsApp',
+         *       isGroupCreator: false,
+         *       isInviteV4Sent: false
+         *     }
+         *   }
+         * }
+         *
+         * For more usage examples:
+         * @see https://github.com/pedroslopez/whatsapp-web.js/pull/2344#usage-example2
+         */
+        console.log(result);
     } else if (msg.body === '!groupinfo') {
         let chat = await msg.getChat();
         if (chat.isGroup) {
@@ -239,6 +311,22 @@ client.on('message', async msg => {
         client.sendMessage(msg.from, list);
     } else if (msg.body === '!reaction') {
         msg.react('👍');
+    } else if (msg.body === '!sendpoll') {
+        /** By default the poll is created as a single choice poll: */
+        await msg.reply(new Poll('Winter or Summer?', ['Winter', 'Summer']));
+        /** If you want to provide a multiple choice poll, add allowMultipleAnswers as true: */
+        await msg.reply(new Poll('Cats or Dogs?', ['Cats', 'Dogs'], { allowMultipleAnswers: true }));
+        /**
+         * You can provide a custom message secret, it can be used as a poll ID:
+         * @note It has to be a unique vector with a length of 32
+         */
+        await msg.reply(
+            new Poll('Cats or Dogs?', ['Cats', 'Dogs'], {
+                messageSecret: [
+                    1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+                ]
+            })
+        );
     } else if (msg.body === '!edit') {
         if (msg.hasQuotedMsg) {
             const quotedMsg = await msg.getQuotedMessage();
