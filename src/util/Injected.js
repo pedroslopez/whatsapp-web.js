@@ -108,9 +108,9 @@ exports.ExposeStore = (moduleRaidStr) => {
     if ((m = window.mR.findModule('ChatCollection')[0]) && m.ChatCollection && typeof m.ChatCollection.findImpl === 'undefined' && typeof m.ChatCollection._find !== 'undefined') m.ChatCollection.findImpl = m.ChatCollection._find;
 
     // TODO remove these once everybody has been updated to WWebJS with legacy sessions removed
-    const _linkPreview = window.mR.findModule('queryLinkPreview');
-    if (_linkPreview && _linkPreview[0] && _linkPreview[0].default) {
-        window.Store.Wap = _linkPreview[0].default;
+    const _linkPreview = window.mR.findModule('getLinkPreview');
+    if (_linkPreview && _linkPreview[0]) {
+        window.Store.Wap = _linkPreview[0];
     }
 
     const _isMDBackend = window.mR.findModule('isMDBackend');
@@ -273,10 +273,11 @@ exports.LoadUtils = () => {
             delete options.linkPreview;
 
             // Not supported yet by WhatsApp Web on MD
-            if(!window.Store.MDBackend) {
+            if(window.Store.Wap) {
                 const link = window.Store.Validators.findLink(content);
                 if (link) {
-                    const preview = await window.Store.Wap.queryLinkPreview(link.url);
+                    let preview = await window.Store.Wap.getLinkPreview(link);
+                    preview = preview.data?preview.data:preview;
                     preview.preview = true;
                     preview.subtype = 'url';
                     options = { ...options, ...preview };
@@ -382,10 +383,11 @@ exports.LoadUtils = () => {
             options.linkPreview = null;
 
             // Not supported yet by WhatsApp Web on MD
-            if(!window.Store.MDBackend) {
+            if(window.Store.Wap) {
                 const link = window.Store.Validators.findLink(content);
                 if (link) {
-                    const preview = await window.Store.Wap.queryLinkPreview(link.url);
+                    let preview = await window.Store.Wap.getLinkPreview(link);
+                    preview = preview.data?preview.data:preview;
                     preview.preview = true;
                     preview.subtype = 'url';
                     options = { ...options, ...preview };
