@@ -166,6 +166,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.injectToFunction({ module: 'mediaTypeFromProtobuf', index: 0, function: 'mediaTypeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? null : func(...args); });
 
     window.injectToFunction({ module: 'typeAttributeFromProtobuf', index: 0, function: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage || proto.groupInviteMessage ? 'text' : func(...args); });
+
+    window.injectToFunction({ module: 'shouldSkipGenMsg', index: 0, function: 'shouldSkipGenMsg' }, () => false);
 };
 
 exports.LoadUtils = () => {

@@ -588,14 +588,11 @@ client.on('contact_changed', async (message, oldId, newId, isContact) => {
 
 client.on('group_admin_changed', (notification) => {
     if (notification.type === 'promote') {
-        /** 
-          * Emitted when a current user is promoted to an admin.
-          * {@link notification.author} is a user who performs the action of promoting/demoting the current user.
-          */
-        console.log(`You were promoted by ${notification.author}`);
+        // Emitted when a group member is promoted to an admin
+        console.log(`The user ${notification.recipientIds[0]} was promoted by ${notification.author || 'the server'}`);
     } else if (notification.type === 'demote')
-        /** Emitted when a current user is demoted to a regular user. */
-        console.log(`You were demoted by ${notification.author}`);
+        // Emitted when a group member is demoted to a regular user
+        console.log(`The user ${notification.recipientIds[0]} was demoted by ${notification.author || 'the server'}`);
 });
 
 client.on('group_membership_request', async (notification) => {

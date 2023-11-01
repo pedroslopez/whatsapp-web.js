@@ -377,9 +377,12 @@ class Client extends EventEmitter {
                     this.emit(Events.GROUP_LEAVE, notification);
                 } else if (msg.subtype === 'promote' || msg.subtype === 'demote') {
                     /**
-                     * Emitted when a current user is promoted to an admin or demoted to a regular user.
+                     * Emitted when a group member is promoted to an admin or demoted to a regular user
                      * @event Client#group_admin_changed
                      * @param {GroupNotification} notification GroupNotification with more information about the action
+                     * 
+                     * {@link notification.author} is a user ID who promotes/demotes
+                     * {@link notification.recipientIds[0]} is a user ID who was promoted/demoted
                      */
                     this.emit(Events.GROUP_ADMIN_CHANGED, notification);
                 } else if (msg.subtype === 'created_membership_requests') {
