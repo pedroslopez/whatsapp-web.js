@@ -35,12 +35,8 @@ declare namespace WAWebJS {
         /** Unpins the Chat and returns its new Pin state */
         unpinChat(chatId: string): Promise<boolean>
 
-        /**
-         * Create a new group
-         * @param name group title
-         * @param participants an array of Contacts or contact IDs to add to the group
-         */
-        createGroup(name: string, participants: Contact[] | string[]): Promise<CreateGroupResult>
+        /** Creates a new group */
+        createGroup(title: string, participants?: string | Contact | Contact[] | string[], options?: CreateGroupOptions): Promise<CreateGroupResult|string>
 
         /** Closes the client */
         destroy(): Promise<void>
@@ -147,6 +143,27 @@ declare namespace WAWebJS {
          * @param displayName New display name
          */
         setDisplayName(displayName: string): Promise<boolean>
+        
+        /**
+         * Changes the autoload Audio
+         * @param flag true/false on or off
+         */
+        setAutoDownloadAudio(flag: boolean): Promise<void>
+        /**
+         * Changes the autoload Documents
+         * @param flag true/false on or off
+         */
+        setAutoDownloadDocuments(flag: boolean): Promise<void>
+        /**
+         * Changes the autoload Photos
+         * @param flag true/false on or off
+         */
+        setAutoDownloadPhotos(flag: boolean): Promise<void>
+        /**
+         * Changes the autoload Videos
+         * @param flag true/false on or off
+         */
+        setAutoDownloadVideos(flag: boolean): Promise<void>
                 
         /** Changes and returns the archive state of the Chat */
         unarchiveChat(chatId: string): Promise<boolean>
@@ -285,6 +302,12 @@ declare namespace WAWebJS {
         /** Emitted when a new message is created, which may include the current user's own messages */
         on(event: 'message_create', listener: (
             /** The message that was created */
+            message: Message
+        ) => void): this
+        
+        /** Emitted when a new message ciphertext is received  */
+        on(event: 'message_ciphertext', listener: (
+            /** The message that was ciphertext */
             message: Message
         ) => void): this
 
@@ -540,14 +563,47 @@ declare namespace WAWebJS {
         plugged: boolean,
     }
 
+    /** An object that handles options for group creation */
+    export interface CreateGroupOptions {
+        /**
+         * The number of seconds for the messages to disappear in the group,
+         * won't take an effect if the group is been creating with myself only
+         * @default 0
+         */
+        messageTimer?: number
+        /**
+         * The ID of a parent community group to link the newly created group with,
+         * won't take an effect if the group is been creating with myself only
+         */
+        parentGroupId?: string
+        /** If true, the inviteV4 will be sent to those participants
+         * who have restricted others from being automatically added to groups,
+         * otherwise the inviteV4 won't be sent
+         * @default true
+         */
+        autoSendInviteV4?: boolean,
+        /**
+         * The comment to be added to an inviteV4 (empty string by default)
+         * @default ''
+         */
+        comment?: string
+    }
+
+    /** An object that handles the result for createGroup method */
     export interface CreateGroupResult {
-        /** ID for the group that was just created */
-        gid: string,
-        /** participants that were not added to the group. 
-         * Keys represent the ID for participant that was not added and its value is a status code
-         * that represents the reason why participant could not be added. 
-         * This is usually 403 if the user's privacy settings don't allow you to add them to groups. */
-        missingParticipants: Record<string, string>
+        /** A group title */
+        title: string;
+        /** An object that handles the newly created group ID */
+        gid: ChatId;
+        /** An object that handles the result value for each added to the group participant */
+        participants: {
+            [participantId: string]: {
+                statusCode: number,
+                message: string,
+                isGroupCreator: boolean,
+                isInviteV4Sent: boolean
+            };
+        };
     }
 
     export interface GroupNotification {
@@ -597,6 +653,7 @@ declare namespace WAWebJS {
         AUTHENTICATION_FAILURE = 'auth_failure',
         READY = 'ready',
         MESSAGE_RECEIVED = 'message',
+        MESSAGE_CIPHERTEXT = 'message_ciphertext',
         MESSAGE_CREATE = 'message_create',
         MESSAGE_REVOKED_EVERYONE = 'message_revoke_everyone',
         MESSAGE_REVOKED_ME = 'message_revoke_me',
@@ -678,6 +735,7 @@ declare namespace WAWebJS {
         PROTOCOL = 'protocol',
         REACTION = 'reaction',
         TEMPLATE_BUTTON_REPLY = 'template_button_reply',
+        POLL_CREATION = 'poll_creation',
     }
 
     /** Client status */
@@ -837,6 +895,11 @@ declare namespace WAWebJS {
         selectedRowId?: string,
         /** Returns message in a raw format */
         rawData: object,
+        pollName: string,
+        /** Avaiaible poll voting options */
+        pollOptions: string[],
+        /** False for a single choice poll, true for a multiple choice poll */
+        allowMultipleAnswers: boolean,
         /* 
         * Reloads this Message object's data in-place with the latest values from WhatsApp Web. 
         * Note that the Message must still be in the web app cache for this to work, otherwise will return null.
@@ -915,6 +978,27 @@ declare namespace WAWebJS {
         options?: LocationSendOptions;
         
         constructor(latitude: number, longitude: number, options?: LocationSendOptions)
+    }
+
+    /** Poll send options */
+    export interface PollSendOptions {
+        /** False for a single choice poll, true for a multiple choice poll (false by default) */
+        allowMultipleAnswers?: boolean,
+        /**
+         * The custom message secret, can be used as a poll ID
+         * @note It has to be a unique vector with a length of 32
+         */
+        messageSecret: ?Array<number>
+    }
+
+    /** Represents a Poll on WhatsApp */
+    export interface Poll {
+        pollName: string,
+        pollOptions: Array<{
+            name: string,
+            localId: number
+        }>,
+        options: PollSendOptions
     }
 
     export interface Label {
@@ -1008,7 +1092,7 @@ declare namespace WAWebJS {
         static fromUrl: (url: string, options?: MediaFromURLOptions) => Promise<MessageMedia>
     }
 
-    export type MessageContent = string | MessageMedia | Location | Contact | Contact[] | List | Buttons
+    export type MessageContent = string | MessageMedia | Location | Poll | Contact | Contact[] | List | Buttons
 
     /**
      * Represents a Contact on WhatsApp
@@ -1196,9 +1280,9 @@ declare namespace WAWebJS {
         /** Returns the Contact that corresponds to this Chat. */
         getContact: () => Promise<Contact>,
         /** Marks this Chat as unread */
-        markUnread: () => Promise<void>
+        markUnread: () => Promise<void>,
         /** Returns array of all Labels assigned to this Chat */
-        getLabels: () => Promise<Label[]>
+        getLabels: () => Promise<Label[]>,
         /** Add or remove labels to this Chat */
         changeLabels: (labelIds: Array<string | number>) => Promise<void>
     }
@@ -1258,18 +1342,38 @@ declare namespace WAWebJS {
     export type ChangeParticipantsPermissions = 
         (participantIds: Array<string>) => Promise<{ status: number }>
 
-    /** Adds or removes a list of participants by ID to the group */
-    export type ChangeGroupParticipants = 
-        (participantIds: Array<string>) => Promise<{
-            status: number;
-            participants: Array<{
-                [key: string]: {
-                    code: number
-                }
-            }>
-         } & {
-             [key: string]: number;
-         }>
+    /** An object that handles the result for addParticipants method */
+    export interface AddParticipantsResult {
+        [participantId: string]: {
+            code: number;
+            message: string;
+            isInviteV4Sent: boolean,
+        };
+    };
+
+    /** An object that handles options for adding participants */
+    export interface AddParticipantsOptions {
+        /**
+         * The number of milliseconds to wait before adding the next participant.
+         * If it is an array, a random sleep time between the sleep[0] and sleep[1] values will be added
+         * (the difference must be >=100 ms, otherwise, a random sleep time between sleep[1] and sleep[1] + 100
+         * will be added). If sleep is a number, a sleep time equal to its value will be added
+         * @default [250,500]
+         */
+        sleep?: Array<number>|number,
+        /**
+         * If true, the inviteV4 will be sent to those participants
+         * who have restricted others from being automatically added to groups,
+         * otherwise the inviteV4 won't be sent
+         * @default true
+         */
+        autoSendInviteV4?: boolean,
+        /**
+         * The comment to be added to an inviteV4 (empty string by default)
+         * @default ''
+         */
+        comment?: string
+    };
 
     /** An object that handles the information about the group membership request */
     export interface GroupMembershipRequest {
@@ -1313,9 +1417,9 @@ declare namespace WAWebJS {
         /** Group participants */
         participants: Array<GroupParticipant>;
         /** Adds a list of participants by ID to the group */
-        addParticipants: ChangeGroupParticipants;
+        addParticipants: (participantIds: string|string[], options?: AddParticipantsOptions) => Promise<Object.<string, AddParticipantsResult>|string>;
         /** Removes a list of participants by ID to the group */
-        removeParticipants: ChangeGroupParticipants;
+        removeParticipants: (participantIds: string[]) => Promise<{ status: number }>;
         /** Promotes participants by IDs to admins */
         promoteParticipants: ChangeParticipantsPermissions;
         /** Demotes participants by IDs to regular users */
