@@ -94,6 +94,9 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('getMembershipApprovalRequests')[0],
         ...window.mR.findModule('sendMembershipRequestsActionRPC')[0]
     };
+    window.Store.ChannelUtils = {
+        ...window.mR.findModule('createNewsletterQuery')[0],
+    };
 
     if (!window.Store.Chat._find) {
         window.Store.Chat._find = e => {

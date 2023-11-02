@@ -38,6 +38,9 @@ declare namespace WAWebJS {
         /** Creates a new group */
         createGroup(title: string, participants?: string | Contact | Contact[] | string[], options?: CreateGroupOptions): Promise<CreateGroupResult|string>
 
+        /** Creates a new channel */
+        createChannel(title: string, options?: CreateChannelOptions): Promise<CreateChannelResult | {}>
+
         /** Closes the client */
         destroy(): Promise<void>
 
@@ -598,6 +601,26 @@ declare namespace WAWebJS {
                 isInviteV4Sent: boolean
             };
         };
+    }
+
+    /** An object that handles options for channel creation */
+    export interface CreateChannelOptions {
+        /** The channel description */
+        description?: string,
+        /** The channel profile picture */
+        picture?: MessageMedia
+    }
+
+    /** An object that handles the result for createGroup method */
+    export interface CreateChannelResult {
+        /** A channel title */
+        title: string,
+        /** An object that handles the newly created channel ID */
+        nid: ChatId,
+        /** The channel invite link, starts with 'https://whatsapp.com/channel/' */
+        inviteLink: string,
+        /** The timestamp the channel was created at */
+        createdAtTs: number
     }
 
     export interface GroupNotification {

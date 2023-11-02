@@ -1411,6 +1411,64 @@ class Client extends EventEmitter {
     }
 
     /**
+     * An object that handles the result for {@link createChannel} method
+     * @typedef {Object} CreateChannelResult
+     * @property {string} title A channel title
+     * @property {ChatId} nid An object that handels the newly created channel ID
+     * @property {string} nid.server 'newsletter'
+     * @property {string} nid.user 'XXXXXXXXXX'
+     * @property {string} nid._serialized 'XXXXXXXXXX@newsletter'
+     * @property {string} inviteLink The channel invite link, starts with 'https://whatsapp.com/channel/'
+     * @property {number} createdAtTs The timestamp the channel was created at
+     */
+
+    /**
+     * Options for the channel creation
+     * @typedef {Object} CreateChannelOptions
+     * @property {?string} description The channel description
+     * @property {?MessageMedia} picture The channel profile picture
+     */
+
+    /**
+     * Creates a new channel
+     * @param {string} title The channel name
+     * @param {CreateChannelOptions} options 
+     * @returns {Promise<CreateChannelResult|{}>} Returns an object that handles the result for the channel creation or an empty object in a case of an error
+     */
+    async createChannel(title, options = {}) {
+        return await this.pupPage.evaluate(async (title, options) => {
+            let response, { description = null, picture = null } = options;
+
+            if (picture) {
+                picture = await window.WWebJS.cropAndResizeImage(picture, {
+                    asDataUrl: true,
+                    mimetype: 'image/jpeg',
+                    size: 640,
+                    quality: 1
+                });
+            }
+
+            try {
+                response = await window.Store.ChannelUtils.createNewsletterQuery({
+                    name: title,
+                    description: description,
+                    picture: picture,
+                });
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return {};
+                throw err;
+            }
+
+            return {
+                title: title,
+                nid: window.Store.JidToWid.newsletterJidToWid(response.idJid),
+                inviteLink: `https://whatsapp.com/channel/${response.newsletterInviteLinkMetadataMixin.inviteCode}`,
+                createdAtTs: response.newsletterCreationTimeMetadataMixin.creationTimeValue
+            };
+        }, title, options);
+    }
+
+    /**
      * Get all current Labels
      * @returns {Promise<Array<Label>>}
      */
