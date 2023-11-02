@@ -197,7 +197,8 @@ client.on('message', async msg => {
          *     server: 'g.us',
          *     user: 'ZZZZZZZZZZ',
          *     _serialized: 'ZZZZZZZZZZ@g.us'
-         *   }
+         *   },
+         *   createdAtTs: timestamp
          * }
          */
         console.log(createdCommunity);

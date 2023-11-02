@@ -1429,6 +1429,7 @@ class Client extends EventEmitter {
      * @property {string} subGroupIds.failedGroups[].groupId The group ID, in a format of 'xxxxxxxxxx@g.us'
      * @property {number} subGroupIds.failedGroups[].error The code of an error
      * @property {string} subGroupIds.failedGroups[].message The message that describes an error
+     * @property {number} createdAtTs The timestamp of a community creation
      */
 
     /**
@@ -1451,10 +1452,10 @@ class Client extends EventEmitter {
     async createCommunity(title, options = {}) {
         return await this.pupPage.evaluate(async (name, options = {}) => {
             let { description: desc = '', subGroupIds = null, membershipApprovalMode: closed = true, allowNonAdminSubGroupCreation: hasAllowNonAdminSubGroupCreation = false } = options;
-            let communityCreationResult, linkingSubGroupsResult;
+            let createCommunityResult, linkingSubGroupsResult;
 
             try {
-                communityCreationResult = await window.Store.CommunityUtils.sendCreateCommunity({
+                createCommunityResult = await window.Store.CommunityUtils.sendCreateCommunity({
                     name,
                     desc,
                     closed,
@@ -1470,15 +1471,16 @@ class Client extends EventEmitter {
             if (subGroupIds) {
                 linkingSubGroupsResult = await window.WWebJS.linkUnlinkSubgroups(
                     'LinkSubgroups',
-                    communityCreationResult.wid._serialized,
+                    createCommunityResult.wid._serialized,
                     subGroupIds
                 );
             }
             
             return {
                 title: name,
-                cid: communityCreationResult.wid,
-                ...(subGroupIds ? { subGroupIds: linkingSubGroupsResult } : {})
+                cid: createCommunityResult.wid,
+                ...(subGroupIds ? { subGroupIds: linkingSubGroupsResult } : {}),
+                createdAtTs: createCommunityResult.ts
             };
         }, title, options);
     }

@@ -1581,6 +1581,8 @@ declare namespace WAWebJS {
                 message: string;
             }[];
         };
+        /** The timestamp of a community creation */
+        createdAtTs: number;
     }
 
     /** An object that handles the result for {@link Community.linkSubgroups} method */
