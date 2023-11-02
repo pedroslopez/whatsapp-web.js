@@ -1315,6 +1315,7 @@ class Client extends EventEmitter {
      * @property {string} gid.user
      * @property {string} gid._serialized
      * @property {Object.<string, ParticipantResult>} participants An object that handles the result value for each added to the group participant
+     * @property {number} createdAtTs The timestamp of a group creation
      */
 
     /**
@@ -1406,7 +1407,11 @@ class Client extends EventEmitter {
                 };
             }
 
-            return { title: title, gid: createGroupResult.wid, participants: participantData };
+            return {
+                title: title,
+                gid: createGroupResult.wid, participants: participantData,
+                createdAtTs: createGroupResult.ts
+            };
         }, title, participants, options);
     }
 

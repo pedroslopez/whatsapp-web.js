@@ -164,7 +164,8 @@ client.on('message', async msg => {
          *       isGroupCreator: false,
          *       isInviteV4Sent: false
          *     }
-         *   }
+         *   },
+         *   createdAtTs: timestamp
          * }
          *
          * For more usage examples:

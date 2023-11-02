@@ -604,6 +604,8 @@ declare namespace WAWebJS {
                 isInviteV4Sent: boolean
             };
         };
+        /** The timestamp of a group creation */
+        createdAtTs: number
     }
 
     export interface GroupNotification {
