@@ -43,10 +43,10 @@ class PollVote extends Base {
                 : [];
 
         /**
-         * Timestamp the option was selected or deselected
+         * Timestamp the option was selected or deselected at
          * @type {number}
          */
-        this.interractedAt = data.senderTimestampMs;
+        this.interractedAtTs = data.senderTimestampMs;
 
         /**
          * The poll creation message associated with the poll vote

@@ -1014,8 +1014,8 @@ declare namespace WAWebJS {
          */
         selectedOptions: SelectedPollOption[];
 
-        /** Timestamp the option was selected or deselected */
-        interractedAt: number;
+        /** Timestamp the option was selected or deselected at */
+        interractedAtTs: number;
 
         /** The poll creation message associated with the poll vote */
         parentMessage: Message;
