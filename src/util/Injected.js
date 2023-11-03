@@ -95,6 +95,7 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('sendMembershipRequestsActionRPC')[0]
     };
     window.Store.ChannelUtils = {
+        ...window.mR.findModule('queryAndUpdateNewsletterMetadataAction')[0],
         ...window.mR.findModule('createNewsletterQuery')[0],
     };
 
@@ -580,6 +581,64 @@ exports.LoadUtils = () => {
 
         const chatPromises = chats.map(chat => window.WWebJS.getChatModel(chat));
         return await Promise.all(chatPromises);
+    };
+
+    window.WWebJS.getChannel = async (channelId, options = {}) => {
+        const { getChannelModel = false } = options;
+        let channel = window.Store.NewsletterCollection.get(channelId);
+        !channel && (channel = await window.Store.ChannelUtils.queryAndUpdateNewsletterMetadataAction(
+            channelId,
+            {
+                fields: {
+                    name: true,
+                    picture: true,
+                    description: true,
+                    inviteLink: true,
+                    handle: true,
+                    subscribers: true,
+                    privacy: true,
+                    verification: true,
+                    state: true
+                }
+            }
+        ));
+        return getChannelModel
+            ? await window.WWebJS.getChannelModel(channel)
+            : channel;
+    };
+
+    window.WWebJS.getChannels = async () => {
+        const channels = window.Store.NewsletterCollection.getModelsArray();
+        const channelPromises = channels.map((channel) => window.WWebJS.getChannelModel(channel));
+        return await Promise.all(channelPromises);
+    };
+
+    window.WWebJS.getChannelModel = async (channel) => {
+        if (!channel) return null;
+        const channelModel = channel.serialize();
+        
+        channelModel.isGroup = channel.isGroup;
+        channelModel.isChannel = channel.isNewsletter;
+        channelModel.canSend = channel.canSend;
+        channelModel.isMuted = channel.mute && channel.mute.isMuted;
+
+        if (channel.newsletterMetadata) {
+            await window.Store.NewsletterMetadataCollection.update(channel.id);
+            channelModel.channelMetadata = channel.newsletterMetadata.serialize();
+            channelModel.channelMetadata.createdAtTs = channel.newsletterMetadata.creationTime;
+        }
+
+        channelModel.lastMessage = null;
+        if (channelModel.msgs && channelModel.msgs.length) {
+            const lastMessage = channel.lastReceivedKey ? window.Store.Msg.get(channel.lastReceivedKey) : null;
+            lastMessage && (channelModel.lastMessage = window.WWebJS.getMessageModel(lastMessage));
+        }
+
+        delete channelModel.msgs;
+        delete channelModel.msgUnsyncedButtonReplyMsgs;
+        delete channelModel.unsyncedButtonReplies;
+
+        return channelModel;
     };
 
     window.WWebJS.getContactModel = contact => {

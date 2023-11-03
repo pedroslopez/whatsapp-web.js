@@ -56,6 +56,19 @@ declare namespace WAWebJS {
         /** Get all current chat instances */
         getChats(): Promise<Chat[]>
 
+        /** Gets channel instance by ID */
+        getChannelById(channelId: string): Promise<Channel>
+
+        /**
+         * Gets all channel instances as follows:
+         * 
+         * 1. Channels the current user is subscribed to
+         * 2. Channels the current user was subscribed to
+         * and from which was unsubscribed with the 'deleteLocalModels' set to 'false'
+         * 3. Channels the current user created
+         */
+        getChannels(): Promise<Channel[]>
+
         /** Get contact instance by ID */
         getContactById(contactId: string): Promise<Contact>
 

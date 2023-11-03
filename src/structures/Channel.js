@@ -16,6 +16,12 @@ const Message = require('./Message');
  * @extends {Base}
  */
 class Channel extends Base {
+    constructor(client, data) {
+        super(client);
+
+        if (data) this._patch(data);
+    }
+
     _patch(data) {
         this.channelMetadata = data.channelMetadata;
 
@@ -90,7 +96,7 @@ class Channel extends Base {
          * @type {Message}
          */
         this.lastMessage = data.lastMessage ? new Message(super.client, data.lastMessage) : undefined;
-        
+
         return super._patch(data);
     }
 }

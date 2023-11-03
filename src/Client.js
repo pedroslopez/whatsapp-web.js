@@ -945,6 +945,38 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Gets channel instance by ID
+     * @param {string} channelId 
+     * @returns {Promise<Channel>}
+     */
+    async getChannelById(channelId) {
+        const channel = await this.pupPage.evaluate(async (channelId) => {
+            return await window.WWebJS.getChannel(channelId, { getChannelModel: true });
+        }, channelId);
+
+        return channel
+            ? ChatFactory.create(this, channel)
+            : {};
+    }
+
+    /**
+     * Gets all channel instances as follows:
+     * 
+     * 1. Channels the current user is subscribed to
+     * 2. Channels the current user was subscribed to
+     * and from which was unsubscribed with the 'deleteLocalModels' set to 'false'
+     * 3. Channels the current user created
+     * @returns {Promise<Array<Channel>>}
+     */
+    async getChannels() {
+        const channels = await this.pupPage.evaluate(async () => {
+            return await window.WWebJS.getChannels();
+        });
+
+        return channels.map((channel) => ChatFactory.create(this, channel));
+    }
+
+    /**
      * Get all current contact instances
      * @returns {Promise<Array<Contact>>}
      */
