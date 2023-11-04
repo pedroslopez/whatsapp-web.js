@@ -97,6 +97,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.ChannelUtils = {
         ...window.mR.findModule('queryAndUpdateNewsletterMetadataAction')[0],
         ...window.mR.findModule('createNewsletterQuery')[0],
+        ...window.mR.findModule('editNewsletterMetadataAction')[0],
     };
 
     if (!window.Store.Chat._find) {

@@ -1346,7 +1346,21 @@ declare namespace WAWebJS {
         /** Last message in the channel */
         lastMessage: Message | undefined;
 
-
+        /** Updates the channel subject */
+        setSubject(newSubject: string): Promise<boolean>;
+        /** Updates the channel description */
+        setDescription(newDescription: string): Promise<boolean>;
+        /** Updates the channel profile picture */
+        setProfilePicture(newProfilePicture: MessageMedia): Promise<boolean>;
+        /**
+         * Updates available reactions to use in the channel
+         * 
+         * Valid values for passing to the method are:
+         * 0 for ALL reactions to be available
+         * 1 for BASIC reactions to be available: 👍, ❤️, 😂, 😮, 😢, 🙏
+         * 3 for NONE reactions to be avaliable
+         */
+        setReactionSetting(reactionCode: number): Promise<boolean>;
     }
 
     export interface MessageSearchOptions {

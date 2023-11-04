@@ -99,6 +99,87 @@ class Channel extends Base {
 
         return super._patch(data);
     }
+
+    /**
+     * Updates the channel subject
+     * @param {string} newSubject 
+     * @returns {Promise<boolean>} Returns true if the subject was properly updated. This can return false if the user does not have the necessary permissions.
+     */
+    async setSubject(newSubject) {
+        const success = await this._setChannelMetadata({ name: newSubject }, { editName: true });
+        success && (this.name = newSubject);
+        return success;
+    }
+
+    /**
+     * Updates the channel description
+     * @param {string} newDescription 
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async setDescription(newDescription) {
+        const success = await this._setChannelMetadata({ description: newDescription }, { editDescription: true });
+        success && (this.description = newDescription);
+        return success;
+    }
+
+    /**
+     * Updates the channel profile picture
+     * @param {MessageMedia} newProfilePicture 
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async setProfilePicture(newProfilePicture) {
+        return await this._setChannelMetadata({ picture: newProfilePicture }, { editPicture: true });
+    }
+
+    /**
+     * Updates available reactions to use in the channel
+     * 
+     * Valid values for passing to the method are:
+     * 0 for ALL reactions to be available
+     * 1 for BASIC reactions to be available: 👍, ❤️, 😂, 😮, 😢, 🙏
+     * 3 for NONE reactions to be avaliable
+     * @param {number} reactionCode 
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async setReactionSetting(reactionCode) {
+        if (reactionCode === 2) return false;
+        const success = await this._setChannelMetadata(
+            { reactionCodesSetting: reactionCode },
+            { editReactionCodesSetting: true }
+        );
+        success && (this.channelMetadata.reactionCodesSetting = reactionCode);
+        return success;
+    }
+
+    /**
+     * Internal method to change the channel metadata
+     * @param {string|number|MessageMedia} value The new value to set
+     * @param {string} property The property of a channel metadata to change
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async _setChannelMetadata(value, property) {
+        return await this.client.pupPage.evaluate(async (channelId, value, property) => {
+            const channel = await window.WWebJS.getChannel(channelId);
+            if (!channel) return false;
+            if (property.editPicture) {
+                value.picture = value.picture
+                    ? await window.WWebJS.cropAndResizeImage(value.picture, {
+                        asDataUrl: true,
+                        mimetype: 'image/jpeg',
+                        size: 640,
+                        quality: 1
+                    })
+                    : null;
+            }
+            try {
+                await window.Store.ChannelUtils.editNewsletterMetadataAction(channel, property, value);
+                return true;
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return false;
+                throw err;
+            }
+        }, this.id._serialized, value, property);
+    }
 }
 
 module.exports = Channel;
