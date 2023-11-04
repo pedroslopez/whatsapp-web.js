@@ -1361,6 +1361,8 @@ declare namespace WAWebJS {
          * 3 for NONE reactions to be avaliable
          */
         setReactionSetting(reactionCode: number): Promise<boolean>;
+        /** Deletes the channel you created */
+        deleteChannel(): Promise<boolean>;
     }
 
     export interface MessageSearchOptions {

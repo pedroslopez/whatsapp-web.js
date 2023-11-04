@@ -152,6 +152,24 @@ class Channel extends Base {
     }
 
     /**
+     * Deletes the channel you created
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async deleteChannel() {
+        return await this.client.pupPage.evaluate(async (channelId) => {
+            const channel = await window.WWebJS.getChannel(channelId);
+            if (!channel) return false;
+            try {
+                await window.Store.ChannelUtils.deleteNewsletterAction(channel);
+                return true;
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return false;
+                throw err;
+            }
+        }, this.id._serialized);
+    }
+
+    /**
      * Internal method to change the channel metadata
      * @param {string|number|MessageMedia} value The new value to set
      * @param {string} property The property of a channel metadata to change
