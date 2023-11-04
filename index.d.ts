@@ -41,6 +41,12 @@ declare namespace WAWebJS {
         /** Creates a new channel */
         createChannel(title: string, options?: CreateChannelOptions): Promise<CreateChannelResult | {}>
 
+        /** Subscribe to channel */
+        subscribeToChannel(channelId: string) : Promise<boolean>
+
+        /** Unsubscribe from channel */
+        unsubscribeFromChannel(channelId: string, options?: UnsubscribeOptions) : Promise<boolean>
+
         /** Closes the client */
         destroy(): Promise<void>
 
@@ -64,7 +70,7 @@ declare namespace WAWebJS {
          * 
          * 1. Channels the current user is subscribed to
          * 2. Channels the current user was subscribed to
-         * and from which was unsubscribed with the 'deleteLocalModels' set to 'false'
+         * and from which was unsubscribed with the {@link UnsubscribeOptions.deleteLocalModels} set to 'false'
          * 3. Channels the current user created
          */
         getChannels(): Promise<Channel[]>
@@ -634,6 +640,17 @@ declare namespace WAWebJS {
         inviteLink: string,
         /** The timestamp the channel was created at */
         createdAtTs: number
+    }
+
+    /** Options for unsubscribe from a channel */
+    export interface UnsubscribeOptions {
+        /**
+         * If true, after an unsubscription, it will completely remove a channel and its data
+         * from your local env making it seem like you have never been subscribed to it.
+         * Otherwise it will remove a channel from your channel list
+         * and set your membership type for that channel to GUEST
+         */
+        deleteLocalModels?: boolean
     }
 
     export interface GroupNotification {

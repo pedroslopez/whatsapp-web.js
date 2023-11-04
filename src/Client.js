@@ -1501,6 +1501,35 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Subscribe to channel
+     * @param {string} channelId The channel ID
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async subscribeToChannel(channelId) {
+        return await this.pupPage.evaluate(async (channelId) => {
+            return await window.WWebJS.subscribeToUnsubscribeFromChannel(channelId, 'Subscribe');
+        }, channelId);
+    }
+
+    /**
+     * Options for unsubscribe from a channel
+     * @typedef {Object} UnsubscribeOptions
+     * @property {boolean} [deleteLocalModels = false] If true, after an unsubscription, it will completely remove a channel and its data from your local env making it seem like you have never been subscribed to it. Otherwise it will remove a channel from your channel list and set your membership type for that channel to GUEST
+     */
+
+    /**
+     * Unsubscribe from channel
+     * @param {string} channelId The channel ID
+     * @param {UnsubscribeOptions} options
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async unsubscribeFromChannel(channelId, options) {
+        return await this.pupPage.evaluate(async (channelId, options) => {
+            return await window.WWebJS.subscribeToUnsubscribeFromChannel(channelId, 'Unsubscribe', options);
+        }, channelId, options);
+    }
+
+    /**
      * Get all current Labels
      * @returns {Promise<Array<Label>>}
      */

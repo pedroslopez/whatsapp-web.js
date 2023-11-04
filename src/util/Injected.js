@@ -99,6 +99,8 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('createNewsletterQuery')[0],
         ...window.mR.findModule('editNewsletterMetadataAction')[0],
         ...window.mR.findModule('deleteNewsletterAction')[0],
+        ...window.mR.findModule('subscribeToNewsletterAction')[0],
+        ...window.mR.findModule('unsubscribeFromNewsletterAction')[0],
     };
 
     if (!window.Store.Chat._find) {
@@ -1157,6 +1159,25 @@ exports.LoadUtils = () => {
             return result;
         } catch (err) {
             return [];
+        }
+    };
+
+    window.WWebJS.subscribeToUnsubscribeFromChannel = async (channelId, action, options = {}) => {
+        const channel = await window.WWebJS.getChannel(channelId);
+
+        if (!channel || ['owner', 'admin'].includes(channel.newsletterMetadata.membershipType)) return false;
+        options = { eventSurface: 3, deleteLocalModels: options.deleteLocalModels || false };
+
+        try {
+            if (action === 'Subscribe') {
+                await window.Store.ChannelUtils.subscribeToNewsletterAction(channel, options);
+            } else if (action === 'Unsubscribe') {
+                await window.Store.ChannelUtils.unsubscribeFromNewsletterAction(channel, options);
+            } else return false;
+            return true;
+        } catch (err) {
+            if (err.name === 'ServerStatusCodeError') return false;
+            throw err;
         }
     };
 };
