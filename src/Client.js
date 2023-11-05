@@ -11,7 +11,7 @@ const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
 const WebCacheFactory = require('./webCache/WebCacheFactory');
-const { ClientInfo, Message, MessageMedia, Contact, Location, Poll, GroupNotification, Label, Call, Buttons, List, Reaction } = require('./structures');
+const { ClientInfo, Message, MessageMedia, Contact, Channel, Location, Poll, GroupNotification, Label, Call, Buttons, List, Reaction } = require('./structures');
 const LegacySessionAuth = require('./authStrategies/LegacySessionAuth');
 const NoAuth = require('./authStrategies/NoAuth');
 
@@ -1527,6 +1527,59 @@ class Client extends EventEmitter {
         return await this.pupPage.evaluate(async (channelId, options) => {
             return await window.WWebJS.subscribeToUnsubscribeFromChannel(channelId, 'Unsubscribe', options);
         }, channelId, options);
+    }
+
+    /**
+     * Searches for channels based on search criteria, there are some notes:
+     * 1. The method finds only channels you are not subscribed to currently
+     * 2. If you have never been subscribed to a found channel
+     * or you have unsubscribed from it with {@link UnsubscribeOptions.deleteLocalModels} set to 'true',
+     * the lastMessage property of a found channel will be 'null'
+     *
+     * @param {Object} searchOptions Search options
+     * @param {Array} [searchOptions.countryCodes = [your local region]] Array of country codes in 'ISO 3166-1 alpha-2' standart (@see https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) to search for channels created in these countries
+     * @param {Object} searchOptions.sortOptions Sorting options
+     * @param {string} [searchOptions.sortOptions.field = 'subscribers'] Field to sort by, for all options: {@link Channel.SortField}
+     * @param {string} [searchOptions.sortOptions.order = 'desc'] Sorting order, for all options: {@link Channel.SortOrder}
+     * @param {string} [searchOptions.searchText = ''] Text to search
+     * @param {string} [searchOptions.view = 'RECOMMENDED'] View type, for all options: {@link Channel.ViewType}
+     * @param {number} [searchOptions.limit = 50] The limit of found channels to be appear in the returnig result
+     * @returns {Promise<Array<Channel>|[]>} Returns an array of Channel objects or an empty array if no channels were found
+     */
+    async searchChannels(searchOptions = {}) {
+        return await this.pupPage.evaluate(async (searchOptions) => {
+            const region = window.Store.ChannelUtils.region;
+            let {
+                searchText = '',
+                sortOptions = {
+                    field: Channel.SortField.SUBSCRIBERS,
+                    order: Channel.SortOrder.DESCENDING,
+                },
+                countryCodes = [region],
+                viewType = Channel.ViewType.RECOMMENDED,
+                limit = 50
+            } = searchOptions;
+
+            searchText = searchText.trim();
+            countryCodes = countryCodes.length === 1 && countryCodes[0] === region
+                ? countryCodes
+                : countryCodes.filter(code => Object.keys(window.Store.ChannelUtils.countryCodesIso).includes(code));
+            limit !== 50 && window.injectToFunction({ module: 'getNewsletterDirectoryPageSize', index: 0, function: 'getNewsletterDirectoryPageSize' }, () => limit);
+
+            searchOptions = {
+                searchText: searchText,
+                sortOpts: sortOptions,
+                countryCodes: countryCodes,
+                view: viewType,
+                cursorToken: ''
+            };
+
+            const channels = (await window.Store.ChannelUtils.fetchNewsletterDirectories(searchOptions)).newsletters;
+            limit !== 50 && window.injectToFunction({ module: 'getNewsletterDirectoryPageSize', index: 0, function: 'getNewsletterDirectoryPageSize' }, (func, ...args) => func(args));
+            return channels
+                ? await Promise.all(channels.map((channel) => window.WWebJS.getChannelModel(channel)))
+                : [];
+        }, searchOptions);
     }
 
     /**

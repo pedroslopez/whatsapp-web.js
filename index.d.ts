@@ -42,10 +42,19 @@ declare namespace WAWebJS {
         createChannel(title: string, options?: CreateChannelOptions): Promise<CreateChannelResult | {}>
 
         /** Subscribe to channel */
-        subscribeToChannel(channelId: string) : Promise<boolean>
+        subscribeToChannel(channelId: string): Promise<boolean>
 
         /** Unsubscribe from channel */
-        unsubscribeFromChannel(channelId: string, options?: UnsubscribeOptions) : Promise<boolean>
+        unsubscribeFromChannel(channelId: string, options?: UnsubscribeOptions): Promise<boolean>
+
+        /**
+         * Searches for channels based on search criteria, there are some notes:
+         * 1. The method finds only channels you are not subscribed to currently
+         * 2. If you have never been subscribed to a found channel
+         * or you have unsubscribed from it with {@link UnsubscribeOptions.deleteLocalModels} set to 'true',
+         * the lastMessage property of a found channel will be 'null'
+         */
+        searchChannels(searchOptions: SearchChannelsOptions): Promise<Array<Channel> | []>
 
         /** Closes the client */
         destroy(): Promise<void>
@@ -651,6 +660,18 @@ declare namespace WAWebJS {
          * and set your membership type for that channel to GUEST
          */
         deleteLocalModels?: boolean
+    }
+
+    /** Options for searching for channels */
+    export interface SearchChannelsOptions {
+        countryCodes?: string[];
+        sortOptions: {
+            field?: string;
+            order?: string;
+        };
+        searchText?: string;
+        view?: string;
+        limit?: number;
     }
 
     export interface GroupNotification {
