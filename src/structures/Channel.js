@@ -62,12 +62,6 @@ class Channel extends Base {
         this.isReadOnly = data.isReadOnly;
 
         /**
-         * Indicates if it is possible to send messages to the channel
-         * @type {boolean}
-         */
-        this.canSend = data.canSend;
-
-        /**
          * Amount of messages unread
          * @type {number}
          */

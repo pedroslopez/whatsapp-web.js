@@ -1371,8 +1371,6 @@ declare namespace WAWebJS {
         isGroup: boolean;
         /** Indicates if the channel is readonly */
         isReadOnly: boolean;
-        /** Indicates if it is possible to send messages to the channel */
-        canSend: boolean;
         /** Amount of messages unread */
         unreadCount: number;
         /** Unix timestamp for when the last activity occurred */
