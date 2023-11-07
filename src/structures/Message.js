@@ -414,7 +414,7 @@ class Message extends Base {
 
         await this.client.pupPage.evaluate(async (msgId, chatId) => {
             let msg = window.Store.Msg.get(msgId);
-            let chat = window.Store.Chat.get(chatId);
+            let chat = await window.WWebJS.getChatOrChannel(chatId, { getAsModel: false });
 
             return await chat.forwardMessages([msg]);
         }, this.id._serialized, chatId);

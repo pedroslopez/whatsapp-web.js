@@ -15,8 +15,7 @@ class InterfaceController {
      */
     async openChatWindow(chatId) {
         await this.pupPage.evaluate(async chatId => {
-            let chatWid = window.Store.WidFactory.createWid(chatId);
-            let chat = await window.Store.Chat.find(chatWid);
+            let chat = await window.WWebJS.getChatOrChannel(chatId, { getAsModel: false });
             await window.Store.Cmd.openChatAt(chat);
         }, chatId);
     }
@@ -27,7 +26,7 @@ class InterfaceController {
      */
     async openChatDrawer(chatId) {
         await this.pupPage.evaluate(async chatId => {
-            let chat = await window.Store.Chat.get(chatId);
+            let chat = await window.WWebJS.getChatOrChannel(chatId, { getAsModel: false });
             await window.Store.Cmd.openDrawerMid(chat);
         }, chatId);
     }
@@ -38,7 +37,7 @@ class InterfaceController {
      */
     async openChatSearch(chatId) {
         await this.pupPage.evaluate(async chatId => {
-            let chat = await window.Store.Chat.get(chatId);
+            let chat = await window.WWebJS.getChatOrChannel(chatId, { getAsModel: false });
             await window.Store.Cmd.chatSearch(chat);
         }, chatId);
     }
