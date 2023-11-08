@@ -11,7 +11,7 @@ const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
 const WebCacheFactory = require('./webCache/WebCacheFactory');
-const { ClientInfo, Message, MessageMedia, Contact, Channel, Location, Poll, GroupNotification, Label, Call, Buttons, List, Reaction } = require('./structures');
+const { ClientInfo, Message, MessageMedia, Contact, Channel, Location, Poll, GroupNotification, Label, Call, Reaction } = require('./structures');
 const LegacySessionAuth = require('./authStrategies/LegacySessionAuth');
 const NoAuth = require('./authStrategies/NoAuth');
 
@@ -815,21 +815,35 @@ class Client extends EventEmitter {
      * @property {string} [stickerName=undefined] - Sets the name of the sticker, (if sendMediaAsSticker is true).
      * @property {string[]} [stickerCategories=undefined] - Sets the categories of the sticker, (if sendMediaAsSticker is true). Provide emoji char array, can be null.
      * @property {MessageMedia} [media] - Media to be sent
+     * @property {any} [extra] - Extra options
      */
     
     /**
      * Send a message to a specific chatId
-     * @param {string} chatId
-     * @param {string|MessageMedia|Location|Poll|Contact|Array<Contact>|Buttons|List} content
+     * @param {string} chatOrChannelId
+     * @param {string|MessageMedia|Location|Poll|Contact|Array<Contact>} content
      * @param {MessageSendOptions} [options] - Options used when sending the message
      * 
      * @returns {Promise<Message>} Message that was just sent
      */
-    async sendMessage(chatId, content, options = {}) {
+    async sendMessage(chatOrChannelId, content, options = {}) {
+        let isChannel = chatOrChannelId.match(/@(.+)/)[1] === 'newsletter';
+
+        if (isChannel && [
+            options.sendAudioAsVoice, options.sendVideoAsGif, options.sendMediaAsSticker,
+            options.sendMediaAsDocument, options.quotedMessageId, options.parseVCards,
+            options.isViewOnce, content instanceof Location, content instanceof Poll, content instanceof Contact,
+            Array.isArray(content) && content.length > 0 && content[0] instanceof Contact
+        ].includes(true)) {
+            console.warn('The message type is currently not supported for sending in channels,\nthe supported message types are: text, video, or image.\nTo stay updated on new supported message formats, check the https://github.com/pedroslopez/whatsapp-web.js/pull/2620.');
+            return null;
+        }
+    
         if (options.mentions && options.mentions.some(possiblyContact => possiblyContact instanceof Contact)) {
             console.warn('Mentions with an array of Contact are now deprecated. See more at https://github.com/pedroslopez/whatsapp-web.js/pull/2166.');
             options.mentions = options.mentions.map(a => a.id._serialized);
         }
+
         let internalOptions = {
             linkPreview: options.linkPreview === false ? undefined : true,
             sendAudioAsVoice: options.sendAudioAsVoice,
@@ -866,13 +880,6 @@ class Client extends EventEmitter {
         } else if (Array.isArray(content) && content.length > 0 && content[0] instanceof Contact) {
             internalOptions.contactCardList = content.map(contact => contact.id._serialized);
             content = '';
-        } else if (content instanceof Buttons) {
-            if (content.type !== 'chat') { internalOptions.attachment = content.body; }
-            internalOptions.buttons = content;
-            content = '';
-        } else if (content instanceof List) {
-            internalOptions.list = content;
-            content = '';
         }
 
         if (internalOptions.sendMediaAsSticker && internalOptions.attachment) {
@@ -885,20 +892,22 @@ class Client extends EventEmitter {
             );
         }
 
-        const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
-            const chat = await window.Store.Chat.find(chatWid);
+        const newMessage = await this.pupPage.evaluate(async (chatOrChannelId, message, options, sendSeen, isChannel) => {
+            const chatOrChannel = await window.WWebJS.getChatOrChannel(chatOrChannelId, { getAsModel: false });
 
+            if (!chatOrChannel) return null;
 
-            if (sendSeen) {
-                window.WWebJS.sendSeen(chatId);
+            if (sendSeen && !isChannel) {
+                await window.WWebJS.sendSeen(chatOrChannelId);
             }
 
-            const msg = await window.WWebJS.sendMessage(chat, message, options, sendSeen);
+            const msg = await window.WWebJS.sendMessage(chatOrChannel, message, options);
             return msg.serialize();
-        }, chatId, content, internalOptions, sendSeen);
+        }, chatOrChannelId, content, internalOptions, sendSeen, isChannel);
 
-        return new Message(this, newMessage);
+        return newMessage
+            ? new Message(this, newMessage)
+            : newMessage;
     }
     
     /**

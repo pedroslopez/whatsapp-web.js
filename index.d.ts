@@ -146,7 +146,7 @@ declare namespace WAWebJS {
         resetState(): Promise<void>
 
         /** Send a message to a specific chatId */
-        sendMessage(chatId: string, content: MessageContent, options?: MessageSendOptions): Promise<Message>
+        sendMessage(chatOrChannelId: string, content: MessageContent, options?: MessageSendOptions): Promise<Message>
         
         /** Searches for messages */
         searchMessages(query: string, options?: { chatId?: string, page?: number, limit?: number }): Promise<Message[]>
@@ -1397,8 +1397,22 @@ declare namespace WAWebJS {
          * 3 for NONE reactions to be avaliable
          */
         setReactionSetting(reactionCode: number): Promise<boolean>;
+        /** Sends a message to this channel */
+        sendMessage(content: string|MessageMedia, options?: MessageSendChannelOptions): Promise<Message>;
         /** Deletes the channel you created */
         deleteChannel(): Promise<boolean>;
+    }
+
+    /** Options for sending a message */
+    export interface MessageSendChannelOptions {
+        /** Image or videos caption */
+        caption?: string
+        /** User IDs of user that will be mentioned in the message */
+        mentions?: string[]
+        /** Image or video to be sent */
+        media?: MessageMedia
+        /** Extra options */
+        extra?: any
     }
 
     export interface MessageSearchOptions {

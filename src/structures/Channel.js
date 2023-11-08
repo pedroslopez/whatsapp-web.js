@@ -167,6 +167,24 @@ class Channel extends Base {
     }
 
     /**
+     * Message options
+     * @typedef {Object} MessageSendOptions
+     * @property {?string} caption Image or video caption
+     * @property {?string[]} mentions User IDs of user that will be mentioned in the message
+     * @property {?MessageMedia} media Image or video to be sent
+     */
+
+    /**
+     * Sends a message to this channel
+     * @param {string|MessageMedia} content
+     * @param {?MessageSendOptions} options
+     * @returns {Promise<Message>} Message that was just sent
+     */
+    async sendMessage(content, options) {
+        return this.client.sendMessage(this.id._serialized, content, options);
+    }
+
+    /**
      * Deletes the channel you created
      * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
      */
