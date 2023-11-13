@@ -39,7 +39,7 @@ declare namespace WAWebJS {
         createGroup(title: string, participants?: string | Contact | Contact[] | string[], options?: CreateGroupOptions): Promise<CreateGroupResult|string>
 
         /** Creates a new community */
-        createCommunity(name: string, options: CreateCommunityOptions): Promise<CreateCommunityResult | undefined>
+        createCommunity(title: string, options: CreateCommunityOptions): Promise<CreateCommunityResult | string>
 
         /** Deactivates the community */
         deactivateCommunity: (parentGroupId: string) => Promise<boolean>;
@@ -1515,7 +1515,7 @@ declare namespace WAWebJS {
         deactivate: () => Promise<boolean>;
     }
 
-    /** Create community options */
+    /** Options for community creation */
     export interface CreateCommunityOptions {
         /** The community description */
         description?: string;
@@ -1559,8 +1559,10 @@ declare namespace WAWebJS {
         sleep?: Array<number>|number
     }
 
-    /** An object that handles the result for createCommunity method */
+    /** An object that handles the result for {@link Client.createCommunity} method */
     export interface CreateCommunityResult {
+        /** The community title */
+        title: string;
         /** An object that handels the newly created community ID */
         cid: ChatId;
         /** An object that handles information about groups that were attempted to be linked to the community */
@@ -1579,7 +1581,7 @@ declare namespace WAWebJS {
         };
     }
 
-    /** An object that handles the result for linkSubgroups method */
+    /** An object that handles the result for {@link Community.linkSubgroups} method */
     export interface LinkSubGroupsResult {
         /** An array of group IDs that were successfully linked */
         linkedGroupIds: string[];
@@ -1594,7 +1596,7 @@ declare namespace WAWebJS {
         }[];
     }
 
-    /** An object that handles the result for unlinkSubgroups method */
+    /** An object that handles the result for {@link Community.unlinkSubgroups} method */
     export interface UnlinkSubGroupsResult {
         /** An array of group IDs that were successfully unlinked */
         unlinkedGroupIds: string[];
@@ -1610,7 +1612,7 @@ declare namespace WAWebJS {
     }
 
     /**
-     * An object that handles the result for removeParticipants method for the community
+     * An object that handles the result for {@link Community.removeParticipants} method for the community
      * or an error as a string
      */
     export interface RemoveCommunityParticipantsResult {

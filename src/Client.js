@@ -1413,6 +1413,7 @@ class Client extends EventEmitter {
     /**
      * An object that handles the result for {@link createCommunity} method
      * @typedef {Object} CreateCommunityResult
+     * @property {string} title The community title
      * @property {ChatId} cid An object that handels the newly created community ID
      * @property {string} cid.server
      * @property {string} cid.user
@@ -1426,7 +1427,7 @@ class Client extends EventEmitter {
      */
 
     /**
-     * Create community options
+     * Options for community creation
      * @typedef {Object} CreateCommunityOptions
      * @property {?string} description The community description
      * @property {?string|Array<string>} subGroupIds The single group ID or an array of group IDs to link to the created community
@@ -1438,11 +1439,11 @@ class Client extends EventEmitter {
 
     /**
      * Creates a new community, optionally it is possible to link groups to that community within its creation
-     * @param {string} name The community name
+     * @param {string} title The community title
      * @param {CreateCommunityOptions} options 
      * @returns {Promise<CreateCommunityResult|string>} Returns an object that handles the result for the community creation or an error message as a string
      */
-    async createCommunity(name, options = {}) {
+    async createCommunity(title, options = {}) {
         return await this.pupPage.evaluate(async (name, options = {}) => {
             let { description: desc = '', subGroupIds = null, membershipApprovalMode: closed = true, allowNonAdminSubGroupCreation: hasAllowNonAdminSubGroupCreation = false } = options;
             let communityCreationResult, linkingSubGroupsResult;
@@ -1474,7 +1475,7 @@ class Client extends EventEmitter {
                 cid: communityCreationResult.wid,
                 ...(subGroupIds ? { subGroupIds: linkingSubGroupsResult } : {})
             };
-        }, name, options);
+        }, title, options);
     }
 
     /**
