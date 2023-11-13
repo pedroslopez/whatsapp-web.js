@@ -1476,7 +1476,7 @@ class Client extends EventEmitter {
      * Creates a new channel
      * @param {string} title The channel name
      * @param {CreateChannelOptions} options 
-     * @returns {Promise<CreateChannelResult|{}>} Returns an object that handles the result for the channel creation or an empty object in a case of an error
+     * @returns {Promise<CreateChannelResult|string>} Returns an object that handles the result for the channel creation or an error message as a string
      */
     async createChannel(title, options = {}) {
         return await this.pupPage.evaluate(async (title, options) => {
@@ -1498,7 +1498,9 @@ class Client extends EventEmitter {
                     picture: picture,
                 });
             } catch (err) {
-                if (err.name === 'ServerStatusCodeError') return {};
+                if (err.name === 'ServerStatusCodeError') {
+                    return 'CreateChannelError: An error occupied while creating a channel';
+                }
                 throw err;
             }
 

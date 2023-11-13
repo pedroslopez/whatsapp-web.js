@@ -39,7 +39,7 @@ declare namespace WAWebJS {
         createGroup(title: string, participants?: string | Contact | Contact[] | string[], options?: CreateGroupOptions): Promise<CreateGroupResult|string>
 
         /** Creates a new channel */
-        createChannel(title: string, options?: CreateChannelOptions): Promise<CreateChannelResult | {}>
+        createChannel(title: string, options?: CreateChannelOptions): Promise<CreateChannelResult | string>
 
         /** Subscribe to channel */
         subscribeToChannel(channelId: string): Promise<boolean>
