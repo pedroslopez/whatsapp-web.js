@@ -110,6 +110,11 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('msgDataFromMsgModel')[0],
         ...window.mR.findModule('sendNewsletterMessageJob')[0]
     };
+    window.Store.ChannelSubscribers = {
+        ...window.mR.findModule('mexFetchNewsletterSubscribers')[0],
+        ...window.mR.findModule('getSubscribersInContacts')[0],
+        ...window.mR.findModule('getMaxSubscriberNumber')[0]
+    };
 
     if (!window.Store.Chat._find) {
         window.Store.Chat._find = e => {

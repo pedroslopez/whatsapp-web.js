@@ -1382,6 +1382,8 @@ declare namespace WAWebJS {
         /** Last message in the channel */
         lastMessage: Message | undefined;
 
+        /** Gets the subscribers of the channel (only those who are in your contact list) */
+        getSubscribers(limit?: number): Promise<{contact: Contact, role: string}[]>;
         /** Updates the channel subject */
         setSubject(newSubject: string): Promise<boolean>;
         /** Updates the channel description */

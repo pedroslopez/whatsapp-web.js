@@ -116,6 +116,25 @@ class Channel extends Base {
     };
 
     /**
+     * Gets the subscribers of the channel (only those who are in your contact list)
+     * @param {?number} limit Optional parameter to specify the limit of subscribers to retrieve
+     * @returns {Promise<{contact: Contact, role: string}[]>} Returns an array of objects that handle the subscribed contacts and their roles in the channel
+     */
+    async getSubscribers(limit) {
+        return await this.client.pupPage.evaluate(async (channelId, limit) => {
+            const channel = await window.WWebJS.getChatOrChannel(channelId, { getAsModel: false });
+            if (!channel) return [];
+            !limit && (limit = window.Store.ChannelSubscribers.getMaxSubscriberNumber());
+            const response = await window.Store.ChannelSubscribers.mexFetchNewsletterSubscribers(channelId, limit);
+            const contacts = await window.Store.ChannelSubscribers.getSubscribersInContacts(response.subscribers);
+            return Promise.all(contacts.map((obj) => ({
+                ...obj,
+                contact: window.WWebJS.getContactModel(obj.contact)
+            })));
+        }, this.id._serialized, limit);
+    }
+
+    /**
      * Updates the channel subject
      * @param {string} newSubject 
      * @returns {Promise<boolean>} Returns true if the subject was properly updated. This can return false if the user does not have the necessary permissions.
