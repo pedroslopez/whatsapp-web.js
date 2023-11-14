@@ -186,6 +186,32 @@ class Channel extends Base {
     }
 
     /**
+     * Mutes the channel
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async mute() {
+        const success = await this._muteUnmuteChannel('MUTE');
+        if (success) {
+            this.isMuted = true;
+            this.muteExpiration = -1;
+        }
+        return success;
+    }
+    
+    /**
+     * Unmutes the channel
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async unmute() {
+        const success = await this._muteUnmuteChannel('UNMUTE');
+        if (success) {
+            this.isMuted = false;
+            this.muteExpiration = 0;
+        }
+        return success;
+    }
+
+    /**
      * Message options
      * @typedef {Object} MessageSendOptions
      * @property {?string} caption Image or video caption
@@ -249,6 +275,25 @@ class Channel extends Base {
                 throw err;
             }
         }, this.id._serialized, value, property);
+    }
+
+    /**
+     * Internal method to mute or unmute the channel
+     * @param {string} action The action: 'MUTE' or 'UNMUTE'
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async _muteUnmuteChannel(action) {
+        return await this.client.pupPage.evaluate(async (channelId, action) => {
+            try {
+                action === 'MUTE'
+                    ? await window.Store.ChannelUtils.muteNewsletter([channelId])
+                    : await window.Store.ChannelUtils.unmuteNewsletter([channelId]);
+                return true;
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return false;
+                throw err;
+            }
+        }, this.id._serialized, action);
     }
 }
 

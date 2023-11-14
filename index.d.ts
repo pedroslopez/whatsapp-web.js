@@ -1399,6 +1399,10 @@ declare namespace WAWebJS {
          * 3 for NONE reactions to be avaliable
          */
         setReactionSetting(reactionCode: number): Promise<boolean>;
+        /** Mutes the channel */
+        mute(): Promise<boolean>;
+        /** Unmutes the channel */
+        unmute(): Promise<boolean>;
         /** Sends a message to this channel */
         sendMessage(content: string|MessageMedia, options?: MessageSendChannelOptions): Promise<Message>;
         /** Deletes the channel you created */
