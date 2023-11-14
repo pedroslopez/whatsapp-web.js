@@ -105,7 +105,7 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('muteNewsletter')[0],
         ...window.mR.findModule('unmuteNewsletter')[0],
         countryCodesIso: window.mR.findModule(m => m.default && m.default.US === 'United States')[0].default,
-        region: window.mR.findModule(m => m.default && m.default.getRegion)[0].default.getRegion(),
+        currentRegion: window.mR.findModule(m => m.default && m.default.getRegion)[0].default.getRegion(),
     };
     window.Store.SendChannelMessage = {
         ...window.mR.findModule('addNewsletterMsgsRecords')[0],

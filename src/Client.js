@@ -1561,20 +1561,20 @@ class Client extends EventEmitter {
      */
     async searchChannels(searchOptions = {}) {
         return await this.pupPage.evaluate(async (searchOptions) => {
-            const region = window.Store.ChannelUtils.region;
+            const currentRegion = window.Store.ChannelUtils.currentRegion;
             let {
                 searchText = '',
                 sortOptions = {
                     field: Channel.SortField.SUBSCRIBERS,
                     order: Channel.SortOrder.DESCENDING,
                 },
-                countryCodes = [region],
+                countryCodes = [currentRegion],
                 viewType = Channel.ViewType.RECOMMENDED,
                 limit = 50
             } = searchOptions;
 
             searchText = searchText.trim();
-            countryCodes = countryCodes.length === 1 && countryCodes[0] === region
+            countryCodes = countryCodes.length === 1 && countryCodes[0] === currentRegion
                 ? countryCodes
                 : countryCodes.filter(code => Object.keys(window.Store.ChannelUtils.countryCodesIso).includes(code));
             limit !== 50 && window.injectToFunction({ module: 'getNewsletterDirectoryPageSize', index: 0, function: 'getNewsletterDirectoryPageSize' }, () => limit);
