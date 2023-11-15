@@ -186,6 +186,9 @@ declare namespace WAWebJS {
         /** Rejects membership requests if any */
         rejectGroupMembershipRequests: (groupId: string, options: MembershipRequestActionOptions) => Promise<Array<MembershipRequestActionResult>>;
 
+        /** Cancels the membership request created by the current user to join a group */
+        cancelGroupMembershipRequest: (groupId: string) => Promise<boolean>;
+
         /** Generic event */
         on(event: string, listener: (...args: any) => void): this
 
@@ -1449,6 +1452,8 @@ declare namespace WAWebJS {
          * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were rejected and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned
          */
         rejectGroupMembershipRequests: (options: MembershipRequestActionOptions) => Promise<Array<MembershipRequestActionResult>>;
+        /** Cancels the membership request created by the current user to join a group */
+        cancelGroupMembershipRequest: () => Promise<boolean>;
         /** Gets the invite code for a specific group */
         getInviteCode: () => Promise<string>;
         /** Invalidates the current group invite code and generates a new one */

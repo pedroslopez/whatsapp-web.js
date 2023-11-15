@@ -1598,6 +1598,27 @@ class Client extends EventEmitter {
         }, groupId, options);
     }
 
+    /**
+     * Cancels the membership request created by the current user to join a group
+     * @param {string} groupId The ID of the group to which the membership request has been sent
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async cancelGroupMembershipRequest(groupId) {
+        return await this.pupPage.evaluate(async (groupId) => {
+            let response;
+            try {
+                response = await window.Store.MembershipRequestUtils.cancelMembershipApprovalRequestJob(
+                    window.Store.WidFactory.createWid(groupId),
+                    [window.Store.User.getMeUser()]
+                );
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return false;
+                throw err;
+            }
+            return response.name === 'CancelGroupMembershipRequestsResponseSuccess';
+        }, groupId);
+    }
+
 
     /**
      * Setting  autoload download audio

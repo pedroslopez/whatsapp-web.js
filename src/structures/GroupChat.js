@@ -430,6 +430,14 @@ class GroupChat extends Chat {
     }
 
     /**
+     * Cancels the membership request created by the current user to join a group
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async cancelGroupMembershipRequest() {
+        return await this.client.cancelGroupMembershipRequest(this.id._serialized);
+    }
+
+    /**
      * Makes the bot leave the group
      * @returns {Promise}
      */

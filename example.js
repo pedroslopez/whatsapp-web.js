@@ -373,6 +373,8 @@ client.on('message', async msg => {
             requesterIds: ['number1@c.us', 'number2@c.us'],
             sleep: null
         });
+    } else if (msg.body === '!cancelMembershipRequest' && msg.author) {
+        await client.cancelGroupMembershipRequest(msg.from);
     }
 });
 
