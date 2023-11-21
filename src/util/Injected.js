@@ -35,7 +35,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.User = window.mR.findModule('getMaybeMeUser')[0];
     window.Store.ContactMethods = window.mR.findModule('getUserid')[0];
     window.Store.BusinessProfileCollection = window.mR.findModule('BusinessProfileCollection')[0].BusinessProfileCollection;
-    window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
     window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default;
     window.Store.Validators = window.mR.findModule('findLinks')[0];
     window.Store.VCard = window.mR.findModule('vcardFromContactModel')[0];
@@ -65,7 +64,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     
     /* eslint-disable no-undef, no-cond-assign */
     window.Store.QueryExist = ((m = window.mR.findModule('queryExists')[0]) ? m.queryExists : window.mR.findModule('queryExist')[0].queryWidExists);
-    window.Store.ReplyUtils = (m = window.mR.findModule('canReplyMsg')).length > 0 && m[0];
     /* eslint-enable no-undef, no-cond-assign */
 
     window.Store.StickerTools = {
@@ -110,7 +108,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.SendChannelMessage = {
         ...window.mR.findModule('addNewsletterMsgsRecords')[0],
         ...window.mR.findModule('msgDataFromMsgModel')[0],
-        ...window.mR.findModule('sendNewsletterMessageJob')[0]
+        ...window.mR.findModule('sendNewsletterMessageJob')[0],
+        ...window.mR.findModule('getRandomFilehash')[0]
     };
     window.Store.ChannelSubscribers = {
         ...window.mR.findModule('mexFetchNewsletterSubscribers')[0],
@@ -189,34 +188,27 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.sendMessage = async (chatOrChannel, content, options = {}) => {
-        let attOptions = {};
-        if (options.attachment) {
-            attOptions = options.sendMediaAsSticker
-                ? await window.WWebJS.processStickerData(options.attachment)
-                : await window.WWebJS.processMediaData(options.attachment, {
+        let mediaOptions = {};
+        if (options.media) {
+            mediaOptions = await window.WWebJS.processMediaData(
+                options.media, {
+                    forceSticker: options.sendMediaAsSticker,
+                    forceGif: options.sendVideoAsGif,
                     forceVoice: options.sendAudioAsVoice,
                     forceDocument: options.sendMediaAsDocument,
-                    forceGif: options.sendVideoAsGif
+                    sendToChannel: chatOrChannel.isNewsletter
                 });
-            options.caption && (attOptions.caption = options.caption);
-            content = options.sendMediaAsSticker ? undefined : attOptions.preview;
-            attOptions.isViewOnce = options.isViewOnce;
-            delete options.attachment;
+            options.caption && (mediaOptions.caption = options.caption);
+            content = options.sendMediaAsSticker ? undefined : mediaOptions.preview;
+            mediaOptions.isViewOnce = options.isViewOnce;
+            delete options.media;
             delete options.sendMediaAsSticker;
         }
-        
+
         let quotedMsgOptions = {};
         if (options.quotedMessageId) {
             let quotedMessage = window.Store.Msg.get(options.quotedMessageId);
-            // TODO remove .canReply() once all clients are updated to >= v2.2241.6
-            if (quotedMessage) {
-                const canReply = window.Store.ReplyUtils
-                    ? window.Store.ReplyUtils.canReplyMsg(quotedMessage.unsafe())
-                    : quotedMessage.canReply();
-                if (canReply) {
-                    quotedMsgOptions = quotedMessage.msgContextInfo(chatOrChannel);
-                }
-            }
+            quotedMessage && (quotedMsgOptions = quotedMessage.msgContextInfo(chatOrChannel));
             delete options.quotedMessageId;
         }
 
@@ -239,19 +231,19 @@ exports.LoadUtils = () => {
             delete options.location;
         }
 
-        let _pollOptions = {};
+        let pollOptions = {};
         if (options.poll) {
-            const { pollName, pollOptions } = options.poll;
+            const { pollName, _pollOptions } = options.poll;
             const { allowMultipleAnswers, messageSecret } = options.poll.options;
-            _pollOptions = {
+            pollOptions = {
                 type: 'poll_creation',
                 pollName: pollName,
-                pollOptions: pollOptions,
+                pollOptions: _pollOptions,
                 pollSelectableOptionsCount: allowMultipleAnswers ? 0 : 1,
                 messageSecret:
-                Array.isArray(messageSecret) && messageSecret.length === 32
-                    ? new Uint8Array(messageSecret)
-                    : window.crypto.getRandomValues(new Uint8Array(32))
+                    Array.isArray(messageSecret) && messageSecret.length === 32
+                        ? new Uint8Array(messageSecret)
+                        : window.crypto.getRandomValues(new Uint8Array(32))
             };
             delete options.poll;
         }
@@ -309,7 +301,7 @@ exports.LoadUtils = () => {
         const newId = await window.Store.MsgKey.newId();
         let from = chatOrChannel.id.isLid() ? lidUser : meUser;
         let participant;
-        
+
         if (chatOrChannel.isGroup) {
             from = chatOrChannel.groupMetadata && chatOrChannel.groupMetadata.isLidAddressingMode ? lidUser : meUser;
             participant = window.Store.WidFactory.toUserWid(from);
@@ -341,11 +333,11 @@ exports.LoadUtils = () => {
             isNewMsg: true,
             type: 'chat',
             ...ephemeralFields,
-            ...locationOptions,
-            ..._pollOptions,
-            ...attOptions,
-            ...(attOptions.toJSON ? attOptions.toJSON() : {}),
+            ...mediaOptions,
+            ...(mediaOptions.toJSON ? mediaOptions.toJSON() : {}),
             ...quotedMsgOptions,
+            ...locationOptions,
+            ...pollOptions,
             ...vcardOptions,
             ...extraOptions
         };
@@ -360,7 +352,8 @@ exports.LoadUtils = () => {
             const sendChannelMsgResponse = await window.Store.SendChannelMessage.sendNewsletterMessageJob({
                 msgData: message,
                 type: message.type === 'chat' ? 'text' : 'media',
-                newsletterJid: chatOrChannel.id.toJid()
+                newsletterJid: chatOrChannel.id.toJid(),
+                ...(message.type !== 'chat' ? { mediaMetadata: msg.avParams() } : {})
             });
 
             sendChannelMsgResponse.success && (msg.t = sendChannelMsgResponse.ack.t);
@@ -421,74 +414,50 @@ exports.LoadUtils = () => {
         };
     };
 
-    window.WWebJS.processStickerData = async (mediaInfo) => {
-        if (mediaInfo.mimetype !== 'image/webp') throw new Error('Invalid media type');
-
+    window.WWebJS.processMediaData = async (mediaInfo, { forceSticker, forceGif, forceVoice, forceDocument, sendToChannel }) => {
         const file = window.WWebJS.mediaInfoToFile(mediaInfo);
-        let filehash = await window.WWebJS.getFileHash(file);
-        let mediaKey = await window.WWebJS.generateHash(32);
-
-        const controller = new AbortController();
-        const uploadedInfo = await window.Store.UploadUtils.encryptAndUpload({
-            blob: file,
-            type: 'sticker',
-            signal: controller.signal,
-            mediaKey
-        });
-
-        const stickerInfo = {
-            ...uploadedInfo,
-            clientUrl: uploadedInfo.url,
-            deprecatedMms3Url: uploadedInfo.url,
-            uploadhash: uploadedInfo.encFilehash,
-            size: file.size,
-            type: 'sticker',
-            filehash
-        };
-
-        return stickerInfo;
-    };
-
-    window.WWebJS.processMediaData = async (mediaInfo, { forceVoice, forceDocument, forceGif }) => {
-        const file = window.WWebJS.mediaInfoToFile(mediaInfo);
-        const mData = await window.Store.OpaqueData.createFromData(file, file.type);
-        const mediaPrep = window.Store.MediaPrep.prepRawMedia(mData, { asDocument: forceDocument });
+        const opaqueData = await window.Store.OpaqueData.createFromData(file, file.type);
+        const mediaPrep = window.Store.MediaPrep.prepRawMedia(
+            opaqueData, {
+                asSticker: forceSticker,
+                asGif: forceGif,
+                isPtt: forceVoice,
+                asDocument: forceDocument
+            });
         const mediaData = await mediaPrep.waitForPrep();
         const mediaObject = window.Store.MediaObject.getOrCreateMediaObject(mediaData.filehash);
-
         const mediaType = window.Store.MediaTypes.msgToMediaType({
             type: mediaData.type,
             isGif: mediaData.isGif
         });
 
-        if (forceVoice && mediaData.type === 'audio') {
-            mediaData.type = 'ptt';
+        if (forceVoice && mediaData.type === 'ptt') {
             const waveform = mediaObject.contentInfo.waveform;
             mediaData.waveform =
                 waveform ?? await window.WWebJS.generateWaveform(file);
         }
 
-        if (forceGif && mediaData.type === 'video') {
-            mediaData.isGif = true;
-        }
-
-        if (forceDocument) {
-            mediaData.type = 'document';
-        }
-
         if (!(mediaData.mediaBlob instanceof window.Store.OpaqueData)) {
-            mediaData.mediaBlob = await window.Store.OpaqueData.createFromData(mediaData.mediaBlob, mediaData.mediaBlob.type);
+            mediaData.mediaBlob = await window.Store.OpaqueData.createFromData(
+                mediaData.mediaBlob,
+                mediaData.mediaBlob.type
+            );
         }
 
         mediaData.renderableUrl = mediaData.mediaBlob.url();
         mediaObject.consolidate(mediaData.toJSON());
         mediaData.mediaBlob.autorelease();
 
-        const uploadedMedia = await window.Store.MediaUpload.uploadMedia({
+        const dataToUpload = {
             mimetype: mediaData.mimetype,
             mediaObject,
-            mediaType
-        });
+            mediaType,
+            ...(sendToChannel ? { calculateToken: window.Store.SendChannelMessage.getRandomFilehash } : {})
+        };
+
+        const uploadedMedia = !sendToChannel
+            ? await window.Store.MediaUpload.uploadMedia(dataToUpload)
+            : await window.Store.MediaUpload.uploadUnencryptedMedia(dataToUpload);
 
         const mediaEntry = uploadedMedia.mediaEntry;
         if (!mediaEntry) {

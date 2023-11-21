@@ -830,17 +830,17 @@ class Client extends EventEmitter {
         let isChannel = chatOrChannelId.match(/@(.+)/)[1] === 'newsletter';
 
         if (isChannel && [
-            options.sendAudioAsVoice, options.sendVideoAsGif, options.sendMediaAsSticker,
-            options.sendMediaAsDocument, options.quotedMessageId, options.parseVCards,
+            options.sendAudioAsVoice, options.sendMediaAsDocument,
+            options.quotedMessageId, options.parseVCards,
             options.isViewOnce, content instanceof Location, content instanceof Poll, content instanceof Contact,
             Array.isArray(content) && content.length > 0 && content[0] instanceof Contact
         ].includes(true)) {
-            console.warn('The message type is currently not supported for sending in channels,\nthe supported message types are: text, video, or image.\nTo stay updated on new supported message formats, check the https://github.com/pedroslopez/whatsapp-web.js/pull/2620.');
+            console.warn('The message type is currently not supported for sending in channels,\nthe supported message types are: text, image, sticker, gif or video.\nTo stay updated on supported message types to send in channels, see https://github.com/pedroslopez/whatsapp-web.js/pull/2620');
             return null;
         }
     
         if (options.mentions && options.mentions.some(possiblyContact => possiblyContact instanceof Contact)) {
-            console.warn('Mentions with an array of Contact are now deprecated. See more at https://github.com/pedroslopez/whatsapp-web.js/pull/2166.');
+            console.warn('Mentions with an array of Contact are now deprecated. See more at https://github.com/pedroslopez/whatsapp-web.js/pull/2166');
             options.mentions = options.mentions.map(a => a.id._serialized);
         }
 
@@ -852,19 +852,19 @@ class Client extends EventEmitter {
             sendMediaAsDocument: options.sendMediaAsDocument,
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
-            parseVCards: options.parseVCards === false ? false : true,
+            parseVCards: options.parseVCards,
             mentionedJidList: Array.isArray(options.mentions) ? options.mentions : [],
             extraOptions: options.extra
         };
 
-        const sendSeen = typeof options.sendSeen === 'undefined' ? true : options.sendSeen;
+        const sendSeen = options.sendSeen !== false;
 
         if (content instanceof MessageMedia) {
-            internalOptions.attachment = content;
+            internalOptions.media = content;
             internalOptions.isViewOnce = options.isViewOnce,
             content = '';
         } else if (options.media instanceof MessageMedia) {
-            internalOptions.attachment = options.media;
+            internalOptions.media = options.media;
             internalOptions.caption = content;
             internalOptions.isViewOnce = options.isViewOnce,
             content = '';
@@ -882,9 +882,9 @@ class Client extends EventEmitter {
             content = '';
         }
 
-        if (internalOptions.sendMediaAsSticker && internalOptions.attachment) {
-            internalOptions.attachment = await Util.formatToWebpSticker(
-                internalOptions.attachment, {
+        if (internalOptions.sendMediaAsSticker && internalOptions.media) {
+            internalOptions.media = await Util.formatToWebpSticker(
+                internalOptions.media, {
                     name: options.stickerName,
                     author: options.stickerAuthor,
                     categories: options.stickerCategories
@@ -892,22 +892,24 @@ class Client extends EventEmitter {
             );
         }
 
-        const newMessage = await this.pupPage.evaluate(async (chatOrChannelId, message, options, sendSeen, isChannel) => {
+        const sentMsg = await this.pupPage.evaluate(async (chatOrChannelId, content, options, sendSeen) => {
             const chatOrChannel = await window.WWebJS.getChatOrChannel(chatOrChannelId, { getAsModel: false });
 
             if (!chatOrChannel) return null;
 
-            if (sendSeen && !isChannel) {
+            if (sendSeen) {
                 await window.WWebJS.sendSeen(chatOrChannelId);
             }
 
-            const msg = await window.WWebJS.sendMessage(chatOrChannel, message, options);
-            return msg.serialize();
-        }, chatOrChannelId, content, internalOptions, sendSeen, isChannel);
+            const msg = await window.WWebJS.sendMessage(chatOrChannel, content, options);
+            return msg
+                ? msg.serialize()
+                : msg;
+        }, chatOrChannelId, content, internalOptions, sendSeen);
 
-        return newMessage
-            ? new Message(this, newMessage)
-            : newMessage;
+        return sentMsg
+            ? new Message(this, sentMsg)
+            : sentMsg;
     }
     
     /**
