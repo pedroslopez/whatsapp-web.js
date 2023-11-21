@@ -516,25 +516,25 @@ exports.LoadUtils = () => {
         let chatOrChannel;
 
         if (isChannel) {
-            chatOrChannel = window.Store.NewsletterCollection.get(chatOrChannelId);
-            !chatOrChannel && (chatOrChannel = await window.Store.ChannelUtils.queryAndUpdateNewsletterMetadataAction(
-                chatOrChannelId, {
-                    fields: {
-                        name: true,
-                        picture: true,
-                        description: true,
-                        inviteLink: true,
-                        handle: true,
-                        subscribers: true,
-                        privacy: true,
-                        verification: true,
-                        state: true
+            chatOrChannel = window.Store.NewsletterCollection.get(chatOrChannelId) ??
+                await window.Store.ChannelUtils.queryAndUpdateNewsletterMetadataAction(
+                    chatOrChannelId, {
+                        fields: {
+                            name: true,
+                            picture: true,
+                            description: true,
+                            inviteLink: true,
+                            handle: true,
+                            subscribers: true,
+                            privacy: true,
+                            verification: true,
+                            state: true
+                        }
                     }
-                }
-            ));
+                );
         } else {
             const chatWid = window.Store.WidFactory.createWid(chatOrChannelId);
-            chatOrChannel = await window.Store.Chat.find(chatWid);
+            chatOrChannel = window.Store.Chat.get(chatWid) ?? await window.Store.Chat.find(chatWid);
         }
 
         return getAsModel && chatOrChannel
