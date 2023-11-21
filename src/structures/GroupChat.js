@@ -157,7 +157,7 @@ class GroupChat extends Chat {
                     if (rpcResult.name === 'ParticipantRequestCodeCanBeSent' &&
                         (userChat = await window.Store.Chat.find(pWid))) {
                         const groupName = group.formattedTitle || group.name;
-                        const res = await window.Store.GroupInviteV4.sendGroupInviteMessage(
+                        const res = await window.Store.GroupInvite.sendGroupInviteMessage(
                             userChat,
                             group.id._serialized,
                             groupName,

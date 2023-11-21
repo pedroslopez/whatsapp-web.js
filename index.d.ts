@@ -17,11 +17,11 @@ declare namespace WAWebJS {
         /** Puppeteer browser running WhatsApp Web */
         pupBrowser?: puppeteer.Browser
 
-        /**Accepts an invitation to join a group */
-        acceptInvite(inviteCode: string): Promise<string>
+        /** Accepts an invitation code or a private invitation (inviteV4) to join a group or a community */
+        acceptInvite(invitation: string | InviteV4): Promise<AcceptInviteResponse>
 
-        /** Accepts a private invitation to join a group (v4 invite) */
-        acceptGroupV4Invite: (inviteV4: InviteV4Data) => Promise<{status: number}>
+        /** Accepts a private invitation (inviteV4) to join a group or a community */
+        acceptGroupV4Invite: (invitation: InviteV4) => Promise<AcceptInviteResponse>
 
         /**Returns an object with information about the invite code's group */
         getInviteInfo(inviteCode: string): Promise<object>
@@ -898,8 +898,8 @@ declare namespace WAWebJS {
         * Note that the Message must still be in the web app cache for this to work, otherwise will return null.
         */
         reload: () => Promise<Message>,
-        /** Accept the Group V4 Invite in message */
-        acceptGroupV4Invite: () => Promise<{status: number}>,
+        /** Accepts a private invitation (inviteV4) to join a group or a community */
+        acceptGroupV4Invite: () => Promise<AcceptInviteResponse>,
         /** Deletes the message from the chat */
         delete: (everyone?: boolean) => Promise<void>,
         /** Downloads and returns the attached message media */
@@ -1398,6 +1398,19 @@ declare namespace WAWebJS {
         requesterIds: Array<string> | string | null;
         /** The number of milliseconds to wait before performing an operation for the next requester. If it is an array, a random sleep time between the sleep[0] and sleep[1] values will be added (the difference must be >=100 ms, otherwise, a random sleep time between sleep[1] and sleep[1] + 100 will be added). If sleep is a number, a sleep time equal to its value will be added. By default, sleep is an array with a value of [250, 500] */
         sleep: Array<number> | number | null;
+    }
+
+    export interface InviteV4 {
+        groupId: string,
+        fromId: string,
+        inviteCode: string,
+        inviteCodeExp: number
+    }
+
+    export interface AcceptInviteResponse {
+        gid?: ChatId,
+        code: number,
+        message: string
     }
 
     export interface GroupChat extends Chat {

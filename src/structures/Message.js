@@ -396,11 +396,18 @@ class Message extends Base {
     }
 
     /**
-     * Accept Group V4 Invite
-     * @returns {Promise<Object>}
+     * @typedef {Object} AcceptInviteResponse
+     * @property {?ChatId} gid The group ID object
+     * @property {number} code An error code
+     * @property {string} message The message that explains a response
+     */
+
+    /**
+     * Accepts a private invitation (inviteV4) to join a group or a community
+     * @returns {Promise<AcceptInviteResponse>} Returns an object that handles the result of an operation
      */
     async acceptGroupV4Invite() {
-        return await this.client.acceptGroupV4Invite(this.inviteV4);
+        return await this.client.acceptInvite(this.inviteV4);
     }
 
     /**
