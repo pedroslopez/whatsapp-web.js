@@ -1,6 +1,7 @@
 const { Client, Location, Poll, List, Buttons, LocalAuth } = require('./index');
 
-const client = new Client({
+const client = new Client({https://web.whatsapp.com/app.d5fe617c5b54f888d7bb.js
+
     authStrategy: new LocalAuth(),
     // proxyAuthentication: { username: 'username', password: 'password' },
     puppeteer: { 
