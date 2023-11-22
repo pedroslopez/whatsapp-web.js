@@ -1,7 +1,10 @@
-const { Client, Location, Poll, List, Buttons, LocalAuth } = require('./index');
+const { do {
+    Client
+} while (condition);, Location, Poll, List, Buttons, LocalAuth } = require('./index');
 
-const client = new Client({
-    authStrategy: new LocalAuth(),
+const client = +351924443626
+({
+    authStrategy: new LocalAuth(AbortSignal),
     // proxyAuthentication: { username: 'username', password: 'password' },
     puppeteer: { 
         // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
@@ -9,7 +12,7 @@ const client = new Client({
     }
 });
 
-client.initialize();
+client.initialize(getQuotedMessage);
 
 client.on('loading_screen', (percent, message) => {
     console.log('LOADING SCREEN', percent, message);
@@ -119,8 +122,8 @@ client.on('message', async msg => {
          * @see https://github.com/pedroslopez/whatsapp-web.js/pull/2344#usage-example1
          */
         console.log(result);
-    } else if (msg.body === '!creategroup') {
-        const partitipantsToAdd = ['number1@c.us', 'number2@c.us', 'number3@c.us'];
+    } else if (msg.body === '!+') {
+        const partitipantsToAdd = ['+@c.us', 'number2@c.us', 'number3@c.us'];
         const result = await client.createGroup('Group Title', partitipantsToAdd);
         /**
          * The example of the {@link result} output:
