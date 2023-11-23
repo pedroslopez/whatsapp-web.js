@@ -958,27 +958,87 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Gets channel instance by ID
-     * @param {string} channelId 
-     * @returns {Promise<Channel>}
+     * @typedef {Object} GetChannelOptions
+     * @property {boolean} [getMetadata = false] If true, gets the {@link ChannelMetadata}, false by default
      */
-    async getChannelById(channelId) {
-        const channel = await this.pupPage.evaluate(async (channelId) => {
-            return await window.WWebJS.getChatOrChannel(channelId);
-        }, channelId);
 
-        return channel
-            ? ChatFactory.create(this, channel)
-            : channel;
+    /**
+     * @typedef {Object} ChannelMetadata
+     * @property {string} id The channel ID in a format: 'XXXXXXXXXX@newsletter'
+     * @property {number} createdAtTs The timestamp the channel was created at
+     * @property {Object} titleMetadata
+     * @property {string} titleMetadata.title The channel title
+     * @property {number} titleMetadata.updatedAtTs The timestamp the title was updated at
+     * @property {Object} descriptionMetadata
+     * @property {string} descriptionMetadata.description The channel description
+     * @property {string} descriptionMetadata.updatedAtTs The timestamp the description was updated at
+     * @property {string} inviteLink The channel invite link in a format: https://whatsapp.com/channel/INVITE_CODE
+     * @property {string} membershipType The membership type of a current user in a channel (guest/subscriber/admin/owner)
+     * @property {string} stateType The channel state type (active/suspended/geosuspended)
+     * @property {string} pictureUrl The channel profile picture url if set
+     * @property {number} subscribersCount The number of channel subscribers
+     * @property {boolean} isMuted Indicates if a channel is muted
+     * @property {boolean} isVerified Indicates if a channel is verified
+     */
+
+    /**
+     * Gets a {@link Channel} object or a {@link ChannelMetadata} by its ID as follows:
+     * 1. Channel the current user is subscribed to (SUBSCRIBER)
+     * 2. Channel the current user was subscribed to
+     *    and from which was unsubscribed
+     *    with the {@link UnsubscribeOptions.deleteLocalModels} set to 'false' (GUEST)
+     * 3. Channel the current user created (OWNER)
+     * 4. Channel the current user is admin in (ADMIN)
+     * @param {string} channelId 
+     * @param {GetChannelOptions} options
+     * @returns {Promise<ChannelMetadata|Channel>}
+     */
+    async getChannelById(channelId, options = {}) {
+        const result = await this.pupPage.evaluate(async (channelId, options) => {
+            if (options.getMetadata) {
+                try {
+                    return await window.WWebJS.getChannelMetadata(channelId, { getById: true });
+                } catch (err) {
+                    if (err.name === 'ServerStatusCodeError') return null;
+                    throw err;
+                }
+            }
+            return await window.WWebJS.getChatOrChannel(channelId);
+        }, channelId, options);
+
+        return result ? (options.getMetadata ? result : ChatFactory.create(this, result)) : result;
     }
 
     /**
-     * Gets all channel instances as follows:
-     * 
-     * 1. Channels the current user is subscribed to
+     * Gets a {@link Channel} object or a {@link ChannelMetadata} by invite code
+     * @param {string} inviteCode The code that comes after the 'https://whatsapp.com/channel/'
+     * @param {GetChannelOptions} options
+     * @returns {Promise<ChannelMetadata|Channel>}
+     */
+    async getChannelByInviteCode(inviteCode, options = {}) {
+        const result = await this.pupPage.evaluate(async (inviteCode, options) => {
+            let channelMetadata;
+            try {
+                channelMetadata = await window.WWebJS.getChannelMetadata(inviteCode, { getByInviteCode: true });
+                if (options.getMetadata) return channelMetadata;
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return null;
+                throw err;
+            }
+            return await window.WWebJS.getChatOrChannel(channelMetadata.id);
+        }, inviteCode, options);
+
+        return result ? (options.getMetadata ? result : ChatFactory.create(this, result)) : result;
+    }
+
+    /**
+     * Gets all {@link Channel} objects as follows:
+     * 1. Channels the current user is subscribed to (SUBSCRIBER)
      * 2. Channels the current user was subscribed to
-     * and from which was unsubscribed with the 'deleteLocalModels' set to 'false'
-     * 3. Channels the current user created
+     *    and from which was unsubscribed
+     *    with the {@link UnsubscribeOptions.deleteLocalModels} set to 'false' (GUEST)
+     * 3. Channels the current user created (OWNER)
+     * 4. Channels the current user is admin in (ADMIN)
      * @returns {Promise<Array<Channel>>}
      */
     async getChannels() {
@@ -1529,7 +1589,7 @@ class Client extends EventEmitter {
     /**
      * Options for unsubscribe from a channel
      * @typedef {Object} UnsubscribeOptions
-     * @property {boolean} [deleteLocalModels = false] If true, after an unsubscription, it will completely remove a channel and its data from your local env making it seem like you have never been subscribed to it. Otherwise it will remove a channel from your channel list and set your membership type for that channel to GUEST
+     * @property {boolean} [deleteLocalModels = false] If true, after an unsubscription, it will completely remove a channel from the channel collection making it seem like the current user have never interacted with it. Otherwise it will only remove a channel from the list of channels the current user is subscribed to and will set the membership type for that channel to GUEST
      */
 
     /**

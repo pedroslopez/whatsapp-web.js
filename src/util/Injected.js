@@ -94,6 +94,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     };
     window.Store.ChannelUtils = {
         ...window.mR.findModule('queryAndUpdateNewsletterMetadataAction')[0],
+        ...window.mR.findModule('queryNewsletterMetadataByInviteCode')[0],
         ...window.mR.findModule('createNewsletterQuery')[0],
         ...window.mR.findModule('editNewsletterMetadataAction')[0],
         ...window.mR.findModule('deleteNewsletterAction')[0],
@@ -510,28 +511,13 @@ exports.LoadUtils = () => {
         return msg;
     };
 
-    window.WWebJS.getChatOrChannel = async (chatOrChannelId, options = {}) => {
-        const { getAsModel = true } = options;
+    window.WWebJS.getChatOrChannel = async (chatOrChannelId, { getAsModel = true }) => {
         const isChannel = chatOrChannelId.match(/@(.+)/)[1] === 'newsletter';
         let chatOrChannel;
 
         if (isChannel) {
             chatOrChannel = window.Store.NewsletterCollection.get(chatOrChannelId) ??
-                await window.Store.ChannelUtils.queryAndUpdateNewsletterMetadataAction(
-                    chatOrChannelId, {
-                        fields: {
-                            name: true,
-                            picture: true,
-                            description: true,
-                            inviteLink: true,
-                            handle: true,
-                            subscribers: true,
-                            privacy: true,
-                            verification: true,
-                            state: true
-                        }
-                    }
-                );
+                await window.Store.ChannelUtils.queryAndUpdateNewsletterMetadataAction(chatOrChannelId);
         } else {
             const chatWid = window.Store.WidFactory.createWid(chatOrChannelId);
             chatOrChannel = window.Store.Chat.get(chatWid) ?? await window.Store.Chat.find(chatWid);
@@ -540,6 +526,38 @@ exports.LoadUtils = () => {
         return getAsModel && chatOrChannel
             ? await window.WWebJS.getChatOrChannelModel(chatOrChannel, { isChannel: isChannel })
             : chatOrChannel;
+    };
+
+    window.WWebJS.getChannelMetadata = async (idOrInviteCode, { getById, getByInviteCode }) => {
+        let response;
+
+        if (getById) {
+            response = await window.Store.ChannelUtils.queryNewsletterMetadataByJid(idOrInviteCode, 'owner');
+        } else if (getByInviteCode) {
+            response = await window.Store.ChannelUtils.queryNewsletterMetadataByInviteCode(idOrInviteCode, 'owner');
+        } else throw 'window.WWebJS.getChannelMetadata: No optional parameter is provided';
+
+        const picUrl = response.newsletterPictureMetadataMixin.picture[0].queryPictureDirectPathOrMatchedOrEmptyResponseMixinGroup.value.directPath;
+
+        return {
+            id: response.idJid,
+            createdAtTs: response.newsletterCreationTimeMetadataMixin.creationTimeValue,
+            titleMetadata: {
+                title: response.newsletterNameMetadataMixin.nameElementValue,
+                updatedAtTs: response.newsletterNameMetadataMixin.nameUpdateTime
+            },
+            descriptionMetadata: {
+                description: response.newsletterDescriptionMetadataMixin.descriptionQueryDescriptionResponseMixin.elementValue,
+                updatedAtTs: response.newsletterDescriptionMetadataMixin.descriptionQueryDescriptionResponseMixin.updateTime
+            },
+            inviteLink: `https://whatsapp.com/channel/${response.newsletterInviteLinkMetadataMixin.inviteCode}`,
+            membershipType: response.newsletterMembershipMetadataMixin.membershipType,
+            stateType: response.newsletterStateMetadataMixin.stateType,
+            pictureUrl: picUrl ? `https://pps.whatsapp.net${picUrl}` : null,
+            subscribersCount: response.newsletterSubscribersMetadataMixin.subscribersCount,
+            isMuted: response.newsletterMutedMetadataMixin.mutedState === 'on',
+            isVerified: response.newsletterVerificationMetadataMixin.verificationState === 'verified'
+        };
     };
 
     window.WWebJS.getChats = async () => {
@@ -554,15 +572,17 @@ exports.LoadUtils = () => {
         return await Promise.all(channelPromises);
     };
 
-    window.WWebJS.getChatOrChannelModel = async (chatOrChannel, options = {}) => {
+    window.WWebJS.getChatOrChannelModel = async (chatOrChannel, { isChannel = false }) => {
         if (!chatOrChannel) return null;
-        const { isChannel = false } = options;
 
         const model = chatOrChannel.serialize();
         model.isGroup = chatOrChannel.isGroup;
-        isChannel && (model.isChannel = chatOrChannel.isNewsletter);
-        !isChannel && (model.formattedTitle = chatOrChannel.formattedTitle);
         model.isMuted = chatOrChannel.mute && chatOrChannel.mute.isMuted;
+        if (isChannel) {
+            model.isChannel = chatOrChannel.isNewsletter;
+        } else {
+            model.formattedTitle = chatOrChannel.formattedTitle;
+        }
 
         if (chatOrChannel.groupMetadata) {
             const chatWid = window.Store.WidFactory.createWid((chatOrChannel.id._serialized));

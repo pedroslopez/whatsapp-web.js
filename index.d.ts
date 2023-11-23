@@ -71,16 +71,28 @@ declare namespace WAWebJS {
         /** Get all current chat instances */
         getChats(): Promise<Chat[]>
 
-        /** Gets channel instance by ID */
-        getChannelById(channelId: string): Promise<Channel>
+        /**
+         * Gets a {@link Channel} object or a {@link ChannelMetadata} by its ID as follows:
+         * 1. Channel the current user is subscribed to (SUBSCRIBER)
+         * 2. Channel the current user was subscribed to
+         *    and from which was unsubscribed
+         *    with the {@link UnsubscribeOptions.deleteLocalModels} set to 'false' (GUEST)
+         * 3. Channel the current user created (OWNER)
+         * 4. Channel the current user is admin in (ADMIN)
+         */
+        getChannelById(channelId: string, options?: { getMetadata?: boolean }): Promise<Channel | ChannelMetadata>
+
+        /** Gets a {@link Channel} object or a {@link ChannelMetadata} by invite code */
+        getChannelByInviteCode(inviteCode: string, options?: { getMetadata?: boolean }): Promise<Channel | ChannelMetadata>
 
         /**
-         * Gets all channel instances as follows:
-         * 
-         * 1. Channels the current user is subscribed to
+         * Gets all {@link Channel} objects as follows:
+         * 1. Channels the current user is subscribed to (SUBSCRIBER)
          * 2. Channels the current user was subscribed to
-         * and from which was unsubscribed with the {@link UnsubscribeOptions.deleteLocalModels} set to 'false'
-         * 3. Channels the current user created
+         *    and from which was unsubscribed
+         *    with the {@link UnsubscribeOptions.deleteLocalModels} set to 'false' (GUEST)
+         * 3. Channels the current user created (OWNER)
+         * 4. Channels the current user is admin in (ADMIN)
          */
         getChannels(): Promise<Channel[]>
 
@@ -654,10 +666,10 @@ declare namespace WAWebJS {
     /** Options for unsubscribe from a channel */
     export interface UnsubscribeOptions {
         /**
-         * If true, after an unsubscription, it will completely remove a channel and its data
-         * from your local env making it seem like you have never been subscribed to it.
-         * Otherwise it will remove a channel from your channel list
-         * and set your membership type for that channel to GUEST
+         * If true, after an unsubscription, it will completely remove a channel from the channel collection
+         * making it seem like the current user have never interacted with it.
+         * Otherwise it will only remove a channel from the list of channels the current user is subscribed to
+         * and will set the membership type for that channel to GUEST
          */
         deleteLocalModels?: boolean
     }
@@ -672,6 +684,26 @@ declare namespace WAWebJS {
         searchText?: string;
         view?: string;
         limit?: number;
+    }
+
+    export interface ChannelMetadata {
+        id: string;
+        createdAtTs: number;
+        titleMetadata: {
+            title: string;
+            updatedAtTs: number;
+        };
+        descriptionMetadata: {
+            description: string;
+            updatedAtTs: string;
+        };
+        inviteLink: string;
+        membershipType: string;
+        stateType: string;
+        pictureUrl: string;
+        subscribersCount: number;
+        isMuted: boolean;
+        isVerified: boolean;
     }
 
     export interface GroupNotification {
