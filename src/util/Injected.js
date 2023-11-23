@@ -103,6 +103,7 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('fetchNewsletterDirectories')[0],
         ...window.mR.findModule('muteNewsletter')[0],
         ...window.mR.findModule('unmuteNewsletter')[0],
+        ...window.mR.findModule('isNewsletterCreationEnabled')[0],
         countryCodesIso: window.mR.findModule(m => m.default && m.default.US === 'United States')[0].default,
         currentRegion: window.mR.findModule(m => m.default && m.default.getRegion)[0].default.getRegion(),
     };
