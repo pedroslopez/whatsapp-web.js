@@ -404,36 +404,27 @@ class Message extends Base {
     }
     
     /**
-     * Forward options:
-     * 
+     * Message forward options
      * @typedef {Object} MessageForwardOptions
-     * @property {boolean} [multicast=false]
-     * @property {boolean} [withCaption=true] Forwards this message with the caption text of the original message if provided.
+     * @property {boolean} [withCaption=true] Forwards this message with the caption text of the original message if provided
+     * @property {?boolean} displayAsForwarded If true, the forwarded message will be displayed as forwarded. If not provided, the value will be as the default behavior
      */
 
     /**
      * Forwards this message to another chat
-     *
-     * @note In order to avoid unexpected behaviour while forwarding media and attachment messages you have to use Chrome instead of Chromium
      * @param {string|Chat} chat Chat model or chat ID to which the message will be forwarded
      * @param {MessageForwardOptions} [options] Options used when forwarding the message
-     * @returns {Promise}
+     * @returns {Promise<boolean>}
      */
     async forward(chat, options = {}) {
         const chatId = typeof chat === 'string' ? chat : chat.id._serialized;
 
-        const forwardOptions = {
-            multicast: options.multicast || false,
-            withCaption: options.withCaption === false ? false : true
-        };
-
-        await this.client.pupPage.evaluate(async (chatId, msgId, options) => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
-            const chat = await window.Store.Chat.find(chatWid);
-            const message = window.Store.Msg.get(msgId);
+        return await this.client.pupPage.evaluate(async (msgId, chatId, options) => {
+            const chat = window.Store.Chat.get(chatId);
+            const msg = window.Store.Msg.get(msgId);
             
-            return await window.WWebJS.forwardMessage(chat, message, options);
-        }, chatId, this.id._serialized, forwardOptions);
+            return await window.WWebJS.forwardMessage(chat, msg, options);
+        }, this.id._serialized, chatId, options);
     }
 
     /**
