@@ -306,7 +306,7 @@ class Chat extends Base {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             const chat = await window.Store.Chat.find(chatWid);
             try {
-                await window.Store.Ephemeral.changeEphemeralDuration(chat, value);
+                await window.Store.EphemeralFields.changeEphemeralDuration(chat, value);
                 return true;
             } catch (err) {
                 return false;

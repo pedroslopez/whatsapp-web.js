@@ -1030,7 +1030,7 @@ declare namespace WAWebJS {
          * The custom message secret, can be used as a poll ID
          * @note It has to be a unique vector with a length of 32
          */
-        messageSecret: ?Array<number>
+        messageSecret: Array<number>|undefined
     }
 
     /** Represents a Poll on WhatsApp */
@@ -1412,7 +1412,7 @@ declare namespace WAWebJS {
             code: number;
             message: string;
             isInviteV4Sent: boolean,
-        };
+        }
     };
 
     /** An object that handles options for adding participants */
@@ -1494,7 +1494,7 @@ declare namespace WAWebJS {
         /** Group participants */
         participants: Array<GroupParticipant>;
         /** Adds a list of participants by ID to the group */
-        addParticipants: (participantIds: string|string[], options?: AddParticipantsOptions) => Promise<Object.<string, AddParticipantsResult>|string>;
+        addParticipants: (participantIds: string | string[], options?: AddParticipantsOptions) => Promise<{ [key: string]: AddParticipantsResult } | string>;
         /** Removes a list of participants by ID to the group */
         removeParticipants: (participantIds: string[]) => Promise<{ status: number }>;
         /** Promotes participants by IDs to admins */

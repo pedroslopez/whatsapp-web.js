@@ -23,7 +23,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.MediaTypes = window.mR.findModule('msgToMediaType')[0];
     window.Store.MediaUpload = window.mR.findModule('uploadMedia')[0];
     window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
-    window.Store.MessageInfo = window.mR.findModule('sendQueryMsgInfo')[0];
     window.Store.OpaqueData = window.mR.findModule(module => module.default && module.default.createFromData)[0].default;
     window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
     window.Store.QueryOrder = window.mR.findModule('queryOrder')[0];
@@ -63,6 +62,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     /* eslint-disable no-undef, no-cond-assign */
     window.Store.QueryExist = ((m = window.mR.findModule('queryExists')[0]) ? m.queryExists : window.mR.findModule('queryExist')[0].queryWidExists);
     window.Store.ReplyUtils = (m = window.mR.findModule('canReplyMsg')).length > 0 && m[0];
+    window.Store.getMsgInfo = m = window.mR.findModule('sendQueryMsgInfo')[0] ? m.sendQueryMsgInfo : window.mR.findModule('queryMsgInfo')[0].queryMsgInfo;
     /* eslint-enable no-undef, no-cond-assign */
 
     window.Store.Settings = {
@@ -75,13 +75,10 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('getMsgsByMsgIdsAndChatId')[0],
         ...window.mR.findModule('messageFromDbRow')[0]
     };
-    window.Store.Ephemeral = {
-        getEphemeralFields:
-            window.mR.findModule('getEphemeralFields')[0].getEphemeralFields,
-        getEphemeralSetting:
-            window.mR.findModule('getEphemeralSetting')[0].getEphemeralSetting,
-        changeEphemeralDuration:
-            window.mR.findModule('changeEphemeralDuration')[0].changeEphemeralDuration
+    window.Store.EphemeralFields = {
+        ...window.mR.findModule('getEphemeralFields')[0],
+        ...window.mR.findModule('getEphemeralSetting')[0],
+        ...window.mR.findModule('changeEphemeralDuration')[0]
     };
     window.Store.StickerTools = {
         ...window.mR.findModule('toWebpSticker')[0],
@@ -357,7 +354,7 @@ exports.LoadUtils = () => {
         const extraOptions = options.extraOptions || {};
         delete options.extraOptions;
 
-        const ephemeralFields = window.Store.Ephemeral.getEphemeralFields(chat);
+        const ephemeralFields = window.Store.EphemeralFields.getEphemeralFields(chat);
 
         const message = {
             ...options,
@@ -562,7 +559,7 @@ exports.LoadUtils = () => {
         res.isGroup = chat.isGroup;
         res.formattedTitle = chat.formattedTitle;
         res.isMuted = chat.mute && chat.mute.isMuted;
-        res.ephemeralDuration = window.Store.Ephemeral.getEphemeralFields(chat).ephemeralDuration;
+        res.ephemeralDuration = window.Store.EphemeralFields.getEphemeralFields(chat).ephemeralDuration;
 
         if (chat.groupMetadata) {
             const chatWid = window.Store.WidFactory.createWid(chat.id._serialized);
@@ -1123,7 +1120,7 @@ exports.LoadUtils = () => {
         if (!msg) return false;
         
         const chat = window.Store.Chat.getChatByMsg(msg);
-        const isMessageExpirationModeOn = window.Store.Ephemeral.getEphemeralSetting(chat) > 0;
+        const isMessageExpirationModeOn = window.Store.EphemeralFields.getEphemeralSetting(chat) > 0;
         if (!isMessageExpirationModeOn) return false;
 
         const toKeepMsg = action === 'Keep';
