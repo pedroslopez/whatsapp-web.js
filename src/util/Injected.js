@@ -519,7 +519,7 @@ exports.LoadUtils = () => {
         return msg;
     };
 
-    window.WWebJS.getChatOrChannel = async (chatOrChannelId, { getAsModel = true }) => {
+    window.WWebJS.getChatOrChannel = async (chatOrChannelId, { getAsModel = true } = {}) => {
         const isChannel = chatOrChannelId.match(/@(.+)/)[1] === 'newsletter';
         let chatOrChannel;
 
@@ -543,7 +543,7 @@ exports.LoadUtils = () => {
             response = await window.Store.ChannelUtils.queryNewsletterMetadataByJid(idOrInviteCode, 'owner');
         } else if (getByInviteCode) {
             response = await window.Store.ChannelUtils.queryNewsletterMetadataByInviteCode(idOrInviteCode, 'owner');
-        } else throw 'window.WWebJS.getChannelMetadata: No optional parameter is provided';
+        }
 
         const picUrl = response.newsletterPictureMetadataMixin.picture[0].queryPictureDirectPathOrMatchedOrEmptyResponseMixinGroup.value.directPath;
 
@@ -580,7 +580,7 @@ exports.LoadUtils = () => {
         return await Promise.all(channelPromises);
     };
 
-    window.WWebJS.getChatOrChannelModel = async (chatOrChannel, { isChannel = false }) => {
+    window.WWebJS.getChatOrChannelModel = async (chatOrChannel, { isChannel = false } = {}) => {
         if (!chatOrChannel) return null;
 
         const model = chatOrChannel.serialize();
