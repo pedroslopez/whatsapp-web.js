@@ -920,10 +920,8 @@ declare namespace WAWebJS {
         reply: (content: MessageContent, chatId?: string, options?: MessageSendOptions) => Promise<Message>,
         /** React to this message with an emoji*/
         react: (reaction: string) => Promise<void>,
-        /** 
-         * Forwards this message to another chat
-         */
-        forward: (chat: Chat | string, options?: MessageForwardOptions) => Promise<void>,
+        /** Forwards this message to another chat */
+        forward: (chat: Chat | string, options?: MessageForwardOptions) => Promise<boolean>,
         /** Star this message */
         star: () => Promise<void>,
         /** Unstar this message */
@@ -981,7 +979,7 @@ declare namespace WAWebJS {
          * The custom message secret, can be used as a poll ID
          * @note It has to be a unique vector with a length of 32
          */
-        messageSecret: ?Array<number>
+        messageSecret: Array<number>|undefined
     }
 
     /** Represents a Poll on WhatsApp */
@@ -1044,16 +1042,16 @@ declare namespace WAWebJS {
 
     /** Options for forwarding a message */
     export interface MessageForwardOptions {
-        /**
-         * @default false
-         */
-        multicast?: boolean
         /** 
-         * Adds caption text to forwarded message (if provided).
-         * Value is true by default.
+         * Forwards this message with the caption text of the original message if provided
          * @default true
          */
         withCaption?: boolean
+        /**
+         * If false, the forwarded message will be displayed withour a 'Forwarded' tag,
+         * by default the default WhatsApp behavior is used
+         */
+        displayAsForwarded?: boolean
     }
 
     /** Options for editing a message */
@@ -1355,7 +1353,7 @@ declare namespace WAWebJS {
             code: number;
             message: string;
             isInviteV4Sent: boolean,
-        };
+        }
     };
 
     /** An object that handles options for adding participants */
@@ -1424,7 +1422,7 @@ declare namespace WAWebJS {
         /** Group participants */
         participants: Array<GroupParticipant>;
         /** Adds a list of participants by ID to the group */
-        addParticipants: (participantIds: string|string[], options?: AddParticipantsOptions) => Promise<Object.<string, AddParticipantsResult>|string>;
+        addParticipants: (participantIds: string | string[], options?: AddParticipantsOptions) => Promise<{ [key: string]: AddParticipantsResult } | string>;
         /** Removes a list of participants by ID to the group */
         removeParticipants: (participantIds: string[]) => Promise<{ status: number }>;
         /** Promotes participants by IDs to admins */

@@ -407,14 +407,14 @@ class Message extends Base {
      * Message forward options
      * @typedef {Object} MessageForwardOptions
      * @property {boolean} [withCaption=true] Forwards this message with the caption text of the original message if provided
-     * @property {?boolean} displayAsForwarded If true, the forwarded message will be displayed as forwarded. If not provided, the value will be as the default behavior
+     * @property {?boolean} displayAsForwarded If false, the forwarded message will be displayed withour a 'Forwarded' tag, by default the default WhatsApp behavior is used
      */
 
     /**
      * Forwards this message to another chat
      * @param {string|Chat} chat Chat model or chat ID to which the message will be forwarded
-     * @param {MessageForwardOptions} [options] Options used when forwarding the message
-     * @returns {Promise<boolean>}
+     * @param {?MessageForwardOptions} options Options used when forwarding the message
+     * @returns {Promise<boolean>} Returns true if a message was forwarded successfully, false otherwise
      */
     async forward(chat, options = {}) {
         const chatId = typeof chat === 'string' ? chat : chat.id._serialized;
@@ -541,15 +541,20 @@ class Message extends Base {
      */
 
     /**
-     * Get information about message delivery status. May return null if the message does not exist or is not sent by you.
+     * Get information about message delivery status.
+     * May return null if the message does not exist or is not sent by you.
      * @returns {Promise<?MessageInfo>}
      */
     async getInfo() {
         const info = await this.client.pupPage.evaluate(async (msgId) => {
             const msg = window.Store.Msg.get(msgId);
-            if (!msg) return null;
+            if (!msg || !msg.id.fromMe) return null;
 
-            return await window.Store.MessageInfo.sendQueryMsgInfo(msg.id);
+            return new Promise((resolve) => {
+                setTimeout(async () => {
+                    resolve(await window.Store.getMsgInfo(msg.id));
+                }, (Date.now() - msg.t * 1000 < 1250) && Math.floor(Math.random() * (1200 - 1100 + 1)) + 1100 || 0);
+            });
         }, this.id._serialized);
 
         return info;
