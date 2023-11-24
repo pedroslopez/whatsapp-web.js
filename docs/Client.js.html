@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.22.1 &raquo; Source: Client.js</title>
+  <title>whatsapp-web.js 1.23.0 &raquo; Source: Client.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>22.<wbr>1</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>23.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -42,7 +42,7 @@ const { ExposeStore, LoadUtils } &#x3D; require(&#x27;./util/Injected&#x27;);
 const ChatFactory &#x3D; require(&#x27;./factories/ChatFactory&#x27;);
 const ContactFactory &#x3D; require(&#x27;./factories/ContactFactory&#x27;);
 const WebCacheFactory &#x3D; require(&#x27;./webCache/WebCacheFactory&#x27;);
-const { ClientInfo, Message, MessageMedia, Contact, Location, GroupNotification, Label, Call, Buttons, List, Reaction, Chat } &#x3D; require(&#x27;./structures&#x27;);
+const { ClientInfo, Message, MessageMedia, Contact, Location, Poll, GroupNotification, Label, Call, Buttons, List, Reaction } &#x3D; require(&#x27;./structures&#x27;);
 const LegacySessionAuth &#x3D; require(&#x27;./authStrategies/LegacySessionAuth&#x27;);
 const NoAuth &#x3D; require(&#x27;./authStrategies/NoAuth&#x27;);
 
@@ -82,6 +82,7 @@ const NoAuth &#x3D; require(&#x27;./authStrategies/NoAuth&#x27;);
  * @fires Client#change_state
  * @fires Client#contact_changed
  * @fires Client#group_admin_changed
+ * @fires Client#group_membership_request
  */
 class Client extends EventEmitter {
     constructor(options &#x3D; {}) {
@@ -203,7 +204,7 @@ class Client extends EventEmitter {
             }
         );
 
-        const INTRO_IMG_SELECTOR &#x3D; &#x27;[data-testid&#x3D;&quot;intro-md-beta-logo-dark&quot;], [data-testid&#x3D;&quot;intro-md-beta-logo-light&quot;], [data-asset-intro-image-light&#x3D;&quot;true&quot;], [data-asset-intro-image-dark&#x3D;&quot;true&quot;]&#x27;;
+        const INTRO_IMG_SELECTOR &#x3D; &#x27;[data-icon&#x3D;\&#x27;search\&#x27;]&#x27;;
         const INTRO_QRCODE_SELECTOR &#x3D; &#x27;div[data-ref] canvas&#x27;;
 
         // Checks which selector appears first
@@ -316,13 +317,13 @@ class Client extends EventEmitter {
              */
             window.compareWwebVersions &#x3D; (lOperand, operator, rOperand) &#x3D;&gt; {
                 if (![&#x27;&gt;&#x27;, &#x27;&gt;&#x3D;&#x27;, &#x27;&amp;lt;&#x27;, &#x27;&amp;lt;&#x3D;&#x27;, &#x27;&#x3D;&#x27;].includes(operator)) {
-                    throw class _ extends Error {
+                    throw new class _ extends Error {
                         constructor(m) { super(m); this.name &#x3D; &#x27;CompareWwebVersionsError&#x27;; }
                     }(&#x27;Invalid comparison operator is provided&#x27;);
 
                 }
                 if (typeof lOperand !&#x3D;&#x3D; &#x27;string&#x27; || typeof rOperand !&#x3D;&#x3D; &#x27;string&#x27;) {
-                    throw class _ extends Error {
+                    throw new class _ extends Error {
                         constructor(m) { super(m); this.name &#x3D; &#x27;CompareWwebVersionsError&#x27;; }
                     }(&#x27;A non-string WWeb version type is provided&#x27;);
                 }
@@ -410,6 +411,17 @@ class Client extends EventEmitter {
                      * @param {GroupNotification} notification GroupNotification with more information about the action
                      */
                     this.emit(Events.GROUP_ADMIN_CHANGED, notification);
+                } else if (msg.subtype &#x3D;&#x3D;&#x3D; &#x27;created_membership_requests&#x27;) {
+                    /**
+                     * Emitted when some user requested to join the group
+                     * that has the membership approval mode turned on
+                     * @event Client#group_membership_request
+                     * @param {GroupNotification} notification GroupNotification with more information about the action
+                     * @param {string} notification.chatId The group ID the request was made for
+                     * @param {string} notification.author The user ID that made a request
+                     * @param {number} notification.timestamp The timestamp the request was made at
+                     */
+                    this.emit(Events.GROUP_MEMBERSHIP_REQUEST, notification);
                 } else {
                     /**
                      * Emitted when group settings are updated, such as subject, description or picture.
@@ -639,16 +651,20 @@ class Client extends EventEmitter {
             }
         });
 
-        await page.exposeFunction(&#x27;onRemoveChatEvent&#x27;, (chat) &#x3D;&gt; {
+        await page.exposeFunction(&#x27;onRemoveChatEvent&#x27;, async (chat) &#x3D;&gt; {
+            const _chat &#x3D; await this.getChatById(chat.id);
+
             /**
              * Emitted when a chat is removed
              * @event Client#chat_removed
              * @param {Chat} chat
              */
-            this.emit(Events.CHAT_REMOVED, new Chat(this, chat));
+            this.emit(Events.CHAT_REMOVED, _chat);
         });
         
-        await page.exposeFunction(&#x27;onArchiveChatEvent&#x27;, (chat, currState, prevState) &#x3D;&gt; {
+        await page.exposeFunction(&#x27;onArchiveChatEvent&#x27;, async (chat, currState, prevState) &#x3D;&gt; {
+            const _chat &#x3D; await this.getChatById(chat.id);
+            
             /**
              * Emitted when a chat is archived/unarchived
              * @event Client#chat_archived
@@ -656,7 +672,7 @@ class Client extends EventEmitter {
              * @param {boolean} currState
              * @param {boolean} prevState
              */
-            this.emit(Events.CHAT_ARCHIVED, new Chat(this, chat), currState, prevState);
+            this.emit(Events.CHAT_ARCHIVED, _chat, currState, prevState);
         });
 
         await page.exposeFunction(&#x27;onEditMessageEvent&#x27;, (msg, newBody, prevBody) &#x3D;&gt; {
@@ -816,7 +832,7 @@ class Client extends EventEmitter {
      * Message options.
      * @typedef {Object} MessageSendOptions
      * @property {boolean} [linkPreview&#x3D;true] - Show links preview. Has no effect on multi-device accounts.
-     * @property {boolean} [sendAudioAsVoice&#x3D;false] - Send audio as voice message
+     * @property {boolean} [sendAudioAsVoice&#x3D;false] - Send audio as voice message with a generated waveform
      * @property {boolean} [sendVideoAsGif&#x3D;false] - Send video as gif
      * @property {boolean} [sendMediaAsSticker&#x3D;false] - Send media as a sticker
      * @property {boolean} [sendMediaAsDocument&#x3D;false] - Send media as a document
@@ -835,7 +851,7 @@ class Client extends EventEmitter {
     /**
      * Send a message to a specific chatId
      * @param {string} chatId
-     * @param {string|MessageMedia|Location|Contact|Array&amp;lt;Contact&gt;|Buttons|List} content
+     * @param {string|MessageMedia|Location|Poll|Contact|Array&amp;lt;Contact&gt;|Buttons|List} content
      * @param {MessageSendOptions} [options] - Options used when sending the message
      * 
      * @returns {Promise&amp;lt;Message&gt;} Message that was just sent
@@ -871,6 +887,9 @@ class Client extends EventEmitter {
             content &#x3D; &#x27;&#x27;;
         } else if (content instanceof Location) {
             internalOptions.location &#x3D; content;
+            content &#x3D; &#x27;&#x27;;
+        } else if (content instanceof Poll) {
+            internalOptions.poll &#x3D; content;
             content &#x3D; &#x27;&#x27;;
         } else if (content instanceof Contact) {
             internalOptions.contactCard &#x3D; content.id._serialized;
@@ -1006,7 +1025,7 @@ class Client extends EventEmitter {
      */
     async getInviteInfo(inviteCode) {
         return await this.pupPage.evaluate(inviteCode &#x3D;&gt; {
-            return window.Store.InviteInfo.queryGroupInvite(inviteCode);
+            return window.Store.GroupInvite.queryGroupInvite(inviteCode);
         }, inviteCode);
     }
 
@@ -1017,7 +1036,7 @@ class Client extends EventEmitter {
      */
     async acceptInvite(inviteCode) {
         const res &#x3D; await this.pupPage.evaluate(async inviteCode &#x3D;&gt; {
-            return await window.Store.Invite.joinGroupViaInvite(inviteCode);
+            return await window.Store.GroupInvite.joinGroupViaInvite(inviteCode);
         }, inviteCode);
 
         return res.gid._serialized;
@@ -1034,7 +1053,7 @@ class Client extends EventEmitter {
         return this.pupPage.evaluate(async inviteInfo &#x3D;&gt; {
             let { groupId, fromId, inviteCode, inviteCodeExp } &#x3D; inviteInfo;
             let userWid &#x3D; window.Store.WidFactory.createWid(fromId);
-            return await window.Store.JoinInviteV4.joinGroupViaInviteV4(inviteCode, String(inviteCodeExp), groupId, userWid);
+            return await window.Store.GroupInviteV4.joinGroupViaInviteV4(inviteCode, String(inviteCodeExp), groupId, userWid);
         }, inviteInfo);
     }
 
@@ -1310,35 +1329,116 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Create a new group
-     * @param {string} name group title
-     * @param {Array&amp;lt;Contact|string&gt;} participants an array of Contacts or contact IDs to add to the group
-     * @returns {Object} createRes
-     * @returns {string} createRes.gid - ID for the group that was just created
-     * @returns {Object.&amp;lt;string,string&gt;} createRes.missingParticipants - participants that were not added to the group. Keys represent the ID for participant that was not added and its value is a status code that represents the reason why participant could not be added. This is usually 403 if the user&#x27;s privacy settings don&#x27;t allow you to add them to groups.
+     * An object that represents the result for a participant added to a group
+     * @typedef {Object} ParticipantResult
+     * @property {number} statusCode The status code of the result
+     * @property {string} message The result message
+     * @property {boolean} isGroupCreator Indicates if the participant is a group creator
+     * @property {boolean} isInviteV4Sent Indicates if the inviteV4 was sent to the participant
      */
-    async createGroup(name, participants) {
-        if (!Array.isArray(participants) || participants.length &#x3D;&#x3D; 0) {
-            throw &#x27;You need to add at least one other participant to the group&#x27;;
-        }
 
-        if (participants.every(c &#x3D;&gt; c instanceof Contact)) {
-            participants &#x3D; participants.map(c &#x3D;&gt; c.id._serialized);
-        }
+    /**
+     * An object that handles the result for {@link createGroup} method
+     * @typedef {Object} CreateGroupResult
+     * @property {string} title A group title
+     * @property {Object} gid An object that handles the newly created group ID
+     * @property {string} gid.server
+     * @property {string} gid.user
+     * @property {string} gid._serialized
+     * @property {Object.&amp;lt;string, ParticipantResult&gt;} participants An object that handles the result value for each added to the group participant
+     */
 
-        const createRes &#x3D; await this.pupPage.evaluate(async (name, participantIds) &#x3D;&gt; {
-            const participantWIDs &#x3D; participantIds.map(p &#x3D;&gt; window.Store.WidFactory.createWid(p));
-            return await window.Store.GroupUtils.createGroup(name, participantWIDs, 0);
-        }, name, participants);
+    /**
+     * An object that handles options for group creation
+     * @typedef {Object} CreateGroupOptions
+     * @property {number} [messageTimer &#x3D; 0] The number of seconds for the messages to disappear in the group (0 by default, won&#x27;t take an effect if the group is been creating with myself only)
+     * @property {string|undefined} parentGroupId The ID of a parent community group to link the newly created group with (won&#x27;t take an effect if the group is been creating with myself only)
+     * @property {boolean} [autoSendInviteV4 &#x3D; true] If true, the inviteV4 will be sent to those participants who have restricted others from being automatically added to groups, otherwise the inviteV4 won&#x27;t be sent (true by default)
+     * @property {string} [comment &#x3D; &#x27;&#x27;] The comment to be added to an inviteV4 (empty string by default)
+     */
 
-        const missingParticipants &#x3D; createRes.participants.reduce(((missing, c) &#x3D;&gt; {
-            const id &#x3D; c.wid._serialized;
-            const statusCode &#x3D; c.error ? c.error.toString() : &#x27;200&#x27;;
-            if (statusCode !&#x3D; 200) return Object.assign(missing, { [id]: statusCode });
-            return missing;
-        }), {});
+    /**
+     * Creates a new group
+     * @param {string} title Group title
+     * @param {string|Contact|Array&amp;lt;Contact|string&gt;|undefined} participants A single Contact object or an ID as a string or an array of Contact objects or contact IDs to add to the group
+     * @param {CreateGroupOptions} options An object that handles options for group creation
+     * @returns {Promise&amp;lt;CreateGroupResult|string&gt;} Object with resulting data or an error message as a string
+     */
+    async createGroup(title, participants &#x3D; [], options &#x3D; {}) {
+        !Array.isArray(participants) &amp;amp;&amp;amp; (participants &#x3D; [participants]);
+        participants.map(p &#x3D;&gt; (p instanceof Contact) ? p.id._serialized : p);
 
-        return { gid: createRes.wid, missingParticipants };
+        return await this.pupPage.evaluate(async (title, participants, options) &#x3D;&gt; {
+            const { messageTimer &#x3D; 0, parentGroupId, autoSendInviteV4 &#x3D; true, comment &#x3D; &#x27;&#x27; } &#x3D; options;
+            const participantData &#x3D; {}, participantWids &#x3D; [], failedParticipants &#x3D; [];
+            let createGroupResult, parentGroupWid;
+
+            const addParticipantResultCodes &#x3D; {
+                default: &#x27;An unknown error occupied while adding a participant&#x27;,
+                200: &#x27;The participant was added successfully&#x27;,
+                403: &#x27;The participant can be added by sending private invitation only&#x27;,
+                404: &#x27;The phone number is not registered on WhatsApp&#x27;
+            };
+
+            for (const participant of participants) {
+                const pWid &#x3D; window.Store.WidFactory.createWid(participant);
+                if ((await window.Store.QueryExist(pWid))?.wid) participantWids.push(pWid);
+                else failedParticipants.push(participant);
+            }
+
+            parentGroupId &amp;amp;&amp;amp; (parentGroupWid &#x3D; window.Store.WidFactory.createWid(parentGroupId));
+
+            try {
+                createGroupResult &#x3D; await window.Store.GroupUtils.createGroup(
+                    title,
+                    participantWids,
+                    messageTimer,
+                    parentGroupWid
+                );
+            } catch (err) {
+                return &#x27;CreateGroupError: An unknown error occupied while creating a group&#x27;;
+            }
+
+            for (const participant of createGroupResult.participants) {
+                let isInviteV4Sent &#x3D; false;
+                const participantId &#x3D; participant.wid._serialized;
+                const statusCode &#x3D; participant.error ?? 200;
+
+                if (autoSendInviteV4 &amp;amp;&amp;amp; statusCode &#x3D;&#x3D;&#x3D; 403) {
+                    window.Store.ContactCollection.gadd(participant.wid, { silent: true });
+                    const addParticipantResult &#x3D; await window.Store.GroupInviteV4.sendGroupInviteMessage(
+                        await window.Store.Chat.find(participant.wid),
+                        createGroupResult.wid._serialized,
+                        createGroupResult.subject,
+                        participant.invite_code,
+                        participant.invite_code_exp,
+                        comment,
+                        await window.WWebJS.getProfilePicThumbToBase64(createGroupResult.wid)
+                    );
+                    isInviteV4Sent &#x3D; window.compareWwebVersions(window.Debug.VERSION, &#x27;&amp;lt;&#x27;, &#x27;2.2335.6&#x27;)
+                        ? addParticipantResult &#x3D;&#x3D;&#x3D; &#x27;OK&#x27;
+                        : addParticipantResult.messageSendResult &#x3D;&#x3D;&#x3D; &#x27;OK&#x27;;
+                }
+
+                participantData[participantId] &#x3D; {
+                    statusCode: statusCode,
+                    message: addParticipantResultCodes[statusCode] || addParticipantResultCodes.default,
+                    isGroupCreator: participant.type &#x3D;&#x3D;&#x3D; &#x27;superadmin&#x27;,
+                    isInviteV4Sent: isInviteV4Sent
+                };
+            }
+
+            for (const f of failedParticipants) {
+                participantData[f] &#x3D; {
+                    statusCode: 404,
+                    message: addParticipantResultCodes[404],
+                    isGroupCreator: false,
+                    isInviteV4Sent: false
+                };
+            }
+
+            return { title: title, gid: createGroupResult.wid, participants: participantData };
+        }, title, participants, options);
     }
 
     /**
@@ -1465,6 +1565,69 @@ class Client extends EventEmitter {
             return await window.Store.Label.addOrRemoveLabels(actions, chats);
         }, labelIds, chatIds);
     }
+
+    /**
+     * An object that handles the information about the group membership request
+     * @typedef {Object} GroupMembershipRequest
+     * @property {Object} id The wid of a user who requests to enter the group
+     * @property {Object} addedBy The wid of a user who created that request
+     * @property {Object|null} parentGroupId The wid of a community parent group to which the current group is linked
+     * @property {string} requestMethod The method used to create the request: NonAdminAdd/InviteLink/LinkedGroupJoin
+     * @property {number} t The timestamp the request was created at
+     */
+
+    /**
+     * Gets an array of membership requests
+     * @param {string} groupId The ID of a group to get membership requests for
+     * @returns {Promise&amp;lt;Array&amp;lt;GroupMembershipRequest&gt;&gt;} An array of membership requests
+     */
+    async getGroupMembershipRequests(groupId) {
+        return await this.pupPage.evaluate(async (gropId) &#x3D;&gt; {
+            const groupWid &#x3D; window.Store.WidFactory.createWid(gropId);
+            return await window.Store.MembershipRequestUtils.getMembershipApprovalRequests(groupWid);
+        }, groupId);
+    }
+
+    /**
+     * An object that handles the result for membership request action
+     * @typedef {Object} MembershipRequestActionResult
+     * @property {string} requesterId User ID whos membership request was approved/rejected
+     * @property {number|undefined} error An error code that occurred during the operation for the participant
+     * @property {string} message A message with a result of membership request action
+     */
+
+    /**
+     * An object that handles options for {@link approveGroupMembershipRequests} and {@link rejectGroupMembershipRequests} methods
+     * @typedef {Object} MembershipRequestActionOptions
+     * @property {Array&amp;lt;string&gt;|string|null} requesterIds User ID/s who requested to join the group, if no value is provided, the method will search for all membership requests for that group
+     * @property {Array&amp;lt;number&gt;|number|null} sleep The number of milliseconds to wait before performing an operation for the next requester. If it is an array, a random sleep time between the sleep[0] and sleep[1] values will be added (the difference must be &gt;&#x3D;100 ms, otherwise, a random sleep time between sleep[1] and sleep[1] + 100 will be added). If sleep is a number, a sleep time equal to its value will be added. By default, sleep is an array with a value of [250, 500]
+     */
+
+    /**
+     * Approves membership requests if any
+     * @param {string} groupId The group ID to get the membership request for
+     * @param {MembershipRequestActionOptions} options Options for performing a membership request action
+     * @returns {Promise&amp;lt;Array&amp;lt;MembershipRequestActionResult&gt;&gt;} Returns an array of requester IDs whose membership requests were approved and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned
+     */
+    async approveGroupMembershipRequests(groupId, options &#x3D; {}) {
+        return await this.pupPage.evaluate(async (groupId, options) &#x3D;&gt; {
+            const { requesterIds &#x3D; null, sleep &#x3D; [250, 500] } &#x3D; options;
+            return await window.WWebJS.membershipRequestAction(groupId, &#x27;Approve&#x27;, requesterIds, sleep);
+        }, groupId, options);
+    }
+
+    /**
+     * Rejects membership requests if any
+     * @param {string} groupId The group ID to get the membership request for
+     * @param {MembershipRequestActionOptions} options Options for performing a membership request action
+     * @returns {Promise&amp;lt;Array&amp;lt;MembershipRequestActionResult&gt;&gt;} Returns an array of requester IDs whose membership requests were rejected and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned
+     */
+    async rejectGroupMembershipRequests(groupId, options &#x3D; {}) {
+        return await this.pupPage.evaluate(async (groupId, options) &#x3D;&gt; {
+            const { requesterIds &#x3D; null, sleep &#x3D; [250, 500] } &#x3D; options;
+            return await window.WWebJS.membershipRequestAction(groupId, &#x27;Reject&#x27;, requesterIds, sleep);
+        }, groupId, options);
+    }
 }
 
 module.exports &#x3D; Client;
@@ -1478,7 +1641,7 @@ module.exports &#x3D; Client;
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on August 10, 2023.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on October 21, 2023.
       </p>
     </div>
   </footer>

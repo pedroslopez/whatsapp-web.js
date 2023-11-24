@@ -1,4 +1,4 @@
-const { Client, Location, List, Buttons, LocalAuth } = require('./index');
+const { Client, Location, Poll, List, Buttons, LocalAuth } = require('./index');
 
 const client = new Client({
     authStrategy: new LocalAuth(),
@@ -290,6 +290,22 @@ client.on('message', async msg => {
         client.sendMessage(msg.from, list);
     } else if (msg.body === '!reaction') {
         msg.react('👍');
+    } else if (msg.body === '!sendpoll') {
+        /** By default the poll is created as a single choice poll: */
+        await msg.reply(new Poll('Winter or Summer?', ['Winter', 'Summer']));
+        /** If you want to provide a multiple choice poll, add allowMultipleAnswers as true: */
+        await msg.reply(new Poll('Cats or Dogs?', ['Cats', 'Dogs'], { allowMultipleAnswers: true }));
+        /**
+         * You can provide a custom message secret, it can be used as a poll ID:
+         * @note It has to be a unique vector with a length of 32
+         */
+        await msg.reply(
+            new Poll('Cats or Dogs?', ['Cats', 'Dogs'], {
+                messageSecret: [
+                    1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+                ]
+            })
+        );
     } else if (msg.body === '!edit') {
         if (msg.hasQuotedMsg) {
             const quotedMsg = await msg.getQuotedMessage();
