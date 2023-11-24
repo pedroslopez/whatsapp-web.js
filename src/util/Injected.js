@@ -23,7 +23,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.MediaTypes = window.mR.findModule('msgToMediaType')[0];
     window.Store.MediaUpload = window.mR.findModule('uploadMedia')[0];
     window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
-    window.Store.MessageInfo = window.mR.findModule('sendQueryMsgInfo')[0];
     window.Store.OpaqueData = window.mR.findModule(module => module.default && module.default.createFromData)[0].default;
     window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
     window.Store.QueryOrder = window.mR.findModule('queryOrder')[0];
@@ -58,16 +57,17 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.LidUtils = window.mR.findModule('getCurrentLid')[0];
     window.Store.WidToJid = window.mR.findModule('widToUserJid')[0];
     window.Store.JidToWid = window.mR.findModule('userJidToUserWid')[0];
-    window.Store.Settings = {
-        ...window.mR.findModule('ChatlistPanelState')[0],
-        setPushname: window.mR.findModule((m) => m.setPushname && !m.ChatlistPanelState)[0].setPushname
-    };
     
     /* eslint-disable no-undef, no-cond-assign */
     window.Store.QueryExist = ((m = window.mR.findModule('queryExists')[0]) ? m.queryExists : window.mR.findModule('queryExist')[0].queryWidExists);
     window.Store.ReplyUtils = (m = window.mR.findModule('canReplyMsg')).length > 0 && m[0];
+    window.Store.getMsgInfo = m = window.mR.findModule('sendQueryMsgInfo')[0] ? m.sendQueryMsgInfo : window.mR.findModule('queryMsgInfo')[0].queryMsgInfo;
     /* eslint-enable no-undef, no-cond-assign */
 
+    window.Store.Settings = {
+        ...window.mR.findModule('ChatlistPanelState')[0],
+        setPushname: window.mR.findModule((m) => m.setPushname && !m.ChatlistPanelState)[0].setPushname
+    };
     window.Store.StickerTools = {
         ...window.mR.findModule('toWebpSticker')[0],
         ...window.mR.findModule('addWebpMetadata')[0]
@@ -128,9 +128,9 @@ exports.ExposeStore = (moduleRaidStr) => {
     /**
      * Target options object description
      * @typedef {Object} TargetOptions
-     * @property {string|number} moduleId The name or a key of the target module to search
+     * @property {string|number} module The name or a key of the target module to search
      * @property {number} index The index value of the target module
-     * @property {string} property The function name to get from a module
+     * @property {string} function The function name to get from a module
      */
 
     /**
@@ -139,17 +139,17 @@ exports.ExposeStore = (moduleRaidStr) => {
      * @param {Function} callback Modified function
      */
     window.injectToFunction = (target, callback) => {
-        const module = typeof target.moduleId === 'string'
-            ? window.mR.findModule(target.moduleId)
-            : window.mR.modules[target.moduleId];
-        const originalFunction = module[target.index][target.property];
+        const module = typeof target.module === 'string'
+            ? window.mR.findModule(target.module)
+            : window.mR.modules[target.module];
+        const originalFunction = module[target.index][target.function];
         const modifiedFunction = (...args) => callback(originalFunction, ...args);
-        module[target.index][target.property] = modifiedFunction;
+        module[target.index][target.function] = modifiedFunction;
     };
 
-    window.injectToFunction({ moduleId: 'mediaTypeFromProtobuf', index: 0, property: 'mediaTypeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? null : func(...args); });
+    window.injectToFunction({ module: 'mediaTypeFromProtobuf', index: 0, function: 'mediaTypeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? null : func(...args); });
 
-    window.injectToFunction({ moduleId: 'typeAttributeFromProtobuf', index: 0, property: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage || proto.groupInviteMessage ? 'text' : func(...args); });
+    window.injectToFunction({ module: 'typeAttributeFromProtobuf', index: 0, function: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage || proto.groupInviteMessage ? 'text' : func(...args); });
 };
 
 exports.LoadUtils = () => {
