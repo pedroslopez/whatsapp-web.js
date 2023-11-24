@@ -191,6 +191,8 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.sendMessage = async (chatOrChannel, content, options = {}) => {
+        const isChannel = chatOrChannel.isNewsletter;
+
         let mediaOptions = {};
         if (options.media) {
             mediaOptions = await window.WWebJS.processMediaData(
@@ -199,7 +201,7 @@ exports.LoadUtils = () => {
                     forceGif: options.sendVideoAsGif,
                     forceVoice: options.sendAudioAsVoice,
                     forceDocument: options.sendMediaAsDocument,
-                    sendToChannel: chatOrChannel.isNewsletter
+                    sendToChannel: isChannel
                 });
             options.caption && (mediaOptions.caption = options.caption);
             content = options.sendMediaAsSticker ? undefined : mediaOptions.preview;
@@ -239,7 +241,7 @@ exports.LoadUtils = () => {
             const { pollName, _pollOptions } = options.poll;
             const { allowMultipleAnswers, messageSecret } = options.poll.options;
             pollOptions = {
-                type: 'poll_creation',
+                type: !isChannel ? 'poll_creation' : 'pollCreation',
                 pollName: pollName,
                 pollOptions: _pollOptions,
                 pollSelectableOptionsCount: allowMultipleAnswers ? 0 : 1,
@@ -345,21 +347,25 @@ exports.LoadUtils = () => {
             ...extraOptions
         };
 
-        if (chatOrChannel.isNewsletter) {
+        if (isChannel) {
             const msg = new window.Store.Msg.modelClass(message);
             const msgDataFromMsgModel = window.Store.SendChannelMessage.msgDataFromMsgModel(msg);
+            const isMedia = Object.keys(mediaOptions).length > 0;
             await window.Store.SendChannelMessage.addNewsletterMsgsRecords([msgDataFromMsgModel]);
             chatOrChannel.msgs.add(msg);
             chatOrChannel.t = msg.t;
 
             const sendChannelMsgResponse = await window.Store.SendChannelMessage.sendNewsletterMessageJob({
                 msgData: message,
-                type: message.type === 'chat' ? 'text' : 'media',
+                type: message.type === 'chat' ? 'text' : isMedia ? 'media' : message.type,
                 newsletterJid: chatOrChannel.id.toJid(),
-                ...(message.type !== 'chat' ? { mediaMetadata: msg.avParams() } : {})
+                ...(isMedia ? { mediaMetadata: msg.avParams() } : {})
             });
 
-            sendChannelMsgResponse.success && (msg.t = sendChannelMsgResponse.ack.t);
+            if (sendChannelMsgResponse.success) {
+                msg.t = sendChannelMsgResponse.ack.t;
+                msg.serverId = sendChannelMsgResponse.serverId;
+            }
             msg.updateAck(1, true);
             await window.Store.SendChannelMessage.updateNewsletterMsgRecord(msg);
             return msg;
