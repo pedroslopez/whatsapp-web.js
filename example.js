@@ -376,23 +376,18 @@ client.on('message', async msg => {
     }
     else if (msg.author) {
         /**
-         * Note:
-         * In order to avoid unexpected behaviour while forwarding media and attachment messages
-         * you have to use Chrome instead of Chromium by adding @property {executablePath}
-         * @see https://github.com/pedroslopez/whatsapp-web.js/pull/2272
-         * @see https://pptr.dev/api/puppeteer.configuration
-         * 
          * Let's say the message was sent in a group
          * and you want to forward it to its author:
-         * 
-         * 1. By default it will be forwarded with a caption text (if provided):
          */
+
+        // 1. By default the message will be forwarded with a caption (if provided):
         await msg.forward(msg.author);
 
-        /**
-         * 2. To forward without a caption text use @property {withCaption: false}:
-         */
+        // 2. To forward without a caption text:
         await msg.forward(msg.author, { withCaption: false });
+
+        // 3. To forward without a 'Forwarded' title:
+        await msg.forward(msg.author, { displayAsForwarded: false });
     }
 });
 
