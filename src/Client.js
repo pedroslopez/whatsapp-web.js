@@ -911,6 +911,42 @@ class Client extends EventEmitter {
             ? new Message(this, sentMsg)
             : sentMsg;
     }
+
+    /**
+     * @typedef {Object} SendChannelAdminInvitationOptions
+     * @property {?string} comment The comment to be added to an invitation
+     */
+
+    /**
+     * Sends a channel admin invitation to a user, allowing them to become an admin of the channel
+     * @param {string} chatId The ID of a user to send the channel admin invitation to
+     * @param {string} channelId The ID of a channel for which the invitation is being sent
+     * @param {SendChannelAdminInvitationOptions} options 
+     * @returns {Promise<boolean>} Returns true if an invitation was sent successfully, false otherwise
+     */
+    async sendChannelAdminInvitation(chatId, channelId, options = {}) {
+        const response = await this.pupPage.evaluate(async (chatId, channelId, options) => {
+            const channelWid = window.Store.WidFactory.createWid(channelId);
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = await window.Store.Chat.find(chatWid);
+
+            if (!chatWid.isUser() || !window.Store.ChannelUtils.isNewsletterMultiAdminReceiverEnabled()) {
+                return false;
+            }
+            
+            return await window.Store.SendChannelMessage.sendNewsletterAdminInviteMessage(
+                chat,
+                {
+                    newsletterWid: window.Store.WidFactory.createWid(channelId),
+                    invitee: chatWid,
+                    inviteMessage: options.comment,
+                    base64Thumb: await window.WWebJS.getProfilePicThumbToBase64(channelWid)
+                }
+            );
+        }, chatId, channelId, options);
+
+        return response.messageSendResult === 'OK';
+    }
     
     /**
      * Searches for messages

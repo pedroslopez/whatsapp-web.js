@@ -111,6 +111,7 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('addNewsletterMsgsRecords')[0],
         ...window.mR.findModule('msgDataFromMsgModel')[0],
         ...window.mR.findModule('sendNewsletterMessageJob')[0],
+        ...window.mR.findModule('sendNewsletterAdminInviteMessage')[0],
         ...window.mR.findModule('getRandomFilehash')[0]
     };
     window.Store.ChannelSubscribers = {
