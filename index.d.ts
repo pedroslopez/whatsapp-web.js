@@ -1194,7 +1194,7 @@ declare namespace WAWebJS {
         static fromUrl: (url: string, options?: MediaFromURLOptions) => Promise<MessageMedia>
     }
 
-    export type MessageContent = string | MessageMedia | Location | Poll | Contact | Contact[] | List | Buttons
+    export type MessageContent = string | MessageMedia | Location | Poll | Contact | Contact[]
 
     /**
      * Represents a Contact on WhatsApp
@@ -1518,7 +1518,7 @@ declare namespace WAWebJS {
             message: string;
             isInviteV4Sent: boolean,
         }
-    };
+    }
 
     /** An object that handles options for adding participants */
     export interface AddParticipantsOptions {

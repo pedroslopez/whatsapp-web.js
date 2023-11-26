@@ -236,14 +236,14 @@ exports.LoadUtils = () => {
             delete options.location;
         }
 
-        let pollOptions = {};
+        let _pollOptions = {};
         if (options.poll) {
-            const { pollName, _pollOptions } = options.poll;
+            const { pollName, pollOptions } = options.poll;
             const { allowMultipleAnswers, messageSecret } = options.poll.options;
-            pollOptions = {
+            _pollOptions = {
                 type: !isChannel ? 'poll_creation' : 'pollCreation',
                 pollName: pollName,
-                pollOptions: _pollOptions,
+                pollOptions: pollOptions,
                 pollSelectableOptionsCount: allowMultipleAnswers ? 0 : 1,
                 messageSecret:
                     Array.isArray(messageSecret) && messageSecret.length === 32
@@ -342,7 +342,7 @@ exports.LoadUtils = () => {
             ...(mediaOptions.toJSON ? mediaOptions.toJSON() : {}),
             ...quotedMsgOptions,
             ...locationOptions,
-            ...pollOptions,
+            ..._pollOptions,
             ...vcardOptions,
             ...extraOptions
         };
