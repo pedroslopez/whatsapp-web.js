@@ -191,7 +191,7 @@ class GroupChat extends Chat {
      */
     async removeParticipants(participantIds) {
         return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
-            const chat = await window.WWebJS.getChatOrChannel(chatId, { getAsModel: false });
+            const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             const participants = participantIds.map(p => {
                 return chat.groupMetadata.participants.get(p);
             }).filter(p => Boolean(p));
@@ -207,7 +207,7 @@ class GroupChat extends Chat {
      */
     async promoteParticipants(participantIds) {
         return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
-            const chat = await window.WWebJS.getChatOrChannel(chatId, { getAsModel: false });
+            const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             const participants = participantIds.map(p => {
                 return chat.groupMetadata.participants.get(p);
             }).filter(p => Boolean(p));
@@ -223,7 +223,7 @@ class GroupChat extends Chat {
      */
     async demoteParticipants(participantIds) {
         return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
-            const chat = await window.WWebJS.getChatOrChannel(chatId, { getAsModel: false });
+            const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             const participants = participantIds.map(p => {
                 return chat.groupMetadata.participants.get(p);
             }).filter(p => Boolean(p));
@@ -432,7 +432,7 @@ class GroupChat extends Chat {
      */
     async leave() {
         await this.client.pupPage.evaluate(async chatId => {
-            const chat = await window.WWebJS.getChatOrChannel(chatId, { getAsModel: false });
+            const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             return window.Store.GroupUtils.sendExitGroup(chat);
         }, this.id._serialized);
     }

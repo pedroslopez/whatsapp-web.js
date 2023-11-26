@@ -669,8 +669,8 @@ class Client extends EventEmitter {
             window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
             window.Store.Conn.on('change:battery', (state) => { window.onBatteryStateChangedEvent(state); });
             window.Store.Call.on('add', (call) => { window.onIncomingCall(call); });
-            window.Store.Chat.on('remove', async (chat) => { window.onRemoveChatEvent(await window.WWebJS.getChatOrChannelModel(chat)); });
-            window.Store.Chat.on('change:archive', async (chat, currState, prevState) => { window.onArchiveChatEvent(await window.WWebJS.getChatOrChannelModel(chat), currState, prevState); });
+            window.Store.Chat.on('remove', async (chat) => { window.onRemoveChatEvent(await window.WWebJS.getChatModel(chat)); });
+            window.Store.Chat.on('change:archive', async (chat, currState, prevState) => { window.onArchiveChatEvent(await window.WWebJS.getChatModel(chat), currState, prevState); });
             window.Store.Msg.on('add', (msg) => { 
                 if (msg.isNewMsg) {
                     if(msg.type === 'ciphertext') {
@@ -893,7 +893,7 @@ class Client extends EventEmitter {
         }
 
         const sentMsg = await this.pupPage.evaluate(async (chatOrChannelId, content, options, sendSeen) => {
-            const chatOrChannel = await window.WWebJS.getChatOrChannel(chatOrChannelId, { getAsModel: false });
+            const chatOrChannel = await window.WWebJS.getChat(chatOrChannelId, { getAsModel: false });
 
             if (!chatOrChannel) return null;
 
@@ -985,7 +985,7 @@ class Client extends EventEmitter {
      */
     async getChatById(chatId) {
         let chat = await this.pupPage.evaluate(async chatId => {
-            return await window.WWebJS.getChatOrChannel(chatId);
+            return await window.WWebJS.getChat(chatId);
         }, chatId);
 
         return chat
@@ -1039,7 +1039,7 @@ class Client extends EventEmitter {
                     throw err;
                 }
             }
-            return await window.WWebJS.getChatOrChannel(channelId);
+            return await window.WWebJS.getChat(channelId);
         }, channelId, options);
 
         return result ? (options.getMetadata ? result : ChatFactory.create(this, result)) : result;
@@ -1061,7 +1061,7 @@ class Client extends EventEmitter {
                 if (err.name === 'ServerStatusCodeError') return null;
                 throw err;
             }
-            return await window.WWebJS.getChatOrChannel(channelMetadata.id);
+            return await window.WWebJS.getChat(channelMetadata.id);
         }, inviteCode, options);
 
         return result ? (options.getMetadata ? result : ChatFactory.create(this, result)) : result;
@@ -1234,7 +1234,7 @@ class Client extends EventEmitter {
      */
     async archiveChat(chatId) {
         return await this.pupPage.evaluate(async chatId => {
-            let chat = await window.WWebJS.getChatOrChannel(chatId, { getAsModel: false });
+            let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             await window.Store.Cmd.archiveChat(chat, true);
             return true;
         }, chatId);
@@ -1246,7 +1246,7 @@ class Client extends EventEmitter {
      */
     async unarchiveChat(chatId) {
         return await this.pupPage.evaluate(async chatId => {
-            let chat = await window.WWebJS.getChatOrChannel(chatId, { getAsModel: false });
+            let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             await window.Store.Cmd.archiveChat(chat, false);
             return false;
         }, chatId);
@@ -1258,7 +1258,7 @@ class Client extends EventEmitter {
      */
     async pinChat(chatId) {
         return this.pupPage.evaluate(async chatId => {
-            let chat = await window.WWebJS.getChatOrChannel(chatId, { getAsModel: false });
+            let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             if (chat.pin) {
                 return true;
             }
@@ -1281,7 +1281,7 @@ class Client extends EventEmitter {
      */
     async unpinChat(chatId) {
         return this.pupPage.evaluate(async chatId => {
-            let chat = await window.WWebJS.getChatOrChannel(chatId, { getAsModel: false });
+            let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             if (!chat.pin) {
                 return false;
             }
@@ -1298,7 +1298,7 @@ class Client extends EventEmitter {
     async muteChat(chatId, unmuteDate) {
         unmuteDate = unmuteDate ? unmuteDate.getTime() / 1000 : -1;
         await this.pupPage.evaluate(async (chatId, timestamp) => {
-            let chat = await window.WWebJS.getChatOrChannel(chatId, { getAsModel: false });
+            let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             await chat.mute.mute({expiration: timestamp, sendDevice:!0});
         }, chatId, unmuteDate || -1);
     }
@@ -1309,7 +1309,7 @@ class Client extends EventEmitter {
      */
     async unmuteChat(chatId) {
         await this.pupPage.evaluate(async chatId => {
-            let chat = await window.WWebJS.getChatOrChannel(chatId, { getAsModel: false });
+            let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             await window.Store.Cmd.muteChat(chat, false);
         }, chatId);
     }
@@ -1320,7 +1320,7 @@ class Client extends EventEmitter {
      */
     async markChatUnread(chatId) {
         await this.pupPage.evaluate(async chatId => {
-            let chat = await window.WWebJS.getChatOrChannel(chatId, { getAsModel: false });
+            let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             await window.Store.Cmd.markChatUnread(chat, true);
         }, chatId);
     }
@@ -1692,7 +1692,7 @@ class Client extends EventEmitter {
             const channels = (await window.Store.ChannelUtils.fetchNewsletterDirectories(searchOptions)).newsletters;
             limit !== 50 && window.injectToFunction({ module: 'getNewsletterDirectoryPageSize', index: 0, function: 'getNewsletterDirectoryPageSize' }, (func, ...args) => func(args));
             return channels
-                ? await Promise.all(channels.map((channel) => window.WWebJS.getChatOrChannelModel(channel, { isChannel: true })))
+                ? await Promise.all(channels.map((channel) => window.WWebJS.getChatModel(channel, { isChannel: true })))
                 : [];
         }, searchOptions);
     }

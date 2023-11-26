@@ -193,7 +193,7 @@ class Chat extends Base {
                 return true;
             };
 
-            const chat = await window.WWebJS.getChatOrChannel(chatId, { getAsModel: false });
+            const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             let msgs = chat.msgs.getModelsArray().filter(msgFilter);
 
             if (searchOptions && searchOptions.limit > 0) {

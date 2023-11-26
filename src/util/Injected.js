@@ -181,7 +181,7 @@ exports.LoadUtils = () => {
     window.WWebJS = {};
 
     window.WWebJS.sendSeen = async (chatId) => {
-        let chat = await window.WWebJS.getChatOrChannel(chatId, { getAsModel: false });
+        let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
         if (chat !== undefined) {
             await window.Store.SendSeen.sendSeen(chat, false);
             return true;
@@ -519,21 +519,21 @@ exports.LoadUtils = () => {
         return msg;
     };
 
-    window.WWebJS.getChatOrChannel = async (chatOrChannelId, { getAsModel = true } = {}) => {
-        const isChannel = chatOrChannelId.match(/@(.+)/)[1] === 'newsletter';
-        let chatOrChannel;
+    window.WWebJS.getChat = async (chatId, { getAsModel = true } = {}) => {
+        const isChannel = chatId.match(/@(.+)/)[1] === 'newsletter';
+        let chat;
 
         if (isChannel) {
-            chatOrChannel = window.Store.NewsletterCollection.get(chatOrChannelId) ??
-                await window.Store.ChannelUtils.queryAndUpdateNewsletterMetadataAction(chatOrChannelId);
+            chat = window.Store.NewsletterCollection.get(chatId) ??
+                await window.Store.ChannelUtils.queryAndUpdateNewsletterMetadataAction(chatId);
         } else {
-            const chatWid = window.Store.WidFactory.createWid(chatOrChannelId);
-            chatOrChannel = window.Store.Chat.get(chatWid) ?? await window.Store.Chat.find(chatWid);
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            chat = window.Store.Chat.get(chatWid) ?? await window.Store.Chat.find(chatWid);
         }
 
-        return getAsModel && chatOrChannel
-            ? await window.WWebJS.getChatOrChannelModel(chatOrChannel, { isChannel: isChannel })
-            : chatOrChannel;
+        return getAsModel && chat
+            ? await window.WWebJS.getChatModel(chat, { isChannel: isChannel })
+            : chat;
     };
 
     window.WWebJS.getChannelMetadata = async (idOrInviteCode, { getById, getByInviteCode }) => {
@@ -570,44 +570,44 @@ exports.LoadUtils = () => {
 
     window.WWebJS.getChats = async () => {
         const chats = window.Store.Chat.getModelsArray();
-        const chatPromises = chats.map(chat => window.WWebJS.getChatOrChannelModel(chat));
+        const chatPromises = chats.map(chat => window.WWebJS.getChatModel(chat));
         return await Promise.all(chatPromises);
     };
 
     window.WWebJS.getChannels = async () => {
         const channels = window.Store.NewsletterCollection.getModelsArray();
-        const channelPromises = channels.map((channel) => window.WWebJS.getChatOrChannelModel(channel, { isChannel: true }));
+        const channelPromises = channels.map((channel) => window.WWebJS.getChatModel(channel, { isChannel: true }));
         return await Promise.all(channelPromises);
     };
 
-    window.WWebJS.getChatOrChannelModel = async (chatOrChannel, { isChannel = false } = {}) => {
-        if (!chatOrChannel) return null;
+    window.WWebJS.getChatModel = async (chat, { isChannel = false } = {}) => {
+        if (!chat) return null;
 
-        const model = chatOrChannel.serialize();
-        model.isGroup = chatOrChannel.isGroup;
-        model.isMuted = chatOrChannel.mute && chatOrChannel.mute.isMuted;
+        const model = chat.serialize();
+        model.isGroup = chat.isGroup;
+        model.isMuted = chat.mute && chat.mute.isMuted;
         if (isChannel) {
-            model.isChannel = chatOrChannel.isNewsletter;
+            model.isChannel = chat.isNewsletter;
         } else {
-            model.formattedTitle = chatOrChannel.formattedTitle;
+            model.formattedTitle = chat.formattedTitle;
         }
 
-        if (chatOrChannel.groupMetadata) {
-            const chatWid = window.Store.WidFactory.createWid((chatOrChannel.id._serialized));
+        if (chat.groupMetadata) {
+            const chatWid = window.Store.WidFactory.createWid((chat.id._serialized));
             await window.Store.GroupMetadata.update(chatWid);
-            model.groupMetadata = chatOrChannel.groupMetadata.serialize();
+            model.groupMetadata = chat.groupMetadata.serialize();
         }
 
-        if (chatOrChannel.newsletterMetadata) {
-            await window.Store.NewsletterMetadataCollection.update(chatOrChannel.id);
-            chatOrChannel.channelMetadata = chatOrChannel.newsletterMetadata.serialize();
-            chatOrChannel.channelMetadata.createdAtTs = chatOrChannel.newsletterMetadata.creationTime;
+        if (chat.newsletterMetadata) {
+            await window.Store.NewsletterMetadataCollection.update(chat.id);
+            chat.channelMetadata = chat.newsletterMetadata.serialize();
+            chat.channelMetadata.createdAtTs = chat.newsletterMetadata.creationTime;
         }
 
         model.lastMessage = null;
         if (model.msgs && model.msgs.length) {
-            const lastMessage = chatOrChannel.lastReceivedKey
-                ? window.Store.Msg.get(chatOrChannel.lastReceivedKey)
+            const lastMessage = chat.lastReceivedKey
+                ? window.Store.Msg.get(chat.lastReceivedKey)
                 : null;
             lastMessage && (model.lastMessage = window.WWebJS.getMessageModel(lastMessage));
         }
@@ -781,7 +781,7 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.sendClearChat = async (chatId) => {
-        let chat = await window.WWebJS.getChatOrChannel(chatId, { getAsModel: false });
+        let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
         if (chat !== undefined) {
             await window.Store.SendClear.sendClear(chat, false);
             return true;
@@ -790,7 +790,7 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.sendDeleteChat = async (chatId) => {
-        let chat = await window.WWebJS.getChatOrChannel(chatId, { getAsModel: false });
+        let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
         if (chat !== undefined) {
             await window.Store.SendDelete.sendDelete(chat);
             return true;
@@ -837,7 +837,7 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getChatLabels = async (chatId) => {
-        const chat = await window.WWebJS.getChatOrChannel(chatId);
+        const chat = await window.WWebJS.getChat(chatId);
         return (chat.labels || []).map(id => window.WWebJS.getLabel(id));
     };
 

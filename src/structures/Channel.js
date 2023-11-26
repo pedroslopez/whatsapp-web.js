@@ -122,7 +122,7 @@ class Channel extends Base {
      */
     async getSubscribers(limit) {
         return await this.client.pupPage.evaluate(async (channelId, limit) => {
-            const channel = await window.WWebJS.getChatOrChannel(channelId, { getAsModel: false });
+            const channel = await window.WWebJS.getChat(channelId, { getAsModel: false });
             if (!channel) return [];
             !limit && (limit = window.Store.ChannelSubscribers.getMaxSubscriberNumber());
             const response = await window.Store.ChannelSubscribers.mexFetchNewsletterSubscribers(channelId, limit);
@@ -235,7 +235,7 @@ class Channel extends Base {
      */
     async deleteChannel() {
         return await this.client.pupPage.evaluate(async (channelId) => {
-            const channel = await window.WWebJS.getChatOrChannel(channelId, { getAsModel: false });
+            const channel = await window.WWebJS.getChat(channelId, { getAsModel: false });
             if (!channel) return false;
             try {
                 await window.Store.ChannelUtils.deleteNewsletterAction(channel);
@@ -255,7 +255,7 @@ class Channel extends Base {
      */
     async _setChannelMetadata(value, property) {
         return await this.client.pupPage.evaluate(async (channelId, value, property) => {
-            const channel = await window.WWebJS.getChatOrChannel(channelId, { getAsModel: false });
+            const channel = await window.WWebJS.getChat(channelId, { getAsModel: false });
             if (!channel) return false;
             if (property.editPicture) {
                 value.picture = value.picture
