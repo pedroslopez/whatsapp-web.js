@@ -985,13 +985,15 @@ declare namespace WAWebJS {
     }
 
     /** Represents a Poll on WhatsApp */
-    export interface Poll {
-        pollName: string,
+    export class Poll {
+        pollName: string
         pollOptions: Array<{
             name: string,
             localId: number
-        }>,
+        }>
         options: PollSendOptions
+
+        constructor(pollName: string, pollOptions: Array<string>, options?: PollSendOptions)
     }
 
     export interface Label {
