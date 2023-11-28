@@ -94,7 +94,12 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('getMembershipApprovalRequests')[0],
         ...window.mR.findModule('sendMembershipRequestsActionRPC')[0]
     };
-
+    const _getLinkPreview = window.mR.findModule('getLinkPreview');
+    if (_getLinkPreview && _getLinkPreview[0].getLinkPreview && _getLinkPreview[0].getLinkPreview.length === 0) {
+        window.Store.getLinkPreview = _getLinkPreview[0].getLinkPreview;
+    } else {
+        window.Store.getLinkPreview = () => null;
+    }
     if (!window.Store.Chat._find) {
         window.Store.Chat._find = e => {
             const target = window.Store.Chat.get(e);
@@ -267,6 +272,17 @@ exports.LoadUtils = () => {
             } catch (_) {
                 // not a vcard
             }
+        } else {
+                const link = window.Store.Validators.findLink(content);
+                if (link) {
+                    try {
+                        const preview = await window.Store.getLinkPreview(link);
+                        if (preview) {
+                            preview.data.subtype = 'url';
+                            options = { ...options, ...preview.data };
+                        }
+                    } catch { /** empty */ }
+                }
         }
 
         if (options.linkPreview) {
