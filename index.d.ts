@@ -1479,8 +1479,21 @@ declare namespace WAWebJS {
         /** The community default subgroup (announcement group) */
         defaultSubgroup: ChatId;
 
-        /** Gets all current community subgroups */
+        /**
+         * Gets all current community subgroups in a case when the current user is a community owner/admin,
+         * else gets only those subgroups where the current user is a member in
+         */
         getSubgroups: () => Promise<Array<ChatId>>;
+
+        /** Gets all community subgroups the current user is a member of */
+        getJoinedSubgroups: () => Promise<Array<ChatId>>;
+
+        /**
+         * Gets all community subgroups in which the current user is not yet a member,
+         * preferable to use in a case when the current user is not a community owner/admin but only a member,
+         * otherwise, the result will be an empty array
+         */
+        getUnjoinedSubgroups: () => Promise<Array<ChatId>>;
 
         /**
          * Gets the full list of community participants and updates the community groupMetadata

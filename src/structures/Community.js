@@ -39,13 +39,38 @@ class Community extends GroupChat {
     }
 
     /**
-     * Gets all current community subgroups
+     * Gets all current community subgroups in a case when the current user is a community owner/admin,
+     * else gets only those subgroups where the current user is a member in
      * @returns {Promise<Array<ChatId>>} Returns an array of @type {ChatId} objects
      */
     async getSubgroups() {
         return await this.client.pupPage.evaluate((communityId) => {
             const communityWid = window.Store.WidFactory.createWid(communityId);
             return window.Store.CommunityUtils.getSubgroups(communityWid);
+        }, this.id._serialized);
+    }
+
+    /**
+     * Gets all community subgroups the current user is a member of
+     * @returns {Promise<Array<ChatId>>} Returns an array of @type {ChatId} objects
+     */
+    async getJoinedSubgroups() {
+        return await this.client.pupPage.evaluate((communityId) => {
+            const communityWid = window.Store.WidFactory.createWid(communityId);
+            return window.Store.CommunityUtils.getJoinedSubgroups(communityWid);
+        }, this.id._serialized);
+    }
+
+    /**
+     * Gets all community subgroups in which the current user is not yet a member,
+     * preferable to use in a case when the current user is not a community owner/admin but only a member,
+     * otherwise, the result will be an empty array
+     * @returns {Promise<Array<ChatId>>} Returns an array of @type {ChatId} objects
+     */
+    async getUnjoinedSubgroups() {
+        return await this.client.pupPage.evaluate((communityId) => {
+            const communityWid = window.Store.WidFactory.createWid(communityId);
+            return window.Store.CommunityUtils.getUnjoinedSubgroups(communityWid);
         }, this.id._serialized);
     }
 
