@@ -1583,6 +1583,8 @@ declare namespace WAWebJS {
                 message: string;
             }[];
         };
+        /** An object that handels the ID of a community default subgroup */
+        defaultSubgroup: ChatId;
         /** The timestamp of a community creation */
         createdAtTs: number;
     }

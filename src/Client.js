@@ -1426,9 +1426,13 @@ class Client extends EventEmitter {
      * @property {Object} subGroupIds An object that handles information about groups that were attempted to be linked to the community
      * @property {Array<string>} subGroupIds.linkedGroupIds An array of group IDs that were successfully linked
      * @property {Array<Object>} subGroupIds.failedGroups An object that handles groups that failed to be linked to the community and an information about it
-     * @property {string} subGroupIds.failedGroups[].groupId The group ID, in a format of 'xxxxxxxxxx@g.us'
+     * @property {string} subGroupIds.failedGroups[].groupId The group ID, in a format of 'XXXXXXXXXX@g.us'
      * @property {number} subGroupIds.failedGroups[].error The code of an error
      * @property {string} subGroupIds.failedGroups[].message The message that describes an error
+     * @property {ChatId} defaultSubgroup An object that handels the ID of a community default subgroup
+     * @property {string} defaultSubgroup.server
+     * @property {string} defaultSubgroup.user
+     * @property {string} defaultSubgroup._serialized
      * @property {number} createdAtTs The timestamp of a community creation
      */
 
@@ -1480,6 +1484,7 @@ class Client extends EventEmitter {
                 title: name,
                 cid: createCommunityResult.wid,
                 ...(subGroupIds ? { subGroupIds: linkingSubGroupsResult } : {}),
+                defaultSubgroup: await window.Store.CommunityUtils.getDefaultSubgroup(createCommunityResult.wid),
                 createdAtTs: createCommunityResult.ts
             };
         }, title, options);
