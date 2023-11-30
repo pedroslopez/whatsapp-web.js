@@ -23,6 +23,9 @@ declare namespace WAWebJS {
         /** Accepts a private invitation to join a group (v4 invite) */
         acceptGroupV4Invite: (inviteV4: InviteV4Data) => Promise<{status: number}>
 
+        /** Joins a community subgroup by community ID and a subgroup ID */
+        joinSubgroup: (communityId: string, subGroupId: string) => Promise<JoinGroupResponse>;
+
         /**Returns an object with information about the invite code's group */
         getInviteInfo(inviteCode: string): Promise<object>
 
@@ -1341,6 +1344,12 @@ declare namespace WAWebJS {
         isSuperAdmin: boolean
     }
 
+    export interface JoinGroupResponse {
+        gid?: ChatId,
+        code: number,
+        message: string
+    }
+
     /** Promotes or demotes participants by IDs to regular users or admins */
     export type ChangeParticipantsPermissions = 
         (participantIds: Array<string>) => Promise<{ status: number }>
@@ -1518,6 +1527,9 @@ declare namespace WAWebJS {
             subGroupIds: string | Array<string>,
             options?: UnlinkSubGroupsOptions
         ) => Promise<UnlinkSubGroupsResult>;
+
+        /** Joins a community subgroup by community ID and a subgroup ID */
+        joinSubgroup: (subGroupId: string) => Promise<JoinGroupResponse>;
 
         /**
          * Removes participants from the community

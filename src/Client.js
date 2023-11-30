@@ -1027,6 +1027,54 @@ class Client extends EventEmitter {
     }
 
     /**
+     * @typedef {Object} JoinGroupResponse
+     * @property {?ChatId} gid The group ID object
+     * @property {number} code A response code
+     * @property {string} message The message that explains a response
+     */
+
+    /**
+     * Joins a community subgroup by community ID and a subgroup ID
+     * @param {string} communityId The community ID
+     * @param {string} subGroupId The subgroup ID to join
+     * @returns {Promise<JoinGroupResponse>} Returns an object that handles the result of an operation
+     */
+    async joinSubgroup(communityId, subGroupId) {
+        return await this.pupPage.evaluate(async (communityId, subGroupId) => {
+            const communityWid = window.Store.WidFactory.createWid(communityId);
+            const subGroupWid = window.Store.WidFactory.createWid(subGroupId);
+            const responseCodes = {
+                default: 'An unknown error occupied while joining a subgroup',
+                200: 'The membership request was sent or you joined the subgroup successfully',
+                304: 'The membership request was already sent',
+                404: 'You can\'t join this subgroup because it no longer exists'
+            };
+
+            let response;
+            try {
+                response = await window.Store.CommunityUtils.joinSubgroup(
+                    communityWid,
+                    subGroupWid,
+                    'LINKED_SUBGROUP',
+                    true
+                );
+                return {
+                    gid: subGroupWid,
+                    code: response.status,
+                    message: responseCodes[response.status] || responseCodes.default
+                };
+            } catch (err) {
+                if (err.name !== 'ServerStatusCodeError') throw err;
+                return {
+                    gid: subGroupWid,
+                    code: err.status,
+                    message: responseCodes[err.status] || responseCodes.default
+                };
+            }
+        }, communityId, subGroupId);
+    }
+
+    /**
      * Sets the current user's status message
      * @param {string} status New status message
      */

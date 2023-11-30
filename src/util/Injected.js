@@ -90,7 +90,8 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('sendCreateCommunity')[0],
         ...window.mR.findModule('queryAndUpdateCommunityParticipants')[0],
         ...window.mR.findModule('getCommunityParticipants')[0],
-        ...window.mR.findModule('sendPromoteDemoteAdminRPC')[0]
+        ...window.mR.findModule('sendPromoteDemoteAdminRPC')[0],
+        ...window.mR.findModule(m => m.joinSubgroup && !m.joinAnnouncementGroup)[0]
     };
     window.Store.GroupInvite = {
         ...window.mR.findModule('resetGroupInviteCode')[0],

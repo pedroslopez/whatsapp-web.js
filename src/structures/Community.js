@@ -256,7 +256,23 @@ class Community extends GroupChat {
     }
 
     /**
-     * An object that handles the result for {@link removeParticipant} method
+     * @typedef {Object} JoinGroupResponse
+     * @property {?ChatId} gid The group ID object
+     * @property {number} code A response code
+     * @property {string} message The message that explains a response
+     */
+
+    /**
+     * Joins a community subgroup by community ID and a subgroup ID
+     * @param {string} subGroupId The subgroup ID to join
+     * @returns {Promise<JoinGroupResponse>} Returns an object that handles the result of an operation
+     */
+    async joinSubgroup(subGroupId) {
+        return this.client.joinSubgroup(this.id._serialized, subGroupId);
+    }
+
+    /**
+     * An object that handles the result for {@link removeParticipants} method
      * @typedef {Object} RemoveParticipantsResult
      * @property {number} code The code of the result
      * @property {string} message The result message
