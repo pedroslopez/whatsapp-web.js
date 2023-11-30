@@ -18,10 +18,10 @@ declare namespace WAWebJS {
         pupBrowser?: puppeteer.Browser
 
         /** Accepts an invitation code or a private invitation (inviteV4) to join a group or a community */
-        acceptInvite(invitation: string | InviteV4): Promise<AcceptInviteResponse>
+        acceptInvite(invitation: string | InviteV4): Promise<JoinGroupResponse>
 
         /** Accepts a private invitation (inviteV4) to join a group or a community */
-        acceptGroupV4Invite: (invitation: InviteV4) => Promise<AcceptInviteResponse>
+        acceptGroupV4Invite: (invitation: InviteV4) => Promise<JoinGroupResponse>
 
         /**Returns an object with information about the invite code's group */
         getInviteInfo(inviteCode: string): Promise<object>
@@ -899,7 +899,7 @@ declare namespace WAWebJS {
         */
         reload: () => Promise<Message>,
         /** Accepts a private invitation (inviteV4) to join a group or a community */
-        acceptGroupV4Invite: () => Promise<AcceptInviteResponse>,
+        acceptGroupV4Invite: () => Promise<JoinGroupResponse>,
         /** Deletes the message from the chat */
         delete: (everyone?: boolean) => Promise<void>,
         /** Downloads and returns the attached message media */
@@ -1409,7 +1409,7 @@ declare namespace WAWebJS {
         inviteCodeExp: number
     }
 
-    export interface AcceptInviteResponse {
+    export interface JoinGroupResponse {
         gid?: ChatId,
         code: number,
         message: string

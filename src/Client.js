@@ -999,7 +999,7 @@ class Client extends EventEmitter {
     }
 
     /**
-     * @typedef {Object} AcceptInviteResponse
+     * @typedef {Object} JoinGroupResponse
      * @property {?ChatId} gid The group ID object
      * @property {number} code An error code
      * @property {string} message The message that explains a response
@@ -1016,7 +1016,7 @@ class Client extends EventEmitter {
     /**
      * Accepts an invitation code or a private invitation (inviteV4) to join a group or a community
      * @param {string|InviteV4} invitation Invitation code or a private invitation (inviteV4) object
-     * @returns {Promise<AcceptInviteResponse>} Returns an object that handles the result of an operation
+     * @returns {Promise<JoinGroupResponse>} Returns an object that handles the result of an operation
      */
     async acceptInvite(invitation) {
         return await this.pupPage.evaluate(async (invitation) => {
@@ -1091,7 +1091,7 @@ class Client extends EventEmitter {
     /**
      * Accepts a private invitation (inviteV4) to join a group or a community
      * @param {InviteV4} invitation A private invitation (inviteV4)
-     * @returns {Promise<AcceptInviteResponse>}
+     * @returns {Promise<JoinGroupResponse>}
      */
     async acceptGroupV4Invite(invitation) {
         return this.acceptInvite(invitation);
