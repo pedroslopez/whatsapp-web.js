@@ -440,7 +440,7 @@ declare namespace WAWebJS {
         /** User agent to use in puppeteer.
          * @default 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36' */
         userAgent?: string
-        /** Ffmpeg path to use when formating videos to webp while sending stickers 
+        /** Ffmpeg path to use when formatting videos to webp while sending stickers 
          * @default 'ffmpeg' */
         ffmpegPath?: string,
         /** Object with proxy autentication requirements @default: undefined */
