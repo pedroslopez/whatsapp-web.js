@@ -143,6 +143,27 @@ declare namespace WAWebJS {
          * @param displayName New display name
          */
         setDisplayName(displayName: string): Promise<boolean>
+        
+        /**
+         * Changes the autoload Audio
+         * @param flag true/false on or off
+         */
+        setAutoDownloadAudio(flag: boolean): Promise<void>
+        /**
+         * Changes the autoload Documents
+         * @param flag true/false on or off
+         */
+        setAutoDownloadDocuments(flag: boolean): Promise<void>
+        /**
+         * Changes the autoload Photos
+         * @param flag true/false on or off
+         */
+        setAutoDownloadPhotos(flag: boolean): Promise<void>
+        /**
+         * Changes the autoload Videos
+         * @param flag true/false on or off
+         */
+        setAutoDownloadVideos(flag: boolean): Promise<void>
                 
         /** Changes and returns the archive state of the Chat */
         unarchiveChat(chatId: string): Promise<boolean>
@@ -707,6 +728,7 @@ declare namespace WAWebJS {
         PROTOCOL = 'protocol',
         REACTION = 'reaction',
         TEMPLATE_BUTTON_REPLY = 'template_button_reply',
+        POLL_CREATION = 'poll_creation',
     }
 
     /** Client status */
@@ -866,6 +888,11 @@ declare namespace WAWebJS {
         selectedRowId?: string,
         /** Returns message in a raw format */
         rawData: object,
+        pollName: string,
+        /** Avaiaible poll voting options */
+        pollOptions: string[],
+        /** False for a single choice poll, true for a multiple choice poll */
+        allowMultipleAnswers: boolean,
         /* 
         * Reloads this Message object's data in-place with the latest values from WhatsApp Web. 
         * Note that the Message must still be in the web app cache for this to work, otherwise will return null.
@@ -944,6 +971,29 @@ declare namespace WAWebJS {
         options?: LocationSendOptions;
         
         constructor(latitude: number, longitude: number, options?: LocationSendOptions)
+    }
+
+    /** Poll send options */
+    export interface PollSendOptions {
+        /** False for a single choice poll, true for a multiple choice poll (false by default) */
+        allowMultipleAnswers?: boolean,
+        /**
+         * The custom message secret, can be used as a poll ID
+         * @note It has to be a unique vector with a length of 32
+         */
+        messageSecret: Array<number>|undefined
+    }
+
+    /** Represents a Poll on WhatsApp */
+    export class Poll {
+        pollName: string
+        pollOptions: Array<{
+            name: string,
+            localId: number
+        }>
+        options: PollSendOptions
+
+        constructor(pollName: string, pollOptions: Array<string>, options?: PollSendOptions)
     }
 
     export interface Label {
@@ -1037,7 +1087,7 @@ declare namespace WAWebJS {
         static fromUrl: (url: string, options?: MediaFromURLOptions) => Promise<MessageMedia>
     }
 
-    export type MessageContent = string | MessageMedia | Location | Contact | Contact[] | List | Buttons
+    export type MessageContent = string | MessageMedia | Location | Poll | Contact | Contact[] | List | Buttons
 
     /**
      * Represents a Contact on WhatsApp
@@ -1293,7 +1343,7 @@ declare namespace WAWebJS {
             code: number;
             message: string;
             isInviteV4Sent: boolean,
-        };
+        }
     };
 
     /** An object that handles options for adding participants */
@@ -1362,7 +1412,7 @@ declare namespace WAWebJS {
         /** Group participants */
         participants: Array<GroupParticipant>;
         /** Adds a list of participants by ID to the group */
-        addParticipants: (participantIds: string|string[], options?: AddParticipantsOptions) => Promise<Object.<string, AddParticipantsResult>|string>;
+        addParticipants: (participantIds: string | string[], options?: AddParticipantsOptions) => Promise<{ [key: string]: AddParticipantsResult } | string>;
         /** Removes a list of participants by ID to the group */
         removeParticipants: (participantIds: string[]) => Promise<{ status: number }>;
         /** Promotes participants by IDs to admins */
