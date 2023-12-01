@@ -388,7 +388,7 @@ exports.LoadUtils = () => {
             const result = await window.WWebJS.forwardMediaMessage(chat, msg, options);
             return result.messageSendResult === 'OK';
         }
-        const forwardedMsgFields = window.Store.ForwardMessageUtils.getForwardedMessageFields(msg);
+        const forwardedMsgFields = window.Store.ForwardMessageUtils.getForwardedMessageFields(msg, chat);
         const meUser = window.Store.User.getMaybeMeUser();
         let participant;
         chat.isGroup && (participant = window.Store.WidFactory.toUserWid(meUser));
