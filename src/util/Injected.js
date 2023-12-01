@@ -204,7 +204,7 @@ exports.LoadUtils = () => {
                     forceDocument: options.sendMediaAsDocument,
                     sendToChannel: isChannel
                 });
-            options.caption && (mediaOptions.caption = options.caption);
+            mediaOptions.caption = options.caption;
             content = options.sendMediaAsSticker ? undefined : mediaOptions.preview;
             mediaOptions.isViewOnce = options.isViewOnce;
             delete options.media;
