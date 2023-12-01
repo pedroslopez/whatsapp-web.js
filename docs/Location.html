@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.22.1 &raquo; Class: Location</title>
+  <title>whatsapp-web.js 1.23.0 &raquo; Class: Location</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>22.<wbr>1</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>23.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -26,7 +26,7 @@
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
             <h1><small></small><span class="symbol-name">Location</span></h1>
-            <p class="source-link">Source: <a href="structures_Location.js.html#source-line-6">structures/<wbr>Location.<wbr>js:6</a></p>
+            <p class="source-link">Source: <a href="structures_Location.js.html#source-line-14">structures/<wbr>Location.<wbr>js:14</a></p>
             <div class="symbol-classdesc">
               <p>Location information</p>
             </div>
@@ -39,6 +39,9 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Location.html#address">address</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Location.html#description">description</a></dt>
                     <dd>
                     </dd>
@@ -49,11 +52,17 @@
                     <dt><a href="Location.html#latitude">latitude</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Location.html#longitude">longitude</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Location.html#longitude">longitude</a></dt>
+                    <dt><a href="Location.html#name">name</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Location.html#url">url</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -62,7 +71,7 @@
             </div>
           </section>
           <section>
-            <h2 id="Location">new&nbsp;<span class="symbol-name">Location</span><span class="signature"><span class="signature-params">(latitude, longitude, description)</span></span></h2>
+            <h2 id="Location">new&nbsp;<span class="symbol-name">Location</span><span class="signature"><span class="signature-params">(latitude, longitude[, options])</span></span></h2>
             <section>
               <h3>Parameters</h3>
               <table class="jsdoc-details-table">
@@ -103,16 +112,16 @@
                   </tr>
                   <tr>
                     <td>
-                      <p>description</p>
+                      <p>options</p>
                     </td>
                     <td>
                       <p>&nbsp;</p>
                     </td>
                     <td>
-                      <p>&nbsp;</p>
+                      <p>Yes</p>
                     </td>
                     <td>
-                      <p>Value can be null.</p>
+                      <p>Location send options</p>
                     </td>
                   </tr>
                 </tbody>
@@ -124,9 +133,14 @@
           <section>
             <h2>Properties</h2>
             <section>
+              <h3 id="address"><span class="symbol-name">address</span><small class="property-type">
+                  &nbsp;(string or undefined)</small></h3>
+              <p>Location address</p>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="description"><span class="symbol-name">description</span><small class="property-type">
-                  &nbsp;nullable string</small></h3>
-              <p>Name for the location</p>
+                  &nbsp;(string or undefined)</small></h3>
+              <p>Location full description</p>
               <dl class="dl-compact">
               </dl>
               <h3 id="latitude"><span class="symbol-name">latitude</span><small class="property-type">
@@ -139,6 +153,16 @@
               <p>Location longitude</p>
               <dl class="dl-compact">
               </dl>
+              <h3 id="name"><span class="symbol-name">name</span><small class="property-type">
+                  &nbsp;(string or undefined)</small></h3>
+              <p>Name for the location</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="url"><span class="symbol-name">url</span><small class="property-type">
+                  &nbsp;(string or undefined)</small></h3>
+              <p>URL address to be shown within a location message</p>
+              <dl class="dl-compact">
+              </dl>
             </section>
           </section>
         </div>
@@ -149,7 +173,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on August 10, 2023.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on October 21, 2023.
       </p>
     </div>
   </footer>
