@@ -1743,6 +1743,7 @@ declare namespace WAWebJS {
         senders: Array<Reaction>
     }
 
+
     export type StickerMetadata = {
         name?: string | undefined;
         author?: string | undefined;
@@ -1750,10 +1751,15 @@ declare namespace WAWebJS {
     }
 
     export class Util {
-        formatImageToWebpSticker: (media: MessageMedia) => Promise<MessageMedia>
-        formatVideoToWebpSticker: (media: MessageMedia) => Promise<MessageMedia>
-        formatToWebpSticker: (media: MessageMedia, metadata: StickerMetadata) => Promise<MessageMedia>
-        setFfmpegPath: (path: string) => void
+        private constructor();
+
+        static formatImageToWebpSticker(media: MessageMedia): Promise<MessageMedia>;
+
+        static formatVideoToWebpSticker(media: MessageMedia): Promise<MessageMedia>;
+    
+        static formatToWebpSticker(media: MessageMedia, metadata: StickerMetadata): Promise<MessageMedia>;
+    
+        static setFfmpegPath(path: string): void;
     }
 }
 
