@@ -850,7 +850,7 @@ declare namespace WAWebJS {
         /** MediaKey that represents the sticker 'ID' */
         mediaKey?: string,
         /** Indicates the mentions in the message body. */
-        mentionedIds: [],
+        mentionedIds: ChatId[],
         /** Indicates whether there are group mentions in the message body */
         groupMentions: {
             groupSubject: string;
@@ -1039,8 +1039,15 @@ declare namespace WAWebJS {
         caption?: string
         /** Id of the message that is being quoted (or replied to) */
         quotedMessageId?: string
-        /** Contacts that are being mentioned in the message */
-        mentions?: Contact[]
+        /** User IDs to mention in the message */
+        mentions?: string[]
+        /** An array of object that handle group mentions */
+        groupMentions?: {
+            /** The name of a group to mention (can be custom) */
+            subject: string,
+            /** The group ID, e.g.: 'XXXXXXXXXX@g.us' */
+            id: string
+        }[]
         /** Send 'seen' status */
         sendSeen?: boolean
         /** Media to be sent */

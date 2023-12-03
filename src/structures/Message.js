@@ -187,23 +187,30 @@ class Message extends Base {
         } : undefined;
 
         /**
-         * Indicates the mentions in the message body.
-         * @type {Array<string>}
+         * @typedef {Object} Mention
+         * @property {string} server
+         * @property {string} user
+         * @property {string} _serialized
          */
-        this.mentionedIds = [];
-
-        if (data.mentionedJidList) {
-            this.mentionedIds = data.mentionedJidList;
-        }
 
         /**
-         * Indicates whether there are group mentions in the message body
-         * @type {Object[]}
+         * Indicates the mentions in the message body.
+         * @type {Mention[]}
+         */
+        this.mentionedIds = data.mentionedJidList || [];
+
+        /**
+         * @typedef {Object} GroupMention
          * @property {string} groupSubject The name  of the group
-         * @property {object} groupJid The group ID
+         * @property {Object} groupJid The group ID
          * @property {string} groupJid.server
          * @property {string} groupJid.user
          * @property {string} groupJid._serialized
+         */
+
+        /**
+         * Indicates whether there are group mentions in the message body
+         * @type {GroupMention[]}
          */
         this.groupMentions = data.groupMentions || [];
 
