@@ -71,29 +71,13 @@ declare namespace WAWebJS {
         /** Get all current chat instances */
         getChats(): Promise<Chat[]>
 
-        /**
-         * Gets a {@link Channel} object or a {@link ChannelMetadata} by its ID as follows:
-         * 1. Channel the current user is subscribed to (SUBSCRIBER)
-         * 2. Channel the current user was subscribed to
-         *    and from which was unsubscribed
-         *    with the {@link UnsubscribeOptions.deleteLocalModels} set to 'false' (GUEST)
-         * 3. Channel the current user created (OWNER)
-         * 4. Channel the current user is admin in (ADMIN)
-         */
+        /** Gets a {@link Channel} object or a {@link ChannelMetadata} by its ID */
         getChannelById(channelId: string, options?: { getMetadata?: boolean }): Promise<Channel | ChannelMetadata>
 
         /** Gets a {@link Channel} object or a {@link ChannelMetadata} by invite code */
         getChannelByInviteCode(inviteCode: string, options?: { getMetadata?: boolean }): Promise<Channel | ChannelMetadata>
 
-        /**
-         * Gets all {@link Channel} objects as follows:
-         * 1. Channels the current user is subscribed to (SUBSCRIBER)
-         * 2. Channels the current user was subscribed to
-         *    and from which was unsubscribed
-         *    with the {@link UnsubscribeOptions.deleteLocalModels} set to 'false' (GUEST)
-         * 3. Channels the current user created (OWNER)
-         * 4. Channels the current user is admin in (ADMIN)
-         */
+        /** Gets all cached {@link Channel} objects */
         getChannels(): Promise<Channel[]>
 
         /** Get contact instance by ID */

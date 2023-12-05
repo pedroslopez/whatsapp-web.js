@@ -105,6 +105,7 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('muteNewsletter')[0],
         ...window.mR.findModule('unmuteNewsletter')[0],
         ...window.mR.findModule('isNewsletterCreationEnabled')[0],
+        ...window.mR.findModule('getRoleByIdentifier')[0],
         countryCodesIso: window.mR.findModule(m => m.default && m.default.US === 'United States')[0].default,
         currentRegion: window.mR.findModule(m => m.default && m.default.getRegion)[0].default.getRegion(),
     };
@@ -525,8 +526,24 @@ exports.LoadUtils = () => {
         let chat;
 
         if (isChannel) {
+            const fields = {
+                'name': true,
+                'picture': true,
+                'description': true,
+                'inviteLink': true,
+                'handle': true,
+                'subscribers': true,
+                'privacy': true,
+                'verification': true,
+                'state': true,
+                'muted': true,
+                'membership': true
+            };
             chat = window.Store.NewsletterCollection.get(chatId) ??
-                await window.Store.ChannelUtils.queryAndUpdateNewsletterMetadataAction(chatId);
+                await window.Store.ChannelUtils.queryAndUpdateNewsletterMetadataAction(
+                    chatId,
+                    { fields: fields }
+                );
         } else {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             chat = window.Store.Chat.get(chatWid) ?? await window.Store.Chat.find(chatWid);
@@ -539,18 +556,36 @@ exports.LoadUtils = () => {
 
     window.WWebJS.getChannelMetadata = async (idOrInviteCode, { getById, getByInviteCode }) => {
         let response;
-
+        
         if (getById) {
-            response = await window.Store.ChannelUtils.queryNewsletterMetadataByJid(idOrInviteCode, 'owner');
+            const fields = {
+                'name': true,
+                'picture': true,
+                'description': true,
+                'inviteLink': true,
+                'handle': true,
+                'subscribers': true,
+                'privacy': true,
+                'verification': true,
+                'state': true
+            };
+            response = await window.Store.ChannelUtils.queryNewsletterMetadataByJid(
+                idOrInviteCode,
+                window.Store.ChannelUtils.getRoleByIdentifier(idOrInviteCode),
+                fields
+            );
         } else if (getByInviteCode) {
-            response = await window.Store.ChannelUtils.queryNewsletterMetadataByInviteCode(idOrInviteCode, 'owner');
+            response = await window.Store.ChannelUtils.queryNewsletterMetadataByInviteCode(
+                idOrInviteCode,
+                window.Store.ChannelUtils.getRoleByIdentifier(idOrInviteCode)
+            );
         }
 
         const picUrl = response.newsletterPictureMetadataMixin.picture[0].queryPictureDirectPathOrMatchedOrEmptyResponseMixinGroup.value.directPath;
 
         return {
             id: response.idJid,
-            createdAtTs: response.newsletterCreationTimeMetadataMixin.creationTimeValue,
+            createdAtTs: response.newsletterCreationTimeMetadataMixin ? response.newsletterCreationTimeMetadataMixin.creationTimeValue : null,
             titleMetadata: {
                 title: response.newsletterNameMetadataMixin.nameElementValue,
                 updatedAtTs: response.newsletterNameMetadataMixin.nameUpdateTime
@@ -560,11 +595,11 @@ exports.LoadUtils = () => {
                 updatedAtTs: response.newsletterDescriptionMetadataMixin.descriptionQueryDescriptionResponseMixin.updateTime
             },
             inviteLink: `https://whatsapp.com/channel/${response.newsletterInviteLinkMetadataMixin.inviteCode}`,
-            membershipType: response.newsletterMembershipMetadataMixin.membershipType,
+            membershipType: response.newsletterMembershipMetadataMixin ? response.newsletterMembershipMetadataMixin.membershipType : null,
             stateType: response.newsletterStateMetadataMixin.stateType,
             pictureUrl: picUrl ? `https://pps.whatsapp.net${picUrl}` : null,
             subscribersCount: response.newsletterSubscribersMetadataMixin.subscribersCount,
-            isMuted: response.newsletterMutedMetadataMixin.mutedState === 'on',
+            isMuted: response.newsletterMutedMetadataMixin ? response.newsletterMutedMetadataMixin.mutedState === 'on' : null,
             isVerified: response.newsletterVerificationMetadataMixin.verificationState === 'verified'
         };
     };
@@ -601,8 +636,8 @@ exports.LoadUtils = () => {
 
         if (chat.newsletterMetadata) {
             await window.Store.NewsletterMetadataCollection.update(chat.id);
-            chat.channelMetadata = chat.newsletterMetadata.serialize();
-            chat.channelMetadata.createdAtTs = chat.newsletterMetadata.creationTime;
+            model.channelMetadata = chat.newsletterMetadata.serialize();
+            model.channelMetadata.createdAtTs = chat.newsletterMetadata.creationTime;
         }
 
         model.lastMessage = null;
@@ -1138,7 +1173,7 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.subscribeToUnsubscribeFromChannel = async (channelId, action, options = {}) => {
-        const channel = await window.WWebJS.getChannel(channelId);
+        const channel = await window.WWebJS.getChat(channelId, { getAsModel: false });
 
         if (!channel || ['owner', 'admin'].includes(channel.newsletterMetadata.membershipType)) return false;
         options = { eventSurface: 3, deleteLocalModels: options.deleteLocalModels || false };

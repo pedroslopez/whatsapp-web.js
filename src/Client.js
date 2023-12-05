@@ -1018,13 +1018,7 @@ class Client extends EventEmitter {
      */
 
     /**
-     * Gets a {@link Channel} object or a {@link ChannelMetadata} by its ID as follows:
-     * 1. Channel the current user is subscribed to (SUBSCRIBER)
-     * 2. Channel the current user was subscribed to
-     *    and from which was unsubscribed
-     *    with the {@link UnsubscribeOptions.deleteLocalModels} set to 'false' (GUEST)
-     * 3. Channel the current user created (OWNER)
-     * 4. Channel the current user is admin in (ADMIN)
+     * Gets a {@link Channel} object or a {@link ChannelMetadata} by its ID
      * @param {string} channelId 
      * @param {GetChannelOptions} options
      * @returns {Promise<ChannelMetadata|Channel>}
@@ -1068,13 +1062,7 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Gets all {@link Channel} objects as follows:
-     * 1. Channels the current user is subscribed to (SUBSCRIBER)
-     * 2. Channels the current user was subscribed to
-     *    and from which was unsubscribed
-     *    with the {@link UnsubscribeOptions.deleteLocalModels} set to 'false' (GUEST)
-     * 3. Channels the current user created (OWNER)
-     * 4. Channels the current user is admin in (ADMIN)
+     * Gets all cached {@link Channel} objects
      * @returns {Promise<Array<Channel>>}
      */
     async getChannels() {
