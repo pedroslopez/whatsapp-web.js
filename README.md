@@ -81,8 +81,8 @@ For more information on saving and restoring sessions, check out the available [
 | Get profile pictures | ✅ |
 | Set user status message | ✅ |
 | React to messages | ✅ |
-| Vote in pools | 🔜 |
-| Create pools | 🔜 |
+| Vote in polls | 🔜 |
+| Create polls | ✅ |
 
 Something missing? Make an issue and let us know!
 
