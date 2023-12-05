@@ -43,6 +43,7 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @fires Client#message_create
  * @fires Client#message_revoke_me
  * @fires Client#message_revoke_everyone
+ * @fires Client#message_ciphertext
  * @fires Client#media_uploaded
  * @fires Client#group_join
  * @fires Client#group_leave
