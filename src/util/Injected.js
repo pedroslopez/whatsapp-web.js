@@ -94,7 +94,7 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('sendMembershipRequestsActionRPC')[0]
     };
     window.Store.ChannelUtils = {
-        ...window.mR.findModule('queryAndUpdateNewsletterMetadataAction')[0],
+        ...window.mR.findModule('loadNewsletterPreviewChat')[0],
         ...window.mR.findModule('queryNewsletterMetadataByInviteCode')[0],
         ...window.mR.findModule('createNewsletterQuery')[0],
         ...window.mR.findModule('editNewsletterMetadataAction')[0],
@@ -526,24 +526,11 @@ exports.LoadUtils = () => {
         let chat;
 
         if (isChannel) {
-            const fields = {
-                'name': true,
-                'picture': true,
-                'description': true,
-                'inviteLink': true,
-                'handle': true,
-                'subscribers': true,
-                'privacy': true,
-                'verification': true,
-                'state': true,
-                'muted': true,
-                'membership': true
-            };
-            chat = window.Store.NewsletterCollection.get(chatId) ??
-                await window.Store.ChannelUtils.queryAndUpdateNewsletterMetadataAction(
-                    chatId,
-                    { fields: fields }
-                );
+            chat = window.Store.NewsletterCollection.get(chatId);
+            if (!chat) {
+                await window.Store.ChannelUtils.loadNewsletterPreviewChat(chatId);
+                chat = await window.Store.NewsletterCollection.find(window.Store.WidFactory.createWid(chatId));
+            }
         } else {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             chat = window.Store.Chat.get(chatWid) ?? await window.Store.Chat.find(chatWid);
