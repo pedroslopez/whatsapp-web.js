@@ -715,6 +715,7 @@ class Client extends EventEmitter {
                 await this.authStrategy.disconnect();
                 this.emit(Events.DISCONNECTED, 'NAVIGATION');
                 await this.destroy();
+                await this.authStrategy.logout();
             }
         });
     }
