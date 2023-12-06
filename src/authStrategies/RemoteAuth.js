@@ -5,10 +5,12 @@ try {
     var fs = require('fs-extra');
     var unzipper = require('unzipper');
     var archiver = require('archiver');
+    var AdmZip = require('adm-zip');
 } catch {
     fs = undefined;
     unzipper = undefined;
     archiver = undefined;
+    AdmZip = undefined;
 }
 
 const path = require('path');
@@ -153,16 +155,21 @@ class RemoteAuth extends BaseAuthStrategy {
         });
     }
 
-    async unCompressSession(compressedSessionPath) {
-        var stream = fs.createReadStream(compressedSessionPath);
-        await new Promise((resolve, reject) => {
-            stream.pipe(unzipper.Extract({
-                path: this.userDataDir
-            }))
+    async compressSession() {
+        const archive = archiver('zip');
+        const stream = fs.createWriteStream(`${this.sessionName}.zip`);
+
+        await fs.copy(this.userDataDir, this.tempDir).catch(() => {});
+        await this.deleteMetadata();
+        return new Promise((resolve, reject) => {
+            archive
+                .directory(this.tempDir, false)
                 .on('error', err => reject(err))
-                .on('finish', () => resolve());
+                .pipe(stream);
+
+            stream.on('close', () => resolve());
+            archive.finalize();
         });
-        await fs.promises.unlink(compressedSessionPath);
     }
 
     async deleteMetadata() {
