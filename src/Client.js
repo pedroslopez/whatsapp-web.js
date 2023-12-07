@@ -914,7 +914,7 @@ class Client extends EventEmitter {
     }
 
     /**
-     * @typedef {Object} SendChannelAdminInvitationOptions
+     * @typedef {Object} SendChannelAdminInviteOptions
      * @property {?string} comment The comment to be added to an invitation
      */
 
@@ -922,10 +922,10 @@ class Client extends EventEmitter {
      * Sends a channel admin invitation to a user, allowing them to become an admin of the channel
      * @param {string} chatId The ID of a user to send the channel admin invitation to
      * @param {string} channelId The ID of a channel for which the invitation is being sent
-     * @param {SendChannelAdminInvitationOptions} options 
+     * @param {SendChannelAdminInviteOptions} options 
      * @returns {Promise<boolean>} Returns true if an invitation was sent successfully, false otherwise
      */
-    async sendChannelAdminInvitation(chatId, channelId, options = {}) {
+    async sendChannelAdminInvite(chatId, channelId, options = {}) {
         const response = await this.pupPage.evaluate(async (chatId, channelId, options) => {
             const channelWid = window.Store.WidFactory.createWid(channelId);
             const chatWid = window.Store.WidFactory.createWid(chatId);
@@ -1138,6 +1138,61 @@ class Client extends EventEmitter {
         }, inviteCode);
 
         return res.gid._serialized;
+    }
+
+    /**
+     * Accepts a channel admin invitation and promotes the current user to a channel admin
+     * @param {string} channelId The channel ID to accept the admin invitation from
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async acceptChannelAdminInvite(channelId) {
+        return await this.pupPage.evaluate(async (channelId) => {
+            try {
+                await window.Store.ChannelUtils.acceptNewsletterAdminInvite(channelId);
+                return true;
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return false;
+                throw err;
+            }
+        }, channelId);
+    }
+
+    /**
+     * Revokes a channel admin invitation sent to a user by a channel owner
+     * @param {string} channelId The channel ID an invitation belongs to
+     * @param {string} userId The user ID the invitation was sent to
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async revokeChannelAdminInvite(channelId, userId) {
+        return await this.pupPage.evaluate(async (channelId, userId) => {
+            try {
+                const userWid = window.Store.WidFactory.createWid(userId);
+                await window.Store.ChannelUtils.revokeNewsletterAdminInvite(channelId, userWid);
+                return true;
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return false;
+                throw err;
+            }
+        }, channelId, userId);
+    }
+
+    /**
+     * Demotes a channel admin to a regular subscriber (can be used also for self-demotion)
+     * @param {string} channelId The channel ID to demote an admin in
+     * @param {string} userId The user ID to demote
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async demoteChannelAdmin(channelId, userId) {
+        return await this.pupPage.evaluate(async (channelId, userId) => {
+            try {
+                const userWid = window.Store.WidFactory.createWid(userId);
+                await window.Store.ChannelUtils.demoteNewsletterAdmin(channelId, userWid);
+                return true;
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return false;
+                throw err;
+            }
+        }, channelId, userId);
     }
 
     /**

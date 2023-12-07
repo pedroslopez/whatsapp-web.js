@@ -106,6 +106,9 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('unmuteNewsletter')[0],
         ...window.mR.findModule('isNewsletterCreationEnabled')[0],
         ...window.mR.findModule('getRoleByIdentifier')[0],
+        ...window.mR.findModule('acceptNewsletterAdminInvite')[0],
+        ...window.mR.findModule('revokeNewsletterAdminInvite')[0],
+        ...window.mR.findModule('demoteNewsletterAdmin')[0],
         countryCodesIso: window.mR.findModule(m => m.default && m.default.US === 'United States')[0].default,
         currentRegion: window.mR.findModule(m => m.default && m.default.getRegion)[0].default.getRegion(),
     };

@@ -230,6 +230,47 @@ class Channel extends Base {
     }
 
     /**
+     * @typedef {Object} SendChannelAdminInviteOptions
+     * @property {?string} comment The comment to be added to an invitation
+     */
+
+    /**
+     * Sends a channel admin invitation to a user, allowing them to become an admin of the channel
+     * @param {string} chatId The ID of a user to send the channel admin invitation to
+     * @param {SendChannelAdminInviteOptions} options 
+     * @returns {Promise<boolean>} Returns true if an invitation was sent successfully, false otherwise
+     */
+    async sendChannelAdminInvite(chatId, options = {}) {
+        return this.client.sendChannelAdminInvite(chatId, this.id._serialized, options);
+    }
+
+    /**
+     * Accepts a channel admin invitation and promotes the current user to a channel admin
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async acceptChannelAdminInvite() {
+        return this.client.acceptChannelAdminInvite(this.id._serialized);
+    }
+
+    /**
+     * Revokes a channel admin invitation sent to a user by a channel owner
+     * @param {string} userId The user ID the invitation was sent to
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async revokeChannelAdminInvite(userId) {
+        return this.client.revokeChannelAdminInvite(this.id._serialized, userId);
+    }
+
+    /**
+     * Demotes a channel admin to a regular subscriber (can be used also for self-demotion)
+     * @param {string} userId The user ID to demote
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async demoteChannelAdmin(userId) {
+        return this.client.demoteChannelAdmin(this.id._serialized, userId);
+    }
+
+    /**
      * Deletes the channel you created
      * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
      */

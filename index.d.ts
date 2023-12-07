@@ -20,6 +20,15 @@ declare namespace WAWebJS {
         /**Accepts an invitation to join a group */
         acceptInvite(inviteCode: string): Promise<string>
 
+        /** Accepts a channel admin invitation and promotes the current user to a channel admin */
+        acceptChannelAdminInvite(channelId: string): Promise<boolean>
+
+        /** Revokes a channel admin invitation sent to a user by a channel owner */
+        revokeChannelAdminInvite(channelId: string, userId: string): Promise<boolean>
+
+        /** Demotes a channel admin to a regular subscriber (can be used also for self-demotion) */
+        demoteChannelAdmin(channelId: string, userId: string): Promise<boolean>
+
         /** Accepts a private invitation to join a group (v4 invite) */
         acceptGroupV4Invite: (inviteV4: InviteV4Data) => Promise<{status: number}>
 
@@ -145,7 +154,7 @@ declare namespace WAWebJS {
         sendMessage(chatOrChannelId: string, content: MessageContent, options?: MessageSendOptions): Promise<Message>
 
         /** Sends a channel admin invitation to a user, allowing them to become an admin of the channel */
-        sendChannelAdminInvitation(chatId: string, channelId: string, options?: { comment?: string }): Promise<boolean>
+        sendChannelAdminInvite(chatId: string, channelId: string, options?: { comment?: string }): Promise<boolean>
         
         /** Searches for messages */
         searchMessages(query: string, options?: { chatId?: string, page?: number, limit?: number }): Promise<Message[]>
@@ -1496,6 +1505,14 @@ declare namespace WAWebJS {
         unmute(): Promise<boolean>;
         /** Sends a message to this channel */
         sendMessage(content: string|MessageMedia, options?: MessageSendChannelOptions): Promise<Message>;
+        /** Sends a channel admin invitation to a user, allowing them to become an admin of the channel */
+        sendChannelAdminInvite(chatId: string, options?: { comment?: string }): Promise<boolean>;
+        /** Accepts a channel admin invitation and promotes the current user to a channel admin */
+        acceptChannelAdminInvite(): Promise<boolean>;
+        /** Revokes a channel admin invitation sent to a user by a channel owner */
+        revokeChannelAdminInvite(userId: string): Promise<boolean>;
+        /** Demotes a channel admin to a regular subscriber (can be used also for self-demotion) */
+        demoteChannelAdmin(userId: string): Promise<boolean>;
         /** Deletes the channel you created */
         deleteChannel(): Promise<boolean>;
     }
