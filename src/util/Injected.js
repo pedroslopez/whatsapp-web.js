@@ -554,7 +554,8 @@ exports.LoadUtils = () => {
                 'subscribers': true,
                 'privacy': true,
                 'verification': true,
-                'state': true
+                'state': true,
+                'creationTime': true
             };
             response = await window.Store.ChannelUtils.queryNewsletterMetadataByJid(
                 idOrInviteCode,
@@ -582,11 +583,10 @@ exports.LoadUtils = () => {
                 updatedAtTs: response.newsletterDescriptionMetadataMixin.descriptionQueryDescriptionResponseMixin.updateTime
             },
             inviteLink: `https://whatsapp.com/channel/${response.newsletterInviteLinkMetadataMixin.inviteCode}`,
-            membershipType: response.newsletterMembershipMetadataMixin ? response.newsletterMembershipMetadataMixin.membershipType : null,
+            membershipType: window.Store.ChannelUtils.getRoleByIdentifier(idOrInviteCode) ?? 'viewer',
             stateType: response.newsletterStateMetadataMixin.stateType,
             pictureUrl: picUrl ? `https://pps.whatsapp.net${picUrl}` : null,
             subscribersCount: response.newsletterSubscribersMetadataMixin.subscribersCount,
-            isMuted: response.newsletterMutedMetadataMixin ? response.newsletterMutedMetadataMixin.mutedState === 'on' : null,
             isVerified: response.newsletterVerificationMetadataMixin.verificationState === 'verified'
         };
     };

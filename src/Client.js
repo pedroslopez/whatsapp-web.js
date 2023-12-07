@@ -1010,11 +1010,10 @@ class Client extends EventEmitter {
      * @property {string} descriptionMetadata.description The channel description
      * @property {string} descriptionMetadata.updatedAtTs The timestamp the description was updated at
      * @property {string} inviteLink The channel invite link in a format: https://whatsapp.com/channel/INVITE_CODE
-     * @property {string} membershipType The membership type of a current user in a channel (guest/subscriber/admin/owner)
+     * @property {string} membershipType The membership type of a current user in a channel (viewer/guest/subscriber/admin/owner)
      * @property {string} stateType The channel state type (active/suspended/geosuspended)
      * @property {string} pictureUrl The channel profile picture url if set
      * @property {number} subscribersCount The number of channel subscribers
-     * @property {boolean} isMuted Indicates if a channel is muted
      * @property {boolean} isVerified Indicates if a channel is verified
      */
 

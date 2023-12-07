@@ -689,7 +689,6 @@ declare namespace WAWebJS {
         stateType: string;
         pictureUrl: string;
         subscribersCount: number;
-        isMuted: boolean;
         isVerified: boolean;
     }
 
