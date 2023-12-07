@@ -669,6 +669,16 @@ class Client extends EventEmitter {
             this.emit(Events.MESSAGE_CIPHERTEXT, new Message(this, msg));
         });
 
+        await page.exposeFunction('onAddMessageRevokeEvent', (msg, newId) => {
+            /**
+             * Emitted when messages are revoked
+             * @event Client#message_revoke
+             * @param {Message} message
+             * @param {string} newId
+             */
+            this.emit(Events.MESSAGE_REVOKED, new Message(this, msg), newId);
+        });
+
         await page.evaluate(() => {
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
@@ -709,6 +719,22 @@ class Client extends EventEmitter {
                     return ogMethod(...args);
                 }).bind(module);
             }
+
+            window.Store.Msg.on('change:msgKey', async (change) => {
+                if (change.newKey) {
+                    const msg = await window.Store.Msg.get(
+                        change.newKey._serialized
+                    );
+                    if (msg.id && msg.type === 'revoked') {
+                        msg.id = change.oldKey;
+                        window.onAddMessageRevokeEvent(
+                            msg,
+                            change.newKey._serialized
+                        );
+                    }
+                }
+            });
+
         });
 
         /**
