@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.23.0 &raquo; Source: structures/Call.js</title>
+  <title>whatsapp-web.js 1.23.0 &raquo; Source: structures/Poll.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -26,85 +26,54 @@
         </div>
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1>Source: structures/Call.js</h1>
+            <h1>Source: structures/Poll.js</h1>
           </header>
           <article>
             <pre class="prettyprint linenums"><code>&#x27;use strict&#x27;;
 
-const Base &#x3D; require(&#x27;./Base&#x27;);
-
 /**
- * Represents a Call on WhatsApp
- * @extends {Base}
+ * Poll send options
+ * @typedef {Object} PollSendOptions
+ * @property {boolean} [allowMultipleAnswers&#x3D;false] If false it is a single choice poll, otherwise it is a multiple choice poll (false by default)
+ * @property {?Array&amp;lt;number&gt;} messageSecret The custom message secret, can be used as a poll ID. NOTE: it has to be a unique vector with a length of 32
  */
-class Call extends Base {
-    constructor(client, data) {
-        super(client);
 
-        if (data) this._patch(data);
-    }
-
-    _patch(data) {
-        /**
-         * Call ID
-         * @type {string}
-         */
-        this.id &#x3D; data.id;
-        /**
-         * From
-         * @type {string}
-         */
-        this.from &#x3D; data.peerJid;
-        /**
-         * Unix timestamp for when the call was created
-         * @type {number}
-         */
-        this.timestamp &#x3D; data.offerTime;
-        /**
-         * Is video
-         * @type {boolean}
-         */
-        this.isVideo &#x3D; data.isVideo;
-        /**
-         * Is Group
-         * @type {boolean}
-         */
-        this.isGroup &#x3D; data.isGroup;
-        /**
-         * Indicates if the call was sent by the current user
-         * @type {boolean}
-         */
-        this.fromMe &#x3D; data.outgoing;
-        /**
-         * Indicates if the call can be handled in waweb
-         * @type {boolean}
-         */
-        this.canHandleLocally &#x3D; data.canHandleLocally;
-        /**
-         * Indicates if the call Should be handled in waweb
-         * @type {boolean}
-         */
-        this.webClientShouldHandle &#x3D; data.webClientShouldHandle;
-        /**
-         * Object with participants
-         * @type {object}
-         */
-        this.participants &#x3D; data.participants;
-        
-        return super._patch(data);
-    }
-
+/** Represents a Poll on WhatsApp */
+class Poll {
     /**
-     * Reject the call
-    */
-    async reject() {
-        return this.client.pupPage.evaluate((peerJid, id) &#x3D;&gt; {
-            return window.WWebJS.rejectCall(peerJid, id);
-        }, this.from, this.id);
+     * @param {string} pollName
+     * @param {Array&amp;lt;string&gt;} pollOptions
+     * @param {PollSendOptions} options
+     */
+    constructor(pollName, pollOptions, options &#x3D; {}) {
+        /**
+         * The name of the poll
+         * @type {string}
+         */
+        this.pollName &#x3D; pollName.trim();
+
+        /**
+         * The array of poll options
+         * @type {Array.&amp;lt;{name: string, localId: number}&gt;}
+         */
+        this.pollOptions &#x3D; pollOptions.map((option, index) &#x3D;&gt; ({
+            name: option.trim(),
+            localId: index
+        }));
+
+        /**
+         * The send options for the poll
+         * @type {PollSendOptions}
+         */
+        this.options &#x3D; {
+            allowMultipleAnswers: options.allowMultipleAnswers &#x3D;&#x3D;&#x3D; true,
+            messageSecret: options.messageSecret
+        };
     }
 }
 
-module.exports &#x3D; Call;</code></pre>
+module.exports &#x3D; Poll;
+</code></pre>
           </article>
         </div>
       </div>
