@@ -420,8 +420,10 @@ class Message extends Base {
         const chatId = typeof chat === 'string' ? chat : chat.id._serialized;
 
         return await this.client.pupPage.evaluate(async (msgId, chatId, options) => {
-            const chat = window.Store.Chat.get(chatId);
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = await window.Store.Chat.find(chatWid);
             const msg = window.Store.Msg.get(msgId);
+            if (!chat || !msg) return false;
             
             return await window.WWebJS.forwardMessage(chat, msg, options);
         }, this.id._serialized, chatId, options);
