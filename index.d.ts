@@ -87,8 +87,8 @@ declare namespace WAWebJS {
         /** Get all Chats for a specific Label */
         getChatsByLabelId(labelId: string): Promise<Chat[]>
 
-        /** Returns the chat ID's profile picture URL, if the client can view it */
-        getPictureUrl(contactId: string): Promise<string>
+        /** Returns the chat/group/community/channel profile picture URL, if a client can retrieve it */
+        getProfilePicUrl(chatId: string): Promise<string>
 
         /** Gets the Contact's common groups with you. Returns empty array if you don't have any common group. */
         getCommonGroups(contactId: string): Promise<ChatId[]>
@@ -1050,7 +1050,7 @@ declare namespace WAWebJS {
         /** @todo missing documentation */
         verifiedName?: undefined,
 
-        /** Returns the contact's profile picture URL, if privacy settings allow it */
+        /** Returns the contact's profile picture URL, if a client can retrieve it */
         getProfilePicUrl: () => Promise<string>,
 
         /** Returns the Chat that corresponds to this Contact.  
@@ -1164,8 +1164,8 @@ declare namespace WAWebJS {
         unarchive: () => Promise<void>,
         /** Unmutes this chat */
         unmute: () => Promise<void>,
-        /** Returns the chat's picture URL, if privacy settings allow it */
-        getPictureUrl: () => Promise<string>,
+        /** Returns the chat/group/community/channel profile picture URL, if a client can retrieve it */
+        getProfilePicUrl: () => Promise<string>,
         /** Returns the Contact that corresponds to this Chat. */
         getContact: () => Promise<Contact>,
         /** Marks this Chat as unread */

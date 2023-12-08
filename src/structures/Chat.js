@@ -247,11 +247,11 @@ class Chat extends Base {
     }
 
     /**
-     * Returns the chat's picture URL, if privacy settings allow it
+     * Returns the chat/group/community profile picture URL, if a client can retrieve it
      * @returns {Promise<string>}
-    */
-    async getPictureUrl() {
-        return await this.client.getPictureUrl(this.id._serialized);
+     */
+    async getProfilePicUrl() {
+        return this.client.getProfilePicUrl(this.id._serialized);
     }
 
     /**
