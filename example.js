@@ -66,6 +66,9 @@ client.on('message', async msg => {
     } else if (msg.body.startsWith('!echo ')) {
         // Replies with the same message
         msg.reply(msg.body.slice(6));
+    } else if (msg.body.startsWith('!preview ')) {
+        const text = msg.body.slice(9);
+        msg.reply(text, null, { linkPreview: true });
     } else if (msg.body.startsWith('!desc ')) {
         // Change the group description
         let chat = await msg.getChat();
