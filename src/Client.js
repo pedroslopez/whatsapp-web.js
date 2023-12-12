@@ -30,7 +30,7 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @param {number} options.takeoverOnConflict - If another whatsapp web session is detected (another browser), take over the session in the current browser
  * @param {number} options.takeoverTimeoutMs - How much time to wait before taking over the session
  * @param {string} options.userAgent - User agent to use in puppeteer
- * @param {string} options.ffmpegPath - Ffmpeg path to use when formating videos to webp while sending stickers 
+ * @param {string} options.ffmpegPath - Ffmpeg path to use when formatting videos to webp while sending stickers 
  * @param {boolean} options.bypassCSP - Sets bypassing of page's Content-Security-Policy.
  * @param {object} options.proxyAuthentication - Proxy Authentication object.
  * 
@@ -892,7 +892,7 @@ class Client extends EventEmitter {
 
 
             if (sendSeen) {
-                window.WWebJS.sendSeen(chatId);
+                await window.WWebJS.sendSeen(chatId);
             }
 
             const msg = await window.WWebJS.sendMessage(chat, message, options, sendSeen);
