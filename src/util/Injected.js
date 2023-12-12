@@ -171,9 +171,7 @@ exports.LoadUtils = () => {
                     forceGif: options.sendVideoAsGif
                 });
             
-            if (options.caption){
-                attOptions.caption = options.caption; 
-            }
+            attOptions.caption = options.caption;
             content = options.sendMediaAsSticker ? undefined : attOptions.preview;
             attOptions.isViewOnce = options.isViewOnce;
 
