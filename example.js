@@ -376,13 +376,27 @@ client.on('message', async msg => {
             requesterIds: ['number1@c.us', 'number2@c.us'],
             sleep: null
         });
+    } else {
+        // Pins a message
+        const result = await msg.pin(60); // Will pin a message for 1 minute
+        console.log(result); // True if the operation completed successfully, false otherwise
     }
 });
 
-client.on('message_create', (msg) => {
+client.on('message_create', async (msg) => {
     // Fired on all message creations, including your own
     if (msg.fromMe) {
         // do stuff here
+    }
+
+    // Unpins a message
+    if (msg.fromMe && msg.body.startsWith('!unpin')) {
+        const pinnedMsg = await msg.getQuotedMessage();
+        if (pinnedMsg) {
+            // Will unpin a message
+            const result = await pinnedMsg.unpin();
+            console.log(result); // True if the operation completed successfully, false otherwise
+        }
     }
 });
 
