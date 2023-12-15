@@ -377,7 +377,14 @@ client.on('message', async msg => {
             sleep: null
         });
     } else {
-        // Pins a message
+        /**
+         * Pins a message in a chat, a method takes a number in seconds for the message to be pinned.
+         * WhatsApp default values for duration to pass to the method are:
+         * 1. 86400 for 24 hours
+         * 2. 604800 for 7 days
+         * 3. 2592000 for 30 days
+         * You can pass your own value:
+         */
         const result = await msg.pin(60); // Will pin a message for 1 minute
         console.log(result); // True if the operation completed successfully, false otherwise
     }
