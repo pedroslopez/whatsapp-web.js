@@ -44,6 +44,7 @@ exports.Events = {
     CHAT_REMOVED: 'chat_removed',
     CHAT_ARCHIVED: 'chat_archived',
     MESSAGE_RECEIVED: 'message',
+    MESSAGE_CIPHERTEXT: 'message_ciphertext',
     MESSAGE_CREATE: 'message_create',
     MESSAGE_REVOKED_EVERYONE: 'message_revoke_everyone',
     MESSAGE_REVOKED_ME: 'message_revoke_me',
