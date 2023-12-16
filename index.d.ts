@@ -304,6 +304,12 @@ declare namespace WAWebJS {
             /** The message that was created */
             message: Message
         ) => void): this
+        
+        /** Emitted when a new message ciphertext is received  */
+        on(event: 'message_ciphertext', listener: (
+            /** The message that was ciphertext */
+            message: Message
+        ) => void): this
 
         /** Emitted when a message is deleted for everyone in the chat */
         on(event: 'message_revoke_everyone', listener: (
@@ -647,6 +653,7 @@ declare namespace WAWebJS {
         AUTHENTICATION_FAILURE = 'auth_failure',
         READY = 'ready',
         MESSAGE_RECEIVED = 'message',
+        MESSAGE_CIPHERTEXT = 'message_ciphertext',
         MESSAGE_CREATE = 'message_create',
         MESSAGE_REVOKED_EVERYONE = 'message_revoke_everyone',
         MESSAGE_REVOKED_ME = 'message_revoke_me',
