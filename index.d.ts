@@ -1749,6 +1749,25 @@ declare namespace WAWebJS {
         hasReactionByMe: boolean,
         senders: Array<Reaction>
     }
+
+
+    export type StickerMetadata = {
+        name?: string | undefined;
+        author?: string | undefined;
+        categories?: string[] | undefined;
+    }
+
+    export class Util {
+        private constructor();
+
+        static formatImageToWebpSticker(media: MessageMedia): Promise<MessageMedia>;
+
+        static formatVideoToWebpSticker(media: MessageMedia): Promise<MessageMedia>;
+    
+        static formatToWebpSticker(media: MessageMedia, metadata: StickerMetadata): Promise<MessageMedia>;
+    
+        static setFfmpegPath(path: string): void;
+    }
 }
 
 export = WAWebJS
