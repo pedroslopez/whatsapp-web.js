@@ -386,6 +386,14 @@ client.on('message_create', (msg) => {
     }
 });
 
+client.on('message_ciphertext', (msg) => {
+    // Receiving new incoming messages that have been encrypted
+    // msg.type === 'ciphertext'
+    msg.body = 'Waiting for this message. Check your phone.';
+    
+    // do stuff here
+});
+
 client.on('message_revoke_everyone', async (after, before) => {
     // Fired whenever a message is deleted by anyone (including you)
     console.log(after); // message after it was deleted.
