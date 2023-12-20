@@ -1520,6 +1520,8 @@ declare namespace WAWebJS {
         revokeChannelAdminInvite(userId: string): Promise<boolean>;
         /** Demotes a channel admin to a regular subscriber (can be used also for self-demotion) */
         demoteChannelAdmin(userId: string): Promise<boolean>;
+        /** Loads channel messages, sorted from earliest to latest */
+        fetchMessages: (searchOptions: MessageSearchOptions) => Promise<Message[]>;
         /** Deletes the channel you created */
         deleteChannel(): Promise<boolean>;
     }
