@@ -233,31 +233,55 @@ class Client extends EventEmitter {
             });
 
             await page.evaluate(function (selectors) {
-                const qr_container = document.querySelector(selectors.QR_CONTAINER);
-                window.qrChanged(qr_container.dataset.ref);
+                function observerQrChanged() {
+                    const qr_container = document.querySelector(selectors.QR_CONTAINER);
+                    window.qrChanged(qr_container.dataset.ref);
 
-                const obs = new MutationObserver((muts) => {
-                    muts.forEach(mut => {
-                        // Listens to qr token change
-                        if (mut.type === 'attributes' && mut.attributeName === 'data-ref') {
-                            window.qrChanged(mut.target.dataset.ref);
-                        }
-                        // Listens to retry button, when found, click it
-                        else if (mut.type === 'childList') {
-                            const retry_button = document.querySelector(selectors.QR_RETRY_BUTTON);
-                            if (retry_button) retry_button.click();
-                        }
+                    const obs = new MutationObserver((muts) => {
+                        muts.forEach(mut => {
+                            // Listens to qr token change
+                            if (mut.type === 'attributes' && mut.attributeName === 'data-ref') {
+                                window.qrChanged(mut.target.dataset.ref);
+                            }
+                            // Listens to retry button, when found, click it
+                            else if (mut.type === 'childList') {
+                                const retry_button = document.querySelector(selectors.QR_RETRY_BUTTON);
+                                if (retry_button) retry_button.click();
+                            }
+                        });
                     });
-                });
-                obs.observe(qr_container.parentElement, {
-                    subtree: true,
-                    childList: true,
-                    attributes: true,
-                    attributeFilter: ['data-ref'],
-                });
+
+                    obs.observe(qr_container.parentElement, {
+                        subtree: true,
+                        childList: true,
+                        attributes: true,
+                        attributeFilter: ['data-ref'],
+                    });
+
+                    return obs;
+                };
+
+                var qr_container_obs = observerQrChanged();
+                var qr_container_selector = document.querySelector(selectors.QR_CONTAINER);
+
+                // checks for DOM re-renders and reloads the observer
+                setInterval(() => {
+                    if (document.querySelector(selectors.QR_CONTAINER) != null & qr_container_selector != document.querySelector(selectors.QR_CONTAINER)) {
+                        qr_container_obs.disconnect();
+                        qr_container_obs = observerQrChanged();
+                        qr_container_selector = document.querySelector(selectors.QR_CONTAINER);
+                    }
+                    
+                    else if (document.querySelector(selectors.INTRO_IMG_SELECTOR)) {
+                        // gracefully terminates the loop and disconnects the observer 
+                        qr_container_obs.disconnect();
+                        clearInterval(this);
+                    }
+                }, 2000);
             }, {
                 QR_CONTAINER,
-                QR_RETRY_BUTTON
+                QR_RETRY_BUTTON,
+                INTRO_IMG_SELECTOR
             });
 
             // Wait for code scan
