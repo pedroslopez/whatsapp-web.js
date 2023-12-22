@@ -328,6 +328,33 @@ class GroupChat extends Chat {
     }
 
     /**
+     * Updates the group's temporary message setting.
+     * @param {int} [expiration] Sets the temporary message time (24h, 7d, 90d or disabled).
+     * - For 24 hours: expiration = 86400
+     * - For 7 days: expiration = 604800
+     * - For 90 days: expiration = 7776000
+     * - To disabled: expiration = 0
+     * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
+     */
+    async setGroupEphemeral(expiration) {
+        const success = await this.client.pupPage.evaluate(async (chatId, expiration) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            try {
+                await window.Store.GroupUtils.setGroupProperty(chatWid, 'ephemeral', expiration);
+                return true;
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return false;
+                throw err;
+            }
+        }, this.id._serialized, expiration);
+
+        if (!success) return false;
+
+        this.groupMetadata.ephemeral = expiration;
+        return true;
+    }
+
+    /**
      * Deletes the group's picture.
      * @returns {Promise<boolean>} Returns true if the picture was properly deleted. This can return false if the user does not have the necessary permissions.
      */
