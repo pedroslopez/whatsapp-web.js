@@ -51,7 +51,7 @@ class Message extends Base {
          * Message content
          * @type {string}
          */
-        this.body = this.hasMedia ? data.caption || '' : data.body || '';
+        this.body = this.hasMedia ? data.caption || '' : data.body || data.pollName || '';
 
         /**
          * Message type
@@ -271,6 +271,20 @@ class Message extends Base {
             this.selectedRowId = data.listResponse.singleSelectReply.selectedRowId;
         }
 
+        if (this.type === MessageTypes.POLL_CREATION) {
+            this.pollName = data.pollName;
+            this.pollOptions = data.pollOptions;
+            this.allowMultipleAnswers = Boolean(!data.pollSelectableOptionsCount);
+            this.pollInvalidated = data.pollInvalidated;
+            this.isSentCagPollCreation = data.isSentCagPollCreation;
+
+            delete this._data.pollName;
+            delete this._data.pollOptions;
+            delete this._data.pollSelectableOptionsCount;
+            delete this._data.pollInvalidated;
+            delete this._data.isSentCagPollCreation;
+        }
+
         return super._patch(data);
     }
 
@@ -417,7 +431,7 @@ class Message extends Base {
 
         const result = await this.client.pupPage.evaluate(async (msgId) => {
             const msg = window.Store.Msg.get(msgId);
-            if (!msg) {
+            if (!msg || !msg.mediaData) {
                 return undefined;
             }
             if (msg.mediaData.mediaStage != 'RESOLVED') {
@@ -520,15 +534,20 @@ class Message extends Base {
      */
 
     /**
-     * Get information about message delivery status. May return null if the message does not exist or is not sent by you.
+     * Get information about message delivery status.
+     * May return null if the message does not exist or is not sent by you.
      * @returns {Promise<?MessageInfo>}
      */
     async getInfo() {
         const info = await this.client.pupPage.evaluate(async (msgId) => {
             const msg = window.Store.Msg.get(msgId);
-            if (!msg) return null;
+            if (!msg || !msg.id.fromMe) return null;
 
-            return await window.Store.MessageInfo.sendQueryMsgInfo(msg.id);
+            return new Promise((resolve) => {
+                setTimeout(async () => {
+                    resolve(await window.Store.getMsgInfo(msg.id));
+                }, (Date.now() - msg.t * 1000 < 1250) && Math.floor(Math.random() * (1200 - 1100 + 1)) + 1100 || 0);
+            });
         }, this.id._serialized);
 
         return info;
@@ -625,7 +644,7 @@ class Message extends Base {
             let msg = window.Store.Msg.get(msgId);
             if (!msg) return null;
 
-            let catEdit = (msg.type === 'chat' && window.Store.MsgActionChecks.canEditText(msg));
+            let catEdit = window.Store.MsgActionChecks.canEditText(msg) || window.Store.MsgActionChecks.canEditCaption(msg);
             if (catEdit) {
                 const msgEdit = await window.WWebJS.editMessage(msg, message, options);
                 return msgEdit.serialize();

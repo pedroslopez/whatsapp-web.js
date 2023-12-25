@@ -54,27 +54,140 @@ class GroupChat extends Chat {
     }
 
     /**
-     * Adds a list of participants by ID to the group
-     * @param {Array<string>} participantIds 
-     * @returns {Promise<Object>}
+     * An object that handles the result for {@link addParticipants} method
+     * @typedef {Object} AddParticipantsResult
+     * @property {number} code The code of the result
+     * @property {string} message The result message
+     * @property {boolean} isInviteV4Sent Indicates if the inviteV4 was sent to the partitipant
      */
-    async addParticipants(participantIds) {
-        return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
-            const chat = await window.Store.Chat.find(chatWid);
-            const participants = await Promise.all(participantIds.map(async p => {
-                const wid = window.Store.WidFactory.createWid(p);
-                return await window.Store.Contact.get(wid);
-            }));
-            await window.Store.GroupParticipants.addParticipants(chat, participants);
-            return { status: 200 };
-        }, this.id._serialized, participantIds);
+
+    /**
+     * An object that handles options for adding participants
+     * @typedef {Object} AddParticipnatsOptions
+     * @property {Array<number>|number} [sleep = [250, 500]] The number of milliseconds to wait before adding the next participant. If it is an array, a random sleep time between the sleep[0] and sleep[1] values will be added (the difference must be >=100 ms, otherwise, a random sleep time between sleep[1] and sleep[1] + 100 will be added). If sleep is a number, a sleep time equal to its value will be added. By default, sleep is an array with a value of [250, 500]
+     * @property {boolean} [autoSendInviteV4 = true] If true, the inviteV4 will be sent to those participants who have restricted others from being automatically added to groups, otherwise the inviteV4 won't be sent (true by default)
+     * @property {string} [comment = ''] The comment to be added to an inviteV4 (empty string by default)
+     */
+
+    /**
+     * Adds a list of participants by ID to the group
+     * @param {string|Array<string>} participantIds 
+     * @param {AddParticipnatsOptions} options An object thay handles options for adding participants
+     * @returns {Promise<Object.<string, AddParticipantsResult>|string>} Returns an object with the resulting data or an error message as a string
+     */
+    async addParticipants(participantIds, options = {}) {
+        return await this.client.pupPage.evaluate(async (groupId, participantIds, options) => {
+            const { sleep = [250, 500], autoSendInviteV4 = true, comment = '' } = options;
+            const participantData = {};
+
+            !Array.isArray(participantIds) && (participantIds = [participantIds]);
+            const groupWid = window.Store.WidFactory.createWid(groupId);
+            const group = await window.Store.Chat.find(groupWid);
+            const participantWids = participantIds.map((p) => window.Store.WidFactory.createWid(p));
+
+            const errorCodes = {
+                default: 'An unknown error occupied while adding a participant',
+                isGroupEmpty: 'AddParticipantsError: The participant can\'t be added to an empty group',
+                iAmNotAdmin: 'AddParticipantsError: You have no admin rights to add a participant to a group',
+                200: 'The participant was added successfully',
+                403: 'The participant can be added by sending private invitation only',
+                404: 'The phone number is not registered on WhatsApp',
+                408: 'You cannot add this participant because they recently left the group',
+                409: 'The participant is already a group member',
+                417: 'The participant can\'t be added to the community. You can invite them privately to join this group through its invite link',
+                419: 'The participant can\'t be added because the group is full'
+            };
+
+            await window.Store.GroupMetadata.queryAndUpdate(groupWid);
+            const groupMetadata = group.groupMetadata;
+            const groupParticipants = groupMetadata?.participants;
+
+            if (!groupParticipants) {
+                return errorCodes.isGroupEmpty;
+            }
+
+            if (!group.iAmAdmin()) {
+                return errorCodes.iAmNotAdmin;
+            }
+
+            const _getSleepTime = (sleep) => {
+                if (!Array.isArray(sleep) || sleep.length === 2 && sleep[0] === sleep[1]) {
+                    return sleep;
+                }
+                if (sleep.length === 1) {
+                    return sleep[0];
+                }
+                (sleep[1] - sleep[0]) < 100 && (sleep[0] = sleep[1]) && (sleep[1] += 100);
+                return Math.floor(Math.random() * (sleep[1] - sleep[0] + 1)) + sleep[0];
+            };
+
+            for (const pWid of participantWids) {
+                const pId = pWid._serialized;
+
+                participantData[pId] = {
+                    code: undefined,
+                    message: undefined,
+                    isInviteV4Sent: false
+                };
+
+                if (groupParticipants.some(p => p.id._serialized === pId)) {
+                    participantData[pId].code = 409;
+                    participantData[pId].message = errorCodes[409];
+                    continue;
+                }
+
+                if (!(await window.Store.QueryExist(pWid))?.wid) {
+                    participantData[pId].code = 404;
+                    participantData[pId].message = errorCodes[404];
+                    continue;
+                }
+
+                const rpcResult =
+                    await window.WWebJS.getAddParticipantsRpcResult(groupMetadata, groupWid, pWid);
+                const { code: rpcResultCode } = rpcResult;
+
+                participantData[pId].code = rpcResultCode;
+                participantData[pId].message =
+                    errorCodes[rpcResultCode] || errorCodes.default;
+
+                if (autoSendInviteV4 && rpcResultCode === 403) {
+                    let userChat, isInviteV4Sent = false;
+                    window.Store.ContactCollection.gadd(pWid, { silent: true });
+
+                    if (rpcResult.name === 'ParticipantRequestCodeCanBeSent' &&
+                        (userChat = await window.Store.Chat.find(pWid))) {
+                        const groupName = group.formattedTitle || group.name;
+                        const res = await window.Store.GroupInviteV4.sendGroupInviteMessage(
+                            userChat,
+                            group.id._serialized,
+                            groupName,
+                            rpcResult.inviteV4Code,
+                            rpcResult.inviteV4CodeExp,
+                            comment,
+                            await window.WWebJS.getProfilePicThumbToBase64(groupWid)
+                        );
+                        isInviteV4Sent = window.compareWwebVersions(window.Debug.VERSION, '<', '2.2335.6')
+                            ? res === 'OK'
+                            : res.messageSendResult === 'OK';
+                    }
+
+                    participantData[pId].isInviteV4Sent = isInviteV4Sent;
+                }
+
+                sleep &&
+                    participantWids.length > 1 &&
+                    participantWids.indexOf(pWid) !== participantWids.length - 1 &&
+                    (await new Promise((resolve) => setTimeout(resolve, _getSleepTime(sleep))));
+            }
+
+            return participantData;
+        }, this.id._serialized, participantIds, options);
     }
 
     /**
      * Removes a list of participants by ID to the group
      * @param {Array<string>} participantIds 
-     * @returns {Promise<Object>}
+     * @returns {Promise<{ status: number }>}
      */
     async removeParticipants(participantIds) {
         return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
@@ -246,7 +359,7 @@ class GroupChat extends Chat {
     async getInviteCode() {
         const codeRes = await this.client.pupPage.evaluate(async chatId => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            return window.Store.Invite.queryGroupInviteCode(chatWid);
+            return window.Store.GroupInvite.queryGroupInviteCode(chatWid);
         }, this.id._serialized);
 
         return codeRes.code;
@@ -259,10 +372,61 @@ class GroupChat extends Chat {
     async revokeInvite() {
         const codeRes = await this.client.pupPage.evaluate(chatId => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            return window.Store.Invite.resetGroupInviteCode(chatWid);
+            return window.Store.GroupInvite.resetGroupInviteCode(chatWid);
         }, this.id._serialized);
 
         return codeRes.code;
+    }
+    
+    /**
+     * An object that handles the information about the group membership request
+     * @typedef {Object} GroupMembershipRequest
+     * @property {Object} id The wid of a user who requests to enter the group
+     * @property {Object} addedBy The wid of a user who created that request
+     * @property {Object|null} parentGroupId The wid of a community parent group to which the current group is linked
+     * @property {string} requestMethod The method used to create the request: NonAdminAdd/InviteLink/LinkedGroupJoin
+     * @property {number} t The timestamp the request was created at
+     */
+    
+    /**
+     * Gets an array of membership requests
+     * @returns {Promise<Array<GroupMembershipRequest>>} An array of membership requests
+     */
+    async getGroupMembershipRequests() {
+        return await this.client.getGroupMembershipRequests(this.id._serialized);
+    }
+
+    /**
+     * An object that handles the result for membership request action
+     * @typedef {Object} MembershipRequestActionResult
+     * @property {string} requesterId User ID whos membership request was approved/rejected
+     * @property {number} error An error code that occurred during the operation for the participant
+     * @property {string} message A message with a result of membership request action
+     */
+
+    /**
+     * An object that handles options for {@link approveGroupMembershipRequests} and {@link rejectGroupMembershipRequests} methods
+     * @typedef {Object} MembershipRequestActionOptions
+     * @property {Array<string>|string|null} requesterIds User ID/s who requested to join the group, if no value is provided, the method will search for all membership requests for that group
+     * @property {Array<number>|number|null} sleep The number of milliseconds to wait before performing an operation for the next requester. If it is an array, a random sleep time between the sleep[0] and sleep[1] values will be added (the difference must be >=100 ms, otherwise, a random sleep time between sleep[1] and sleep[1] + 100 will be added). If sleep is a number, a sleep time equal to its value will be added. By default, sleep is an array with a value of [250, 500]
+     */
+
+    /**
+     * Approves membership requests if any
+     * @param {MembershipRequestActionOptions} options Options for performing a membership request action
+     * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were approved and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned
+     */
+    async approveGroupMembershipRequests(options = {}) {
+        return await this.client.approveGroupMembershipRequests(this.id._serialized, options);
+    }
+
+    /**
+     * Rejects membership requests if any
+     * @param {MembershipRequestActionOptions} options Options for performing a membership request action
+     * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were rejected and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned
+     */
+    async rejectGroupMembershipRequests(options = {}) {
+        return await this.client.rejectGroupMembershipRequests(this.id._serialized, options);
     }
 
     /**
