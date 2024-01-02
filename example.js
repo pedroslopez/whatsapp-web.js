@@ -66,6 +66,9 @@ client.on('message', async msg => {
     } else if (msg.body.startsWith('!echo ')) {
         // Replies with the same message
         msg.reply(msg.body.slice(6));
+    } else if (msg.body.startsWith('!preview ')) {
+        const text = msg.body.slice(9);
+        msg.reply(text, null, { linkPreview: true });
     } else if (msg.body.startsWith('!desc ')) {
         // Change the group description
         let chat = await msg.getChat();
@@ -381,6 +384,14 @@ client.on('message_create', (msg) => {
     if (msg.fromMe) {
         // do stuff here
     }
+});
+
+client.on('message_ciphertext', (msg) => {
+    // Receiving new incoming messages that have been encrypted
+    // msg.type === 'ciphertext'
+    msg.body = 'Waiting for this message. Check your phone.';
+    
+    // do stuff here
 });
 
 client.on('message_revoke_everyone', async (after, before) => {

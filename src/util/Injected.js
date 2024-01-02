@@ -50,6 +50,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.EphemeralFields = window.mR.findModule('getEphemeralFields')[0];
     window.Store.MsgActionChecks = window.mR.findModule('canSenderRevokeMsg')[0];
     window.Store.QuotedMsg = window.mR.findModule('getQuotedMsgObj')[0];
+    window.Store.LinkPreview = window.mR.findModule('getLinkPreview')[0];
     window.Store.Socket = window.mR.findModule('deprecatedSendIq')[0];
     window.Store.SocketWap = window.mR.findModule('wap')[0];
     window.Store.SearchContext = window.mR.findModule('getSearchContext')[0].getSearchContext;
@@ -106,12 +107,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     
     // eslint-disable-next-line no-undef
     if ((m = window.mR.findModule('ChatCollection')[0]) && m.ChatCollection && typeof m.ChatCollection.findImpl === 'undefined' && typeof m.ChatCollection._find !== 'undefined') m.ChatCollection.findImpl = m.ChatCollection._find;
-
-    // TODO remove these once everybody has been updated to WWebJS with legacy sessions removed
-    const _linkPreview = window.mR.findModule('queryLinkPreview');
-    if (_linkPreview && _linkPreview[0] && _linkPreview[0].default) {
-        window.Store.Wap = _linkPreview[0].default;
-    }
 
     const _isMDBackend = window.mR.findModule('isMDBackend');
     if(_isMDBackend && _isMDBackend[0] && _isMDBackend[0].isMDBackend) {
@@ -176,9 +171,7 @@ exports.LoadUtils = () => {
                     forceGif: options.sendVideoAsGif
                 });
             
-            if (options.caption){
-                attOptions.caption = options.caption; 
-            }
+            attOptions.caption = options.caption;
             content = options.sendMediaAsSticker ? undefined : attOptions.preview;
             attOptions.isViewOnce = options.isViewOnce;
 
@@ -271,15 +264,14 @@ exports.LoadUtils = () => {
 
         if (options.linkPreview) {
             delete options.linkPreview;
-
-            // Not supported yet by WhatsApp Web on MD
-            if(!window.Store.MDBackend) {
-                const link = window.Store.Validators.findLink(content);
-                if (link) {
-                    const preview = await window.Store.Wap.queryLinkPreview(link.url);
+            const link = window.Store.Validators.findLink(content);
+            if (link) {
+                let preview = await window.Store.LinkPreview.getLinkPreview(link);
+                if (preview && preview.data) {
+                    preview = preview.data;
                     preview.preview = true;
                     preview.subtype = 'url';
-                    options = { ...options, ...preview };
+                    options = {...options, ...preview};
                 }
             }
         }
@@ -379,17 +371,13 @@ exports.LoadUtils = () => {
         }
 
         if (options.linkPreview) {
-            options.linkPreview = null;
-
-            // Not supported yet by WhatsApp Web on MD
-            if(!window.Store.MDBackend) {
-                const link = window.Store.Validators.findLink(content);
-                if (link) {
-                    const preview = await window.Store.Wap.queryLinkPreview(link.url);
-                    preview.preview = true;
-                    preview.subtype = 'url';
-                    options = { ...options, ...preview };
-                }
+            delete options.linkPreview;
+            const link = window.Store.Validators.findLink(content);
+            if (link) {
+                const preview = await window.Store.LinkPreview.getLinkPreview(link);
+                preview.preview = true;
+                preview.subtype = 'url';
+                options = { ...options, ...preview };
             }
         }
 
