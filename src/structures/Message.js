@@ -407,7 +407,7 @@ class Message extends Base {
      * Message forward options
      * @typedef {Object} MessageForwardOptions
      * @property {boolean} [withCaption=true] Forwards this message with the caption text of the original message if provided
-     * @property {?boolean} displayAsForwarded If false, the forwarded message will be displayed withour a 'Forwarded' tag, by default the default WhatsApp behavior is used
+     * @property {boolean} [displayAsForwarded] If false, the forwarded message will be displayed withour a 'Forwarded' tag, by default the default WhatsApp behavior is used
      */
 
     /**

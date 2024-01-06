@@ -389,7 +389,7 @@ client.on('message', async msg => {
         // 2. To forward without a caption text:
         await msg.forward(msg.author, { withCaption: false });
 
-        // 3. To forward without a 'Forwarded' title:
+        // 3. To forward without a 'Forwarded' tag:
         await msg.forward(msg.author, { displayAsForwarded: false });
     }
 });
