@@ -371,10 +371,7 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.forwardMessage = async (chat, msg, options = {}) => {
-        const contact = chat.contact;
-        if (contact.isUser && contact.isContactBlocked) {
-            return ('ForwardMessageError: Attempted forwarding to a blocked contact');
-        }
+        if (chat.isUser && chat.contact.isContactBlocked) return false;
         const isMediaMsg = Boolean(window.Store.ForwardMessageUtils.getAsMms(msg) && !msg.ctwaContext);
         if (isMediaMsg) {
             const result = await window.WWebJS.forwardMediaMessage(chat, msg, options);
