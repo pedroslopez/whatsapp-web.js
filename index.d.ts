@@ -869,10 +869,7 @@ declare namespace WAWebJS {
         /** Message type */
         type: MessageTypes,
         /** Links included in the message. */
-        links: Array<{
-            link: string,
-            isSuspicious: boolean
-        }>,
+        links: Array<string>,
         /** Order ID */
         orderId: string,
         /** title */
