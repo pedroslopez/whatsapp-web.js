@@ -155,14 +155,14 @@ class RemoteAuth extends BaseAuthStrategy {
 
     async unCompressSession(compressedSessionPath) {
         await new Promise((resolve, reject) => {
-          var zip = new AdmZip(compressedSessionPath);
-          zip.extractAllToAsync(this.userDataDir, false, false, (err) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve();
-            }
-          });
+            var zip = new AdmZip(compressedSessionPath);
+            zip.extractAllToAsync(this.userDataDir, false, false, (err) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve();
+                }
+            });
         });
         await fs.promises.unlink(compressedSessionPath);
     }
