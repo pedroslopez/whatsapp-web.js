@@ -11,7 +11,7 @@ const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
 const WebCacheFactory = require('./webCache/WebCacheFactory');
-const { ClientInfo, Message, MessageMedia, Contact, Channel, Location, Poll, GroupNotification, Label, Call, Reaction } = require('./structures');
+const { ClientInfo, Message, MessageMedia, Contact, Channel, Location, Poll, GroupNotification, Label, Call, Buttons, List, Reaction } = require('./structures');
 const LegacySessionAuth = require('./authStrategies/LegacySessionAuth');
 const NoAuth = require('./authStrategies/NoAuth');
 
@@ -834,7 +834,7 @@ class Client extends EventEmitter {
     /**
      * Send a message to a specific chatId
      * @param {string} chatOrChannelId
-     * @param {string|MessageMedia|Location|Poll|Contact|Array<Contact>} content
+     * @param {string|MessageMedia|Location|Poll|Contact|Array<Contact>|Buttons|List} content
      * @param {MessageSendOptions} [options] - Options used when sending the message
      * 
      * @returns {Promise<Message>} Message that was just sent
@@ -844,16 +844,17 @@ class Client extends EventEmitter {
 
         if (isChannel && [
             options.sendAudioAsVoice, options.sendMediaAsDocument,
-            options.quotedMessageId, options.parseVCards,
-            options.isViewOnce, content instanceof Location, content instanceof Poll, content instanceof Contact,
+            options.quotedMessageId, options.parseVCards, options.isViewOnce,
+            content instanceof Location, content instanceof Poll, content instanceof Contact,
+            content instanceof Buttons, content instanceof List,
             Array.isArray(content) && content.length > 0 && content[0] instanceof Contact
         ].includes(true)) {
-            console.warn('The message type is currently not supported for sending in channels,\nthe supported message types are: text, image, sticker, gif or video.\nTo stay updated on supported message types to send in channels, see https://github.com/pedroslopez/whatsapp-web.js/pull/2620');
+            console.warn('The message type is currently not supported for sending in channels,\nthe supported message types are: text, image, sticker, gif or video.');
             return null;
         }
     
         if (options.mentions && options.mentions.some(possiblyContact => possiblyContact instanceof Contact)) {
-            console.warn('Mentions with an array of Contact are now deprecated. See more at https://github.com/pedroslopez/whatsapp-web.js/pull/2166');
+            console.warn('Mentions with an array of Contact are now deprecated. See more at https://github.com/pedroslopez/whatsapp-web.js/pull/2166.');
             options.mentions = options.mentions.map(a => a.id._serialized);
         }
 
@@ -892,6 +893,15 @@ class Client extends EventEmitter {
             content = '';
         } else if (Array.isArray(content) && content.length > 0 && content[0] instanceof Contact) {
             internalOptions.contactCardList = content.map(contact => contact.id._serialized);
+            content = '';
+        } else if (content instanceof Buttons) {
+            console.warn('Buttons are now deprecated. See more at https://www.youtube.com/watch?v=hv1R1rLeVVE.');
+            if (content.type !== 'chat') { internalOptions.attachment = content.body; }
+            internalOptions.buttons = content;
+            content = '';
+        } else if (content instanceof List) {
+            console.warn('Lists are now deprecated. See more at https://www.youtube.com/watch?v=hv1R1rLeVVE.');
+            internalOptions.list = content;
             content = '';
         }
 

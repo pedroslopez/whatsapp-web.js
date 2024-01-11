@@ -293,6 +293,46 @@ exports.LoadUtils = () => {
             }
         }
 
+        let buttonOptions = {};
+        if (options.buttons) {
+            let caption;
+            if (options.buttons.type === 'chat') {
+                content = options.buttons.body;
+                caption = content;
+            } else {
+                caption = options.caption ? options.caption : ' '; //Caption can't be empty
+            }
+            buttonOptions = {
+                productHeaderImageRejected: false,
+                isFromTemplate: false,
+                isDynamicReplyButtonsMsg: true,
+                title: options.buttons.title ? options.buttons.title : undefined,
+                footer: options.buttons.footer ? options.buttons.footer : undefined,
+                dynamicReplyButtons: options.buttons.buttons,
+                replyButtons: options.buttons.buttons,
+                caption: caption
+            };
+            delete options.buttons;
+        }
+
+        let listOptions = {};
+        if (options.list) {
+            if (window.Store.Conn.platform === 'smba' || window.Store.Conn.platform === 'smbi') {
+                throw '[LT01] Whatsapp business can\'t send this yet';
+            }
+            listOptions = {
+                type: 'list',
+                footer: options.list.footer,
+                list: {
+                    ...options.list,
+                    listType: 1
+                },
+                body: options.list.description
+            };
+            delete options.list;
+            delete listOptions.list.footer;
+        }
+
         const lidUser = window.Store.User.getMaybeMeLidUser();
         const meUser = window.Store.User.getMaybeMeUser();
         const isMD = window.Store.MDBackend;
@@ -337,6 +377,8 @@ exports.LoadUtils = () => {
             ...locationOptions,
             ..._pollOptions,
             ...vcardOptions,
+            ...buttonOptions,
+            ...listOptions,
             ...extraOptions
         };
 
