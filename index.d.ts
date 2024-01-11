@@ -151,7 +151,7 @@ declare namespace WAWebJS {
         resetState(): Promise<void>
 
         /** Send a message to a specific chatId */
-        sendMessage(chatOrChannelId: string, content: MessageContent, options?: MessageSendOptions): Promise<Message>
+        sendMessage(chatId: string, content: MessageContent, options?: MessageSendOptions): Promise<Message>
 
         /** Sends a channel admin invitation to a user, allowing them to become an admin of the channel */
         sendChannelAdminInvite(chatId: string, channelId: string, options?: { comment?: string }): Promise<boolean>

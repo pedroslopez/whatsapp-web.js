@@ -833,14 +833,14 @@ class Client extends EventEmitter {
     
     /**
      * Send a message to a specific chatId
-     * @param {string} chatOrChannelId
+     * @param {string} chatId
      * @param {string|MessageMedia|Location|Poll|Contact|Array<Contact>|Buttons|List} content
      * @param {MessageSendOptions} [options] - Options used when sending the message
      * 
      * @returns {Promise<Message>} Message that was just sent
      */
-    async sendMessage(chatOrChannelId, content, options = {}) {
-        let isChannel = chatOrChannelId.match(/@(.+)/)[1] === 'newsletter';
+    async sendMessage(chatId, content, options = {}) {
+        let isChannel = chatId.match(/@(.+)/)[1] === 'newsletter';
 
         if (isChannel && [
             options.sendAudioAsVoice, options.sendMediaAsDocument,
@@ -915,20 +915,20 @@ class Client extends EventEmitter {
             );
         }
 
-        const sentMsg = await this.pupPage.evaluate(async (chatOrChannelId, content, options, sendSeen) => {
-            const chatOrChannel = await window.WWebJS.getChat(chatOrChannelId, { getAsModel: false });
+        const sentMsg = await this.pupPage.evaluate(async (chatId, content, options, sendSeen) => {
+            const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
 
-            if (!chatOrChannel) return null;
+            if (!chat) return null;
 
             if (sendSeen) {
-                await window.WWebJS.sendSeen(chatOrChannelId);
+                await window.WWebJS.sendSeen(chatId);
             }
 
-            const msg = await window.WWebJS.sendMessage(chatOrChannel, content, options);
+            const msg = await window.WWebJS.sendMessage(chat, content, options);
             return msg
                 ? msg.serialize()
                 : msg;
-        }, chatOrChannelId, content, internalOptions, sendSeen);
+        }, chatId, content, internalOptions, sendSeen);
 
         return sentMsg
             ? new Message(this, sentMsg)

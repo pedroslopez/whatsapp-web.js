@@ -183,8 +183,8 @@ exports.LoadUtils = () => {
 
     };
 
-    window.WWebJS.sendMessage = async (chatOrChannel, content, options = {}) => {
-        const isChannel = chatOrChannel.isNewsletter;
+    window.WWebJS.sendMessage = async (chat, content, options = {}) => {
+        const isChannel = chat.isNewsletter;
 
         let mediaOptions = {};
         if (options.media) {
@@ -206,7 +206,7 @@ exports.LoadUtils = () => {
         let quotedMsgOptions = {};
         if (options.quotedMessageId) {
             let quotedMessage = window.Store.Msg.get(options.quotedMessageId);
-            quotedMessage && (quotedMsgOptions = quotedMessage.msgContextInfo(chatOrChannel));
+            quotedMessage && (quotedMsgOptions = quotedMessage.msgContextInfo(chat));
             delete options.quotedMessageId;
         }
 
@@ -337,17 +337,17 @@ exports.LoadUtils = () => {
         const meUser = window.Store.User.getMaybeMeUser();
         const isMD = window.Store.MDBackend;
         const newId = await window.Store.MsgKey.newId();
-        let from = chatOrChannel.id.isLid() ? lidUser : meUser;
+        let from = chat.id.isLid() ? lidUser : meUser;
         let participant;
 
-        if (chatOrChannel.isGroup) {
-            from = chatOrChannel.groupMetadata && chatOrChannel.groupMetadata.isLidAddressingMode ? lidUser : meUser;
+        if (chat.isGroup) {
+            from = chat.groupMetadata && chat.groupMetadata.isLidAddressingMode ? lidUser : meUser;
             participant = window.Store.WidFactory.toUserWid(from);
         }
 
         const newMsgKey = new window.Store.MsgKey({
             from: from,
-            to: chatOrChannel.id,
+            to: chat.id,
             id: newId,
             participant: isMD && participant,
             selfDir: 'out'
@@ -356,7 +356,7 @@ exports.LoadUtils = () => {
         const extraOptions = options.extraOptions || {};
         delete options.extraOptions;
 
-        const ephemeralFields = window.Store.EphemeralFields.getEphemeralFields(chatOrChannel);
+        const ephemeralFields = window.Store.EphemeralFields.getEphemeralFields(chat);
 
         const message = {
             ...options,
@@ -364,7 +364,7 @@ exports.LoadUtils = () => {
             ack: 0,
             body: content,
             from: meUser,
-            to: chatOrChannel.id,
+            to: chat.id,
             local: true,
             self: 'out',
             t: parseInt(new Date().getTime() / 1000),
@@ -387,13 +387,13 @@ exports.LoadUtils = () => {
             const msgDataFromMsgModel = window.Store.SendChannelMessage.msgDataFromMsgModel(msg);
             const isMedia = Object.keys(mediaOptions).length > 0;
             await window.Store.SendChannelMessage.addNewsletterMsgsRecords([msgDataFromMsgModel]);
-            chatOrChannel.msgs.add(msg);
-            chatOrChannel.t = msg.t;
+            chat.msgs.add(msg);
+            chat.t = msg.t;
 
             const sendChannelMsgResponse = await window.Store.SendChannelMessage.sendNewsletterMessageJob({
                 msgData: message,
                 type: message.type === 'chat' ? 'text' : isMedia ? 'media' : message.type,
-                newsletterJid: chatOrChannel.id.toJid(),
+                newsletterJid: chat.id.toJid(),
                 ...(isMedia ? { mediaMetadata: msg.avParams() } : {})
             });
 
@@ -406,7 +406,7 @@ exports.LoadUtils = () => {
             return msg;
         }
 
-        await window.Store.SendMessage.addAndSendMsgToChat(chatOrChannel, message);
+        await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
         return window.Store.Msg.get(newMsgKey._serialized);
     };
 	
