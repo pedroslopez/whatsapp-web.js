@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.22.1 &raquo; Class: Client</title>
+  <title>whatsapp-web.js 1.23.0 &raquo; Class: Client</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>22.<wbr>1</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>23.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -26,7 +26,7 @@
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
             <h1><small></small><span class="symbol-name">Client</span></h1>
-            <p class="source-link">Source: <a href="Client.js.html#source-line-55">Client.<wbr>js:55</a></p>
+            <p class="source-link">Source: <a href="Client.js.html#source-line-56">Client.<wbr>js:56</a></p>
             <div class="symbol-classdesc">
               <p>Starting point for interacting with the WhatsApp Web API</p>
             </div>
@@ -64,10 +64,13 @@
                     <dt><a href="Client.html#addOrRemoveLabels">addOrRemoveLabels(labelIds, chatIds)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Client.html#approveGroupMembershipRequests">approveGroupMembershipRequests(groupId, options)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#archiveChat">archiveChat()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Client.html#createGroup">createGroup(name, participants)</a></dt>
+                    <dt><a href="Client.html#createGroup">createGroup(title, participants, options)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Client.html#deleteProfilePicture">deleteProfilePicture()</a></dt>
@@ -108,6 +111,9 @@
                     <dd>
                     </dd>
                     <dt><a href="Client.html#getFormattedNumber">getFormattedNumber(number)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#getGroupMembershipRequests">getGroupMembershipRequests(groupId)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Client.html#getInviteInfo">getInviteInfo(inviteCode)</a></dt>
@@ -151,6 +157,9 @@
                     <dd>
                     </dd>
                     <dt><a href="Client.html#pinChat">pinChat()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#rejectGroupMembershipRequests">rejectGroupMembershipRequests(groupId, options)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Client.html#resetState">resetState()</a></dt>
@@ -235,6 +244,9 @@
                     <dt><a href="Client.html#event:group_leave">group_leave</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Client.html#event:group_membership_request">group_membership_request</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#event:group_update">group_update</a></dt>
                     <dd>
                     </dd>
@@ -247,13 +259,13 @@
                     <dt><a href="Client.html#event:message">message</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Client.html#event:message_ack">message_ack</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Client.html#event:message_ack">message_ack</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#event:message_create">message_create</a></dt>
                     <dd>
                     </dd>
@@ -541,6 +553,7 @@
               <dd><a href="Client.html#event:change_state">Client#event:change_state</a></dd>
               <dd><a href="Client.html#event:contact_changed">Client#event:contact_changed</a></dd>
               <dd><a href="Client.html#event:group_admin_changed">Client#event:group_admin_changed</a></dd>
+              <dd><a href="Client.html#event:group_membership_request">Client#event:group_membership_request</a></dd>
             </dl>
           </section>
           <section>
@@ -683,17 +696,8 @@
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
-              <h3 id="archiveChat"><span class="symbol-name">archiveChat</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
-              <p>Enables and returns the archive state of the Chat</p>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code>boolean</code> </p>
-                </dd>
-              </dl>
-              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
-              <h3 id="createGroup"><span class="symbol-name">createGroup</span><span class="signature"><span class="signature-params">(name, participants)</span>&nbsp;&rarr; <span class="signature-returns"> (Object, string, or Object with string properties)</span></span></h3>
-              <p>Create a new group</p>
+              <h3 id="approveGroupMembershipRequests"><span class="symbol-name">approveGroupMembershipRequests</span><span class="signature"><span class="signature-params">(groupId, options)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of <a href="global.html#MembershipRequestActionResult">MembershipRequestActionResult</a></span></span></h3>
+              <p>Approves membership requests if any</p>
               <section>
                 <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
@@ -708,7 +712,7 @@
                   <tbody>
                     <tr>
                       <td>
-                        <p>name</p>
+                        <p>groupId</p>
                       </td>
                       <td>
                         <p>string</p>
@@ -717,21 +721,21 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>group title</p>
+                        <p>The group ID to get the membership request for</p>
                       </td>
                     </tr>
                     <tr>
                       <td>
-                        <p>participants</p>
+                        <p>options</p>
                       </td>
                       <td>
-                        <p>Array of (<a href="Contact.html">Contact</a> or string)</p>
+                        <p><a href="global.html#MembershipRequestActionOptions">MembershipRequestActionOptions</a></p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>an array of Contacts or contact IDs to add to the group</p>
+                        <p>Options for performing a membership request action</p>
                       </td>
                     </tr>
                   </tbody>
@@ -740,18 +744,85 @@
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Object</code> 
-                  <p>createRes</p>
+                  <p><code>Promise containing Array of <a href="global.html#MembershipRequestActionResult">MembershipRequestActionResult</a></code> 
+                  <p>Returns an array of requester IDs whose membership requests were approved and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned</p>
                   </p>
                 </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="archiveChat"><span class="symbol-name">archiveChat</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
+              <p>Enables and returns the archive state of the Chat</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
                 <dd>
-                  <p><code>string</code> 
-                  <p>createRes.gid - ID for the group that was just created</p>
-                  </p>
+                  <p><code>boolean</code> </p>
                 </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="createGroup"><span class="symbol-name">createGroup</span><span class="signature"><span class="signature-params">(title, participants, options)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing (<a href="global.html#CreateGroupResult">CreateGroupResult</a> or string)</span></span></h3>
+              <p>Creates a new group</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>title</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Group title</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>participants</p>
+                      </td>
+                      <td>
+                        <p>(string, <a href="Contact.html">Contact</a>, Array of (<a href="Contact.html">Contact</a> or string), or undefined)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>A single Contact object or an ID as a string or an array of Contact objects or contact IDs to add to the group</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>options</p>
+                      </td>
+                      <td>
+                        <p><a href="global.html#CreateGroupOptions">CreateGroupOptions</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>An object that handles options for group creation</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
                 <dd>
-                  <p><code>Object with string properties</code> 
-                  <p>createRes.missingParticipants - participants that were not added to the group. Keys represent the ID for participant that was not added and its value is a status code that represents the reason why participant could not be added. This is usually 403 if the user's privacy settings don't allow you to add them to groups.</p>
+                  <p><code>Promise containing (<a href="global.html#CreateGroupResult">CreateGroupResult</a> or string)</code> 
+                  <p>Object with resulting data or an error message as a string</p>
                   </p>
                 </dd>
               </dl>
@@ -1058,6 +1129,46 @@
                 <dt>Returns</dt>
                 <dd>
                   <p><code>Promise containing string</code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getGroupMembershipRequests"><span class="symbol-name">getGroupMembershipRequests</span><span class="signature"><span class="signature-params">(groupId)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of <a href="global.html#GroupMembershipRequest">GroupMembershipRequest</a></span></span></h3>
+              <p>Gets an array of membership requests</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>groupId</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The ID of a group to get membership requests for</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing Array of <a href="global.html#GroupMembershipRequest">GroupMembershipRequest</a></code> 
+                  <p>An array of membership requests</p>
+                  </p>
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
@@ -1383,6 +1494,60 @@
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="rejectGroupMembershipRequests"><span class="symbol-name">rejectGroupMembershipRequests</span><span class="signature"><span class="signature-params">(groupId, options)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of <a href="global.html#MembershipRequestActionResult">MembershipRequestActionResult</a></span></span></h3>
+              <p>Rejects membership requests if any</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>groupId</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The group ID to get the membership request for</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>options</p>
+                      </td>
+                      <td>
+                        <p><a href="global.html#MembershipRequestActionOptions">MembershipRequestActionOptions</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Options for performing a membership request action</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing Array of <a href="global.html#MembershipRequestActionResult">MembershipRequestActionResult</a></code> 
+                  <p>Returns an array of requester IDs whose membership requests were rejected and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="resetState"><span class="symbol-name">resetState</span><span class="signature"><span class="signature-params">()</span></span></h3>
               <p>Force reset of connection state for the client</p>
               <dl class="dl-compact">
@@ -1522,7 +1687,7 @@
                         <p>content</p>
                       </td>
                       <td>
-                        <p>(string, <a href="MessageMedia.html">MessageMedia</a>, <a href="Location.html">Location</a>, <a href="Contact.html">Contact</a>, Array of <a href="Contact.html">Contact</a>, <a href="Buttons.html">Buttons</a>, or <a href="List.html">List</a>)</p>
+                        <p>(string, <a href="MessageMedia.html">MessageMedia</a>, <a href="Location.html">Location</a>, <a href="Poll.html">Poll</a>, <a href="Contact.html">Contact</a>, Array of <a href="Contact.html">Contact</a>, <a href="Buttons.html">Buttons</a>, or <a href="List.html">List</a>)</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
@@ -2208,6 +2373,95 @@
                       </td>
                       <td>
                         <p>GroupNotification with more information about the action</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="event:group_membership_request"><span class="symbol-name">group_membership_request</span></h3>
+              <p>Emitted when some user requested to join the group
+                that has the membership approval mode turned on</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>notification</p>
+                      </td>
+                      <td>
+                        <p><a href="GroupNotification.html">GroupNotification</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>GroupNotification with more information about the action</p>
+                        <p>Values in <code>notification</code> have the following properties:</p>
+                        <table class="jsdoc-details-table">
+                          <thead>
+                            <tr>
+                              <th>Name</th>
+                              <th>Type</th>
+                              <th>Optional</th>
+                              <th>Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>
+                                <p>chatId</p>
+                              </td>
+                              <td>
+                                <p>string</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                                <p>The group ID the request was made for</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>author</p>
+                              </td>
+                              <td>
+                                <p>string</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                                <p>The user ID that made a request</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>timestamp</p>
+                              </td>
+                              <td>
+                                <p>number</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                                <p>The timestamp the request was made at</p>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </td>
                     </tr>
                   </tbody>
@@ -2911,7 +3165,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on August 10, 2023.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on October 21, 2023.
       </p>
     </div>
   </footer>
