@@ -935,6 +935,10 @@ declare namespace WAWebJS {
         star: () => Promise<void>,
         /** Unstar this message */
         unstar: () => Promise<void>,
+        /** Pins the message (group admins can pin messages of all group members) */
+        pin: (duration: number) => Promise<boolean>,
+        /** Unpins the message (group admins can unpin messages of all group members) */
+        unpin: () => Promise<boolean>,
         /** Get information about message delivery status */
         getInfo: () => Promise<MessageInfo | null>,
         /**

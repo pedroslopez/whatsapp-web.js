@@ -523,6 +523,27 @@ class Message extends Base {
     }
 
     /**
+     * Pins the message (group admins can pin messages of all group members)
+     * @param {number} duration The duration in seconds the message will be pinned in a chat
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async pin(duration) {
+        return await this.client.pupPage.evaluate(async (msgId, duration) => {
+            return await window.WWebJS.pinUnpinMsgAction(msgId, 1, duration);
+        }, this.id._serialized, duration);
+    }
+
+    /**
+     * Unpins the message (group admins can unpin messages of all group members)
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async unpin() {
+        return await this.client.pupPage.evaluate(async (msgId) => {
+            return await window.WWebJS.pinUnpinMsgAction(msgId, 2);
+        }, this.id._serialized);
+    }
+
+    /**
      * Message Info
      * @typedef {Object} MessageInfo
      * @property {Array<{id: ContactId, t: number}>} delivery Contacts to which the message has been delivered to
