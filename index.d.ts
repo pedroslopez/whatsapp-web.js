@@ -857,7 +857,16 @@ declare namespace WAWebJS {
         /** MediaKey that represents the sticker 'ID' */
         mediaKey?: string,
         /** Indicates the mentions in the message body. */
-        mentionedIds: [],
+        mentionedIds: ChatId[],
+        /** Indicates whether there are group mentions in the message body */
+        groupMentions: {
+            groupSubject: string;
+            groupJid: {
+                server: string;
+                user: string;
+                _serialized: string;
+            };
+        }[],
         /** Unix timestamp for when the message was created */
         timestamp: number,
         /**
@@ -917,6 +926,8 @@ declare namespace WAWebJS {
         getContact: () => Promise<Contact>,
         /** Returns the Contacts mentioned in this message */
         getMentions: () => Promise<Contact[]>,
+        /** Returns groups mentioned in this message */
+        getGroupMentions: () => Promise<GroupChat[]|[]>,
         /** Returns the quoted message, if any */
         getQuotedMessage: () => Promise<Message>,
         /** 
@@ -935,6 +946,10 @@ declare namespace WAWebJS {
         star: () => Promise<void>,
         /** Unstar this message */
         unstar: () => Promise<void>,
+        /** Pins the message (group admins can pin messages of all group members) */
+        pin: (duration: number) => Promise<boolean>,
+        /** Unpins the message (group admins can unpin messages of all group members) */
+        unpin: () => Promise<boolean>,
         /** Get information about message delivery status */
         getInfo: () => Promise<MessageInfo | null>,
         /**
@@ -1035,8 +1050,15 @@ declare namespace WAWebJS {
         caption?: string
         /** Id of the message that is being quoted (or replied to) */
         quotedMessageId?: string
-        /** Contacts that are being mentioned in the message */
-        mentions?: Contact[]
+        /** User IDs to mention in the message */
+        mentions?: string[]
+        /** An array of object that handle group mentions */
+        groupMentions?: {
+            /** The name of a group to mention (can be custom) */
+            subject: string,
+            /** The group ID, e.g.: 'XXXXXXXXXX@g.us' */
+            id: string
+        }[]
         /** Send 'seen' status */
         sendSeen?: boolean
         /** Media to be sent */
