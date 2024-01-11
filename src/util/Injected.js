@@ -60,6 +60,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.KeepUnkeepMsg = window.mR.findModule('keepMessage')[0];
     window.Store.Chat.getChatByMsg = window.mR.findModule('getChat')[0].getChat;
     window.Store.getMsgInfo = (window.mR.findModule('sendQueryMsgInfo')[0] || {}).sendQueryMsgInfo || window.mR.findModule('queryMsgInfo')[0].queryMsgInfo;
+    window.Store.pinUnpinMsg = window.mR.findModule('sendPinInChatMsg')[0].sendPinInChatMsg;
     
     /* eslint-disable no-undef, no-cond-assign */
     window.Store.QueryExist = ((m = window.mR.findModule('queryExists')[0]) ? m.queryExists : window.mR.findModule('queryExist')[0].queryWidExists);
@@ -209,7 +210,22 @@ exports.LoadUtils = () => {
         }
 
         if (options.mentionedJidList) {
-            options.mentionedJidList = options.mentionedJidList.map(cId => window.Store.Contact.get(cId).id);
+            options.mentionedJidList = await Promise.all(
+                options.mentionedJidList.map(async (id) => {
+                    const wid = window.Store.WidFactory.createWid(id);
+                    if (await window.Store.QueryExist(wid)) {
+                        return wid;
+                    }
+                })
+            );
+            options.mentionedJidList = options.mentionedJidList.filter(Boolean);
+        }
+
+        if (options.groupMentions) {
+            options.groupMentions = options.groupMentions.map((e) => ({
+                groupSubject: e.subject,
+                groupJid: window.Store.WidFactory.createWid(e.id)
+            }));
         }
 
         let locationOptions = {};
@@ -382,7 +398,22 @@ exports.LoadUtils = () => {
         delete options.extraOptions;
         
         if (options.mentionedJidList) {
-            options.mentionedJidList = options.mentionedJidList.map(cId => window.Store.Contact.get(cId).id);
+            options.mentionedJidList = await Promise.all(
+                options.mentionedJidList.map(async (id) => {
+                    const wid = window.Store.WidFactory.createWid(id);
+                    if (await window.Store.QueryExist(wid)) {
+                        return wid;
+                    }
+                })
+            );
+            options.mentionedJidList = options.mentionedJidList.filter(Boolean);
+        }
+
+        if (options.groupMentions) {
+            options.groupMentions = options.groupMentions.map((e) => ({
+                groupSubject: e.subject,
+                groupJid: window.Store.WidFactory.createWid(e.id)
+            }));
         }
 
         if (options.linkPreview) {
@@ -1118,5 +1149,13 @@ exports.LoadUtils = () => {
             ? await window.Store.KeepUnkeepMsg.keepMessage(msg, 3)
             : await window.Store.KeepUnkeepMsg.undoKeepMessage(msg, { deleteExpired }, 3);
         return response.messageSendResult === 'OK';
+    };
+
+    window.WWebJS.pinUnpinMsgAction = async (msgId, action, duration) => {
+        const message = window.Store.Msg.get(msgId);
+        if (!message) return false;
+        const response = await window.Store.pinUnpinMsg(message, action, duration);
+        if (response.messageSendResult === 'OK') return true;
+        return false;
     };
 };
