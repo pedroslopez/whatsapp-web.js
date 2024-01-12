@@ -57,6 +57,10 @@ class RemoteAuth extends BaseAuthStrategy {
         this.userDataDir = dirPath;
         this.sessionName = sessionDirName;
 
+        console.log('----------------------------------------------------------------------------------------------');
+        console.log('this.userDataDir: ', this.userDataDir);
+        console.log('this.sessionName: ', this.sessionName);
+        console.log('----------------------------------------------------------------------------------------------');
         await this.extractRemoteSession();
 
         this.client.options.puppeteer = {
@@ -101,10 +105,13 @@ class RemoteAuth extends BaseAuthStrategy {
     async storeRemoteSession(options) {
         /* Compress & Store Session */
         const pathExists = await this.isValidPath(this.userDataDir);
+        console.log('----------------------------------------------------------------------------------------------');
+        console.log('pathExists: ', pathExists);
+        console.log('----------------------------------------------------------------------------------------------');
         if (pathExists) {
             await this.compressSession();
             await this.store.save({session: this.sessionName});
-            await fs.promises.unlink(`${this.sessionName}.zip`);
+            //await fs.promises.unlink(`${this.userDataDir}/${this.sessionName}.zip`);
             await fs.promises.rm(`${this.tempDir}`, {
                 recursive: true,
                 force: true
@@ -115,8 +122,15 @@ class RemoteAuth extends BaseAuthStrategy {
 
     async extractRemoteSession() {
         const pathExists = await this.isValidPath(this.userDataDir);
-        const compressedSessionPath = `${this.sessionName}.zip`;
+        const compressedSessionPath = `${this.dataPath}/${this.sessionName}.zip`;
         const sessionExists = await this.store.sessionExists({session: this.sessionName});
+        console.log('----------------------------------------------------------------------------------------------');
+        console.log('pathExists: ', pathExists);
+        console.log('this.userDataDir: ', this.userDataDir);
+        console.log('sessionExists: ', sessionExists);
+        console.log('this.userDataDir: ', this.sessionName);
+        console.log('compressedSessionPath: ', compressedSessionPath);
+        console.log('----------------------------------------------------------------------------------------------');
         if (pathExists) {
             await fs.promises.rm(this.userDataDir, {
                 recursive: true,
@@ -138,18 +152,52 @@ class RemoteAuth extends BaseAuthStrategy {
 
     async compressSession() {
         const archive = archiver('zip');
-        const stream = fs.createWriteStream(`${this.sessionName}.zip`);
+        const stream = fs.createWriteStream(`${this.dataPath}/${this.sessionName}.zip`);
+        console.log('Starting compression process...');
+        try {
+            await fs.copy(this.userDataDir, this.tempDir);
+            console.log('Data copied to temporary directory.');
+        } catch (copyError) {
+            console.error('Error copying data to temporary directory:', copyError);
+            throw copyError; // Rethrowing the error or handle it as needed
+        }
 
-        await fs.copy(this.userDataDir, this.tempDir).catch(() => {});
-        await this.deleteMetadata();
+        try {
+            await this.deleteMetadata();
+            console.log('Metadata deleted.');
+        } catch (deleteMetaError) {
+            console.error('Error deleting metadata:', deleteMetaError);
+            throw deleteMetaError; // Rethrowing the error or handle it as needed
+        }
+
         return new Promise((resolve, reject) => {
             archive
                 .directory(this.tempDir, false)
-                .on('error', err => reject(err))
+                .on('error', err => {
+                    console.error('Archiving error:', err);
+                    reject(err);
+                })
                 .pipe(stream);
 
-            stream.on('close', () => resolve());
-            archive.finalize();
+            stream.on('close', () => {
+                console.log(`ZIP file should be created at: ${this.dataPath}/${this.sessionName}.zip`);
+                resolve();
+            });
+
+            archive.on('warning', (warning) => {
+                console.warn('Warning during archiving:', warning);
+            });
+
+            archive.on('error', (error) => {
+                console.error('Error during archiving:', error);
+                reject(error);
+            });
+
+            archive.finalize().then(() => {
+                console.log('Archive finalize called.');
+            }).catch((error) => {
+                console.error('Error in finalize:', error);
+            });
         });
     }
 
@@ -162,11 +210,17 @@ class RemoteAuth extends BaseAuthStrategy {
                 .on('error', err => reject(err))
                 .on('finish', () => resolve());
         });
+        console.log('----------------------------------------------------------------------------------------------');
+        console.log('compressedSessionPath: ', compressedSessionPath);
+        console.log('----------------------------------------------------------------------------------------------');
         await fs.promises.unlink(compressedSessionPath);
     }
 
     async deleteMetadata() {
         const sessionDirs = [this.tempDir, path.join(this.tempDir, 'Default')];
+        console.log('----------------------------------------------------------------------------------------------');
+        console.log('sessionDirs: ', sessionDirs);
+        console.log('----------------------------------------------------------------------------------------------');
         for (const dir of sessionDirs) {
             const sessionFiles = await fs.promises.readdir(dir);
             for (const element of sessionFiles) {

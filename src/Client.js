@@ -329,6 +329,10 @@ class Client extends EventEmitter {
          * Emitted when authentication is successful
          * @event Client#authenticated
          */
+        console.log('1#######################################################');
+        console.log('authEventPayload:');
+        console.log(authEventPayload);
+        console.log('2#######################################################')
         this.emit(Events.AUTHENTICATED, authEventPayload);
 
         // Check window.Store Injection

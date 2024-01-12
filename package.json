@@ -30,11 +30,16 @@
   "homepage": "https://wwebjs.dev/",
   "dependencies": {
     "@pedroslopez/moduleraid": "^5.0.2",
+    "axios": "^1.6.5",
+    "body-parser": "^1.20.2",
+    "express": "^4.18.2",
     "fluent-ffmpeg": "2.1.2",
     "mime": "^3.0.0",
     "node-fetch": "^2.6.5",
     "node-webpmux": "3.1.0",
-    "puppeteer": "^13.0.0"
+    "puppeteer": "^13.0.0",
+    "qrcode-terminal": "^0.12.0",
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
     "@types/node-fetch": "^2.5.12",
