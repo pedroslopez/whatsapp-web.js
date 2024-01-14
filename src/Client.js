@@ -43,6 +43,7 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @fires Client#message_create
  * @fires Client#message_revoke_me
  * @fires Client#message_revoke_everyone
+ * @fires Client#message_ciphertext
  * @fires Client#message_edit
  * @fires Client#media_uploaded
  * @fires Client#group_join
@@ -659,6 +660,16 @@ class Client extends EventEmitter {
              */
             this.emit(Events.MESSAGE_EDIT, new Message(this, msg), newBody, prevBody);
         });
+        
+        await page.exposeFunction('onAddMessageCiphertextEvent', msg => {
+            
+            /**
+             * Emitted when messages are edited
+             * @event Client#message_ciphertext
+             * @param {Message} message
+             */
+            this.emit(Events.MESSAGE_CIPHERTEXT, new Message(this, msg));
+        });
 
         await page.evaluate(() => {
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
@@ -677,6 +688,7 @@ class Client extends EventEmitter {
                     if(msg.type === 'ciphertext') {
                         // defer message event until ciphertext is resolved (type changed)
                         msg.once('change:type', (_msg) => window.onAddMessageEvent(window.WWebJS.getMessageModel(_msg)));
+                        window.onAddMessageCiphertextEvent(window.WWebJS.getMessageModel(msg));
                     } else {
                         window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); 
                     }
@@ -799,6 +811,13 @@ class Client extends EventEmitter {
     }
 
     /**
+     * An object representing mentions of groups
+     * @typedef {Object} GroupMention
+     * @property {string} subject - The name of a group to mention (can be custom)
+     * @property {string} id - The group ID, e.g.: 'XXXXXXXXXX@g.us'
+     */
+
+    /**
      * Message options.
      * @typedef {Object} MessageSendOptions
      * @property {boolean} [linkPreview=true] - Show links preview. Has no effect on multi-device accounts.
@@ -810,7 +829,8 @@ class Client extends EventEmitter {
      * @property {boolean} [parseVCards=true] - Automatically parse vCards and send them as contacts
      * @property {string} [caption] - Image or video caption
      * @property {string} [quotedMessageId] - Id of the message that is being quoted (or replied to)
-     * @property {Contact[]} [mentions] - Contacts that are being mentioned in the message
+     * @property {GroupMention[]} [groupMentions] - An array of object that handle group mentions
+     * @property {string[]} [mentions] - User IDs to mention in the message
      * @property {boolean} [sendSeen=true] - Mark the conversation as seen after sending the message
      * @property {string} [stickerAuthor=undefined] - Sets the author of the sticker, (if sendMediaAsSticker is true).
      * @property {string} [stickerName=undefined] - Sets the name of the sticker, (if sendMediaAsSticker is true).
@@ -827,10 +847,16 @@ class Client extends EventEmitter {
      * @returns {Promise<Message>} Message that was just sent
      */
     async sendMessage(chatId, content, options = {}) {
-        if (options.mentions && options.mentions.some(possiblyContact => possiblyContact instanceof Contact)) {
-            console.warn('Mentions with an array of Contact are now deprecated. See more at https://github.com/pedroslopez/whatsapp-web.js/pull/2166.');
-            options.mentions = options.mentions.map(a => a.id._serialized);
+        if (options.mentions) {
+            !Array.isArray(options.mentions) && (options.mentions = [options.mentions]);
+            if (options.mentions.some((possiblyContact) => possiblyContact instanceof Contact)) {
+                console.warn('Mentions with an array of Contact are now deprecated. See more at https://github.com/pedroslopez/whatsapp-web.js/pull/2166.');
+                options.mentions = options.mentions.map((a) => a.id._serialized);
+            }
         }
+
+        options.groupMentions && !Array.isArray(options.groupMentions) && (options.groupMentions = [options.groupMentions]);
+
         let internalOptions = {
             linkPreview: options.linkPreview === false ? undefined : true,
             sendAudioAsVoice: options.sendAudioAsVoice,
@@ -840,7 +866,8 @@ class Client extends EventEmitter {
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
             parseVCards: options.parseVCards === false ? false : true,
-            mentionedJidList: Array.isArray(options.mentions) ? options.mentions : [],
+            mentionedJidList: options.mentions || [],
+            groupMentions: options.groupMentions,
             extraOptions: options.extra
         };
 
