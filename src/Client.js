@@ -1591,7 +1591,7 @@ class Client extends EventEmitter {
             for (const participant of createGroupResult.participants) {
                 let isInviteV4Sent = false;
                 const participantId = participant.wid._serialized;
-                const statusCode = participant.error ?? 200;
+                const statusCode = participant.error || 200;
 
                 if (autoSendInviteV4 && statusCode === 403) {
                     window.Store.ContactCollection.gadd(participant.wid, { silent: true });

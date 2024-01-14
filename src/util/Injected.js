@@ -505,7 +505,7 @@ exports.LoadUtils = () => {
         if (forceVoice && mediaData.type === 'ptt') {
             const waveform = mediaObject.contentInfo.waveform;
             mediaData.waveform =
-                waveform ?? await window.WWebJS.generateWaveform(file);
+                waveform || await window.WWebJS.generateWaveform(file);
         }
 
         if (!(mediaData.mediaBlob instanceof window.Store.OpaqueData)) {
@@ -593,7 +593,7 @@ exports.LoadUtils = () => {
             }
         } else {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            chat = window.Store.Chat.get(chatWid) ?? await window.Store.Chat.find(chatWid);
+            chat = window.Store.Chat.get(chatWid) || await window.Store.Chat.find(chatWid);
         }
 
         return getAsModel && chat
@@ -643,7 +643,7 @@ exports.LoadUtils = () => {
                 updatedAtTs: response.newsletterDescriptionMetadataMixin.descriptionQueryDescriptionResponseMixin.updateTime
             },
             inviteLink: `https://whatsapp.com/channel/${response.newsletterInviteLinkMetadataMixin.inviteCode}`,
-            membershipType: window.Store.ChannelUtils.getRoleByIdentifier(idOrInviteCode) ?? 'viewer',
+            membershipType: window.Store.ChannelUtils.getRoleByIdentifier(idOrInviteCode) || 'viewer',
             stateType: response.newsletterStateMetadataMixin.stateType,
             pictureUrl: picUrl ? `https://pps.whatsapp.net${picUrl}` : null,
             subscribersCount: response.newsletterSubscribersMetadataMixin.subscribersCount,
@@ -1104,7 +1104,7 @@ exports.LoadUtils = () => {
         }
 
         if (rpcResult.name === 'AddParticipantsResponseSuccess') {
-            const code = resultArgs?.value.error ?? '200';
+            const code = resultArgs?.value.error || '200';
             data.name = resultArgs?.name;
             data.code = +code;
             data.inviteV4Code = resultArgs?.value.addRequestCode;
