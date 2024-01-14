@@ -532,7 +532,7 @@ exports.LoadUtils = () => {
 
         msg.isEphemeral = message.isEphemeral;
         msg.isStatusV3 = message.isStatusV3;
-        msg.links = (window.Store.Validators.findLinks((message.body ?? '') + (message.caption ?? ''))).map((link) => ({
+        msg.links = (window.Store.Validators.findLinks(message.mediaObject ? message.caption : message.body)).map((link) => ({
             link: link.href,
             isSuspicious: Boolean(link.suspiciousCharacters && link.suspiciousCharacters.size)
         }));
