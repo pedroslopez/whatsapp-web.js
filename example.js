@@ -240,12 +240,52 @@ client.on('message', async msg => {
         const newStatus = msg.body.split(' ')[1];
         await client.setStatus(newStatus);
         msg.reply(`Status was updated to *${newStatus}*`);
-    } else if (msg.body === '!mention') {
-        const contact = await msg.getContact();
+    } else if (msg.body === '!mentionUsers') {
         const chat = await msg.getChat();
-        chat.sendMessage(`Hi @${contact.number}!`, {
-            mentions: [contact]
+        const userNumber = 'XXXXXXXXXX';
+        /**
+         * To mention one user you can pass user's ID to 'mentions' property as is,
+         * without wrapping it in Array, and a user's phone number to the message body:
+         */
+        await chat.sendMessage(`Hi @${userNumber}`, {
+            mentions: userNumber + '@c.us'
         });
+        // To mention a list of users:
+        await chat.sendMessage(`Hi @${userNumber}, @${userNumber}`, {
+            mentions: [userNumber + '@c.us', userNumber + '@c.us']
+        });
+    } else if (msg.body === '!mentionGroups') {
+        const chat = await msg.getChat();
+        const groupId = 'YYYYYYYYYY@g.us';
+        /**
+         * Sends clickable group mentions, the same as user mentions.
+         * When the mentions are clicked, it opens a chat with the mentioned group.
+         * The 'groupMentions.subject' can be custom
+         * 
+         * @note The user that does not participate in the mentioned group,
+         * will not be able to click on that mentioned group, the same if the group does not exist
+         *
+         * To mention one group:
+         */
+        await chat.sendMessage(`Check the last message here: @${groupId}`, {
+            groupMentions: { subject: 'GroupSubject', id: groupId }
+        });
+        // To mention a list of groups:
+        await chat.sendMessage(`Check the last message in these groups: @${groupId}, @${groupId}`, {
+            groupMentions: [
+                { subject: 'FirstGroup', id: groupId },
+                { subject: 'SecondGroup', id: groupId }
+            ]
+        });
+    } else if (msg.body === '!getGroupMentions') {
+        // To get group mentions from a message:
+        const groupId = 'ZZZZZZZZZZ@g.us';
+        const msg = await client.sendMessage('chatId', `Check the last message here: @${groupId}`, {
+            groupMentions: { subject: 'GroupSubject', id: groupId }
+        });
+        /** {@link groupMentions} is an array of `GroupChat` */
+        const groupMentions = await msg.getGroupMentions();
+        console.log(groupMentions);
     } else if (msg.body === '!delete') {
         if (msg.hasQuotedMsg) {
             const quotedMsg = await msg.getQuotedMessage();
@@ -288,7 +328,9 @@ client.on('message', async msg => {
         let button = new Buttons('Button body', [{ body: 'bt1' }, { body: 'bt2' }, { body: 'bt3' }], 'title', 'footer');
         client.sendMessage(msg.from, button);
     } else if (msg.body === '!list') {
-        let sections = [{ title: 'sectionTitle', rows: [{ title: 'ListItem1', description: 'desc' }, { title: 'ListItem2' }] }];
+        let sections = [
+            { title: 'sectionTitle', rows: [{ title: 'ListItem1', description: 'desc' }, { title: 'ListItem2' }] }
+        ];
         let list = new List('List body', 'btnText', sections, 'Title', 'footer');
         client.sendMessage(msg.from, list);
     } else if (msg.body === '!reaction') {
@@ -323,7 +365,7 @@ client.on('message', async msg => {
         await chat.changeLabels([0, 1]);
     } else if (msg.body === '!addlabels') {
         const chat = await msg.getChat();
-        let labels = (await chat.getLabels()).map(l => l.id);
+        let labels = (await chat.getLabels()).map((l) => l.id);
         labels.push('0');
         labels.push('1');
         await chat.changeLabels(labels);
@@ -376,13 +418,34 @@ client.on('message', async msg => {
             requesterIds: ['number1@c.us', 'number2@c.us'],
             sleep: null
         });
+    } else {
+        /**
+         * Pins a message in a chat, a method takes a number in seconds for the message to be pinned.
+         * WhatsApp default values for duration to pass to the method are:
+         * 1. 86400 for 24 hours
+         * 2. 604800 for 7 days
+         * 3. 2592000 for 30 days
+         * You can pass your own value:
+         */
+        const result = await msg.pin(60); // Will pin a message for 1 minute
+        console.log(result); // True if the operation completed successfully, false otherwise
     }
 });
 
-client.on('message_create', (msg) => {
+client.on('message_create', async (msg) => {
     // Fired on all message creations, including your own
     if (msg.fromMe) {
         // do stuff here
+    }
+
+    // Unpins a message
+    if (msg.fromMe && msg.body.startsWith('!unpin')) {
+        const pinnedMsg = await msg.getQuotedMessage();
+        if (pinnedMsg) {
+            // Will unpin a message
+            const result = await pinnedMsg.unpin();
+            console.log(result); // True if the operation completed successfully, false otherwise
+        }
     }
 });
 
