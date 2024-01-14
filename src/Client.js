@@ -941,12 +941,12 @@ class Client extends EventEmitter {
             const msg = await window.WWebJS.sendMessage(chat, content, options);
             return msg
                 ? window.WWebJS.getMessageModel(msg)
-                : msg;
+                : undefined;
         }, chatId, content, internalOptions, sendSeen);
 
         return sentMsg
             ? new Message(this, sentMsg)
-            : sentMsg;
+            : undefined;
     }
 
     /**
@@ -1027,7 +1027,7 @@ class Client extends EventEmitter {
 
         return chat
             ? ChatFactory.create(this, chat)
-            : chat;
+            : undefined;
     }
 
     /**
@@ -1072,7 +1072,7 @@ class Client extends EventEmitter {
             return await window.WWebJS.getChat(channelId);
         }, channelId, options);
 
-        return result ? (options.getMetadata ? result : ChatFactory.create(this, result)) : result;
+        return result ? (options.getMetadata ? result : ChatFactory.create(this, result)) : undefined;
     }
 
     /**
