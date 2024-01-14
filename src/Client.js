@@ -974,7 +974,7 @@ class Client extends EventEmitter {
             return await window.Store.SendChannelMessage.sendNewsletterAdminInviteMessage(
                 chat,
                 {
-                    newsletterWid: window.Store.WidFactory.createWid(channelId),
+                    newsletterWid: channelWid,
                     invitee: chatWid,
                     inviteMessage: options.comment,
                     base64Thumb: await window.WWebJS.getProfilePicThumbToBase64(channelWid)
