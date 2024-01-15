@@ -1731,7 +1731,7 @@ class Client extends EventEmitter {
      * the lastMessage property of a found channel will be 'null'
      *
      * @param {Object} searchOptions Search options
-     * @param {Array} [searchOptions.countryCodes = [your local region]] Array of country codes in 'ISO 3166-1 alpha-2' standart (@see https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) to search for channels created in these countries
+     * @param {Array<string>} [searchOptions.countryCodes = [your local region]] Array of country codes in 'ISO 3166-1 alpha-2' standart (@see https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) to search for channels created in these countries
      * @param {Object} searchOptions.sortOptions Sorting options
      * @param {string} [searchOptions.sortOptions.field = 'subscribers'] Field to sort by, for all options: {@link Channel.SortField}
      * @param {string} [searchOptions.sortOptions.order = 'desc'] Sorting order, for all options: {@link Channel.SortOrder}
