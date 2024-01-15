@@ -171,12 +171,13 @@ class Channel extends Base {
      * Valid values for passing to the method are:
      * 0 for ALL reactions to be available
      * 1 for BASIC reactions to be available: 👍, ❤️, 😂, 😮, 😢, 🙏
-     * 3 for NONE reactions to be avaliable
+     * 2 for NONE reactions to be avaliable
      * @param {number} reactionCode 
      * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
      */
     async setReactionSetting(reactionCode) {
-        if (reactionCode === 2) return false;
+        if (![0, 1, 2].includes(reactionCode)) return false;
+        reactionCode === 2 && (reactionCode = 3);
         const success = await this._setChannelMetadata(
             { reactionCodesSetting: reactionCode },
             { editReactionCodesSetting: true }

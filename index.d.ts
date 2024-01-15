@@ -1525,7 +1525,7 @@ declare namespace WAWebJS {
          * Valid values for passing to the method are:
          * 0 for ALL reactions to be available
          * 1 for BASIC reactions to be available: 👍, ❤️, 😂, 😮, 😢, 🙏
-         * 3 for NONE reactions to be avaliable
+         * 2 for NONE reactions to be avaliable
          */
         setReactionSetting(reactionCode: number): Promise<boolean>;
         /** Mutes the channel */
