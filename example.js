@@ -98,7 +98,7 @@ client.on('message', async msg => {
          *     user: 'XXXXXXXXXX',
          *     _serialized: 'XXXXXXXXXX@g.us'
          *   },
-         *   code: 200,
+         *   status: 200,
          *   message: 'You joined the group/community successfully'
          * }
          */

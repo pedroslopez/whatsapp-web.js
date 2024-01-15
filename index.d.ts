@@ -1511,7 +1511,7 @@ declare namespace WAWebJS {
 
     export interface JoinGroupResponse {
         gid?: ChatId,
-        code: number,
+        status: number,
         message: string
     }
 

@@ -1029,7 +1029,7 @@ class Client extends EventEmitter {
     /**
      * @typedef {Object} JoinGroupResponse
      * @property {?ChatId} gid The group ID object
-     * @property {number} code An error code
+     * @property {number} status An error code
      * @property {string} message The message that explains a response
      */
 
@@ -1074,14 +1074,14 @@ class Client extends EventEmitter {
                     response = await window.Store.GroupInvite.joinGroupViaInviteV4(inviteCode, String(inviteCodeExp), groupId, userWid);
                     response = {
                         gid: window.Store.WidFactory.createWid(groupId),
-                        code: response.status,
+                        status: response.status,
                         message: response.status >= 500 && responseCodes.serverError || responseCodes[response.status] || responseCodes.default
                     };
                 } catch (err) {
                     if (err.name === 'ServerStatusCodeError') {
                         response = {
                             gid: null,
-                            code: err.statusCode,
+                            status: err.statusCode,
                             message: err.statusCode >= 500 && responseCodes.serverError || responseCodes.default
                         };
                     }
@@ -1094,20 +1094,20 @@ class Client extends EventEmitter {
                 response = await window.Store.GroupInvite.joinGroupViaInvite(invitation);
                 response = {
                     gid: response.gid,
-                    code: 200,
+                    status: 200,
                     message: responseCodes[200]
                 };
             } catch (err) {
                 if (err.name === 'ServerStatusCodeError') {
                     response = {
                         gid: null,
-                        code: err.statusCode,
+                        status: err.statusCode,
                         message: err.statusCode >= 500 && responseCodes.serverError || responseCodes.default
                     };
                 } else if (err.membershipApprovalMode) {
                     response = {
                         gid: err.gid,
-                        code: 400,
+                        status: 400,
                         message: responseCodes.membershipApprovalMode
                     };
                 } else throw err;

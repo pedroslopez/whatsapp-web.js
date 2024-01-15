@@ -424,7 +424,7 @@ class Message extends Base {
     /**
      * @typedef {Object} JoinGroupResponse
      * @property {?ChatId} gid The group ID object
-     * @property {number} code An error code
+     * @property {number} status An error code
      * @property {string} message The message that explains a response
      */
 
