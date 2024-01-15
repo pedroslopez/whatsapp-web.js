@@ -1741,16 +1741,16 @@ class Client extends EventEmitter {
      * @returns {Promise<Array<Channel>|[]>} Returns an array of Channel objects or an empty array if no channels were found
      */
     async searchChannels(searchOptions = {}) {
-        return await this.pupPage.evaluate(async (searchOptions) => {
+        return await this.pupPage.evaluate(async (searchOptions, _sortField, _sortOrder, _viewType) => {
             const currentRegion = window.Store.ChannelUtils.currentRegion;
             let {
                 searchText = '',
                 sortOptions = {
-                    field: Channel.SortField.SUBSCRIBERS,
-                    order: Channel.SortOrder.DESCENDING,
+                    field: _sortField.SUBSCRIBERS,
+                    order: _sortOrder.DESCENDING,
                 },
                 countryCodes = [currentRegion],
-                viewType = Channel.ViewType.RECOMMENDED,
+                viewType = _viewType.RECOMMENDED,
                 limit = 50
             } = searchOptions;
 
@@ -1773,7 +1773,7 @@ class Client extends EventEmitter {
             return channels
                 ? await Promise.all(channels.map((channel) => window.WWebJS.getChatModel(channel, { isChannel: true })))
                 : [];
-        }, searchOptions);
+        }, searchOptions, Channel.SortField, Channel.SortOrder, Channel.ViewType);
     }
 
     /**
