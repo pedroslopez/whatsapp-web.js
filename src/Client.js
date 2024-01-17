@@ -671,15 +671,6 @@ class Client extends EventEmitter {
             this.emit(Events.MESSAGE_CIPHERTEXT, new Message(this, msg));
         });
 
-        await page.exposeFunction('onAddMessageCiphertextEvent', msg => {
-            /**
-             * Emitted when messages are edited
-             * @event Client#message_ciphertext
-             * @param {Message} message
-             */
-            this.emit(Events.MESSAGE_CIPHERTEXT, new Message(this, msg));
-        });
-
         await page.evaluate(() => {
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
