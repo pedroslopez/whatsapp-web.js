@@ -1515,7 +1515,7 @@ declare namespace WAWebJS {
             message: string;
             isInviteV4Sent: boolean,
         }
-    };
+    }
 
     /** An object that handles options for adding participants */
     export interface AddParticipantsOptions {
@@ -1539,7 +1539,7 @@ declare namespace WAWebJS {
          * @default ''
          */
         comment?: string
-    };
+    }
 
     /** An object that handles the information about the group membership request */
     export interface GroupMembershipRequest {
