@@ -1646,7 +1646,7 @@ declare namespace WAWebJS {
          * @default ''
          */
         comment?: string
-    };
+    }
 
     /** An object that handles the information about the group membership request */
     export interface GroupMembershipRequest {
