@@ -121,10 +121,10 @@ exports.ExposeStore = (moduleRaidStr) => {
         window.Store.MDBackend = true;
     }
 
-    const _features = window.mR.findModule('FEATURE_CHANGE_EVENT')[0];
+    /*const _features = window.mR.findModule('FEATURE_CHANGE_EVENT')[0];
     if(_features) {
-        window.Store.Features = _features.LegacyPhoneFeatures;
-    }
+    #   window.Store.Features = _features.LegacyPhoneFeatures;
+    #}*/
 
     /**
      * Target options object description
