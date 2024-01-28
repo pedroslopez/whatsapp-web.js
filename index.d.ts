@@ -11,6 +11,9 @@ declare namespace WAWebJS {
         /** Current connection information */
         public info: ClientInfo
 
+        /** Current interface controller */
+        interface?: InterfaceController
+
         /** Puppeteer page running WhatsApp Web */
         pupPage?: puppeteer.Page
 
@@ -394,6 +397,28 @@ declare namespace WAWebJS {
 
         /** Get current battery percentage and charging status for the attached device */
         getBatteryStatus: () => Promise<BatteryInfo>
+    }
+
+    /** Current interface controller */
+    export interface InterfaceController {
+        constructor(props: { pupPage: puppeteer.Page }): void
+
+        openChatWindow(chatId: string): Promise<void>
+
+        openChatDrawer(chatId: string): Promise<void>
+
+        openChatSearch(chatId: string): Promise<void>
+
+        openChatWindowAt(msgId: string): Promise<void>
+
+        openMessageDrawer(msgId: string): Promise<void>
+
+        closeRightDrawer(): Promise<void>
+
+        getFeatures(): Promise<any>
+
+        enableFeatures(features: string): Promise<any>
+
     }
 
     /** 
