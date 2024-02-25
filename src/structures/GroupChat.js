@@ -282,6 +282,29 @@ class GroupChat extends Chat {
     }
     
     /**
+     * Updates the group settings to only allow admins to add members.
+     * @param {boolean} [adminsOnly=true] Enable or disable this option 
+     * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
+     */
+    async setAddMembersAdminsOnly(adminsOnly=true) {
+        const success = await this.client.pupPage.evaluate(async (chatId, adminsOnly) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            try {
+                await window.Store.GroupUtils.setGroupMemberAddMode(chatWid, 'member_add_mode', adminsOnly ? 0 : 1);
+                return true;
+            } catch (err) {
+                if(err.name === 'ServerStatusCodeError') return false;
+                throw err;
+            }
+        }, this.id._serialized, adminsOnly);
+
+        if(!success) return false;
+
+        this.groupMetadata.memberAddMode = adminsOnly ? 'admin_add' : 'all_member_add';
+        return true;
+    }
+    
+    /**
      * Updates the group settings to only allow admins to send messages.
      * @param {boolean} [adminsOnly=true] Enable or disable this option 
      * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
