@@ -22,13 +22,13 @@ class Message extends Base {
 
     _patch(data) {
         this._data = data;
-        
+
         /**
          * MediaKey that represents the sticker 'ID'
          * @type {string}
          */
         this.mediaKey = data.mediaKey;
-        
+
         /**
          * ID that represents the message
          * @type {object}
@@ -225,7 +225,7 @@ class Message extends Base {
          */
         this.token = data.token ? data.token : undefined;
 
-        /** 
+        /**
          * Indicates whether the message is a Gif
          * @type {boolean}
          */
@@ -266,7 +266,7 @@ class Message extends Base {
         if (data.latestEditMsgKey) {
             this.latestEditMsgKey = data.latestEditMsgKey;
         }
-        
+
         /**
          * Links included in the message.
          * @type {Array<{link: string, isSuspicious: boolean}>}
@@ -311,7 +311,7 @@ class Message extends Base {
     }
 
     /**
-     * Reloads this Message object's data in-place with the latest values from WhatsApp Web. 
+     * Reloads this Message object's data in-place with the latest values from WhatsApp Web.
      * Note that the Message must still be in the web app cache for this to work, otherwise will return null.
      * @returns {Promise<Message>}
      */
@@ -323,7 +323,7 @@ class Message extends Base {
         }, this.id._serialized);
 
         if(!newData) return null;
-        
+
         this._patch(newData);
         return this;
     }
@@ -335,7 +335,7 @@ class Message extends Base {
     get rawData() {
         return this._data;
     }
-    
+
     /**
      * Returns the Chat this message was sent in
      * @returns {Promise<Chat>}
@@ -415,7 +415,7 @@ class Message extends Base {
     async react(reaction){
         await this.client.pupPage.evaluate(async (messageId, reaction) => {
             if (!messageId) { return undefined; }
-            
+
             const msg = await window.Store.Msg.get(messageId);
             await window.Store.sendReactionToMsg(msg, reaction);
         }, this.id._serialized, reaction);
@@ -468,7 +468,7 @@ class Message extends Base {
                 });
             }
 
-            if (msg.mediaData.mediaStage.includes('ERROR') || msg.mediaData.mediaStage === 'FETCHING') {
+            if (msg.mediaData.mediaStage.includes('ERROR')) {
                 // media could not be downloaded
                 return undefined;
             }
@@ -510,7 +510,7 @@ class Message extends Base {
         await this.client.pupPage.evaluate(async (msgId, everyone) => {
             let msg = window.Store.Msg.get(msgId);
             let chat = await window.Store.Chat.find(msg.id.remote);
-            
+
             const canRevoke = window.Store.MsgActionChecks.canSenderRevokeMsg(msg) || window.Store.MsgActionChecks.canAdminRevokeMsg(msg);
             if (everyone && canRevoke) {
                 return window.Store.Cmd.sendRevokeMsgs(chat, [msg], { clearMedia: true, type: msg.id.fromMe ? 'Sender' : 'Admin' });
@@ -526,7 +526,7 @@ class Message extends Base {
     async star() {
         await this.client.pupPage.evaluate(async (msgId) => {
             let msg = window.Store.Msg.get(msgId);
-            
+
             if (window.Store.MsgActionChecks.canStarMsg(msg)) {
                 let chat = await window.Store.Chat.find(msg.id.remote);
                 return window.Store.Cmd.sendStarMsgs(chat, [msg], false);
@@ -691,7 +691,7 @@ class Message extends Base {
             groupMentions: options.groupMentions,
             extraOptions: options.extra
         };
-        
+
         if (!this.fromMe) {
             return null;
         }
