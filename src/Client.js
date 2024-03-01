@@ -128,10 +128,11 @@ class Client extends EventEmitter {
         // ocVesion (isOfficialClient patch)
         await page.evaluateOnNewDocument(() => {
             const originalError = Error;
+            //eslint-disable-next-line no-global-assign
             Error = function (message) {
                 const error = new originalError(message);
                 const originalStack = error.stack;
-                if (error.stack.includes("moduleRaid")) error.stack = originalStack + `\n    at https://web.whatsapp.com/vendors~lazy_loaded_low_priority_components.05e98054dbd60f980427.js:2:44`;
+                if (error.stack.includes('moduleRaid')) error.stack = originalStack + '\n    at https://web.whatsapp.com/vendors~lazy_loaded_low_priority_components.05e98054dbd60f980427.js:2:44';
                 return error;
             };
         });
