@@ -594,3 +594,8 @@ client.on('group_membership_request', async (notification) => {
     await client.approveGroupMembershipRequestss(notification.chatId, notification.author);
     await client.rejectGroupMembershipRequests(notification.chatId, notification.author);
 });
+
+client.on('vote_update', (vote) => {
+    /** The vote that was affected: */
+    console.log(vote);
+});
