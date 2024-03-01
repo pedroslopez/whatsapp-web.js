@@ -106,7 +106,7 @@ class Client extends EventEmitter {
                 browserArgs.push(`--user-agent=${this.options.userAgent}`);
             }
             // navigator.webdriver fix
-            browserArgs.push('--disable-blink-features=AutomationControlled')
+            browserArgs.push('--disable-blink-features=AutomationControlled');
 
             browser = await puppeteer.launch({...puppeteerOpts, args: browserArgs});
             page = (await browser.pages())[0];
