@@ -113,11 +113,11 @@ class Contact extends Base {
     }
 
     /**
-     * Returns the contact's profile picture URL, if privacy settings allow it
+     * Returns the contact's profile picture URL, if a client can retrieve it
      * @returns {Promise<string>}
      */
     async getProfilePicUrl() {
-        return await this.client.getProfilePicUrl(this.id._serialized);
+        return this.client.getProfilePicUrl(this.id._serialized);
     }
 
     /**
