@@ -389,7 +389,7 @@ class Client extends EventEmitter {
                      * @param {GroupNotification} notification GroupNotification with more information about the action
                      */
                     this.emit(Events.GROUP_LEAVE, notification);
-                } else if (msg.subtype === 'promote' || msg.subtype === 'demote') {
+                } else if (['promote', 'demote', 'linked_group_promote', 'linked_group_demote'].includes(msg.subtype)) {
                     /**
                      * Emitted when a current user is promoted to an admin or demoted to a regular user.
                      * @event Client#group_admin_changed
@@ -1069,6 +1069,54 @@ class Client extends EventEmitter {
     }
 
     /**
+     * @typedef {Object} JoinGroupResponse
+     * @property {?ChatId} gid The group ID object
+     * @property {number} code A response code
+     * @property {string} message The message that explains a response
+     */
+
+    /**
+     * Joins a community subgroup by community ID and a subgroup ID
+     * @param {string} communityId The community ID
+     * @param {string} subGroupId The subgroup ID to join
+     * @returns {Promise<JoinGroupResponse>} Returns an object that handles the result of an operation
+     */
+    async joinSubgroup(communityId, subGroupId) {
+        return await this.pupPage.evaluate(async (communityId, subGroupId) => {
+            const communityWid = window.Store.WidFactory.createWid(communityId);
+            const subGroupWid = window.Store.WidFactory.createWid(subGroupId);
+            const responseCodes = {
+                default: 'An unknown error occupied while joining a subgroup',
+                200: 'The membership request was sent or you joined the subgroup successfully',
+                304: 'The membership request was already sent',
+                404: 'You can\'t join this subgroup because it no longer exists'
+            };
+
+            let response;
+            try {
+                response = await window.Store.CommunityUtils.joinSubgroup(
+                    communityWid,
+                    subGroupWid,
+                    'LINKED_SUBGROUP',
+                    true
+                );
+                return {
+                    gid: subGroupWid,
+                    code: response.status,
+                    message: responseCodes[response.status] || responseCodes.default
+                };
+            } catch (err) {
+                if (err.name !== 'ServerStatusCodeError') throw err;
+                return {
+                    gid: subGroupWid,
+                    code: err.status,
+                    message: responseCodes[err.status] || responseCodes.default
+                };
+            }
+        }, communityId, subGroupId);
+    }
+
+    /**
      * Sets the current user's status message
      * @param {string} status New status message
      */
@@ -1357,6 +1405,7 @@ class Client extends EventEmitter {
      * @property {string} gid.user
      * @property {string} gid._serialized
      * @property {Object.<string, ParticipantResult>} participants An object that handles the result value for each added to the group participant
+     * @property {number} createdAtTs The timestamp of a group creation
      */
 
     /**
@@ -1448,8 +1497,107 @@ class Client extends EventEmitter {
                 };
             }
 
-            return { title: title, gid: createGroupResult.wid, participants: participantData };
+            return {
+                title: title,
+                gid: createGroupResult.wid, participants: participantData,
+                createdAtTs: createGroupResult.ts
+            };
         }, title, participants, options);
+    }
+
+    /**
+     * An object that handles the result for {@link createCommunity} method
+     * @typedef {Object} CreateCommunityResult
+     * @property {string} title The community title
+     * @property {ChatId} cid An object that handels the newly created community ID
+     * @property {string} cid.server
+     * @property {string} cid.user
+     * @property {string} cid._serialized
+     * @property {Object} subGroupIds An object that handles information about groups that were attempted to be linked to the community
+     * @property {Array<string>} subGroupIds.linkedGroupIds An array of group IDs that were successfully linked
+     * @property {Array<Object>} subGroupIds.failedGroups An object that handles groups that failed to be linked to the community and an information about it
+     * @property {string} subGroupIds.failedGroups[].groupId The group ID, in a format of 'XXXXXXXXXX@g.us'
+     * @property {number} subGroupIds.failedGroups[].error The code of an error
+     * @property {string} subGroupIds.failedGroups[].message The message that describes an error
+     * @property {ChatId} defaultSubgroup An object that handels the ID of a community default subgroup
+     * @property {string} defaultSubgroup.server
+     * @property {string} defaultSubgroup.user
+     * @property {string} defaultSubgroup._serialized
+     * @property {number} createdAtTs The timestamp of a community creation
+     */
+
+    /**
+     * Options for community creation
+     * @typedef {Object} CreateCommunityOptions
+     * @property {?string} description The community description
+     * @property {?string|Array<string>} subGroupIds The single group ID or an array of group IDs to link to the created community
+     * @see https://faq.whatsapp.com/1110600769849613
+     * @property {boolean} [membershipApprovalMode = false] If true, admins must approve anyone who wants to join the group, false by default
+     * @see https://faq.whatsapp.com/205306122327447
+     * @property {boolean} [allowNonAdminSubGroupCreation = false] If false, only community admins can add groups to that community, members can suggest groups for admin approval. If true, every community member can add groups to that community. False by default
+     */
+
+    /**
+     * Creates a new community, optionally it is possible to link groups to that community within its creation
+     * @param {string} title The community title
+     * @param {CreateCommunityOptions} options 
+     * @returns {Promise<CreateCommunityResult|string>} Returns an object that handles the result for the community creation or an error message as a string
+     */
+    async createCommunity(title, options = {}) {
+        return await this.pupPage.evaluate(async (name, options = {}) => {
+            let { description: desc = '', subGroupIds = null, membershipApprovalMode: closed = true, allowNonAdminSubGroupCreation: hasAllowNonAdminSubGroupCreation = false } = options;
+            let createCommunityResult, linkingSubGroupsResult;
+
+            try {
+                createCommunityResult = await window.Store.CommunityUtils.sendCreateCommunity({
+                    name,
+                    desc,
+                    closed,
+                    hasAllowNonAdminSubGroupCreation
+                });
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') {
+                    return 'CreateCommunityError: An error occupied while creating a community';
+                }
+                throw err;
+            }
+
+            if (subGroupIds) {
+                linkingSubGroupsResult = await window.WWebJS.linkUnlinkSubgroups(
+                    'LinkSubgroups',
+                    createCommunityResult.wid._serialized,
+                    subGroupIds
+                );
+            }
+            
+            return {
+                title: name,
+                cid: createCommunityResult.wid,
+                ...(subGroupIds ? { subGroupIds: linkingSubGroupsResult } : {}),
+                defaultSubgroup: await window.Store.CommunityUtils.getDefaultSubgroup(createCommunityResult.wid),
+                createdAtTs: createCommunityResult.ts
+            };
+        }, title, options);
+    }
+
+    /**
+     * Deactivates the community
+     * @param {string} parentGroupId The ID of a community parent group
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async deactivateCommunity(parentGroupId) {
+        return await this.pupPage.evaluate(async (parentGroupId) => {
+            const communityWid = window.Store.WidFactory.createWid(parentGroupId);
+            try {
+                const response = await window.Store.CommunityUtils.sendDeactivateCommunity({
+                    parentGroupId: communityWid
+                });
+                return response ? true : false;
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return false;
+                throw err;
+            }
+        }, parentGroupId);
     }
 
     /**

@@ -34,6 +34,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.User = window.mR.findModule('getMaybeMeUser')[0];
     window.Store.ContactMethods = window.mR.findModule('getUserid')[0];
     window.Store.BusinessProfileCollection = window.mR.findModule('BusinessProfileCollection')[0].BusinessProfileCollection;
+    window.Store.CommunityCollection = window.mR.findModule((m) => m.default && m.default._handleIsParentGroupChange)[0].default;
     window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
     window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default;
     window.Store.Validators = window.mR.findModule('findLinks')[0];
@@ -77,12 +78,22 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.GroupUtils = {
         ...window.mR.findModule('createGroup')[0],
         ...window.mR.findModule('setGroupDescription')[0],
-        ...window.mR.findModule('sendExitGroup')[0],
+        ...window.mR.findModule('leaveGroup')[0],
         ...window.mR.findModule('sendSetPicture')[0]
     };
     window.Store.GroupParticipants = {
         ...window.mR.findModule('promoteParticipants')[0],
-        ...window.mR.findModule('sendAddParticipantsRPC')[0]
+        ...window.mR.findModule('sendAddParticipantsRPC')[0],
+        ...window.mR.findModule('sendRemoveParticipantsRPC')[0],
+        ...window.mR.findModule('updateGroupParticipantTableWithoutDeviceSyncJob')[0]
+    };
+    window.Store.CommunityUtils = {
+        ...window.mR.findModule('getDefaultSubgroup')[0],
+        ...window.mR.findModule('sendCreateCommunity')[0],
+        ...window.mR.findModule('queryAndUpdateCommunityParticipants')[0],
+        ...window.mR.findModule('getCommunityParticipants')[0],
+        ...window.mR.findModule('sendPromoteDemoteAdminRPC')[0],
+        ...window.mR.findModule(m => m.joinSubgroup && !m.joinAnnouncementGroup)[0]
     };
     window.Store.GroupInvite = {
         ...window.mR.findModule('resetGroupInviteCode')[0],
@@ -565,9 +576,16 @@ exports.LoadUtils = () => {
         res.isMuted = chat.mute && chat.mute.isMuted;
 
         if (chat.groupMetadata) {
-            const chatWid = window.Store.WidFactory.createWid((chat.id._serialized));
+            const chatWid = window.Store.WidFactory.createWid(chat.id._serialized);
             await window.Store.GroupMetadata.update(chatWid);
             res.groupMetadata = chat.groupMetadata.serialize();
+            if (res.groupMetadata.isParentGroup) {
+                res.groupMetadata.isDefaultSubgroup = res.groupMetadata.defaultSubgroup;
+                res.groupMetadata.defaultSubgroup = await window.Store.CommunityUtils.getDefaultSubgroup(chatWid);
+            } else if (res.groupMetadata.defaultSubgroup) {
+                res.groupMetadata.isDefaultSubgroup = res.groupMetadata.defaultSubgroup;
+                delete res.groupMetadata.defaultSubgroup;
+            }
         }
         
         res.lastMessage = null;
@@ -1018,6 +1036,111 @@ exports.LoadUtils = () => {
         }
 
         return data;
+    };
+
+    window.WWebJS.linkUnlinkSubgroups = async (action, parentGroupId, subGroupIds, options = {}) => {
+        !Array.isArray(subGroupIds) && (subGroupIds = [subGroupIds]);
+        const { removeOrphanMembers = false } = options;
+        const parentGroupWid = window.Store.WidFactory.createWid(parentGroupId);
+        const subGroupWids = subGroupIds.map((s) => window.Store.WidFactory.createWid(s));
+        const isLinking = action === 'LinkSubgroups';
+        let result;
+
+        try {
+            result = isLinking
+                ? await window.Store.CommunityUtils.sendLinkSubgroups({
+                    parentGroupId: parentGroupWid,
+                    subgroupIds: subGroupWids
+                })
+                : await window.Store.CommunityUtils.sendUnlinkSubgroups({
+                    parentGroupId: parentGroupWid,
+                    subgroupIds: subGroupWids,
+                    removeOrphanMembers: removeOrphanMembers
+                });
+        } catch (err) {
+            if (err.name === 'ServerStatusCodeError') return {};
+            throw err;
+        }
+
+        const errorCodes = {
+            default: `An unknown error occupied while ${isLinking ? 'linking' : 'unlinking'} the group ${isLinking ? 'to' : 'from'} the comunity`,
+            401: 'SubGroupNotAuthorizedError',
+            403: 'SubGroupForbiddenError',
+            404: 'SubGroupNotExistError',
+            406: 'SubGroupNotAcceptableError',
+            409: 'SubGroupConflictError',
+            419: 'SubGroupResourceLimitError',
+            500: 'SubGroupServerError'
+        };
+
+        result = {
+            ...(isLinking
+                ? { linkedGroupIds: result.linkedGroupJids }
+                : { unlinkedGroupIds: result.unlinkedGroupJids }),
+            failedGroups: result.failedGroups.map(group => ({
+                groupId: group.jid,
+                code: +group.error,
+                message: errorCodes[group.error] || errorCodes.default
+            }))
+        };
+
+        return result;
+    };
+
+    window.WWebJS.promoteDemoteCommunityParticipants = async (communityId, participantIds, toPromote) => {
+        !Array.isArray(participantIds) && (participantIds = [participantIds]);
+        const communityWid = window.Store.WidFactory.createWid(communityId);
+        const participantWids = [], failedParticipants = [];
+
+        const responseCodes = {
+            200: `The participant was ${toPromote ? 'promoted' : 'demoted'} successfully`,
+            403: `The participant can't be ${toPromote ? 'promoted' : 'demoted'}, maybe they are not a community member`,
+            404: 'The phone number is not registered on WhatsApp'
+        };
+
+        for (const pId of participantIds) {
+            const pWid = window.Store.WidFactory.createWid(pId);
+            if ((await window.Store.QueryExist(pWid))?.wid) participantWids.push(pWid);
+            else failedParticipants.push({
+                id: pWid,
+                code: 404,
+                message: responseCodes[404]
+            });
+        }
+
+        const iqTo = window.Store.WidToJid.widToGroupJid(communityWid);
+        const participantArgs = {
+            participantArgs: participantWids.map((p) => ({
+                participantJid: window.Store.WidToJid.widToUserJid(p)
+            }))
+        };
+
+        let response;
+        try {
+            response = await window.Store.CommunityUtils.sendPromoteDemoteAdminRPC({
+                ...(toPromote
+                    ? { promoteArgs: participantArgs }
+                    : { demoteArgs: participantArgs }),
+                iqTo: iqTo
+            });
+        } catch (err) {
+            if (err.name === 'ServerStatusCodeError') return [];
+            throw err;
+        }
+
+        if (response.name === 'PromoteDemoteAdminResponseSuccessMultiAdmin') {
+            const result = response.value.adminParticipant.map((p) => {
+                const error = +p.error || 200;
+                return {
+                    id: window.Store.JidToWid.userJidToUserWid(p.jid),
+                    code: error,
+                    message: responseCodes[error]
+                };
+            });
+            return [...result, ...failedParticipants];
+        }
+        
+        return [];
     };
 
     window.WWebJS.membershipRequestAction = async (groupId, action, requesterIds, sleep) => {

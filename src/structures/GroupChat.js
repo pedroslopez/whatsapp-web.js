@@ -430,17 +430,46 @@ class GroupChat extends Chat {
     }
 
     /**
-     * Makes the bot leave the group
-     * @returns {Promise}
+     * Makes the bot leave the group or the community
+     * @note The community creator cannot leave it but can only deactivate the community instead
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
      */
     async leave() {
-        await this.client.pupPage.evaluate(async chatId => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
-            const chat = await window.Store.Chat.find(chatWid);
-            return window.Store.GroupUtils.sendExitGroup(chat);
+        return await this.client.pupPage.evaluate(async groupId => {
+            const groupWid = window.Store.WidFactory.createWid(groupId);
+            const group = await window.Store.Chat.find(groupWid);
+            const result =
+                group.groupMetadata.isParentGroup
+                    ? await window.Store.GroupUtils.leaveCommunity(groupWid)
+                    : await window.Store.GroupUtils.leaveGroup(groupWid);
+            return result.code === 200
+                ? true
+                : false;
         }, this.id._serialized);
     }
 
+    /**
+     * Internal method to operate the change of group property settings
+     * @param {string} property The string value of a group property to change
+     * @param {boolean} value The boolean value to set the group property with
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async _setGroupProperty(property, value) {
+        return await this.client.pupPage.evaluate(async (chatId, property, value) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            try {
+                const response = await window.Store.GroupUtils.setGroupProperty(
+                    chatWid,
+                    property,
+                    value
+                );
+                return response.name === 'SetPropertyResponseSuccess';
+            } catch (err) {
+                if (err.name === 'SmaxParsingFailure') return false;
+                throw err;
+            }
+        }, this.id._serialized, property, value ? 1 : 0);
+    }
 }
 
 module.exports = GroupChat;

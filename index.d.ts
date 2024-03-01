@@ -23,6 +23,9 @@ declare namespace WAWebJS {
         /** Accepts a private invitation to join a group (v4 invite) */
         acceptGroupV4Invite: (inviteV4: InviteV4Data) => Promise<{status: number}>
 
+        /** Joins a community subgroup by community ID and a subgroup ID */
+        joinSubgroup: (communityId: string, subGroupId: string) => Promise<JoinGroupResponse>;
+
         /**Returns an object with information about the invite code's group */
         getInviteInfo(inviteCode: string): Promise<object>
 
@@ -37,6 +40,12 @@ declare namespace WAWebJS {
 
         /** Creates a new group */
         createGroup(title: string, participants?: string | Contact | Contact[] | string[], options?: CreateGroupOptions): Promise<CreateGroupResult|string>
+
+        /** Creates a new community */
+        createCommunity(title: string, options: CreateCommunityOptions): Promise<CreateCommunityResult | string>
+
+        /** Deactivates the community */
+        deactivateCommunity: (parentGroupId: string) => Promise<boolean>;
 
         /** Closes the client */
         destroy(): Promise<void>
@@ -604,6 +613,8 @@ declare namespace WAWebJS {
                 isInviteV4Sent: boolean
             };
         };
+        /** The timestamp of a group creation */
+        createdAtTs: number
     }
 
     export interface GroupNotification {
@@ -1433,6 +1444,12 @@ declare namespace WAWebJS {
         isSuperAdmin: boolean
     }
 
+    export interface JoinGroupResponse {
+        gid?: ChatId,
+        code: number,
+        message: string
+    }
+
     /** Promotes or demotes participants by IDs to regular users or admins */
     export type ChangeParticipantsPermissions = 
         (participantIds: Array<string>) => Promise<{ status: number }>
@@ -1555,12 +1572,197 @@ declare namespace WAWebJS {
         getInviteCode: () => Promise<string>;
         /** Invalidates the current group invite code and generates a new one */
         revokeInvite: () => Promise<void>;
-        /** Makes the bot leave the group */
-        leave: () => Promise<void>;
+        /**
+         * Makes the bot leave the group or the community
+         * @note The community creator cannot leave it but can only deactivate the community instead
+         * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+         */
+        leave: () => Promise<boolean>;
         /** Sets the group's picture.*/
         setPicture: (media: MessageMedia) => Promise<boolean>;
         /** Deletes the group's picture */
         deletePicture: () => Promise<boolean>;
+    }
+
+    export interface Community extends GroupChat {
+        /** The community default subgroup (announcement group) */
+        defaultSubgroup: ChatId;
+
+        /**
+         * Gets all current community subgroups in a case when the current user is a community owner/admin,
+         * else gets only those subgroups where the current user is a member in
+         */
+        getSubgroups: () => Promise<Array<ChatId>>;
+
+        /** Gets all community subgroups the current user is a member of */
+        getJoinedSubgroups: () => Promise<Array<ChatId>>;
+
+        /**
+         * Gets all community subgroups in which the current user is not yet a member,
+         * preferable to use in a case when the current user is not a community owner/admin but only a member,
+         * otherwise, the result will be an empty array
+         */
+        getUnjoinedSubgroups: () => Promise<Array<ChatId>>;
+
+        /**
+         * Gets the full list of community participants and updates the community groupMetadata
+         * @note To get the full result, you need to be a community admin. Otherwise, you will only get the participants that a regular community member can see
+         */
+        getParticipants: () => Promise<Array<GroupParticipant>>;
+
+        /** Promotes community participant/s */
+        promoteParticipants: (participantIds: string | Array<string>) => Promise<PromoteDemoteResult[] | []>;
+
+        /** Demotes community participant/s */
+        demoteParticipants: (participantIds: string | Array<string>) => Promise<PromoteDemoteResult[] | []>;
+
+        /** Allows or disallows for non admin community members to add groups to the community */
+        setNonAdminSubGroupCreation: (value: boolean) => Promise<boolean>;
+
+        /** Links a single subgroup or an array of subgroups to the community */
+        linkSubgroups: (subGroupIds: string | Array<string>) => Promise<LinkSubGroupsResult>;
+
+        /** Unlinks a single subgroup or an array of subgroups from the community */
+        unlinkSubgroups: (
+            subGroupIds: string | Array<string>,
+            options?: UnlinkSubGroupsOptions
+        ) => Promise<UnlinkSubGroupsResult>;
+
+        /** Joins a community subgroup by community ID and a subgroup ID */
+        joinSubgroup: (subGroupId: string) => Promise<JoinGroupResponse>;
+
+        /**
+         * Removes participants from the community
+         * @note Provided participants will be also remove from all community subgroups
+         */
+        removeParticipants: (
+            participantIds: string | Array<string>,
+            options?: RemoveCommunityParticipantsOptions
+        ) => Promise<RemoveCommunityParticipantsResult | string>;
+
+        /** Deactivates the community */
+        deactivate: () => Promise<boolean>;
+    }
+
+    /** Options for community creation */
+    export interface CreateCommunityOptions {
+        /** The community description */
+        description?: string;
+        /** The single group ID or an array of group IDs to link to the created community */
+        subGroupIds?: string | Array<string>;
+        /**
+         * If true, admins must approve anyone who wants to join the group, false by default
+         * @see https://faq.whatsapp.com/1110600769849613
+         * @default false
+         */
+        membershipApprovalMode?: boolean;
+        /**
+         * If false, only community admins can add groups to that community,
+         * members can suggest groups for admin approval.
+         * If true, every community member can add groups to that community. False by default
+         * @see https://faq.whatsapp.com/205306122327447
+         * @default false
+         */
+        allowNonAdminSubGroupCreation?: boolean;
+    }
+
+    /** Unlink subgroups options */
+    export interface UnlinkSubGroupsOptions {
+        /**
+         * If true, the method will remove specified subgroups along with their members
+         * who are not part of any other subgroups within the community.
+         * @default false
+         */
+        removeOrphanMembers: boolean;
+    }
+
+    /** An object that handles options for removing participants */
+    export interface RemoveCommunityParticipantsOptions {
+        /**
+         * The number of milliseconds to wait before removing the next participant.
+         * If it is an array, a random sleep time between the sleep[0] and sleep[1] values will be added
+         * (the difference must be >=100 ms, otherwise, a random sleep time between sleep[1] and sleep[1] + 100
+         * will be added). If sleep is a number, a sleep time equal to its value will be added
+         * @default [250,500]
+         */
+        sleep?: Array<number>|number
+    }
+
+    /** An object that handles the result for {@link Client.createCommunity} method */
+    export interface CreateCommunityResult {
+        /** The community title */
+        title: string;
+        /** An object that handels the newly created community ID */
+        cid: ChatId;
+        /** An object that handles information about groups that were attempted to be linked to the community */
+        subGroupIds?: {
+            /** An array of group IDs that were successfully linked */
+            linkedGroupIds: string[];
+            /** An object that handles groups that failed to be linked to the community and an information about it */
+            failedGroups: {
+                /** The group ID, in a format of 'xxxxxxxxxx@g.us' */
+                groupId: string;
+                /** The code of an error */
+                error: number;
+                /** The message that describes an error */
+                message: string;
+            }[];
+        };
+        /** An object that handels the ID of a community default subgroup */
+        defaultSubgroup: ChatId;
+        /** The timestamp of a community creation */
+        createdAtTs: number;
+    }
+
+    /** An object that handles the result for {@link Community.linkSubgroups} method */
+    export interface LinkSubGroupsResult {
+        /** An array of group IDs that were successfully linked */
+        linkedGroupIds: string[];
+        /** An array of objects that handles groups that failed to be linked to the community and an information about it */
+        failedGroups: {
+            /** The group ID, in a format of 'xxxxxxxxxx@g.us' */
+            groupId: string;
+            /** The code of an error */
+            code: number;
+            /** The message that describes an error */
+            message: string;
+        }[];
+    }
+
+    /** An object that handles the result for {@link Community.unlinkSubgroups} method */
+    export interface UnlinkSubGroupsResult {
+        /** An array of group IDs that were successfully unlinked */
+        unlinkedGroupIds: string[];
+        /** An array of objects that handles groups that failed to be unlinked from the community and an information about it */
+        failedGroups: {
+            /** The group ID, in a format of 'xxxxxxxxxx@g.us' */
+            groupId: string;
+            /** The code of an error */
+            code: number;
+            /** The message that describes an error */
+            message: string;
+        }[];
+    }
+
+    /**
+     * An object that handles the result for {@link Community.removeParticipants} method for the community
+     * or an error as a string
+     */
+    export interface RemoveCommunityParticipantsResult {
+        [participantId: string]: {
+            code: number;
+            message: string;
+        };
+    };
+
+    /**
+     * An object that handles the result for
+     * {@link Community.promoteParticipants} and {@link Community.demoteParticipants} methods
+     */
+    export interface PromoteDemoteResult {
+        id: ContactId;
+        code: number;
+        message: string;
     }
 
     /**

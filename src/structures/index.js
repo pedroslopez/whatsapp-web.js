@@ -4,6 +4,7 @@ module.exports = {
     Chat: require('./Chat'),
     ClientInfo: require('./ClientInfo'),
     Contact: require('./Contact'),
+    Community: require('./Community'),
     GroupChat: require('./GroupChat'),
     Location: require('./Location'),
     Message: require('./Message'),
