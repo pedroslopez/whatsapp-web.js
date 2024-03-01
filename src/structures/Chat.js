@@ -193,7 +193,7 @@ class Chat extends Base {
                 return true;
             };
 
-            const chat = window.Store.Chat.get(chatId);
+            const chat = await window.Store.Chat.find(chatId);
             let msgs = chat.msgs.getModelsArray().filter(msgFilter);
 
             if (searchOptions && searchOptions.limit > 0) {
@@ -269,6 +269,70 @@ class Chat extends Base {
      */
     async changeLabels(labelIds) {
         return this.client.addOrRemoveLabels(labelIds, [this.id._serialized]);
+    }
+
+    /**
+     * Sets message expiration timer for the chat.
+     * Valid values for passing to the method are:
+     * 0 for message expiration removal,
+     * 1 for 24 hours message expiration,
+     * 2 for 7 days message expiration,
+     * 3 for 90 days message expiration
+     * @see https://faq.whatsapp.com/673193694148537
+     * @param {number} value The value to set the message expiration for
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async setMessageExpiration(value) {
+        switch (value) {
+        case 0:
+            value = 0;
+            break;
+        case 1:
+            value = 86400;
+            break;
+        case 2:
+            value = 604800;
+            break;
+        case 3:
+            value = 7776000;
+            break;
+        default:
+            throw new class _ extends Error {
+                constructor(m) { super(m); this.name = 'SetMessageExpirationError'; }
+            }(`Invalid message expiration value = ${value} is provided\nValid values are:\n0 for message expiration removal,\n1 for 24 hours message expiration,\n2 for 7 days message expiration,\n3 for 90 days message expiration`);
+        }
+
+        const result = await this.client.pupPage.evaluate(async (chatId, value) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = await window.Store.Chat.find(chatWid);
+            try {
+                await window.Store.EphemeralFields.changeEphemeralDuration(chat, value);
+                return true;
+            } catch (err) {
+                return false;
+            }
+        }, this.id._serialized, value);
+
+        result && (this.ephemeralDuration = value);
+        return result;
+    }
+
+    /**
+     * Indicates if there are kept messages in that chat
+     * @see https://faq.whatsapp.com/728928448599090
+     * @returns {Promise<boolean>} True if there are kept messages in a chat, false otherwise
+     */
+    async hasKeptMessages() {
+        return await this.client.hasKeptMessages(this.id._serialized);
+    }
+
+    /**
+     * Gets kept messages from this chat, if any
+     * @see https://faq.whatsapp.com/728928448599090
+     * @returns {Promise<Message[]|[]>} An array of kept messages, or an empty array if no those
+     */
+    async getKeptMessages() {
+        return await this.client.getKeptMessages(this.id._serialized);
     }
 }
 

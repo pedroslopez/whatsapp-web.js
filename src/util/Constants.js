@@ -50,6 +50,7 @@ exports.Events = {
     MESSAGE_REVOKED_ME: 'message_revoke_me',
     MESSAGE_ACK: 'message_ack',
     MESSAGE_EDIT: 'message_edit',
+    MESSAGE_KEPT_UNKEPT: 'message_kept_unkept',
     UNREAD_COUNT: 'unread_count',
     MESSAGE_REACTION: 'message_reaction',
     MEDIA_UPLOADED: 'media_uploaded',

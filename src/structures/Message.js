@@ -711,6 +711,58 @@ class Message extends Base {
         }
         return null;
     }
+
+    /**
+     * If the 'Report To Admin Mode' is turned on in the group,
+     * you can report a message sent in the group to be reviewed by admins of that group
+     * @see https://faq.whatsapp.com/286279577291174
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async sendForAdminReview() {
+        return await this.client.pupPage.evaluate(
+            async (msgId, groupId) => {
+                const msg = window.Store.Msg.get(msgId);
+                if (!msg || msg.fromMe) return false;
+                const groupWid = window.Store.WidFactory.createWid(groupId);
+                try {
+                    await window.Store.GroupUtils.sendForAdminReview(
+                        msg,
+                        groupWid
+                    );
+                    return true;
+                } catch (err) {
+                    if (err.name === 'ServerStatusCodeError') return false;
+                    throw err;
+                }
+            },
+            this.id._serialized,
+            this.id.remote
+        );
+    }
+
+    /**
+     * If 'Message Exipiration Mode' is turned on in the chat,
+     * keeps messages in that chat to prevent them from disappearing
+     * @see https://faq.whatsapp.com/728928448599090
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async keepMessage() {
+        return await this.client.pupPage.evaluate(async (msgId) => {
+            return await window.WWebJS.keepUnkeepMessage(msgId, 'Keep');
+        }, this.id._serialized);
+    }
+
+    /**
+     * If 'Message Exipiration Mode' is turned on in the chat,
+     * unkeeps messages in that chat to prevent them from disappearing
+     * @see https://faq.whatsapp.com/728928448599090
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async unkeepMessage(options = {}) {
+        return await this.client.pupPage.evaluate(async (msgId, options) => {
+            return await window.WWebJS.keepUnkeepMessage(msgId, 'Unkeep', options);
+        }, this.id._serialized, options);
+    }
 }
 
 module.exports = Message;

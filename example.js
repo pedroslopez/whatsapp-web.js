@@ -78,6 +78,99 @@ client.on('message', async msg => {
         } else {
             msg.reply('This command can only be used in a group!');
         }
+    } else if (msg.body === '!setMsgTimer') {
+        const chat = await client.getChatById('number@c.us');
+        // OR
+        const group = await client.getChatById('groupId@g.us');
+        /**
+         * Valid values for passing to the method are:
+         * 0 for message expiration removal,
+         * 1 for 24 hours message expiration,
+         * 2 for 7 days message expiration,
+         * 3 for 90 days message expiration
+         */
+        /** For 24 hours message expiration: */
+        await chat.setMessageExpiration(1);
+        /** For 90 days message expiration: */
+        await group.setMessageExpiration(3);
+    } else if (msg.body === '!reportToAdminMode') {
+        const group = await client.getChatById('groupId@g.us');
+        if (group.isGroup) {
+            /** Turns the 'Report To Admin Mode' on: */
+            await group.setReportToAdminMode(/* true */);
+            /** Turns the 'Report To Admin Mode' off: */
+            await group.setReportToAdminMode(false);
+        }
+    } else if (msg.body === '!membershipApprovalMode') {
+        const group = await client.getChatById('groupId@g.us');
+        if (group.isGroup) {
+            /** Turns the 'Membership Approval Mode' on: */
+            await group.setMembershipApprovalMode(/* true */);
+            /**
+             * Turns the 'Membership Approval Mode' off
+             * Note: if the mode is turned off, all pending requests to join the group will be approved
+             */
+            await group.setMembershipApprovalMode(false);
+        }
+    } else if (msg.body === '!groupMemberAddMode') {
+        const group = await client.getChatById('groupId@g.us');
+        if (group.isGroup) {
+            /**
+             * Turns the 'Group Member Add Mode' on.
+             * If turned on, only group admins can add others to that group
+             */
+            await group.setGroupMemberAddMode(/* true */);
+            /**
+             * Turns the 'Group Member Add Mode' off
+             * If turned off, all participants can add others to this group
+             */
+            await group.setGroupMemberAddMode(false);
+        }
+    }else if (msg.body === '!getReportedMsgs') {
+        let reportedMsgs;
+        const group = await msg.getChat();
+        if (group.isGroup) {
+            reportedMsgs = await group.getReportedMessages();
+        }
+        // You can also call that method on `Client` object:
+        reportedMsgs = await client.getReportedMessages('groupId@g.us');
+        /**
+         * The example of the resulting structure of {@link reportedMsgs}:
+         * [
+         *   {
+         *     reporters: [
+         *       {
+         *         reporterId: {
+         *           server: 'c.us',
+         *           user: 'XXXXXXXXXX',
+         *           _serialized: 'XXXXXXXXXX@c.us'
+         *         },
+         *         reportedAt: 1645XXXXXX
+         *       },
+         *       ...
+         *     ],
+         *     message: Message {...}
+         *   },
+         *   ...
+         * ]
+         */
+        console.log(reportedMsgs);
+    } else if (msg.body === '!hasKeptMsgs') {
+        let hasKeptMsgs;
+        const chat = await msg.getChat();
+        hasKeptMsgs = await chat.hasKeptMessages();
+        // You can also call that method on `Client` object:
+        hasKeptMsgs = await client.hasKeptMessages('number@c.us'/* 'groupId@g.us' */);
+        /** True if there are kept messages in a chat or a group, false otherwise */
+        console.log(hasKeptMsgs);
+    } else if (msg.body === '!getKeptMsgs') {
+        let keptMsgs;
+        const chat = await msg.getChat();
+        keptMsgs = await chat.getKeptMessages();
+        // You can also call that method on `Client` object:
+        keptMsgs = await client.getKeptMessages('number@c.us'/* 'groupId@g.us' */);
+        /** An array of `Message` objects */
+        console.log(keptMsgs);
     } else if (msg.body === '!leave') {
         // Leave the group
         let chat = await msg.getChat();
@@ -559,14 +652,11 @@ client.on('contact_changed', async (message, oldId, newId, isContact) => {
 
 client.on('group_admin_changed', (notification) => {
     if (notification.type === 'promote') {
-        /** 
-          * Emitted when a current user is promoted to an admin.
-          * {@link notification.author} is a user who performs the action of promoting/demoting the current user.
-          */
-        console.log(`You were promoted by ${notification.author}`);
+        // Emitted when a group member is promoted to an admin
+        console.log(`The user ${notification.recipientIds[0]} was promoted by ${notification.author || 'the server'}`);
     } else if (notification.type === 'demote')
-        /** Emitted when a current user is demoted to a regular user. */
-        console.log(`You were demoted by ${notification.author}`);
+        // Emitted when a group member is demoted to a regular user
+        console.log(`The user ${notification.recipientIds[0]} was demoted by ${notification.author || 'the server'}`);
 });
 
 client.on('group_membership_request', async (notification) => {
@@ -593,4 +683,11 @@ client.on('group_membership_request', async (notification) => {
     /** You can approve or reject the newly appeared membership request: */
     await client.approveGroupMembershipRequestss(notification.chatId, notification.author);
     await client.rejectGroupMembershipRequests(notification.chatId, notification.author);
+});
+
+client.on('message_kept_unkept', (msg, status) => {
+    /** The message that was affected */
+    console.log(msg);
+    /** The message status: whether was kept or unkept */
+    console.log(status);
 });

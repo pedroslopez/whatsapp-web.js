@@ -54,6 +54,7 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @fires Client#contact_changed
  * @fires Client#group_admin_changed
  * @fires Client#group_membership_request
+ * @fires Client#message_kept_unkept
  */
 class Client extends EventEmitter {
     constructor(options = {}) {
@@ -375,9 +376,10 @@ class Client extends EventEmitter {
         await page.exposeFunction('onAddMessageEvent', msg => {
             if (msg.type === 'gp2') {
                 const notification = new GroupNotification(this, msg);
-                if (['add', 'invite', 'linked_group_join'].includes(msg.subtype)) {
+                if (['add', 'invite', 'linked_group_join', 'v4_add_invite_join'].includes(msg.subtype)) {
                     /**
-                     * Emitted when a user joins the chat via invite link or is added by an admin.
+                     * Emitted when a user joins the chat via invite link, is added by an admin or
+                     * the user's request to join the group was approved by one of the group admins
                      * @event Client#group_join
                      * @param {GroupNotification} notification GroupNotification with more information about the action
                      */
@@ -391,9 +393,12 @@ class Client extends EventEmitter {
                     this.emit(Events.GROUP_LEAVE, notification);
                 } else if (msg.subtype === 'promote' || msg.subtype === 'demote') {
                     /**
-                     * Emitted when a current user is promoted to an admin or demoted to a regular user.
+                     * Emitted when a group member is promoted to an admin or demoted to a regular user
                      * @event Client#group_admin_changed
                      * @param {GroupNotification} notification GroupNotification with more information about the action
+                     * 
+                     * {@link notification.author} is a user ID who promotes/demotes
+                     * {@link notification.recipientIds[0]} is a user ID who was promoted/demoted
                      */
                     this.emit(Events.GROUP_ADMIN_CHANGED, notification);
                 } else if (msg.subtype === 'created_membership_requests') {
@@ -685,9 +690,20 @@ class Client extends EventEmitter {
             this.emit(Events.MESSAGE_CIPHERTEXT, new Message(this, msg));
         });
 
+        await page.exposeFunction('onKeptUnkeptMessageEvent', (msg, status) => {
+            /**
+             * Emitted when message was kept or unkept
+             * @event Client#message_kept_unkept
+             * @param {Message} message The message that was affected
+             * @param {string} status The message status: whether was kept or unkept
+             */
+            this.emit(Events.MESSAGE_KEPT_UNKEPT, new Message(this, msg), status);
+        });
+
         await page.evaluate(() => {
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
+            window.Store.Msg.on('change:kicState', (msg, status) => { window.onKeptUnkeptMessageEvent(window.WWebJS.getMessageModel(msg), status); });
             window.Store.Msg.on('change:ack', (msg, ack) => { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
             window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => { if (msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('remove', (msg) => { if (msg.isNewMsg) window.onRemoveMessageEvent(window.WWebJS.getMessageModel(msg)); });
@@ -1640,6 +1656,96 @@ class Client extends EventEmitter {
         }, groupId, options);
     }
 
+    /**
+     * The result of {@link getReportedMessages}
+     * @typedef {Object} ReportedMessage
+     * @property {{reporterId:{server: string, user: string, _serialized: string}, reportedAt: number}[]} reporters Users that repoted that message
+     * @property {Message} message The message that has been reported
+     */
+
+    /**
+     * Gets the reported to group admin messages sent in that group
+     * Will work if:
+     * 1. The 'Report To Admin Mode' is turned on in the group
+     * 2. The current user is an admin of that group
+     * @param {string} groupId The group ID to retrieve reported messages from
+     * @returns {Promise<ReportedMessage[]|[]>}
+     */
+    async getReportedMessages(groupId) {
+        let result = await this.client.pupPage.evaluate(async (groupId) => {
+            const groupWid = window.Store.WidFactory.createWid(groupId);
+            let response, result = [];
+
+            try {
+                response = await window.Store.GroupUtils.getReportedMsgs(groupWid);
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return [];
+                throw err;
+            }
+
+            for (const report of response.reportsReport) {
+                let message;
+                try {
+                    message = await (async () => {
+                        const [msgProp] = await window.Store.MessageGetter.getMsgsByMsgIdsAndChatId([report.messageId], groupWid);
+                        const msg = new window.Store.MessageGetter.Msg(window.Store.MessageGetter.messageFromDbRow(msgProp));
+                        await msg.waitForPrep();
+                        return window.WWebJS.getMessageModel(msg);
+                    })();
+                } catch (err) {
+                    continue;
+                }
+
+                const reporters = report.reporter.map((r) => ({
+                    reporterId: window.Store.JidToWid.userJidToUserWid(r.jid),
+                    reportedAt: r.timestamp,
+                }));
+
+                return result.push({
+                    reporters,
+                    message,
+                });
+            }
+        }, groupId);
+
+        return result.map(obj => ({
+            ...obj,
+            message: new Message(this, obj.message)
+        }));
+    }
+
+    /**
+     * Indicates if there are kept messages in that chat
+     * @see https://faq.whatsapp.com/728928448599090
+     * @param {string} chatId ID of the chat to check for kept messages
+     * @returns {Promise<boolean>} True if there are kept messages in a chat, false otherwise
+     */
+    async hasKeptMessages(chatId) {
+        return await this.client.pupPage.evaluate(async (chatId) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = await window.Store.Chat.find(chatWid);
+            return chat.hasKeptMsgs();
+        }, chatId);
+    }
+
+    /**
+     * Gets kept messages from this chat, if any
+     * @see https://faq.whatsapp.com/728928448599090
+     * @param {string} chatId ID of the chat to get kept messages from
+     * @returns {Promise<Message[]|[]>} An array of kept messages, or an empty array if no those
+     */
+    async getKeptMessages(chatId) {
+        const result =  await this.pupPage.evaluate(async (chatId) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = await window.Store.Chat.find(chatWid);
+            if (chat.isGroup) {
+                await window.Store.GroupMetadata.queryAndUpdate(chatWid);
+            }
+            return chat.getKeptMsgs().getModelsArray().map(m => window.WWebJS.getMessageModel(m));
+        }, chatId);
+
+        return result.map((m) => new Message(this, m));
+    }
 
     /**
      * Setting  autoload download audio

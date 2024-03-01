@@ -105,6 +105,20 @@ declare namespace WAWebJS {
         getNumberId(number: string): Promise<ContactId | null>
 
         /**
+         * Indicates if there are kept messages in that chat
+         * @see https://faq.whatsapp.com/728928448599090
+         * @param chatId ID of the chat to check for kept messages
+         */
+        hasKeptMessages: (chatId: string) => Promise<boolean>
+        
+        /**
+         * Gets kept messages from this chat, if any
+         * @see https://faq.whatsapp.com/728928448599090
+         * @param chatId ID of the chat to get kept messages from
+         */
+        getKeptMessages: (chatId: string) => Promise<Message[]|[]>
+
+        /**
          * Mutes this chat forever, unless a date is specified
          * @param chatId ID of the chat that will be muted
          * @param unmuteDate Date when the chat will be unmuted, leave as is to mute forever
@@ -186,6 +200,14 @@ declare namespace WAWebJS {
         /** Rejects membership requests if any */
         rejectGroupMembershipRequests: (groupId: string, options: MembershipRequestActionOptions) => Promise<Array<MembershipRequestActionResult>>;
 
+        /**
+         * Gets the reported to group admin messages sent in that group
+         * Will work if:
+         * 1. The 'Report To Admin Mode' is turned on in the group
+         * 2. The current user is an admin of that group
+         */
+        getReportedMessages: (groupId: string) => Promise<ReportedMessage[]|[]>
+
         /** Generic event */
         on(event: string, listener: (...args: any) => void): this
 
@@ -218,7 +240,7 @@ declare namespace WAWebJS {
             reason: WAState | "NAVIGATION"
         ) => void): this
 
-        /** Emitted when a user joins the chat via invite link or is added by an admin */
+        /** Emitted when a user joins the chat via invite link, is added by an admin or the user's request to join the group was approved by one of the group admins */
         on(event: 'group_join', listener: (
             /** GroupNotification with more information about the action */
             notification: GroupNotification
@@ -230,7 +252,7 @@ declare namespace WAWebJS {
             notification: GroupNotification
         ) => void): this
 
-        /** Emitted when a current user is promoted to an admin or demoted to a regular user */
+        /** Emitted when a group member is promoted to an admin or demoted to a regular user */
         on(event: 'group_admin_changed', listener: (
             /** GroupNotification with more information about the action */
             notification: GroupNotification
@@ -291,6 +313,14 @@ declare namespace WAWebJS {
             newBody: String,
             /** Prev text message */
             prevBody: String
+        ) => void): this
+
+        /** Emitted when message was kept or unkept */
+        on(event: 'message_kept_unkept', listener: (
+            /** The message that was affected */
+            message: Message,
+            /** The message status: whether was kept or unkept */
+            status: String
         ) => void): this
         
         /** Emitted when a chat unread count changes */
@@ -659,6 +689,7 @@ declare namespace WAWebJS {
         MESSAGE_REVOKED_ME = 'message_revoke_me',
         MESSAGE_ACK = 'message_ack',
         MESSAGE_EDIT = 'message_edit',
+        MESSAGE_KEPT_UNKEPT = 'message_kept_unkept',
         MEDIA_UPLOADED = 'media_uploaded',
         CONTACT_CHANGED = 'contact_changed',
         GROUP_JOIN = 'group_join',
@@ -966,6 +997,24 @@ declare namespace WAWebJS {
         getReactions: () => Promise<ReactionList[]>,
         /** Edits the current message */
         edit: (content: MessageContent, options?: MessageEditOptions) => Promise<Message | null>,
+        /**
+         * If the 'Report To Admin Mode' is turned on in the group,
+         * you can report a message sent in the group to be reviewed by admins of that group
+         * @see https://faq.whatsapp.com/286279577291174
+         */
+        sendForAdminReview: () => Promise<boolean>,
+        /**
+         * If 'Message Exipiration Mode' is turned on in the chat,
+         * keeps messages in that chat to prevent them from disappearing
+         * @see https://faq.whatsapp.com/728928448599090
+         */
+        keepMessage: () => Promise<boolean>,
+        /**
+         * If 'Message Exipiration Mode' is turned on in the chat,
+         * unkeeps messages in that chat to prevent them from disappearing
+         * @see https://faq.whatsapp.com/728928448599090
+         */
+        unkeepMessage: () => Promise<boolean>
     }
 
     /** ID that represents a message */
@@ -1379,7 +1428,29 @@ declare namespace WAWebJS {
         /** Returns array of all Labels assigned to this Chat */
         getLabels: () => Promise<Label[]>,
         /** Add or remove labels to this Chat */
-        changeLabels: (labelIds: Array<string | number>) => Promise<void>
+        changeLabels: (labelIds: Array<string | number>) => Promise<void>,
+        /**
+         * Sets message expiration timer for the chat.
+         * Valid values for passing to the method are:
+         * 0 for message expiration removal,
+         * 1 for 24 hours message expiration,
+         * 2 for 7 days message expiration,
+         * 3 for 90 days message expiration
+         * @see https://faq.whatsapp.com/673193694148537
+         * @param {number} value The value to set the message expiration for
+         * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+         */
+        setMessageExpiration: (value: number) => Promise<boolean>,
+        /**
+         * Indicates if there are kept messages in that chat
+         * @see https://faq.whatsapp.com/728928448599090
+         */
+        hasKeptMessages: () => Promise<boolean>,
+        /**
+         * Gets kept messages from this chat, if any
+         * @see https://faq.whatsapp.com/728928448599090
+         */
+        getKeptMessages: () => Promise<Message[]|[]>
     }
 
     export interface MessageSearchOptions {
@@ -1502,6 +1573,19 @@ declare namespace WAWebJS {
         sleep: Array<number> | number | null;
     }
 
+    /** The result of {@link Client.getReportedMessages} */
+    export interface ReportedMessage {
+        reporters: Array<{
+            reporterId: {
+                server: string;
+                user: string;
+                _serialized: string;
+            };
+            reportedAt: number;
+        }>;
+        message: Message;
+    }
+
     export interface GroupChat extends Chat {
         /** Group owner */
         owner: ContactId;
@@ -1534,6 +1618,40 @@ declare namespace WAWebJS {
          * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
          */
         setInfoAdminsOnly: (adminsOnly?: boolean) => Promise<boolean>;
+        /**
+         * Sets the 'Report To Admin Mode', if turned on, every group participant could
+         * report every message sent in the group, these reports will be sent to group admins for review,
+         * group admin could see those reports in 'Sent for admin review' section in the group
+         * @see https://faq.whatsapp.com/919039336073667
+         * @param {boolean} [value=true] True for turning the 'Report To Admin Mode' on, false fot turning it off
+         * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+         */
+        setReportToAdminMode: (value: boolean) => Promise<boolean>;
+        /**
+         * Sets the 'Membership Approval Mode', when turned on, admin must approve anyone who wants
+         * to join the group.
+         * Note: if the mode is turned off, all pending requests to join the group will be approved
+         * @see https://faq.whatsapp.com/1110600769849613
+         * @param {boolean} [value=true] True for turning the 'Membership Approval Mode' on, false fot turning it off
+         * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+         */
+        setMembershipApprovalMode: (value: boolean) => Promise<boolean>;
+        /**
+         * Sets the 'Group Member Add Mode'
+         * When turned on, only group admins can add others to the group,
+         * when turned off, all group participants can add others to the group.
+         * @param {boolean} [onlyAdmins=true] True for turning the 'Group Member Add Mode' on, false for turning it off
+         * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+         */
+        setGroupMemberAddMode: (onlyAdmins: boolean) => Promise<boolean>;
+        /**
+         * Gets the reported to group admin messages sent in that group
+         * Will work if:
+         * 1. The 'Report To Admin Mode' is turned on in the group
+         * 2. The current user is an admin of that group
+         * @returns {Promise<ReportedMessage[]|[]>}
+         */
+        getReportedMessages: () => Promise<ReportedMessage|[]>;
         /**
          * Gets an array of membership requests
          * @returns {Promise<Array<GroupMembershipRequest>>} An array of membership requests

@@ -47,7 +47,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.ConversationMsgs = window.mR.findModule('loadEarlierMsgs')[0];
     window.Store.sendReactionToMsg = window.mR.findModule('sendReactionToMsg')[0].sendReactionToMsg;
     window.Store.createOrUpdateReactionsModule = window.mR.findModule('createOrUpdateReactions')[0];
-    window.Store.EphemeralFields = window.mR.findModule('getEphemeralFields')[0];
     window.Store.MsgActionChecks = window.mR.findModule('canSenderRevokeMsg')[0];
     window.Store.QuotedMsg = window.mR.findModule('getQuotedMsgObj')[0];
     window.Store.LinkPreview = window.mR.findModule('getLinkPreview')[0];
@@ -58,6 +57,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.LidUtils = window.mR.findModule('getCurrentLid')[0];
     window.Store.WidToJid = window.mR.findModule('widToUserJid')[0];
     window.Store.JidToWid = window.mR.findModule('userJidToUserWid')[0];
+    window.Store.KeepUnkeepMsg = window.mR.findModule('keepMessage')[0];
+    window.Store.Chat.getChatByMsg = window.mR.findModule('getChat')[0].getChat;
     window.Store.getMsgInfo = (window.mR.findModule('sendQueryMsgInfo')[0] || {}).sendQueryMsgInfo || window.mR.findModule('queryMsgInfo')[0].queryMsgInfo;
     window.Store.pinUnpinMsg = window.mR.findModule('sendPinInChatMsg')[0].sendPinInChatMsg;
     
@@ -70,6 +71,17 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('ChatlistPanelState')[0],
         setPushname: window.mR.findModule((m) => m.setPushname && !m.ChatlistPanelState)[0].setPushname
     };
+    window.Store.MessageGetter = {
+        ...window.mR.findModule((m) => m.Msg && typeof m.Msg === 'function')[0],
+        ...window.mR.findModule((m) => m.getMsgByMsgKey && m.msgFindQuery)[0],
+        ...window.mR.findModule('getMsgsByMsgIdsAndChatId')[0],
+        ...window.mR.findModule('messageFromDbRow')[0]
+    };
+    window.Store.EphemeralFields = {
+        ...window.mR.findModule('getEphemeralFields')[0],
+        ...window.mR.findModule('getEphemeralSetting')[0],
+        ...window.mR.findModule('changeEphemeralDuration')[0]
+    };
     window.Store.StickerTools = {
         ...window.mR.findModule('toWebpSticker')[0],
         ...window.mR.findModule('addWebpMetadata')[0]
@@ -78,7 +90,8 @@ exports.ExposeStore = (moduleRaidStr) => {
         ...window.mR.findModule('createGroup')[0],
         ...window.mR.findModule('setGroupDescription')[0],
         ...window.mR.findModule('sendExitGroup')[0],
-        ...window.mR.findModule('sendSetPicture')[0]
+        ...window.mR.findModule('sendSetPicture')[0],
+        ...window.mR.findModule('sendForAdminReview')[0]
     };
     window.Store.GroupParticipants = {
         ...window.mR.findModule('promoteParticipants')[0],
@@ -146,6 +159,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.injectToFunction({ module: 'mediaTypeFromProtobuf', index: 0, function: 'mediaTypeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? null : func(...args); });
 
     window.injectToFunction({ module: 'typeAttributeFromProtobuf', index: 0, function: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage || proto.groupInviteMessage ? 'text' : func(...args); });
+
+    window.injectToFunction({ module: 'shouldSkipGenMsg', index: 0, function: 'shouldSkipGenMsg' }, () => false);
 };
 
 exports.LoadUtils = () => {
@@ -563,11 +578,15 @@ exports.LoadUtils = () => {
         res.isGroup = chat.isGroup;
         res.formattedTitle = chat.formattedTitle;
         res.isMuted = chat.mute && chat.mute.isMuted;
+        res.ephemeralDuration = window.Store.EphemeralFields.getEphemeralFields(chat).ephemeralDuration;
 
         if (chat.groupMetadata) {
-            const chatWid = window.Store.WidFactory.createWid((chat.id._serialized));
+            const chatWid = window.Store.WidFactory.createWid(chat.id._serialized);
             await window.Store.GroupMetadata.update(chatWid);
             res.groupMetadata = chat.groupMetadata.serialize();
+            res.groupMetadata.iAmAdmin = chat.groupMetadata.participants.iAmAdmin();
+            res.groupMetadata.iAmSuperAdmin = chat.groupMetadata.participants.iAmSuperAdmin();
+            res.groupMetadata.iAmMember = chat.groupMetadata.participants.iAmMember();
         }
         
         res.lastMessage = null;
@@ -1113,6 +1132,23 @@ exports.LoadUtils = () => {
         } catch (err) {
             return [];
         }
+    };
+
+    window.WWebJS.keepUnkeepMessage = async (msgId, action, options = {}) => {
+        const msg = window.Store.Msg.get(msgId);
+        if (!msg) return false;
+        
+        const chat = window.Store.Chat.getChatByMsg(msg);
+        const isMessageExpirationModeOn = window.Store.EphemeralFields.getEphemeralSetting(chat) > 0;
+        if (!isMessageExpirationModeOn) return false;
+
+        const toKeepMsg = action === 'Keep';
+        const { deleteExpired = true } = options;
+
+        const response = toKeepMsg
+            ? await window.Store.KeepUnkeepMsg.keepMessage(msg, 3)
+            : await window.Store.KeepUnkeepMsg.undoKeepMessage(msg, { deleteExpired }, 3);
+        return response.messageSendResult === 'OK';
     };
 
     window.WWebJS.pinUnpinMsgAction = async (msgId, action, duration) => {

@@ -286,22 +286,10 @@ class GroupChat extends Chat {
      * @param {boolean} [adminsOnly=true] Enable or disable this option 
      * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
      */
-    async setMessagesAdminsOnly(adminsOnly=true) {
-        const success = await this.client.pupPage.evaluate(async (chatId, adminsOnly) => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
-            try {
-                await window.Store.GroupUtils.setGroupProperty(chatWid, 'announcement', adminsOnly ? 1 : 0);
-                return true;
-            } catch (err) {
-                if(err.name === 'ServerStatusCodeError') return false;
-                throw err;
-            }
-        }, this.id._serialized, adminsOnly);
-
-        if(!success) return false;
-
-        this.groupMetadata.announce = adminsOnly;
-        return true;
+    async setMessagesAdminsOnly(adminsOnly = true) {
+        const result = await this._setGroupProperty('announcement', adminsOnly);
+        result && (this.groupMetadata.announce = adminsOnly);
+        return result;
     }
 
     /**
@@ -309,22 +297,60 @@ class GroupChat extends Chat {
      * @param {boolean} [adminsOnly=true] Enable or disable this option 
      * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
      */
-    async setInfoAdminsOnly(adminsOnly=true) {
-        const success = await this.client.pupPage.evaluate(async (chatId, adminsOnly) => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
+    async setInfoAdminsOnly(adminsOnly = true) {
+        const result = await this._setGroupProperty('restrict', adminsOnly);
+        result && (this.groupMetadata.restrict = adminsOnly);
+        return result;
+    }
+
+    /**
+     * Sets the 'Report To Admin Mode', when turned on, every group participant could
+     * report every message sent in the group, these reports will be sent to group admins for review,
+     * group admin could see those reports in 'Sent for admin review' section in the group
+     * @see https://faq.whatsapp.com/919039336073667
+     * @param {boolean} [value=true] True for turning the 'Report To Admin Mode' on, false fot turning it off
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async setReportToAdminMode(value = true) {
+        const result = await this._setGroupProperty('report_to_admin_mode', value);
+        result && (this.groupMetadata.reportToAdminMode = value);
+        return result;
+    }
+
+    /**
+     * Sets the 'Membership Approval Mode', when turned on, admin must approve anyone who wants
+     * to join the group.
+     * Note: if the mode is turned off, all pending requests to join the group will be approved
+     * @see https://faq.whatsapp.com/1110600769849613
+     * @param {boolean} [value=true] True for turning the 'Membership Approval Mode' on, false fot turning it off
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async setMembershipApprovalMode(value = true) {
+        const result = await this._setGroupProperty('membership_approval_mode', value);
+        result && (this.groupMetadata.membershipApprovalMode = value);
+        return result;
+    }
+
+    /**
+     * Sets the 'Group Member Add Mode', when turned on, only group admins can add others to the group,
+     * when turned off, all group participants can add others to the group.
+     * @param {boolean} [onlyAdmins=true] True for turning the 'Group Member Add Mode' on, false for turning it off
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async setGroupMemberAddMode(onlyAdmins = true) {
+        return await this.client.pupPage.evaluate(async (groupId, onlyAdmins) => {
+            const groupWid = window.Store.WidFactory.createWid(groupId);
+            const mode = onlyAdmins
+                ? { isAdminAddMode: true }
+                : { isAllMembersAddMode: true };
             try {
-                await window.Store.GroupUtils.setGroupProperty(chatWid, 'restrict', adminsOnly ? 1 : 0);
-                return true;
+                const response = await window.Store.GroupUtils.setGroupMemberAddMode(groupWid, null, mode);
+                return response.name === 'SetMemberAddModeResponseSuccess';
             } catch (err) {
-                if(err.name === 'ServerStatusCodeError') return false;
+                if (err.name === 'SmaxParsingFailure') return false;
                 throw err;
             }
-        }, this.id._serialized, adminsOnly);
-
-        if(!success) return false;
-        
-        this.groupMetadata.restrict = adminsOnly;
-        return true;
+        }, this.id._serialized, onlyAdmins);
     }
 
     /**
@@ -376,6 +402,24 @@ class GroupChat extends Chat {
         }, this.id._serialized);
 
         return codeRes.code;
+    }
+
+    /**
+     * The result of {@link getReportedMessages}
+     * @typedef {Object} ReportedMessage
+     * @property {{reporterId:{server: string, user: string, _serialized: string}, reportedAt: number}[]} reporters Users that repoted that message
+     * @property {Message} message The message that has been reported
+     */
+
+    /**
+     * Gets the reported to group admin messages sent in that group
+     * Will work if:
+     * 1. The 'Report To Admin Mode' is turned on in the group
+     * 2. The current user is an admin of that group
+     * @returns {Promise<ReportedMessage[]|[]>}
+     */
+    async getReportedMessages() {
+        return await this.client.getReportedMessages(this.id._serialized);
     }
     
     /**
@@ -431,7 +475,7 @@ class GroupChat extends Chat {
 
     /**
      * Makes the bot leave the group
-     * @returns {Promise}
+     * @returns {Promise<void>}
      */
     async leave() {
         await this.client.pupPage.evaluate(async chatId => {
@@ -441,6 +485,28 @@ class GroupChat extends Chat {
         }, this.id._serialized);
     }
 
+    /**
+     * Internal method to operate the change of group property settings
+     * @param {string} property The string value of a group property to change
+     * @param {boolean} value The boolean value to set the group property with
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async _setGroupProperty(property, value) {
+        return await this.client.pupPage.evaluate(async (chatId, property, value) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            try {
+                const response = await window.Store.GroupUtils.setGroupProperty(
+                    chatWid,
+                    property,
+                    value
+                );
+                return response.name === 'SetPropertyResponseSuccess';
+            } catch (err) {
+                if (err.name === 'SmaxParsingFailure') return false;
+                throw err;
+            }
+        }, this.id._serialized, property, value ? 1 : 0);
+    }
 }
 
 module.exports = GroupChat;
