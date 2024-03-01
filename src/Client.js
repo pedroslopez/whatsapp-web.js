@@ -11,7 +11,7 @@ const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
 const WebCacheFactory = require('./webCache/WebCacheFactory');
-const { ClientInfo, Message, MessageMedia, Contact, Location, Poll, GroupNotification, Label, Call, Buttons, List, Reaction } = require('./structures');
+const { ClientInfo, Message, MessageMedia, Contact, Channel, Location, Poll, GroupNotification, Label, Call, Buttons, List, Reaction } = require('./structures');
 const LegacySessionAuth = require('./authStrategies/LegacySessionAuth');
 const NoAuth = require('./authStrategies/NoAuth');
 
@@ -850,6 +850,7 @@ class Client extends EventEmitter {
      * @property {string} [stickerName=undefined] - Sets the name of the sticker, (if sendMediaAsSticker is true).
      * @property {string[]} [stickerCategories=undefined] - Sets the categories of the sticker, (if sendMediaAsSticker is true). Provide emoji char array, can be null.
      * @property {MessageMedia} [media] - Media to be sent
+     * @property {any} [extra] - Extra options
      */
     
     /**
@@ -861,6 +862,19 @@ class Client extends EventEmitter {
      * @returns {Promise<Message>} Message that was just sent
      */
     async sendMessage(chatId, content, options = {}) {
+        let isChannel = chatId.match(/@(.+)/)[1] === 'newsletter';
+
+        if (isChannel && [
+            options.sendAudioAsVoice, options.sendMediaAsDocument,
+            options.quotedMessageId, options.parseVCards, options.isViewOnce,
+            content instanceof Location, content instanceof Poll, content instanceof Contact,
+            content instanceof Buttons, content instanceof List,
+            Array.isArray(content) && content.length > 0 && content[0] instanceof Contact
+        ].includes(true)) {
+            console.warn('The message type is currently not supported for sending in channels,\nthe supported message types are: text, image, sticker, gif or video.');
+            return null;
+        }
+    
         if (options.mentions) {
             !Array.isArray(options.mentions) && (options.mentions = [options.mentions]);
             if (options.mentions.some((possiblyContact) => possiblyContact instanceof Contact)) {
@@ -870,7 +884,7 @@ class Client extends EventEmitter {
         }
 
         options.groupMentions && !Array.isArray(options.groupMentions) && (options.groupMentions = [options.groupMentions]);
-
+        
         let internalOptions = {
             linkPreview: options.linkPreview === false ? undefined : true,
             sendAudioAsVoice: options.sendAudioAsVoice,
@@ -879,20 +893,20 @@ class Client extends EventEmitter {
             sendMediaAsDocument: options.sendMediaAsDocument,
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
-            parseVCards: options.parseVCards === false ? false : true,
+            parseVCards: options.parseVCards,
             mentionedJidList: options.mentions || [],
             groupMentions: options.groupMentions,
             extraOptions: options.extra
         };
 
-        const sendSeen = typeof options.sendSeen === 'undefined' ? true : options.sendSeen;
+        const sendSeen = options.sendSeen !== false;
 
         if (content instanceof MessageMedia) {
-            internalOptions.attachment = content;
+            internalOptions.media = content;
             internalOptions.isViewOnce = options.isViewOnce,
             content = '';
         } else if (options.media instanceof MessageMedia) {
-            internalOptions.attachment = options.media;
+            internalOptions.media = options.media;
             internalOptions.caption = content;
             internalOptions.isViewOnce = options.isViewOnce,
             content = '';
@@ -909,17 +923,19 @@ class Client extends EventEmitter {
             internalOptions.contactCardList = content.map(contact => contact.id._serialized);
             content = '';
         } else if (content instanceof Buttons) {
+            console.warn('Buttons are now deprecated. See more at https://www.youtube.com/watch?v=hv1R1rLeVVE.');
             if (content.type !== 'chat') { internalOptions.attachment = content.body; }
             internalOptions.buttons = content;
             content = '';
         } else if (content instanceof List) {
+            console.warn('Lists are now deprecated. See more at https://www.youtube.com/watch?v=hv1R1rLeVVE.');
             internalOptions.list = content;
             content = '';
         }
 
-        if (internalOptions.sendMediaAsSticker && internalOptions.attachment) {
-            internalOptions.attachment = await Util.formatToWebpSticker(
-                internalOptions.attachment, {
+        if (internalOptions.sendMediaAsSticker && internalOptions.media) {
+            internalOptions.media = await Util.formatToWebpSticker(
+                internalOptions.media, {
                     name: options.stickerName,
                     author: options.stickerAuthor,
                     categories: options.stickerCategories
@@ -927,20 +943,60 @@ class Client extends EventEmitter {
             );
         }
 
-        const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
-            const chat = await window.Store.Chat.find(chatWid);
+        const sentMsg = await this.pupPage.evaluate(async (chatId, content, options, sendSeen) => {
+            const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
 
+            if (!chat) return null;
 
             if (sendSeen) {
                 await window.WWebJS.sendSeen(chatId);
             }
 
-            const msg = await window.WWebJS.sendMessage(chat, message, options, sendSeen);
-            return window.WWebJS.getMessageModel(msg);
+            const msg = await window.WWebJS.sendMessage(chat, content, options);
+            return msg
+                ? window.WWebJS.getMessageModel(msg)
+                : undefined;
         }, chatId, content, internalOptions, sendSeen);
 
-        return new Message(this, newMessage);
+        return sentMsg
+            ? new Message(this, sentMsg)
+            : undefined;
+    }
+
+    /**
+     * @typedef {Object} SendChannelAdminInviteOptions
+     * @property {?string} comment The comment to be added to an invitation
+     */
+
+    /**
+     * Sends a channel admin invitation to a user, allowing them to become an admin of the channel
+     * @param {string} chatId The ID of a user to send the channel admin invitation to
+     * @param {string} channelId The ID of a channel for which the invitation is being sent
+     * @param {SendChannelAdminInviteOptions} options 
+     * @returns {Promise<boolean>} Returns true if an invitation was sent successfully, false otherwise
+     */
+    async sendChannelAdminInvite(chatId, channelId, options = {}) {
+        const response = await this.pupPage.evaluate(async (chatId, channelId, options) => {
+            const channelWid = window.Store.WidFactory.createWid(channelId);
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = await window.Store.Chat.find(chatWid);
+
+            if (!chatWid.isUser() || !window.Store.ChannelUtils.isNewsletterMultiAdminReceiverEnabled()) {
+                return false;
+            }
+            
+            return await window.Store.SendChannelMessage.sendNewsletterAdminInviteMessage(
+                chat,
+                {
+                    newsletterWid: channelWid,
+                    invitee: chatWid,
+                    inviteMessage: options.comment,
+                    base64Thumb: await window.WWebJS.getProfilePicThumbToBase64(channelWid)
+                }
+            );
+        }, chatId, channelId, options);
+
+        return response.messageSendResult === 'OK';
     }
     
     /**
@@ -983,7 +1039,88 @@ class Client extends EventEmitter {
             return await window.WWebJS.getChat(chatId);
         }, chatId);
 
-        return ChatFactory.create(this, chat);
+        return chat
+            ? ChatFactory.create(this, chat)
+            : undefined;
+    }
+
+    /**
+     * @typedef {Object} GetChannelOptions
+     * @property {boolean} [getMetadata = false] If true, gets the {@link ChannelMetadata}, false by default
+     */
+
+    /**
+     * @typedef {Object} ChannelMetadata
+     * @property {string} id The channel ID in a format: 'XXXXXXXXXX@newsletter'
+     * @property {number} createdAtTs The timestamp the channel was created at
+     * @property {Object} titleMetadata
+     * @property {string} titleMetadata.title The channel title
+     * @property {number} titleMetadata.updatedAtTs The timestamp the title was updated at
+     * @property {Object} descriptionMetadata
+     * @property {string} descriptionMetadata.description The channel description
+     * @property {string} descriptionMetadata.updatedAtTs The timestamp the description was updated at
+     * @property {string} inviteLink The channel invite link in a format: https://whatsapp.com/channel/INVITE_CODE
+     * @property {string} membershipType The membership type of a current user in a channel (viewer/guest/subscriber/admin/owner)
+     * @property {string} stateType The channel state type (active/suspended/geosuspended)
+     * @property {string} pictureUrl The channel profile picture url if set
+     * @property {number} subscribersCount The number of channel subscribers
+     * @property {boolean} isVerified Indicates if a channel is verified
+     */
+
+    /**
+     * Gets a {@link Channel} object or a {@link ChannelMetadata} by its ID
+     * @param {string} channelId 
+     * @param {GetChannelOptions} options
+     * @returns {Promise<ChannelMetadata|Channel>}
+     */
+    async getChannelById(channelId, options = {}) {
+        const result = await this.pupPage.evaluate(async (channelId, options) => {
+            if (options.getMetadata) {
+                try {
+                    return await window.WWebJS.getChannelMetadata(channelId, { getById: true });
+                } catch (err) {
+                    if (err.name === 'ServerStatusCodeError') return null;
+                    throw err;
+                }
+            }
+            return await window.WWebJS.getChat(channelId);
+        }, channelId, options);
+
+        return result ? (options.getMetadata ? result : ChatFactory.create(this, result)) : undefined;
+    }
+
+    /**
+     * Gets a {@link Channel} object or a {@link ChannelMetadata} by invite code
+     * @param {string} inviteCode The code that comes after the 'https://whatsapp.com/channel/'
+     * @param {GetChannelOptions} options
+     * @returns {Promise<ChannelMetadata|Channel>}
+     */
+    async getChannelByInviteCode(inviteCode, options = {}) {
+        const result = await this.pupPage.evaluate(async (inviteCode, options) => {
+            let channelMetadata;
+            try {
+                channelMetadata = await window.WWebJS.getChannelMetadata(inviteCode, { getByInviteCode: true });
+                if (options.getMetadata) return channelMetadata;
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return null;
+                throw err;
+            }
+            return await window.WWebJS.getChat(channelMetadata.id);
+        }, inviteCode, options);
+
+        return result ? (options.getMetadata ? result : ChatFactory.create(this, result)) : result;
+    }
+
+    /**
+     * Gets all cached {@link Channel} objects
+     * @returns {Promise<Array<Channel>>}
+     */
+    async getChannels() {
+        const channels = await this.pupPage.evaluate(async () => {
+            return await window.WWebJS.getChannels();
+        });
+
+        return channels.map((channel) => ChatFactory.create(this, channel));
     }
 
     /**
@@ -1051,6 +1188,61 @@ class Client extends EventEmitter {
         }, inviteCode);
 
         return res.gid._serialized;
+    }
+
+    /**
+     * Accepts a channel admin invitation and promotes the current user to a channel admin
+     * @param {string} channelId The channel ID to accept the admin invitation from
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async acceptChannelAdminInvite(channelId) {
+        return await this.pupPage.evaluate(async (channelId) => {
+            try {
+                await window.Store.ChannelUtils.acceptNewsletterAdminInvite(channelId);
+                return true;
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return false;
+                throw err;
+            }
+        }, channelId);
+    }
+
+    /**
+     * Revokes a channel admin invitation sent to a user by a channel owner
+     * @param {string} channelId The channel ID an invitation belongs to
+     * @param {string} userId The user ID the invitation was sent to
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async revokeChannelAdminInvite(channelId, userId) {
+        return await this.pupPage.evaluate(async (channelId, userId) => {
+            try {
+                const userWid = window.Store.WidFactory.createWid(userId);
+                await window.Store.ChannelUtils.revokeNewsletterAdminInvite(channelId, userWid);
+                return true;
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return false;
+                throw err;
+            }
+        }, channelId, userId);
+    }
+
+    /**
+     * Demotes a channel admin to a regular subscriber (can be used also for self-demotion)
+     * @param {string} channelId The channel ID to demote an admin in
+     * @param {string} userId The user ID to demote
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async demoteChannelAdmin(channelId, userId) {
+        return await this.pupPage.evaluate(async (channelId, userId) => {
+            try {
+                const userWid = window.Store.WidFactory.createWid(userId);
+                await window.Store.ChannelUtils.demoteNewsletterAdmin(channelId, userWid);
+                return true;
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return false;
+                throw err;
+            }
+        }, channelId, userId);
     }
 
     /**
@@ -1135,7 +1327,7 @@ class Client extends EventEmitter {
      */
     async archiveChat(chatId) {
         return await this.pupPage.evaluate(async chatId => {
-            let chat = await window.Store.Chat.get(chatId);
+            let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             await window.Store.Cmd.archiveChat(chat, true);
             return true;
         }, chatId);
@@ -1147,7 +1339,7 @@ class Client extends EventEmitter {
      */
     async unarchiveChat(chatId) {
         return await this.pupPage.evaluate(async chatId => {
-            let chat = await window.Store.Chat.get(chatId);
+            let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             await window.Store.Cmd.archiveChat(chat, false);
             return false;
         }, chatId);
@@ -1159,7 +1351,7 @@ class Client extends EventEmitter {
      */
     async pinChat(chatId) {
         return this.pupPage.evaluate(async chatId => {
-            let chat = window.Store.Chat.get(chatId);
+            let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             if (chat.pin) {
                 return true;
             }
@@ -1182,7 +1374,7 @@ class Client extends EventEmitter {
      */
     async unpinChat(chatId) {
         return this.pupPage.evaluate(async chatId => {
-            let chat = window.Store.Chat.get(chatId);
+            let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             if (!chat.pin) {
                 return false;
             }
@@ -1199,7 +1391,7 @@ class Client extends EventEmitter {
     async muteChat(chatId, unmuteDate) {
         unmuteDate = unmuteDate ? unmuteDate.getTime() / 1000 : -1;
         await this.pupPage.evaluate(async (chatId, timestamp) => {
-            let chat = await window.Store.Chat.get(chatId);
+            let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             await chat.mute.mute({expiration: timestamp, sendDevice:!0});
         }, chatId, unmuteDate || -1);
     }
@@ -1210,7 +1402,7 @@ class Client extends EventEmitter {
      */
     async unmuteChat(chatId) {
         await this.pupPage.evaluate(async chatId => {
-            let chat = await window.Store.Chat.get(chatId);
+            let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             await window.Store.Cmd.muteChat(chat, false);
         }, chatId);
     }
@@ -1221,7 +1413,7 @@ class Client extends EventEmitter {
      */
     async markChatUnread(chatId) {
         await this.pupPage.evaluate(async chatId => {
-            let chat = await window.Store.Chat.get(chatId);
+            let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             await window.Store.Cmd.markChatUnread(chat, true);
         }, chatId);
     }
@@ -1413,7 +1605,7 @@ class Client extends EventEmitter {
             for (const participant of createGroupResult.participants) {
                 let isInviteV4Sent = false;
                 const participantId = participant.wid._serialized;
-                const statusCode = participant.error ?? 200;
+                const statusCode = participant.error || 200;
 
                 if (autoSendInviteV4 && statusCode === 403) {
                     window.Store.ContactCollection.gadd(participant.wid, { silent: true });
@@ -1450,6 +1642,152 @@ class Client extends EventEmitter {
 
             return { title: title, gid: createGroupResult.wid, participants: participantData };
         }, title, participants, options);
+    }
+
+    /**
+     * An object that handles the result for {@link createChannel} method
+     * @typedef {Object} CreateChannelResult
+     * @property {string} title A channel title
+     * @property {ChatId} nid An object that handels the newly created channel ID
+     * @property {string} nid.server 'newsletter'
+     * @property {string} nid.user 'XXXXXXXXXX'
+     * @property {string} nid._serialized 'XXXXXXXXXX@newsletter'
+     * @property {string} inviteLink The channel invite link, starts with 'https://whatsapp.com/channel/'
+     * @property {number} createdAtTs The timestamp the channel was created at
+     */
+
+    /**
+     * Options for the channel creation
+     * @typedef {Object} CreateChannelOptions
+     * @property {?string} description The channel description
+     * @property {?MessageMedia} picture The channel profile picture
+     */
+
+    /**
+     * Creates a new channel
+     * @param {string} title The channel name
+     * @param {CreateChannelOptions} options 
+     * @returns {Promise<CreateChannelResult|string>} Returns an object that handles the result for the channel creation or an error message as a string
+     */
+    async createChannel(title, options = {}) {
+        return await this.pupPage.evaluate(async (title, options) => {
+            let response, { description = null, picture = null } = options;
+
+            if (!window.Store.ChannelUtils.isNewsletterCreationEnabled()) {
+                return 'CreateChannelError: A channel creation is not enabled';
+            }
+
+            if (picture) {
+                picture = await window.WWebJS.cropAndResizeImage(picture, {
+                    asDataUrl: true,
+                    mimetype: 'image/jpeg',
+                    size: 640,
+                    quality: 1
+                });
+            }
+
+            try {
+                response = await window.Store.ChannelUtils.createNewsletterQuery({
+                    name: title,
+                    description: description,
+                    picture: picture,
+                });
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') {
+                    return 'CreateChannelError: An error occupied while creating a channel';
+                }
+                throw err;
+            }
+
+            return {
+                title: title,
+                nid: window.Store.JidToWid.newsletterJidToWid(response.idJid),
+                inviteLink: `https://whatsapp.com/channel/${response.newsletterInviteLinkMetadataMixin.inviteCode}`,
+                createdAtTs: response.newsletterCreationTimeMetadataMixin.creationTimeValue
+            };
+        }, title, options);
+    }
+
+    /**
+     * Subscribe to channel
+     * @param {string} channelId The channel ID
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async subscribeToChannel(channelId) {
+        return await this.pupPage.evaluate(async (channelId) => {
+            return await window.WWebJS.subscribeToUnsubscribeFromChannel(channelId, 'Subscribe');
+        }, channelId);
+    }
+
+    /**
+     * Options for unsubscribe from a channel
+     * @typedef {Object} UnsubscribeOptions
+     * @property {boolean} [deleteLocalModels = false] If true, after an unsubscription, it will completely remove a channel from the channel collection making it seem like the current user have never interacted with it. Otherwise it will only remove a channel from the list of channels the current user is subscribed to and will set the membership type for that channel to GUEST
+     */
+
+    /**
+     * Unsubscribe from channel
+     * @param {string} channelId The channel ID
+     * @param {UnsubscribeOptions} options
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async unsubscribeFromChannel(channelId, options) {
+        return await this.pupPage.evaluate(async (channelId, options) => {
+            return await window.WWebJS.subscribeToUnsubscribeFromChannel(channelId, 'Unsubscribe', options);
+        }, channelId, options);
+    }
+
+    /**
+     * Searches for channels based on search criteria, there are some notes:
+     * 1. The method finds only channels you are not subscribed to currently
+     * 2. If you have never been subscribed to a found channel
+     * or you have unsubscribed from it with {@link UnsubscribeOptions.deleteLocalModels} set to 'true',
+     * the lastMessage property of a found channel will be 'null'
+     *
+     * @param {Object} searchOptions Search options
+     * @param {Array<string>} [searchOptions.countryCodes = [your local region]] Array of country codes in 'ISO 3166-1 alpha-2' standart (@see https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) to search for channels created in these countries
+     * @param {Object} searchOptions.sortOptions Sorting options
+     * @param {string} [searchOptions.sortOptions.field = 'subscribers'] Field to sort by, for all options: {@link Channel.SortField}
+     * @param {string} [searchOptions.sortOptions.order = 'desc'] Sorting order, for all options: {@link Channel.SortOrder}
+     * @param {string} [searchOptions.searchText = ''] Text to search
+     * @param {string} [searchOptions.view = 'RECOMMENDED'] View type, for all options: {@link Channel.ViewType}
+     * @param {number} [searchOptions.limit = 50] The limit of found channels to be appear in the returnig result
+     * @returns {Promise<Array<Channel>|[]>} Returns an array of Channel objects or an empty array if no channels were found
+     */
+    async searchChannels(searchOptions = {}) {
+        return await this.pupPage.evaluate(async (searchOptions, _sortField, _sortOrder, _viewType) => {
+            const currentRegion = window.Store.ChannelUtils.currentRegion;
+            let {
+                searchText = '',
+                sortOptions = {
+                    field: _sortField.SUBSCRIBERS,
+                    order: _sortOrder.DESCENDING,
+                },
+                countryCodes = [currentRegion],
+                viewType = _viewType.RECOMMENDED,
+                limit = 50
+            } = searchOptions;
+
+            searchText = searchText.trim();
+            countryCodes = countryCodes.length === 1 && countryCodes[0] === currentRegion
+                ? countryCodes
+                : countryCodes.filter(code => Object.keys(window.Store.ChannelUtils.countryCodesIso).includes(code));
+            limit !== 50 && window.injectToFunction({ module: 'getNewsletterDirectoryPageSize', index: 0, function: 'getNewsletterDirectoryPageSize' }, () => limit);
+
+            searchOptions = {
+                searchText: searchText,
+                sortOpts: sortOptions,
+                countryCodes: countryCodes,
+                view: viewType,
+                cursorToken: ''
+            };
+
+            const channels = (await window.Store.ChannelUtils.fetchNewsletterDirectories(searchOptions)).newsletters;
+            limit !== 50 && window.injectToFunction({ module: 'getNewsletterDirectoryPageSize', index: 0, function: 'getNewsletterDirectoryPageSize' }, (func, ...args) => func(args));
+            return channels
+                ? await Promise.all(channels.map((channel) => window.WWebJS.getChatModel(channel, { isChannel: true })))
+                : [];
+        }, searchOptions, Channel.SortField, Channel.SortOrder, Channel.ViewType);
     }
 
     /**
