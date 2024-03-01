@@ -741,6 +741,7 @@ class Client extends EventEmitter {
                 await this.authStrategy.disconnect();
                 this.emit(Events.DISCONNECTED, 'NAVIGATION');
                 await this.destroy();
+                await this.authStrategy.logout();
             }
         });
     }
@@ -789,15 +790,11 @@ class Client extends EventEmitter {
         await this.pupPage.evaluate(() => {
             return window.Store.AppState.logout();
         });
-        await this.pupBrowser.close();
-        
-        let maxDelay = 0;
-        while (this.pupBrowser.isConnected() && (maxDelay < 10)) { // waits a maximum of 1 second before calling the AuthStrategy
-            await new Promise(resolve => setTimeout(resolve, 100));
-            maxDelay++; 
-        }
-        
-        await this.authStrategy.logout();
+
+        this.pupBrowser.on('disconnected', async () => {
+            await this.pupBrowser.close();
+            await this.authStrategy.logout();
+        });
     }
 
     /**
