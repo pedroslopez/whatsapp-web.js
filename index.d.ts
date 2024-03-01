@@ -177,6 +177,8 @@ declare namespace WAWebJS {
         /** Deletes the current user's profile picture */
         deleteProfilePicture(): Promise<boolean>
 
+        /** Gets the maximum file size for a given media type*/
+        getUploadLimits(mediaType: string): Promise<string>
         /** Gets an array of membership requests */
         getGroupMembershipRequests: (groupId: string) => Promise<Array<GroupMembershipRequest>>
 

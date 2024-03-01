@@ -38,6 +38,11 @@ class MessageMedia {
          * @type {?number}
          */
         this.filesize = filesize;
+
+        if(!filesize){
+            const paddingCount = (data.endsWith('==')) ? 2 :(data.endsWith('=')) ? 1 : 0;
+            this.filesize = Math.floor(data.length * 3 / 4) - paddingCount;
+        }
     }
 
     /**
@@ -49,8 +54,9 @@ class MessageMedia {
         const b64data = fs.readFileSync(filePath, {encoding: 'base64'});
         const mimetype = mime.getType(filePath); 
         const filename = path.basename(filePath);
+        const fileSize = fs.statSync(filePath).size;
 
-        return new MessageMedia(mimetype, b64data, filename);
+        return new MessageMedia(mimetype, b64data, filename, fileSize);
     }
 
     /**
