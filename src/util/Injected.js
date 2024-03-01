@@ -86,9 +86,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     };
     window.Store.GroupInvite = {
         ...window.mR.findModule('resetGroupInviteCode')[0],
-        ...window.mR.findModule('queryGroupInvite')[0]
-    };
-    window.Store.GroupInviteV4 = {
+        ...window.mR.findModule('queryGroupInvite')[0],
         ...window.mR.findModule('queryGroupInviteV4')[0],
         ...window.mR.findModule('sendGroupInviteMessage')[0]
     };
