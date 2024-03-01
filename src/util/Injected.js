@@ -47,7 +47,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.ConversationMsgs = window.mR.findModule('loadEarlierMsgs')[0];
     window.Store.sendReactionToMsg = window.mR.findModule('sendReactionToMsg')[0].sendReactionToMsg;
     window.Store.createOrUpdateReactionsModule = window.mR.findModule('createOrUpdateReactions')[0];
-    window.Store.EphemeralFields = window.mR.findModule('getEphemeralFields')[0];
     window.Store.MsgActionChecks = window.mR.findModule('canSenderRevokeMsg')[0];
     window.Store.QuotedMsg = window.mR.findModule('getQuotedMsgObj')[0];
     window.Store.LinkPreview = window.mR.findModule('getLinkPreview')[0];
@@ -58,6 +57,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.LidUtils = window.mR.findModule('getCurrentLid')[0];
     window.Store.WidToJid = window.mR.findModule('widToUserJid')[0];
     window.Store.JidToWid = window.mR.findModule('userJidToUserWid')[0];
+    window.Store.MessageFieldGetters = window.mR.findModule('getShouldDisplayAsForwarded')[0];
     window.Store.getMsgInfo = (window.mR.findModule('sendQueryMsgInfo')[0] || {}).sendQueryMsgInfo || window.mR.findModule('queryMsgInfo')[0].queryMsgInfo;
     window.Store.pinUnpinMsg = window.mR.findModule('sendPinInChatMsg')[0].sendPinInChatMsg;
     
@@ -66,6 +66,10 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.ReplyUtils = (m = window.mR.findModule('canReplyMsg')).length > 0 && m[0];
     /* eslint-enable no-undef, no-cond-assign */
 
+    window.Store.EphemeralFields = {
+        ...window.mR.findModule('getEphemeralFields')[0],
+        ...window.mR.findModule('isEphemeralSettingOn')[0]
+    };
     window.Store.Settings = {
         ...window.mR.findModule('ChatlistPanelState')[0],
         setPushname: window.mR.findModule((m) => m.setPushname && !m.ChatlistPanelState)[0].setPushname
@@ -95,6 +99,11 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.MembershipRequestUtils = {
         ...window.mR.findModule('getMembershipApprovalRequests')[0],
         ...window.mR.findModule('sendMembershipRequestsActionRPC')[0]
+    };
+    window.Store.ForwardMessageUtils = {
+        ...window.mR.findModule('getAsMms')[0],
+        ...window.mR.findModule('getForwardedMessageFields')[0],
+        ...window.mR.findModule('getNewsletterContextForForwardedMsg')[0]
     };
 
     if (!window.Store.Chat._find) {
@@ -375,6 +384,104 @@ exports.LoadUtils = () => {
 
         await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
         return window.Store.Msg.get(newMsgId._serialized);
+    };
+
+    window.WWebJS.forwardMessage = async (chat, msg, options = {}) => {
+        if (chat.isUser && chat.contact.isContactBlocked) return false;
+        const isMediaMsg = Boolean(window.Store.ForwardMessageUtils.getAsMms(msg) && !msg.ctwaContext);
+        if (isMediaMsg) {
+            const result = await window.WWebJS.forwardMediaMessage(chat, msg, options);
+            return result.messageSendResult === 'OK';
+        }
+        const forwardedMsgFields = window.Store.ForwardMessageUtils.getForwardedMessageFields(msg, chat);
+        const meUser = window.Store.User.getMaybeMeUser();
+        let participant;
+        chat.isGroup && (participant = window.Store.WidFactory.toUserWid(meUser));
+        const newId = await window.Store.MsgKey.newId();
+        const isMD = window.Store.MDBackend;
+        const newMsgKey = new window.Store.MsgKey({
+            from: meUser,
+            to: chat.id,
+            id: newId,
+            participant: isMD && participant,
+            selfDir: 'out',
+        });
+        if (msg.ctwaContext) {
+            forwardedMsgFields.body = msg.ctwaContext.sourceUrl;
+            forwardedMsgFields.type = 'chat';
+            delete forwardedMsgFields.mediaObject;
+        }
+        forwardedMsgFields.forwardedNewsletterMessageInfo = window.Store.ForwardMessageUtils.getNewsletterContextForForwardedMsg(msg);
+        window.Store.EphemeralFields.isEphemeralSettingOn(chat) && (forwardedMsgFields.ephemeralDuration = window.Store.EphemeralFields.getEphemeralSetting(chat));
+        forwardedMsgFields.ephemeralSettingTimestamp = window.Store.EphemeralFields.getEphemeralSettingTimestamp(chat);
+        forwardedMsgFields.disappearingModeInitiator = window.Store.EphemeralFields.getDisappearingModeInitiator(chat);
+        forwardedMsgFields.disappearingModeTrigger = window.Store.EphemeralFields.getDisappearingModeTrigger(chat);
+        forwardedMsgFields.disappearingModeInitiatedByMe = window.Store.EphemeralFields.getDisappearingModeInitiatedByMe(chat);
+        const newMessage = {
+            ...forwardedMsgFields,
+            id: newMsgKey,
+            from: meUser,
+            t: parseInt(new Date().getTime() / 1000),
+            to: chat.id,
+            ack: 0,
+            participant: undefined,
+            local: true,
+            self: 'out',
+            isNewMsg: true,
+            star: false,
+            isForwarded: options.displayAsForwarded ?? window.Store.MessageFieldGetters.getShouldDisplayAsForwarded(msg),
+            forwardedFromWeb: true,
+            forwardingScore: msg.getForwardingScoreWhenForwarded(),
+            multicast: true
+        };
+        const [, result] = await Promise.all(window.Store.SendMessage.addAndSendMsgToChat(chat, newMessage));
+        return result.messageSendResult === 'OK';
+    };
+
+    window.WWebJS.forwardMediaMessage = async (chat, msg, options = {}) => {
+        const { withCaption = true } = options;
+        const mediaData = msg.mediaData.toJSON();
+        mediaData.preview && (mediaData.preview = msg.mediaObject.contentInfo._preview);
+        mediaData.mediaBlob instanceof window.Store.OpaqueData && mediaData.mediaBlob.retain();
+        let placeholderProps = { mimetype: mediaData.mimetype };
+        mediaData.isGif && (placeholderProps = { ...placeholderProps, isGif: true });
+        mediaData.type === 'ptt' && (mediaData.type = 'audio');
+        const productOptions = {
+            businessOwnerJid: msg.businessOwnerJid,
+            productId: msg.productId,
+            currencyCode: msg.currencyCode,
+            priceAmount1000: msg.priceAmount1000,
+            salePriceAmount1000: msg.salePriceAmount1000,
+            retailerId: msg.retailerId,
+            url: msg.url,
+            productImageCount: msg.productImageCount,
+            title: msg.title,
+            description: msg.description
+        };
+        const isImageOrVideo = mediaData.type === 'image' || mediaData.type === 'video';
+        const isProduct = mediaData.type === 'product';
+        const caption = (withCaption && (isImageOrVideo || msg.isCaptionByUser)) || isProduct
+            ? msg.caption
+            : undefined;
+        const mediaPrep = new window.Store.MediaPrep.MediaPrep(mediaData.type, Promise.resolve(mediaData));
+        return await mediaPrep.sendToChat(
+            chat,
+            {
+                forwardedFromWeb: true,
+                caption: caption,
+                mentionedJidList: msg.mentionedJidList,
+                groupMentions: msg.groupMentions,
+                footer: isProduct && msg.footer,
+                addEvenWhilePreparing: true,
+                placeholderProps: placeholderProps,
+                isForwarded: options.displayAsForwarded ?? window.Store.MessageFieldGetters.getShouldDisplayAsForwarded(msg),
+                forwardingScore: msg.getForwardingScoreWhenForwarded(),
+                multicast: true,
+                productMsgOptions: productOptions,
+                isAvatar: msg.isAvatar,
+                forwardedNewsletterMessageInfo: window.Store.ForwardMessageUtils.getNewsletterContextForForwardedMsg(msg)
+            }
+        );
     };
 	
     window.WWebJS.editMessage = async (msg, content, options = {}) => {

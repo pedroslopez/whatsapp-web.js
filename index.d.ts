@@ -938,10 +938,8 @@ declare namespace WAWebJS {
         reply: (content: MessageContent, chatId?: string, options?: MessageSendOptions) => Promise<Message>,
         /** React to this message with an emoji*/
         react: (reaction: string) => Promise<void>,
-        /** 
-         * Forwards this message to another chat (that you chatted before, otherwise it will fail)
-         */
-        forward: (chat: Chat | string) => Promise<void>,
+        /** Forwards this message to another chat */
+        forward: (chat: Chat | string, options?: MessageForwardOptions) => Promise<boolean>,
         /** Star this message */
         star: () => Promise<void>,
         /** Unstar this message */
@@ -1071,6 +1069,20 @@ declare namespace WAWebJS {
         stickerAuthor?: string
         /** Sticker categories, if sendMediaAsSticker is true */
         stickerCategories?: string[]
+    }
+
+    /** Options for forwarding a message */
+    export interface MessageForwardOptions {
+        /** 
+         * Forwards this message with the caption text of the original message if provided
+         * @default true
+         */
+        withCaption?: boolean
+        /**
+         * If false, the forwarded message will be displayed withour a 'Forwarded' tag,
+         * by default the default WhatsApp behavior is used
+         */
+        displayAsForwarded?: boolean
     }
 
     /** Options for editing a message */

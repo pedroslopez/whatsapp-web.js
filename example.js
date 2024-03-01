@@ -5,7 +5,7 @@ const client = new Client({
     // proxyAuthentication: { username: 'username', password: 'password' },
     puppeteer: { 
         // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
-        headless: false
+        headless: false,
     }
 });
 
@@ -418,6 +418,20 @@ client.on('message', async msg => {
             requesterIds: ['number1@c.us', 'number2@c.us'],
             sleep: null
         });
+    } else if (msg.author) {
+        /**
+         * Let's say the message was sent in a group
+         * and you want to forward it to its author:
+         */
+
+        // 1. By default the message will be forwarded with a caption (if provided):
+        await msg.forward(msg.author);
+
+        // 2. To forward without a caption text:
+        await msg.forward(msg.author, { withCaption: false });
+
+        // 3. To forward without a 'Forwarded' tag:
+        await msg.forward(msg.author, { displayAsForwarded: false });
     } else {
         /**
          * Pins a message in a chat, a method takes a number in seconds for the message to be pinned.
