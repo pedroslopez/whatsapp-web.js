@@ -203,6 +203,13 @@ class Contact extends Base {
         return await this.client.getCommonGroups(this.id._serialized);
     }
     
+    /**
+     * Returns Unix timestamp for when the user was last seen.
+     * @returns {Promise<number|undefined>}
+     */
+    getLastSeen() {
+        return this.client.getLastSeen(this.id._serialized);
+    }
 }
 
 module.exports = Contact;

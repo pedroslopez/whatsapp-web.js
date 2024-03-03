@@ -834,7 +834,33 @@ exports.LoadUtils = () => {
 
         return undefined;
     };
+    
+    window.WWebJS.getLastSeen = (chatId) => {
+        return new Promise(resolve => {
+            const chat = window.Store.Chat.get(chatId);
+            chat.presence.subscribe()
+                .then(() => {
+                    if (chat.presence.chatstate.t) {
+                        return resolve(chat.presence.chatstate.t);
+                    }
 
+                    let timeout;
+                    const handle = () => {
+                        clearTimeout(timeout);
+                        resolve(chat.presence.chatstate.t);
+                    };
+
+                    setTimeout(() => {
+                        chat.presence.chatstate.off('all', handle);
+                        resolve(undefined);
+                    }, 15000);
+
+                    chat.presence.chatstate.once('all', handle);
+                });
+            });
+        };
+    };
+    
     window.WWebJS.rejectCall = async (peerJid, id) => {
         peerJid = peerJid.split('@')[0] + '@s.whatsapp.net';
         let userId = window.Store.User.getMaybeMeUser().user + '@s.whatsapp.net';

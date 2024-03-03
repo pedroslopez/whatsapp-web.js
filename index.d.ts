@@ -369,6 +369,9 @@ declare namespace WAWebJS {
         /** Emitted when the client has initialized and is ready to receive messages */
         on(event: 'ready', listener: () => void): this
 
+        /** Returns Unix timestamp for when the user was last seen. */
+        getLastSeen: (chatId: string) => Promise<number?>
+        
         /** Emitted when the RemoteAuth session is saved successfully on the external Database */
         on(event: 'remote_session_saved', listener: () => void): this
     }
@@ -1213,6 +1216,8 @@ declare namespace WAWebJS {
         /** Gets the Contact's common groups with you. Returns empty array if you don't have any common group. */
         getCommonGroups: () => Promise<ChatId[]>
 
+        /** Returns Unix timestamp for when the user was last seen. */
+        getLastSeen: () => Promise<number?>
     }
 
     export interface ContactId {
