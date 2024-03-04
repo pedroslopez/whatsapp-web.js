@@ -80,7 +80,12 @@ class Chat extends Base {
          * @type {Message}
          */
         this.lastMessage = data.lastMessage ? new Message(super.client, data.lastMessage) : undefined;
-        
+
+        /**
+         * Indicates if can send messages to this chat
+         */
+        this.canSend = data.canSend;
+
         return super._patch(data);
     }
 
