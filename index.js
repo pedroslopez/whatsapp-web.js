@@ -29,5 +29,9 @@ module.exports = {
     RemoteAuth: require('./src/authStrategies/RemoteAuth'),
     LegacySessionAuth: require('./src/authStrategies/LegacySessionAuth'),
     
+    //Web Cache
+    LocalWebCache: require('./src/webCache/LocalWebCache'),
+    RemoteWebCache: require('./src/webCache/RemoteWebCache'),
+    
     ...Constants
 };
