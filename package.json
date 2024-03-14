@@ -29,7 +29,7 @@
   },
   "homepage": "https://wwebjs.dev/",
   "dependencies": {
-    "@pedroslopez/moduleraid": "^5.0.2",
+    "@pedroslopez/moduleraid": "github:wwebjs/moduleRaid",
     "fluent-ffmpeg": "2.1.2",
     "mime": "^3.0.0",
     "node-fetch": "^2.6.5",
