@@ -38,6 +38,7 @@ class MessageMedia {
          * @type {?number}
          */
         this.filesize = filesize;
+        
     }
 
     /**
@@ -105,6 +106,32 @@ class MessageMedia {
             mimetype = res.mime;
 
         return new MessageMedia(mimetype, res.data, filename, res.size || null);
+    }
+     /** 
+     * Securely saves the data to a file 
+     * @paranm {string} filePath the path to where you want to save the file (no extensions)
+     * @example <caption>Example usage of this function</caption>
+     * const media = await msg.downloadMedia();
+     * media.toFilePath('/home/purpshell/Documents/message') // the code adds the extension for you (if you enter a directory we will use the filename property (if it's null then we'll throw an error))
+     * @returns {null} no need to return anything
+     */
+    
+     async toFilePath(filePath) {
+        const ext = mime.getExtension(this.mimetype);
+        if (fs.existsSync(filePath)) {
+            const stat = await fs.promises.stat(filePath);
+            if (stat.isDirectory()) {
+                if (this.filename){
+                    filePath += this.filename;
+                } else {
+                    throw Error('You passed in a directory but the filename is empty');
+                }
+            }
+        }
+        if (!filePath.includes('.')) {
+            filePath += `.${ext}`;   
+        }
+        await fs.promises.writeFile(filePath, this.data, 'base64');
     }
 }
 
