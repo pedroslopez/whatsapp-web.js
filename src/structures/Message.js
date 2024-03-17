@@ -199,7 +199,7 @@ class Message extends Base {
         if (data.mentionedJidList) {
             this.mentionedIds = data.mentionedJidList;
         }
-
+        this.groupMentions = data.groupMentions || [];
         /**
          * Order ID for message type ORDER
          * @type {string}
@@ -508,6 +508,21 @@ class Message extends Base {
 
         if (!result) return undefined;
         return new MessageMedia(result.mimetype, result.data, result.filename, result.filesize);
+    }
+     async pin(duration) {
+        return await this.client.pupPage.evaluate(async (msgId, duration) => {
+            return await window.WWebJS.pinUnpinMsgAction(msgId, 1, duration);
+        }, this.id._serialized, duration);
+    }
+
+    /**
+     * Unpins the message (group admins can unpin messages of all group members)
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async unpin() {
+        return await this.client.pupPage.evaluate(async (msgId) => {
+            return await window.WWebJS.pinUnpinMsgAction(msgId, 2);
+        }, this.id._serialized);
     }
 
     /**
