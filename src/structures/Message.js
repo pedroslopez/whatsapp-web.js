@@ -688,6 +688,11 @@ class Message extends Base {
             groupMentions: options.groupMentions,
             extraOptions: options.extra
         };
+        
+        if (!this.fromMe) {
+            return null;
+        }
+        const messageEdit = await this.client.pupPage.evaluate(async (msgId, message, options) => {
             let msg = window.Store.Msg.get(msgId);
             if (!msg) return null;
 
