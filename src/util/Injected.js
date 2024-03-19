@@ -5,15 +5,15 @@ exports.ExposeStore = (moduleRaidStr) => {
     eval('var moduleRaid = ' + moduleRaidStr);
     // eslint-disable-next-line no-undef
     window.mR = moduleRaid();
-    window.Store = Object.assign({}, window.mR.findModule(m => m.default && m.default.Chat)[0].default);
+    window.Store = Object.assign({}, (!window.mR.findModule((m) => (m.Call && m.Chat)).length ? window.mR.findModule((m) => ( m.default && m.default.Chat))[0].default : window.mR.findModule((m) => (m.Call && m.Chat))[0]));
     window.Store.AppState = window.mR.findModule('Socket')[0].Socket;
     window.Store.Conn = window.mR.findModule('Conn')[0].Conn;
     window.Store.BlockContact = window.mR.findModule('blockContact')[0];
-    window.Store.Call = window.mR.findModule((module) => module.default && module.default.Call)[0].default.Call;
+    window.Store.Call = (!window.mR.findModule((m) => (m && m.Call)).length ? window.mR.findModule((module) => module.default && module.default.Call)[0].default.Call : window.mR.findModule((m) => (m && m.Call))[0].Call);
     window.Store.Cmd = window.mR.findModule('Cmd')[0].Cmd;
     window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
     window.Store.DownloadManager = window.mR.findModule('downloadManager')[0].downloadManager;
-    window.Store.GroupMetadata = window.mR.findModule('GroupMetadata')[0].default.GroupMetadata;
+    window.Store.GroupMetadata = (!window.mR.findModule((m) => (m && m.GroupMetadata)).length ? window.mR.findModule((module) => module.default && module.default.GroupMetadata)[0].default.GroupMetadata : window.mR.findModule((m) => (m && m.GroupMetadata))[0].GroupMetadata);
     window.Store.GroupMetadata.queryAndUpdate = window.mR.findModule('queryAndUpdateGroupMetadataById')[0].queryAndUpdateGroupMetadataById;
     window.Store.Label = window.mR.findModule('LabelCollection')[0].LabelCollection;
     window.Store.ContactCollection = window.mR.findModule('ContactCollection')[0].ContactCollection;
@@ -22,8 +22,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.NumberInfo = window.mR.findModule('formattedPhoneNumber')[0];
     window.Store.MediaTypes = window.mR.findModule('msgToMediaType')[0];
     window.Store.MediaUpload = window.mR.findModule('uploadMedia')[0];
-    window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
-    window.Store.OpaqueData = window.mR.findModule(module => module.default && module.default.createFromData)[0].default;
+    window.Store.MsgKey = (!window.mR.findModule((m) => (m && m.fromString)).length ? window.mR.findModule((m) => (m.default && m.default.fromString) ? m.default : null)[0].default : window.mR.findModule((m) => (m && m.fromString))[0]);
+    window.Store.OpaqueData = (!window.mR.findModule((m) => (m && m.createFromData)).length ? window.mR.findModule((m) => (m.default && m.default.createFromData) ? m.default : null)[0].default : window.mR.findModule((m) => (m && m.createFromData))[0]);
     window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
     window.Store.QueryOrder = window.mR.findModule('queryOrder')[0];
     window.Store.SendClear = window.mR.findModule('sendClear')[0];
@@ -34,8 +34,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.User = window.mR.findModule('getMaybeMeUser')[0];
     window.Store.ContactMethods = window.mR.findModule('getUserid')[0];
     window.Store.BusinessProfileCollection = window.mR.findModule('BusinessProfileCollection')[0].BusinessProfileCollection;
-    window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
-    window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default;
+    window.Store.UploadUtils = (!window.mR.findModule((m) => (m && m.encryptAndUpload)).length ? window.mR.findModule((m) => (m.default && m.default.encryptAndUpload) ? m.default : null)[0].default : window.mR.findModule((m) => (m && m.encryptAndUpload))[0]);
+    window.Store.UserConstructor = (!window.mR.findModule((m) => (m && m.prototype && m.prototype.isServer && m.prototype.isUser)).length ? window.mR.findModule((m) => (m.default && m.default.prototype && m.default.prototype.isServer && m.default.prototype.isUser) ? m.default : null)[0].default : window.mR.findModule((m) => (m && m.prototype && m.prototype.isServer && m.prototype.isUser))[0]);
     window.Store.Validators = window.mR.findModule('findLinks')[0];
     window.Store.VCard = window.mR.findModule('vcardFromContactModel')[0];
     window.Store.WidFactory = window.mR.findModule('createWid')[0];
@@ -50,7 +50,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.EphemeralFields = window.mR.findModule('getEphemeralFields')[0];
     window.Store.MsgActionChecks = window.mR.findModule('canSenderRevokeMsg')[0];
     window.Store.QuotedMsg = window.mR.findModule('getQuotedMsgObj')[0];
-    window.Store.LinkPreview = window.mR.findModule('getLinkPreview')[0];
+    window.Store.LinkPreview = window.mR.findModule((m) => (m.getLinkPreview && !m.clearMsgGetterCacheFor && !m.getAck && !m.getVcard))[0];
     window.Store.Socket = window.mR.findModule('deprecatedSendIq')[0];
     window.Store.SocketWap = window.mR.findModule('wap')[0];
     window.Store.SearchContext = window.mR.findModule('getSearchContext')[0].getSearchContext;
