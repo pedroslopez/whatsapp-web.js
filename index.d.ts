@@ -371,6 +371,46 @@ declare namespace WAWebJS {
 
         /** Emitted when the RemoteAuth session is saved successfully on the external Database */
         on(event: 'remote_session_saved', listener: () => void): this
+
+        data? : any
+        handlers? : Map<any, any>
+        events? : Map<any,any>
+        aliases? : Map<any,any>
+        commands? : Map<any,any>
+        muted? : string[];
+        prefix? : string;
+        mgames? : Map<any,any>
+        sydneyqueue? : any[]
+        bingqueue? : any[]
+        recents? : any[]
+        prefix2? : string
+        gartic? : boolean
+        gameManager? : any
+        commands2: any
+        commandMap: any
+        getCommand: any
+        games: any
+        loadCommands: any
+        getconfig :any
+        getrules:any
+        getruleKeys:any
+        getgames:any
+        getruleset:any
+        snipe:any
+        downloading:boolean
+        character:string;
+        ingame:boolean
+        ind:boolean
+        cachedUsers: Map<any,any>
+        spawns:any
+        battling:boolean
+        speed:any
+        debug:any
+        curr:any
+        checkpokemon:any
+        cooldowns:any
+
+
     }
 
     /** Current connection information */
@@ -920,6 +960,8 @@ declare namespace WAWebJS {
         delete: (everyone?: boolean) => Promise<void>,
         /** Downloads and returns the attached message media */
         downloadMedia: () => Promise<MessageMedia>,
+        downloadMedia2: () => Promise<MessageMedia>,
+
         /** Returns the Chat this message was sent in */
         getChat: () => Promise<Chat>,
         /** Returns the Contact this message was sent from */
