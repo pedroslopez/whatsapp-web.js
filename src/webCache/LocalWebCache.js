@@ -36,10 +36,8 @@ class LocalWebCache extends WebCache {
 		const matches = await indexHtml.match(/"client_revision"\s*:\s*(\d+)/) || [];
 		if (matches[1]) {
 			version = `2.3000.${matches[1]}`;
-			console.log(version);
 		}else{
 			version = await indexHtml.match(/manifest-([\d\\.]+)\.json/)[1];
-			console.log(version);
 		}
 		
 		if(!version) return;
