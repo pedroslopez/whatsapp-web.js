@@ -2,6 +2,13 @@
 import { EventEmitter } from 'events'
 import { RequestInit } from 'node-fetch'
 import * as puppeteer from 'puppeteer'
+import DataManager from '../../views/init'
+import { Game } from '../../monopoly/monopoly'
+import GameManager from '../../commands/unogame/Shard/GameManager'
+import { Ruleset } from '../../types/ruleset'
+import { SnipeItem } from '../../types/client'
+import { BaseUserType } from '../../types/baseuser'
+import baseuser from '../../models/baseuser'
 
 declare namespace WAWebJS {
 
@@ -372,44 +379,61 @@ declare namespace WAWebJS {
         /** Emitted when the RemoteAuth session is saved successfully on the external Database */
         on(event: 'remote_session_saved', listener: () => void): this
 
-        data? : any
-        handlers? : Map<any, any>
-        events? : Map<any,any>
-        aliases? : Map<any,any>
-        commands? : Map<any,any>
-        muted? : string[];
-        prefix? : string;
-        mgames? : Map<any,any>
-        sydneyqueue? : any[]
-        bingqueue? : any[]
-        recents? : any[]
-        prefix2? : string
-        gartic? : boolean
-        gameManager? : any
-        commands2: any
-        commandMap: any
-        getCommand: any
-        games: any
-        loadCommands: any
-        getconfig :any
-        getrules:any
-        getruleKeys:any
-        getgames:any
-        getruleset:any
-        snipe:any
-        downloading:boolean
-        character:string;
-        ingame:boolean
-        ind:boolean
-        cachedUsers: Map<any,any>
-        spawns:any
-        battling:boolean
-        speed:any
-        debug:any
-        curr:any
-        checkpokemon:any
-        cooldowns:any
+        data : DataManager
 
+        handlers : Map<string, any>
+
+        events : Map<string,any>
+
+        aliases : Map<string,any>
+
+        commands : Map<string,any>
+
+        muted : string[];
+
+        prefix : string;
+
+        mgames : Map<string,Game>
+
+        sydneyqueue : Array<[Message, string, Message]>
+
+        prefix2 : string;
+
+        gartic : boolean;
+
+        gameManager : GameManager
+
+        commands2: any;
+
+        commandMap: {[key: string]: string};
+
+        getCommand(name: string): Client["commands2"] | null
+
+        loadCommands(): Promise<void>
+
+        getrules(): Ruleset
+
+        getruleKeys():string[]
+
+        getruleset(): Ruleset
+
+        snipe: SnipeItem[];
+
+        downloading:boolean;
+
+        character:string;
+
+        ingame:boolean;
+
+        ind:boolean;
+
+        cachedUsers: Map<string,BaseUserType>
+
+        battling:boolean
+
+        curr(userID: string): baseuser
+        checkpokemon(msg: Message, member: Contact, pokemons:any , selected: any): Promise<void>
+        //async function (msg:Message, member:Contact, pokemons:any, selected:any): Promise<void>
 
     }
 
