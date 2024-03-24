@@ -3,12 +3,14 @@ import { EventEmitter } from 'events'
 import { RequestInit } from 'node-fetch'
 import * as puppeteer from 'puppeteer'
 import DataManager from '../../views/init'
-import { Game } from '../../monopoly/monopoly'
+import { MGame} from '../../monopoly/monopoly'
 import GameManager from '../../commands/unogame/Shard/GameManager'
 import { Ruleset } from '../../types/ruleset'
 import { SnipeItem } from '../../types/client'
 import { BaseUserType } from '../../types/baseuser'
 import baseuser from '../../models/baseuser'
+import { UnoGame } from '../../types/unotypes'
+import Game from '../../commands/unogame/Structures/Game'
 
 declare namespace WAWebJS {
 
@@ -393,7 +395,7 @@ declare namespace WAWebJS {
 
         prefix : string;
 
-        mgames : Map<string,Game>
+        mgames : Map<string,MGame>
 
         sydneyqueue : Array<[Message, string, Message]>
 
@@ -402,6 +404,7 @@ declare namespace WAWebJS {
         gartic : boolean;
 
         gameManager : GameManager
+        games: { [key: string]: Game; };
 
         commands2: any;
 
