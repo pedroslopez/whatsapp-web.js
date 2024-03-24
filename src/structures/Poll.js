@@ -11,7 +11,7 @@
 class Poll {
     /**
      * @param {string} pollName
-     * @param {Array<string>} pollOptions
+     * @param {Array<string> | Array<{name: string}> | Array<{name: string, localId: number}>} pollOptions
      * @param {PollSendOptions} options
      */
     constructor(pollName, pollOptions, options = {}) {
@@ -23,12 +23,18 @@ class Poll {
 
         /**
          * The array of poll options
-         * @type {Array.<{name: string, localId: number}>}
+         * @type {Array<{name: string, localId: number}>}
          */
-        this.pollOptions = pollOptions.map((option, index) => ({
-            name: option.trim(),
-            localId: index
-        }));
+        this.pollOptions = pollOptions.map((option, index) => {
+            if (typeof option === 'string') {
+                return { name: option.trim(), localId: index }
+            }
+            option['name'] = option['name'].trim() || `Option ${index + 1}`;
+            if (option['localId'] === undefined) {
+                option['localId'] = index;
+            }
+            return option;
+        });
 
         /**
          * The send options for the poll
