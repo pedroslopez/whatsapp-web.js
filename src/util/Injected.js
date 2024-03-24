@@ -15,11 +15,11 @@ exports.ExposeStore = (moduleRaidStr) => {
             version: '2.3000.0',
             Store: (window) => {
                 const Store = Object.assign({}, window.mR.findModule((m) => (m.Call && m.Chat))[0]);
-                Store.Call = window.mR.findModule((m) => (m && m.Call))[0].Call;
-                Store.GroupMetadata = window.mR.findModule((m) => (m && m.GroupMetadata))[0].GroupMetadata;
-                Store.MsgKey = window.mR.findModule((m) => (m && m.fromString))[0];
-                Store.OpaqueData = window.mR.findModule((m) => (m && m.createFromData))[0];
-                Store.UploadUtils = window.mR.findModule((m) => (m && m.encryptAndUpload))[0];
+                Store.Call = window.mR.findModule('Call')[0].Call;
+                Store.GroupMetadata = window.mR.findModule('GroupMetadata')[0].GroupMetadata;
+                Store.MsgKey = window.mR.findModule('fromString')[0];
+                Store.OpaqueData = window.mR.findModule('createFromData')[0];
+                Store.UploadUtils = window.mR.findModule('encryptAndUpload')[0];
                 Store.UserConstructor = window.mR.findModule((m) => (m && m.prototype && m.prototype.isServer && m.prototype.isUser))[0];
                 return Store;
             }
