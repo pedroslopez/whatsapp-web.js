@@ -29,7 +29,7 @@ class Poll {
             if (typeof option === 'string') {
                 return { name: option.trim(), localId: index }
             }
-            option['name'] = option['name'].trim() || `Option ${index + 1}`;
+            option['name'] = option['name'].trim();
             if (option['localId'] === undefined) {
                 option['localId'] = index;
             }
