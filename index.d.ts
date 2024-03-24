@@ -1215,6 +1215,8 @@ declare namespace WAWebJS {
      */
     export interface Contact {
         /** Contact's phone number */
+        username?: string,
+        discriminator? : string,
         number: string,
         /** Indicates if the contact is a business contact */
         isBusiness: boolean,
