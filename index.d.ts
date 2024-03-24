@@ -906,7 +906,7 @@ declare namespace WAWebJS {
         rawData: object,
         pollName: string,
         /** Avaiaible poll voting options */
-        pollOptions: string[],
+        pollOptions: string[] | {name: string}[] | {name: string, localId: number}[],
         /** False for a single choice poll, true for a multiple choice poll */
         allowMultipleAnswers: boolean,
         /* 
@@ -1015,7 +1015,7 @@ declare namespace WAWebJS {
         }>
         options: PollSendOptions
 
-        constructor(pollName: string, pollOptions: Array<string>, options?: PollSendOptions)
+        constructor(pollName: string, pollOptions: string[] | {name: string}[] | {name: string, localId: number}[], options?: PollSendOptions)
     }
 
     export interface Label {
