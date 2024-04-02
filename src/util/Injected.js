@@ -2,19 +2,52 @@
 
 // Exposes the internal Store to the WhatsApp Web client
 exports.ExposeStore = (moduleRaidStr) => {
+    const isComet = parseInt(window.Debug?.VERSION?.split(".")?.[1]) >= 3000;
+
+    console.warn('COMET package version:%s', window.Debug?.VERSION)
+
     eval('var moduleRaid = ' + moduleRaidStr);
     // eslint-disable-next-line no-undef
     window.mR = moduleRaid();
-    window.Store = Object.assign({}, window.mR.findModule(m => m.default && m.default.Chat)[0].default);
+    //window.Store = Object.assign({}, window.mR.findModule(m => m.default && m.default.Chat)[0].default);
+    window.Store = {};
+	
+    if (isComet) {
+        window.Store.Chat = window.mR.findModule('Chat')[1].Chat;
+    } else {
+        window.Store.Chat = window.mR.findModule(m => m.default && m.default.Chat)[0].default.Chat;
+    }
+	
     window.Store.AppState = window.mR.findModule('Socket')[0].Socket;
     window.Store.Conn = window.mR.findModule('Conn')[0].Conn;
     window.Store.BlockContact = window.mR.findModule('blockContact')[0];
-    window.Store.Call = window.mR.findModule((module) => module.default && module.default.Call)[0].default.Call;
+	
+    if (isComet) {
+        window.Store.Call = window.mR.findModule('Call')[0].Call;
+    } else {
+        window.Store.Call = window.mR.findModule((module) => module.default && module.default.Call)[0].default.Call;
+    }
+	
     window.Store.Cmd = window.mR.findModule('Cmd')[0].Cmd;
     window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
     window.Store.DownloadManager = window.mR.findModule('downloadManager')[0].downloadManager;
-    window.Store.GroupMetadata = window.mR.findModule('GroupMetadata')[0].default.GroupMetadata;
-    window.Store.GroupMetadata.queryAndUpdate = window.mR.findModule('queryAndUpdateGroupMetadataById')[0].queryAndUpdateGroupMetadataById;
+	
+    if (isComet) {
+        window.Store.GroupMetadata = window.mR.findModule('GroupMetadata')[0].GroupMetadata;
+    } else {
+        window.Store.GroupMetadata = window.mR.findModule('GroupMetadata')[0].default.GroupMetadata;
+    }
+
+    if (isComet) {
+        window.Store.GroupMetadata.queryAndUpdate = window.mR.findModule('queryAndUpdateGroupMetadataById')[0].queryAndUpdateGroupMetadataById;
+    } else {
+        window.Store.GroupMetadata.queryAndUpdate = window.mR.findModule('queryAndUpdateGroupMetadataById')[0].queryAndUpdateGroupMetadataById;
+    }
+	
+    if (isComet) {
+	    window.Store.Contact = window.mR.findModule('Contact')[0].Contact;
+    }
+	
     window.Store.Label = window.mR.findModule('LabelCollection')[0].LabelCollection;
     window.Store.ContactCollection = window.mR.findModule('ContactCollection')[0].ContactCollection;
     window.Store.MediaPrep = window.mR.findModule('prepRawMedia')[0];
@@ -22,8 +55,23 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.NumberInfo = window.mR.findModule('formattedPhoneNumber')[0];
     window.Store.MediaTypes = window.mR.findModule('msgToMediaType')[0];
     window.Store.MediaUpload = window.mR.findModule('uploadMedia')[0];
-    window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
-    window.Store.OpaqueData = window.mR.findModule(module => module.default && module.default.createFromData)[0].default;
+	
+    if (isComet) {
+        window.Store.MsgKey = window.mR.findModule('fromString')[0];
+    } else {
+        window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
+    }
+	
+    if (isComet) {
+        window.Store.Msg = window.mR.findModule('Msg')[1].Msg;
+    }
+	
+    if (isComet) {
+        window.Store.OpaqueData = window.mR.findModule('createFromData')[0];
+    } else {
+        window.Store.OpaqueData = window.mR.findModule(module => module.default && module.default.createFromData)[0].default;
+    }
+	
     window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
     window.Store.QueryOrder = window.mR.findModule('queryOrder')[0];
     window.Store.SendClear = window.mR.findModule('sendClear')[0];
@@ -34,8 +82,36 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.User = window.mR.findModule('getMaybeMeUser')[0];
     window.Store.ContactMethods = window.mR.findModule('getUserid')[0];
     window.Store.BusinessProfileCollection = window.mR.findModule('BusinessProfileCollection')[0].BusinessProfileCollection;
-    window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
-    window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default;
+	
+    if (isComet) {
+        window.Store.UploadUtils = window.mR.findModule('encryptAndUpload')[0].encryptAndUpload;
+    } else {
+        window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
+    }
+	
+    if (isComet) {
+        try {
+            window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default;
+        } catch (e) {
+            try {
+                window.Store.UserConstructor = window.mR.findModule('isServer')[0].isServer;
+            } catch (e2) {
+                try {
+                    window.Store.UserConstructor = window.mR.findModule('isUser')[0].isUser;
+                } catch (e3) {
+                    let checkType = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser))[0].default
+                    if (checkType.isServer) {
+                        window.Store.UserConstructor = checkType.isServer
+                    } else if (checkType.isUser) {
+                        window.Store.UserConstructor = checkType.isUser
+                    }
+                }
+            }
+        }
+    } else {
+        window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default;
+    }
+	
     window.Store.Validators = window.mR.findModule('findLinks')[0];
     window.Store.VCard = window.mR.findModule('vcardFromContactModel')[0];
     window.Store.WidFactory = window.mR.findModule('createWid')[0];
@@ -162,7 +238,7 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.sendMessage = async (chat, content, options = {}) => {
-        let attOptions = {};
+		let attOptions = {};
         if (options.attachment) {
             attOptions = options.sendMediaAsSticker
                 ? await window.WWebJS.processStickerData(options.attachment)
