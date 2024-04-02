@@ -755,20 +755,21 @@ class Client extends EventEmitter {
         if(versionContent) {
             await this.pupPage.setRequestInterception(true);
             this.pupPage.on('request', async (req) => {
-                if(req.url() === WhatsWebURL) {
-                    req.respond({
-                        status: 200,
-                        contentType: 'text/html',
-                        body: versionContent
-                    }); 
-                } else {
-                    req.continue();
-                }
+                req.continue();
+                // if(req.url() === WhatsWebURL) {
+                //     req.respond({
+                //         status: 200,
+                //         contentType: 'text/html',
+                //         body: versionContent
+                //     }); 
+                // } else {
+                //     req.continue();
+                // }
             });
         } else {
             this.pupPage.on('response', async (res) => {
                 if(res.ok() && res.url() === WhatsWebURL) {
-                    await webCache.persist(await res.text());
+                    // await webCache.persist(await res.text());
                 }
             });
         }
