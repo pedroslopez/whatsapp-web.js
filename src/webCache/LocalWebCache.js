@@ -19,7 +19,7 @@ class LocalWebCache extends WebCache {
 
     async resolve(version) {
         const filePath = path.join(this.path, `${version}.html`);
-        
+
         try {
             return fs.readFileSync(filePath, 'utf-8');
         }
@@ -30,10 +30,10 @@ class LocalWebCache extends WebCache {
     }
 
     async persist(indexHtml) {
-        // extract version from index (e.g. manifest-2.2206.9.json -> 2.2206.9)
-        const version = indexHtml.match(/manifest-([\d\\.]+)\.json/)[1];
-        if(!version) return;
-   
+        // extract version from index (e.g. data-btmanifest="220006_main" -> 220006)
+        const version = indexHtml.match(/data-btmanifest="([\d\\.]+)\_main" data-c="1"/) ? indexHtml.match(/data-btmanifest="([\d\\.]+)\_main" data-c="1"/)[1] : Math.floor(Math.random() * 10000000) + 1;
+        if (!version) return;
+
         const filePath = path.join(this.path, `${version}.html`);
         fs.mkdirSync(this.path, { recursive: true });
         fs.writeFileSync(filePath, indexHtml);
