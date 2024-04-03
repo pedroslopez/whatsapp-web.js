@@ -16,7 +16,7 @@ exports.ExposeStore = () => {
     window.Store.NumberInfo = window.require('WAPhoneUtils');
     window.Store.OpaqueData = window.require('WAWebMediaOpaqueData');
     window.Store.QueryProduct = window.require('WAWebBizProductCatalogBridge');
-    window.Store.QueryOrder = window.require('WAWebBizQueryOrderJob');
+    window.Store.QueryOrder = window.require('WAWebBizOrderBridge');
     window.Store.SendClear = window.require('WAWebChatClearBridge');
     window.Store.SendDelete = window.require('WAWebDeleteChatAction');
     window.Store.SendMessage = window.require('WAWebSendMsgChatAction');
@@ -65,7 +65,7 @@ exports.ExposeStore = () => {
         ...window.require('WAWebContactProfilePicThumbBridge')
     };
     window.Store.GroupParticipants = {
-        ...window.require('WAWebGroupsParticipantsApi'),
+        ...window.require('WAWebModifyParticipantsGroupAction'),
         ...window.require('WASmaxGroupsAddParticipantsRPC')
     };
     window.Store.GroupInvite = {
