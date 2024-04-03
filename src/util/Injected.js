@@ -4,7 +4,7 @@
 exports.ExposeStore = (moduleRaidStr) => {
     const isComet = parseInt(window.Debug?.VERSION?.split(".")?.[1]) >= 3000;
 
-    console.warn('COMET package version:%s', window.Debug?.VERSION)
+    console.warn('version:%s', window.Debug?.VERSION)
 
     eval('var moduleRaid = ' + moduleRaidStr);
     // eslint-disable-next-line no-undef
