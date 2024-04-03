@@ -14,7 +14,7 @@ exports.ExposeStore = () => {
     window.Store.DownloadManager = require('WAWebDownloadManager').downloadManager;
     window.Store.GroupQueryAndUpdate = require('WAWebGroupQueryJob').queryAndUpdateGroupMetadataById;
     window.Store.MediaPrep = require('WAWebPrepRawMedia');
-    window.Store.MediaObject = require('WAWebMediaStorage').getOrCreateMediaObject;
+    window.Store.MediaObject = require('WAWebMediaStorage');
     window.Store.MediaTypes = require('WAWebMmsMediaTypes');
     window.Store.MediaUpload = require('WAWebMediaMmsV4Upload');
     window.Store.MsgKey = require('WAWebMsgKey');
