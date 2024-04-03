@@ -45,7 +45,7 @@ exports.ExposeStore = () => {
     window.Store.EphemeralFields = require('WAWebGetEphemeralFieldsMsgActionsUtils');
     window.Store.MsgActionChecks = require('WAWebMsgActionCapability');
     window.Store.QuotedMsg = require('WAWebQuotedMsgModelUtils');
-    window.Store.LinkPreview = require('WAWebMsgGetters');
+    window.Store.LinkPreview = require('WAWebLinkPreviewChatAction');
     window.Store.Socket = require('WADeprecatedSendIq');
     window.Store.SocketWap = require('WAWap');
     window.Store.SearchContext = require('WAWebChatMessageSearch').getSearchContext;
@@ -70,20 +70,20 @@ exports.ExposeStore = () => {
         ...require('WAWebContactProfilePicThumbBridge')
     };
     window.Store.GroupParticipants = {
-        ...require('promoteParticipants'),
-        ...require('sendAddParticipantsRPC')
+        ...require('WAWebGroupsParticipantsApi'),
+        ...require('WASmaxGroupsAddParticipantsRPC')
     };
     window.Store.GroupInvite = {
-        ...require('resetGroupInviteCode'),
-        ...require('queryGroupInvite')
+        ...require('WAWebGroupInviteJob'),
+        ...require('WAWebGroupQueryJob')
     };
     window.Store.GroupInviteV4 = {
-        ...require('queryGroupInviteV4'),
-        ...require('sendGroupInviteMessage')
+        ...require('WAWebGroupInviteV4Job'),
+        ...require('WAWebChatSendMessages')
     };
     window.Store.MembershipRequestUtils = {
-        ...require('getMembershipApprovalRequests'),
-        ...require('sendMembershipRequestsActionRPC')
+        ...require('WAWebApiMembershipApprovalRequestStore'),
+        ...require('WASmaxGroupsMembershipRequestsActionRPC')
     };
 
     if (!window.Store.Chat._find || !window.Store.Chat.findImpl) {
