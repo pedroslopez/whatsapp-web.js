@@ -2,6 +2,7 @@
 
 exports.ExposeStore = () => {
     if (!require) {
+        //eslint-disable-next-line no-global-assign
         require = window.require;
     }
 
@@ -92,7 +93,7 @@ exports.ExposeStore = () => {
                 id: e
             });
         };
-        window.Store.Chat.findImpl = window.Store.Chat._find
+        window.Store.Chat.findImpl = window.Store.Chat._find;
     }
 
     /**
@@ -116,4 +117,4 @@ exports.ExposeStore = () => {
     window.injectToFunction({ module: 'WAWebBackendJobsCommon', function: 'mediaTypeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? null : func(...args); });
 
     window.injectToFunction({ module: 'WAWebE2EProtoUtils', function: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage || proto.groupInviteMessage ? 'text' : func(...args); });
-}
+};
