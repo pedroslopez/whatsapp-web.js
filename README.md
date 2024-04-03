@@ -18,36 +18,7 @@ It uses Puppeteer to run a real instance of Whatsapp Web to avoid getting blocke
 
 The module is now available on npm! `npm i whatsapp-web.js`
 
-Please note that Node v18+ is required.
-
-## QUICK STEPS TO UPGRADE NODE
-
-### Windows
-
-#### Manual
-Just get the latest LTS from https://nodejs.org
-
-#### npm
-```powershell
-sudo npm install -g n
-sudo n stable
-```
-
-#### Choco
-```powershell
-choco install nodejs-lts
-```
-
-#### Winget
-```powershell
-winget install OpenJS.NodeJS.LTS
-```
-
-### Ubuntu / Debian
-```bash
-curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - &&\
-sudo apt-get install -y nodejs
-```
+Please note that Node v12+ is required.
 
 ## Example usage
 
@@ -92,8 +63,8 @@ For more information on saving and restoring sessions, check out the available [
 | Receive media (images/audio/video/documents)  | ✅  |
 | Send contact cards | ✅ |
 | Send location | ✅ |
-| Send buttons | ❌ |
-| Send lists | ❌  [(DEPRECATED)](https://www.youtube.com/watch?v=hv1R1rLeVVE) |
+| Send buttons | ✅ |
+| Send lists | ✅ (business accounts not supported) |
 | Receive location | ✅ | 
 | Message replies | ✅ |
 | Join groups by invite  | ✅ |
@@ -110,8 +81,6 @@ For more information on saving and restoring sessions, check out the available [
 | Get profile pictures | ✅ |
 | Set user status message | ✅ |
 | React to messages | ✅ |
-| Vote in polls | 🔜 |
-| Create polls | ✅ |
 
 Something missing? Make an issue and let us know!
 

@@ -23,6 +23,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.MediaTypes = window.mR.findModule('msgToMediaType')[0];
     window.Store.MediaUpload = window.mR.findModule('uploadMedia')[0];
     window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
+    window.Store.MessageInfo = window.mR.findModule('sendQueryMsgInfo')[0];
     window.Store.OpaqueData = window.mR.findModule(module => module.default && module.default.createFromData)[0].default;
     window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
     window.Store.QueryOrder = window.mR.findModule('queryOrder')[0];
@@ -50,7 +51,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.EphemeralFields = window.mR.findModule('getEphemeralFields')[0];
     window.Store.MsgActionChecks = window.mR.findModule('canSenderRevokeMsg')[0];
     window.Store.QuotedMsg = window.mR.findModule('getQuotedMsgObj')[0];
-    window.Store.LinkPreview = window.mR.findModule('getLinkPreview')[0];
     window.Store.Socket = window.mR.findModule('deprecatedSendIq')[0];
     window.Store.SocketWap = window.mR.findModule('wap')[0];
     window.Store.SearchContext = window.mR.findModule('getSearchContext')[0].getSearchContext;
@@ -58,18 +58,12 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.LidUtils = window.mR.findModule('getCurrentLid')[0];
     window.Store.WidToJid = window.mR.findModule('widToUserJid')[0];
     window.Store.JidToWid = window.mR.findModule('userJidToUserWid')[0];
-    window.Store.getMsgInfo = (window.mR.findModule('sendQueryMsgInfo')[0] || {}).sendQueryMsgInfo || window.mR.findModule('queryMsgInfo')[0].queryMsgInfo;
-    window.Store.pinUnpinMsg = window.mR.findModule('sendPinInChatMsg')[0].sendPinInChatMsg;
     
     /* eslint-disable no-undef, no-cond-assign */
     window.Store.QueryExist = ((m = window.mR.findModule('queryExists')[0]) ? m.queryExists : window.mR.findModule('queryExist')[0].queryWidExists);
     window.Store.ReplyUtils = (m = window.mR.findModule('canReplyMsg')).length > 0 && m[0];
     /* eslint-enable no-undef, no-cond-assign */
 
-    window.Store.Settings = {
-        ...window.mR.findModule('ChatlistPanelState')[0],
-        setPushname: window.mR.findModule((m) => m.setPushname && !m.ChatlistPanelState)[0].setPushname
-    };
     window.Store.StickerTools = {
         ...window.mR.findModule('toWebpSticker')[0],
         ...window.mR.findModule('addWebpMetadata')[0]
@@ -109,6 +103,12 @@ exports.ExposeStore = (moduleRaidStr) => {
     // eslint-disable-next-line no-undef
     if ((m = window.mR.findModule('ChatCollection')[0]) && m.ChatCollection && typeof m.ChatCollection.findImpl === 'undefined' && typeof m.ChatCollection._find !== 'undefined') m.ChatCollection.findImpl = m.ChatCollection._find;
 
+    // TODO remove these once everybody has been updated to WWebJS with legacy sessions removed
+    const _linkPreview = window.mR.findModule('queryLinkPreview');
+    if (_linkPreview && _linkPreview[0] && _linkPreview[0].default) {
+        window.Store.Wap = _linkPreview[0].default;
+    }
+
     const _isMDBackend = window.mR.findModule('isMDBackend');
     if(_isMDBackend && _isMDBackend[0] && _isMDBackend[0].isMDBackend) {
         window.Store.MDBackend = _isMDBackend[0].isMDBackend();
@@ -124,9 +124,9 @@ exports.ExposeStore = (moduleRaidStr) => {
     /**
      * Target options object description
      * @typedef {Object} TargetOptions
-     * @property {string|number} module The name or a key of the target module to search
+     * @property {string|number} moduleId The name or a key of the target module to search
      * @property {number} index The index value of the target module
-     * @property {string} function The function name to get from a module
+     * @property {string} property The function name to get from a module
      */
 
     /**
@@ -135,17 +135,17 @@ exports.ExposeStore = (moduleRaidStr) => {
      * @param {Function} callback Modified function
      */
     window.injectToFunction = (target, callback) => {
-        const module = typeof target.module === 'string'
-            ? window.mR.findModule(target.module)
-            : window.mR.modules[target.module];
-        const originalFunction = module[target.index][target.function];
+        const module = typeof target.moduleId === 'string'
+            ? window.mR.findModule(target.moduleId)
+            : window.mR.modules[target.moduleId];
+        const originalFunction = module[target.index][target.property];
         const modifiedFunction = (...args) => callback(originalFunction, ...args);
-        module[target.index][target.function] = modifiedFunction;
+        module[target.index][target.property] = modifiedFunction;
     };
 
-    window.injectToFunction({ module: 'mediaTypeFromProtobuf', index: 0, function: 'mediaTypeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? null : func(...args); });
+    window.injectToFunction({ moduleId: 'mediaTypeFromProtobuf', index: 0, property: 'mediaTypeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? null : func(...args); });
 
-    window.injectToFunction({ module: 'typeAttributeFromProtobuf', index: 0, function: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage || proto.groupInviteMessage ? 'text' : func(...args); });
+    window.injectToFunction({ moduleId: 'typeAttributeFromProtobuf', index: 0, property: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage || proto.groupInviteMessage ? 'text' : func(...args); });
 };
 
 exports.LoadUtils = () => {
@@ -172,7 +172,9 @@ exports.LoadUtils = () => {
                     forceGif: options.sendVideoAsGif
                 });
             
-            attOptions.caption = options.caption;
+            if (options.caption){
+                attOptions.caption = options.caption; 
+            }
             content = options.sendMediaAsSticker ? undefined : attOptions.preview;
             attOptions.isViewOnce = options.isViewOnce;
 
@@ -195,22 +197,7 @@ exports.LoadUtils = () => {
         }
 
         if (options.mentionedJidList) {
-            options.mentionedJidList = await Promise.all(
-                options.mentionedJidList.map(async (id) => {
-                    const wid = window.Store.WidFactory.createWid(id);
-                    if (await window.Store.QueryExist(wid)) {
-                        return wid;
-                    }
-                })
-            );
-            options.mentionedJidList = options.mentionedJidList.filter(Boolean);
-        }
-
-        if (options.groupMentions) {
-            options.groupMentions = options.groupMentions.map((e) => ({
-                groupSubject: e.subject,
-                groupJid: window.Store.WidFactory.createWid(e.id)
-            }));
+            options.mentionedJidList = options.mentionedJidList.map(cId => window.Store.Contact.get(cId).id);
         }
 
         let locationOptions = {};
@@ -280,14 +267,15 @@ exports.LoadUtils = () => {
 
         if (options.linkPreview) {
             delete options.linkPreview;
-            const link = window.Store.Validators.findLink(content);
-            if (link) {
-                let preview = await window.Store.LinkPreview.getLinkPreview(link);
-                if (preview && preview.data) {
-                    preview = preview.data;
+
+            // Not supported yet by WhatsApp Web on MD
+            if(!window.Store.MDBackend) {
+                const link = window.Store.Validators.findLink(content);
+                if (link) {
+                    const preview = await window.Store.Wap.queryLinkPreview(link.url);
                     preview.preview = true;
                     preview.subtype = 'url';
-                    options = {...options, ...preview};
+                    options = { ...options, ...preview };
                 }
             }
         }
@@ -383,32 +371,21 @@ exports.LoadUtils = () => {
         delete options.extraOptions;
         
         if (options.mentionedJidList) {
-            options.mentionedJidList = await Promise.all(
-                options.mentionedJidList.map(async (id) => {
-                    const wid = window.Store.WidFactory.createWid(id);
-                    if (await window.Store.QueryExist(wid)) {
-                        return wid;
-                    }
-                })
-            );
-            options.mentionedJidList = options.mentionedJidList.filter(Boolean);
-        }
-
-        if (options.groupMentions) {
-            options.groupMentions = options.groupMentions.map((e) => ({
-                groupSubject: e.subject,
-                groupJid: window.Store.WidFactory.createWid(e.id)
-            }));
+            options.mentionedJidList = options.mentionedJidList.map(cId => window.Store.Contact.get(cId).id);
         }
 
         if (options.linkPreview) {
-            delete options.linkPreview;
-            const link = window.Store.Validators.findLink(content);
-            if (link) {
-                const preview = await window.Store.LinkPreview.getLinkPreview(link);
-                preview.preview = true;
-                preview.subtype = 'url';
-                options = { ...options, ...preview };
+            options.linkPreview = null;
+
+            // Not supported yet by WhatsApp Web on MD
+            if(!window.Store.MDBackend) {
+                const link = window.Store.Validators.findLink(content);
+                if (link) {
+                    const preview = await window.Store.Wap.queryLinkPreview(link.url);
+                    preview.preview = true;
+                    preview.subtype = 'url';
+                    options = { ...options, ...preview };
+                }
             }
         }
 
@@ -532,7 +509,7 @@ exports.LoadUtils = () => {
 
         msg.isEphemeral = message.isEphemeral;
         msg.isStatusV3 = message.isStatusV3;
-        msg.links = (window.Store.Validators.findLinks(message.mediaObject ? message.caption : message.body)).map((link) => ({
+        msg.links = (message.getRawLinks()).map(link => ({
             link: link.href,
             isSuspicious: Boolean(link.suspiciousCharacters && link.suspiciousCharacters.size)
         }));
@@ -1113,13 +1090,5 @@ exports.LoadUtils = () => {
         } catch (err) {
             return [];
         }
-    };
-
-    window.WWebJS.pinUnpinMsgAction = async (msgId, action, duration) => {
-        const message = window.Store.Msg.get(msgId);
-        if (!message) return false;
-        const response = await window.Store.pinUnpinMsg(message, action, duration);
-        if (response.messageSendResult === 'OK') return true;
-        return false;
     };
 };

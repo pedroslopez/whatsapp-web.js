@@ -6,8 +6,8 @@ const Location = require('./Location');
 const Order = require('./Order');
 const Payment = require('./Payment');
 const Reaction = require('./Reaction');
-const Contact = require('./Contact');
-const { MessageTypes } = require('../util/Constants');
+const {MessageTypes} = require('../util/Constants');
+const {Contact} = require('./Contact');
 
 /**
  * Represents a Message on WhatsApp
@@ -187,32 +187,14 @@ class Message extends Base {
         } : undefined;
 
         /**
-         * @typedef {Object} Mention
-         * @property {string} server
-         * @property {string} user
-         * @property {string} _serialized
-         */
-
-        /**
          * Indicates the mentions in the message body.
-         * @type {Mention[]}
+         * @type {Array<string>}
          */
-        this.mentionedIds = data.mentionedJidList || [];
+        this.mentionedIds = [];
 
-        /**
-         * @typedef {Object} GroupMention
-         * @property {string} groupSubject The name  of the group
-         * @property {Object} groupJid The group ID
-         * @property {string} groupJid.server
-         * @property {string} groupJid.user
-         * @property {string} groupJid._serialized
-         */
-
-        /**
-         * Indicates whether there are group mentions in the message body
-         * @type {GroupMention[]}
-         */
-        this.groupMentions = data.groupMentions || [];
+        if (data.mentionedJidList) {
+            this.mentionedIds = data.mentionedJidList;
+        }
 
         /**
          * Order ID for message type ORDER
@@ -359,14 +341,6 @@ class Message extends Base {
     async getMentions() {
         return await Promise.all(this.mentionedIds.map(async m => await this.client.getContactById(m)));
     }
-    
-    /**
-     * Returns groups mentioned in this message
-     * @returns {Promise<GroupChat[]|[]>}
-     */
-    async getGroupMentions() {
-        return await Promise.all(this.groupMentions.map(async (m) => await this.client.getChatById(m.groupJid._serialized)));
-    }
 
     /**
      * Returns the quoted message, if any
@@ -457,7 +431,7 @@ class Message extends Base {
 
         const result = await this.client.pupPage.evaluate(async (msgId) => {
             const msg = window.Store.Msg.get(msgId);
-            if (!msg || !msg.mediaData) {
+            if (!msg) {
                 return undefined;
             }
             if (msg.mediaData.mediaStage != 'RESOLVED') {
@@ -549,27 +523,6 @@ class Message extends Base {
     }
 
     /**
-     * Pins the message (group admins can pin messages of all group members)
-     * @param {number} duration The duration in seconds the message will be pinned in a chat
-     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
-     */
-    async pin(duration) {
-        return await this.client.pupPage.evaluate(async (msgId, duration) => {
-            return await window.WWebJS.pinUnpinMsgAction(msgId, 1, duration);
-        }, this.id._serialized, duration);
-    }
-
-    /**
-     * Unpins the message (group admins can unpin messages of all group members)
-     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
-     */
-    async unpin() {
-        return await this.client.pupPage.evaluate(async (msgId) => {
-            return await window.WWebJS.pinUnpinMsgAction(msgId, 2);
-        }, this.id._serialized);
-    }
-
-    /**
      * Message Info
      * @typedef {Object} MessageInfo
      * @property {Array<{id: ContactId, t: number}>} delivery Contacts to which the message has been delivered to
@@ -581,20 +534,15 @@ class Message extends Base {
      */
 
     /**
-     * Get information about message delivery status.
-     * May return null if the message does not exist or is not sent by you.
+     * Get information about message delivery status. May return null if the message does not exist or is not sent by you.
      * @returns {Promise<?MessageInfo>}
      */
     async getInfo() {
         const info = await this.client.pupPage.evaluate(async (msgId) => {
             const msg = window.Store.Msg.get(msgId);
-            if (!msg || !msg.id.fromMe) return null;
+            if (!msg) return null;
 
-            return new Promise((resolve) => {
-                setTimeout(async () => {
-                    resolve(await window.Store.getMsgInfo(msg.id));
-                }, (Date.now() - msg.t * 1000 < 1250) && Math.floor(Math.random() * (1200 - 1100 + 1)) + 1100 || 0);
-            });
+            return await window.Store.MessageInfo.sendQueryMsgInfo(msg.id);
         }, this.id._serialized);
 
         return info;
@@ -675,20 +623,12 @@ class Message extends Base {
      * @returns {Promise<?Message>}
      */
     async edit(content, options = {}) {
-        if (options.mentions) {
-            !Array.isArray(options.mentions) && (options.mentions = [options.mentions]);
-            if (options.mentions.some((possiblyContact) => possiblyContact instanceof Contact)) {
-                console.warn('Mentions with an array of Contact are now deprecated. See more at https://github.com/pedroslopez/whatsapp-web.js/pull/2166.');
-                options.mentions = options.mentions.map((a) => a.id._serialized);
-            }
+        if (options.mentions && options.mentions.some(possiblyContact => possiblyContact instanceof Contact)) {
+            options.mentions = options.mentions.map(a => a.id._serialized);
         }
-
-        options.groupMentions && !Array.isArray(options.groupMentions) && (options.groupMentions = [options.groupMentions]);
-
         let internalOptions = {
             linkPreview: options.linkPreview === false ? undefined : true,
-            mentionedJidList: options.mentions || [],
-            groupMentions: options.groupMentions,
+            mentionedJidList: Array.isArray(options.mentions) ? options.mentions : [],
             extraOptions: options.extra
         };
         
@@ -699,7 +639,7 @@ class Message extends Base {
             let msg = window.Store.Msg.get(msgId);
             if (!msg) return null;
 
-            let catEdit = window.Store.MsgActionChecks.canEditText(msg) || window.Store.MsgActionChecks.canEditCaption(msg);
+            let catEdit = (msg.type === 'chat' && window.Store.MsgActionChecks.canEditText(msg));
             if (catEdit) {
                 const msgEdit = await window.WWebJS.editMessage(msg, message, options);
                 return msgEdit.serialize();
