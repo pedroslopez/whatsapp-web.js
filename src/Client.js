@@ -7,12 +7,13 @@ const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
 const Util = require('./util/Util');
 const InterfaceController = require('./util/InterfaceController');
 const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constants');
-const { ExposeStore, LoadUtils } = require('./util/Injected');
+const { ExposeStore } = require('./util/Injected/Store');
+const { LoadUtils } = require('./util/Injected/Utils');
+const { ExposeLegacyStore } = require('./util/Injected/LegacyStore');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
 const WebCacheFactory = require('./webCache/WebCacheFactory');
 const { ClientInfo, Message, MessageMedia, Contact, Location, Poll, GroupNotification, Label, Call, Buttons, List, Reaction } = require('./structures');
-const LegacySessionAuth = require('./authStrategies/LegacySessionAuth');
 const NoAuth = require('./authStrategies/NoAuth');
 
 /**
@@ -62,20 +63,7 @@ class Client extends EventEmitter {
         this.options = Util.mergeDefault(DefaultOptions, options);
         
         if(!this.options.authStrategy) {
-            if(Object.prototype.hasOwnProperty.call(this.options, 'session')) {
-                process.emitWarning(
-                    'options.session is deprecated and will be removed in a future release due to incompatibility with multi-device. ' +
-                    'Use the LocalAuth authStrategy, don\'t pass in a session as an option, or suppress this warning by using the LegacySessionAuth strategy explicitly (see https://wwebjs.dev/guide/authentication.html#legacysessionauth-strategy).',
-                    'DeprecationWarning'
-                );
-
-                this.authStrategy = new LegacySessionAuth({
-                    session: this.options.session,
-                    restartOnAuthFail: this.options.restartOnAuthFail
-                });
-            } else {
-                this.authStrategy = new NoAuth();
-            }
+            this.authStrategy = new NoAuth();
         } else {
             this.authStrategy = this.options.authStrategy;
         }
@@ -84,6 +72,8 @@ class Client extends EventEmitter {
 
         this.pupBrowser = null;
         this.pupPage = null;
+
+        this.currentIndexHtml = null;
 
         Util.setFfmpegPath(this.options.ffmpegPath);
     }
@@ -125,7 +115,8 @@ class Client extends EventEmitter {
         await this.authStrategy.afterBrowserInitialized();
         await this.initWebVersionCache();
 
-        // ocVesion (isOfficialClient patch)
+        // ocVersion (isOfficialClient patch)
+        // remove on after 2.3000.x
         await page.evaluateOnNewDocument(() => {
             const originalError = Error;
             //eslint-disable-next-line no-global-assign
@@ -336,7 +327,23 @@ class Client extends EventEmitter {
             };
         });
 
-        await page.evaluate(ExposeStore, moduleRaid.toString());
+        const version = await this.getWWebVersion();
+        const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
+
+        if (this.options.webVersionCache.type === 'local' && this.currentIndexHtml) {
+            const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
+            const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
+
+            await webCache.persist(this.currentIndexHtml, version);
+        }
+
+        if (isCometOrAbove) {
+            await page.evaluate(ExposeStore);
+        } else {
+            await page.evaluate(ExposeLegacyStore, moduleRaid.toString());
+        }
+
+
         const authEventPayload = await this.authStrategy.getAuthEventPayload();
 
         /**
@@ -794,7 +801,8 @@ class Client extends EventEmitter {
         } else {
             this.pupPage.on('response', async (res) => {
                 if(res.ok() && res.url() === WhatsWebURL) {
-                    await webCache.persist(await res.text());
+                    const indexHtml = await res.text();
+                    this.currentIndexHtml = indexHtml;
                 }
             });
         }
@@ -1113,14 +1121,8 @@ class Client extends EventEmitter {
     async setDisplayName(displayName) {
         const couldSet = await this.pupPage.evaluate(async displayName => {
             if(!window.Store.Conn.canSetMyPushname()) return false;
-
-            if(window.Store.MDBackend) {
-                await window.Store.Settings.setPushname(displayName);
-                return true;
-            } else {
-                const res = await window.Store.Wap.setPushname(displayName);
-                return !res.status || res.status === 200;
-            }
+            await window.Store.Settings.setPushname(displayName);
+            return true;
         }, displayName);
 
         return couldSet;
@@ -1442,7 +1444,7 @@ class Client extends EventEmitter {
                 const statusCode = participant.error ?? 200;
 
                 if (autoSendInviteV4 && statusCode === 403) {
-                    window.Store.ContactCollection.gadd(participant.wid, { silent: true });
+                    window.Store.Contact.gadd(participant.wid, { silent: true });
                     const addParticipantResult = await window.Store.GroupInviteV4.sendGroupInviteMessage(
                         await window.Store.Chat.find(participant.wid),
                         createGroupResult.wid._serialized,
