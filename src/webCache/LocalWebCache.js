@@ -31,7 +31,9 @@ class LocalWebCache extends WebCache {
 
     async persist(indexHtml) {
         // extract version from index (e.g. manifest-2.2206.9.json -> 2.2206.9)
-        const version = indexHtml.match(/manifest-([\d\\.]+)\.json/)[1];
+        const match = indexHtml.match(/manifest-([\d\\.]+)\.json/);
+        if(!match) return;
+        const version = match[1];
         if(!version) return;
    
         const filePath = path.join(this.path, `${version}.html`);
