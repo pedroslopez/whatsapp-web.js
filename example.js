@@ -1,5 +1,5 @@
 const { Client, Location, Poll, List, Buttons, LocalAuth } = require('./index');
-
+// Add an example of how to send gifs/videos as stickers using this wweb.js since no one is paying attention to my issues
 const client = new Client({
     authStrategy: new LocalAuth(),
     // proxyAuthentication: { username: 'username', password: 'password' },
