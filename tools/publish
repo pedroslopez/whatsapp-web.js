@@ -25,6 +25,16 @@ then
   PRERELEASE='true'
   VERSION_ARGS="premajor --preid alpha"
   DIST_TAG="next"
+elif [[ "$RELEASE_MODE" == "release-patch" ]]
+then
+  PRERELEASE='false'
+  VERSION_ARGS="patch"
+  DIST_TAG="latest" 
+elif [[ "$RELEASE_MODE" == "release-minor" ]]
+then
+  PRERELEASE='false'
+  VERSION_ARGS="minor"
+  DIST_TAG="latest" 
 else
   echo 'Release Mode required'
   exit 1
