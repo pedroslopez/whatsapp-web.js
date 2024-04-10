@@ -130,6 +130,10 @@ You can support the maintainer of this project through the links below
 ## Disclaimer
 
 This project is not affiliated, associated, authorized, endorsed by, or in any way officially connected with WhatsApp or any of its subsidiaries or its affiliates. The official WhatsApp website can be found at https://whatsapp.com. "WhatsApp" as well as related names, marks, emblems and images are registered trademarks of their respective owners.
+## Quick Start Projects
+| Project  | Link |
+| ------------- | ------------- |
+| Whatsapp Bot Ai | [GitHub Repo](https://github.com/abdulrehman-mr/whatsapp-ai-nodejs) |
 
 ## License
 
