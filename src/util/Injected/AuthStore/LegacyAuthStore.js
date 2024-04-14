@@ -19,4 +19,4 @@ exports.ExposeLegacyAuthStore = (moduleRaidStr) => {
         ...window.mR.findModule('waNoiseInfo')[0],
         ...window.mR.findModule('waSignalStore')[0],
     };
-}
+};
