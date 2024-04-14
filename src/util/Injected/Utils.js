@@ -459,7 +459,7 @@ exports.LoadUtils = () => {
 
         // TODO: remove useOldImplementation and its checks once all clients are updated to >= v2.2327.4
         const useOldImplementation
-            = window.compareWwebVersions(window.Debug.VERSION, '<', '2.2327.4');
+            = window.WWebJS.compareWwebVersions(window.Debug.VERSION, '<', '2.2327.4');
 
         res.isMe = useOldImplementation
             ? contact.isMe
@@ -828,7 +828,7 @@ exports.LoadUtils = () => {
                 }];
 
         let rpcResult, resultArgs;
-        const isOldImpl = window.compareWwebVersions(window.Debug.VERSION, '<=', '2.2335.9');
+        const isOldImpl = window.WWebJS.compareWwebVersions(window.Debug.VERSION, '<=', '2.2335.9');
         const data = {
             name: undefined,
             code: undefined,
@@ -971,5 +971,47 @@ exports.LoadUtils = () => {
         const response = await window.Store.pinUnpinMsg(message, action, duration);
         if (response.messageSendResult === 'OK') return true;
         return false;
+    };
+
+    /**
+     * Helper function that compares between two WWeb versions. Its purpose is to help the developer to choose the correct code implementation depending on the comparison value and the WWeb version.
+     * @param {string} lOperand The left operand for the WWeb version string to compare with
+     * @param {string} operator The comparison operator
+     * @param {string} rOperand The right operand for the WWeb version string to compare with
+     * @returns {boolean} Boolean value that indicates the result of the comparison
+     */
+    window.WWebJS.compareWwebVersions = (lOperand, operator, rOperand) => {
+        if (!['>', '>=', '<', '<=', '='].includes(operator)) {
+            throw new class _ extends Error {
+                constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
+            }('Invalid comparison operator is provided');
+
+        }
+        if (typeof lOperand !== 'string' || typeof rOperand !== 'string') {
+            throw new class _ extends Error {
+                constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
+            }('A non-string WWeb version type is provided');
+        }
+
+        lOperand = lOperand.replace(/-beta$/, '');
+        rOperand = rOperand.replace(/-beta$/, '');
+
+        while (lOperand.length !== rOperand.length) {
+            lOperand.length > rOperand.length
+                ? rOperand = rOperand.concat('0')
+                : lOperand = lOperand.concat('0');
+        }
+
+        lOperand = Number(lOperand.replace(/\./g, ''));
+        rOperand = Number(rOperand.replace(/\./g, ''));
+
+        return (
+            operator === '>' ? lOperand > rOperand :
+                operator === '>=' ? lOperand >= rOperand :
+                    operator === '<' ? lOperand < rOperand :
+                        operator === '<=' ? lOperand <= rOperand :
+                            operator === '=' ? lOperand === rOperand :
+                                false
+        );
     };
 };
