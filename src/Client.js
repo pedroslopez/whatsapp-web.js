@@ -106,11 +106,11 @@ class Client extends EventEmitter {
         const needAuthentication = await this.pupPage.evaluate(async () => {
             let state = window.AuthStore.AppState.state;
 
-            if (state === "OPENING" || state === "UNLAUNCHED" || state === "PAIRING") {
+            if (state === 'OPENING' || state === 'UNLAUNCHED' || state === 'PAIRING') {
                 // wait till state changes
                 await new Promise(r => {
                     window.AuthStore.AppState.on('change:state', function waitTillInit(_AppState, state) {
-                        if (state !== "OPENING" && state !== "UNLAUNCHED" && state !== "PAIRING") {
+                        if (state !== 'OPENING' && state !== 'UNLAUNCHED' && state !== 'PAIRING') {
                             window.AuthStore.AppState.off('change:state', waitTillInit);
                             r();
                         } 
@@ -170,12 +170,12 @@ class Client extends EventEmitter {
                 const identityKeyB64 = window.AuthStore.Base64Tools.encodeB64(registrationInfo.identityKeyPair.pubKey);
                 const advSecretKey = await window.AuthStore.RegistrationUtils.getADVSecretKey();
                 const platform =  window.AuthStore.RegistrationUtils.DEVICE_PLATFORM;
-                const getQR = (ref) => ref + "," + staticKeyB64 + "," + identityKeyB64 + "," + advSecretKey + "," + platform;
+                const getQR = (ref) => ref + ',' + staticKeyB64 + ',' + identityKeyB64 + ',' + advSecretKey + ',' + platform;
                 
                 window.onQRChangedEvent(getQR(window.AuthStore.Conn.ref)); // initial qr
                 window.AuthStore.Conn.on('change:ref', (_, ref) => { window.onQRChangedEvent(getQR(ref)); }); // future QR changes
             });
-        };
+        }
 
         if (!reinject) {
             await this.pupPage.exposeFunction('onAuthAppStateChangedEvent', async (state) => {
@@ -242,27 +242,27 @@ class Client extends EventEmitter {
             });
 
             await this.pupPage.exposeFunction('onOfflineProgressUpdateEvent', async (percent) => {
-                this.emit(Events.LOADING_SCREEN, percent, "WhatsApp"); // Message is hardcoded as "WhatsApp" for now
+                this.emit(Events.LOADING_SCREEN, percent, 'WhatsApp'); // Message is hardcoded as "WhatsApp" for now
             });
-        };
+        }
         const logoutCatchInjected = await this.pupPage.evaluate(() => {
             return typeof window.onLogoutEvent !== 'undefined';
         });
         if (!logoutCatchInjected) {
             await this.pupPage.exposeFunction('onLogoutEvent', async () => {
                 this.lastLoggedOut = true;
-                await this.pupPage.waitForNavigation({waitUntil: "load", timeout: 5000}).catch((_) => _);
+                await this.pupPage.waitForNavigation({waitUntil: 'load', timeout: 5000}).catch((_) => _);
             });
         }
         await this.pupPage.evaluate(() => {
             window.AuthStore.AppState.on('change:state', (_AppState, state) => { window.onAuthAppStateChangedEvent(state); });
             window.AuthStore.AppState.on('change:hasSynced', () => { window.onAppStateHasSyncedEvent(); });
-            window.AuthStore.Cmd.on("offline_progress_update", () => {
+            window.AuthStore.Cmd.on('offline_progress_update', () => {
                 window.onOfflineProgressUpdateEvent(window.AuthStore.OfflineMessageHandler.getOfflineDeliveryProgress()); 
             });
-            window.AuthStore.Cmd.on("logout", async () => {
+            window.AuthStore.Cmd.on('logout', async () => {
                 await window.onLogoutEvent();
-            })
+            });
         });
     }
 
@@ -356,7 +356,7 @@ class Client extends EventEmitter {
      */
     async requestPairingCode(phoneNumber, showNotification = true) {
         return await this.pupPage.evaluate(async (phoneNumber, showNotification) => {
-            window.AuthStore.PairingCodeLinkUtils.setPairingType("ALT_DEVICE_LINKING");
+            window.AuthStore.PairingCodeLinkUtils.setPairingType('ALT_DEVICE_LINKING');
             await window.AuthStore.PairingCodeLinkUtils.initializeAltDeviceLinking();
             return window.AuthStore.PairingCodeLinkUtils.startAltLinkingFlow(phoneNumber, showNotification);
         }, phoneNumber, showNotification);

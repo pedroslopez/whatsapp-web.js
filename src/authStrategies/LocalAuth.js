@@ -3,7 +3,6 @@
 const path = require('path');
 const fs = require('fs');
 const BaseAuthStrategy = require('./BaseAuthStrategy');
-const Util = require('../util/Util');
 
 /**
  * Local directory-based authentication
@@ -46,7 +45,7 @@ class LocalAuth extends BaseAuthStrategy {
     async logout() {
         if (this.userDataDir) {
             await fs.promises.rm(this.userDataDir, { recursive: true, force: true })
-                .catch(err => {
+                .catch(() => {
                     return this.logout();
                 });
             return;

@@ -14,4 +14,4 @@ exports.ExposeAuthStore = () => {
         ...window.require('WAWebUserPrefsInfoStore'),
         ...window.require('WAWebSignalStoreApi'),
     };
-}
+};
