@@ -82,6 +82,7 @@ class Client extends EventEmitter {
         this.pupPage = null;
 
         this.currentIndexHtml = null;
+        this.lastLoggedOut = false;
 
         Util.setFfmpegPath(this.options.ffmpegPath);
     }
@@ -140,7 +141,10 @@ class Client extends EventEmitter {
 
             // Register qr events
             let qrRetries = 0;
-            if (!reinject) {
+            const injected = await this.pupPage.evaluate(() => {
+                return typeof window.onQRChangedEvent !== 'undefined';
+            });
+            if (!injected) {
                 await this.pupPage.exposeFunction('onQRChangedEvent', async (qr) => {
                     /**
                     * Emitted when a QR code is received
@@ -157,7 +161,7 @@ class Client extends EventEmitter {
                     }
                 });
             }
-            
+
 
             await this.pupPage.evaluate(async () => {
                 const registrationInfo = await window.AuthStore.RegistrationUtils.waSignalStore.getRegistrationInfo();
@@ -174,79 +178,88 @@ class Client extends EventEmitter {
         };
 
         if (!reinject) {
-            let lastState = "";
             await this.pupPage.exposeFunction('onAuthAppStateChangedEvent', async (state) => {
-                if (state == 'CONNECTED' && lastState != 'CONNECTED') {
-
-                    const authEventPayload = await this.authStrategy.getAuthEventPayload();
-                    /**
-                     * Emitted when authentication is successful
-                     * @event Client#authenticated
-                     */
-                    this.emit(Events.AUTHENTICATED, authEventPayload);
-
-                    const injected = await this.pupPage.evaluate(async () => {
-                        return typeof window.Store !== 'undefined' && typeof window.WWebJS !== 'undefined';
-                    });
-
-                    if (!injected) {
-                        if (this.options.webVersionCache.type === 'local' && this.currentIndexHtml) {
-                            const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
-                            const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
-                
-                            await webCache.persist(this.currentIndexHtml, version);
-                        }
-
-                        if (isCometOrAbove) {
-                            await this.pupPage.evaluate(ExposeStore);
-                        } else {
-                            await this.pupPage.evaluate(ExposeLegacyStore);
-                        }
-
-                        // Check window.Store Injection
-                        await this.pupPage.waitForFunction('window.Store != undefined');
-                
-                        /**
-                         * Current connection information
-                         * @type {ClientInfo}
-                         */
-                        this.info = new ClientInfo(this, await this.pupPage.evaluate(() => {
-                            return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMeUser() };
-                        }));
-
-                        this.interface = new InterfaceController(this);
-
-                        //Load util functions (serializers, helper functions)
-                        await this.pupPage.evaluate(LoadUtils);
-
-                        await this.attachEventListeners(reinject);
-                        reinject = true;
-                    }
-                    /**
-                     * Emitted when the client has initialized and is ready to receive messages.
-                     * @event Client#ready
-                     */
-                    this.emit(Events.READY);
-                    this.authStrategy.afterAuthReady();
-                } else if (state == 'UNPAIRED_IDLE') {
+                if (state == 'UNPAIRED_IDLE') {
                     // refresh qr code
                     window.Store.Cmd.refreshQR();
                 }
-                console.log(state)
-                lastState = state;
+            });
+
+            await this.pupPage.exposeFunction('onAppStateHasSyncedEvent', async () => {
+                const authEventPayload = await this.authStrategy.getAuthEventPayload();
+                /**
+                 * Emitted when authentication is successful
+                 * @event Client#authenticated
+                 */
+                this.emit(Events.AUTHENTICATED, authEventPayload);
+
+                const injected = await this.pupPage.evaluate(async () => {
+                    return typeof window.Store !== 'undefined' && typeof window.WWebJS !== 'undefined';
+                });
+
+                if (!injected) {
+                    if (this.options.webVersionCache.type === 'local' && this.currentIndexHtml) {
+                        const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
+                        const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
+            
+                        await webCache.persist(this.currentIndexHtml, version);
+                    }
+
+                    if (isCometOrAbove) {
+                        await this.pupPage.evaluate(ExposeStore);
+                    } else {
+                        await this.pupPage.evaluate(ExposeLegacyStore);
+                    }
+
+                    // Check window.Store Injection
+                    await this.pupPage.waitForFunction('window.Store != undefined');
+            
+                    /**
+                     * Current connection information
+                     * @type {ClientInfo}
+                     */
+                    this.info = new ClientInfo(this, await this.pupPage.evaluate(() => {
+                        return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMeUser() };
+                    }));
+
+                    this.interface = new InterfaceController(this);
+
+                    //Load util functions (serializers, helper functions)
+                    await this.pupPage.evaluate(LoadUtils);
+
+                    await this.attachEventListeners(reinject);
+                    reinject = true;
+                }
+                /**
+                 * Emitted when the client has initialized and is ready to receive messages.
+                 * @event Client#ready
+                 */
+                this.emit(Events.READY);
+                this.authStrategy.afterAuthReady();
             });
 
             await this.pupPage.exposeFunction('onOfflineProgressUpdateEvent', async (percent) => {
                 this.emit(Events.LOADING_SCREEN, percent, "WhatsApp"); // Message is hardcoded as "WhatsApp" for now
             });
         };
-
+        const logoutCatchInjected = await this.pupPage.evaluate(() => {
+            return typeof window.onLogoutEvent !== 'undefined';
+        });
+        if (!logoutCatchInjected) {
+            await this.pupPage.exposeFunction('onLogoutEvent', async () => {
+                this.lastLoggedOut = true;
+                await this.pupPage.waitForNavigation({waitUntil: "load", timeout: 5000}).catch((_) => _);
+            });
+        }
         await this.pupPage.evaluate(() => {
-            window.AuthStore.AppState.on('change:stream', (_AppState, state) => { window.onAuthAppStateChangedEvent(state); });
-            window.AuthStore.Conn.on("me_ready", (...args) => {console.log("me_ready", ...args);});
+            window.AuthStore.AppState.on('change:state', (_AppState, state) => { window.onAuthAppStateChangedEvent(state); });
+            window.AuthStore.AppState.on('change:hasSynced', () => { window.onAppStateHasSyncedEvent(); });
             window.AuthStore.Cmd.on("offline_progress_update", () => {
                 window.onOfflineProgressUpdateEvent(window.AuthStore.OfflineMessageHandler.getOfflineDeliveryProgress()); 
             });
+            window.AuthStore.Cmd.on("logout", async () => {
+                await window.onLogoutEvent();
+            })
         });
     }
 
@@ -321,9 +334,12 @@ class Client extends EventEmitter {
         await this.inject();
 
         this.pupPage.on('framenavigated', async (frame) => {
-            if(frame.url().includes('post_logout=1')) {
+            if(frame.url().includes('post_logout=1') || this.lastLoggedOut) {
                 this.emit(Events.DISCONNECTED, 'LOGOUT');
-                await this.authStrategy.disconnect();
+                await this.authStrategy.logout();
+                await this.authStrategy.beforeBrowserInitialized();
+                await this.authStrategy.afterBrowserInitialized();
+                this.lastLoggedOut = false;
             }
             await this.inject(true);
         });
