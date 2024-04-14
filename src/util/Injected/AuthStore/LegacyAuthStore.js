@@ -12,4 +12,11 @@ exports.ExposeLegacyAuthStore = (moduleRaidStr) => {
     window.AuthStore.Conn = window.mR.findModule('Conn')[0].Conn;
     window.AuthStore.OfflineMessageHandler = window.mR.findModule('OfflineMessageHandler')[0].OfflineMessageHandler;
     window.AuthStore.PairingCodeLinkUtils = window.mR.findModule('initializeAltDeviceLinking')[0];
+    window.AuthStore.Base64Tools = window.mR.findModule('encodeB64')[0];
+    window.AuthStore.RegistrationUtils = {
+        ...window.mR.findModule('getCompanionWebClientFromBrowser')[0],
+        ...window.mR.findModule('verifyKeyIndexListAccountSignature')[0],
+        ...window.mR.findModule('waNoiseInfo')[0],
+        ...window.mR.findModule('waSignalStore')[0],
+    };
 }

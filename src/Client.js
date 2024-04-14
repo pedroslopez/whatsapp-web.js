@@ -208,6 +208,9 @@ class Client extends EventEmitter {
                     if (isCometOrAbove) {
                         await this.pupPage.evaluate(ExposeStore);
                     } else {
+                        // make sure all modules are ready before injection
+                        // 2 second delay after authentication makes sense and does not need to be made dyanmic or removed
+                        await new Promise(r => setTimeout(r, 2000)); 
                         await this.pupPage.evaluate(ExposeLegacyStore);
                     }
 
