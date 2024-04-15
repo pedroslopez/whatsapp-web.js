@@ -6,7 +6,7 @@ const { WebCache, VersionResolveError } = require('./WebCache');
 /**
  * LocalWebCache - Fetches a WhatsApp Web version from a local file store
  * @param {object} options - options
- * @param {string} options.path - Path to the directory where cached versions are saved, default is: "./.wwebjs_cache/" 
+ * @param {string} options.path - Path to the directory where cached versions are saved, default is: "./.wwebjs_cache/"
  * @param {boolean} options.strict - If true, will throw an error if the requested version can't be fetched. If false, will resolve to the latest version.
  */
 class LocalWebCache extends WebCache {
@@ -19,7 +19,7 @@ class LocalWebCache extends WebCache {
 
     async resolve(version) {
         const filePath = path.join(this.path, `${version}.html`);
-        
+
         try {
             return fs.readFileSync(filePath, 'utf-8');
         }
@@ -31,9 +31,10 @@ class LocalWebCache extends WebCache {
 
     async persist(indexHtml) {
         // extract version from index (e.g. manifest-2.2206.9.json -> 2.2206.9)
-        const version = indexHtml.match(/manifest-([\d\\.]+)\.json/)[1];
+        const versionMatchResult = indexHtml.match(/manifest-([\d\\.]+)\.json/);
+        const version = versionMatchResult ? versionMatchResult[1] : null;
         if(!version) return;
-   
+
         const filePath = path.join(this.path, `${version}.html`);
         fs.mkdirSync(this.path, { recursive: true });
         fs.writeFileSync(filePath, indexHtml);
