@@ -18,7 +18,8 @@
 
 The library works by launching the WhatsApp Web browser application and managing it using Puppeteer to create an instance of WhatsApp Web, thereby mitigating the risk of being blocked. The WhatsApp API client connects through the WhatsApp Web browser app, accessing its internal functions. This grants you access to nearly all the features available on WhatsApp Web, enabling dynamic handling similar to any other Node.js application.
 
-**NOTE:** It is not guaranteed you will not be blocked by using this method. WhatsApp does not allow bots or unofficial clients on their platform, so this shouldn't be considered totally safe.
+> [!IMPORTANT]
+> **It is not guaranteed you will not be blocked by using this method. WhatsApp does not allow bots or unofficial clients on their platform, so this shouldn't be considered totally safe.**
 
 ## Links
 
@@ -33,7 +34,8 @@ The library works by launching the WhatsApp Web browser application and managing
 
 The module is now available on npm! `npm i whatsapp-web.js`
 
-Please note that Node ``v18+`` is required.
+> [!NOTE]
+> **Node ``v18+`` is required.**
 
 ## QUICK STEPS TO UPGRADE NODE
 
@@ -101,12 +103,12 @@ For further details on saving and restoring sessions, explore the provided [Auth
 | Send messages  | ✅  |
 | Receive messages  | ✅  |
 | Send media (images/audio/documents)  | ✅  |
-| Send media (video)  | ✅ [(requires google chrome)][google-chrome]  |
+| Send media (video)  | ✅ [(requires Google Chrome)][google-chrome]  |
 | Send stickers | ✅ |
 | Receive media (images/audio/video/documents)  | ✅  |
 | Send contact cards | ✅ |
 | Send location | ✅ |
-| Send buttons | ❌ |
+| Send buttons | ❌  [(DEPRECATED)][deprecated-video] |
 | Send lists | ❌  [(DEPRECATED)][deprecated-video] |
 | Receive location | ✅ | 
 | Message replies | ✅ |
@@ -118,14 +120,17 @@ For further details on saving and restoring sessions, explore the provided [Auth
 | Kick group participants  | ✅  |
 | Promote/demote group participants | ✅ |
 | Mention users | ✅ |
+| Mention groups | ✅ |
 | Mute/unmute chats | ✅ |
 | Block/unblock contacts | ✅ |
 | Get contact info | ✅ |
 | Get profile pictures | ✅ |
 | Set user status message | ✅ |
 | React to messages | ✅ |
-| Vote in polls | 🔜 |
 | Create polls | ✅ |
+| Vote in polls | 🔜 |
+| Communities | 🔜 |
+| Channels | 🔜 |
 
 Something missing? Make an issue and let us know!
 
