@@ -1,7 +1,7 @@
-<div align="center" style="background:#0d1117; border-radius:15px">
+<div align="center">
     <br />
     <p>
-        <a href="https://wwebjs.dev"><img src="https://raw.githubusercontent.com/wwebjs/assets/main/4_Full%20Logo%20Lockup/Light/PNG/banner_green.png" title="wwebjs.dev Guide" alt="wwebjs.dev Guide" width="500" /></a>
+        <a href="https://wwebjs.dev"><img src="https://github.com/wwebjs/assets/blob/main/6_Logo_Banner_Format/Mix/banner_green_green.png?raw=true" title="wwebjs.dev Guide" alt="wwebjs.dev Guide" width="500" /></a>
     </p>
     <br />
     <p>
