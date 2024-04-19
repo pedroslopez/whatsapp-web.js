@@ -1,9 +1,8 @@
-<div align="center">
+<div align="center" style="background:#0d1117; border-radius:15px">
     <br />
     <p>
         <a href="https://wwebjs.dev"><img src="https://raw.githubusercontent.com/wwebjs/assets/main/4_Full%20Logo%20Lockup/Light/PNG/banner_green.png" title="wwebjs.dev Guide" alt="wwebjs.dev Guide" width="500" /></a>
     </p>
-    <br />
     <br />
     <p>
 		<a href="https://www.npmjs.com/package/whatsapp-web.js"><img src="https://img.shields.io/npm/v/whatsapp-web.js.svg" alt="npm" /></a>
@@ -11,6 +10,7 @@
         <img src="https://img.shields.io/badge/WhatsApp_Web-2.2346.52-brightgreen.svg" alt="WhatsApp_Web 2.2346.52" />
         <a href="https://discord.gg/H7DqQs4"><img src="https://img.shields.io/discord/698610475432411196.svg?logo=discord" alt="Discord server" /></a>
 	</p>
+    <br />
 </div>
 
 ## About
