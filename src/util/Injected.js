@@ -407,7 +407,7 @@ exports.LoadUtils = () => {
             chat.t = msg.t;
 
             const sendChannelMsgResponse = await window.Store.SendChannelMessage.sendNewsletterMessageJob({
-                msgData: message,
+                msg: msg,
                 type: message.type === 'chat' ? 'text' : isMedia ? 'media' : message.type,
                 newsletterJid: chat.id.toJid(),
                 ...(isMedia ? { mediaMetadata: msg.avParams() } : {})
