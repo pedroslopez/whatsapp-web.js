@@ -26,7 +26,7 @@ class Poll {
          * @type {Array.<{name: string, localId: number}>}
          */
         this.pollOptions = pollOptions.map((option, index) => ({
-            name: option.trim(),
+            name: option.name.trim(),
             localId: index
         }));
 
