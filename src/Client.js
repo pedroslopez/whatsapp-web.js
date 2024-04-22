@@ -682,7 +682,7 @@ class Client extends EventEmitter {
             });
         }
 
-        await this.page.exposeFunction('onAddMessageRevokeEvent', (msg, newId) => {
+        await this.pupPage.exposeFunction('onAddMessageRevokeEvent', (msg, newId) => {
             /**
              * Emitted when messages are revoked
              * @event Client#message_revoke
