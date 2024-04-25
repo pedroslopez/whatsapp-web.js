@@ -7,6 +7,7 @@ exports.ExposeStore = () => {
     window.Store.Conn = window.require('WAWebConnModel').Conn;
     window.Store.Cmd = window.require('WAWebCmd').Cmd;
     window.Store.DownloadManager = window.require('WAWebDownloadManager').downloadManager;
+    window.Store.forwardMessagesToChats = window.require("WAWebForwardMessagesToChat").forwardMessagesToChats;
     window.Store.GroupQueryAndUpdate = window.require('WAWebGroupQueryJob').queryAndUpdateGroupMetadataById;
     window.Store.MediaPrep = window.require('WAWebPrepRawMedia');
     window.Store.MediaObject = window.require('WAWebMediaStorage');

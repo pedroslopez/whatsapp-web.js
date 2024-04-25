@@ -442,7 +442,7 @@ class Message extends Base {
             let msg = window.Store.Msg.get(msgId);
             let chat = window.Store.Chat.get(chatId);
 
-            return await chat.forwardMessages([msg]);
+            return await window.Store.forwardMessagesToChats([msg],[chat],false);
         }, this.id._serialized, chatId);
     }
 
