@@ -176,7 +176,7 @@ limitations under the License.
 [nodejs]: https://nodejs.org/en/download/
 [examples]: https://github.com/pedroslopez/whatsapp-web.js/blob/master/example.js
 [auth-strategies]: https://wwebjs.dev/guide/creating-your-bot/authentication.html
-[google-chrome]: https://wwebjs.dev/guide/handling-attachments.html#caveat-for-sending-videos-and-gifs
+[google-chrome]: https://wwebjs.dev/guide/creating-your-bot/handling-attachments.html#caveat-for-sending-videos-and-gifs
 [deprecated-video]: https://www.youtube.com/watch?v=hv1R1rLeVVE
 [gitHub-sponsors]: https://github.com/sponsors/pedroslopez
 [support-payPal]: https://www.paypal.me/psla/
