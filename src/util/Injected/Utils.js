@@ -4,13 +4,11 @@ exports.LoadUtils = () => {
     window.WWebJS = {};
 
     window.WWebJS.forwardMessage = async (chatId, msgId) => {
-        // 2.3000> ForwardMessagesFromChats
-        // < 23000 , chat.forwardMessage
         let msg = window.Store.Msg.get(msgId);
         let chat = window.Store.Chat.get(chatId);
 
-        if (window.Debug.VERSION > 23000) {
-            return window.Store.ForwardUtils.forwardMessagesToChats([msg], [chat], false)
+        if (window.WWebJS.compareWwebVersions(window.Debug.VERSION, '>', '2.3000.0')) {
+            return window.Store.ForwardUtils.forwardMessagesToChats([msg], [chat], false);
         } else {
             return chat.forwardMessages([msg]);
         }
