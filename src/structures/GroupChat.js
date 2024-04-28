@@ -293,7 +293,7 @@ class GroupChat extends Chat {
                 const response = await window.Store.GroupUtils.setGroupMemberAddMode(chatWid, 'member_add_mode', adminsOnly ? 0 : 1);
                 return response.name === 'SetMemberAddModeResponseSuccess';
             } catch (err) {
-                if(err.name === 'ServerStatusCodeError') return false;
+                if(err.name === 'SmaxParsingFailure') return false;
                 throw err;
             }
         }, this.id._serialized, adminsOnly);
