@@ -396,7 +396,7 @@ class Client extends EventEmitter {
                      * @param {GroupNotification} notification GroupNotification with more information about the action
                      */
                     this.emit(Events.GROUP_ADMIN_CHANGED, notification);
-                } else if (msg.subtype === 'created_membership_requests') {
+                } else if (msg.subtype === 'membership_approval_request') {
                     /**
                      * Emitted when some user requested to join the group
                      * that has the membership approval mode turned on
