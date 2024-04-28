@@ -1523,7 +1523,8 @@ declare namespace WAWebJS {
         setSubject: (subject: string) => Promise<boolean>;
         /** Updates the group description */
         setDescription: (description: string) => Promise<boolean>;
-        /** Updates the group settings to only allow admins to add members.
+        /**
+         * Updates the group setting to allow only admins to add members to the group.
          * @param {boolean} [adminsOnly=true] Enable or disable this option 
          * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
          */
