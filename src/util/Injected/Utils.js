@@ -3,6 +3,17 @@
 exports.LoadUtils = () => {
     window.WWebJS = {};
 
+    window.WWebJS.forwardMessage = async (chatId, msgId) => {
+        let msg = window.Store.Msg.get(msgId);
+        let chat = window.Store.Chat.get(chatId);
+
+        if (window.WWebJS.compareWwebVersions(window.Debug.VERSION, '>', '2.3000.0')) {
+            return window.Store.ForwardUtils.forwardMessagesToChats([msg], [chat], false);
+        } else {
+            return chat.forwardMessages([msg]);
+        }
+    };
+
     window.WWebJS.sendSeen = async (chatId) => {
         let chat = window.Store.Chat.get(chatId);
         if (chat !== undefined) {
