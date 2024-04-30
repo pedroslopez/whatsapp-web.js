@@ -691,3 +691,8 @@ client.on('message_kept_unkept', (msg, status) => {
     /** The message status: whether was kept or unkept */
     console.log(status);
 });
+
+client.on('vote_update', (vote) => {
+    /** The vote that was affected: */
+    console.log(vote);
+});
