@@ -580,6 +580,17 @@ exports.LoadUtils = () => {
 
         return msg;
     };
+  
+  
+    window.WWebJS.getPollVoteModel = (vote) => {
+        const _vote = vote.serialize();
+        if (vote.parentMsgKey) {
+            const msg = window.Store.Msg.get(vote.parentMsgKey);
+            msg && (_vote.parentMessage = window.WWebJS.getMessageModel(msg));
+            return _vote;
+        }
+        return null;
+    };
 
     window.WWebJS.getChat = async (chatId, { getAsModel = true } = {}) => {
         const isChannel = chatId.match(/@(.+)/)[1] === 'newsletter';
