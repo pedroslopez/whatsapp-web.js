@@ -60,7 +60,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.JidToWid = window.mR.findModule('userJidToUserWid')[0];
     window.Store.getMsgInfo = (window.mR.findModule('sendQueryMsgInfo')[0] || {}).sendQueryMsgInfo || window.mR.findModule('queryMsgInfo')[0].queryMsgInfo;
     window.Store.pinUnpinMsg = window.mR.findModule('sendPinInChatMsg')[0].sendPinInChatMsg;
-    window.Store.getIsMuted = window.mR.findModule('getIsMuted')[0].getIsMuted;
     
     /* eslint-disable no-undef, no-cond-assign */
     window.Store.QueryExist = ((m = window.mR.findModule('queryExists')[0]) ? m.queryExists : window.mR.findModule('queryExist')[0].queryWidExists);
@@ -572,7 +571,7 @@ exports.LoadUtils = () => {
         let res = chat.serialize();
         res.isGroup = chat.isGroup;
         res.formattedTitle = chat.formattedTitle;
-        res.isMuted = chat.mute && window.Store.getIsMuted(chat.mute);
+        res.isMuted = chat.mute?.expiration !== 0;
 
         if (chat.groupMetadata) {
             const chatWid = window.Store.WidFactory.createWid((chat.id._serialized));
