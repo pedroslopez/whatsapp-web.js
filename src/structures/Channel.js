@@ -126,7 +126,7 @@ class Channel extends Base {
             if (!channel) return [];
             !limit && (limit = window.Store.ChannelSubscribers.getMaxSubscriberNumber());
             const response = await window.Store.ChannelSubscribers.mexFetchNewsletterSubscribers(channelId, limit);
-            const contacts = await window.Store.ChannelSubscribers.getSubscribersInContacts(response.subscribers);
+            const contacts = window.Store.ChannelSubscribers.getSubscribersInContacts(response.subscribers);
             return Promise.all(contacts.map((obj) => ({
                 ...obj,
                 contact: window.WWebJS.getContactModel(obj.contact)
