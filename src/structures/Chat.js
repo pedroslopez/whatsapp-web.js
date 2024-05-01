@@ -95,7 +95,7 @@ class Chat extends Base {
     }
 
     /**
-     * Set the message as seen
+     * Set the chat as seen
      * @returns {Promise<Boolean>} result
      */
     async sendSeen() {

@@ -37,7 +37,11 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @fires Client#qr
  * @fires Client#authenticated
  * @fires Client#auth_failure
+ * @fires Client#loading_screen
  * @fires Client#ready
+ * @fires Client#change_battery
+ * @fires Client#chat_removed
+ * @fires Client#chat_archived
  * @fires Client#message
  * @fires Client#message_ack
  * @fires Client#message_create
@@ -45,6 +49,7 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @fires Client#message_revoke_everyone
  * @fires Client#message_ciphertext
  * @fires Client#message_edit
+ * @fires Client#message_reaction
  * @fires Client#media_uploaded
  * @fires Client#group_join
  * @fires Client#group_leave
@@ -54,7 +59,10 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @fires Client#contact_changed
  * @fires Client#group_admin_changed
  * @fires Client#group_membership_request
+ * @fires Client#remote_session_saved
  * @fires Client#vote_update
+ * @fires Client#unread_count
+ * @fires Client#call
  */
 class Client extends EventEmitter {
     constructor(options = {}) {
