@@ -250,7 +250,8 @@ exports.LoadUtils = () => {
             const { pollName, pollOptions } = options.poll;
             const { allowMultipleAnswers, messageSecret } = options.poll.options;
             _pollOptions = {
-                type: !isChannel ? 'poll_creation' : 'pollCreation',
+                kind: 'pollCreation',
+                type: 'poll_creation',
                 pollName: pollName,
                 pollOptions: pollOptions,
                 pollSelectableOptionsCount: allowMultipleAnswers ? 0 : 1,
@@ -408,7 +409,7 @@ exports.LoadUtils = () => {
 
             const sendChannelMsgResponse = await window.Store.SendChannelMessage.sendNewsletterMessageJob({
                 msg: msg,
-                type: message.type === 'chat' ? 'text' : isMedia ? 'media' : message.type,
+                type: message.type === 'chat' ? 'text' : isMedia ? 'media' : 'pollCreation',
                 newsletterJid: chat.id.toJid(),
                 ...(isMedia ? { mediaMetadata: msg.avParams() } : {})
             });

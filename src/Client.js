@@ -882,7 +882,7 @@ class Client extends EventEmitter {
         if (isChannel && [
             options.sendAudioAsVoice, options.sendMediaAsDocument,
             options.quotedMessageId, options.parseVCards, options.isViewOnce,
-            content instanceof Location, content instanceof Poll, content instanceof Contact,
+            content instanceof Location, content instanceof Contact,
             content instanceof Buttons, content instanceof List,
             Array.isArray(content) && content.length > 0 && content[0] instanceof Contact
         ].includes(true)) {
