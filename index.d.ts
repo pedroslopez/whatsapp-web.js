@@ -1377,8 +1377,10 @@ declare namespace WAWebJS {
         timestamp: number,
         /** Amount of messages unread */
         unreadCount: number,
-        /** Last message fo chat */
+        /** Last message of chat */
         lastMessage: Message,
+        /** Indicates if the Chat is pinned */
+        pinned: boolean,
 
         /** Archives this chat */
         archive: () => Promise<void>,
