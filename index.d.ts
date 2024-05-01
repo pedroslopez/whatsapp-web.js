@@ -109,7 +109,7 @@ declare namespace WAWebJS {
          * @param chatId ID of the chat that will be muted
          * @param unmuteDate Date when the chat will be unmuted, leave as is to mute forever
          */
-        muteChat(chatId: string, unmuteDate?: Date): Promise<void>
+        muteChat(chatId: string, unmuteDate?: Date): Promise<{ isMuted: boolean, muteExpiration: number }>
 
         /** Force reset of connection state for the client */
         resetState(): Promise<void>
@@ -169,7 +169,7 @@ declare namespace WAWebJS {
         unarchiveChat(chatId: string): Promise<boolean>
 
         /** Unmutes the Chat */
-        unmuteChat(chatId: string): Promise<void>
+        unmuteChat(chatId: string): Promise<{ isMuted: boolean, muteExpiration: number }>
 
         /** Sets the current user's profile picture */
         setProfilePicture(media: MessageMedia): Promise<boolean>
@@ -1402,7 +1402,7 @@ declare namespace WAWebJS {
         /** Loads chat messages, sorted from earliest to latest. */
         fetchMessages: (searchOptions: MessageSearchOptions) => Promise<Message[]>,
         /** Mutes this chat forever, unless a date is specified */
-        mute: (unmuteDate?: Date) => Promise<void>,
+        mute: (unmuteDate?: Date) => Promise<{ isMuted: boolean, muteExpiration: number }>,
         /** Send a message to this chat */
         sendMessage: (content: MessageContent, options?: MessageSendOptions) => Promise<Message>,
         /** Set the chat as seen */
@@ -1414,7 +1414,7 @@ declare namespace WAWebJS {
         /** un-archives this chat */
         unarchive: () => Promise<void>,
         /** Unmutes this chat */
-        unmute: () => Promise<void>,
+        unmute: () => Promise<{ isMuted: boolean, muteExpiration: number }>,
         /** Returns the Contact that corresponds to this Chat. */
         getContact: () => Promise<Contact>,
         /** Marks this Chat as unread */

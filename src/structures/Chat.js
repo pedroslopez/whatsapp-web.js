@@ -155,16 +155,24 @@ class Chat extends Base {
     /**
      * Mutes this chat forever, unless a date is specified
      * @param {?Date} unmuteDate Date at which the Chat will be unmuted, leave as is to mute forever
+     * @returns {Promise<{isMuted: boolean, muteExpiration: number}>}
      */
     async mute(unmuteDate) {
-        return this.client.muteChat(this.id._serialized, unmuteDate);
+        const result = await this.client.muteChat(this.id._serialized, unmuteDate);
+        this.isMuted = result.isMuted;
+        this.muteExpiration = result.muteExpiration;
+        return { isMuted: result.isMuted, muteExpiration: result.muteExpiration };
     }
 
     /**
      * Unmutes this chat
+     * @returns {Promise<{isMuted: boolean, muteExpiration: number}>}
      */
     async unmute() {
-        return this.client.unmuteChat(this.id._serialized);
+        const result = await this.client.unmuteChat(this.id._serialized);
+        this.isMuted = result.isMuted;
+        this.muteExpiration = result.muteExpiration;
+        return { isMuted: result.isMuted, muteExpiration: result.muteExpiration };
     }
 
     /**

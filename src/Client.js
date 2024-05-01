@@ -1218,24 +1218,37 @@ class Client extends EventEmitter {
      * Mutes this chat forever, unless a date is specified
      * @param {string} chatId ID of the chat that will be muted
      * @param {?Date} unmuteDate Date when the chat will be unmuted, leave as is to mute forever
+     * @returns {Promise<{isMuted: boolean, muteExpiration: number}>}
      */
     async muteChat(chatId, unmuteDate) {
         unmuteDate = unmuteDate ? unmuteDate.getTime() / 1000 : -1;
-        await this.pupPage.evaluate(async (chatId, timestamp) => {
-            let chat = await window.Store.Chat.get(chatId);
-            await chat.mute.mute({expiration: timestamp, sendDevice:!0});
-        }, chatId, unmuteDate || -1);
+        return this._muteUnmuteChat(chatId, 'MUTE', unmuteDate);
     }
 
     /**
      * Unmutes the Chat
      * @param {string} chatId ID of the chat that will be unmuted
+     * @returns {Promise<{isMuted: boolean, muteExpiration: number}>}
      */
     async unmuteChat(chatId) {
-        await this.pupPage.evaluate(async chatId => {
-            let chat = await window.Store.Chat.get(chatId);
-            await window.Store.Cmd.muteChat(chat, false);
-        }, chatId);
+        return this._muteUnmuteChat(chatId, 'UNMUTE');
+    }
+
+    /**
+     * Internal method to mute or unmute the chat
+     * @param {string} chatId ID of the chat that will be muted/unmuted
+     * @param {string} action The action: 'MUTE' or 'UNMUTE'
+     * @param {?Date} unmuteDate Date at which the Chat will be unmuted, leave as is to mute forever
+     * @returns {Promise<{isMuted: boolean, muteExpiration: number}>}
+     */
+    async _muteUnmuteChat (chatId, action, unmuteDate) {
+        return this.pupPage.evaluate(async (chatId, action, unmuteDate) => {
+            const chat = window.Store.Chat.get(chatId);
+            action === 'MUTE'
+                ? await chat.mute.mute({ expiration: unmuteDate, sendDevice: true })
+                : await chat.mute.unmute({ sendDevice: true });
+            return { isMuted: chat.mute.expiration !== 0, muteExpiration: chat.mute.expiration };
+        }, chatId, action, unmuteDate || -1);
     }
 
     /**
