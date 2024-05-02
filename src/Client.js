@@ -1058,11 +1058,10 @@ class Client extends EventEmitter {
             await new Promise((r) => setTimeout(r, 500));
 
             const pinnedMsgs = window.Store.PinInChatCollection.getModelsArray();
-            debugger;
             const msg = pinnedMsgs.find((msg) => msg.chatId._serialized === chatId);
             const pinnedMsg = window.Store.Msg.get(msg?.parentMsgKey._serialized);
 
-            if (!pinnedMsg) return null
+            if (!pinnedMsg) return null;
             return window.WWebJS.getMessageModel(pinnedMsg);
         }, chatId);
 
