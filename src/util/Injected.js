@@ -614,7 +614,7 @@ exports.LoadUtils = () => {
 
         return getAsModel && chat
             ? await window.WWebJS.getChatModel(chat, { isChannel: isChannel })
-            : undefined;
+            : chat;
     };
 
     window.WWebJS.getChannelMetadata = async (inviteCode) => {
