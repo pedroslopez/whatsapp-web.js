@@ -618,7 +618,8 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getChannelMetadata = async (inviteCode) => {
-        const response = await window.Store.ChannelUtils.queryNewsletterMetadataByInviteCode(
+        const response =
+            await window.Store.ChannelUtils.queryNewsletterMetadataByInviteCode(
                 inviteCode,
                 window.Store.ChannelUtils.getRoleByIdentifier(inviteCode)
             );
