@@ -877,7 +877,7 @@ class Client extends EventEmitter {
      * @returns {Promise<Message>} Message that was just sent
      */
     async sendMessage(chatId, content, options = {}) {
-        let isChannel = chatId.match(/@(.+)/)[1] === 'newsletter';
+        const isChannel = /@\w*newsletter\b/.test(chatId);
 
         if (isChannel && [
             options.sendAudioAsVoice, options.sendMediaAsDocument,
@@ -1037,7 +1037,7 @@ class Client extends EventEmitter {
      * @returns {Promise<Array<Chat>>}
      */
     async getChats() {
-        let chats = await this.pupPage.evaluate(async () => {
+        const chats = await this.pupPage.evaluate(async () => {
             return await window.WWebJS.getChats();
         });
 
@@ -1045,89 +1045,7 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Get chat instance by ID
-     * @param {string} chatId 
-     * @returns {Promise<Chat>}
-     */
-    async getChatById(chatId) {
-        let chat = await this.pupPage.evaluate(async chatId => {
-            return await window.WWebJS.getChat(chatId);
-        }, chatId);
-
-        return chat
-            ? ChatFactory.create(this, chat)
-            : undefined;
-    }
-
-    /**
-     * @typedef {Object} GetChannelOptions
-     * @property {boolean} [getMetadata = false] If true, gets the {@link ChannelMetadata}, false by default
-     */
-
-    /**
-     * @typedef {Object} ChannelMetadata
-     * @property {string} id The channel ID in a format: 'XXXXXXXXXX@newsletter'
-     * @property {number} createdAtTs The timestamp the channel was created at
-     * @property {Object} titleMetadata
-     * @property {string} titleMetadata.title The channel title
-     * @property {number} titleMetadata.updatedAtTs The timestamp the title was updated at
-     * @property {Object} descriptionMetadata
-     * @property {string} descriptionMetadata.description The channel description
-     * @property {string} descriptionMetadata.updatedAtTs The timestamp the description was updated at
-     * @property {string} inviteLink The channel invite link in a format: https://whatsapp.com/channel/INVITE_CODE
-     * @property {string} membershipType The membership type of a current user in a channel (viewer/guest/subscriber/admin/owner)
-     * @property {string} stateType The channel state type (active/suspended/geosuspended)
-     * @property {string} pictureUrl The channel profile picture url if set
-     * @property {number} subscribersCount The number of channel subscribers
-     * @property {boolean} isVerified Indicates if a channel is verified
-     */
-
-    /**
-     * Gets a {@link Channel} object or a {@link ChannelMetadata} by its ID
-     * @param {string} channelId 
-     * @param {GetChannelOptions} options
-     * @returns {Promise<ChannelMetadata|Channel>}
-     */
-    async getChannelById(channelId, options = {}) {
-        const result = await this.pupPage.evaluate(async (channelId, options) => {
-            if (options.getMetadata) {
-                try {
-                    return await window.WWebJS.getChannelMetadata(channelId, { getById: true });
-                } catch (err) {
-                    if (err.name === 'ServerStatusCodeError') return null;
-                    throw err;
-                }
-            }
-            return await window.WWebJS.getChat(channelId);
-        }, channelId, options);
-
-        return result ? (options.getMetadata ? result : ChatFactory.create(this, result)) : undefined;
-    }
-
-    /**
-     * Gets a {@link Channel} object or a {@link ChannelMetadata} by invite code
-     * @param {string} inviteCode The code that comes after the 'https://whatsapp.com/channel/'
-     * @param {GetChannelOptions} options
-     * @returns {Promise<ChannelMetadata|Channel>}
-     */
-    async getChannelByInviteCode(inviteCode, options = {}) {
-        const result = await this.pupPage.evaluate(async (inviteCode, options) => {
-            let channelMetadata;
-            try {
-                channelMetadata = await window.WWebJS.getChannelMetadata(inviteCode, { getByInviteCode: true });
-                if (options.getMetadata) return channelMetadata;
-            } catch (err) {
-                if (err.name === 'ServerStatusCodeError') return null;
-                throw err;
-            }
-            return await window.WWebJS.getChat(channelMetadata.id);
-        }, inviteCode, options);
-
-        return result ? (options.getMetadata ? result : ChatFactory.create(this, result)) : result;
-    }
-
-    /**
-     * Gets all cached {@link Channel} objects
+     * Gets all cached {@link Channel} instance
      * @returns {Promise<Array<Channel>>}
      */
     async getChannels() {
@@ -1136,6 +1054,42 @@ class Client extends EventEmitter {
         });
 
         return channels.map((channel) => ChatFactory.create(this, channel));
+    }
+
+    /**
+     * Gets chat or channel instance by ID
+     * @param {string} chatId 
+     * @returns {Promise<Chat|Channel>}
+     */
+    async getChatById(chatId) {
+        const chat = await this.pupPage.evaluate(async chatId => {
+            return await window.WWebJS.getChat(chatId);
+        }, chatId);
+        return chat
+            ? ChatFactory.create(this, chat)
+            : undefined;
+    }
+
+    /**
+     * Gets a {@link Channel} instance by invite code
+     * @param {string} inviteCode The code that comes after the 'https://whatsapp.com/channel/'
+     * @returns {Promise<Channel>}
+     */
+    async getChannelByInviteCode(inviteCode) {
+        const channel = await this.pupPage.evaluate(async (inviteCode) => {
+            let channelMetadata;
+            try {
+                channelMetadata = await window.WWebJS.getChannelMetadata(inviteCode);
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return null;
+                throw err;
+            }
+            return await window.WWebJS.getChat(channelMetadata.id);
+        }, inviteCode);
+
+        return channel
+            ? ChatFactory.create(this, channel)
+            : undefined;
     }
 
     /**

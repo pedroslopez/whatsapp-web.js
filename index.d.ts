@@ -74,19 +74,16 @@ declare namespace WAWebJS {
         /** Get all blocked contacts by host account */
         getBlockedContacts(): Promise<Contact[]>
 
-        /** Get chat instance by ID */
+        /** Gets chat or channel instance by ID */
         getChatById(chatId: string): Promise<Chat>
+
+        /** Gets a {@link Channel} instance by invite code */
+        getChannelByInviteCode(inviteCode: string): Promise<Channel>
 
         /** Get all current chat instances */
         getChats(): Promise<Chat[]>
 
-        /** Gets a {@link Channel} object or a {@link ChannelMetadata} by its ID */
-        getChannelById(channelId: string, options?: { getMetadata?: boolean }): Promise<Channel | ChannelMetadata>
-
-        /** Gets a {@link Channel} object or a {@link ChannelMetadata} by invite code */
-        getChannelByInviteCode(inviteCode: string, options?: { getMetadata?: boolean }): Promise<Channel | ChannelMetadata>
-
-        /** Gets all cached {@link Channel} objects */
+        /** Gets all cached {@link Channel} instances */
         getChannels(): Promise<Channel[]>
 
         /** Get contact instance by ID */
@@ -694,25 +691,6 @@ declare namespace WAWebJS {
         searchText?: string;
         view?: string;
         limit?: number;
-    }
-
-    export interface ChannelMetadata {
-        id: string;
-        createdAtTs: number;
-        titleMetadata: {
-            title: string;
-            updatedAtTs: number;
-        };
-        descriptionMetadata: {
-            description: string;
-            updatedAtTs: string;
-        };
-        inviteLink: string;
-        membershipType: string;
-        stateType: string;
-        pictureUrl: string;
-        subscribersCount: number;
-        isVerified: boolean;
     }
 
     export interface GroupNotification {
