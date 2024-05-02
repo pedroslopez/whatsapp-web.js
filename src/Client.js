@@ -1045,6 +1045,33 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Gets an instance of a pinned message in a chat
+     * @param {string} chatId The chat ID
+     * @returns {Promise<Message>} Returns an instance of a pinned message in a chat
+     */
+    async getPinnedMessage(chatId) {
+        const pinnedMsg = await this.pupPage.evaluate(async (chatId) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = await window.Store.Chat.find(chatWid);
+            if (!chat) return null;
+            await window.Store.Cmd.openChatAt(chat);
+            await new Promise((r) => setTimeout(r, 500));
+
+            const pinnedMsgs = window.Store.PinInChatCollection.getModelsArray();
+            debugger;
+            const msg = pinnedMsgs.find((msg) => msg.chatId._serialized === chatId);
+            const pinnedMsg = window.Store.Msg.get(msg?.parentMsgKey._serialized);
+
+            if (!pinnedMsg) return null
+            return window.WWebJS.getMessageModel(pinnedMsg);
+        }, chatId);
+
+        return pinnedMsg 
+            ? new Message(this, pinnedMsg)
+            : null;
+    }
+
+    /**
      * Returns an object with information about the invite code's group
      * @param {string} inviteCode 
      * @returns {Promise<object>} Invite information

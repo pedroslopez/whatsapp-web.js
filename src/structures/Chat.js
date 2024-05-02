@@ -270,6 +270,14 @@ class Chat extends Base {
     async changeLabels(labelIds) {
         return this.client.addOrRemoveLabels(labelIds, [this.id._serialized]);
     }
+
+    /**
+     * Gets an instance of a pinned message in a chat
+     * @returns {Promise<Message>} Returns an instance of a pinned message in a chat
+     */
+    async getPinnedMessage() {
+        return this.client.getPinnedMessage(this.id._serialized);
+    }
 }
 
 module.exports = Chat;
