@@ -17,6 +17,7 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.GroupMetadata.queryAndUpdate = window.mR.findModule('queryAndUpdateGroupMetadataById')[0].queryAndUpdateGroupMetadataById;
     window.Store.Label = window.mR.findModule('LabelCollection')[0].LabelCollection;
     window.Store.ContactCollection = window.mR.findModule('ContactCollection')[0].ContactCollection;
+    window.Store.MsgCollection = window.mR.findModule('MsgCollection')[0].MsgCollection;
     window.Store.MediaPrep = window.mR.findModule('prepRawMedia')[0];
     window.Store.MediaObject = window.mR.findModule('getOrCreateMediaObject')[0];
     window.Store.NumberInfo = window.mR.findModule('formattedPhoneNumber')[0];
@@ -60,13 +61,17 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.JidToWid = window.mR.findModule('userJidToUserWid')[0];
     window.Store.getMsgInfo = (window.mR.findModule('sendQueryMsgInfo')[0] || {}).sendQueryMsgInfo || window.mR.findModule('queryMsgInfo')[0].queryMsgInfo;
     window.Store.pinUnpinMsg = window.mR.findModule('sendPinInChatMsg')[0].sendPinInChatMsg;
-    window.Store.PinInChatCollection = window.mR.findModule('PinInChatCollection')[0].PinInChatCollection;
     
     /* eslint-disable no-undef, no-cond-assign */
     window.Store.QueryExist = ((m = window.mR.findModule('queryExists')[0]) ? m.queryExists : window.mR.findModule('queryExist')[0].queryWidExists);
     window.Store.ReplyUtils = (m = window.mR.findModule('canReplyMsg')).length > 0 && m[0];
     /* eslint-enable no-undef, no-cond-assign */
 
+    window.Store.PinnedMsgUtils = {
+        ...window.mR.findModule('PinInChatCollection')[0],
+        getPinInChatByChatId: window.mR.findModule('getPinInChatByChatId')[0].getPinInChatByChatId,
+        seekAndDestroyExpiredPins: window.mR.findModule('seekAndDestroyExpiredPins')[0].seekAndDestroyExpiredPins
+    };
     window.Store.Settings = {
         ...window.mR.findModule('ChatlistPanelState')[0],
         setPushname: window.mR.findModule((m) => m.setPushname && !m.ChatlistPanelState)[0].setPushname

@@ -1045,29 +1045,37 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Gets an instance of a pinned message in a chat
+     * Gets instances of all pinned messages in a chat
      * @param {string} chatId The chat ID
-     * @returns {Promise<Message>} Returns an instance of a pinned message in a chat
+     * @returns {Promise<[Message]|[]>}
      */
-    async getPinnedMessage(chatId) {
-        const pinnedMsg = await this.pupPage.evaluate(async (chatId) => {
+    async getPinnedMessages(chatId) {
+        const pinnedMsgs = await this.pupPage.evaluate(async (chatId) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             const chat = await window.Store.Chat.find(chatWid);
-            if (!chat) return null;
-            await window.Store.Cmd.openChatAt(chat);
-            await new Promise((r) => setTimeout(r, 500));
+            if (!chat) return [];
+            
+            await window.Store.PinnedMsgUtils.seekAndDestroyExpiredPins(
+                window.Store.PinnedMsgUtils.PinInChatCollection.byChatId(chatWid).toArray()
+            ).catch((_) => _);
+            
+            const msgs = await window.Store.PinnedMsgUtils.getPinInChatByChatId(chatWid);
+            window.Store.PinnedMsgUtils.PinInChatCollection.add(
+                msgs.map(window.Store.PinnedMsgUtils.createPinInChatModel)
+            );
 
-            const pinnedMsgs = window.Store.PinInChatCollection.getModelsArray();
-            const msg = pinnedMsgs.find((msg) => msg.chatId._serialized === chatId);
-            const pinnedMsg = window.Store.Msg.get(msg?.parentMsgKey._serialized);
+            for (const msg of window.Store.PinnedMsgUtils.PinInChatCollection.getModelsArray()) {
+                await window.Store.MsgCollection.hydrateOrGetMessages([msg.parentMsgKey.toString()]).catch((_) => _);
+            }
 
-            if (!pinnedMsg) return null;
-            return window.WWebJS.getMessageModel(pinnedMsg);
+            const pinnedMsgs = msgs.map((msg) => window.Store.Msg.get(msg.parentMsgKey._serialized));
+
+            return !pinnedMsgs.length
+                ? []
+                : pinnedMsgs.map((msg) => window.WWebJS.getMessageModel(msg));
         }, chatId);
 
-        return pinnedMsg 
-            ? new Message(this, pinnedMsg)
-            : null;
+        return pinnedMsgs.map((msg) => new Message(this, msg));
     }
 
     /**
