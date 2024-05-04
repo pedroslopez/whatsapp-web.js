@@ -826,6 +826,7 @@ class Client extends EventEmitter {
      * @property {GroupMention[]} [groupMentions] - An array of object that handle group mentions
      * @property {string[]} [mentions] - User IDs to mention in the message
      * @property {boolean} [sendSeen=true] - Mark the conversation as seen after sending the message
+     * @property {string} [invokedBotWid=undefined] - Bot Wid when doing a bot mention like @Meta AI
      * @property {string} [stickerAuthor=undefined] - Sets the author of the sticker, (if sendMediaAsSticker is true).
      * @property {string} [stickerName=undefined] - Sets the name of the sticker, (if sendMediaAsSticker is true).
      * @property {string[]} [stickerCategories=undefined] - Sets the categories of the sticker, (if sendMediaAsSticker is true). Provide emoji char array, can be null.
@@ -862,6 +863,7 @@ class Client extends EventEmitter {
             parseVCards: options.parseVCards === false ? false : true,
             mentionedJidList: options.mentions || [],
             groupMentions: options.groupMentions,
+            invokedBotWid: options.invokedBotWid,
             extraOptions: options.extra
         };
 
