@@ -60,7 +60,6 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.WidToJid = window.mR.findModule('widToUserJid')[0];
     window.Store.JidToWid = window.mR.findModule('userJidToUserWid')[0];
     window.Store.getMsgInfo = (window.mR.findModule('sendQueryMsgInfo')[0] || {}).sendQueryMsgInfo || window.mR.findModule('queryMsgInfo')[0].queryMsgInfo;
-    window.Store.pinUnpinMsg = window.mR.findModule('sendPinInChatMsg')[0].sendPinInChatMsg;
     
     /* eslint-disable no-undef, no-cond-assign */
     window.Store.QueryExist = ((m = window.mR.findModule('queryExists')[0]) ? m.queryExists : window.mR.findModule('queryExist')[0].queryWidExists);
@@ -70,7 +69,8 @@ exports.ExposeStore = (moduleRaidStr) => {
     window.Store.PinnedMsgUtils = {
         ...window.mR.findModule('PinInChatCollection')[0],
         getPinInChatByChatId: window.mR.findModule('getPinInChatByChatId')[0].getPinInChatByChatId,
-        seekAndDestroyExpiredPins: window.mR.findModule('seekAndDestroyExpiredPins')[0].seekAndDestroyExpiredPins
+        seekAndDestroyExpiredPins: window.mR.findModule('seekAndDestroyExpiredPins')[0].seekAndDestroyExpiredPins,
+        pinUnpinMsg: window.mR.findModule('sendPinInChatMsg')[0].sendPinInChatMsg
     };
     window.Store.Settings = {
         ...window.mR.findModule('ChatlistPanelState')[0],
@@ -1133,7 +1133,7 @@ exports.LoadUtils = () => {
     window.WWebJS.pinUnpinMsgAction = async (msgId, action, duration) => {
         const message = window.Store.Msg.get(msgId);
         if (!message) return false;
-        const response = await window.Store.pinUnpinMsg(message, action, duration);
+        const response = await window.Store.PinnedMsgUtils.pinUnpinMsg(message, action, duration);
         if (response.messageSendResult === 'OK') return true;
         return false;
     };
