@@ -1209,7 +1209,7 @@ class Client extends EventEmitter {
         const profilePic = await this.pupPage.evaluate(async contactId => {
             try {
                 const chatWid = window.Store.WidFactory.createWid(contactId);
-                return await window.Store.ProfilePic.requestProfilePicFromServer(chatWid);
+                return await (window.WWebJS.compareWwebVersions(window.Debug.VERSION, '<', '2.3000.0') ? window.Store.ProfilePic.profilePicFind(chatWid) : window.Store.ProfilePic.requestProfilePicFromServer(chatWid));
             } catch (err) {
                 if(err.name === 'ServerStatusCodeError') return undefined;
                 throw err;
