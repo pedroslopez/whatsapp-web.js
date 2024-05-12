@@ -372,7 +372,12 @@ class GroupChat extends Chat {
     async revokeInvite() {
         const codeRes = await this.client.pupPage.evaluate(chatId => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            return window.Store.GroupInvite.resetGroupInviteCode(chatWid);
+            
+            if(window.WWebJS.compareWwebVersions(window.Debug.VERSION, '>', '2.3000.0')){
+                return window.Store.GroupInvite.queryGroupInviteCode(chatWid, true); 
+            } else {
+                return window.Store.GroupInvite.queryGroupInviteCode(chatWid);  
+            } 
         }, this.id._serialized);
 
         return codeRes.code;
