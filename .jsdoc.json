@@ -1,0 +1,26 @@
+{
+  "source": {
+    "includeFiles": [
+      "src",
+      "README.md"
+    ],
+    "excludeFiles": [
+      "index.js"
+    ],
+    "includePattern": ".js$"
+  },
+  "versions": {
+    "generateMainBranch": true,
+    "startGenerationAt": "1.24.0",
+    "endGenerationAt": false
+  },
+  "sidebar": {
+    "showVersionSlection": true,
+    "enableTypeSorting": true
+  },
+  "opts": {
+    "destination": "./docs/",
+    "removeEmptyFiles": true,
+    "removeEmptyTages": true
+  }
+}
