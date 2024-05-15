@@ -15,11 +15,11 @@ client.initialize();
 client.on('loading_screen', (percent, message) => {
     console.log('LOADING SCREEN', percent, message);
 });
-client.pupPage.on("pageerror", function(err) {
-    console.log("Page error: " + err.toString());
+client.pupPage.on('pageerror', function(err) {
+    console.log('Page error: ' + err.toString());
 });
-client.pupPage.on("error", function(err) {
-    console.log("Page error: " + err.toString());
+client.pupPage.on('error', function(err) {
+    console.log('Page error: ' + err.toString());
 });
 
 // Pairing code only needs to be requested once
