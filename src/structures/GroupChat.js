@@ -361,8 +361,8 @@ class GroupChat extends Chat {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             try {
                 return window.WWebJS.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.0')
-                    ? window.Store.GroupInvite.queryGroupInviteCode(chatWid, true)
-                    : window.Store.GroupInvite.queryGroupInviteCode(chatWid);
+                    ? await window.Store.GroupInvite.queryGroupInviteCode(chatWid, true)
+                    : await window.Store.GroupInvite.queryGroupInviteCode(chatWid);
             }
             catch (err) {
                 if(err.name === 'ServerStatusCodeError') return undefined;
