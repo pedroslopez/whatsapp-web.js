@@ -359,14 +359,18 @@ class GroupChat extends Chat {
     async getInviteCode() {
         const codeRes = await this.client.pupPage.evaluate(async chatId => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            if(window.WWebJS.compareWwebVersions(window.Debug.VERSION, '>', '2.3000.0')){
-                return window.Store.GroupInvite.queryGroupInviteCode(chatWid, true);
-            } else {
-                return window.Store.GroupInvite.queryGroupInviteCode(chatWid);
+            try {
+                return window.WWebJS.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.0')
+                    ? window.Store.GroupInvite.queryGroupInviteCode(chatWid, true)
+                    : window.Store.GroupInvite.queryGroupInviteCode(chatWid);
+            }
+            catch (err) {
+                if(err.name === 'ServerStatusCodeError') return undefined;
+                throw err;
             }
         }, this.id._serialized);
 
-        return codeRes.code;
+        return codeRes?.code;
     }
     
     /**
