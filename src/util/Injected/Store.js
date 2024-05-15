@@ -55,7 +55,7 @@ exports.ExposeStore = () => {
     window.Store.Settings = window.require('WAWebUserPrefsGeneral');
     
     window.Store.ForwardUtils = {
-        ...window.require("WAWebForwardMessagesToChat")
+        ...window.require('WAWebForwardMessagesToChat')
     };
 
     window.Store.StickerTools = {
