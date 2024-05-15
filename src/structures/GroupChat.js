@@ -359,7 +359,11 @@ class GroupChat extends Chat {
     async getInviteCode() {
         const codeRes = await this.client.pupPage.evaluate(async chatId => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            return window.Store.GroupInvite.queryGroupInviteCode(chatWid);
+            if(window.WWebJS.compareWwebVersions(window.Debug.VERSION, '>', '2.3000.0')){
+                return window.Store.GroupInvite.queryGroupInviteCode(chatWid, true);
+            } else {
+                return window.Store.GroupInvite.queryGroupInviteCode(chatWid);
+            }
         }, this.id._serialized);
 
         return codeRes.code;
@@ -372,12 +376,7 @@ class GroupChat extends Chat {
     async revokeInvite() {
         const codeRes = await this.client.pupPage.evaluate(chatId => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            
-            if(window.WWebJS.compareWwebVersions(window.Debug.VERSION, '>', '2.3000.0')){
-                return window.Store.GroupInvite.queryGroupInviteCode(chatWid, true); 
-            } else {
-                return window.Store.GroupInvite.queryGroupInviteCode(chatWid);  
-            } 
+            return window.Store.GroupInvite.resetGroupInviteCode(chatWid); 
         }, this.id._serialized);
 
         return codeRes.code;
