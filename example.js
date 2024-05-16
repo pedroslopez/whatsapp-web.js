@@ -15,12 +15,6 @@ client.initialize();
 client.on('loading_screen', (percent, message) => {
     console.log('LOADING SCREEN', percent, message);
 });
-client.pupPage.on('pageerror', function(err) {
-    console.log('Page error: ' + err.toString());
-});
-client.pupPage.on('error', function(err) {
-    console.log('Page error: ' + err.toString());
-});
 
 // Pairing code only needs to be requested once
 let pairingCodeRequested = false;
@@ -48,6 +42,13 @@ client.on('auth_failure', msg => {
 
 client.on('ready', () => {
     console.log('READY');
+    client.pupPage.on('pageerror', function(err) {
+        console.log('Page error: ' + err.toString());
+    });
+    client.pupPage.on('error', function(err) {
+        console.log('Page error: ' + err.toString());
+    });
+    
 });
 
 client.on('message', async msg => {
