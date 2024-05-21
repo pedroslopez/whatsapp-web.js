@@ -510,7 +510,7 @@ class Message extends Base {
             
             const canRevoke = window.Store.MsgActionChecks.canSenderRevokeMsg(msg) || window.Store.MsgActionChecks.canAdminRevokeMsg(msg);
             if (everyone && canRevoke) {
-                if (window.Debug.VERSION > 23000) {
+                if (window.WWebJS.compareWwebVersions(window.Debug.VERSION, '>', '2.3000.0')) {
                     return window.Store.Cmd.sendRevokeMsgs(chat, { list: [msg], type: 'message' }, { clearMedia: true });
                 } else {
                     return window.Store.Cmd.sendRevokeMsgs(chat, [msg], { clearMedia: true, type: msg.id.fromMe ? 'Sender' : 'Admin' });
