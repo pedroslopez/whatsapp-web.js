@@ -195,6 +195,15 @@ exports.LoadUtils = () => {
             delete listOptions.list.footer;
         }
 
+        const botOptions = {};
+        if (options.invokedBotWid) {
+            botOptions.messageSecret = window.crypto.getRandomValues(new Uint8Array(32));
+            botOptions.botMessageSecret = await window.Store.BotSecret.genBotMsgSecretFromMsgSecret(botOptions.messageSecret);
+            botOptions.invokedBotWid = window.Store.WidFactory.createWid(options.invokedBotWid);
+            botOptions.botPersonaId = window.Store.BotProfiles.BotProfileCollection.get(options.invokedBotWid).personaId;
+            delete options.invokedBotWid;
+        }
+
         const meUser = window.Store.User.getMaybeMeUser();
         const newId = await window.Store.MsgKey.newId();
         
@@ -232,8 +241,14 @@ exports.LoadUtils = () => {
             ...vcardOptions,
             ...buttonOptions,
             ...listOptions,
+            ...botOptions,
             ...extraOptions
         };
+        
+        // Bot's won't reply if canonicalUrl is set (linking)
+        if (botOptions) {
+            delete message.canonicalUrl;
+        }
 
         await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
         return window.Store.Msg.get(newMsgId._serialized);
