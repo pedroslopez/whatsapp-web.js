@@ -74,7 +74,9 @@ npm run generate-docs
 
 git add .
 
-git commit "chore(${NEW_VERSION}): generate docs"
+git commit -am "chore(${NEW_VERSION}): generate docs"
+
+git push 
 
 NEW_VERSION=`cat package.json | jq -r .version`
 echo "New Version: $NEW_VERSION"
