@@ -183,7 +183,17 @@ class GroupChat extends Chat {
             return participantData;
         }, this.id._serialized, participantIds, options);
     }
-
+    /**
+     * Checks if the client is an admin in the group{
+     * @returns {Promise<{ status: boolean}>}
+     */
+    async iAmadmin() {
+        return await this.client.pupPage.evaluate(async (groupId) => {
+            const chatWid = window.Store.WidFactory.createWid(groupId);
+            const chat = await window.Store.Chat.find(chatWid);
+            return chat.iAmAdmin();
+        }, this.id._serialized)
+    }
     /**
      * Removes a list of participants by ID to the group
      * @param {Array<string>} participantIds 
