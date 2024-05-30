@@ -28,15 +28,19 @@ class LocalWebCache extends WebCache {
             return null;
         }
     }
-
+    
     async persist(indexHtml) {
-        // extract version from index (e.g. manifest-2.2206.9.json -> 2.2206.9)
-        const version = indexHtml.match(/manifest-([\d\\.]+)\.json/)[1];
-        if(!version) return;
-   
-        const filePath = path.join(this.path, `${version}.html`);
-        fs.mkdirSync(this.path, { recursive: true });
-        fs.writeFileSync(filePath, indexHtml);
+      // extract version from index (e.g. manifest-2.2206.9.json -> 2.2206.9)
+      const match = indexHtml.match(/manifest-([\d\\.]+)\.json/);
+      if (!match || !match[1]) {
+        console.error("Failed to extract version from indexHtml");
+        return;
+      }
+      const version = match[1];
+
+      const filePath = path.join(this.path, `${version}.html`);
+      fs.mkdirSync(this.path, { recursive: true });
+      fs.writeFileSync(filePath, indexHtml);
     }
 }
 
