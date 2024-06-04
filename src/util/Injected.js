@@ -532,7 +532,7 @@ exports.LoadUtils = () => {
 
         msg.isEphemeral = message.isEphemeral;
         msg.isStatusV3 = message.isStatusV3;
-        msg.links = (message.getRawLinks()).map(link => ({
+        msg.links = (window.Store.Validators.findLinks(message.mediaObject ? message.caption : message.body)).map((link) => ({
             link: link.href,
             isSuspicious: Boolean(link.suspiciousCharacters && link.suspiciousCharacters.size)
         }));
@@ -556,6 +556,15 @@ exports.LoadUtils = () => {
         return msg;
     };
 
+    window.WWebJS.getPollVoteModel = (vote) => {
+        const _vote = vote.serialize();
+        if (vote.parentMsgKey) {
+            const msg = window.Store.Msg.get(vote.parentMsgKey);
+            msg && (_vote.parentMessage = window.WWebJS.getMessageModel(msg));
+            return _vote;
+        }
+        return null;
+    };
 
     window.WWebJS.getChatModel = async chat => {
 
