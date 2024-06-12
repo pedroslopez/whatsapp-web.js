@@ -709,7 +709,23 @@ class Client extends EventEmitter {
                 }
             });
             window.Store.Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
-            {
+
+            if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.1014111620')) {
+                const module = window.Store.AddonReactionTable;
+                const ogMethod = module.bulkUpsert;
+                module.bulkUpsert = ((...args) => {
+                    window.onReaction(args[0].map(reaction => {
+                        const msgKey = reaction.id;
+                        const parentMsgKey = reaction.reactionParentKey;
+                        const timestamp = reaction.reactionTimestamp / 1000;
+                        const senderUserJid = reaction.author._serialized;
+
+                        return {...reaction, msgKey, parentMsgKey, senderUserJid, timestamp };
+                    }));
+
+                    return ogMethod(...args);
+                }).bind(module);
+            } else {
                 const module = window.Store.createOrUpdateReactionsModule;
                 const ogMethod = module.createOrUpdateReactions;
                 module.createOrUpdateReactions = ((...args) => {
@@ -1214,7 +1230,7 @@ class Client extends EventEmitter {
         const profilePic = await this.pupPage.evaluate(async contactId => {
             try {
                 const chatWid = window.Store.WidFactory.createWid(contactId);
-                return window.WWebJS.compareWwebVersions(window.Debug.VERSION, '<', '2.3000.0')
+                return window.compareWwebVersions(window.Debug.VERSION, '<', '2.3000.0')
                     ? await window.Store.ProfilePic.profilePicFind(chatWid)
                     : await window.Store.ProfilePic.requestProfilePicFromServer(chatWid);
             } catch (err) {
@@ -1407,7 +1423,7 @@ class Client extends EventEmitter {
                         comment,
                         await window.WWebJS.getProfilePicThumbToBase64(createGroupResult.wid)
                     );
-                    isInviteV4Sent = window.WWebJS.compareWwebVersions(window.Debug.VERSION, '<', '2.2335.6')
+                    isInviteV4Sent = window.compareWwebVersions(window.Debug.VERSION, '<', '2.2335.6')
                         ? addParticipantResult === 'OK'
                         : addParticipantResult.messageSendResult === 'OK';
                 }

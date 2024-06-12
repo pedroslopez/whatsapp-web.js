@@ -1,6 +1,48 @@
 'use strict';
 
 exports.ExposeStore = () => {
+    /**
+     * Helper function that compares between two WWeb versions. Its purpose is to help the developer to choose the correct code implementation depending on the comparison value and the WWeb version.
+     * @param {string} lOperand The left operand for the WWeb version string to compare with
+     * @param {string} operator The comparison operator
+     * @param {string} rOperand The right operand for the WWeb version string to compare with
+     * @returns {boolean} Boolean value that indicates the result of the comparison
+     */
+    window.compareWwebVersions = (lOperand, operator, rOperand) => {
+        if (!['>', '>=', '<', '<=', '='].includes(operator)) {
+            throw new class _ extends Error {
+                constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
+            }('Invalid comparison operator is provided');
+
+        }
+        if (typeof lOperand !== 'string' || typeof rOperand !== 'string') {
+            throw new class _ extends Error {
+                constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
+            }('A non-string WWeb version type is provided');
+        }
+
+        lOperand = lOperand.replace(/-beta$/, '');
+        rOperand = rOperand.replace(/-beta$/, '');
+
+        while (lOperand.length !== rOperand.length) {
+            lOperand.length > rOperand.length
+                ? rOperand = rOperand.concat('0')
+                : lOperand = lOperand.concat('0');
+        }
+
+        lOperand = Number(lOperand.replace(/\./g, ''));
+        rOperand = Number(rOperand.replace(/\./g, ''));
+
+        return (
+            operator === '>' ? lOperand > rOperand :
+                operator === '>=' ? lOperand >= rOperand :
+                    operator === '<' ? lOperand < rOperand :
+                        operator === '<=' ? lOperand <= rOperand :
+                            operator === '=' ? lOperand === rOperand :
+                                false
+        );
+    };
+
     window.Store = Object.assign({}, window.require('WAWebCollections'));
     window.Store.AppState = window.require('WAWebSocketModel').Socket;
     window.Store.BlockContact = window.require('WAWebBlockContactAction');
@@ -55,6 +97,8 @@ exports.ExposeStore = () => {
     window.Store.Settings = window.require('WAWebUserPrefsGeneral');
     window.Store.BotSecret = window.require('WAWebBotMessageSecret');
     window.Store.BotProfiles = window.require('WAWebBotProfileCollection');
+    if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.1014111620')) 
+        window.Store.AddonReactionTable = window.require('WAWebAddonReactionTableMode').reactionTableMode;
     
     window.Store.ForwardUtils = {
         ...window.require('WAWebForwardMessagesToChat')
@@ -118,4 +162,5 @@ exports.ExposeStore = () => {
     window.injectToFunction({ module: 'WAWebBackendJobsCommon', function: 'mediaTypeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? null : func(...args); });
 
     window.injectToFunction({ module: 'WAWebE2EProtoUtils', function: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage || proto.groupInviteMessage ? 'text' : func(...args); });
+
 };

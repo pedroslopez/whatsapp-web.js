@@ -166,7 +166,7 @@ class GroupChat extends Chat {
                             comment,
                             await window.WWebJS.getProfilePicThumbToBase64(groupWid)
                         );
-                        isInviteV4Sent = window.WWebJS.compareWwebVersions(window.Debug.VERSION, '<', '2.2335.6')
+                        isInviteV4Sent = window.compareWwebVersions(window.Debug.VERSION, '<', '2.2335.6')
                             ? res === 'OK'
                             : res.messageSendResult === 'OK';
                     }
@@ -360,7 +360,7 @@ class GroupChat extends Chat {
         const codeRes = await this.client.pupPage.evaluate(async chatId => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             try {
-                return window.WWebJS.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.0')
+                return window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.0')
                     ? await window.Store.GroupInvite.queryGroupInviteCode(chatWid, true)
                     : await window.Store.GroupInvite.queryGroupInviteCode(chatWid);
             }
