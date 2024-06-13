@@ -718,7 +718,8 @@ class Client extends EventEmitter {
                         const msgKey = reaction.id;
                         const parentMsgKey = reaction.reactionParentKey;
                         const timestamp = reaction.reactionTimestamp / 1000;
-                        const senderUserJid = reaction.author._serialized;
+                        const sender = reaction.author ?? reaction.from;
+                        const senderUserJid = sender._serialized;
 
                         return {...reaction, msgKey, parentMsgKey, senderUserJid, timestamp };
                     }));
