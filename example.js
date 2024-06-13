@@ -612,3 +612,7 @@ client.on('group_membership_request', async (notification) => {
     await client.approveGroupMembershipRequestss(notification.chatId, notification.author);
     await client.rejectGroupMembershipRequests(notification.chatId, notification.author);
 });
+
+client.on('message_reaction', async (reaction) => {
+    console.log('REACTION RECEIVED', reaction);
+});
