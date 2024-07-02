@@ -140,42 +140,58 @@ class Client extends EventEmitter {
                 return;
             }
 
-            // Register qr events
+            // Register qr/code events
             let qrRetries = 0;
             const injected = await this.pupPage.evaluate(() => {
-                return typeof window.onQRChangedEvent !== 'undefined';
+                return typeof window.onQRChangedEvent !== 'undefined' || typeof window.onCodeReceivedEvent !== 'undefined';
             });
-            if (!injected) {
-                await this.pupPage.exposeFunction('onQRChangedEvent', async (qr) => {
-                    /**
-                    * Emitted when a QR code is received
-                    * @event Client#qr
-                    * @param {string} qr QR Code
-                    */
-                    this.emit(Events.QR_RECEIVED, qr);
-                    if (this.options.qrMaxRetries > 0) {
-                        qrRetries++;
-                        if (qrRetries > this.options.qrMaxRetries) {
-                            this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
-                            await this.destroy();
+            if(this.options.pairWithPhoneNumber.phoneNumber){
+                if (!injected) {
+                    await this.pupPage.exposeFunction('onCodeReceivedEvent', async (code) => {
+                        /**
+                        * Emitted when a pairing code is received
+                        * @event Client#code
+                        * @param {string} code Code
+                        */
+                        this.emit(Events.CODE_RECEIVED, code);
+                    });
+                }
+                const pairWithPhoneNumber = this.options.pairWithPhoneNumber;
+                const code = await this.requestPairingCode(pairWithPhoneNumber.phoneNumber,pairWithPhoneNumber.showNotification,pairWithPhoneNumber.intervalMs);
+                this.emit(Events.CODE_RECEIVED, code); // initial code
+            } else {
+                if(!injected){
+                    await this.pupPage.exposeFunction('onQRChangedEvent', async (qr) => {
+                        /**
+                        * Emitted when a QR code is received
+                        * @event Client#qr
+                        * @param {string} qr QR Code
+                        */
+                        this.emit(Events.QR_RECEIVED, qr);
+                        if (this.options.qrMaxRetries > 0) {
+                            qrRetries++;
+                            if (qrRetries > this.options.qrMaxRetries) {
+                                this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
+                                await this.destroy();
+                            }
                         }
-                    }
+                    });
+                }
+
+
+                await this.pupPage.evaluate(async () => {
+                    const registrationInfo = await window.AuthStore.RegistrationUtils.waSignalStore.getRegistrationInfo();
+                    const noiseKeyPair = await window.AuthStore.RegistrationUtils.waNoiseInfo.get();
+                    const staticKeyB64 = window.AuthStore.Base64Tools.encodeB64(noiseKeyPair.staticKeyPair.pubKey);
+                    const identityKeyB64 = window.AuthStore.Base64Tools.encodeB64(registrationInfo.identityKeyPair.pubKey);
+                    const advSecretKey = await window.AuthStore.RegistrationUtils.getADVSecretKey();
+                    const platform =  window.AuthStore.RegistrationUtils.DEVICE_PLATFORM;
+                    const getQR = (ref) => ref + ',' + staticKeyB64 + ',' + identityKeyB64 + ',' + advSecretKey + ',' + platform;
+                    
+                    window.onQRChangedEvent(getQR(window.AuthStore.Conn.ref)); // initial qr
+                    window.AuthStore.Conn.on('change:ref', (_, ref) => { window.onQRChangedEvent(getQR(ref)); }); // future QR changes
                 });
             }
-
-
-            await this.pupPage.evaluate(async () => {
-                const registrationInfo = await window.AuthStore.RegistrationUtils.waSignalStore.getRegistrationInfo();
-                const noiseKeyPair = await window.AuthStore.RegistrationUtils.waNoiseInfo.get();
-                const staticKeyB64 = window.AuthStore.Base64Tools.encodeB64(noiseKeyPair.staticKeyPair.pubKey);
-                const identityKeyB64 = window.AuthStore.Base64Tools.encodeB64(registrationInfo.identityKeyPair.pubKey);
-                const advSecretKey = await window.AuthStore.RegistrationUtils.getADVSecretKey();
-                const platform =  window.AuthStore.RegistrationUtils.DEVICE_PLATFORM;
-                const getQR = (ref) => ref + ',' + staticKeyB64 + ',' + identityKeyB64 + ',' + advSecretKey + ',' + platform;
-                
-                window.onQRChangedEvent(getQR(window.AuthStore.Conn.ref)); // initial qr
-                window.AuthStore.Conn.on('change:ref', (_, ref) => { window.onQRChangedEvent(getQR(ref)); }); // future QR changes
-            });
         }
 
         if (!reinject) {
@@ -358,12 +374,22 @@ class Client extends EventEmitter {
      * @param {boolean} showNotification - Show notification to pair on phone number
      * @returns {Promise<string>} - Returns a pairing code in format "ABCDEFGH"
      */
-    async requestPairingCode(phoneNumber, showNotification = true) {
-        return await this.pupPage.evaluate(async (phoneNumber, showNotification) => {
-            window.AuthStore.PairingCodeLinkUtils.setPairingType('ALT_DEVICE_LINKING');
-            await window.AuthStore.PairingCodeLinkUtils.initializeAltDeviceLinking();
-            return window.AuthStore.PairingCodeLinkUtils.startAltLinkingFlow(phoneNumber, showNotification);
-        }, phoneNumber, showNotification);
+    async requestPairingCode(phoneNumber, showNotification = true, intervalMs = 180000) {
+        return await this.pupPage.evaluate(async (phoneNumber, showNotification, intervalMs) => {
+            const getCode = async () => {
+                window.AuthStore.PairingCodeLinkUtils.setPairingType('ALT_DEVICE_LINKING');
+                await window.AuthStore.PairingCodeLinkUtils.initializeAltDeviceLinking();
+                return window.AuthStore.PairingCodeLinkUtils.startAltLinkingFlow(phoneNumber, showNotification);
+            }
+            const interval = setInterval(async () => {
+                if(window.AuthStore.AppState.state != 'UNPAIRED' && window.AuthStore.AppState.state != 'UNPAIRED_IDLE'){
+                    clearInterval(interval);
+                    return;
+                }
+                window.onCodeReceivedEvent(await getCode()); 
+            }, intervalMs);
+            return getCode();
+        }, phoneNumber, showNotification, intervalMs);
     }
 
     /**
