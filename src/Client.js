@@ -381,12 +381,15 @@ class Client extends EventEmitter {
                 await window.AuthStore.PairingCodeLinkUtils.initializeAltDeviceLinking();
                 return window.AuthStore.PairingCodeLinkUtils.startAltLinkingFlow(phoneNumber, showNotification);
             }
-            const interval = setInterval(async () => {
-                if(window.AuthStore.AppState.state != 'UNPAIRED' && window.AuthStore.AppState.state != 'UNPAIRED_IDLE'){
-                    clearInterval(interval);
+            if (window.codeInterval) {
+                clearInterval(window.codeInterval) // remove existing interval
+            }
+            window.codeInterval = setInterval(async () => {
+                if (window.AuthStore.AppState.state != 'UNPAIRED' && window.AuthStore.AppState.state != 'UNPAIRED_IDLE') {
+                    clearInterval(window.codeInterval);
                     return;
                 }
-                window.onCodeReceivedEvent(await getCode()); 
+                window.onCodeReceivedEvent(await getCode());
             }, intervalMs);
             return getCode();
         }, phoneNumber, showNotification, intervalMs);
