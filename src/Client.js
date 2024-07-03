@@ -94,7 +94,7 @@ class Client extends EventEmitter {
      */
     async inject(reinject = false) {
         await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', {timeout: this.options.authTimeoutMs});
-
+        const pairWithPhoneNumber = this.options.pairWithPhoneNumber;
         const version = await this.getWWebVersion();
         const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
 
@@ -141,26 +141,26 @@ class Client extends EventEmitter {
             }
 
             // Register qr/code events
-            let qrRetries = 0;
             const injected = await this.pupPage.evaluate(() => {
                 return typeof window.onQRChangedEvent !== 'undefined' || typeof window.onCodeReceivedEvent !== 'undefined';
             });
-            if(this.options.pairWithPhoneNumber.phoneNumber){
+            if(pairWithPhoneNumber.phoneNumber){
                 if (!injected) {
                     await this.pupPage.exposeFunction('onCodeReceivedEvent', async (code) => {
                         /**
                         * Emitted when a pairing code is received
                         * @event Client#code
                         * @param {string} code Code
+                        * @returns {string} Code that was just received
                         */
                         this.emit(Events.CODE_RECEIVED, code);
+                        return code;
                     });
                 }
-                const pairWithPhoneNumber = this.options.pairWithPhoneNumber;
-                const code = await this.requestPairingCode(pairWithPhoneNumber.phoneNumber,pairWithPhoneNumber.showNotification,pairWithPhoneNumber.intervalMs);
-                this.emit(Events.CODE_RECEIVED, code); // initial code
+                this.requestPairingCode(pairWithPhoneNumber.phoneNumber,pairWithPhoneNumber.showNotification,pairWithPhoneNumber.intervalMs);
             } else {
                 if(!injected){
+                    let qrRetries = 0;
                     await this.pupPage.exposeFunction('onQRChangedEvent', async (qr) => {
                         /**
                         * Emitted when a QR code is received
@@ -196,7 +196,7 @@ class Client extends EventEmitter {
 
         if (!reinject) {
             await this.pupPage.exposeFunction('onAuthAppStateChangedEvent', async (state) => {
-                if (state == 'UNPAIRED_IDLE') {
+                if (state == 'UNPAIRED_IDLE' && !pairWithPhoneNumber.phoneNumber) {
                     // refresh qr code
                     window.Store.Cmd.refreshQR();
                 }
@@ -383,7 +383,7 @@ class Client extends EventEmitter {
                 return window.AuthStore.PairingCodeLinkUtils.startAltLinkingFlow(phoneNumber, showNotification);
             }
             if (window.codeInterval) {
-                clearInterval(window.codeInterval) // remove existing interval
+                clearInterval(window.codeInterval); // remove existing interval
             }
             window.codeInterval = setInterval(async () => {
                 if (window.AuthStore.AppState.state != 'UNPAIRED' && window.AuthStore.AppState.state != 'UNPAIRED_IDLE') {
@@ -392,7 +392,7 @@ class Client extends EventEmitter {
                 }
                 window.onCodeReceivedEvent(await getCode());
             }, intervalMs);
-            return getCode();
+            return window.onCodeReceivedEvent(await getCode());
         }, phoneNumber, showNotification, intervalMs);
     }
 
