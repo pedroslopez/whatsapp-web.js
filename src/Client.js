@@ -240,9 +240,12 @@ class Client extends EventEmitter {
                 this.emit(Events.READY);
                 this.authStrategy.afterAuthReady();
             });
-
+            let lastPercent = null;
             await this.pupPage.exposeFunction('onOfflineProgressUpdateEvent', async (percent) => {
-                this.emit(Events.LOADING_SCREEN, percent, 'WhatsApp'); // Message is hardcoded as "WhatsApp" for now
+                if (lastPercent !== percent) {
+                    lastPercent = percent;
+                    this.emit(Events.LOADING_SCREEN, percent, 'WhatsApp'); // Message is hardcoded as "WhatsApp" for now
+                }
             });
         }
         const logoutCatchInjected = await this.pupPage.evaluate(() => {
@@ -716,7 +719,24 @@ class Client extends EventEmitter {
                 }
             });
             window.Store.Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
-            {
+
+            if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.1014111620')) {
+                const module = window.Store.AddonReactionTable;
+                const ogMethod = module.bulkUpsert;
+                module.bulkUpsert = ((...args) => {
+                    window.onReaction(args[0].map(reaction => {
+                        const msgKey = reaction.id;
+                        const parentMsgKey = reaction.reactionParentKey;
+                        const timestamp = reaction.reactionTimestamp / 1000;
+                        const sender = reaction.author ?? reaction.from;
+                        const senderUserJid = sender._serialized;
+
+                        return {...reaction, msgKey, parentMsgKey, senderUserJid, timestamp };
+                    }));
+
+                    return ogMethod(...args);
+                }).bind(module);
+            } else {
                 const module = window.Store.createOrUpdateReactionsModule;
                 const ogMethod = module.createOrUpdateReactions;
                 module.createOrUpdateReactions = ((...args) => {
@@ -852,6 +872,7 @@ class Client extends EventEmitter {
      * @property {GroupMention[]} [groupMentions] - An array of object that handle group mentions
      * @property {string[]} [mentions] - User IDs to mention in the message
      * @property {boolean} [sendSeen=true] - Mark the conversation as seen after sending the message
+     * @property {string} [invokedBotWid=undefined] - Bot Wid when doing a bot mention like @Meta AI
      * @property {string} [stickerAuthor=undefined] - Sets the author of the sticker, (if sendMediaAsSticker is true).
      * @property {string} [stickerName=undefined] - Sets the name of the sticker, (if sendMediaAsSticker is true).
      * @property {string[]} [stickerCategories=undefined] - Sets the categories of the sticker, (if sendMediaAsSticker is true). Provide emoji char array, can be null.
@@ -888,6 +909,7 @@ class Client extends EventEmitter {
             parseVCards: options.parseVCards === false ? false : true,
             mentionedJidList: options.mentions || [],
             groupMentions: options.groupMentions,
+            invokedBotWid: options.invokedBotWid,
             extraOptions: options.extra
         };
 
@@ -1235,7 +1257,9 @@ class Client extends EventEmitter {
         const profilePic = await this.pupPage.evaluate(async contactId => {
             try {
                 const chatWid = window.Store.WidFactory.createWid(contactId);
-                return await (window.WWebJS.compareWwebVersions(window.Debug.VERSION, '<', '2.3000.0') ? window.Store.ProfilePic.profilePicFind(chatWid) : window.Store.ProfilePic.requestProfilePicFromServer(chatWid));
+                return window.compareWwebVersions(window.Debug.VERSION, '<', '2.3000.0')
+                    ? await window.Store.ProfilePic.profilePicFind(chatWid)
+                    : await window.Store.ProfilePic.requestProfilePicFromServer(chatWid);
             } catch (err) {
                 if(err.name === 'ServerStatusCodeError') return undefined;
                 throw err;
@@ -1401,10 +1425,18 @@ class Client extends EventEmitter {
 
             try {
                 createGroupResult = await window.Store.GroupUtils.createGroup(
-                    title,
-                    participantWids,
-                    messageTimer,
-                    parentGroupWid
+                    {
+                        'memberAddMode': options.memberAddMode === undefined ? true : options.memberAddMode,
+                        'membershipApprovalMode': options.membershipApprovalMode === undefined ? false : options.membershipApprovalMode,
+                        'announce': options.announce === undefined ? true : options.announce,
+                        'ephemeralDuration': messageTimer,
+                        'full': undefined,
+                        'parentGroupId': parentGroupWid,
+                        'restrict': options.restrict === undefined ? true : options.restrict,
+                        'thumb': undefined,
+                        'title': title,
+                    },
+                    participantWids
                 );
             } catch (err) {
                 return 'CreateGroupError: An unknown error occupied while creating a group';
@@ -1426,7 +1458,7 @@ class Client extends EventEmitter {
                         comment,
                         await window.WWebJS.getProfilePicThumbToBase64(createGroupResult.wid)
                     );
-                    isInviteV4Sent = window.WWebJS.compareWwebVersions(window.Debug.VERSION, '<', '2.2335.6')
+                    isInviteV4Sent = window.compareWwebVersions(window.Debug.VERSION, '<', '2.2335.6')
                         ? addParticipantResult === 'OK'
                         : addParticipantResult.messageSendResult === 'OK';
                 }

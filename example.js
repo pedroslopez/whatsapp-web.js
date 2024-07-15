@@ -34,15 +34,15 @@ client.on("loading_screen", (percent, message) => {
 
 // Pairing code only needs to be requested once
 let pairingCodeRequested = false;
-client.on('qr', async (qr) => {
+client.on("qr", async (qr) => {
     // NOTE: This event will not be fired if a session is specified.
-    console.log('QR RECEIVED', qr);
+    console.log("QR RECEIVED", qr);
 
     // paiuting code example
     const pairingCodeEnabled = false;
     if (pairingCodeEnabled && !pairingCodeRequested) {
-        const pairingCode = await client.requestPairingCode('96170100100'); // enter the target phone number
-        console.log('Pairing code enabled, code: '+ pairingCode);
+        const pairingCode = await client.requestPairingCode("96170100100"); // enter the target phone number
+        console.log("Pairing code enabled, code: " + pairingCode);
         pairingCodeRequested = true;
     }
 });
@@ -56,8 +56,17 @@ client.on("auth_failure", (msg) => {
     console.error("AUTHENTICATION FAILURE", msg);
 });
 
-client.on("ready", () => {
+client.on("ready", async () => {
     console.log("READY");
+    const debugWWebVersion = await client.getWWebVersion();
+    console.log(`WWebVersion = ${debugWWebVersion}`);
+
+    client.pupPage.on("pageerror", function (err) {
+        console.log("Page error: " + err.toString());
+    });
+    client.pupPage.on("error", function (err) {
+        console.log("Page error: " + err.toString());
+    });
 });
 
 client.on("message", async (msg) => {
@@ -717,4 +726,8 @@ client.on("group_membership_request", async (notification) => {
         notification.chatId,
         notification.author
     );
+});
+
+client.on("message_reaction", async (reaction) => {
+    console.log("REACTION RECEIVED", reaction);
 });

@@ -30,6 +30,7 @@ class LocalWebCache extends WebCache {
     }
 
     async persist(indexHtml, version) {
+        // version = (version+'').replace(/[^0-9.]/g,'');
         const filePath = path.join(this.path, `${version}.html`);
         fs.mkdirSync(this.path, { recursive: true });
         fs.writeFileSync(filePath, indexHtml);

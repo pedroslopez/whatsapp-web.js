@@ -1073,6 +1073,8 @@ declare namespace WAWebJS {
         }[]
         /** Send 'seen' status */
         sendSeen?: boolean
+        /** Bot Wid when doing a bot mention like @Meta AI */
+        invokedBotWid?: string
         /** Media to be sent */
         media?: MessageMedia
         /** Extra options */
