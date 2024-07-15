@@ -15,7 +15,7 @@ const { LoadUtils } = require('./util/Injected/Utils');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
 const WebCacheFactory = require('./webCache/WebCacheFactory');
-const { ClientInfo, Message, MessageMedia, Contact, Location, Poll, GroupNotification, Label, Call, Buttons, List, Reaction } = require('./structures');
+const { ClientInfo, Message, MessageMedia, Contact, Location, Poll, PollVote, GroupNotification, Label, Call, Buttons, List, Reaction } = require('./structures');
 const NoAuth = require('./authStrategies/NoAuth');
 
 /**
@@ -683,6 +683,17 @@ class Client extends EventEmitter {
                  */
                 this.emit(Events.MESSAGE_CIPHERTEXT, new Message(this, msg));
             });
+
+            await this.pupPage.exposeFunction('onPollVoteEvent', (vote) => {
+                const _vote = new PollVote(this, vote);
+                /**
+                 * Emitted when some poll option is selected or deselected,
+                 * shows a user's current selected option(s) on the poll
+                 * @event Client#vote_update
+                 */
+                this.emit(Events.VOTE_UPDATE, _vote);
+            });
+
         }
 
         await this.pupPage.evaluate(() => {
@@ -708,7 +719,14 @@ class Client extends EventEmitter {
                     }
                 }
             });
+            console.log(444444444444)
             window.Store.Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
+            window.Store.PollVote.on('add', (vote) => {
+                console.log('eeeeeeeeeee')
+                const pollVoteModel = window.WWebJS.getPollVoteModel(vote);
+                pollVoteModel && window.onPollVoteEvent(pollVoteModel);
+            });
+
 
             if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.1014111620')) {
                 const module = window.Store.AddonReactionTable;
