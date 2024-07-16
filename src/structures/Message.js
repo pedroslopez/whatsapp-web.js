@@ -1,13 +1,13 @@
-"use strict";
+'use strict';
 
-const Base = require("./Base");
-const MessageMedia = require("./MessageMedia");
-const Location = require("./Location");
-const Order = require("./Order");
-const Payment = require("./Payment");
-const Reaction = require("./Reaction");
-const Contact = require("./Contact");
-const { MessageTypes } = require("../util/Constants");
+const Base = require('./Base');
+const MessageMedia = require('./MessageMedia');
+const Location = require('./Location');
+const Order = require('./Order');
+const Payment = require('./Payment');
+const Reaction = require('./Reaction');
+const Contact = require('./Contact');
+const { MessageTypes } = require('../util/Constants');
 
 /**
  * Represents a Message on WhatsApp
@@ -52,8 +52,8 @@ class Message extends Base {
          * @type {string}
          */
         this.body = this.hasMedia
-            ? data.caption || ""
-            : data.body || data.pollName || "";
+            ? data.caption || ''
+            : data.body || data.pollName || '';
 
         /**
          * Message type
@@ -72,7 +72,7 @@ class Message extends Base {
          * @type {string}
          */
         this.from =
-            typeof data.from === "object" && data.from !== null
+            typeof data.from === 'object' && data.from !== null
                 ? data.from._serialized
                 : data.from;
 
@@ -84,7 +84,7 @@ class Message extends Base {
          * @type {string}
          */
         this.to =
-            typeof data.to === "object" && data.to !== null
+            typeof data.to === 'object' && data.to !== null
                 ? data.to._serialized
                 : data.to;
 
@@ -93,7 +93,7 @@ class Message extends Base {
          * @type {string}
          */
         this.author =
-            typeof data.author === "object" && data.author !== null
+            typeof data.author === 'object' && data.author !== null
                 ? data.author._serialized
                 : data.author;
 
@@ -102,12 +102,12 @@ class Message extends Base {
          * @type {string}
          */
         this.deviceType =
-            typeof data.id.id === "string" && data.id.id.length > 21
-                ? "android"
-                : typeof data.id.id === "string" &&
-                  data.id.id.substring(0, 2) === "3A"
-                ? "ios"
-                : "web";
+            typeof data.id.id === 'string' && data.id.id.length > 21
+                ? 'android'
+                : typeof data.id.id === 'string' &&
+                  data.id.id.substring(0, 2) === '3A'
+                ? 'ios'
+                : 'web';
         /**
          * Indicates if the message was forwarded
          * @type {boolean}
@@ -127,7 +127,7 @@ class Message extends Base {
          * @type {boolean}
          */
         this.isStatus =
-            data.isStatusV3 || data.id.remote === "status@broadcast";
+            data.isStatusV3 || data.id.remote === 'status@broadcast';
 
         /**
          * Indicates if the message was starred
@@ -174,8 +174,8 @@ class Message extends Base {
                 return undefined;
             }
             let description;
-            if (data.loc && typeof data.loc === "string") {
-                let splitted = data.loc.split("\n");
+            if (data.loc && typeof data.loc === 'string') {
+                let splitted = data.loc.split('\n');
                 description = {
                     name: splitted[0],
                     address: splitted[1],
@@ -208,11 +208,11 @@ class Message extends Base {
                       groupId: data.inviteGrp,
                       groupName: data.inviteGrpName,
                       fromId:
-                          "_serialized" in data.from
+                          '_serialized' in data.from
                               ? data.from._serialized
                               : data.from,
                       toId:
-                          "_serialized" in data.to
+                          '_serialized' in data.to
                               ? data.to._serialized
                               : data.to,
                   }
@@ -489,7 +489,7 @@ class Message extends Base {
      * @returns {Promise}
      */
     async forward(chat) {
-        const chatId = typeof chat === "string" ? chat : chat.id._serialized;
+        const chatId = typeof chat === 'string' ? chat : chat.id._serialized;
 
         await this.client.pupPage.evaluate(
             async (msgId, chatId) => {
@@ -514,7 +514,7 @@ class Message extends Base {
             if (!msg || !msg.mediaData) {
                 return undefined;
             }
-            if (msg.mediaData.mediaStage != "RESOLVED") {
+            if (msg.mediaData.mediaStage != 'RESOLVED') {
                 // try to resolve media
                 await msg.downloadMedia({
                     downloadEvenIfExpensive: true,
@@ -523,8 +523,8 @@ class Message extends Base {
             }
 
             if (
-                msg.mediaData.mediaStage.includes("ERROR") ||
-                msg.mediaData.mediaStage === "FETCHING"
+                msg.mediaData.mediaStage.includes('ERROR') ||
+                msg.mediaData.mediaStage === 'FETCHING'
             ) {
                 // media could not be downloaded
                 return undefined;
@@ -584,19 +584,19 @@ class Message extends Base {
                     if (
                         window.compareWwebVersions(
                             window.Debug.VERSION,
-                            ">=",
-                            "2.3000.0"
+                            '>=',
+                            '2.3000.0'
                         )
                     ) {
                         return window.Store.Cmd.sendRevokeMsgs(
                             chat,
-                            { list: [msg], type: "message" },
+                            { list: [msg], type: 'message' },
                             { clearMedia: true }
                         );
                     } else {
                         return window.Store.Cmd.sendRevokeMsgs(chat, [msg], {
                             clearMedia: true,
-                            type: msg.id.fromMe ? "Sender" : "Admin",
+                            type: msg.id.fromMe ? 'Sender' : 'Admin',
                         });
                     }
                 }
@@ -784,7 +784,7 @@ class Message extends Base {
                 )
             ) {
                 console.warn(
-                    "Mentions with an array of Contact are now deprecated. See more at https://github.com/pedroslopez/whatsapp-web.js/pull/2166."
+                    'Mentions with an array of Contact are now deprecated. See more at https://github.com/pedroslopez/whatsapp-web.js/pull/2166.'
                 );
                 options.mentions = options.mentions.map(
                     (a) => a.id._serialized
