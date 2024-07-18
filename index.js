@@ -19,6 +19,7 @@ module.exports = {
     ClientInfo: require('./src/structures/ClientInfo'),
     Location: require('./src/structures/Location'),
     Poll: require('./src/structures/Poll'),
+    PollVote: require('./src/structures/PollVote'),
     ProductMetadata: require('./src/structures/ProductMetadata'),
     List: require('./src/structures/List'),
     Buttons: require('./src/structures/Buttons'),
