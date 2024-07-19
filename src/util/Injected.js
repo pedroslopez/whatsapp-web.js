@@ -280,7 +280,7 @@ exports.LoadUtils = () => {
 
         if (options.linkPreview) {
             delete options.linkPreview;
-            const link = window.Store.Validators.findLink(content);
+            const link = await  window.Store.Validators.findLink(content);
             if (link) {
                 let preview = await window.Store.LinkPreview.getLinkPreview(link);
                 if (preview && preview.data) {
