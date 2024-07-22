@@ -920,6 +920,9 @@ class Client extends EventEmitter {
         } else if (content instanceof Poll) {
             internalOptions.poll = content;
             content = '';
+            setTimeout(async () => {
+                await this.interface.openChatWindow(chatId);
+            }, 3000);
         } else if (content instanceof Contact) {
             internalOptions.contactCard = content.id._serialized;
             content = '';
@@ -957,7 +960,7 @@ class Client extends EventEmitter {
             const msg = await window.WWebJS.sendMessage(chat, message, options, sendSeen);
             return window.WWebJS.getMessageModel(msg);
         }, chatId, content, internalOptions, sendSeen);
-
+        
         return new Message(this, newMessage);
     }
     
