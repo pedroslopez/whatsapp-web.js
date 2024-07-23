@@ -619,3 +619,8 @@ client.on('group_membership_request', async (notification) => {
 client.on('message_reaction', async (reaction) => {
     console.log('REACTION RECEIVED', reaction);
 });
+
+client.on('vote_update', (vote) => {
+    /** The vote that was affected: */
+    console.log(vote);
+});

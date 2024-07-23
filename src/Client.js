@@ -15,7 +15,7 @@ const { LoadUtils } = require('./util/Injected/Utils');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
 const WebCacheFactory = require('./webCache/WebCacheFactory');
-const { ClientInfo, Message, MessageMedia, Contact, Location, Poll, GroupNotification, Label, Call, Buttons, List, Reaction } = require('./structures');
+const { ClientInfo, Message, MessageMedia, Contact, Location, Poll, PollVote, GroupNotification, Label, Call, Buttons, List, Reaction } = require('./structures');
 const NoAuth = require('./authStrategies/NoAuth');
 
 /**
@@ -57,6 +57,7 @@ const NoAuth = require('./authStrategies/NoAuth');
  * @fires Client#contact_changed
  * @fires Client#group_admin_changed
  * @fires Client#group_membership_request
+ * @fires Client#vote_update
  */
 class Client extends EventEmitter {
     constructor(options = {}) {
@@ -396,7 +397,7 @@ class Client extends EventEmitter {
                          * @param {GroupNotification} notification GroupNotification with more information about the action
                          */
                         this.emit(Events.GROUP_ADMIN_CHANGED, notification);
-                    } else if (msg.subtype === 'created_membership_requests') {
+                    } else if (msg.subtype === 'membership_approval_request') {
                         /**
                          * Emitted when some user requested to join the group
                          * that has the membership approval mode turned on
@@ -685,6 +686,16 @@ class Client extends EventEmitter {
             });
         }
 
+        await page.exposeFunction('onPollVoteEvent', (vote) => {
+            const _vote = new PollVote(this, vote);
+            /**
+             * Emitted when some poll option is selected or deselected,
+             * shows a user's current selected option(s) on the poll
+             * @event Client#vote_update
+             */
+            this.emit(Events.VOTE_UPDATE, _vote);
+        });
+
         await this.pupPage.evaluate(() => {
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
@@ -709,6 +720,10 @@ class Client extends EventEmitter {
                 }
             });
             window.Store.Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
+            window.Store.PollVote.on('add', (vote) => {
+                const pollVoteModel = window.WWebJS.getPollVoteModel(vote);
+                pollVoteModel && window.onPollVoteEvent(pollVoteModel);
+            });
 
             if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.1014111620')) {
                 const module = window.Store.AddonReactionTable;
@@ -880,7 +895,7 @@ class Client extends EventEmitter {
             sendMediaAsDocument: options.sendMediaAsDocument,
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
-            parseVCards: options.parseVCards === false ? false : true,
+            parseVCards: options.parseVCards !== false,
             mentionedJidList: options.mentions || [],
             groupMentions: options.groupMentions,
             invokedBotWid: options.invokedBotWid,
