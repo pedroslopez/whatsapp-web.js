@@ -686,7 +686,7 @@ class Client extends EventEmitter {
             });
         }
 
-        await page.exposeFunction('onPollVoteEvent', (vote) => {
+        await this.pupPage.exposeFunction('onPollVoteEvent', (vote) => {
             const _vote = new PollVote(this, vote);
             /**
              * Emitted when some poll option is selected or deselected,
