@@ -434,10 +434,7 @@ class Message extends Base {
         const chatId = typeof chat === 'string' ? chat : chat.id._serialized;
 
         await this.client.pupPage.evaluate(async (msgId, chatId) => {
-            let msg = window.Store.Msg.get(msgId);
-            let chat = window.Store.Chat.get(chatId);
-
-            return await chat.forwardMessages([msg]);
+            return window.WWebJS.forwardMessage(chatId, msgId);
         }, this.id._serialized, chatId);
     }
 
@@ -508,7 +505,11 @@ class Message extends Base {
             
             const canRevoke = window.Store.MsgActionChecks.canSenderRevokeMsg(msg) || window.Store.MsgActionChecks.canAdminRevokeMsg(msg);
             if (everyone && canRevoke) {
-                return window.Store.Cmd.sendRevokeMsgs(chat, [msg], { clearMedia: true, type: msg.id.fromMe ? 'Sender' : 'Admin' });
+                if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.0')) {
+                    return window.Store.Cmd.sendRevokeMsgs(chat, { list: [msg], type: 'message' }, { clearMedia: true });
+                } else {
+                    return window.Store.Cmd.sendRevokeMsgs(chat, [msg], { clearMedia: true, type: msg.id.fromMe ? 'Sender' : 'Admin' });
+                }
             }
 
             return window.Store.Cmd.sendDeleteMsgs(chat, [msg], true);
