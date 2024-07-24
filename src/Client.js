@@ -1731,7 +1731,7 @@ class Client extends EventEmitter {
      */
     async getContactDeviceCount(contactId) {
         let devices = await window.Store.DeviceList.getDeviceIds([window.Store.WidFactory.createWid(contactId)]);
-        if(devices && devices.length  && devices[0] != null && typeof devices[0].devices == "object"){
+        if(devices && devices.length  && devices[0] != null && typeof devices[0].devices == 'object'){
             return devices[0].devices.length;
         }
         return 0;
