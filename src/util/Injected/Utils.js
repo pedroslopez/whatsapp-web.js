@@ -1007,5 +1007,15 @@ exports.LoadUtils = () => {
         if (response.messageSendResult === 'OK') return true;
         return false;
     };
+    
+    window.WWebJS.getStatusModel = status => {
+        let res = status.serialize();
+        res.msgs = status._msgs.map(msg => window.WWebJS.getMessageModel(msg));
+        return res;
+    };
 
+    window.WWebJS.getAllStatuses = () => {
+        const statuses = window.Store.Status.getModelsArray();
+        return statuses.map(status => window.WWebJS.getStatusModel(status));
+    };
 };
