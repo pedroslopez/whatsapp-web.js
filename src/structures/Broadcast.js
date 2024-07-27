@@ -4,7 +4,7 @@ const Base = require('./Base');
 const Message = require('./Message');
 
 /**
- * Represents a Message on WhatsApp
+ * Represents a Status/Story on WhatsApp
  * @extends {Base}
  */
 class Broadcast extends Base {
@@ -43,11 +43,11 @@ class Broadcast extends Base {
          * Messages statuses
          * @type {Message[]}
          */
-        this.msgs = data.msgs.map(msg => new Message(msg));
+        this.msgs = data.msgs.map(msg => new Message(super.client, msg));
 
         return super._patch(data);
     }
-    
+
     /**
      * Returns the Chat this message was sent in
      * @returns {Promise<Chat>}
