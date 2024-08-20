@@ -323,6 +323,7 @@ class Client extends EventEmitter {
         // remove after 2.3000.x hard release
         await page.evaluateOnNewDocument(() => {
             const originalError = Error;
+            window.originalError = originalError;
             //eslint-disable-next-line no-global-assign
             Error = function (message) {
                 const error = new originalError(message);
