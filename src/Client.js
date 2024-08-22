@@ -764,6 +764,9 @@ class Client extends EventEmitter {
         const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
 
         const requestedVersion = this.options.webVersion;
+if (requestedVersion && requestedVersion.startsWith("2.")){
+    console.log(`[Warning] You are trying to use an outdated web.whatsapp version (${requestedVersion}). Only versions >3.0 are supported now. Consider removing webcache & webVersionCache from client creation.`)
+}
         const versionContent = await webCache.resolve(requestedVersion);
 
         if(versionContent) {
