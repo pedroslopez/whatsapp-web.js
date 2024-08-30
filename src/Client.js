@@ -94,9 +94,16 @@ class Client extends EventEmitter {
      */
     async inject(reinject = false) {
         await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', {timeout: this.options.authTimeoutMs});
-
-        const version = await this.getWWebVersion();
-        const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
+        let isCometOrAbove = true
+        try{
+            const version = await this.getWWebVersion();
+            isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
+        }catch(e){
+            this.emit(Events.ERRO, e);
+            
+            isCometOrAbove = true//tenta burlar o erro
+        }
+            
 
         if (isCometOrAbove) {
             await this.pupPage.evaluate(ExposeAuthStore);
@@ -348,7 +355,12 @@ class Client extends EventEmitter {
                 await this.authStrategy.afterBrowserInitialized();
                 this.lastLoggedOut = false;
             }
-            await this.inject(true);
+            try{
+                await this.inject(true);
+            }
+            catch(e){
+                this.emit(Events.ERRO, e);
+            }
         });
     }
 
