@@ -95,8 +95,9 @@ class Client extends EventEmitter {
     async inject(reinject = false) {
         await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', {timeout: this.options.authTimeoutMs});
         let isCometOrAbove = true
+        let version =''
         try{
-            const version = await this.getWWebVersion();
+            version = await this.getWWebVersion();
             isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
         }catch(e){
             this.emit(Events.ERRO, e);
