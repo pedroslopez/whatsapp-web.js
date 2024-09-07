@@ -272,22 +272,22 @@ class Chat extends Base {
     }
 
     /**
-     * @param {number} value The value to set the message disappear after time to. Valid values are 0, 1, 2, 3. 0 for message expiration removal, 1 for 24 hours message expiration, 2 for 7 days message expiration, 3 for 90 days message expiration
+     * @param {number} days The value to set the message disappear after time to. Valid values are 0, 1, 2, 3. 0 for message expiration removal, 1 for 24 hours message expiration, 2 for 7 days message expiration, 3 for 90 days message expiration
      * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
      */
-    async setDisappearing(value) {
-        switch (value) {
+    async setDisappearing(days) {
+        switch (days) {
             case 0:
-                value = 0;
+                days = 0;
                 break;
             case 1:
-                value = 86400;
+                days = 86400;
                 break;
-            case 2:
-                value = 604800;
+            case 7:
+                days = 604800;
                 break;
-            case 3:
-                value = 7776000;
+            case 90:
+                days = 7776000;
                 break;
             default:
                 return false;
@@ -302,9 +302,9 @@ class Chat extends Base {
             } catch (err) {
                 return false;
             }
-        }, this.id._serialized, value);
+        }, this.id._serialized, days);
 
-        result && (this.ephemeralDuration = value);
+        result && (this.ephemeralDuration = days);
         return result;
     }
 }

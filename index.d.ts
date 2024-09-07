@@ -1433,7 +1433,7 @@ declare namespace WAWebJS {
         /** Add or remove labels to this Chat */
         changeLabels: (labelIds: Array<string | number>) => Promise<void>,
         /** Set disappearing message */
-        setDisappearing: (value: number) => Promise<boolean>
+        setDisappearing: (days: number) => Promise<boolean>
     }
 
     export interface MessageSearchOptions {
