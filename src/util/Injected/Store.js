@@ -80,6 +80,7 @@ exports.ExposeStore = () => {
     window.Store.sendReactionToMsg = window.require('WAWebSendReactionMsgAction').sendReactionToMsg;
     window.Store.createOrUpdateReactionsModule = window.require('WAWebDBCreateOrUpdateReactions');
     window.Store.EphemeralFields = window.require('WAWebGetEphemeralFieldsMsgActionsUtils');
+    window.Store.EphemeralUpdate = window.require('WAWebChangeEphemeralDurationChatAction');
     window.Store.MsgActionChecks = window.require('WAWebMsgActionCapability');
     window.Store.QuotedMsg = window.require('WAWebQuotedMsgModelUtils');
     window.Store.LinkPreview = window.require('WAWebLinkPreviewChatAction');

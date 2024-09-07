@@ -270,6 +270,43 @@ class Chat extends Base {
     async changeLabels(labelIds) {
         return this.client.addOrRemoveLabels(labelIds, [this.id._serialized]);
     }
+
+    /**
+     * @param {number} value The value to set the message disappear after time to. Valid values are 0, 1, 2, 3. 0 for message expiration removal, 1 for 24 hours message expiration, 2 for 7 days message expiration, 3 for 90 days message expiration
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async setDisappearing(value) {
+        switch (value) {
+            case 0:
+                value = 0;
+                break;
+            case 1:
+                value = 86400;
+                break;
+            case 2:
+                value = 604800;
+                break;
+            case 3:
+                value = 7776000;
+                break;
+            default:
+                return false;
+        }
+
+        const result = await this.client.pupPage.evaluate(async (chatId, value) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = await window.Store.Chat.find(chatWid);
+            try {
+                await window.Store.EphemeralUpdate.changeEphemeralDuration(chat, value);
+                return true;
+            } catch (err) {
+                return false;
+            }
+        }, this.id._serialized, value);
+
+        result && (this.ephemeralDuration = value);
+        return result;
+    }
 }
 
 module.exports = Chat;

@@ -1431,7 +1431,9 @@ declare namespace WAWebJS {
         /** Returns array of all Labels assigned to this Chat */
         getLabels: () => Promise<Label[]>,
         /** Add or remove labels to this Chat */
-        changeLabels: (labelIds: Array<string | number>) => Promise<void>
+        changeLabels: (labelIds: Array<string | number>) => Promise<void>,
+        /** Set disappearing message */
+        setDisappearing: (value: number) => Promise<boolean>
     }
 
     export interface MessageSearchOptions {
