@@ -672,6 +672,8 @@ declare namespace WAWebJS {
         AUTHENTICATED = 'authenticated',
         AUTHENTICATION_FAILURE = 'auth_failure',
         READY = 'ready',
+        CHAT_REMOVED = 'chat_removed',
+        CHAT_ARCHIVED = 'chat_archived',
         MESSAGE_RECEIVED = 'message',
         MESSAGE_CIPHERTEXT = 'message_ciphertext',
         MESSAGE_CREATE = 'message_create',
@@ -679,6 +681,8 @@ declare namespace WAWebJS {
         MESSAGE_REVOKED_ME = 'message_revoke_me',
         MESSAGE_ACK = 'message_ack',
         MESSAGE_EDIT = 'message_edit',
+        UNREAD_COUNT = 'unread_count',
+        MESSAGE_REACTION = 'message_reaction',
         MEDIA_UPLOADED = 'media_uploaded',
         CONTACT_CHANGED = 'contact_changed',
         GROUP_JOIN = 'group_join',
@@ -691,8 +695,9 @@ declare namespace WAWebJS {
         DISCONNECTED = 'disconnected',
         STATE_CHANGED = 'change_state',
         BATTERY_CHANGED = 'change_battery',
+        INCOMING_CALL = 'call',
         REMOTE_SESSION_SAVED = 'remote_session_saved',
-        CALL = 'call'
+        VOTE_UPDATE = 'vote_update'
     }
 
     /** Group notification types */
