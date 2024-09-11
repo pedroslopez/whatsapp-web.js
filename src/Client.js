@@ -15,7 +15,7 @@ const { LoadUtils } = require('./util/Injected/Utils');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
 const WebCacheFactory = require('./webCache/WebCacheFactory');
-const { ClientInfo, Message, MessageMedia, Contact, Location, Poll, PollVote, GroupNotification, Label, Call, Buttons, List, Reaction } = require('./structures');
+const { ClientInfo, Message, MessageMedia, Contact, Location, Poll, GroupNotification, Label, Call, Buttons, List, Reaction } = require('./structures');
 const NoAuth = require('./authStrategies/NoAuth');
 
 /**
@@ -94,15 +94,15 @@ class Client extends EventEmitter {
      */
     async inject(reinject = false) {
         await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', {timeout: this.options.authTimeoutMs});
-        let isCometOrAbove = true
-        let version =''
+        let isCometOrAbove = true;
+        let version ='';
         try{
             version = await this.getWWebVersion();
             isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
         }catch(e){
             this.emit(Events.ERRO, e);
             
-            isCometOrAbove = true//tenta burlar o erro
+            isCometOrAbove = true;//tenta burlar o erro
         }
             
 
@@ -699,15 +699,15 @@ class Client extends EventEmitter {
             });
         }
 
-        await this.pupPage.exposeFunction('onPollVoteEvent', (vote) => {
-            const _vote = new PollVote(this, vote);
-            /**
-             * Emitted when some poll option is selected or deselected,
-             * shows a user's current selected option(s) on the poll
-             * @event Client#vote_update
-             */
-            this.emit(Events.VOTE_UPDATE, _vote);
-        });
+        // await this.pupPage.exposeFunction('onPollVoteEvent', (vote) => {
+        //     const _vote = new PollVote(this, vote);
+        //     /**
+        //      * Emitted when some poll option is selected or deselected,
+        //      * shows a user's current selected option(s) on the poll
+        //      * @event Client#vote_update
+        //      */
+        //     this.emit(Events.VOTE_UPDATE, _vote);
+        // });
 
         await this.pupPage.evaluate(() => {
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
@@ -733,10 +733,10 @@ class Client extends EventEmitter {
                 }
             });
             window.Store.Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
-            window.Store.PollVote.on('add', (vote) => {
-                const pollVoteModel = window.WWebJS.getPollVoteModel(vote);
-                pollVoteModel && window.onPollVoteEvent(pollVoteModel);
-            });
+            // window.Store.PollVote.on('add', (vote) => {
+            //     const pollVoteModel = window.WWebJS.getPollVoteModel(vote);
+            //     pollVoteModel && window.onPollVoteEvent(pollVoteModel);
+            // });
 
             if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.1014111620')) {
                 const module = window.Store.AddonReactionTable;
