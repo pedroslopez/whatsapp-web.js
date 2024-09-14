@@ -721,8 +721,8 @@ class Client extends EventEmitter {
                 }
             });
             window.Store.Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
-            window.Store.PollVote.on('add', (vote) => {
-                const pollVoteModel = window.WWebJS.getPollVoteModel(vote);
+            window.Store.PollVote.on('add', async (vote) => {
+                const pollVoteModel = await window.WWebJS.getPollVoteModel(vote);
                 pollVoteModel && window.onPollVoteEvent(pollVoteModel);
             });
 
@@ -803,7 +803,9 @@ class Client extends EventEmitter {
      */
     async logout() {
         await this.pupPage.evaluate(() => {
-            return window.Store.AppState.logout();
+            if (window.Store && window.Store.AppState && typeof window.Store.AppState.logout === 'function') {
+                return window.Store.AppState.logout();
+            }
         });
         await this.pupBrowser.close();
         
