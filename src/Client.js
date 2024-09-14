@@ -802,7 +802,9 @@ class Client extends EventEmitter {
      */
     async logout() {
         await this.pupPage.evaluate(() => {
-            return window.Store.AppState.logout();
+            if (window.Store && window.Store.AppState && typeof window.Store.AppState.logout === 'function') {
+                return window.Store.AppState.logout();
+            }
         });
         await this.pupBrowser.close();
         
