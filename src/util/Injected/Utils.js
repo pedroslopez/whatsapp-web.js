@@ -443,7 +443,7 @@ exports.LoadUtils = () => {
         const _vote = vote.serialize();
         if (!vote.parentMsgKey) return null;
         const msg =
-            window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([vote.parentMsgKey]))?.messages?.[0];
+            window.Store.Msg.get(vote.parentMsgKey) || (await window.Store.Msg.getMessagesById([vote.parentMsgKey]))?.messages?.[0];
         msg && (_vote.parentMessage = window.WWebJS.getMessageModel(msg));
         return _vote;
     };
