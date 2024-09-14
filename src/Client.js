@@ -720,8 +720,8 @@ class Client extends EventEmitter {
                 }
             });
             window.Store.Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
-            window.Store.PollVote.on('add', (vote) => {
-                const pollVoteModel = window.WWebJS.getPollVoteModel(vote);
+            window.Store.PollVote.on('add', async (vote) => {
+                const pollVoteModel = await window.WWebJS.getPollVoteModel(vote);
                 pollVoteModel && window.onPollVoteEvent(pollVoteModel);
             });
 
