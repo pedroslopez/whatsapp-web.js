@@ -56,6 +56,7 @@ client.on("auth_failure", (msg) => {
     console.error("AUTHENTICATION FAILURE", msg);
 });
 
+<<<<<<< HEAD
 client.on("ready", async () => {
     console.log("READY");
     const debugWWebVersion = await client.getWWebVersion();
@@ -67,6 +68,20 @@ client.on("ready", async () => {
     client.pupPage.on("error", function (err) {
         console.log("Page error: " + err.toString());
     });
+=======
+client.on('ready', async () => {
+    console.log('READY');
+    const debugWWebVersion = await client.getWWebVersion();
+    console.log(`WWebVersion = ${debugWWebVersion}`);
+
+    client.pupPage.on('pageerror', function(err) {
+        console.log('Page error: ' + err.toString());
+    });
+    client.pupPage.on('error', function(err) {
+        console.log('Page error: ' + err.toString());
+    });
+    
+>>>>>>> 8fdf2b840ea320cd407af49c88ffdbd9c68f1bd1
 });
 
 client.on("message", async (msg) => {
@@ -518,7 +533,11 @@ client.on("message", async (msg) => {
             requesterIds: ["number1@c.us", "number2@c.us"],
             sleep: null,
         });
+<<<<<<< HEAD
     } else if (msg.body === "!pinmsg") {
+=======
+    } else if (msg.body === '!pinmsg') {
+>>>>>>> 8fdf2b840ea320cd407af49c88ffdbd9c68f1bd1
         /**
          * Pins a message in a chat, a method takes a number in seconds for the message to be pinned.
          * WhatsApp default values for duration to pass to the method are:
@@ -718,6 +737,7 @@ client.on("group_membership_request", async (notification) => {
      */
     console.log(notification);
     /** You can approve or reject the newly appeared membership request: */
+<<<<<<< HEAD
     await client.approveGroupMembershipRequestss(
         notification.chatId,
         notification.author
@@ -730,4 +750,17 @@ client.on("group_membership_request", async (notification) => {
 
 client.on("message_reaction", async (reaction) => {
     console.log("REACTION RECEIVED", reaction);
+=======
+    await client.approveGroupMembershipRequestss(notification.chatId, notification.author);
+    await client.rejectGroupMembershipRequests(notification.chatId, notification.author);
+});
+
+client.on('message_reaction', async (reaction) => {
+    console.log('REACTION RECEIVED', reaction);
+});
+
+client.on('vote_update', (vote) => {
+    /** The vote that was affected: */
+    console.log(vote);
+>>>>>>> 8fdf2b840ea320cd407af49c88ffdbd9c68f1bd1
 });
