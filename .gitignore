@@ -75,5 +75,6 @@ typings/
 # local version cache
 .wwebjs_cache/
 
-# VS Code configurations
+# IDE's
+.idea
 .vscode
