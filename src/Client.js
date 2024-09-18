@@ -323,6 +323,7 @@ class Client extends EventEmitter {
         // remove after 2.3000.x hard release
         await page.evaluateOnNewDocument(() => {
             const originalError = Error;
+            window.originalError = originalError;
             //eslint-disable-next-line no-global-assign
             Error = function (message) {
                 const error = new originalError(message);
@@ -720,8 +721,8 @@ class Client extends EventEmitter {
                 }
             });
             window.Store.Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
-            window.Store.PollVote.on('add', (vote) => {
-                const pollVoteModel = window.WWebJS.getPollVoteModel(vote);
+            window.Store.PollVote.on('add', async (vote) => {
+                const pollVoteModel = await window.WWebJS.getPollVoteModel(vote);
                 pollVoteModel && window.onPollVoteEvent(pollVoteModel);
             });
 
@@ -802,7 +803,9 @@ class Client extends EventEmitter {
      */
     async logout() {
         await this.pupPage.evaluate(() => {
-            return window.Store.AppState.logout();
+            if (window.Store && window.Store.AppState && typeof window.Store.AppState.logout === 'function') {
+                return window.Store.AppState.logout();
+            }
         });
         await this.pupBrowser.close();
         
@@ -1034,7 +1037,7 @@ class Client extends EventEmitter {
             if(msg) return window.WWebJS.getMessageModel(msg);
 
             const params = messageId.split('_');
-            if(params.length !== 3) throw new Error('Invalid serialized message id specified');
+            if (params.length !== 3 && params.length !== 4) throw new Error('Invalid serialized message id specified');
 
             let messagesObject = await window.Store.Msg.getMessagesById([messageId]);
             if (messagesObject && messagesObject.messages.length) msg = messagesObject.messages[0];
@@ -1614,8 +1617,8 @@ class Client extends EventEmitter {
      * @returns {Promise<Array<GroupMembershipRequest>>} An array of membership requests
      */
     async getGroupMembershipRequests(groupId) {
-        return await this.pupPage.evaluate(async (gropId) => {
-            const groupWid = window.Store.WidFactory.createWid(gropId);
+        return await this.pupPage.evaluate(async (groupId) => {
+            const groupWid = window.Store.WidFactory.createWid(groupId);
             return await window.Store.MembershipRequestUtils.getMembershipApprovalRequests(groupWid);
         }, groupId);
     }
@@ -1720,6 +1723,21 @@ class Client extends EventEmitter {
             await window.Store.Settings.setAutoDownloadVideos(flag);
             return flag;
         }, flag);
+    }
+
+    /**
+     * Get user device count by ID
+     * Each WaWeb Connection counts as one device, and the phone (if exists) counts as one
+     * So for a non-enterprise user with one WaWeb connection it should return "2"
+     * @param {string} contactId
+     * @returns {number}
+     */
+    async getContactDeviceCount(contactId) {
+        let devices = await window.Store.DeviceList.getDeviceIds([window.Store.WidFactory.createWid(contactId)]);
+        if(devices && devices.length  && devices[0] != null && typeof devices[0].devices == 'object'){
+            return devices[0].devices.length;
+        }
+        return 0;
     }
 }
 

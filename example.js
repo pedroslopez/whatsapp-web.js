@@ -450,6 +450,14 @@ client.on('message', async msg => {
          */
         const result = await msg.pin(60); // Will pin a message for 1 minute
         console.log(result); // True if the operation completed successfully, false otherwise
+    }else if (msg.body === '!howManyConnections'){
+        /**
+         * Get user device count by ID
+         * Each WaWeb Connection counts as one device, and the phone (if exists) counts as one
+         * So for a non-enterprise user with one WaWeb connection it should return "2"
+         */
+        let deviceCount = await client.getContactDeviceCount(msg.from);
+        await msg.reply(`You have *${deviceCount}* devices connected`);
     }
 });
 
