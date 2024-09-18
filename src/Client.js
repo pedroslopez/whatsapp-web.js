@@ -1617,8 +1617,8 @@ class Client extends EventEmitter {
      * @returns {Promise<Array<GroupMembershipRequest>>} An array of membership requests
      */
     async getGroupMembershipRequests(groupId) {
-        return await this.pupPage.evaluate(async (gropId) => {
-            const groupWid = window.Store.WidFactory.createWid(gropId);
+        return await this.pupPage.evaluate(async (groupId) => {
+            const groupWid = window.Store.WidFactory.createWid(groupId);
             return await window.Store.MembershipRequestUtils.getMembershipApprovalRequests(groupWid);
         }, groupId);
     }
@@ -1723,6 +1723,21 @@ class Client extends EventEmitter {
             await window.Store.Settings.setAutoDownloadVideos(flag);
             return flag;
         }, flag);
+    }
+
+    /**
+     * Get user device count by ID
+     * Each WaWeb Connection counts as one device, and the phone (if exists) counts as one
+     * So for a non-enterprise user with one WaWeb connection it should return "2"
+     * @param {string} contactId
+     * @returns {number}
+     */
+    async getContactDeviceCount(contactId) {
+        let devices = await window.Store.DeviceList.getDeviceIds([window.Store.WidFactory.createWid(contactId)]);
+        if(devices && devices.length  && devices[0] != null && typeof devices[0].devices == 'object'){
+            return devices[0].devices.length;
+        }
+        return 0;
     }
 }
 
