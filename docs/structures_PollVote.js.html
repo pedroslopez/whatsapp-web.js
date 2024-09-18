@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.26.0 &raquo; Source: structures/Location.js</title>
+  <title>whatsapp-web.js 1.26.0 &raquo; Source: structures/PollVote.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -26,70 +26,71 @@
         </div>
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1>Source: structures/Location.js</h1>
+            <h1>Source: structures/PollVote.js</h1>
           </header>
           <article>
             <pre class="prettyprint linenums"><code>&#x27;use strict&#x27;;
 
+const Message &#x3D; require(&#x27;./Message&#x27;);
+const Base &#x3D; require(&#x27;./Base&#x27;);
+
 /**
- * Location send options
- * @typedef {Object} LocationSendOptions
- * @property {string} [name] Location name
- * @property {string} [address] Location address
- * @property {string} [url] URL address to be shown within a location message
+ * Selected poll option structure
+ * @typedef {Object} SelectedPollOption
+ * @property {number} id The local selected or deselected option ID
+ * @property {string} name The option name
  */
 
 /**
- * Location information
+ * Represents a Poll Vote on WhatsApp
+ * @extends {Base}
  */
-class Location {
-    /**
-     * @param {number} latitude
-     * @param {number} longitude
-     * @param {LocationSendOptions} [options] Location send options
-     */
-    constructor(latitude, longitude, options &#x3D; {}) {
+class PollVote extends Base {
+    constructor(client, data) {
+        super(client);
+
+        if (data) this._patch(data);
+    }
+
+    _patch(data) {
         /**
-         * Location latitude
+         * The person who voted
+         * @type {string}
+         */
+        this.voter &#x3D; data.sender;
+
+        /**
+         * The selected poll option(s)
+         * If it&#x27;s an empty array, the user hasn&#x27;t selected any options on the poll,
+         * may occur when they deselected all poll options
+         * @type {SelectedPollOption[]}
+         */
+        this.selectedOptions &#x3D;
+            data.selectedOptionLocalIds.length &gt; 0
+                ? data.selectedOptionLocalIds.map((e) &#x3D;&gt; ({
+                    name: data.parentMessage.pollOptions.find((x) &#x3D;&gt; x.localId &#x3D;&#x3D;&#x3D; e).name,
+                    localId: e
+                }))
+                : [];
+
+        /**
+         * Timestamp the option was selected or deselected at
          * @type {number}
          */
-        this.latitude &#x3D; latitude;
+        this.interractedAtTs &#x3D; data.senderTimestampMs;
 
         /**
-         * Location longitude
-         * @type {number}
+         * The poll creation message associated with the poll vote
+         * @type {Message}
          */
-        this.longitude &#x3D; longitude;
+        this.parentMessage &#x3D; new Message(this.client, data.parentMessage);
 
-        /**
-         * Name for the location
-         * @type {string|undefined}
-         */
-        this.name &#x3D; options.name;
-
-        /**
-         * Location address
-         * @type {string|undefined}
-         */
-        this.address &#x3D; options.address;
-
-        /**
-         * URL address to be shown within a location message
-         * @type {string|undefined}
-         */
-        this.url &#x3D; options.url;
-
-        /**
-         * Location full description
-         * @type {string|undefined}
-         */
-        this.description &#x3D; this.name &amp;amp;&amp;amp; this.address
-            ? &#x60;${this.name}\n${this.address}&#x60;
-            : this.name || this.address || &#x27;&#x27;;
+        return super._patch(data);
     }
 }
 
-module.exports &#x3D; Location;</code></pre>
+module.exports &#x3D; PollVote;
+</code></pre>
           </article>
         </div>
       </div>
