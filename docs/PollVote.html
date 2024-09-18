@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.26.0 &raquo; Class: Product</title>
+  <title>whatsapp-web.js 1.26.0 &raquo; Class: PollVote</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -25,10 +25,10 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
-            <h1><small></small><span class="symbol-name">Product</span></h1>
-            <p class="source-link">Source: <a href="structures_Product.js.html#source-line-10">structures/<wbr>Product.<wbr>js:10</a></p>
+            <h1><small></small><span class="symbol-name">PollVote</span></h1>
+            <p class="source-link">Source: <a href="structures_PollVote.js.html#source-line-17">structures/<wbr>PollVote.<wbr>js:17</a></p>
             <div class="symbol-classdesc">
-              <p>Represents a Product on WhatsAppBusiness</p>
+              <p>Represents a Poll Vote on WhatsApp</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -39,42 +39,31 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Product.html#currency">currency</a></dt>
+                    <dt><a href="PollVote.html#interractedAtTs">interractedAtTs</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Product.html#data">data</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="Product.html#id">id</a></dt>
+                    <dt><a href="PollVote.html#parentMessage">parentMessage</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Product.html#name">name</a></dt>
+                    <dt><a href="PollVote.html#selectedOptions">selectedOptions</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Product.html#price">price</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="Product.html#quantity">quantity</a></dt>
+                    <dt><a href="PollVote.html#voter">voter</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="Product.html#thumbnailUrl">thumbnailUrl</a></dt>
-                    <dd>
-                    </dd>
-                  </dl>
                 </div>
               </div>
             </div>
           </section>
           <section>
-            <h2 id="Product">new&nbsp;<span class="symbol-name">Product</span><span class="signature"><span class="signature-params">()</span></span></h2>
+            <h2 id="PollVote">new&nbsp;<span class="symbol-name">PollVote</span><span class="signature"><span class="signature-params">()</span></span></h2>
             <dl class="dl-compact">
               <dt>Extends</dt>
               <dd><a href="Base.html">Base</a></dd>
@@ -83,38 +72,26 @@
           <section>
             <h2>Properties</h2>
             <section>
-              <h3 id="currency"><span class="symbol-name">currency</span><small class="property-type">
-                  &nbsp;string</small></h3>
-              <p>Currency</p>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="data"><span class="symbol-name">data</span></h3>
-              <p>Product metadata</p>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="id"><span class="symbol-name">id</span><small class="property-type">
-                  &nbsp;string</small></h3>
-              <p>Product ID</p>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="name"><span class="symbol-name">name</span><small class="property-type">
-                  &nbsp;string</small></h3>
-              <p>Product Name</p>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="price"><span class="symbol-name">price</span><small class="property-type">
-                  &nbsp;string</small></h3>
-              <p>Price</p>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="quantity"><span class="symbol-name">quantity</span><small class="property-type">
+              <h3 id="interractedAtTs"><span class="symbol-name">interractedAtTs</span><small class="property-type">
                   &nbsp;number</small></h3>
-              <p>Product Quantity</p>
+              <p>Timestamp the option was selected or deselected at</p>
               <dl class="dl-compact">
               </dl>
-              <h3 id="thumbnailUrl"><span class="symbol-name">thumbnailUrl</span><small class="property-type">
+              <h3 id="parentMessage"><span class="symbol-name">parentMessage</span><small class="property-type">
+                  &nbsp;<a href="Message.html">Message</a></small></h3>
+              <p>The poll creation message associated with the poll vote</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="selectedOptions"><span class="symbol-name">selectedOptions</span><small class="property-type">
+                  &nbsp;Array of <a href="global.html#SelectedPollOption">SelectedPollOption</a></small></h3>
+              <p>The selected poll option(s)
+                If it's an empty array, the user hasn't selected any options on the poll,
+                may occur when they deselected all poll options</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="voter"><span class="symbol-name">voter</span><small class="property-type">
                   &nbsp;string</small></h3>
-              <p>Product Thumbnail</p>
+              <p>The person who voted</p>
               <dl class="dl-compact">
               </dl>
             </section>

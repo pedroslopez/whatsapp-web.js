@@ -176,7 +176,15 @@ declare namespace WAWebJS {
          * @param flag true/false on or off
          */
         setAutoDownloadVideos(flag: boolean): Promise<void>
-                
+
+        /**
+         * Get user device count by ID
+         * Each WaWeb Connection counts as one device, and the phone (if exists) counts as one
+         * So for a non-enterprise user with one WaWeb connection it should return "2"
+         * @param {string} contactId
+         */
+        getContactDeviceCount(contactId: string): Promise<Number>          
+        
         /** Changes and returns the archive state of the Chat */
         unarchiveChat(chatId: string): Promise<boolean>
 
