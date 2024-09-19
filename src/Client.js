@@ -1739,6 +1739,24 @@ class Client extends EventEmitter {
         }
         return 0;
     }
+
+    /**
+     * Sync history conversation
+     * @param {string} chatId
+     * @return {boolean} true/false
+     */
+    async syncHistory(chatId) {
+        return await this.pupPage.evaluate(async (chatId) => {
+            const chat = await window.WWebJS.getChat(chatId);
+            if (chat.endOfHistoryTransferType == window.Store.HistoryStates.COMPLETE_BUT_MORE_MESSAGES_REMAIN_ON_PRIMARY) {
+                window.Store.HistorySync.sendPeerDataOperationRequest(window.require("WAWebProtobufsE2E.pb").Message$PeerDataOperationRequestType.HISTORY_SYNC_ON_DEMAND, {
+                    chatId: chat.id
+                });
+                return true;
+            }
+            return false;
+        }, chatId);
+    }
 }
 
 module.exports = Client;
