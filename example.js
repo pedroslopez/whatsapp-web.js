@@ -460,11 +460,11 @@ client.on('message', async msg => {
         await msg.reply(`You have *${deviceCount}* devices connected`);
     } else if (msg.body === '!syncHistory') {
         const isSynced = await client.syncHistory(msg.from);
-        if (isSynced) {
-            msg.reply('Historical chat is syncing..');
-        } else {
-            msg.reply('There is no historical chat to sync.');
-        }
+        // Or through the Chat object:
+        // const chat = await client.getChatById(msg.from);
+        // const isSynced = await chat.syncHistory();
+        
+        await msg.reply(isSynced ? 'Historical chat is syncing..' : 'There is no historical chat to sync.');
     }
 });
 
