@@ -1741,6 +1741,24 @@ class Client extends EventEmitter {
             return 0;
         }, userId);
     }
+
+    /**
+     * Sync chat history conversation
+     * @param {string} chatId
+     * @return {Promise<boolean>} True if operation completed successfully, false otherwise.
+     */
+    async syncHistory(chatId) {
+        return await this.pupPage.evaluate(async (chatId) => {
+            const chat = await window.WWebJS.getChat(chatId);
+            if (chat.endOfHistoryTransferType === 0) {
+                await window.Store.HistorySync.sendPeerDataOperationRequest(3, {
+                    chatId: chat.id
+                });
+                return true;
+            }
+            return false;
+        }, chatId);
+    }
 }
 
 module.exports = Client;

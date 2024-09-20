@@ -450,7 +450,7 @@ client.on('message', async msg => {
          */
         const result = await msg.pin(60); // Will pin a message for 1 minute
         console.log(result); // True if the operation completed successfully, false otherwise
-    }else if (msg.body === '!howManyConnections'){
+    } else if (msg.body === '!howManyConnections') {
         /**
          * Get user device count by ID
          * Each WaWeb Connection counts as one device, and the phone (if exists) counts as one
@@ -458,6 +458,13 @@ client.on('message', async msg => {
          */
         let deviceCount = await client.getContactDeviceCount(msg.from);
         await msg.reply(`You have *${deviceCount}* devices connected`);
+    } else if (msg.body === '!syncHistory') {
+        const isSynced = await client.syncHistory(msg.from);
+        // Or through the Chat object:
+        // const chat = await client.getChatById(msg.from);
+        // const isSynced = await chat.syncHistory();
+        
+        await msg.reply(isSynced ? 'Historical chat is syncing..' : 'There is no historical chat to sync.');
     }
 });
 
