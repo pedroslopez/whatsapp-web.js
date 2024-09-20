@@ -1746,7 +1746,7 @@ class Client extends EventEmitter {
      * @return {Promise<boolean>} True if operation completed successfully, false otherwise.
      */
     async syncHistory(chatId) {
-        return this.pupPage.evaluate(async (chatId) => {
+        return await this.pupPage.evaluate(async (chatId) => {
             const chat = await window.WWebJS.getChat(chatId);
             if (chat.endOfHistoryTransferType === 0) {
                 await window.Store.HistorySync.sendPeerDataOperationRequest(3, {
