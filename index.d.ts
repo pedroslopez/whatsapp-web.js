@@ -183,7 +183,7 @@ declare namespace WAWebJS {
          * So for a non-enterprise user with one WaWeb connection it should return "2"
          * @param {string} contactId
          */
-        getContactDeviceCount(contactId: string): Promise<Number>          
+        getContactDeviceCount(contactId: string): Promise<number>          
         
         /** Changes and returns the archive state of the Chat */
         unarchiveChat(chatId: string): Promise<boolean>
