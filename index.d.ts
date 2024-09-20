@@ -1443,6 +1443,8 @@ declare namespace WAWebJS {
         getLabels: () => Promise<Label[]>,
         /** Add or remove labels to this Chat */
         changeLabels: (labelIds: Array<string | number>) => Promise<void>
+        /** Sync history conversation of the Chat */
+        syncHistory: () => Promise<boolean>
     }
 
     export interface MessageSearchOptions {

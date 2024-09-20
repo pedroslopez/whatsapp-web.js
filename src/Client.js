@@ -1741,9 +1741,9 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Sync history conversation
+     * Sync chat history conversation
      * @param {string} chatId
-     * @return {boolean} true/false
+     * @return {Promise<boolean>} True if operation completed successfully, false otherwise.
      */
     async syncHistory(chatId) {
         return this.pupPage.evaluate(async (chatId) => {
