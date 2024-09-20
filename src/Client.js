@@ -1749,7 +1749,7 @@ class Client extends EventEmitter {
         return this.pupPage.evaluate(async (chatId) => {
             const chat = await window.WWebJS.getChat(chatId);
             if (chat.endOfHistoryTransferType === 0) {
-                window.Store.HistorySync.sendPeerDataOperationRequest(3, {
+                await window.Store.HistorySync.sendPeerDataOperationRequest(3, {
                     chatId: chat.id
                 });
                 return true;
