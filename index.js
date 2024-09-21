@@ -28,7 +28,6 @@ module.exports = {
     NoAuth: require('./src/authStrategies/NoAuth'),
     LocalAuth: require('./src/authStrategies/LocalAuth'),
     RemoteAuth: require('./src/authStrategies/RemoteAuth'),
-    LegacySessionAuth: require('./src/authStrategies/LegacySessionAuth'),
     
     ...Constants
 };

@@ -270,6 +270,14 @@ class Chat extends Base {
     async changeLabels(labelIds) {
         return this.client.addOrRemoveLabels(labelIds, [this.id._serialized]);
     }
+
+    /**
+     * Sync chat history conversation
+     * @return {Promise<boolean>} True if operation completed successfully, false otherwise.
+     */
+    async syncHistory() {
+        return this.client.syncHistory(this.id._serialized);
+    }
 }
 
 module.exports = Chat;
