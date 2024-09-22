@@ -685,17 +685,17 @@ class Client extends EventEmitter {
                  */
                 this.emit(Events.MESSAGE_CIPHERTEXT, new Message(this, msg));
             });
-        }
 
-        await this.pupPage.exposeFunction('onPollVoteEvent', (vote) => {
-            const _vote = new PollVote(this, vote);
-            /**
-             * Emitted when some poll option is selected or deselected,
-             * shows a user's current selected option(s) on the poll
-             * @event Client#vote_update
-             */
-            this.emit(Events.VOTE_UPDATE, _vote);
-        });
+            await this.pupPage.exposeFunction('onPollVoteEvent', (vote) => {
+                const _vote = new PollVote(this, vote);
+                /**
+                 * Emitted when some poll option is selected or deselected,
+                 * shows a user's current selected option(s) on the poll
+                 * @event Client#vote_update
+                 */
+                this.emit(Events.VOTE_UPDATE, _vote);
+            });
+        }
 
         await this.pupPage.evaluate(() => {
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
