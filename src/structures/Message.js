@@ -333,12 +333,9 @@ class Message extends Base {
             );
             this.pollInvalidated = data.pollInvalidated;
             this.isSentCagPollCreation = data.isSentCagPollCreation;
-
-            delete this._data.pollName;
-            delete this._data.pollOptions;
-            delete this._data.pollSelectableOptionsCount;
-            delete this._data.pollInvalidated;
-            delete this._data.isSentCagPollCreation;
+            this.messageSecret = Object.keys(data.messageSecret).map(
+                (key) => data.messageSecret[key]
+            );
         }
 
         return super._patch(data);
@@ -354,8 +351,11 @@ class Message extends Base {
      * @returns {Promise<Message>}
      */
     async reload() {
-        const newData = await this.client.pupPage.evaluate((msgId) => {
-            const msg = window.Store.Msg.get(msgId);
+        const newData = await this.client.pupPage.evaluate(async (msgId) => {
+            const msg =
+                window.Store.Msg.get(msgId) ||
+                (await window.Store.Msg.getMessagesById([msgId]))
+                    ?.messages?.[0];
             if (!msg) return null;
             return window.WWebJS.getMessageModel(msg);
         }, this.id._serialized);
@@ -422,8 +422,11 @@ class Message extends Base {
     async getQuotedMessage() {
         if (!this.hasQuotedMsg) return undefined;
 
-        const quotedMsg = await this.client.pupPage.evaluate((msgId) => {
-            const msg = window.Store.Msg.get(msgId);
+        const quotedMsg = await this.client.pupPage.evaluate(async (msgId) => {
+            const msg =
+                window.Store.Msg.get(msgId) ||
+                (await window.Store.Msg.getMessagesById([msgId]))
+                    ?.messages?.[0];
             const quotedMsg = window.Store.QuotedMsg.getQuotedMsgObj(msg);
             return window.WWebJS.getMessageModel(quotedMsg);
         }, this.id._serialized);
@@ -462,11 +465,12 @@ class Message extends Base {
     async react(reaction) {
         await this.client.pupPage.evaluate(
             async (messageId, reaction) => {
-                if (!messageId) {
-                    return undefined;
-                }
-
-                const msg = await window.Store.Msg.get(messageId);
+                if (!messageId) return null;
+                const msg =
+                    window.Store.Msg.get(messageId) ||
+                    (await window.Store.Msg.getMessagesById([messageId]))
+                        ?.messages?.[0];
+                if (!msg) return null;
                 await window.Store.sendReactionToMsg(msg, reaction);
             },
             this.id._serialized,
@@ -510,9 +514,12 @@ class Message extends Base {
         }
 
         const result = await this.client.pupPage.evaluate(async (msgId) => {
-            const msg = window.Store.Msg.get(msgId);
+            const msg =
+                window.Store.Msg.get(msgId) ||
+                (await window.Store.Msg.getMessagesById([msgId]))
+                    ?.messages?.[0];
             if (!msg || !msg.mediaData) {
-                return undefined;
+                return null;
             }
             if (msg.mediaData.mediaStage != 'RESOLVED') {
                 // try to resolve media
@@ -613,8 +620,10 @@ class Message extends Base {
      */
     async star() {
         await this.client.pupPage.evaluate(async (msgId) => {
-            let msg = window.Store.Msg.get(msgId);
-
+            const msg =
+                window.Store.Msg.get(msgId) ||
+                (await window.Store.Msg.getMessagesById([msgId]))
+                    ?.messages?.[0];
             if (window.Store.MsgActionChecks.canStarMsg(msg)) {
                 let chat = await window.Store.Chat.find(msg.id.remote);
                 return window.Store.Cmd.sendStarMsgs(chat, [msg], false);
@@ -627,8 +636,10 @@ class Message extends Base {
      */
     async unstar() {
         await this.client.pupPage.evaluate(async (msgId) => {
-            let msg = window.Store.Msg.get(msgId);
-
+            const msg =
+                window.Store.Msg.get(msgId) ||
+                (await window.Store.Msg.getMessagesById([msgId]))
+                    ?.messages?.[0];
             if (window.Store.MsgActionChecks.canStarMsg(msg)) {
                 let chat = await window.Store.Chat.find(msg.id.remote);
                 return window.Store.Cmd.sendUnstarMsgs(chat, [msg], false);
@@ -683,7 +694,10 @@ class Message extends Base {
      */
     async getInfo() {
         const info = await this.client.pupPage.evaluate(async (msgId) => {
-            const msg = window.Store.Msg.get(msgId);
+            const msg =
+                window.Store.Msg.get(msgId) ||
+                (await window.Store.Msg.getMessagesById([msgId]))
+                    ?.messages?.[0];
             if (!msg || !msg.id.fromMe) return null;
 
             return new Promise((resolve) => {
@@ -722,7 +736,10 @@ class Message extends Base {
     async getPayment() {
         if (this.type === MessageTypes.PAYMENT) {
             const msg = await this.client.pupPage.evaluate(async (msgId) => {
-                const msg = window.Store.Msg.get(msgId);
+                const msg =
+                    window.Store.Msg.get(msgId) ||
+                    (await window.Store.Msg.getMessagesById([msgId]))
+                        ?.messages?.[0];
                 if (!msg) return null;
                 return msg.serialize();
             }, this.id._serialized);
@@ -808,13 +825,16 @@ class Message extends Base {
         }
         const messageEdit = await this.client.pupPage.evaluate(
             async (msgId, message, options) => {
-                let msg = window.Store.Msg.get(msgId);
+                const msg =
+                    window.Store.Msg.get(msgId) ||
+                    (await window.Store.Msg.getMessagesById([msgId]))
+                        ?.messages?.[0];
                 if (!msg) return null;
 
-                let catEdit =
+                let canEdit =
                     window.Store.MsgActionChecks.canEditText(msg) ||
                     window.Store.MsgActionChecks.canEditCaption(msg);
-                if (catEdit) {
+                if (canEdit) {
                     const msgEdit = await window.WWebJS.editMessage(
                         msg,
                         message,
