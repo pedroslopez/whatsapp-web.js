@@ -1729,15 +1729,17 @@ class Client extends EventEmitter {
      * Get user device count by ID
      * Each WaWeb Connection counts as one device, and the phone (if exists) counts as one
      * So for a non-enterprise user with one WaWeb connection it should return "2"
-     * @param {string} contactId
-     * @returns {number}
+     * @param {string} userId
+     * @returns {Promise<number>}
      */
-    async getContactDeviceCount(contactId) {
-        let devices = await window.Store.DeviceList.getDeviceIds([window.Store.WidFactory.createWid(contactId)]);
-        if(devices && devices.length  && devices[0] != null && typeof devices[0].devices == 'object'){
-            return devices[0].devices.length;
-        }
-        return 0;
+    async getContactDeviceCount(userId) {
+        return await this.pupPage.evaluate(async (userId) => {
+            const devices = await window.Store.DeviceList.getDeviceIds([window.Store.WidFactory.createWid(userId)]);
+            if (devices && devices.length && devices[0] != null && typeof devices[0].devices == 'object') {
+                return devices[0].devices.length;
+            }
+            return 0;
+        }, userId);
     }
 
     /**
