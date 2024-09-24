@@ -17,6 +17,7 @@ const ContactFactory = require('./factories/ContactFactory');
 const WebCacheFactory = require('./webCache/WebCacheFactory');
 const { ClientInfo, Message, MessageMedia, Contact, Location, Poll, PollVote, GroupNotification, Label, Call, Buttons, List, Reaction } = require('./structures');
 const NoAuth = require('./authStrategies/NoAuth');
+const {exposeFunctionIfAbsent} = require('./util/Puppeteer');
 
 /**
  * Starting point for interacting with the WhatsApp Web API
@@ -146,7 +147,7 @@ class Client extends EventEmitter {
                 return typeof window.onQRChangedEvent !== 'undefined';
             });
             if (!injected) {
-                await this.pupPage.exposeFunction('onQRChangedEvent', async (qr) => {
+                await exposeFunctionIfAbsent(this.pupPage, 'onQRChangedEvent', async (qr) => {
                     /**
                     * Emitted when a QR code is received
                     * @event Client#qr
@@ -179,14 +180,14 @@ class Client extends EventEmitter {
         }
 
         if (!reinject) {
-            await this.pupPage.exposeFunction('onAuthAppStateChangedEvent', async (state) => {
+            await exposeFunctionIfAbsent(this.pupPage, 'onAuthAppStateChangedEvent', async (state) => {
                 if (state == 'UNPAIRED_IDLE') {
                     // refresh qr code
                     window.Store.Cmd.refreshQR();
                 }
             });
 
-            await this.pupPage.exposeFunction('onAppStateHasSyncedEvent', async () => {
+            await exposeFunctionIfAbsent(this.pupPage, 'onAppStateHasSyncedEvent', async () => {
                 const authEventPayload = await this.authStrategy.getAuthEventPayload();
                 /**
                  * Emitted when authentication is successful
@@ -242,7 +243,7 @@ class Client extends EventEmitter {
                 this.authStrategy.afterAuthReady();
             });
             let lastPercent = null;
-            await this.pupPage.exposeFunction('onOfflineProgressUpdateEvent', async (percent) => {
+            await exposeFunctionIfAbsent(this.pupPage, 'onOfflineProgressUpdateEvent', async (percent) => {
                 if (lastPercent !== percent) {
                     lastPercent = percent;
                     this.emit(Events.LOADING_SCREEN, percent, 'WhatsApp'); // Message is hardcoded as "WhatsApp" for now
@@ -253,7 +254,7 @@ class Client extends EventEmitter {
             return typeof window.onLogoutEvent !== 'undefined';
         });
         if (!logoutCatchInjected) {
-            await this.pupPage.exposeFunction('onLogoutEvent', async () => {
+            await exposeFunctionIfAbsent(this.pupPage, 'onLogoutEvent', async () => {
                 this.lastLoggedOut = true;
                 await this.pupPage.waitForNavigation({waitUntil: 'load', timeout: 5000}).catch((_) => _);
             });
@@ -374,7 +375,7 @@ class Client extends EventEmitter {
      */
     async attachEventListeners(reinject = false) {
         if (!reinject) {
-            await this.pupPage.exposeFunction('onAddMessageEvent', msg => {
+            await exposeFunctionIfAbsent(this.pupPage, 'onAddMessageEvent', msg => {
                 if (msg.type === 'gp2') {
                     const notification = new GroupNotification(this, msg);
                     if (['add', 'invite', 'linked_group_join'].includes(msg.subtype)) {
@@ -441,7 +442,7 @@ class Client extends EventEmitter {
 
             let last_message;
 
-            await this.pupPage.exposeFunction('onChangeMessageTypeEvent', (msg) => {
+            await exposeFunctionIfAbsent(this.pupPage, 'onChangeMessageTypeEvent', (msg) => {
 
                 if (msg.type === 'revoked') {
                     const message = new Message(this, msg);
@@ -462,7 +463,7 @@ class Client extends EventEmitter {
 
             });
 
-            await this.pupPage.exposeFunction('onChangeMessageEvent', (msg) => {
+            await exposeFunctionIfAbsent(this.pupPage, 'onChangeMessageEvent', (msg) => {
 
                 if (msg.type !== 'revoked') {
                     last_message = msg;
@@ -500,7 +501,7 @@ class Client extends EventEmitter {
                 }
             });
 
-            await this.pupPage.exposeFunction('onRemoveMessageEvent', (msg) => {
+            await exposeFunctionIfAbsent(this.pupPage, 'onRemoveMessageEvent', (msg) => {
 
                 if (!msg.isNewMsg) return;
 
@@ -515,7 +516,7 @@ class Client extends EventEmitter {
 
             });
 
-            await this.pupPage.exposeFunction('onMessageAckEvent', (msg, ack) => {
+            await exposeFunctionIfAbsent(this.pupPage, 'onMessageAckEvent', (msg, ack) => {
 
                 const message = new Message(this, msg);
 
@@ -529,7 +530,7 @@ class Client extends EventEmitter {
 
             });
 
-            await this.pupPage.exposeFunction('onChatUnreadCountEvent', async (data) =>{
+            await exposeFunctionIfAbsent(this.pupPage, 'onChatUnreadCountEvent', async (data) =>{
                 const chat = await this.getChatById(data.id);
                 
                 /**
@@ -538,7 +539,7 @@ class Client extends EventEmitter {
                 this.emit(Events.UNREAD_COUNT, chat);
             });
 
-            await this.pupPage.exposeFunction('onMessageMediaUploadedEvent', (msg) => {
+            await exposeFunctionIfAbsent(this.pupPage, 'onMessageMediaUploadedEvent', (msg) => {
 
                 const message = new Message(this, msg);
 
@@ -550,7 +551,7 @@ class Client extends EventEmitter {
                 this.emit(Events.MEDIA_UPLOADED, message);
             });
 
-            await this.pupPage.exposeFunction('onAppStateChangedEvent', async (state) => {
+            await exposeFunctionIfAbsent(this.pupPage, 'onAppStateChangedEvent', async (state) => {
                 /**
                  * Emitted when the connection state changes
                  * @event Client#change_state
@@ -582,7 +583,7 @@ class Client extends EventEmitter {
                 }
             });
 
-            await this.pupPage.exposeFunction('onBatteryStateChangedEvent', (state) => {
+            await exposeFunctionIfAbsent(this.pupPage, 'onBatteryStateChangedEvent', (state) => {
                 const { battery, plugged } = state;
 
                 if (battery === undefined) return;
@@ -598,7 +599,7 @@ class Client extends EventEmitter {
                 this.emit(Events.BATTERY_CHANGED, { battery, plugged });
             });
 
-            await this.pupPage.exposeFunction('onIncomingCall', (call) => {
+            await exposeFunctionIfAbsent(this.pupPage, 'onIncomingCall', (call) => {
                 /**
                  * Emitted when a call is received
                  * @event Client#incoming_call
@@ -616,7 +617,7 @@ class Client extends EventEmitter {
                 this.emit(Events.INCOMING_CALL, cll);
             });
 
-            await this.pupPage.exposeFunction('onReaction', (reactions) => {
+            await exposeFunctionIfAbsent(this.pupPage, 'onReaction', (reactions) => {
                 for (const reaction of reactions) {
                     /**
                      * Emitted when a reaction is sent, received, updated or removed
@@ -637,7 +638,7 @@ class Client extends EventEmitter {
                 }
             });
 
-            await this.pupPage.exposeFunction('onRemoveChatEvent', async (chat) => {
+            await exposeFunctionIfAbsent(this.pupPage, 'onRemoveChatEvent', async (chat) => {
                 const _chat = await this.getChatById(chat.id);
 
                 /**
@@ -648,7 +649,7 @@ class Client extends EventEmitter {
                 this.emit(Events.CHAT_REMOVED, _chat);
             });
             
-            await this.pupPage.exposeFunction('onArchiveChatEvent', async (chat, currState, prevState) => {
+            await exposeFunctionIfAbsent(this.pupPage, 'onArchiveChatEvent', async (chat, currState, prevState) => {
                 const _chat = await this.getChatById(chat.id);
                 
                 /**
@@ -661,7 +662,7 @@ class Client extends EventEmitter {
                 this.emit(Events.CHAT_ARCHIVED, _chat, currState, prevState);
             });
 
-            await this.pupPage.exposeFunction('onEditMessageEvent', (msg, newBody, prevBody) => {
+            await exposeFunctionIfAbsent(this.pupPage, 'onEditMessageEvent', (msg, newBody, prevBody) => {
                 
                 if(msg.type === 'revoked'){
                     return;
@@ -676,7 +677,7 @@ class Client extends EventEmitter {
                 this.emit(Events.MESSAGE_EDIT, new Message(this, msg), newBody, prevBody);
             });
             
-            await this.pupPage.exposeFunction('onAddMessageCiphertextEvent', msg => {
+            await exposeFunctionIfAbsent(this.pupPage, 'onAddMessageCiphertextEvent', msg => {
                 
                 /**
                  * Emitted when messages are edited
@@ -686,7 +687,7 @@ class Client extends EventEmitter {
                 this.emit(Events.MESSAGE_CIPHERTEXT, new Message(this, msg));
             });
 
-            await this.pupPage.exposeFunction('onPollVoteEvent', (vote) => {
+            await exposeFunctionIfAbsent(this.pupPage, 'onPollVoteEvent', (vote) => {
                 const _vote = new PollVote(this, vote);
                 /**
                  * Emitted when some poll option is selected or deselected,
