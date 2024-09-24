@@ -142,26 +142,21 @@ class Client extends EventEmitter {
 
             // Register qr events
             let qrRetries = 0;
-            const injected = await this.pupPage.evaluate(() => {
-                return typeof window.onQRChangedEvent !== 'undefined';
-            });
-            if (!injected) {
-                await exposeFunctionIfAbsent(this.pupPage, 'onQRChangedEvent', async (qr) => {
-                    /**
-                    * Emitted when a QR code is received
-                    * @event Client#qr
-                    * @param {string} qr QR Code
-                    */
-                    this.emit(Events.QR_RECEIVED, qr);
-                    if (this.options.qrMaxRetries > 0) {
-                        qrRetries++;
-                        if (qrRetries > this.options.qrMaxRetries) {
-                            this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
-                            await this.destroy();
-                        }
+            await exposeFunctionIfAbsent(this.pupPage, 'onQRChangedEvent', async (qr) => {
+                /**
+                * Emitted when a QR code is received
+                * @event Client#qr
+                * @param {string} qr QR Code
+                */
+                this.emit(Events.QR_RECEIVED, qr);
+                if (this.options.qrMaxRetries > 0) {
+                    qrRetries++;
+                    if (qrRetries > this.options.qrMaxRetries) {
+                        this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
+                        await this.destroy();
                     }
-                });
-            }
+                }
+            });
 
 
             await this.pupPage.evaluate(async () => {
