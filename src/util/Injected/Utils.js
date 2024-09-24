@@ -1079,7 +1079,7 @@ exports.LoadUtils = () => {
         const channel = await window.WWebJS.getChat(channelId, { getAsModel: false });
 
         if (!channel || channel.newsletterMetadata.membershipType === 'owner') return false;
-        options = { eventSurface: 3, deleteLocalModels: options.deleteLocalModels || false };
+        options = { eventSurface: 3, deleteLocalModels: options.deleteLocalModels ?? true };
 
         try {
             if (action === 'Subscribe') {
