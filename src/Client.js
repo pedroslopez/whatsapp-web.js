@@ -241,15 +241,10 @@ class Client extends EventEmitter {
                 this.emit(Events.LOADING_SCREEN, percent, 'WhatsApp'); // Message is hardcoded as "WhatsApp" for now
             }
         });
-        const logoutCatchInjected = await this.pupPage.evaluate(() => {
-            return typeof window.onLogoutEvent !== 'undefined';
+        await exposeFunctionIfAbsent(this.pupPage, 'onLogoutEvent', async () => {
+            this.lastLoggedOut = true;
+            await this.pupPage.waitForNavigation({waitUntil: 'load', timeout: 5000}).catch((_) => _);
         });
-        if (!logoutCatchInjected) {
-            await exposeFunctionIfAbsent(this.pupPage, 'onLogoutEvent', async () => {
-                this.lastLoggedOut = true;
-                await this.pupPage.waitForNavigation({waitUntil: 'load', timeout: 5000}).catch((_) => _);
-            });
-        }
         await this.pupPage.evaluate(() => {
             window.AuthStore.AppState.on('change:state', (_AppState, state) => { window.onAuthAppStateChangedEvent(state); });
             window.AuthStore.AppState.on('change:hasSynced', () => { window.onAppStateHasSyncedEvent(); });
