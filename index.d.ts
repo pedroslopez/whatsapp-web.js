@@ -706,13 +706,10 @@ declare namespace WAWebJS {
 
     /** Options for searching for channels */
     export interface SearchChannelsOptions {
-        countryCodes?: string[];
-        sortOptions: {
-            field?: string;
-            order?: string;
-        };
         searchText?: string;
-        view?: string;
+        countryCodes?: string[];
+        skipSubscribedNewsletters?: boolean;
+        view?: number;
         limit?: number;
     }
 

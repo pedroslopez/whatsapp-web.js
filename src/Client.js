@@ -15,7 +15,7 @@ const { LoadUtils } = require('./util/Injected/Utils');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
 const WebCacheFactory = require('./webCache/WebCacheFactory');
-const { Buttons, Call, Channel, ClientInfo, Contact, GroupNotification, Label, List, Location, Message, MessageMedia, Poll, PollVote, Reaction } = require('./structures');
+const { Buttons, Call, ClientInfo, Contact, GroupNotification, Label, List, Location, Message, MessageMedia, Poll, PollVote, Reaction } = require('./structures');
 const NoAuth = require('./authStrategies/NoAuth');
 const {exposeFunctionIfAbsent} = require('./util/Puppeteer');
 
@@ -1708,49 +1708,57 @@ class Client extends EventEmitter {
      * the lastMessage property of a found channel will be 'null'
      *
      * @param {Object} searchOptions Search options
-     * @param {Array<string>} [searchOptions.countryCodes = [your local region]] Array of country codes in 'ISO 3166-1 alpha-2' standart (@see https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) to search for channels created in these countries
-     * @param {Object} searchOptions.sortOptions Sorting options
-     * @param {string} [searchOptions.sortOptions.field = 'subscribers'] Field to sort by, for all options: {@link Channel.SortField}
-     * @param {string} [searchOptions.sortOptions.order = 'desc'] Sorting order, for all options: {@link Channel.SortOrder}
      * @param {string} [searchOptions.searchText = ''] Text to search
-     * @param {string} [searchOptions.view = 'RECOMMENDED'] View type, for all options: {@link Channel.ViewType}
+     * @param {Array<string>} [searchOptions.countryCodes = [your local region]] Array of country codes in 'ISO 3166-1 alpha-2' standart (@see https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) to search for channels created in these countries
+     * @param {boolean} [searchOptions.skipSubscribedNewsletters = false] If true, channels that user is subscribed to won't appear in found channels
+     * @param {number} [searchOptions.view = 0] View type, makes sense only when the searchText is empty. Valid values to provide are:
+     * 0 for RECOMMENDED channels
+     * 1 for TRENDING channels
+     * 2 for POPULAR channels
+     * 3 for NEW channels
      * @param {number} [searchOptions.limit = 50] The limit of found channels to be appear in the returnig result
      * @returns {Promise<Array<Channel>|[]>} Returns an array of Channel objects or an empty array if no channels were found
      */
     async searchChannels(searchOptions = {}) {
-        return await this.pupPage.evaluate(async (searchOptions, _sortField, _sortOrder, _viewType) => {
-            const currentRegion = window.Store.ChannelUtils.currentRegion;
-            let {
-                searchText = '',
-                sortOptions = {
-                    field: _sortField.SUBSCRIBERS,
-                    order: _sortOrder.DESCENDING,
-                },
-                countryCodes = [currentRegion],
-                viewType = _viewType.RECOMMENDED,
-                limit = 50
-            } = searchOptions;
-
+        return await this.pupPage.evaluate(async ({
+            searchText = '',
+            countryCodes = [window.Store.ChannelUtils.currentRegion],
+            skipSubscribedNewsletters = false,
+            view = 0,
+            limit = 50
+        }) => {
             searchText = searchText.trim();
+            const currentRegion = window.Store.ChannelUtils.currentRegion;
+            if (![0, 1, 2, 3].includes(view)) view = 0;
+
             countryCodes = countryCodes.length === 1 && countryCodes[0] === currentRegion
                 ? countryCodes
-                : countryCodes.filter(code => Object.keys(window.Store.ChannelUtils.countryCodesIso).includes(code));
-            limit !== 50 && window.injectToFunction({ module: 'getNewsletterDirectoryPageSize', index: 0, function: 'getNewsletterDirectoryPageSize' }, () => limit);
+                : countryCodes.filter((code) => Object.keys(window.Store.ChannelUtils.countryCodesIso).includes(code));
+
+            const viewTypeMapping = {
+                0: 'RECOMMENDED',
+                1: 'TRENDING',
+                2: 'POPULAR',
+                3: 'NEW'
+            };
+
+            limit !== 50 && window.injectToFunction({ module: 'WAWebNewsletterGatingUtils', function: 'getNewsletterDirectoryPageSize' }, () => limit);
 
             searchOptions = {
                 searchText: searchText,
-                sortOpts: sortOptions,
                 countryCodes: countryCodes,
-                view: viewType,
+                skipSubscribedNewsletters: skipSubscribedNewsletters,
+                view: viewTypeMapping[view],
+                categories: [],
                 cursorToken: ''
             };
 
             const channels = (await window.Store.ChannelUtils.fetchNewsletterDirectories(searchOptions)).newsletters;
-            limit !== 50 && window.injectToFunction({ module: 'getNewsletterDirectoryPageSize', index: 0, function: 'getNewsletterDirectoryPageSize' }, (func, ...args) => func(args));
+            limit !== 50 && window.injectToFunction({ module: 'WAWebNewsletterGatingUtils', function: 'getNewsletterDirectoryPageSize' }, (func, ...args) => func(args));
             return channels
                 ? await Promise.all(channels.map((channel) => window.WWebJS.getChatModel(channel, { isChannel: true })))
                 : [];
-        }, searchOptions, Channel.SortField, Channel.SortOrder, Channel.ViewType);
+        }, searchOptions);
     }
 
     /**

@@ -94,27 +94,6 @@ class Channel extends Base {
         return super._patch(data);
     }
 
-    /** Enum for sort field property in {@link Client.searchChannels} */
-    static SortField = {
-        CREATION_TIME: 'creation_time',
-        SUBSCRIBERS: 'subscribers'
-    };
-
-    /** Enum for sort order property in {@link Client.searchChannels} */
-    static SortOrder = {
-        DESCENDING: 'desc',
-        ASCENDING: 'asc'
-    };
-
-    /** Enum for view type property in {@link Client.searchChannels} */
-    static ViewType = {
-        RECOMMENDED: 'RECOMMENDED',
-        MOST_ACTIVE: 'TRENDING',
-        POPULAR: 'POPULAR',
-        NEW: 'NEW',
-        FEATURED: 'FEATURED'
-    };
-
     /**
      * Gets the subscribers of the channel (only those who are in your contact list)
      * @param {?number} limit Optional parameter to specify the limit of subscribers to retrieve
