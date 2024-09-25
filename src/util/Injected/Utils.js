@@ -516,7 +516,7 @@ exports.LoadUtils = () => {
 
     window.WWebJS.getChannels = async () => {
         const channels = window.Store.NewsletterCollection.getModelsArray();
-        const channelPromises = channels.map((channel) => window.WWebJS.getChatModel(channel, { isChannel: true }));
+        const channelPromises = channels?.map((channel) => window.WWebJS.getChatModel(channel, { isChannel: true }));
         return await Promise.all(channelPromises);
     };
 
