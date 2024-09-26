@@ -179,7 +179,18 @@ declare namespace WAWebJS {
          * @param flag true/false on or off
          */
         setAutoDownloadVideos(flag: boolean): Promise<void>
-                
+
+        /**
+         * Get user device count by ID
+         * Each WaWeb Connection counts as one device, and the phone (if exists) counts as one
+         * So for a non-enterprise user with one WaWeb connection it should return "2"
+         * @param {string} contactId
+         */
+        getContactDeviceCount(userId: string): Promise<number>
+        
+        /** Sync history conversation of the Chat */
+        syncHistory(chatId: string): Promise<boolean>
+        
         /** Changes and returns the archive state of the Chat */
         unarchiveChat(chatId: string): Promise<boolean>
 
@@ -1457,6 +1468,8 @@ declare namespace WAWebJS {
         getLabels: () => Promise<Label[]>,
         /** Add or remove labels to this Chat */
         changeLabels: (labelIds: Array<string | number>) => Promise<void>
+        /** Sync history conversation of the Chat */
+        syncHistory: () => Promise<boolean>
     }
 
     export interface MessageSearchOptions {
