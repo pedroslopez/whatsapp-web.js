@@ -16,7 +16,7 @@ class InterfaceController {
     async openChatWindow(chatId) {
         await this.pupPage.evaluate(async chatId => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            const chat = window.Store.Chat.get(chat) || await window.Store.Chat.find(chatWid);
+            const chat = window.Store.Chat.get(chatWid) || await window.Store.Chat.find(chatWid);
             await window.Store.Cmd.openChatBottom(chat);
         }, chatId);
     }
