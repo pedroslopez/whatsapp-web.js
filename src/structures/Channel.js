@@ -318,17 +318,7 @@ class Channel extends Base {
      * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
      */
     async deleteChannel() {
-        return await this.client.pupPage.evaluate(async (channelId) => {
-            const channel = await window.WWebJS.getChat(channelId, { getAsModel: false });
-            if (!channel) return false;
-            try {
-                await window.Store.ChannelUtils.deleteNewsletterAction(channel);
-                return true;
-            } catch (err) {
-                if (err.name === 'ServerStatusCodeError') return false;
-                throw err;
-            }
-        }, this.id._serialized);
+        return this.client.deleteChannel(this.id._serialized);
     }
 
     /**

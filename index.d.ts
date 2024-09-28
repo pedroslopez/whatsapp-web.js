@@ -54,6 +54,9 @@ declare namespace WAWebJS {
         /** Creates a new channel */
         createChannel(title: string, options?: CreateChannelOptions): Promise<CreateChannelResult | string>
 
+        /** Deletes the channel you created */
+        deleteChannel(channelId: string): Promise<boolean>;
+
         /** Subscribe to channel */
         subscribeToChannel(channelId: string): Promise<boolean>
 

@@ -1799,6 +1799,25 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Deletes the channel you created
+     * @param {string} channelId The ID of a channel to delete
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async deleteChannel(channelId) {
+        return await this.client.pupPage.evaluate(async (channelId) => {
+            const channel = await window.WWebJS.getChat(channelId, { getAsModel: false });
+            if (!channel) return false;
+            try {
+                await window.Store.ChannelUtils.deleteNewsletterAction(channel);
+                return true;
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return false;
+                throw err;
+            }
+        }, channelId);
+    }
+
+    /**
      * Get all current Labels
      * @returns {Promise<Array<Label>>}
      */
