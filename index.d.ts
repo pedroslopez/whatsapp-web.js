@@ -240,19 +240,19 @@ declare namespace WAWebJS {
         deleteProfilePicture(): Promise<boolean>
 
         /** Gets an array of membership requests */
-        getGroupMembershipRequests: (groupId: string) => Promise<Array<GroupMembershipRequest>>
+        getGroupMembershipRequests(groupId: string): Promise<Array<GroupMembershipRequest>>
 
         /** Approves membership requests if any */
-        approveGroupMembershipRequests: (groupId: string, options: MembershipRequestActionOptions) => Promise<Array<MembershipRequestActionResult>>;
+        approveGroupMembershipRequests(groupId: string, options: MembershipRequestActionOptions): Promise<Array<MembershipRequestActionResult>>;
 
         /** Rejects membership requests if any */
-        rejectGroupMembershipRequests: (groupId: string, options: MembershipRequestActionOptions) => Promise<Array<MembershipRequestActionResult>>;
+        rejectGroupMembershipRequests(groupId: string, options: MembershipRequestActionOptions): Promise<Array<MembershipRequestActionResult>>;
         
         /**
          * Transfers a channel ownership to another user.
          * Note: the user you are transferring the channel ownership to must be a channel admin.
          */
-        transferChannelOwnership: (channelId: string, newOwnerId: string, options?: TransferChannelOwnershipOptions) => Promise<boolean>;
+        transferChannelOwnership(channelId: string, newOwnerId: string, options?: TransferChannelOwnershipOptions): Promise<boolean>;
 
         /** Generic event */
         on(event: string, listener: (...args: any) => void): this
