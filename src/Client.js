@@ -1701,6 +1701,43 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Options for transferring a channel ownership to another user
+     * @typedef {Object} TransferChannelOwnershipOptions
+     * @property {boolean} [shouldDismissSelfAsAdmin = false] If true, after the channel ownership is being transferred to another user, the current user will be dismissed as a channel admin and will become to a channel subscriber.
+     */
+
+    /**
+     * Transfers a channel ownership to another user.
+     * Note: the user you are transferring the channel ownership to must be a channel admin.
+     * @param {string} channelId
+     * @param {string} newOwnerId
+     * @param {TransferChannelOwnershipOptions} options
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async transferChannelOwnership(channelId, newOwnerId, options = {}) {
+        return await this.pupPage.evaluate(async (channelId, newOwnerId, options) => {
+            const channel = await window.WWebJS.getChat(channelId, { getAsModel: false });
+            const newOwner = window.Store.Contact.get(newOwnerId) || (await window.Store.Contact.find(newOwnerId));
+            if (!channel.newsletterMetadata) {
+                await window.Store.NewsletterMetadataCollection.update(channel.id);
+            }
+
+            try {
+                await window.Store.ChannelUtils.changeNewsletterOwnerAction(channel, newOwner);
+
+                if (options.shouldDismissSelfAsAdmin) {
+                    const meContact = window.Store.ContactCollection.getMeContact();
+                    meContact && (await window.Store.ChannelUtils.demoteNewsletterAdminAction(channel, meContact));
+                }
+            } catch (error) {
+                return false;
+            }
+
+            return true;
+        }, channelId, newOwnerId, options);
+    }
+
+    /**
      * Searches for channels based on search criteria, there are some notes:
      * 1. The method finds only channels you are not subscribed to currently
      * 2. If you have never been subscribed to a found channel

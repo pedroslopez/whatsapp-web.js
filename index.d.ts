@@ -244,6 +244,12 @@ declare namespace WAWebJS {
 
         /** Rejects membership requests if any */
         rejectGroupMembershipRequests: (groupId: string, options: MembershipRequestActionOptions) => Promise<Array<MembershipRequestActionResult>>;
+        
+        /**
+         * Transfers a channel ownership to another user.
+         * Note: the user you are transferring the channel ownership to must be a channel admin.
+         */
+        transferChannelOwnership: (channelId: string, newOwnerId: string, options?: TransferChannelOwnershipOptions) => Promise<boolean>;
 
         /** Generic event */
         on(event: string, listener: (...args: any) => void): this
@@ -1584,8 +1590,22 @@ declare namespace WAWebJS {
         demoteChannelAdmin(userId: string): Promise<boolean>;
         /** Loads channel messages, sorted from earliest to latest */
         fetchMessages: (searchOptions: MessageSearchOptions) => Promise<Message[]>;
+        /**
+         * Transfers a channel ownership to another user.
+         * Note: the user you are transferring the channel ownership to must be a channel admin.
+         */
+        transferChannelOwnership(newOwnerId: string, options?: TransferChannelOwnershipOptions): Promise<boolean>;
         /** Deletes the channel you created */
         deleteChannel(): Promise<boolean>;
+    }
+
+    /** Options for transferring a channel ownership to another user */
+    export interface TransferChannelOwnershipOptions {
+        /**
+         * If true, after the channel ownership is being transferred to another user,
+         * the current user will be dismissed as a channel admin and will become to a channel subscriber.
+         */
+        shouldDismissSelfAsAdmin?: boolean
     }
 
     /** Options for sending a message */

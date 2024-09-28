@@ -255,6 +255,23 @@ class Channel extends Base {
     }
 
     /**
+     * Options for transferring a channel ownership to another user
+     * @typedef {Object} TransferChannelOwnershipOptions
+     * @property {boolean} [shouldDismissSelfAsAdmin = false] If true, after the channel ownership is being transferred to another user, the current user will be dismissed as a channel admin and will become to a channel subscriber.
+     */
+
+    /**
+     * Transfers a channel ownership to another user.
+     * Note: the user you are transferring the channel ownership to must be a channel admin.
+     * @param {string} newOwnerId
+     * @param {TransferChannelOwnershipOptions} options
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async transferChannelOwnership(newOwnerId, options = {}) {
+        return this.client.transferChannelOwnership(this.id._serialized, newOwnerId, options);
+    }
+
+    /**
      * Loads channel messages, sorted from earliest to latest
      * @param {Object} searchOptions Options for searching messages. Right now only limit and fromMe is supported
      * @param {Number} [searchOptions.limit] The amount of messages to return. If no limit is specified, the available messages will be returned. Note that the actual number of returned messages may be smaller if there aren't enough messages in the conversation. Set this to Infinity to load all messages
