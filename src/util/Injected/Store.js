@@ -96,7 +96,7 @@ exports.ExposeStore = () => {
     window.Store.Settings = window.require('WAWebUserPrefsGeneral');
     window.Store.BotSecret = window.require('WAWebBotMessageSecret');
     window.Store.BotProfiles = window.require('WAWebBotProfileCollection');
-    window.Store.ContactCollection = window.require("WAWebContactCollection").ContactCollection;
+    window.Store.ContactCollection = window.require('WAWebContactCollection').ContactCollection;
     window.Store.DeviceList = window.require('WAWebApiDeviceList');
     window.Store.HistorySync = window.require('WAWebSendNonMessageDataRequest');
     window.Store.AddonReactionTable = window.require('WAWebAddonReactionTableMode').reactionTableMode;
