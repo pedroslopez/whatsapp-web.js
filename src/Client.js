@@ -984,9 +984,9 @@ class Client extends EventEmitter {
         const response = await this.pupPage.evaluate(async (chatId, channelId, options) => {
             const channelWid = window.Store.WidFactory.createWid(channelId);
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            const chat = await window.Store.Chat.find(chatWid);
+            const chat = window.Store.Chat.get(chatWid) || (await window.Store.Chat.find(chatWid));
 
-            if (!chatWid.isUser() || !window.Store.ChannelUtils.isNewsletterMultiAdminReceiverEnabled()) {
+            if (!chatWid.isUser()) {
                 return false;
             }
             
