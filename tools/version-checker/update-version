@@ -3,10 +3,30 @@
 const fs = require('fs');
 const fetch = require('node-fetch');
 
-const getLatestVersion = async (currentVersion) => { 
-    const res = await fetch(`https://web.whatsapp.com/check-update?version=${currentVersion}&platform=web`);
-    const data = await res.json();
-    return data.currentVersion;
+const getLatestVersion = async () => { 
+    const response = await fetch('https://web.whatsapp.com/', {
+        headers: {
+            'user-agent':
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+            'accept-language': 'en-US,en;q=1',
+            'sec-fetch-mode': 'navigate',
+            'cache-control': 'no-cache',
+            cookie: 'wa_lang_pref=en;wa_build=c',
+            pragma: 'no-cache',
+        },
+    });
+
+    const text = await response.text();
+    
+    if (text) {
+        const matches = text.match(/"client_revision"\s*:\s*(\d+)/) || [];
+
+        if (matches[1]) {
+            return `2.3000.${matches[1]}`;
+        }
+    }
+
+    return null;
 };
 
 const getCurrentVersion = () => {
@@ -40,12 +60,12 @@ const updateVersion = async (oldVersion, newVersion) => {
 
 (async () => {
     const currentVersion = getCurrentVersion();
-    const version = await getLatestVersion(currentVersion);
+    const version = (await getLatestVersion()) ?? currentVersion;
 
     console.log(`Current version: ${currentVersion}`);
     console.log(`Latest version: ${version}`);
 
-    if(currentVersion !== version) {
+    if (currentVersion !== version) {
         console.log('Updating files...');
         await updateVersion(currentVersion, version);
         console.log('Updated!');
