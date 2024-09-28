@@ -260,7 +260,7 @@ class Channel extends Base {
     async fetchMessages(searchOptions) {
         let messages = await this.client.pupPage.evaluate(async (channelId, searchOptions) => {
             const msgFilter = (m) => {
-                if (m.isNotification) {
+                if (m.isNotification || m.type === 'newsletter_notification') {
                     return false; // dont include notification messages
                 }
                 if (searchOptions && searchOptions.fromMe !== undefined && m.id.fromMe !== searchOptions.fromMe) {
