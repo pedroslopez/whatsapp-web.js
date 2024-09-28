@@ -5,9 +5,9 @@ exports.LoadUtils = () => {
 
     window.WWebJS.forwardMessage = async (chatId, msgId) => {
         const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
-        let chat = window.Store.Chat.get(chatId);
+        const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
 
-        if (window.compareWwebVersions(window.Debug.VERSION, '>', '2.3000.0')) {
+        if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.0')) {
             return window.Store.ForwardUtils.forwardMessagesToChats([msg], [chat], false);
         } else {
             return chat.forwardMessages([msg]);
@@ -471,7 +471,7 @@ exports.LoadUtils = () => {
                 chat = null;
             }
         } else {
-            chat = window.Store.Chat.get(chatWid) || await window.Store.Chat.find(chatWid);
+            chat = window.Store.Chat.get(chatWid) || (await window.Store.Chat.find(chatWid));
         }
 
         return getAsModel && chat
