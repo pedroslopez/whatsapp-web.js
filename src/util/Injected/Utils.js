@@ -486,11 +486,11 @@ exports.LoadUtils = () => {
                 window.Store.ChannelUtils.getRoleByIdentifier(inviteCode)
             );
 
-        const picUrl = response.newsletterPictureMetadataMixin.picture[0].queryPictureDirectPathOrMatchedOrEmptyResponseMixinGroup.value.directPath;
+        const picUrl = response.newsletterPictureMetadataMixin?.picture[0]?.queryPictureDirectPathOrEmptyResponseMixinGroup.value.directPath;
 
         return {
             id: response.idJid,
-            createdAtTs: response.newsletterCreationTimeMetadataMixin ? response.newsletterCreationTimeMetadataMixin.creationTimeValue : null,
+            createdAtTs: response.newsletterCreationTimeMetadataMixin.creationTimeValue,
             titleMetadata: {
                 title: response.newsletterNameMetadataMixin.nameElementValue,
                 updatedAtTs: response.newsletterNameMetadataMixin.nameUpdateTime
@@ -500,7 +500,7 @@ exports.LoadUtils = () => {
                 updatedAtTs: response.newsletterDescriptionMetadataMixin.descriptionQueryDescriptionResponseMixin.updateTime
             },
             inviteLink: `https://whatsapp.com/channel/${response.newsletterInviteLinkMetadataMixin.inviteCode}`,
-            membershipType: window.Store.ChannelUtils.getRoleByIdentifier(inviteCode) || 'viewer',
+            membershipType: window.Store.ChannelUtils.getRoleByIdentifier(inviteCode),
             stateType: response.newsletterStateMetadataMixin.stateType,
             pictureUrl: picUrl ? `https://pps.whatsapp.net${picUrl}` : null,
             subscribersCount: response.newsletterSubscribersMetadataMixin.subscribersCount,
