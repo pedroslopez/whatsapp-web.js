@@ -104,7 +104,7 @@ exports.ExposeStore = () => {
     window.Store.Settings = {
         ...window.require('WAWebUserPrefsGeneral'),
         setPushname: window.require('WAWebSetPushnameConnAction').setPushname
-    }
+    };
 
     window.Store.ForwardUtils = {
         ...window.require('WAWebForwardMessagesToChat')
