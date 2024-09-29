@@ -1510,8 +1510,8 @@ declare namespace WAWebJS {
         mute: (unmuteDate?: Date) => Promise<void>,
         /** Send a message to this chat */
         sendMessage: (content: MessageContent, options?: MessageSendOptions) => Promise<Message>,
-        /** Set the message as seen */
-        sendSeen: () => Promise<void>,
+        /** Sets the chat as seen */
+        sendSeen: () => Promise<boolean>,
         /** Simulate recording audio in chat. This will last for 25 seconds */
         sendStateRecording: () => Promise<void>,
         /** Simulate typing in chat. This will last for 25 seconds. */
@@ -1583,6 +1583,8 @@ declare namespace WAWebJS {
         unmute(): Promise<boolean>;
         /** Sends a message to this channel */
         sendMessage(content: string|MessageMedia, options?: MessageSendChannelOptions): Promise<Message>;
+        /** Sets the channel as seen */
+        sendSeen(): Promise<boolean>;
         /** Sends a channel admin invitation to a user, allowing them to become an admin of the channel */
         sendChannelAdminInvite(chatId: string, options?: { comment?: string }): Promise<boolean>;
         /** Accepts a channel admin invitation and promotes the current user to a channel admin */

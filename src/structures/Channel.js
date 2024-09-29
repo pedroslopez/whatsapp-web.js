@@ -214,6 +214,14 @@ class Channel extends Base {
     }
 
     /**
+     * Sets the channel as seen
+     * @returns {Promise<boolean>}
+     */
+    async sendSeen() {
+        return this.client.sendSeen(this.id._serialized);
+    }
+
+    /**
      * @typedef {Object} SendChannelAdminInviteOptions
      * @property {?string} comment The comment to be added to an invitation
      */

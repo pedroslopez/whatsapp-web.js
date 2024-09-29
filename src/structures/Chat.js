@@ -95,7 +95,7 @@ class Chat extends Base {
     }
 
     /**
-     * Set the message as seen
+     * Sets the chat as seen
      * @returns {Promise<Boolean>} result
      */
     async sendSeen() {
@@ -104,7 +104,7 @@ class Chat extends Base {
 
     /**
      * Clears all messages from the chat
-     * @returns {Promise<Boolean>} result
+     * @returns {Promise<boolean>} result
      */
     async clearMessages() {
         return this.client.pupPage.evaluate(chatId => {

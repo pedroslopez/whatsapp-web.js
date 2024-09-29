@@ -820,11 +820,9 @@ class Client extends EventEmitter {
      * 
      */
     async sendSeen(chatId) {
-        const result = await this.pupPage.evaluate(async (chatId) => {
+        return await this.pupPage.evaluate(async (chatId) => {
             return window.WWebJS.sendSeen(chatId);
-
         }, chatId);
-        return result;
     }
 
     /**
