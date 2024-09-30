@@ -75,6 +75,9 @@ declare namespace WAWebJS {
         /** Get all current Labels  */
         getLabels(): Promise<Label[]>
         
+        /** Get all current Broadcasts  */
+        getBroadcasts(): Promise<Broadcast[]>
+        
         /** Change labels in chats  */
         addOrRemoveLabels(labelIds: Array<number|string>, chatIds: Array<string>): Promise<void>
 
@@ -1087,6 +1090,28 @@ declare namespace WAWebJS {
 
         /** Get all chats that have been assigned this Label */
         getChats: () => Promise<Chat[]>
+    }
+
+    export interface Broadcast {
+        /** Chat Object ID */
+        id: {
+            server: string,
+            user: string,
+            _serialized: string
+        },
+        /** Unix timestamp of last story */
+        timestamp: number,
+        /** Number of available statuses */
+        totalCount: number,
+        /** Number of not viewed */
+        unreadCount: number,
+        /** Unix timestamp of last story */
+        msgs: Message[],
+
+        /** Returns the Chat of the owner of the story */
+        getChat: () => Promise<Chat>,
+        /** Returns the Contact of the owner of the story */
+        getContact: () => Promise<Contact>,
     }
 
     /** Options for sending a message */
