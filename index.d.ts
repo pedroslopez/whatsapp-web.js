@@ -75,6 +75,9 @@ declare namespace WAWebJS {
         /** Get all current Labels  */
         getLabels(): Promise<Label[]>
         
+        /** Get all current Broadcasts  */
+        getBroadcasts(): Promise<Broadcast[]>
+        
         /** Change labels in chats  */
         addOrRemoveLabels(labelIds: Array<number|string>, chatIds: Array<string>): Promise<void>
 
@@ -184,7 +187,10 @@ declare namespace WAWebJS {
          * So for a non-enterprise user with one WaWeb connection it should return "2"
          * @param {string} contactId
          */
-        getContactDeviceCount(contactId: string): Promise<Number>          
+        getContactDeviceCount(userId: string): Promise<number>
+        
+        /** Sync history conversation of the Chat */
+        syncHistory(chatId: string): Promise<boolean>
         
         /** Changes and returns the archive state of the Chat */
         unarchiveChat(chatId: string): Promise<boolean>
@@ -1103,6 +1109,28 @@ declare namespace WAWebJS {
         getChats: () => Promise<Chat[]>
     }
 
+    export interface Broadcast {
+        /** Chat Object ID */
+        id: {
+            server: string,
+            user: string,
+            _serialized: string
+        },
+        /** Unix timestamp of last story */
+        timestamp: number,
+        /** Number of available statuses */
+        totalCount: number,
+        /** Number of not viewed */
+        unreadCount: number,
+        /** Unix timestamp of last story */
+        msgs: Message[],
+
+        /** Returns the Chat of the owner of the story */
+        getChat: () => Promise<Chat>,
+        /** Returns the Contact of the owner of the story */
+        getContact: () => Promise<Contact>,
+    }
+
     /** Options for sending a message */
     export interface MessageSendOptions {
         /** Show links preview. Has no effect on multi-device accounts. */
@@ -1457,6 +1485,8 @@ declare namespace WAWebJS {
         getLabels: () => Promise<Label[]>,
         /** Add or remove labels to this Chat */
         changeLabels: (labelIds: Array<string | number>) => Promise<void>
+        /** Sync history conversation of the Chat */
+        syncHistory: () => Promise<boolean>
     }
 
     export interface MessageSearchOptions {
