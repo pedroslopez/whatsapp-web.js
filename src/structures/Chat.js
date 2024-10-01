@@ -79,7 +79,7 @@ class Chat extends Base {
          * Last message fo chat
          * @type {Message}
          */
-        this.lastMessage = data.lastMessage ? new Message(super.client, data.lastMessage) : undefined;
+        this.lastMessage = data.lastMessage ? new Message(this.client, data.lastMessage) : undefined;
         
         return super._patch(data);
     }
