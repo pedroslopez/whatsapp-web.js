@@ -106,6 +106,8 @@ exports.ExposeStore = () => {
     };
     window.Store.VCardUtils = {
         ...window.require('WAWebFrontendVcardUtils'),
+        ...window.require('WAWebVcardParsingUtils'),
+        ...window.require('WAWebVcardGetNameFromParsed')
     };
     window.Store.StickerTools = {
         ...window.require('WAWebImageUtils'),

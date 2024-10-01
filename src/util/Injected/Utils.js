@@ -134,11 +134,11 @@ exports.LoadUtils = () => {
         } else if (options.parseVCards && typeof (content) === 'string' && content.startsWith('BEGIN:VCARD')) {
             delete options.parseVCards;
             try {
-                const parsed = window.Store.VCardParse.parseVcard(content);
+                const parsed = window.Store.VCardUtils.parseVcard(content);
                 if (parsed) {
                     vcardOptions = {
                         type: 'vcard',
-                        vcardFormattedName: window.Store.VCardParse.vcardGetNameFromParsed(parsed)
+                        vcardFormattedName: window.Store.VCardUtils.vcardGetNameFromParsed(parsed)
                     };
                 }
             } catch (_) {
