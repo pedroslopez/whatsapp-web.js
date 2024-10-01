@@ -135,9 +135,10 @@ exports.LoadUtils = () => {
         } else if (options.parseVCards && typeof (content) === 'string' && content.startsWith('BEGIN:VCARD')) {
             delete options.parseVCards;
             try {
-                const rgx_vcard = new RegExp("^(?:\\s*BEGIN:VCARD\\s*\\n\\s*VERSION:[2-9]\.[0-9](?=\\n))"
-                    + "(?=(?:(?:\\s|\\S)*?\\nFN:(?<FN>.*?)\\s*\\n))"
-                    + "(?:.|\\n)*?\\nEND:VCARD\\s*$");
+                // eslint-disable-next-line no-useless-escape
+                const rgx_vcard = new RegExp('^(?:\\s*BEGIN:VCARD\\s*\\n\\s*VERSION:[2-9]\.[0-9](?=\\n))'
+                    + '(?=(?:(?:\\s|\\S)*?\\nFN:(?<FN>.*?)\\s*\\n))'
+                    + '(?:.|\\n)*?\\nEND:VCARD\\s*$');
                 let parsed = rgx_vcard.exec(content);
                 if (parsed) {
                     vcardOptions = {
@@ -678,17 +679,17 @@ exports.LoadUtils = () => {
         chatId = window.Store.WidFactory.createWid(chatId);
 
         switch (state) {
-            case 'typing':
-                await window.Store.ChatState.sendChatStateComposing(chatId);
-                break;
-            case 'recording':
-                await window.Store.ChatState.sendChatStateRecording(chatId);
-                break;
-            case 'stop':
-                await window.Store.ChatState.sendChatStatePaused(chatId);
-                break;
-            default:
-                throw 'Invalid chatstate';
+        case 'typing':
+            await window.Store.ChatState.sendChatStateComposing(chatId);
+            break;
+        case 'recording':
+            await window.Store.ChatState.sendChatStateRecording(chatId);
+            break;
+        case 'stop':
+            await window.Store.ChatState.sendChatStatePaused(chatId);
+            break;
+        default:
+            throw 'Invalid chatstate';
         }
 
         return true;
