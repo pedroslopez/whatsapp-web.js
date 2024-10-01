@@ -1013,5 +1013,16 @@ exports.LoadUtils = () => {
         const response = await window.Store.pinUnpinMsg(message, action, duration);
         return response.messageSendResult === 'OK';
     };
+    
+    window.WWebJS.getStatusModel = status => {
+        let res = status.serialize();
+        delete res._msgs;
+        res.msgs = status._msgs.map(msg => window.WWebJS.getMessageModel(msg));
+        return res;
+    };
 
+    window.WWebJS.getAllStatuses = () => {
+        const statuses = window.Store.Status.getModelsArray();
+        return statuses.map(status => window.WWebJS.getStatusModel(status));
+    };
 };
