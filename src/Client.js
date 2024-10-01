@@ -15,7 +15,7 @@ const { LoadUtils } = require('./util/Injected/Utils');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
 const WebCacheFactory = require('./webCache/WebCacheFactory');
-const { Buttons, Call, ClientInfo, Contact, GroupNotification, Label, List, Location, Message, MessageMedia, Poll, PollVote, Reaction } = require('./structures');
+const { Broadcast, Buttons, Call, ClientInfo, Contact, GroupNotification, Label, List, Location, Message, MessageMedia, Poll, PollVote, Reaction } = require('./structures');
 const NoAuth = require('./authStrategies/NoAuth');
 const {exposeFunctionIfAbsent} = require('./util/Puppeteer');
 
@@ -1825,6 +1825,17 @@ class Client extends EventEmitter {
         });
 
         return labels.map(data => new Label(this, data));
+    }
+    
+    /**
+     * Get all current Broadcast
+     * @returns {Promise<Array<Broadcast>>}
+     */
+    async getBroadcasts() {
+        const broadcasts = await this.pupPage.evaluate(async () => {
+            return window.WWebJS.getAllStatuses();
+        });
+        return broadcasts.map(data => new Broadcast(this, data));
     }
 
     /**

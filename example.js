@@ -465,6 +465,11 @@ client.on('message', async msg => {
         // const isSynced = await chat.syncHistory();
         
         await msg.reply(isSynced ? 'Historical chat is syncing..' : 'There is no historical chat to sync.');
+    } else if (msg.body === '!statuses') {
+        const statuses = await client.getBroadcasts();
+        console.log(statuses);
+        const chat = await statuses[0]?.getChat(); // Get user chat of a first status
+        console.log(chat);
     }
 });
 
