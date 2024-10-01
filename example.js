@@ -19,6 +19,11 @@ client.on('loading_screen', (percent, message) => {
     console.log('LOADING SCREEN', percent, message);
 });
 
+client.on('qr', async (qr) => {
+    // NOTE: This event will not be fired if a session is specified.
+    console.log('QR RECEIVED', qr);
+});
+
 client.on('code', (code) => {
     console.log('Pairing code:',code);
 });
