@@ -8,7 +8,7 @@ const client = new Client({
         headless: false,
     },
     // pairWithPhoneNumber: {
-    //     phoneNumber: "96170100100" // Pair with phone number (format: <COUNTRY_CODE><PHONE_NUMBER>)
+    //     phoneNumber: '96170100100' // Pair with phone number (format: <COUNTRY_CODE><PHONE_NUMBER>)
     // }
 });
 
@@ -20,7 +20,7 @@ client.on('loading_screen', (percent, message) => {
 });
 
 client.on('code', (code) => {
-    console.log("Pairing code:",code);
+    console.log('Pairing code:',code);
 });
 
 client.on('authenticated', () => {

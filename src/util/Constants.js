@@ -20,7 +20,7 @@ exports.DefaultOptions = {
     bypassCSP: false,
     proxyAuthentication: undefined,
     pairWithPhoneNumber: {
-        phoneNumber: "",
+        phoneNumber: '',
         showNotification: true,
         intervalMs: 180000,
     },

@@ -367,7 +367,7 @@ class Client extends EventEmitter {
                 window.AuthStore.PairingCodeLinkUtils.setPairingType('ALT_DEVICE_LINKING');
                 await window.AuthStore.PairingCodeLinkUtils.initializeAltDeviceLinking();
                 return window.AuthStore.PairingCodeLinkUtils.startAltLinkingFlow(phoneNumber, showNotification);
-            }
+            };
             if (window.codeInterval) {
                 clearInterval(window.codeInterval); // remove existing interval
             }
