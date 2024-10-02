@@ -490,7 +490,8 @@ client.on('message', async msg => {
             'PHOTO;BASE64:here you can paste a binary data of a contact photo in Base64 encoding\n' +
             'END:VCARD';
         const userId = 'XXXXXXXXXX@c.us';
-        await client.sendMessage(userId, vCard /** OR vCardExtended */);
+        await client.sendMessage(userId, vCard);
+        await client.sendMessage(userId, vCardExtended);
     }
 });
 
