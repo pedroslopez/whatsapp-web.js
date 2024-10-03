@@ -1777,8 +1777,6 @@ class Client extends EventEmitter {
                 3: 'NEW'
             };
 
-            limit !== 50 && window.injectToFunction({ module: 'WAWebNewsletterGatingUtils', function: 'getNewsletterDirectoryPageSize' }, () => limit);
-
             searchOptions = {
                 searchText: searchText,
                 countryCodes: countryCodes,
@@ -1787,9 +1785,14 @@ class Client extends EventEmitter {
                 categories: [],
                 cursorToken: ''
             };
+            
+            const originalFunction = window.Store.ChannelUtils.getNewsletterDirectoryPageSize;
+            limit !== 50 && (window.Store.ChannelUtils.getNewsletterDirectoryPageSize = () => limit);
 
             const channels = (await window.Store.ChannelUtils.fetchNewsletterDirectories(searchOptions)).newsletters;
-            limit !== 50 && window.injectToFunction({ module: 'WAWebNewsletterGatingUtils', function: 'getNewsletterDirectoryPageSize' }, (func, ...args) => func(args));
+
+            limit !== 50 && (window.Store.ChannelUtils.getNewsletterDirectoryPageSize = originalFunction);
+
             return channels
                 ? await Promise.all(channels.map((channel) => window.WWebJS.getChatModel(channel, { isChannel: true })))
                 : [];
