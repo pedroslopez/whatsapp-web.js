@@ -1010,7 +1010,14 @@ exports.LoadUtils = () => {
     window.WWebJS.pinUnpinMsgAction = async (msgId, action, duration) => {
         const message = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
         if (!message) return false;
-        const response = await window.Store.pinUnpinMsg(message, action, duration);
+        
+        const originalFunction = window.Store.PinnedMsgUtils.getPinExpiryDuration;
+        window.Store.PinnedMsgUtils.getPinExpiryDuration = () => duration;
+        
+        const response = await window.Store.PinnedMsgUtils.sendPinInChatMsg(message, action, duration);
+
+        window.Store.PinnedMsgUtils.getPinExpiryDuration = originalFunction;
+
         return response.messageSendResult === 'OK';
     };
     
