@@ -128,11 +128,13 @@ exports.LoadUtils = () => {
             let vcards = contacts.map(c => window.Store.VCardUtils.vcardFromContactModel(c));
             vcardOptions = {
                 type: 'multi_vcard',
-                vcardList: vcards
+                vcardList: vcards,
+                body: null
             };
             delete options.contactCardList;
         } else if (options.parseVCards && typeof (content) === 'string' && content.startsWith('BEGIN:VCARD')) {
             delete options.parseVCards;
+            delete options.linkPreview;
             try {
                 const parsed = window.Store.VCardUtils.parseVcard(content);
                 if (parsed) {
