@@ -476,6 +476,8 @@ client.on('message', async msg => {
             'VERSION:3.0\n' +
             'FN:John Doe\n' +
             'ORG:Microsoft;\n' +
+            'EMAIL;type=INTERNET:john.doe@gmail.com\n' +
+            'URL:www.johndoe.com\n' +
             'TEL;type=CELL;type=VOICE;waid=18006427676:+1 (800) 642 7676\n' +
             'END:VCARD';
         const vCardExtended =
