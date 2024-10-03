@@ -159,8 +159,7 @@ exports.ExposeStore = () => {
     };
     window.Store.ChannelSubscribers = {
         ...window.require('WAWebMexFetchNewsletterSubscribersJob'),
-        ...window.require('WAWebNewsletterSubscriberListAction'),
-        ...window.require('WAWebNewsletterGatingUtils')
+        ...window.require('WAWebNewsletterSubscriberListAction')
     };
 
     if (!window.Store.Chat._find || !window.Store.Chat.findImpl) {
