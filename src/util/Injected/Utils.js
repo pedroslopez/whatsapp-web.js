@@ -1010,6 +1010,8 @@ exports.LoadUtils = () => {
     window.WWebJS.pinUnpinMsgAction = async (msgId, action, duration) => {
         const message = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
         if (!message) return false;
+
+        if (typeof duration !== 'number') return false;
         
         const originalFunction = window.Store.PinnedMsgUtils.getPinExpiryDuration;
         window.Store.PinnedMsgUtils.getPinExpiryDuration = () => duration;
