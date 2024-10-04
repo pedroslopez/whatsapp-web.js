@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.26.1-alpha.2 &raquo; Source: structures/Label.js</title>
+  <title>whatsapp-web.js 1.26.1-alpha.2 &raquo; Source: util/Puppeteer.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -26,59 +26,33 @@
         </div>
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1>Source: structures/Label.js</h1>
+            <h1>Source: util/Puppeteer.js</h1>
           </header>
           <article>
-            <pre class="prettyprint linenums"><code>&#x27;use strict&#x27;;
-
-const Base &#x3D; require(&#x27;./Base&#x27;);
-// eslint-disable-next-line no-unused-vars
-const Chat &#x3D; require(&#x27;./Chat&#x27;);
-
-/**
- * WhatsApp Business Label information
+            <pre class="prettyprint linenums"><code>/**
+ * Expose a function to the page if it does not exist
+ *
+ * NOTE:
+ * Rewrite it to &#x27;upsertFunction&#x27; after updating Puppeteer to 20.6 or higher
+ * using page.removeExposedFunction
+ * https://pptr.dev/api/puppeteer.page.removeExposedFunction
+ *
+ * @param {import(puppeteer).Page} page
+ * @param {string} name
+ * @param {Function} fn
  */
-class Label extends Base {
-    /**
-     * @param {Base} client
-     * @param {object} labelData
-     */
-    constructor(client, labelData){
-        super(client);
-
-        if(labelData) this._patch(labelData);
+async function exposeFunctionIfAbsent(page, name, fn) {
+    const exist &#x3D; await page.evaluate((name) &#x3D;&gt; {
+        return !!window[name];
+    }, name);
+    if (exist) {
+        return;
     }
-
-    _patch(labelData){
-        /**
-         * Label ID
-         * @type {string}
-         */
-        this.id &#x3D; labelData.id;
-
-        /**
-         * Label name
-         * @type {string}
-         */
-        this.name &#x3D; labelData.name;
-
-        /**
-         * Label hex color
-         * @type {string}
-         */
-        this.hexColor &#x3D; labelData.hexColor;
-    }
-    /**
-     * Get all chats that have been assigned this Label
-     * @returns {Promise&amp;lt;Array&amp;lt;Chat&gt;&gt;}
-     */
-    async getChats(){
-        return this.client.getChatsByLabelId(this.id);
-    }
-
+    await page.exposeFunction(name, fn);
 }
 
-module.exports &#x3D; Label;</code></pre>
+module.exports &#x3D; {exposeFunctionIfAbsent};
+</code></pre>
           </article>
         </div>
       </div>
