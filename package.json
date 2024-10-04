@@ -54,6 +54,6 @@
   "optionalDependencies": {
     "archiver": "^5.3.1",
     "fs-extra": "^10.1.0",
-    "unzipper": "^0.10.11"
+    "unzipper": "^0.12.3"
   }
 }
