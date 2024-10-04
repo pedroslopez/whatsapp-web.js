@@ -36,6 +36,8 @@ const {exposeFunctionIfAbsent} = require('./util/Puppeteer');
  * @param {string} options.userAgent - User agent to use in puppeteer
  * @param {string} options.ffmpegPath - Ffmpeg path to use when formatting videos to webp while sending stickers 
  * @param {boolean} options.bypassCSP - Sets bypassing of page's Content-Security-Policy.
+ * @param {string} options.deviceName - Sets the device name of a current linked device., i.e.: 'TEST'.
+ * @param {string} options.browserName - Sets the browser name of a current linked device, i.e.: 'Firefox'.
  * @param {object} options.proxyAuthentication - Proxy Authentication object.
  * 
  * @fires Client#qr
