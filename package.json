@@ -46,7 +46,7 @@
     "jsdoc": "^3.6.4",
     "jsdoc-baseline": "^0.1.5",
     "mocha": "^9.0.2",
-    "sinon": "^13.0.1"
+    "sinon": "^19.0.2"
   },
   "engines": {
     "node": ">=18.0.0"
