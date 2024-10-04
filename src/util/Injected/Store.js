@@ -105,7 +105,11 @@ exports.ExposeStore = () => {
     window.Store.ForwardUtils = {
         ...window.require('WAWebForwardMessagesToChat')
     };
-
+    window.Store.PinnedMsgUtils = {
+        /* ...window.require('WAWebPinInChatCollection'),
+        ...window.require('WAWebPinMessageAction'), */
+        ...window.require('WAWebPinInChatSchema')
+    };
     window.Store.StickerTools = {
         ...window.require('WAWebImageUtils'),
         ...window.require('WAWebAddWebpMetadata')
