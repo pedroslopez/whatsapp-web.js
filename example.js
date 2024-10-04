@@ -3,6 +3,9 @@ const { Client, Location, Poll, List, Buttons, LocalAuth } = require('./index');
 const client = new Client({
     authStrategy: new LocalAuth(),
     // proxyAuthentication: { username: 'username', password: 'password' },
+    /** Check https://github.com/pedroslopez/whatsapp-web.js/pull/3325 for full explanation. */
+    // deviceName: 'TEST',
+    // browserName: 'Firefox', // valid value are: 'Chrome' | 'Firefox' | 'IE' | 'Opera' | 'Safari' | 'Edge'
     puppeteer: { 
         // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
         headless: false,
