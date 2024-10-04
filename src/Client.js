@@ -980,7 +980,7 @@ class Client extends EventEmitter {
 
     /**
      * Get chat instance by ID
-     * @param {string} chatId 
+     * @param {string} chatId - uniquely identifies a chat, typically looks like: 120363xxxx60760126@g.us and can be found in a `Message.id.remote` or using `getChats()`
      * @returns {Promise<Chat>}
      */
     async getChatById(chatId) {
