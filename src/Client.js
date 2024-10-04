@@ -95,6 +95,7 @@ class Client extends EventEmitter {
     async inject() {
         await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', {timeout: this.options.authTimeoutMs});
 
+        await this.setDeviceName(this.options.deviceName, this.options.browserName);
         const version = await this.getWWebVersion();
         const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
 
@@ -811,6 +812,19 @@ class Client extends EventEmitter {
         return await this.pupPage.evaluate(() => {
             return window.Debug.VERSION;
         });
+    }
+
+    async setDeviceName(deviceName, browserName) {
+        (deviceName || browserName) && await this.pupPage.evaluate((deviceName, browserName) => {
+            const func = window.require('WAWebMiscBrowserUtils').info;
+            window.require('WAWebMiscBrowserUtils').info = () => {
+                return {
+                    ...func(),
+                    ...(deviceName ? { os: deviceName } : {}),
+                    ...(browserName ? { name: browserName } : {})
+                };
+            };
+        }, deviceName, browserName);
     }
 
     /**
