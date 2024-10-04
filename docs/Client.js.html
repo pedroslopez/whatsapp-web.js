@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.26.0 &raquo; Source: Client.js</title>
+  <title>whatsapp-web.js 1.26.1-alpha.2 &raquo; Source: Client.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>25.<wbr>0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>26.<wbr>1-alpha.<wbr>2</a>
       </div>
     </div>
   </nav>
@@ -46,8 +46,9 @@ const { LoadUtils } &#x3D; require(&#x27;./util/Injected/Utils&#x27;);
 const ChatFactory &#x3D; require(&#x27;./factories/ChatFactory&#x27;);
 const ContactFactory &#x3D; require(&#x27;./factories/ContactFactory&#x27;);
 const WebCacheFactory &#x3D; require(&#x27;./webCache/WebCacheFactory&#x27;);
-const { ClientInfo, Message, MessageMedia, Contact, Location, Poll, PollVote, GroupNotification, Label, Call, Buttons, List, Reaction } &#x3D; require(&#x27;./structures&#x27;);
+const { ClientInfo, Message, MessageMedia, Contact, Location, Poll, PollVote, GroupNotification, Label, Call, Buttons, List, Reaction, Broadcast} &#x3D; require(&#x27;./structures&#x27;);
 const NoAuth &#x3D; require(&#x27;./authStrategies/NoAuth&#x27;);
+const {exposeFunctionIfAbsent} &#x3D; require(&#x27;./util/Puppeteer&#x27;);
 
 /**
  * Starting point for interacting with the WhatsApp Web API
@@ -121,9 +122,8 @@ class Client extends EventEmitter {
     /**
      * Injection logic
      * Private function
-     * @property {boolean} reinject is this a reinject?
      */
-    async inject(reinject &#x3D; false) {
+    async inject() {
         await this.pupPage.waitForFunction(&#x27;window.Debug?.VERSION !&#x3D; undefined&#x27;, {timeout: this.options.authTimeoutMs});
 
         const version &#x3D; await this.getWWebVersion();
@@ -173,26 +173,21 @@ class Client extends EventEmitter {
 
             // Register qr events
             let qrRetries &#x3D; 0;
-            const injected &#x3D; await this.pupPage.evaluate(() &#x3D;&gt; {
-                return typeof window.onQRChangedEvent !&#x3D;&#x3D; &#x27;undefined&#x27;;
-            });
-            if (!injected) {
-                await this.pupPage.exposeFunction(&#x27;onQRChangedEvent&#x27;, async (qr) &#x3D;&gt; {
-                    /**
-                    * Emitted when a QR code is received
-                    * @event Client#qr
-                    * @param {string} qr QR Code
-                    */
-                    this.emit(Events.QR_RECEIVED, qr);
-                    if (this.options.qrMaxRetries &gt; 0) {
-                        qrRetries++;
-                        if (qrRetries &gt; this.options.qrMaxRetries) {
-                            this.emit(Events.DISCONNECTED, &#x27;Max qrcode retries reached&#x27;);
-                            await this.destroy();
-                        }
+            await exposeFunctionIfAbsent(this.pupPage, &#x27;onQRChangedEvent&#x27;, async (qr) &#x3D;&gt; {
+                /**
+                * Emitted when a QR code is received
+                * @event Client#qr
+                * @param {string} qr QR Code
+                */
+                this.emit(Events.QR_RECEIVED, qr);
+                if (this.options.qrMaxRetries &gt; 0) {
+                    qrRetries++;
+                    if (qrRetries &gt; this.options.qrMaxRetries) {
+                        this.emit(Events.DISCONNECTED, &#x27;Max qrcode retries reached&#x27;);
+                        await this.destroy();
                     }
-                });
-            }
+                }
+            });
 
 
             await this.pupPage.evaluate(async () &#x3D;&gt; {
@@ -209,86 +204,78 @@ class Client extends EventEmitter {
             });
         }
 
-        if (!reinject) {
-            await this.pupPage.exposeFunction(&#x27;onAuthAppStateChangedEvent&#x27;, async (state) &#x3D;&gt; {
-                if (state &#x3D;&#x3D; &#x27;UNPAIRED_IDLE&#x27;) {
-                    // refresh qr code
-                    window.Store.Cmd.refreshQR();
-                }
-            });
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onAuthAppStateChangedEvent&#x27;, async (state) &#x3D;&gt; {
+            if (state &#x3D;&#x3D; &#x27;UNPAIRED_IDLE&#x27;) {
+                // refresh qr code
+                window.Store.Cmd.refreshQR();
+            }
+        });
 
-            await this.pupPage.exposeFunction(&#x27;onAppStateHasSyncedEvent&#x27;, async () &#x3D;&gt; {
-                const authEventPayload &#x3D; await this.authStrategy.getAuthEventPayload();
-                /**
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onAppStateHasSyncedEvent&#x27;, async () &#x3D;&gt; {
+            const authEventPayload &#x3D; await this.authStrategy.getAuthEventPayload();
+            /**
                  * Emitted when authentication is successful
                  * @event Client#authenticated
                  */
-                this.emit(Events.AUTHENTICATED, authEventPayload);
+            this.emit(Events.AUTHENTICATED, authEventPayload);
 
-                const injected &#x3D; await this.pupPage.evaluate(async () &#x3D;&gt; {
-                    return typeof window.Store !&#x3D;&#x3D; &#x27;undefined&#x27; &amp;amp;&amp;amp; typeof window.WWebJS !&#x3D;&#x3D; &#x27;undefined&#x27;;
-                });
+            const injected &#x3D; await this.pupPage.evaluate(async () &#x3D;&gt; {
+                return typeof window.Store !&#x3D;&#x3D; &#x27;undefined&#x27; &amp;amp;&amp;amp; typeof window.WWebJS !&#x3D;&#x3D; &#x27;undefined&#x27;;
+            });
 
-                if (!injected) {
-                    if (this.options.webVersionCache.type &#x3D;&#x3D;&#x3D; &#x27;local&#x27; &amp;amp;&amp;amp; this.currentIndexHtml) {
-                        const { type: webCacheType, ...webCacheOptions } &#x3D; this.options.webVersionCache;
-                        const webCache &#x3D; WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
+            if (!injected) {
+                if (this.options.webVersionCache.type &#x3D;&#x3D;&#x3D; &#x27;local&#x27; &amp;amp;&amp;amp; this.currentIndexHtml) {
+                    const { type: webCacheType, ...webCacheOptions } &#x3D; this.options.webVersionCache;
+                    const webCache &#x3D; WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
             
-                        await webCache.persist(this.currentIndexHtml, version);
-                    }
+                    await webCache.persist(this.currentIndexHtml, version);
+                }
 
-                    if (isCometOrAbove) {
-                        await this.pupPage.evaluate(ExposeStore);
-                    } else {
-                        // make sure all modules are ready before injection
-                        // 2 second delay after authentication makes sense and does not need to be made dyanmic or removed
-                        await new Promise(r &#x3D;&gt; setTimeout(r, 2000)); 
-                        await this.pupPage.evaluate(ExposeLegacyStore);
-                    }
+                if (isCometOrAbove) {
+                    await this.pupPage.evaluate(ExposeStore);
+                } else {
+                    // make sure all modules are ready before injection
+                    // 2 second delay after authentication makes sense and does not need to be made dyanmic or removed
+                    await new Promise(r &#x3D;&gt; setTimeout(r, 2000)); 
+                    await this.pupPage.evaluate(ExposeLegacyStore);
+                }
 
-                    // Check window.Store Injection
-                    await this.pupPage.waitForFunction(&#x27;window.Store !&#x3D; undefined&#x27;);
+                // Check window.Store Injection
+                await this.pupPage.waitForFunction(&#x27;window.Store !&#x3D; undefined&#x27;);
             
-                    /**
+                /**
                      * Current connection information
                      * @type {ClientInfo}
                      */
-                    this.info &#x3D; new ClientInfo(this, await this.pupPage.evaluate(() &#x3D;&gt; {
-                        return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMeUser() };
-                    }));
+                this.info &#x3D; new ClientInfo(this, await this.pupPage.evaluate(() &#x3D;&gt; {
+                    return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMeUser() };
+                }));
 
-                    this.interface &#x3D; new InterfaceController(this);
+                this.interface &#x3D; new InterfaceController(this);
 
-                    //Load util functions (serializers, helper functions)
-                    await this.pupPage.evaluate(LoadUtils);
+                //Load util functions (serializers, helper functions)
+                await this.pupPage.evaluate(LoadUtils);
 
-                    await this.attachEventListeners(reinject);
-                    reinject &#x3D; true;
-                }
-                /**
+                await this.attachEventListeners();
+            }
+            /**
                  * Emitted when the client has initialized and is ready to receive messages.
                  * @event Client#ready
                  */
-                this.emit(Events.READY);
-                this.authStrategy.afterAuthReady();
-            });
-            let lastPercent &#x3D; null;
-            await this.pupPage.exposeFunction(&#x27;onOfflineProgressUpdateEvent&#x27;, async (percent) &#x3D;&gt; {
-                if (lastPercent !&#x3D;&#x3D; percent) {
-                    lastPercent &#x3D; percent;
-                    this.emit(Events.LOADING_SCREEN, percent, &#x27;WhatsApp&#x27;); // Message is hardcoded as &quot;WhatsApp&quot; for now
-                }
-            });
-        }
-        const logoutCatchInjected &#x3D; await this.pupPage.evaluate(() &#x3D;&gt; {
-            return typeof window.onLogoutEvent !&#x3D;&#x3D; &#x27;undefined&#x27;;
+            this.emit(Events.READY);
+            this.authStrategy.afterAuthReady();
         });
-        if (!logoutCatchInjected) {
-            await this.pupPage.exposeFunction(&#x27;onLogoutEvent&#x27;, async () &#x3D;&gt; {
-                this.lastLoggedOut &#x3D; true;
-                await this.pupPage.waitForNavigation({waitUntil: &#x27;load&#x27;, timeout: 5000}).catch((_) &#x3D;&gt; _);
-            });
-        }
+        let lastPercent &#x3D; null;
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onOfflineProgressUpdateEvent&#x27;, async (percent) &#x3D;&gt; {
+            if (lastPercent !&#x3D;&#x3D; percent) {
+                lastPercent &#x3D; percent;
+                this.emit(Events.LOADING_SCREEN, percent, &#x27;WhatsApp&#x27;); // Message is hardcoded as &quot;WhatsApp&quot; for now
+            }
+        });
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onLogoutEvent&#x27;, async () &#x3D;&gt; {
+            this.lastLoggedOut &#x3D; true;
+            await this.pupPage.waitForNavigation({waitUntil: &#x27;load&#x27;, timeout: 5000}).catch((_) &#x3D;&gt; _);
+        });
         await this.pupPage.evaluate(() &#x3D;&gt; {
             window.AuthStore.AppState.on(&#x27;change:state&#x27;, (_AppState, state) &#x3D;&gt; { window.onAuthAppStateChangedEvent(state); });
             window.AuthStore.AppState.on(&#x27;change:hasSynced&#x27;, () &#x3D;&gt; { window.onAppStateHasSyncedEvent(); });
@@ -380,7 +367,7 @@ class Client extends EventEmitter {
                 await this.authStrategy.afterBrowserInitialized();
                 this.lastLoggedOut &#x3D; false;
             }
-            await this.inject(true);
+            await this.inject();
         });
     }
 
@@ -403,34 +390,33 @@ class Client extends EventEmitter {
      * Private function
      * @property {boolean} reinject is this a reinject?
      */
-    async attachEventListeners(reinject &#x3D; false) {
-        if (!reinject) {
-            await this.pupPage.exposeFunction(&#x27;onAddMessageEvent&#x27;, msg &#x3D;&gt; {
-                if (msg.type &#x3D;&#x3D;&#x3D; &#x27;gp2&#x27;) {
-                    const notification &#x3D; new GroupNotification(this, msg);
-                    if ([&#x27;add&#x27;, &#x27;invite&#x27;, &#x27;linked_group_join&#x27;].includes(msg.subtype)) {
-                        /**
+    async attachEventListeners() {
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onAddMessageEvent&#x27;, msg &#x3D;&gt; {
+            if (msg.type &#x3D;&#x3D;&#x3D; &#x27;gp2&#x27;) {
+                const notification &#x3D; new GroupNotification(this, msg);
+                if ([&#x27;add&#x27;, &#x27;invite&#x27;, &#x27;linked_group_join&#x27;].includes(msg.subtype)) {
+                    /**
                          * Emitted when a user joins the chat via invite link or is added by an admin.
                          * @event Client#group_join
                          * @param {GroupNotification} notification GroupNotification with more information about the action
                          */
-                        this.emit(Events.GROUP_JOIN, notification);
-                    } else if (msg.subtype &#x3D;&#x3D;&#x3D; &#x27;remove&#x27; || msg.subtype &#x3D;&#x3D;&#x3D; &#x27;leave&#x27;) {
-                        /**
+                    this.emit(Events.GROUP_JOIN, notification);
+                } else if (msg.subtype &#x3D;&#x3D;&#x3D; &#x27;remove&#x27; || msg.subtype &#x3D;&#x3D;&#x3D; &#x27;leave&#x27;) {
+                    /**
                          * Emitted when a user leaves the chat or is removed by an admin.
                          * @event Client#group_leave
                          * @param {GroupNotification} notification GroupNotification with more information about the action
                          */
-                        this.emit(Events.GROUP_LEAVE, notification);
-                    } else if (msg.subtype &#x3D;&#x3D;&#x3D; &#x27;promote&#x27; || msg.subtype &#x3D;&#x3D;&#x3D; &#x27;demote&#x27;) {
-                        /**
+                    this.emit(Events.GROUP_LEAVE, notification);
+                } else if (msg.subtype &#x3D;&#x3D;&#x3D; &#x27;promote&#x27; || msg.subtype &#x3D;&#x3D;&#x3D; &#x27;demote&#x27;) {
+                    /**
                          * Emitted when a current user is promoted to an admin or demoted to a regular user.
                          * @event Client#group_admin_changed
                          * @param {GroupNotification} notification GroupNotification with more information about the action
                          */
-                        this.emit(Events.GROUP_ADMIN_CHANGED, notification);
-                    } else if (msg.subtype &#x3D;&#x3D;&#x3D; &#x27;membership_approval_request&#x27;) {
-                        /**
+                    this.emit(Events.GROUP_ADMIN_CHANGED, notification);
+                } else if (msg.subtype &#x3D;&#x3D;&#x3D; &#x27;membership_approval_request&#x27;) {
+                    /**
                          * Emitted when some user requested to join the group
                          * that has the membership approval mode turned on
                          * @event Client#group_membership_request
@@ -439,86 +425,86 @@ class Client extends EventEmitter {
                          * @param {string} notification.author The user ID that made a request
                          * @param {number} notification.timestamp The timestamp the request was made at
                          */
-                        this.emit(Events.GROUP_MEMBERSHIP_REQUEST, notification);
-                    } else {
-                        /**
+                    this.emit(Events.GROUP_MEMBERSHIP_REQUEST, notification);
+                } else {
+                    /**
                          * Emitted when group settings are updated, such as subject, description or picture.
                          * @event Client#group_update
                          * @param {GroupNotification} notification GroupNotification with more information about the action
                          */
-                        this.emit(Events.GROUP_UPDATE, notification);
-                    }
-                    return;
+                    this.emit(Events.GROUP_UPDATE, notification);
                 }
+                return;
+            }
 
-                const message &#x3D; new Message(this, msg);
+            const message &#x3D; new Message(this, msg);
 
-                /**
+            /**
                  * Emitted when a new message is created, which may include the current user&#x27;s own messages.
                  * @event Client#message_create
                  * @param {Message} message The message that was created
                  */
-                this.emit(Events.MESSAGE_CREATE, message);
+            this.emit(Events.MESSAGE_CREATE, message);
 
-                if (msg.id.fromMe) return;
+            if (msg.id.fromMe) return;
 
-                /**
+            /**
                  * Emitted when a new message is received.
                  * @event Client#message
                  * @param {Message} message The message that was received
                  */
-                this.emit(Events.MESSAGE_RECEIVED, message);
-            });
+            this.emit(Events.MESSAGE_RECEIVED, message);
+        });
 
-            let last_message;
+        let last_message;
 
-            await this.pupPage.exposeFunction(&#x27;onChangeMessageTypeEvent&#x27;, (msg) &#x3D;&gt; {
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onChangeMessageTypeEvent&#x27;, (msg) &#x3D;&gt; {
 
-                if (msg.type &#x3D;&#x3D;&#x3D; &#x27;revoked&#x27;) {
-                    const message &#x3D; new Message(this, msg);
-                    let revoked_msg;
-                    if (last_message &amp;amp;&amp;amp; msg.id.id &#x3D;&#x3D;&#x3D; last_message.id.id) {
-                        revoked_msg &#x3D; new Message(this, last_message);
-                    }
+            if (msg.type &#x3D;&#x3D;&#x3D; &#x27;revoked&#x27;) {
+                const message &#x3D; new Message(this, msg);
+                let revoked_msg;
+                if (last_message &amp;amp;&amp;amp; msg.id.id &#x3D;&#x3D;&#x3D; last_message.id.id) {
+                    revoked_msg &#x3D; new Message(this, last_message);
+                }
 
-                    /**
+                /**
                      * Emitted when a message is deleted for everyone in the chat.
                      * @event Client#message_revoke_everyone
                      * @param {Message} message The message that was revoked, in its current state. It will not contain the original message&#x27;s data.
                      * @param {?Message} revoked_msg The message that was revoked, before it was revoked. It will contain the message&#x27;s original data. 
                      * Note that due to the way this data is captured, it may be possible that this param will be undefined.
                      */
-                    this.emit(Events.MESSAGE_REVOKED_EVERYONE, message, revoked_msg);
-                }
+                this.emit(Events.MESSAGE_REVOKED_EVERYONE, message, revoked_msg);
+            }
 
-            });
+        });
 
-            await this.pupPage.exposeFunction(&#x27;onChangeMessageEvent&#x27;, (msg) &#x3D;&gt; {
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onChangeMessageEvent&#x27;, (msg) &#x3D;&gt; {
 
-                if (msg.type !&#x3D;&#x3D; &#x27;revoked&#x27;) {
-                    last_message &#x3D; msg;
-                }
+            if (msg.type !&#x3D;&#x3D; &#x27;revoked&#x27;) {
+                last_message &#x3D; msg;
+            }
 
-                /**
+            /**
                  * The event notification that is received when one of
                  * the group participants changes their phone number.
                  */
-                const isParticipant &#x3D; msg.type &#x3D;&#x3D;&#x3D; &#x27;gp2&#x27; &amp;amp;&amp;amp; msg.subtype &#x3D;&#x3D;&#x3D; &#x27;modify&#x27;;
+            const isParticipant &#x3D; msg.type &#x3D;&#x3D;&#x3D; &#x27;gp2&#x27; &amp;amp;&amp;amp; msg.subtype &#x3D;&#x3D;&#x3D; &#x27;modify&#x27;;
 
-                /**
+            /**
                  * The event notification that is received when one of
                  * the contacts changes their phone number.
                  */
-                const isContact &#x3D; msg.type &#x3D;&#x3D;&#x3D; &#x27;notification_template&#x27; &amp;amp;&amp;amp; msg.subtype &#x3D;&#x3D;&#x3D; &#x27;change_number&#x27;;
+            const isContact &#x3D; msg.type &#x3D;&#x3D;&#x3D; &#x27;notification_template&#x27; &amp;amp;&amp;amp; msg.subtype &#x3D;&#x3D;&#x3D; &#x27;change_number&#x27;;
 
-                if (isParticipant || isContact) {
-                    /** @type {GroupNotification} object does not provide enough information about this event, so a @type {Message} object is used. */
-                    const message &#x3D; new Message(this, msg);
+            if (isParticipant || isContact) {
+                /** @type {GroupNotification} object does not provide enough information about this event, so a @type {Message} object is used. */
+                const message &#x3D; new Message(this, msg);
 
-                    const newId &#x3D; isParticipant ? msg.recipients[0] : msg.to;
-                    const oldId &#x3D; isParticipant ? msg.author : msg.templateParams.find(id &#x3D;&gt; id !&#x3D;&#x3D; newId);
+                const newId &#x3D; isParticipant ? msg.recipients[0] : msg.to;
+                const oldId &#x3D; isParticipant ? msg.author : msg.templateParams.find(id &#x3D;&gt; id !&#x3D;&#x3D; newId);
 
-                    /**
+                /**
                      * Emitted when a contact or a group participant changes their phone number.
                      * @event Client#contact_changed
                      * @param {Message} message Message with more information about the event.
@@ -527,98 +513,98 @@ class Client extends EventEmitter {
                      * @param {String} newId The user&#x27;s new id after the change.
                      * @param {Boolean} isContact Indicates if a contact or a group participant changed their phone number.
                      */
-                    this.emit(Events.CONTACT_CHANGED, message, oldId, newId, isContact);
-                }
-            });
+                this.emit(Events.CONTACT_CHANGED, message, oldId, newId, isContact);
+            }
+        });
 
-            await this.pupPage.exposeFunction(&#x27;onRemoveMessageEvent&#x27;, (msg) &#x3D;&gt; {
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onRemoveMessageEvent&#x27;, (msg) &#x3D;&gt; {
 
-                if (!msg.isNewMsg) return;
+            if (!msg.isNewMsg) return;
 
-                const message &#x3D; new Message(this, msg);
+            const message &#x3D; new Message(this, msg);
 
-                /**
+            /**
                  * Emitted when a message is deleted by the current user.
                  * @event Client#message_revoke_me
                  * @param {Message} message The message that was revoked
                  */
-                this.emit(Events.MESSAGE_REVOKED_ME, message);
+            this.emit(Events.MESSAGE_REVOKED_ME, message);
 
-            });
+        });
 
-            await this.pupPage.exposeFunction(&#x27;onMessageAckEvent&#x27;, (msg, ack) &#x3D;&gt; {
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onMessageAckEvent&#x27;, (msg, ack) &#x3D;&gt; {
 
-                const message &#x3D; new Message(this, msg);
+            const message &#x3D; new Message(this, msg);
 
-                /**
+            /**
                  * Emitted when an ack event occurrs on message type.
                  * @event Client#message_ack
                  * @param {Message} message The message that was affected
                  * @param {MessageAck} ack The new ACK value
                  */
-                this.emit(Events.MESSAGE_ACK, message, ack);
+            this.emit(Events.MESSAGE_ACK, message, ack);
 
-            });
+        });
 
-            await this.pupPage.exposeFunction(&#x27;onChatUnreadCountEvent&#x27;, async (data) &#x3D;&gt;{
-                const chat &#x3D; await this.getChatById(data.id);
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onChatUnreadCountEvent&#x27;, async (data) &#x3D;&gt;{
+            const chat &#x3D; await this.getChatById(data.id);
                 
-                /**
+            /**
                  * Emitted when the chat unread count changes
                  */
-                this.emit(Events.UNREAD_COUNT, chat);
-            });
+            this.emit(Events.UNREAD_COUNT, chat);
+        });
 
-            await this.pupPage.exposeFunction(&#x27;onMessageMediaUploadedEvent&#x27;, (msg) &#x3D;&gt; {
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onMessageMediaUploadedEvent&#x27;, (msg) &#x3D;&gt; {
 
-                const message &#x3D; new Message(this, msg);
+            const message &#x3D; new Message(this, msg);
 
-                /**
+            /**
                  * Emitted when media has been uploaded for a message sent by the client.
                  * @event Client#media_uploaded
                  * @param {Message} message The message with media that was uploaded
                  */
-                this.emit(Events.MEDIA_UPLOADED, message);
-            });
+            this.emit(Events.MEDIA_UPLOADED, message);
+        });
 
-            await this.pupPage.exposeFunction(&#x27;onAppStateChangedEvent&#x27;, async (state) &#x3D;&gt; {
-                /**
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onAppStateChangedEvent&#x27;, async (state) &#x3D;&gt; {
+            /**
                  * Emitted when the connection state changes
                  * @event Client#change_state
                  * @param {WAState} state the new connection state
                  */
-                this.emit(Events.STATE_CHANGED, state);
+            this.emit(Events.STATE_CHANGED, state);
 
-                const ACCEPTED_STATES &#x3D; [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING, WAState.TIMEOUT];
+            const ACCEPTED_STATES &#x3D; [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING, WAState.TIMEOUT];
 
-                if (this.options.takeoverOnConflict) {
-                    ACCEPTED_STATES.push(WAState.CONFLICT);
+            if (this.options.takeoverOnConflict) {
+                ACCEPTED_STATES.push(WAState.CONFLICT);
 
-                    if (state &#x3D;&#x3D;&#x3D; WAState.CONFLICT) {
-                        setTimeout(() &#x3D;&gt; {
-                            this.pupPage.evaluate(() &#x3D;&gt; window.Store.AppState.takeover());
-                        }, this.options.takeoverTimeoutMs);
-                    }
+                if (state &#x3D;&#x3D;&#x3D; WAState.CONFLICT) {
+                    setTimeout(() &#x3D;&gt; {
+                        this.pupPage.evaluate(() &#x3D;&gt; window.Store.AppState.takeover());
+                    }, this.options.takeoverTimeoutMs);
                 }
+            }
 
-                if (!ACCEPTED_STATES.includes(state)) {
-                    /**
+            if (!ACCEPTED_STATES.includes(state)) {
+                /**
                      * Emitted when the client has been disconnected
                      * @event Client#disconnected
                      * @param {WAState|&quot;LOGOUT&quot;} reason reason that caused the disconnect
                      */
-                    await this.authStrategy.disconnect();
-                    this.emit(Events.DISCONNECTED, state);
-                    this.destroy();
-                }
-            });
+                await this.authStrategy.disconnect();
+                this.emit(Events.DISCONNECTED, state);
+                this.destroy();
+            }
+        });
 
-            await this.pupPage.exposeFunction(&#x27;onBatteryStateChangedEvent&#x27;, (state) &#x3D;&gt; {
-                const { battery, plugged } &#x3D; state;
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onBatteryStateChangedEvent&#x27;, (state) &#x3D;&gt; {
+            const { battery, plugged } &#x3D; state;
 
-                if (battery &#x3D;&#x3D;&#x3D; undefined) return;
+            if (battery &#x3D;&#x3D;&#x3D; undefined) return;
 
-                /**
+            /**
                  * Emitted when the battery percentage for the attached device changes. Will not be sent if using multi-device.
                  * @event Client#change_battery
                  * @param {object} batteryInfo
@@ -626,11 +612,11 @@ class Client extends EventEmitter {
                  * @param {boolean} batteryInfo.plugged - Indicates if the phone is plugged in (true) or not (false)
                  * @deprecated
                  */
-                this.emit(Events.BATTERY_CHANGED, { battery, plugged });
-            });
+            this.emit(Events.BATTERY_CHANGED, { battery, plugged });
+        });
 
-            await this.pupPage.exposeFunction(&#x27;onIncomingCall&#x27;, (call) &#x3D;&gt; {
-                /**
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onIncomingCall&#x27;, (call) &#x3D;&gt; {
+            /**
                  * Emitted when a call is received
                  * @event Client#incoming_call
                  * @param {object} call
@@ -643,13 +629,13 @@ class Client extends EventEmitter {
                  * @param {boolean} call.webClientShouldHandle - If Waweb should handle
                  * @param {object} call.participants - Participants
                  */
-                const cll &#x3D; new Call(this, call);
-                this.emit(Events.INCOMING_CALL, cll);
-            });
+            const cll &#x3D; new Call(this, call);
+            this.emit(Events.INCOMING_CALL, cll);
+        });
 
-            await this.pupPage.exposeFunction(&#x27;onReaction&#x27;, (reactions) &#x3D;&gt; {
-                for (const reaction of reactions) {
-                    /**
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onReaction&#x27;, (reactions) &#x3D;&gt; {
+            for (const reaction of reactions) {
+                /**
                      * Emitted when a reaction is sent, received, updated or removed
                      * @event Client#message_reaction
                      * @param {object} reaction
@@ -664,61 +650,60 @@ class Client extends EventEmitter {
                      * @param {?number} reaction.ack - Ack
                      */
 
-                    this.emit(Events.MESSAGE_REACTION, new Reaction(this, reaction));
-                }
-            });
+                this.emit(Events.MESSAGE_REACTION, new Reaction(this, reaction));
+            }
+        });
 
-            await this.pupPage.exposeFunction(&#x27;onRemoveChatEvent&#x27;, async (chat) &#x3D;&gt; {
-                const _chat &#x3D; await this.getChatById(chat.id);
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onRemoveChatEvent&#x27;, async (chat) &#x3D;&gt; {
+            const _chat &#x3D; await this.getChatById(chat.id);
 
-                /**
+            /**
                  * Emitted when a chat is removed
                  * @event Client#chat_removed
                  * @param {Chat} chat
                  */
-                this.emit(Events.CHAT_REMOVED, _chat);
-            });
+            this.emit(Events.CHAT_REMOVED, _chat);
+        });
             
-            await this.pupPage.exposeFunction(&#x27;onArchiveChatEvent&#x27;, async (chat, currState, prevState) &#x3D;&gt; {
-                const _chat &#x3D; await this.getChatById(chat.id);
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onArchiveChatEvent&#x27;, async (chat, currState, prevState) &#x3D;&gt; {
+            const _chat &#x3D; await this.getChatById(chat.id);
                 
-                /**
+            /**
                  * Emitted when a chat is archived/unarchived
                  * @event Client#chat_archived
                  * @param {Chat} chat
                  * @param {boolean} currState
                  * @param {boolean} prevState
                  */
-                this.emit(Events.CHAT_ARCHIVED, _chat, currState, prevState);
-            });
+            this.emit(Events.CHAT_ARCHIVED, _chat, currState, prevState);
+        });
 
-            await this.pupPage.exposeFunction(&#x27;onEditMessageEvent&#x27;, (msg, newBody, prevBody) &#x3D;&gt; {
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onEditMessageEvent&#x27;, (msg, newBody, prevBody) &#x3D;&gt; {
                 
-                if(msg.type &#x3D;&#x3D;&#x3D; &#x27;revoked&#x27;){
-                    return;
-                }
-                /**
+            if(msg.type &#x3D;&#x3D;&#x3D; &#x27;revoked&#x27;){
+                return;
+            }
+            /**
                  * Emitted when messages are edited
                  * @event Client#message_edit
                  * @param {Message} message
                  * @param {string} newBody
                  * @param {string} prevBody
                  */
-                this.emit(Events.MESSAGE_EDIT, new Message(this, msg), newBody, prevBody);
-            });
+            this.emit(Events.MESSAGE_EDIT, new Message(this, msg), newBody, prevBody);
+        });
             
-            await this.pupPage.exposeFunction(&#x27;onAddMessageCiphertextEvent&#x27;, msg &#x3D;&gt; {
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onAddMessageCiphertextEvent&#x27;, msg &#x3D;&gt; {
                 
-                /**
+            /**
                  * Emitted when messages are edited
                  * @event Client#message_ciphertext
                  * @param {Message} message
                  */
-                this.emit(Events.MESSAGE_CIPHERTEXT, new Message(this, msg));
-            });
-        }
+            this.emit(Events.MESSAGE_CIPHERTEXT, new Message(this, msg));
+        });
 
-        await this.pupPage.exposeFunction(&#x27;onPollVoteEvent&#x27;, (vote) &#x3D;&gt; {
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onPollVoteEvent&#x27;, (vote) &#x3D;&gt; {
             const _vote &#x3D; new PollVote(this, vote);
             /**
              * Emitted when some poll option is selected or deselected,
@@ -1518,6 +1503,17 @@ class Client extends EventEmitter {
 
         return labels.map(data &#x3D;&gt; new Label(this, data));
     }
+    
+    /**
+     * Get all current Broadcast
+     * @returns {Promise&amp;lt;Array&amp;lt;Broadcast&gt;&gt;}
+     */
+    async getBroadcasts() {
+        const broadcasts &#x3D; await this.pupPage.evaluate(async () &#x3D;&gt; {
+            return window.WWebJS.getAllStatuses();
+        });
+        return broadcasts.map(data &#x3D;&gt; new Broadcast(this, data));
+    }
 
     /**
      * Get Label instance by ID
@@ -1760,19 +1756,40 @@ class Client extends EventEmitter {
      * Get user device count by ID
      * Each WaWeb Connection counts as one device, and the phone (if exists) counts as one
      * So for a non-enterprise user with one WaWeb connection it should return &quot;2&quot;
-     * @param {string} contactId
-     * @returns {number}
+     * @param {string} userId
+     * @returns {Promise&amp;lt;number&gt;}
      */
-    async getContactDeviceCount(contactId) {
-        let devices &#x3D; await window.Store.DeviceList.getDeviceIds([window.Store.WidFactory.createWid(contactId)]);
-        if(devices &amp;amp;&amp;amp; devices.length  &amp;amp;&amp;amp; devices[0] !&#x3D; null &amp;amp;&amp;amp; typeof devices[0].devices &#x3D;&#x3D; &#x27;object&#x27;){
-            return devices[0].devices.length;
-        }
-        return 0;
+    async getContactDeviceCount(userId) {
+        return await this.pupPage.evaluate(async (userId) &#x3D;&gt; {
+            const devices &#x3D; await window.Store.DeviceList.getDeviceIds([window.Store.WidFactory.createWid(userId)]);
+            if (devices &amp;amp;&amp;amp; devices.length &amp;amp;&amp;amp; devices[0] !&#x3D; null &amp;amp;&amp;amp; typeof devices[0].devices &#x3D;&#x3D; &#x27;object&#x27;) {
+                return devices[0].devices.length;
+            }
+            return 0;
+        }, userId);
+    }
+
+    /**
+     * Sync chat history conversation
+     * @param {string} chatId
+     * @return {Promise&amp;lt;boolean&gt;} True if operation completed successfully, false otherwise.
+     */
+    async syncHistory(chatId) {
+        return await this.pupPage.evaluate(async (chatId) &#x3D;&gt; {
+            const chat &#x3D; await window.WWebJS.getChat(chatId);
+            if (chat.endOfHistoryTransferType &#x3D;&#x3D;&#x3D; 0) {
+                await window.Store.HistorySync.sendPeerDataOperationRequest(3, {
+                    chatId: chat.id
+                });
+                return true;
+            }
+            return false;
+        }, chatId);
     }
 }
 
-module.exports &#x3D; Client;</code></pre>
+module.exports &#x3D; Client;
+</code></pre>
           </article>
         </div>
       </div>
@@ -1782,7 +1799,7 @@ module.exports &#x3D; Client;</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on September 18, 2024.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on October 4, 2024.
       </p>
     </div>
   </footer>
