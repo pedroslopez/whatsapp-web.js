@@ -858,7 +858,7 @@ class Client extends EventEmitter {
     
     /**
      * Send a message to a specific chatId
-     * @param {string} chatId
+     * @param {string} chatId - Can be a chat id, phone number (like 123123@c.us), group id, channel/newsletter or broadcast list
      * @param {string|MessageMedia|Location|Poll|Contact|Array<Contact>|Buttons|List} content
      * @param {MessageSendOptions} [options] - Options used when sending the message
      * 
