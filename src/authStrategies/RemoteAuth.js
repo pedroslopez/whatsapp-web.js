@@ -157,7 +157,8 @@ class RemoteAuth extends BaseAuthStrategy {
         var stream = fs.createReadStream(compressedSessionPath);
         await new Promise((resolve, reject) => {
             stream.pipe(unzipper.Extract({
-                path: this.userDataDir
+                path: this.userDataDir,
+                concurrency: 10
             }))
                 .on('error', err => reject(err))
                 .on('finish', () => resolve());
