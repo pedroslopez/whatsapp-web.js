@@ -102,6 +102,11 @@ exports.ExposeStore = () => {
     if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.1014111620')) 
         window.Store.AddonReactionTable = window.require('WAWebAddonReactionTableMode').reactionTableMode;
     
+    window.Store.Settings = {
+        ...window.require('WAWebUserPrefsGeneral'),
+        ...window.require('WAWebUserPrefsNotifications')
+    };
+
     window.Store.ForwardUtils = {
         ...window.require('WAWebForwardMessagesToChat')
     };
