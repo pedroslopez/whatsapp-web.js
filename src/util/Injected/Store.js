@@ -94,7 +94,6 @@ exports.ExposeStore = () => {
     window.Store.pinUnpinMsg = window.require('WAWebSendPinMessageAction').sendPinInChatMsg;
     window.Store.QueryExist = window.require('WAWebQueryExistsJob').queryWidExists;
     window.Store.ReplyUtils = window.require('WAWebMsgReply');
-    window.Store.Settings = window.require('WAWebUserPrefsGeneral');
     window.Store.BotSecret = window.require('WAWebBotMessageSecret');
     window.Store.BotProfiles = window.require('WAWebBotProfileCollection');
     window.Store.DeviceList = window.require('WAWebApiDeviceList');
