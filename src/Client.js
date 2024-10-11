@@ -1724,9 +1724,10 @@ class Client extends EventEmitter {
     /**
      * Setting background synchronization
      * @param {boolean} flag true/false
+     * @returns {Promise<boolean>}
      */
     async setBackgroundSync(flag) {
-        await this.pupPage.evaluate(async flag => {
+        return await this.pupPage.evaluate(async flag => {
             const backSync = window.Store.Settings.getGlobalOfflineNotifications();
             if (backSync === flag) {
                 return flag;
