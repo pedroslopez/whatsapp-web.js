@@ -1416,7 +1416,7 @@ class Client extends EventEmitter {
                     participantWids
                 );
             } catch (err) {
-                return 'CreateGroupError: An unknown error occupied while creating a group';
+                return 'CreateGroupError: The following error occurred while creating a group:\n' + err;
             }
 
             for (const participant of createGroupResult.participants) {
