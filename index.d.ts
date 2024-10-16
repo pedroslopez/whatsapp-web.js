@@ -1008,6 +1008,11 @@ declare namespace WAWebJS {
         remote: string,
         id: string,
         _serialized: string,
+        participant?: {
+            server: string,
+            user: string,
+            _serialized: string
+        }
     }
 
     /** Options for sending a location */
