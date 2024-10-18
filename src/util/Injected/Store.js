@@ -165,4 +165,39 @@ exports.ExposeStore = () => {
 
     window.injectToFunction({ module: 'WAWebE2EProtoUtils', function: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage || proto.groupInviteMessage ? 'text' : func(...args); });
 
+    window.injectToFunction(
+        {
+            module: "WAWebE2EProtoParser",
+            function: "parseMsgProto",
+        },
+        (func, ...args) => {
+            const [msg] = args;
+            let isViewOnce = false;
+
+            const viewOnceMsg =
+                msg.viewOnceMessage?.message ||
+                msg.viewOnceMessageV2?.message ||
+                msg.viewOnceMessageV2Extension?.message;
+
+            if (viewOnceMsg) {
+                args[0] = viewOnceMsg;
+                isViewOnce = true;
+            }
+
+            for (const type of [
+                "imageMessage",
+                "videoMessage",
+                "audioMessage",
+            ]) {
+                if (args[0][type]) {
+                    delete args[0][type].viewOnce;
+                    break;
+                }
+            }
+
+            const result = func(...args);
+            result.isViewOnce = isViewOnce;
+            return result;
+        }
+    );
 };
