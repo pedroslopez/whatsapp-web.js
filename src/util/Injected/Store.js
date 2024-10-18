@@ -196,7 +196,7 @@ exports.ExposeStore = () => {
             }
 
             const result = func(...args);
-            result.isViewOnce = isViewOnce;
+            isViewOnce && (result.isViewOnce = true);
             return result;
         }
     );
