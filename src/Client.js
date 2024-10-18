@@ -1722,7 +1722,8 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Setting background synchronization
+     * Setting background synchronization.
+     * NOTE: this action will take effect after you restart the client.
      * @param {boolean} flag true/false
      * @returns {Promise<boolean>}
      */

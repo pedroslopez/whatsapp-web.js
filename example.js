@@ -471,6 +471,7 @@ client.on('message', async msg => {
         const chat = await statuses[0]?.getChat(); // Get user chat of a first status
         console.log(chat);
     } else if (msg.body === '!changeSync') {
+        // NOTE: this action will take effect after you restart the client.
         const backgroundSync = await client.setBackgroundSync(true);
         console.log(backgroundSync);
     }

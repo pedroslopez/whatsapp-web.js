@@ -181,7 +181,8 @@ declare namespace WAWebJS {
         setAutoDownloadVideos(flag: boolean): Promise<void>
 
         /**
-         * Changing the background synchronization setting
+         * Changing the background synchronization setting.
+         * NOTE: this action will take effect after you restart the client.
          * @param flag true/false on or off
          */
         setBackgroundSync(flag: boolean): Promise<void>
