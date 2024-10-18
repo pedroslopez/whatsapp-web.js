@@ -167,8 +167,8 @@ exports.ExposeStore = () => {
 
     window.injectToFunction(
         {
-            module: "WAWebE2EProtoParser",
-            function: "parseMsgProto",
+            module: 'WAWebE2EProtoParser',
+            function: 'parseMsgProto',
         },
         (func, ...args) => {
             const [msg] = args;
@@ -185,9 +185,9 @@ exports.ExposeStore = () => {
             }
 
             for (const type of [
-                "imageMessage",
-                "videoMessage",
-                "audioMessage",
+                'imageMessage',
+                'videoMessage',
+                'audioMessage',
             ]) {
                 if (args[0][type]) {
                     delete args[0][type].viewOnce;
