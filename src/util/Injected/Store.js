@@ -172,7 +172,6 @@ exports.ExposeStore = () => {
         },
         (func, ...args) => {
             const [msg] = args;
-            let isViewOnce = false;
 
             const viewOnceMsg =
                 msg.viewOnceMessage?.message ||
@@ -181,22 +180,21 @@ exports.ExposeStore = () => {
 
             if (viewOnceMsg) {
                 args[0] = viewOnceMsg;
-                isViewOnce = true;
-            }
 
-            for (const type of [
-                'imageMessage',
-                'videoMessage',
-                'audioMessage',
-            ]) {
-                if (args[0][type]) {
-                    delete args[0][type].viewOnce;
-                    break;
+                for (const type of [
+                    'imageMessage',
+                    'audioMessage',
+                    'videoMessage',
+                ]) {
+                    if (args[0][type]) {
+                        delete args[0][type].viewOnce;
+                        break;
+                    }
                 }
             }
 
             const result = func(...args);
-            isViewOnce && (result.isViewOnce = true);
+            viewOnceMsg && (result.isViewOnce = true);
             return result;
         }
     );
