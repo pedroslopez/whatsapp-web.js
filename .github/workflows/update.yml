@@ -36,4 +36,3 @@ jobs:
             
             Tests should be run against this new version before merging.
           labels: WhatsApp Change
-          reviewers: pedroslopez
