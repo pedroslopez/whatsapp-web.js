@@ -15,6 +15,8 @@ const path = require('path');
 const { Events } = require('./../util/Constants');
 const BaseAuthStrategy = require('./BaseAuthStrategy');
 
+const MIN_BACKUP_SYNC_INTERVAL_MS = 60000;
+
 /**
  * Remote-based authentication
  * @param {object} options - options
@@ -32,8 +34,8 @@ class RemoteAuth extends BaseAuthStrategy {
         if (clientId && !idRegex.test(clientId)) {
             throw new Error('Invalid clientId. Only alphanumeric characters, underscores and hyphens are allowed.');
         }
-        if (!backupSyncIntervalMs || backupSyncIntervalMs < 60000) {
-            throw new Error('Invalid backupSyncIntervalMs. Accepts values starting from 60000ms {1 minute}.');
+        if (!backupSyncIntervalMs || backupSyncIntervalMs < MIN_BACKUP_SYNC_INTERVAL_MS) {
+            throw new Error(`Invalid backupSyncIntervalMs. Accepts values starting from ${MIN_BACKUP_SYNC_INTERVAL_MS}ms {1 minute}.`);
         }
         if(!store) throw new Error('Remote database store is required.');
 
@@ -89,7 +91,7 @@ class RemoteAuth extends BaseAuthStrategy {
     async afterAuthReady() {
         const sessionExists = await this.store.sessionExists({session: this.sessionName});
         if(!sessionExists) {
-            await this.delay(60000); /* Initial delay sync required for session to be stable enough to recover */
+            await this.delay(MIN_BACKUP_SYNC_INTERVAL_MS); /* Initial delay sync required for session to be stable enough to recover */
             await this.storeRemoteSession({emit: true});
         }
         var self = this;
