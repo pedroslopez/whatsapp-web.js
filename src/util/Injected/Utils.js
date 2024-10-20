@@ -1025,4 +1025,8 @@ exports.LoadUtils = () => {
         const statuses = window.Store.Status.getModelsArray();
         return statuses.map(status => window.WWebJS.getStatusModel(status));
     };
+
+    window.WWebJS.createEventCallLink = async (eventStartTimeTs, callLinkType) => {
+        return await window.Store.createEventCallLink(eventStartTimeTs, callLinkType);
+    };
 };

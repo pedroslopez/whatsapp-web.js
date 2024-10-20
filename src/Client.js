@@ -1755,6 +1755,31 @@ class Client extends EventEmitter {
             return false;
         }, chatId);
     }
+
+    /**
+     * Generates a WhatsApp call link (video call or voice call)
+     * @param {number} startTimeTs The start time of the call in timestamp (10 digits)
+     * @param {string} callType The type of a WhatsApp call link to generate, valid values are: `video` | `voice`
+     * @returns {Promise<string>} The WhatsApp call link (https://call.whatsapp.com/video/XxXxXxXxXxXxXx) or an empty string if a generation failed.
+     */
+    async createCallLink(startTimeTs, callType) {
+        if (!Number.isInteger(startTimeTs) || startTimeTs.toString().length !== 10) {
+            throw new class CreateCallLinkError extends Error {
+                constructor(m) { super(m); }
+            }('Invalid \'startTimeTs\' parameter value is provided. Valid value is a timestamp (10 digits integer).');
+        }
+
+        if (!['video', 'voice'].includes(callType)) {
+            throw new class CreateCallLinkError extends Error {
+                constructor(m) { super(m); }
+            }('Invalid \'callType\' parameter value is provided. Valid values are: \'voice\' | \'video\'.');
+        }
+
+        return await this.pupPage.evaluate(async (startTimeTs, callType) => {
+            const response = await window.WWebJS.createEventCallLink(startTimeTs, callType);
+            return response ?? '';
+        }, startTimeTs, callType)
+    }
 }
 
 module.exports = Client;
