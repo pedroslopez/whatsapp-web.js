@@ -3,6 +3,7 @@
 const Base = require('./Base');
 const MessageMedia = require('./MessageMedia');
 const Location = require('./Location');
+const Event = require('./Event');
 const Order = require('./Order');
 const Payment = require('./Payment');
 const Reaction = require('./Reaction');
@@ -705,6 +706,40 @@ class Message extends Base {
             return new Message(this.client, messageEdit);
         }
         return null;
+    }
+
+    /**
+     * Edits the current Event message.
+     * Once the event is canceled, it can not be edited.
+     * @param {Event} editedEventObject
+     * @returns {Promise<?Message>}
+     */
+    async editEvent(editedEventObject) {
+        if (!this.fromMe) {
+            return null;
+        }
+
+        const edittedEventMsg = await this.client.pupPage.evaluate(async (msgId, editedEventObject) => {
+            const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
+            if (!msg) return null;
+
+            const { name, startTimeTs, eventSendOptions } = editedEventObject;
+            const eventOptions = {
+                name: name,
+                description: eventSendOptions.description,
+                startTime: startTimeTs,
+                endTime: eventSendOptions.endTimeTs,
+                location: eventSendOptions.location,
+                callType: eventSendOptions.callType,
+                isEventCanceled: eventSendOptions.isEventCanceled,
+            };
+
+            await window.Store.EditEventMessage.sendEventEditMessage(eventOptions, msg);
+            const editedMsg = window.Store.Msg.get(msg.id._serialized);
+            return editedMsg?.serialize();
+        }, this.id._serialized, editedEventObject);
+
+        return edittedEventMsg && new Message(this.client, edittedEventMsg);
     }
 }
 
