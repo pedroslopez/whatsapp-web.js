@@ -15,7 +15,7 @@ const { LoadUtils } = require('./util/Injected/Utils');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
 const WebCacheFactory = require('./webCache/WebCacheFactory');
-const { ClientInfo, Message, MessageMedia, Contact, Location, Poll, PollVote, GroupNotification, Label, Call, Buttons, List, Reaction, Broadcast} = require('./structures');
+const { ClientInfo, Message, MessageMedia, Contact, Location, Poll, PollVote, GroupNotification, Label, Call, Buttons, List, Reaction, Broadcast, Event } = require('./structures');
 const NoAuth = require('./authStrategies/NoAuth');
 const {exposeFunctionIfAbsent} = require('./util/Puppeteer');
 
@@ -906,6 +906,9 @@ class Client extends EventEmitter {
             content = '';
         } else if (content instanceof Poll) {
             internalOptions.poll = content;
+            content = '';
+        } else if (content instanceof Event) {
+            internalOptions.event = content;
             content = '';
         } else if (content instanceof Contact) {
             internalOptions.contactCard = content.id._serialized;

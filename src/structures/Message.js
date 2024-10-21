@@ -51,7 +51,7 @@ class Message extends Base {
          * Message content
          * @type {string}
          */
-        this.body = this.hasMedia ? data.caption || '' : data.body || data.pollName || '';
+        this.body = this.hasMedia ? data.caption || '' : data.body || data.pollName || data.eventName || '';
 
         /**
          * Message type
