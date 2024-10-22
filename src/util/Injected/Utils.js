@@ -124,7 +124,11 @@ exports.LoadUtils = () => {
                 eventDescription: eventSendOptions.description,
                 eventStartTime: startTimeTs,
                 eventEndTime: eventSendOptions.endTimeTs,
-                eventLocation: { name: eventSendOptions.location },
+                eventLocation: eventSendOptions.location && {
+                    degreesLatitude: 0,
+                    degreesLongitude: 0,
+                    name: eventSendOptions.location
+                },
                 eventJoinLink: await window.WWebJS.createEventCallLink(
                     eventSendOptions.startTimeTs,
                     eventSendOptions.callType
