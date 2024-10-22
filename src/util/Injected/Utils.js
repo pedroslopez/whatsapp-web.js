@@ -130,7 +130,7 @@ exports.LoadUtils = () => {
                     name: eventSendOptions.location
                 },
                 eventJoinLink: await window.WWebJS.createEventCallLink(
-                    eventSendOptions.startTimeTs,
+                    startTimeTs,
                     eventSendOptions.callType
                 ),
                 isEventCanceled: eventSendOptions.isEventCanceled,
