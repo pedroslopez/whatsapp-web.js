@@ -3,7 +3,6 @@
 const Base = require('./Base');
 const MessageMedia = require('./MessageMedia');
 const Location = require('./Location');
-const Event = require('./Event');
 const Order = require('./Order');
 const Payment = require('./Payment');
 const Reaction = require('./Reaction');

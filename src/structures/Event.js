@@ -65,7 +65,7 @@ class Event {
         if (propName === 'callType' && propValue && !['video', 'voice'].includes(propValue)) {
             throw new class CreateEventError extends Error {
                 constructor(m) { super(m); }
-            }(`Invalid '${propName}' parameter value is provided. Valid values are: \'voice\' | \'video\'.`);
+            }(`Invalid '${propName}' parameter value is provided. Valid values are: 'voice' | 'video'.`);
         }
 
         if (propName === 'startTimeTs' || (propName === 'endTimeTs' && propValue)) {
