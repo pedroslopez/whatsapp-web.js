@@ -51,7 +51,7 @@ class InterfaceController {
         await this.pupPage.evaluate(async msgId => {
             const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
             let chat = await window.Store.Chat.find(msg.id.remote);
-            let searchContext = await window.Store.SearchContext(chat,msg);
+            let searchContext = await window.Store.SearchContext.getSearchContext(chat,msg);
             await window.Store.Cmd.openChatAt(chat, searchContext);
         }, msgId);
     }
