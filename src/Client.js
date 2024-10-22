@@ -1783,6 +1783,24 @@ class Client extends EventEmitter {
             return response ?? '';
         }, startTimeTs, callType);
     }
+
+    /**
+     * Sends a response to the event message, indicating whether a user is going to attend the event or not
+     * @param {number} response The response code to the event message. Valid values are: `0` for NONE response (removes a previous response) | `1` for GOING | `2` for NOT GOING | `3` for MAYBE going
+     * @param {string} eventMessageId The event message ID
+     * @returns {Promise<boolean>}
+     */
+    async sendResponseToEvent(response, eventMessageId) {
+        if (![0, 1, 2, 3].includes(response)) return false;
+
+        return await this.pupPage.evaluate(async (response, msgId) => {
+            const eventMsg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
+            if (!eventMsg) return false;
+
+            await window.Store.EventMsgUtils.sendEventResponseMsg(response, eventMsg);
+            return true;
+        }, response, eventMessageId);
+    }
 }
 
 module.exports = Client;
