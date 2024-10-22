@@ -85,7 +85,7 @@ exports.ExposeStore = () => {
     window.Store.LinkPreview = window.require('WAWebLinkPreviewChatAction');
     window.Store.Socket = window.require('WADeprecatedSendIq');
     window.Store.SocketWap = window.require('WAWap');
-    window.Store.SearchContext = window.require('WAWebChatMessageSearch').getSearchContext;
+    window.Store.SearchContext = window.require('WAWebChatMessageSearch');
     window.Store.DrawerManager = window.require('WAWebDrawerManager').DrawerManager;
     window.Store.LidUtils = window.require('WAWebApiContact');
     window.Store.WidToJid = window.require('WAWebWidToJid');
