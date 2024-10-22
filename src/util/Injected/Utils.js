@@ -1056,6 +1056,6 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.createEventCallLink = async (eventStartTimeTs, callLinkType) => {
-        return await window.Store.createEventCallLink(eventStartTimeTs, callLinkType);
+        return await window.Store.EventMsgUtils.createEventCallLink(eventStartTimeTs, callLinkType);
     };
 };

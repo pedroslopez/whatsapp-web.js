@@ -63,7 +63,6 @@ exports.ExposeStore = () => {
     window.Store.SendDelete = window.require('WAWebDeleteChatAction');
     window.Store.SendMessage = window.require('WAWebSendMsgChatAction');
     window.Store.EditMessage = window.require('WAWebSendMessageEditAction');
-    window.Store.EditEventMessage = window.require('WAWebSendEventEditMsgAction');
     window.Store.SendSeen = window.require('WAWebUpdateUnreadChatAction');
     window.Store.User = window.require('WAWebUserPrefsMeUser');
     window.Store.ContactMethods = window.require('WAWebContactGetters');
@@ -100,14 +99,17 @@ exports.ExposeStore = () => {
     window.Store.BotProfiles = window.require('WAWebBotProfileCollection');
     window.Store.DeviceList = window.require('WAWebApiDeviceList');
     window.Store.HistorySync = window.require('WAWebSendNonMessageDataRequest');
-    window.Store.createEventCallLink = window.require('WAWebEventsCreateCallLinkJob').createEventCallLink;
-    if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.1014111620')) 
+    if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.1014111620'))
         window.Store.AddonReactionTable = window.require('WAWebAddonReactionTableMode').reactionTableMode;
     
     window.Store.ForwardUtils = {
         ...window.require('WAWebForwardMessagesToChat')
     };
-
+    window.Store.EventMsgUtils = {
+        ...window.require('WAWebEventsCreateCallLinkJob'),
+        ...window.require('WAWebSendEventEditMsgAction'),
+        ...window.require('WAWebSendEventResponseMsgAction'),
+    };
     window.Store.StickerTools = {
         ...window.require('WAWebImageUtils'),
         ...window.require('WAWebAddWebpMetadata')

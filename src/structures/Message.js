@@ -734,7 +734,7 @@ class Message extends Base {
                 isEventCanceled: eventSendOptions.isEventCanceled,
             };
 
-            await window.Store.EditEventMessage.sendEventEditMessage(eventOptions, msg);
+            await window.Store.EventMsgUtils.sendEventEditMessage(eventOptions, msg);
             const editedMsg = window.Store.Msg.get(msg.id._serialized);
             return editedMsg?.serialize();
         }, this.id._serialized, editedEventObject);

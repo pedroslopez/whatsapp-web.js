@@ -1779,9 +1779,9 @@ class Client extends EventEmitter {
         }
 
         return await this.pupPage.evaluate(async (startTimeTs, callType) => {
-            const response = await window.WWebJS.createEventCallLink(startTimeTs, callType);
+            const response = await window.Store.EventMsgUtils.createEventCallLink(startTimeTs, callType);
             return response ?? '';
-        }, startTimeTs, callType)
+        }, startTimeTs, callType);
     }
 }
 
