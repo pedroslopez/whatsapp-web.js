@@ -203,6 +203,16 @@ declare namespace WAWebJS {
         /** Deletes the current user's profile picture */
         deleteProfilePicture(): Promise<boolean>
 
+        /** Generates a WhatsApp call link (video call or voice call) */
+        createCallLink(startTimeTs: number, callType: string): Promise<string>
+
+        /**
+         * Sends a response to the event message, indicating whether a user is going to attend the event or not
+         * @param response The response code to the event message. Valid values are: `0` for NONE response (removes a previous response) | `1` for GOING | `2` for NOT GOING | `3` for MAYBE going
+         * @param eventMessageId The event message ID
+         */
+        sendResponseToEvent(response: number, eventMessageId: string): Promise<boolean>
+
         /** Gets an array of membership requests */
         getGroupMembershipRequests: (groupId: string) => Promise<Array<GroupMembershipRequest>>
 
@@ -770,6 +780,7 @@ declare namespace WAWebJS {
         REACTION = 'reaction',
         TEMPLATE_BUTTON_REPLY = 'template_button_reply',
         POLL_CREATION = 'poll_creation',
+        EVENT_CREATION = 'event_creation',
     }
 
     /** Client status */
@@ -943,6 +954,24 @@ declare namespace WAWebJS {
         pollOptions: string[],
         /** False for a single choice poll, true for a multiple choice poll */
         allowMultipleAnswers: boolean,
+        /** The start time of the event in timestamp (10 digits) */
+        eventStartTime: number,
+        /** The end time of the event in timestamp (10 digits) */
+        eventEndTime?: number,
+        /** The event description */
+        eventDescription?: string,
+        /** The location of the event */
+        eventLocation?: {
+            degreesLatitude: number;
+            degreesLongitude: number;
+            name: string;
+        },
+        /** WhatsApp call link (video call or voice call) */
+        eventJoinLink?: string,
+        /** Indicates if an event should be sent as an already canceled */
+        isEventCaneled: boolean,
+        /** The custom message secret, can be used as an event ID */
+        messageSecret?: Array<number>,
         /* 
         * Reloads this Message object's data in-place with the latest values from WhatsApp Web. 
         * Note that the Message must still be in the web app cache for this to work, otherwise will return null.
@@ -1000,6 +1029,11 @@ declare namespace WAWebJS {
         getReactions: () => Promise<ReactionList[]>,
         /** Edits the current message */
         edit: (content: MessageContent, options?: MessageEditOptions) => Promise<Message | null>,
+        /**
+         * Edits the current Event message.
+         * Once the event is canceled, it can not be edited.
+         */
+        editEvent: (editedEventObject: Event) => Promise<Message | null>,
     }
 
     /** ID that represents a message */
@@ -1050,6 +1084,37 @@ declare namespace WAWebJS {
         options: PollSendOptions
 
         constructor(pollName: string, pollOptions: Array<string>, options?: PollSendOptions)
+    }
+
+    /** Event send options */
+    export interface EventSendOptions {
+        /** The event description */
+        description?: string,
+        /** The end time of the event in timestamp (10 digits) */
+        endTimeTs?: number,
+        /** The location of the event */
+        location?: string,
+        /** The type of a WhatsApp call link to generate, valid values are: `video` | `voice` */
+        callType?: string,
+        /**
+         * Indicates if an event should be sent as an already canceled
+         * @default false
+         */
+        isEventCanceled?: boolean
+        /**
+         * The custom message secret, can be used as an event ID
+         * @note It has to be a unique vector with a length of 32
+         */
+        messageSecret: Array<number>|undefined
+    }
+
+    /** Represents an Event on WhatsApp */
+    export class Event {
+        name: string
+        startTimeTs: number
+        options: EventSendOptions
+
+        constructor(name: string, startTimeTs: number, options?: EventSendOptions)
     }
 
     /** Represents a Poll Vote on WhatsApp */
@@ -1202,7 +1267,7 @@ declare namespace WAWebJS {
         static fromUrl: (url: string, options?: MediaFromURLOptions) => Promise<MessageMedia>
     }
 
-    export type MessageContent = string | MessageMedia | Location | Poll | Contact | Contact[] | List | Buttons
+    export type MessageContent = string | MessageMedia | Location | Poll | Contact | Contact[] | List | Buttons | Event
 
     /**
      * Represents a Contact on WhatsApp
