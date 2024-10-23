@@ -154,7 +154,7 @@ class Chat extends Base {
 
     /**
      * Mutes this chat forever, unless a date is specified
-     * @param {?Date} unmuteDate Date at which the Chat will be unmuted, leave as is to mute forever
+     * @param {?Date} unmuteDate Date when the chat will be unmuted, don't provide a value to mute forever
      * @returns {Promise<{isMuted: boolean, muteExpiration: number}>}
      */
     async mute(unmuteDate) {
