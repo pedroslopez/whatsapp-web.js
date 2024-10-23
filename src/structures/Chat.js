@@ -161,7 +161,7 @@ class Chat extends Base {
         const result = await this.client.muteChat(this.id._serialized, unmuteDate);
         this.isMuted = result.isMuted;
         this.muteExpiration = result.muteExpiration;
-        return { isMuted: result.isMuted, muteExpiration: result.muteExpiration };
+        return result;
     }
 
     /**
@@ -172,7 +172,7 @@ class Chat extends Base {
         const result = await this.client.unmuteChat(this.id._serialized);
         this.isMuted = result.isMuted;
         this.muteExpiration = result.muteExpiration;
-        return { isMuted: result.isMuted, muteExpiration: result.muteExpiration };
+        return result;
     }
 
     /**

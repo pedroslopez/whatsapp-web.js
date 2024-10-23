@@ -1219,7 +1219,7 @@ class Client extends EventEmitter {
      */
     async _muteUnmuteChat (chatId, action, unmuteDateTs) {
         return this.pupPage.evaluate(async (chatId, action, unmuteDateTs) => {
-            const chat = window.Store.Chat.get(chatId);
+            const chat = window.Store.Chat.get(chatId) ?? await window.Store.Chat.find(chatId);
             action === 'MUTE'
                 ? await chat.mute.mute({ expiration: unmuteDateTs, sendDevice: true })
                 : await chat.mute.unmute({ sendDevice: true });
