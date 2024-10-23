@@ -453,7 +453,7 @@ exports.LoadUtils = () => {
         let res = chat.serialize();
         res.isGroup = chat.isGroup;
         res.formattedTitle = chat.formattedTitle;
-        res.isMuted = chat.mute && chat.mute.isMuted;
+        res.isMuted = chat.mute?.expiration !== 0;
 
         if (chat.groupMetadata) {
             const chatWid = window.Store.WidFactory.createWid((chat.id._serialized));
