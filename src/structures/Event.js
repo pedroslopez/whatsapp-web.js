@@ -4,7 +4,7 @@
  * Event send options
  * @typedef {Object} EventSendOptions
  * @property {?string} description The event description
- * @property {?number} endTimeTs The end time of the event in timestamp (10 digits)
+ * @property {?Date} endTime The end time of the event
  * @property {?string} location The location of the event
  * @property {?string} callType The type of a WhatsApp call link to generate, valid values are: `video` | `voice`
  * @property {boolean} [isEventCanceled = false] Indicates if an event should be sent as an already canceled
@@ -15,10 +15,10 @@
 class Event {
     /**
      * @param {string} name
-     * @param {number} startTimeTs
+     * @param {Date} startTime
      * @param {EventSendOptions} options
      */
-    constructor(name, startTimeTs, options = {}) {
+    constructor(name, startTime, options = {}) {
         /**
          * The name of the event
          * @type {string}
@@ -26,22 +26,18 @@ class Event {
         this.name = this._validateInputs('name', name).trim();
 
         /**
-         * The start time of the event in timestamp (10 digits)
+         * The start time of the event
          * @type {number}
-         * @example
-         * ```javascript
-         * Math.floor(Date.now() / 1000)
-         * ```
          */
-        this.startTimeTs = this._validateInputs('startTimeTs', startTimeTs);
+        this.startTimeTs = Math.floor(startTime.getTime() / 1000);
 
         /**
          * The send options for the event
-         * @type {EventSendOptions}
+         * @type {Object}
          */
         this.eventSendOptions = {
             description: options.description?.trim(),
-            endTimeTs: this._validateInputs('endTimeTs', options.endTimeTs),
+            endTimeTs: options.endTime ? Math.floor(options.endTime.getTime() / 1000) : null,
             location: options.location?.trim(),
             callType: this._validateInputs('callType', options.callType),
             isEventCanceled: options.isEventCanceled ?? false,
@@ -66,14 +62,6 @@ class Event {
             throw new class CreateEventError extends Error {
                 constructor(m) { super(m); }
             }(`Invalid '${propName}' parameter value is provided. Valid values are: 'voice' | 'video'.`);
-        }
-
-        if (propName === 'startTimeTs' || (propName === 'endTimeTs' && propValue)) {
-            if (!Number.isInteger(propValue) || propValue.toString().length !== 10) {
-                throw new class CreateCallLinkError extends Error {
-                    constructor(m) { super(m); }
-                }(`Invalid '${propName}' parameter value is provided. Valid value is a timestamp (10 digits integer).`);
-            }
         }
         
         return propValue;

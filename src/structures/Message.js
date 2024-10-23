@@ -7,6 +7,7 @@ const Order = require('./Order');
 const Payment = require('./Payment');
 const Reaction = require('./Reaction');
 const Contact = require('./Contact');
+const Event = require('./Event'); // eslint-disable-line no-unused-vars
 const { MessageTypes } = require('../util/Constants');
 
 /**

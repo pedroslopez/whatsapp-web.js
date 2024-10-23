@@ -204,7 +204,7 @@ declare namespace WAWebJS {
         deleteProfilePicture(): Promise<boolean>
 
         /** Generates a WhatsApp call link (video call or voice call) */
-        createCallLink(startTimeTs: number, callType: string): Promise<string>
+        createCallLink(startTime: Date, callType: string): Promise<string>
 
         /**
          * Sends a response to the event message, indicating whether a user is going to attend the event or not
@@ -1090,8 +1090,8 @@ declare namespace WAWebJS {
     export interface EventSendOptions {
         /** The event description */
         description?: string,
-        /** The end time of the event in timestamp (10 digits) */
-        endTimeTs?: number,
+        /** The end time of the event */
+        endTime?: Date,
         /** The location of the event */
         location?: string,
         /** The type of a WhatsApp call link to generate, valid values are: `video` | `voice` */
@@ -1112,9 +1112,16 @@ declare namespace WAWebJS {
     export class Event {
         name: string
         startTimeTs: number
-        options: EventSendOptions
+        eventSendOptions: {
+            description?: string;
+            endTimeTs?: number;
+            location?: string;
+            callType?: string;
+            isEventCanceled?: boolean;
+            messageSecret?: string;
+        };
 
-        constructor(name: string, startTimeTs: number, options?: EventSendOptions)
+        constructor(name: string, startTime: Date, options?: EventSendOptions)
     }
 
     /** Represents a Poll Vote on WhatsApp */
