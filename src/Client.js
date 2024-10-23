@@ -1197,7 +1197,7 @@ class Client extends EventEmitter {
      * @returns {Promise<{isMuted: boolean, muteExpiration: number}>}
      */
     async muteChat(chatId, unmuteDate) {
-        unmuteDate = unmuteDate ? unmuteDate.getTime() / 1000 : -1;
+        unmuteDate = unmuteDate ? Math.floor(unmuteDate.getTime() / 1000) : -1;
         return this._muteUnmuteChat(chatId, 'MUTE', unmuteDate);
     }
 
