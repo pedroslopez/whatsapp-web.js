@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.26.0 &raquo; Class: Client</title>
+  <title>whatsapp-web.js 1.26.1-alpha.2 &raquo; Class: Client</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>25.<wbr>0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>26.<wbr>1-alpha.<wbr>2</a>
       </div>
     </div>
   </nav>
@@ -26,7 +26,7 @@
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
             <h1><small></small><span class="symbol-name">Client</span></h1>
-            <p class="source-link">Source: <a href="Client.js.html#source-line-62">Client.<wbr>js:62</a></p>
+            <p class="source-link">Source: <a href="Client.js.html#source-line-63">Client.<wbr>js:63</a></p>
             <div class="symbol-classdesc">
               <p>Starting point for interacting with the WhatsApp Web API</p>
             </div>
@@ -95,6 +95,9 @@
                     <dt><a href="Client.html#getBlockedContacts">getBlockedContacts()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Client.html#getBroadcasts">getBroadcasts()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#getChatById">getChatById(chatId)</a></dt>
                     <dd>
                     </dd>
@@ -113,7 +116,7 @@
                     <dt><a href="Client.html#getContactById">getContactById(contactId)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Client.html#getContactDeviceCount">getContactDeviceCount(contactId)</a></dt>
+                    <dt><a href="Client.html#getContactDeviceCount">getContactDeviceCount(userId)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Client.html#getContacts">getContacts()</a></dt>
@@ -177,13 +180,13 @@
                     <dt><a href="Client.html#rejectGroupMembershipRequests">rejectGroupMembershipRequests(groupId, options)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Client.html#requestPairingCode">requestPairingCode(phoneNumber, showNotification)</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Client.html#requestPairingCode">requestPairingCode(phoneNumber, showNotification)</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="Client.html#resetState">resetState()</a></dt>
                     <dd>
                     </dd>
@@ -221,6 +224,9 @@
                     <dd>
                     </dd>
                     <dt><a href="Client.html#setStatus">setStatus(status)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#syncHistory">syncHistory(chatId)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Client.html#unarchiveChat">unarchiveChat()</a></dt>
@@ -938,6 +944,15 @@
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getBroadcasts"><span class="symbol-name">getBroadcasts</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of <a href="Broadcast.html">Broadcast</a></span></span></h3>
+              <p>Get all current Broadcast</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing Array of <a href="Broadcast.html">Broadcast</a></code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="getChatById"><span class="symbol-name">getChatById</span><span class="signature"><span class="signature-params">(chatId)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="Chat.html">Chat</a></span></span></h3>
               <p>Get chat instance by ID</p>
               <section>
@@ -1133,7 +1148,7 @@
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
-              <h3 id="getContactDeviceCount"><span class="symbol-name">getContactDeviceCount</span><span class="signature"><span class="signature-params">(contactId)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <h3 id="getContactDeviceCount"><span class="symbol-name">getContactDeviceCount</span><span class="signature"><span class="signature-params">(userId)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing number</span></span></h3>
               <p>Get user device count by ID
                 Each WaWeb Connection counts as one device, and the phone (if exists) counts as one
                 So for a non-enterprise user with one WaWeb connection it should return &quot;2&quot;</p>
@@ -1151,7 +1166,7 @@
                   <tbody>
                     <tr>
                       <td>
-                        <p>contactId</p>
+                        <p>userId</p>
                       </td>
                       <td>
                         <p>string</p>
@@ -1168,7 +1183,7 @@
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code> </p>
+                  <p><code>Promise containing number</code> </p>
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
@@ -1485,35 +1500,6 @@
               <h3 id="inject"><span class="symbol-name">inject</span><span class="signature"><span class="signature-params">()</span></span></h3>
               <p>Injection logic
                 Private function</p>
-              <section>
-                <h4>Property</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>reinject</p>
-                      </td>
-                      <td>
-                        <p>boolean</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>is this a reinject?</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
               <dl class="dl-compact">
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
@@ -2233,6 +2219,45 @@
                 </table>
               </section>
               <dl class="dl-compact">
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="syncHistory"><span class="symbol-name">syncHistory</span><span class="signature"><span class="signature-params">(chatId)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Sync chat history conversation</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>chatId</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code> 
+                  <p>True if operation completed successfully, false otherwise.</p>
+                  </p>
+                </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="unarchiveChat"><span class="symbol-name">unarchiveChat</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
@@ -3555,7 +3580,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on September 18, 2024.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on October 4, 2024.
       </p>
     </div>
   </footer>
