@@ -2,6 +2,7 @@
 import { EventEmitter } from 'events'
 import { RequestInit } from 'node-fetch'
 import * as puppeteer from 'puppeteer'
+import InterfaceController from './src/util/InterfaceController'
 
 declare namespace WAWebJS {
 
@@ -16,6 +17,9 @@ declare namespace WAWebJS {
 
         /** Puppeteer browser running WhatsApp Web */
         pupBrowser?: puppeteer.Browser
+
+        /** Client interactivity interface */
+        interface?: InterfaceController
 
         /**Accepts an invitation to join a group */
         acceptInvite(inviteCode: string): Promise<string>
@@ -71,6 +75,9 @@ declare namespace WAWebJS {
         /** Get all current Labels  */
         getLabels(): Promise<Label[]>
         
+        /** Get all current Broadcasts  */
+        getBroadcasts(): Promise<Broadcast[]>
+        
         /** Change labels in chats  */
         addOrRemoveLabels(labelIds: Array<number|string>, chatIds: Array<string>): Promise<void>
 
@@ -125,6 +132,14 @@ declare namespace WAWebJS {
          */
         muteChat(chatId: string, unmuteDate?: Date): Promise<void>
 
+        /**
+         * Request authentication via pairing code instead of QR code
+         * @param phoneNumber - Phone number in international, symbol-free format (e.g. 12025550108 for US, 551155501234 for Brazil)
+         * @param showNotification - Show notification to pair on phone number
+         * @returns {Promise<string>} - Returns a pairing code in format "ABCDEFGH"
+         */
+        requestPairingCode(phoneNumber: string, showNotification = true): Promise<string>
+
         /** Force reset of connection state for the client */
         resetState(): Promise<void>
 
@@ -178,7 +193,18 @@ declare namespace WAWebJS {
          * @param flag true/false on or off
          */
         setAutoDownloadVideos(flag: boolean): Promise<void>
-                
+
+        /**
+         * Get user device count by ID
+         * Each WaWeb Connection counts as one device, and the phone (if exists) counts as one
+         * So for a non-enterprise user with one WaWeb connection it should return "2"
+         * @param {string} contactId
+         */
+        getContactDeviceCount(userId: string): Promise<number>
+        
+        /** Sync history conversation of the Chat */
+        syncHistory(chatId: string): Promise<boolean>
+        
         /** Changes and returns the archive state of the Chat */
         unarchiveChat(chatId: string): Promise<boolean>
 
@@ -237,7 +263,7 @@ declare namespace WAWebJS {
         /** Emitted when the client has been disconnected */
         on(event: 'disconnected', listener: (
             /** reason that caused the disconnect */
-            reason: WAState | "NAVIGATION"
+            reason: WAState | "LOGOUT"
         ) => void): this
 
         /** Emitted when a user joins the chat via invite link, is added by an admin or the user's request to join the group was approved by one of the group admins */
@@ -1115,6 +1141,28 @@ declare namespace WAWebJS {
         getChats: () => Promise<Chat[]>
     }
 
+    export interface Broadcast {
+        /** Chat Object ID */
+        id: {
+            server: string,
+            user: string,
+            _serialized: string
+        },
+        /** Unix timestamp of last story */
+        timestamp: number,
+        /** Number of available statuses */
+        totalCount: number,
+        /** Number of not viewed */
+        unreadCount: number,
+        /** Unix timestamp of last story */
+        msgs: Message[],
+
+        /** Returns the Chat of the owner of the story */
+        getChat: () => Promise<Chat>,
+        /** Returns the Contact of the owner of the story */
+        getContact: () => Promise<Contact>,
+    }
+
     /** Options for sending a message */
     export interface MessageSendOptions {
         /** Show links preview. Has no effect on multi-device accounts. */
@@ -1146,6 +1194,8 @@ declare namespace WAWebJS {
         }[]
         /** Send 'seen' status */
         sendSeen?: boolean
+        /** Bot Wid when doing a bot mention like @Meta AI */
+        invokedBotWid?: string
         /** Media to be sent */
         media?: MessageMedia
         /** Extra options */
@@ -1466,7 +1516,9 @@ declare namespace WAWebJS {
         /** Returns array of all Labels assigned to this Chat */
         getLabels: () => Promise<Label[]>,
         /** Add or remove labels to this Chat */
-        changeLabels: (labelIds: Array<string | number>) => Promise<void>,
+        changeLabels: (labelIds: Array<string | number>) => Promise<void>
+        /** Sync history conversation of the Chat */
+        syncHistory: () => Promise<boolean>,
         /**
          * Sets message expiration timer for the chat.
          * Valid values for passing to the method are:
@@ -1680,14 +1732,6 @@ declare namespace WAWebJS {
          * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
          */
         setMembershipApprovalMode: (value: boolean) => Promise<boolean>;
-        /**
-         * Sets the 'Group Member Add Mode'
-         * When turned on, only group admins can add others to the group,
-         * when turned off, all group participants can add others to the group.
-         * @param {boolean} [onlyAdmins=true] True for turning the 'Group Member Add Mode' on, false for turning it off
-         * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
-         */
-        setGroupMemberAddMode: (onlyAdmins: boolean) => Promise<boolean>;
         /**
          * Gets the reported to group admin messages sent in that group
          * Will work if:

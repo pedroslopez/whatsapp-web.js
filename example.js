@@ -5,19 +5,30 @@ const client = new Client({
     // proxyAuthentication: { username: 'username', password: 'password' },
     puppeteer: { 
         // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
-        headless: false
+        headless: false,
     }
 });
 
+// client initialize does not finish at ready now.
 client.initialize();
 
 client.on('loading_screen', (percent, message) => {
     console.log('LOADING SCREEN', percent, message);
 });
 
-client.on('qr', (qr) => {
+// Pairing code only needs to be requested once
+let pairingCodeRequested = false;
+client.on('qr', async (qr) => {
     // NOTE: This event will not be fired if a session is specified.
     console.log('QR RECEIVED', qr);
+
+    // paiuting code example
+    const pairingCodeEnabled = false;
+    if (pairingCodeEnabled && !pairingCodeRequested) {
+        const pairingCode = await client.requestPairingCode('96170100100'); // enter the target phone number
+        console.log('Pairing code enabled, code: '+ pairingCode);
+        pairingCodeRequested = true;
+    }
 });
 
 client.on('authenticated', () => {
@@ -29,8 +40,18 @@ client.on('auth_failure', msg => {
     console.error('AUTHENTICATION FAILURE', msg);
 });
 
-client.on('ready', () => {
+client.on('ready', async () => {
     console.log('READY');
+    const debugWWebVersion = await client.getWWebVersion();
+    console.log(`WWebVersion = ${debugWWebVersion}`);
+
+    client.pupPage.on('pageerror', function(err) {
+        console.log('Page error: ' + err.toString());
+    });
+    client.pupPage.on('error', function(err) {
+        console.log('Page error: ' + err.toString());
+    });
+    
 });
 
 client.on('message', async msg => {
@@ -81,7 +102,7 @@ client.on('message', async msg => {
     } else if (msg.body === '!setMsgTimer') {
         const chat = await client.getChatById('number@c.us');
         // OR
-        const group = await client.getChatById('groupId@g.us');
+        const group = await client.getChatById('XXXXXXXXXX@g.us');
         /**
          * Valid values for passing to the method are:
          * 0 for message expiration removal,
@@ -94,7 +115,7 @@ client.on('message', async msg => {
         /** For 90 days message expiration: */
         await group.setMessageExpiration(3);
     } else if (msg.body === '!reportToAdminMode') {
-        const group = await client.getChatById('groupId@g.us');
+        const group = await client.getChatById('XXXXXXXXXX@g.us');
         if (group.isGroup) {
             /** Turns the 'Report To Admin Mode' on: */
             await group.setReportToAdminMode(/* true */);
@@ -102,7 +123,7 @@ client.on('message', async msg => {
             await group.setReportToAdminMode(false);
         }
     } else if (msg.body === '!membershipApprovalMode') {
-        const group = await client.getChatById('groupId@g.us');
+        const group = await client.getChatById('XXXXXXXXXX@g.us');
         if (group.isGroup) {
             /** Turns the 'Membership Approval Mode' on: */
             await group.setMembershipApprovalMode(/* true */);
@@ -112,19 +133,17 @@ client.on('message', async msg => {
              */
             await group.setMembershipApprovalMode(false);
         }
-    } else if (msg.body === '!groupMemberAddMode') {
-        const group = await client.getChatById('groupId@g.us');
+    } else if (msg.body === '!setAddMembersAdminsOnly') {
+        const group = await client.getChatById('XXXXXXXXXX@g.us');
         if (group.isGroup) {
             /**
-             * Turns the 'Group Member Add Mode' on.
              * If turned on, only group admins can add others to that group
              */
-            await group.setGroupMemberAddMode(/* true */);
+            await group.setAddMembersAdminsOnly(/* true by default */);
             /**
-             * Turns the 'Group Member Add Mode' off
              * If turned off, all participants can add others to this group
              */
-            await group.setGroupMemberAddMode(false);
+            await group.setAddMembersAdminsOnly(false);
         }
     }else if (msg.body === '!getReportedMsgs') {
         let reportedMsgs;
@@ -133,7 +152,7 @@ client.on('message', async msg => {
             reportedMsgs = await group.getReportedMessages();
         }
         // You can also call that method on `Client` object:
-        reportedMsgs = await client.getReportedMessages('groupId@g.us');
+        reportedMsgs = await client.getReportedMessages('XXXXXXXXXX@g.us');
         /**
          * The example of the resulting structure of {@link reportedMsgs}:
          * [
@@ -160,7 +179,7 @@ client.on('message', async msg => {
         const chat = await msg.getChat();
         hasKeptMsgs = await chat.hasKeptMessages();
         // You can also call that method on `Client` object:
-        hasKeptMsgs = await client.hasKeptMessages('number@c.us'/* 'groupId@g.us' */);
+        hasKeptMsgs = await client.hasKeptMessages('number@c.us'/* 'XXXXXXXXXX@g.us' */);
         /** True if there are kept messages in a chat or a group, false otherwise */
         console.log(hasKeptMsgs);
     } else if (msg.body === '!getKeptMsgs') {
@@ -168,7 +187,7 @@ client.on('message', async msg => {
         const chat = await msg.getChat();
         keptMsgs = await chat.getKeptMessages();
         // You can also call that method on `Client` object:
-        keptMsgs = await client.getKeptMessages('number@c.us'/* 'groupId@g.us' */);
+        keptMsgs = await client.getKeptMessages('number@c.us'/* 'XXXXXXXXXX@g.us' */);
         /** An array of `Message` objects */
         console.log(keptMsgs);
     } else if (msg.body === '!leave') {
@@ -511,7 +530,7 @@ client.on('message', async msg => {
             requesterIds: ['number1@c.us', 'number2@c.us'],
             sleep: null
         });
-    } else {
+    } else if (msg.body === '!pinmsg') {
         /**
          * Pins a message in a chat, a method takes a number in seconds for the message to be pinned.
          * WhatsApp default values for duration to pass to the method are:
@@ -522,6 +541,26 @@ client.on('message', async msg => {
          */
         const result = await msg.pin(60); // Will pin a message for 1 minute
         console.log(result); // True if the operation completed successfully, false otherwise
+    } else if (msg.body === '!howManyConnections') {
+        /**
+         * Get user device count by ID
+         * Each WaWeb Connection counts as one device, and the phone (if exists) counts as one
+         * So for a non-enterprise user with one WaWeb connection it should return "2"
+         */
+        let deviceCount = await client.getContactDeviceCount(msg.from);
+        await msg.reply(`You have *${deviceCount}* devices connected`);
+    } else if (msg.body === '!syncHistory') {
+        const isSynced = await client.syncHistory(msg.from);
+        // Or through the Chat object:
+        // const chat = await client.getChatById(msg.from);
+        // const isSynced = await chat.syncHistory();
+        
+        await msg.reply(isSynced ? 'Historical chat is syncing..' : 'There is no historical chat to sync.');
+    } else if (msg.body === '!statuses') {
+        const statuses = await client.getBroadcasts();
+        console.log(statuses);
+        const chat = await statuses[0]?.getChat(); // Get user chat of a first status
+        console.log(chat);
     }
 });
 
@@ -665,15 +704,15 @@ client.on('group_membership_request', async (notification) => {
      * {
      *     id: {
      *         fromMe: false,
-     *         remote: 'groupId@g.us',
+     *         remote: 'XXXXXXXXXX@g.us',
      *         id: '123123123132132132',
      *         participant: 'number@c.us',
-     *         _serialized: 'false_groupId@g.us_123123123132132132_number@c.us'
+     *         _serialized: 'false_XXXXXXXXXX@g.us_123123123132132132_number@c.us'
      *     },
      *     body: '',
      *     type: 'created_membership_requests',
      *     timestamp: 1694456538,
-     *     chatId: 'groupId@g.us',
+     *     chatId: 'XXXXXXXXXX@g.us',
      *     author: 'number@c.us',
      *     recipientIds: []
      * }
@@ -690,6 +729,10 @@ client.on('message_kept_unkept', (msg, status) => {
     console.log(msg);
     /** The message status: whether was kept or unkept */
     console.log(status);
+});
+
+client.on('message_reaction', async (reaction) => {
+    console.log('REACTION RECEIVED', reaction);
 });
 
 client.on('vote_update', (vote) => {

@@ -79,7 +79,7 @@ class Chat extends Base {
          * Last message fo chat
          * @type {Message}
          */
-        this.lastMessage = data.lastMessage ? new Message(super.client, data.lastMessage) : undefined;
+        this.lastMessage = data.lastMessage ? new Message(this.client, data.lastMessage) : undefined;
         
         return super._patch(data);
     }
@@ -297,14 +297,14 @@ class Chat extends Base {
             value = 7776000;
             break;
         default:
-            throw new class _ extends Error {
-                constructor(m) { super(m); this.name = 'SetMessageExpirationError'; }
-            }(`Invalid message expiration value = ${value} is provided\nValid values are:\n0 for message expiration removal,\n1 for 24 hours message expiration,\n2 for 7 days message expiration,\n3 for 90 days message expiration`);
+            throw new class SetMessageExpirationError extends Error {
+                constructor(m) { super(m); }
+            }(`Invalid message expiration value = ${value} is provided. Valid values are:\n0 for message expiration removal,\n1 for 24 hours message expiration,\n2 for 7 days message expiration,\n3 for 90 days message expiration`);
         }
 
         const result = await this.client.pupPage.evaluate(async (chatId, value) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            const chat = await window.Store.Chat.find(chatWid);
+            const chat = window.Store.Chat.get(chatWid);
             try {
                 await window.Store.EphemeralFields.changeEphemeralDuration(chat, value);
                 return true;
@@ -333,6 +333,14 @@ class Chat extends Base {
      */
     async getKeptMessages() {
         return await this.client.getKeptMessages(this.id._serialized);
+    }
+
+    /**
+     * Sync chat history conversation
+     * @return {Promise<boolean>} True if operation completed successfully, false otherwise.
+     */
+    async syncHistory() {
+        return this.client.syncHistory(this.id._serialized);
     }
 }
 

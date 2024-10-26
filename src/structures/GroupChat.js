@@ -98,7 +98,7 @@ class GroupChat extends Chat {
                 419: 'The participant can\'t be added because the group is full'
             };
 
-            await window.Store.GroupMetadata.queryAndUpdate(groupWid);
+            await window.Store.GroupQueryAndUpdate(groupWid);
             const groupMetadata = group.groupMetadata;
             const groupParticipants = groupMetadata?.participants;
 
@@ -152,7 +152,7 @@ class GroupChat extends Chat {
 
                 if (autoSendInviteV4 && rpcResultCode === 403) {
                     let userChat, isInviteV4Sent = false;
-                    window.Store.ContactCollection.gadd(pWid, { silent: true });
+                    window.Store.Contact.gadd(pWid, { silent: true });
 
                     if (rpcResult.name === 'ParticipantRequestCodeCanBeSent' &&
                         (userChat = await window.Store.Chat.find(pWid))) {
@@ -286,14 +286,14 @@ class GroupChat extends Chat {
      * @param {boolean} [adminsOnly=true] Enable or disable this option 
      * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
      */
-    async setAddMembersAdminsOnly(adminsOnly=true) {
+    async setAddMembersAdminsOnly(adminsOnly = true) {
         const success = await this.client.pupPage.evaluate(async (groupId, adminsOnly) => {
             const chatWid = window.Store.WidFactory.createWid(groupId);
             try {
-                const response = await window.Store.GroupUtils.setGroupMemberAddMode(chatWid, 'member_add_mode', adminsOnly ? 0 : 1);
+                const response = await window.Store.GroupUtils.setGroupMemberAddMode(chatWid, null, adminsOnly ? 0 : 1);
                 return response.name === 'SetMemberAddModeResponseSuccess';
             } catch (err) {
-                if(err.name === 'SmaxParsingFailure') return false;
+                if (err.name === 'SmaxParsingFailure') return false;
                 throw err;
             }
         }, this.id._serialized, adminsOnly);
@@ -353,28 +353,6 @@ class GroupChat extends Chat {
     }
 
     /**
-     * Sets the 'Group Member Add Mode', when turned on, only group admins can add others to the group,
-     * when turned off, all group participants can add others to the group.
-     * @param {boolean} [onlyAdmins=true] True for turning the 'Group Member Add Mode' on, false for turning it off
-     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
-     */
-    async setGroupMemberAddMode(onlyAdmins = true) {
-        return await this.client.pupPage.evaluate(async (groupId, onlyAdmins) => {
-            const groupWid = window.Store.WidFactory.createWid(groupId);
-            const mode = onlyAdmins
-                ? { isAdminAddMode: true }
-                : { isAllMembersAddMode: true };
-            try {
-                const response = await window.Store.GroupUtils.setGroupMemberAddMode(groupWid, null, mode);
-                return response.name === 'SetMemberAddModeResponseSuccess';
-            } catch (err) {
-                if (err.name === 'SmaxParsingFailure') return false;
-                throw err;
-            }
-        }, this.id._serialized, onlyAdmins);
-    }
-
-    /**
      * Deletes the group's picture.
      * @returns {Promise<boolean>} Returns true if the picture was properly deleted. This can return false if the user does not have the necessary permissions.
      */
@@ -406,10 +384,18 @@ class GroupChat extends Chat {
     async getInviteCode() {
         const codeRes = await this.client.pupPage.evaluate(async chatId => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            return window.Store.GroupInvite.queryGroupInviteCode(chatWid);
+            try {
+                return window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.0')
+                    ? await window.Store.GroupInvite.queryGroupInviteCode(chatWid, true)
+                    : await window.Store.GroupInvite.queryGroupInviteCode(chatWid);
+            }
+            catch (err) {
+                if(err.name === 'ServerStatusCodeError') return undefined;
+                throw err;
+            }
         }, this.id._serialized);
 
-        return codeRes.code;
+        return codeRes?.code;
     }
     
     /**
