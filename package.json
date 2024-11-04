@@ -41,7 +41,7 @@
     "chai": "^5.1.2",
     "chai-as-promised": "^8.0.0",
     "dotenv": "^16.4.5",
-    "eslint": "^9.13.0",
+    "eslint": "^9.14.0",
     "eslint-plugin-mocha": "^10.5.0",
     "jsdoc": "^4.0.4",
     "jsdoc-baseline": "^0.1.5",
@@ -49,7 +49,7 @@
     "sinon": "^19.0.2"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.11.0"
   },
   "optionalDependencies": {
     "archiver": "^5.3.1",
