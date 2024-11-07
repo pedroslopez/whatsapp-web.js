@@ -22,7 +22,7 @@ client.on('qr', async (qr) => {
     // NOTE: This event will not be fired if a session is specified.
     console.log('QR RECEIVED', qr);
 
-    // paiuting code example
+    // pairing code example
     const pairingCodeEnabled = false;
     if (pairingCodeEnabled && !pairingCodeRequested) {
         const pairingCode = await client.requestPairingCode('96170100100'); // enter the target phone number
