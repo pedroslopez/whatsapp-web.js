@@ -357,8 +357,8 @@ class Client extends EventEmitter {
     /**
      * Request authentication via pairing code instead of QR code
      * @param {string} phoneNumber - Phone number in international, symbol-free format (e.g. 12025550108 for US, 551155501234 for Brazil)
-     * @param {boolean} showNotification - Show notification to pair on phone number
-     * @param {number} intervalMs - The interval in milliseconds on how frequent to generate pairing code (WhatsApp default to 3 minutes)
+     * @param {boolean} [showNotification = true] - Show notification to pair on phone number
+     * @param {number} [intervalMs = 180000] - The interval in milliseconds on how frequent to generate pairing code (WhatsApp default to 3 minutes)
      * @returns {Promise<string>} - Returns a pairing code in format "ABCDEFGH"
      */
     async requestPairingCode(phoneNumber, showNotification = true, intervalMs = 180000) {
