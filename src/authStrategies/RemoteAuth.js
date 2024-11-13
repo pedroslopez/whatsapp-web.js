@@ -13,6 +13,7 @@ try {
 
 const path = require('path');
 const { Events } = require('./../util/Constants');
+const { isRunningInAwsLambda } = require('./../util/Util');
 const BaseAuthStrategy = require('./BaseAuthStrategy');
 
 /**
@@ -41,7 +42,7 @@ class RemoteAuth extends BaseAuthStrategy {
         this.store = store;
         this.clientId = clientId;
         this.backupSyncIntervalMs = backupSyncIntervalMs;
-        this.dataPath = path.resolve(dataPath || './.wwebjs_auth/');
+        this.dataPath = path.resolve(dataPath || isRunningInAwsLambda() ? '/tmp/wwebjs_auth' : './.wwebjs_auth');
         this.tempDir = `${this.dataPath}/wwebjs_temp_session_${this.clientId}`;
         this.requiredDirs = ['Default', 'IndexedDB', 'Local Storage']; /* => Required Files & Dirs in WWebJS to restore session */
         this.rmMaxRetries = rmMaxRetries ?? 4;
@@ -107,7 +108,7 @@ class RemoteAuth extends BaseAuthStrategy {
         if (pathExists) {
             await this.compressSession();
             await this.store.save({session: this.sessionName});
-            await fs.promises.unlink(`${this.sessionName}.zip`);
+            await fs.promises.unlink(isRunningInAwsLambda() ? `/tmp/${this.sessionName}.zip` : `${this.sessionName}.zip`);
             await fs.promises.rm(`${this.tempDir}`, {
                 recursive: true,
                 force: true,
@@ -119,7 +120,7 @@ class RemoteAuth extends BaseAuthStrategy {
 
     async extractRemoteSession() {
         const pathExists = await this.isValidPath(this.userDataDir);
-        const compressedSessionPath = `${this.sessionName}.zip`;
+        const compressedSessionPath = isRunningInAwsLambda ? `/tmp/${this.sessionName}.zip` : `${this.sessionName}.zip`;
         const sessionExists = await this.store.sessionExists({session: this.sessionName});
         if (pathExists) {
             await fs.promises.rm(this.userDataDir, {
@@ -143,7 +144,7 @@ class RemoteAuth extends BaseAuthStrategy {
 
     async compressSession() {
         const archive = archiver('zip');
-        const stream = fs.createWriteStream(`${this.sessionName}.zip`);
+        const stream = fs.createWriteStream(isRunningInAwsLambda() ? `/tmp/${this.sessionName}.zip` : `${this.sessionName}.zip`);
 
         await fs.copy(this.userDataDir, this.tempDir).catch(() => {});
         await this.deleteMetadata();
