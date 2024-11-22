@@ -13,15 +13,20 @@ const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
  */
 class Util {
     constructor() {
-        throw new Error(`The ${this.constructor.name} class may not be instantiated.`);
+        throw new Error(
+            `The ${this.constructor.name} class may not be instantiated.`
+        );
     }
 
     static generateHash(length) {
         var result = '';
-        var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        var characters =
+            'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         var charactersLength = characters.length;
         for (var i = 0; i < length; i++) {
-            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+            result += characters.charAt(
+                Math.floor(Math.random() * charactersLength)
+            );
         }
         return result;
     }
@@ -49,7 +54,7 @@ class Util {
     /**
      * Formats a image to webp
      * @param {MessageMedia} media
-     * 
+     *
      * @returns {Promise<MessageMedia>} media in webp format
      */
     static async formatImageToWebpSticker(media, pupPage) {
@@ -68,7 +73,7 @@ class Util {
     /**
      * Formats a video to webp
      * @param {MessageMedia} media
-     * 
+     *
      * @returns {Promise<MessageMedia>} media in webp format
      */
     static async formatVideoToWebpSticker(media) {
@@ -100,7 +105,7 @@ class Util {
                     'libwebp',
                     '-vf',
                     // eslint-disable-next-line no-useless-escape
-                    'scale=\'iw*min(300/iw\,300/ih)\':\'ih*min(300/iw\,300/ih)\',format=rgba,pad=300:300:\'(300-iw)/2\':\'(300-ih)/2\':\'#00000000\',setsar=1,fps=10',
+                    "scale='iw*min(300/iw,300/ih)':'ih*min(300/iw,300/ih)',format=rgba,pad=300:300:'(300-iw)/2':'(300-ih)/2':'#00000000',setsar=1,fps=10",
                     '-loop',
                     '0',
                     '-ss',
@@ -132,8 +137,8 @@ class Util {
     /**
      * Sticker metadata.
      * @typedef {Object} StickerMetadata
-     * @property {string} [name] 
-     * @property {string} [author] 
+     * @property {string} [name]
+     * @property {string} [author]
      * @property {string[]} [categories]
      */
 
@@ -141,7 +146,7 @@ class Util {
      * Formats a media to webp
      * @param {MessageMedia} media
      * @param {StickerMetadata} metadata
-     * 
+     *
      * @returns {Promise<MessageMedia>} media in webp format
      */
     static async formatToWebpSticker(media, metadata, pupPage) {
@@ -151,8 +156,7 @@ class Util {
             webpMedia = await this.formatImageToWebpSticker(media, pupPage);
         else if (media.mimetype.includes('video'))
             webpMedia = await this.formatVideoToWebpSticker(media);
-        else
-            throw new Error('Invalid media format');
+        else throw new Error('Invalid media format');
 
         if (metadata.name || metadata.author) {
             const img = new webp.Image();
@@ -161,8 +165,17 @@ class Util {
             const packname = metadata.name;
             const author = metadata.author;
             const categories = metadata.categories || [''];
-            const json = { 'sticker-pack-id': stickerPackId, 'sticker-pack-name': packname, 'sticker-pack-publisher': author, 'emojis': categories };
-            let exifAttr = Buffer.from([0x49, 0x49, 0x2A, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01, 0x00, 0x41, 0x57, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0x00, 0x00, 0x00]);
+            const json = {
+                'sticker-pack-id': stickerPackId,
+                'sticker-pack-name': packname,
+                'sticker-pack-publisher': author,
+                emojis: categories,
+            };
+            let exifAttr = Buffer.from([
+                0x49, 0x49, 0x2a, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01, 0x00,
+                0x41, 0x57, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0x00,
+                0x00, 0x00,
+            ]);
             let jsonBuffer = Buffer.from(JSON.stringify(json), 'utf8');
             let exif = Buffer.concat([exifAttr, jsonBuffer]);
             exif.writeUIntLE(jsonBuffer.length, 14, 4);
