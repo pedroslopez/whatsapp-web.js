@@ -79,7 +79,7 @@ class Chat extends Base {
          * Last message fo chat
          * @type {Message}
          */
-        this.lastMessage = data.lastMessage ? new Message(super.client, data.lastMessage) : undefined;
+        this.lastMessage = data.lastMessage ? new Message(this.client, data.lastMessage) : undefined;
         
         return super._patch(data);
     }
@@ -269,6 +269,14 @@ class Chat extends Base {
      */
     async changeLabels(labelIds) {
         return this.client.addOrRemoveLabels(labelIds, [this.id._serialized]);
+    }
+
+    /**
+     * Sync chat history conversation
+     * @return {Promise<boolean>} True if operation completed successfully, false otherwise.
+     */
+    async syncHistory() {
+        return this.client.syncHistory(this.id._serialized);
     }
 }
 

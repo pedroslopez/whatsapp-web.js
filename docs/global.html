@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.23.0 &raquo; Globals</title>
+  <title>whatsapp-web.js 1.26.1-alpha.3 &raquo; Globals</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>23.<wbr>0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>26.<wbr>1-alpha.<wbr>3</a>
       </div>
     </div>
   </nav>
@@ -64,6 +64,22 @@
               </div>
             </div>
             <div class="summary-callout">
+              <h2 class="summary-callout-heading">Method</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="global.html#exposeFunctionIfAbsent">exposeFunctionIfAbsent(page, name, fn)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                </div>
+                <div class="summary-column">
+                </div>
+              </div>
+            </div>
+            <div class="summary-callout">
               <h2 class="summary-callout-heading">Abstract types</h2>
               <div class="summary-content">
                 <div class="summary-column">
@@ -92,11 +108,17 @@
                     <dt><a href="global.html#GroupMembershipRequest">GroupMembershipRequest</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="global.html#GroupMembershipRequest">GroupMembershipRequest</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="global.html#GroupMembershipRequest">GroupMembershipRequest</a></dt>
+                    <dt><a href="global.html#GroupMention">GroupMention</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="global.html#GroupMention">GroupMention</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="global.html#GroupParticipant">GroupParticipant</a></dt>
@@ -117,13 +139,16 @@
                     <dt><a href="global.html#MembershipRequestActionResult">MembershipRequestActionResult</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="global.html#MessageInfo">MessageInfo</a></dt>
+                    <dt><a href="global.html#Mention">Mention</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="global.html#MessageInfo">MessageInfo</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="global.html#MessageSendOptions">MessageSendOptions</a></dt>
                     <dd>
                     </dd>
@@ -136,7 +161,13 @@
                     <dt><a href="global.html#ReactionList">ReactionList</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="global.html#SelectedPollOption">SelectedPollOption</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="global.html#StickerMetadata">StickerMetadata</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="global.html#TargetOptions">TargetOptions</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="global.html#TargetOptions">TargetOptions</a></dt>
@@ -294,6 +325,19 @@
                     <tr>
                       <td>
                         <p>MESSAGE_RECEIVED</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>MESSAGE_CIPHERTEXT</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
@@ -567,6 +611,19 @@
                     <tr>
                       <td>
                         <p>REMOTE_SESSION_SAVED</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>VOTE_UPDATE</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
@@ -1546,6 +1603,72 @@
               <dl class="dl-compact">
               </dl>
             </section>
+            <h2>Method</h2>
+            <section>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="exposeFunctionIfAbsent"><span class="symbol-name">exposeFunctionIfAbsent</span><span class="signature"><span class="signature-params">(page, name, fn)</span></span></h3>
+              <p>Expose a function to the page if it does not exist</p>
+              <p>NOTE:
+                Rewrite it to 'upsertFunction' after updating Puppeteer to 20.6 or higher
+                using page.removeExposedFunction
+                https://pptr.dev/api/puppeteer.page.removeExposedFunction</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>page</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>name</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>fn</p>
+                      </td>
+                      <td>
+                        <p>function()</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+            </section>
             <h2>Abstract types</h2>
             <section>
               <h3 id="AddParticipantsResult"><span class="symbol-name">AddParticipantsResult</span><small class="property-type">
@@ -2213,6 +2336,153 @@
               </section>
               <dl class="dl-compact">
               </dl>
+              <h3 id="GroupMention"><span class="symbol-name">GroupMention</span><small class="property-type">
+                  &nbsp;Object</small></h3>
+              <p>An object representing mentions of groups</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>subject</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of a group to mention (can be custom)</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>id</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The group ID, e.g.: 'XXXXXXXXXX@g.us'</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="GroupMention"><span class="symbol-name">GroupMention</span><small class="property-type">
+                  &nbsp;Object</small></h3>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>groupSubject</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the group</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>groupJid</p>
+                      </td>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The group ID</p>
+                        <p>Values in <code>groupJid</code> have the following properties:</p>
+                        <table class="jsdoc-details-table">
+                          <thead>
+                            <tr>
+                              <th>Name</th>
+                              <th>Type</th>
+                              <th>Optional</th>
+                              <th>Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>
+                                <p>server</p>
+                              </td>
+                              <td>
+                                <p>string</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>user</p>
+                              </td>
+                              <td>
+                                <p>string</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>_serialized</p>
+                              </td>
+                              <td>
+                                <p>string</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="GroupParticipant"><span class="symbol-name">GroupParticipant</span><small class="property-type">
                   &nbsp;Object</small></h3>
               <p>Group participant information</p>
@@ -2554,6 +2824,64 @@
               </section>
               <dl class="dl-compact">
               </dl>
+              <h3 id="Mention"><span class="symbol-name">Mention</span><small class="property-type">
+                  &nbsp;Object</small></h3>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>server</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>user</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>_serialized</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="MessageInfo"><span class="symbol-name">MessageInfo</span><small class="property-type">
                   &nbsp;Object</small></h3>
               <p>Message Info</p>
@@ -2808,16 +3136,30 @@
                     </tr>
                     <tr>
                       <td>
-                        <p>mentions</p>
+                        <p>groupMentions</p>
                       </td>
                       <td>
-                        <p>Array of <a href="Contact.html">Contact</a></p>
+                        <p>Array of <a href="global.html#GroupMention">GroupMention</a></p>
                       </td>
                       <td>
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>Contacts that are being mentioned in the message</p>
+                        <p>An array of object that handle group mentions</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>mentions</p>
+                      </td>
+                      <td>
+                        <p>Array of string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>User IDs to mention in the message</p>
                       </td>
                     </tr>
                     <tr>
@@ -2833,6 +3175,20 @@
                       <td>
                         <p>Mark the conversation as seen after sending the message</p>
                         <p>Defaults to <code>true</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>invokedBotWid</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Bot Wid when doing a bot mention like @Meta AI</p>
                       </td>
                     </tr>
                     <tr>
@@ -3098,6 +3454,54 @@
               </section>
               <dl class="dl-compact">
               </dl>
+              <h3 id="SelectedPollOption"><span class="symbol-name">SelectedPollOption</span><small class="property-type">
+                  &nbsp;Object</small></h3>
+              <p>Selected poll option structure</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>id</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The local selected or deselected option ID</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>name</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The option name</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="StickerMetadata"><span class="symbol-name">StickerMetadata</span><small class="property-type">
                   &nbsp;Object</small></h3>
               <p>Sticker metadata.</p>
@@ -3174,7 +3578,7 @@
                   <tbody>
                     <tr>
                       <td>
-                        <p>moduleId</p>
+                        <p>module</p>
                       </td>
                       <td>
                         <p>(string or number)</p>
@@ -3202,7 +3606,55 @@
                     </tr>
                     <tr>
                       <td>
-                        <p>property</p>
+                        <p>function</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The function name to get from a module</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="TargetOptions"><span class="symbol-name">TargetOptions</span><small class="property-type">
+                  &nbsp;Object</small></h3>
+              <p>Target options object description</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>module</p>
+                      </td>
+                      <td>
+                        <p>(string or number)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The target module</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>function</p>
                       </td>
                       <td>
                         <p>string</p>
@@ -3229,7 +3681,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on October 21, 2023.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on November 22, 2024.
       </p>
     </div>
   </footer>

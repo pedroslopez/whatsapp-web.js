@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.23.0 &raquo; Source: structures/Message.js</title>
+  <title>whatsapp-web.js 1.26.1-alpha.3 &raquo; Source: structures/Message.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>23.<wbr>0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>26.<wbr>1-alpha.<wbr>3</a>
       </div>
     </div>
   </nav>
@@ -37,8 +37,8 @@ const Location &#x3D; require(&#x27;./Location&#x27;);
 const Order &#x3D; require(&#x27;./Order&#x27;);
 const Payment &#x3D; require(&#x27;./Payment&#x27;);
 const Reaction &#x3D; require(&#x27;./Reaction&#x27;);
-const {MessageTypes} &#x3D; require(&#x27;../util/Constants&#x27;);
-const {Contact} &#x3D; require(&#x27;./Contact&#x27;);
+const Contact &#x3D; require(&#x27;./Contact&#x27;);
+const { MessageTypes } &#x3D; require(&#x27;../util/Constants&#x27;);
 
 /**
  * Represents a Message on WhatsApp
@@ -213,19 +213,37 @@ class Message extends Base {
             inviteCodeExp: data.inviteCodeExp,
             groupId: data.inviteGrp,
             groupName: data.inviteGrpName,
-            fromId: &#x27;_serialized&#x27; in data.from ? data.from._serialized : data.from,
-            toId: &#x27;_serialized&#x27; in data.to ? data.to._serialized : data.to
+            fromId: typeof data.from &#x3D;&#x3D;&#x3D; &#x27;object&#x27; &amp;amp;&amp;amp; &#x27;_serialized&#x27; in data.from ? data.from._serialized : data.from,
+            toId: typeof data.to &#x3D;&#x3D;&#x3D; &#x27;object&#x27; &amp;amp;&amp;amp; &#x27;_serialized&#x27; in data.to ? data.to._serialized : data.to
         } : undefined;
 
         /**
-         * Indicates the mentions in the message body.
-         * @type {Array&amp;lt;string&gt;}
+         * @typedef {Object} Mention
+         * @property {string} server
+         * @property {string} user
+         * @property {string} _serialized
          */
-        this.mentionedIds &#x3D; [];
 
-        if (data.mentionedJidList) {
-            this.mentionedIds &#x3D; data.mentionedJidList;
-        }
+        /**
+         * Indicates the mentions in the message body.
+         * @type {Mention[]}
+         */
+        this.mentionedIds &#x3D; data.mentionedJidList || [];
+
+        /**
+         * @typedef {Object} GroupMention
+         * @property {string} groupSubject The name  of the group
+         * @property {Object} groupJid The group ID
+         * @property {string} groupJid.server
+         * @property {string} groupJid.user
+         * @property {string} groupJid._serialized
+         */
+
+        /**
+         * Indicates whether there are group mentions in the message body
+         * @type {GroupMention[]}
+         */
+        this.groupMentions &#x3D; data.groupMentions || [];
 
         /**
          * Order ID for message type ORDER
@@ -308,12 +326,7 @@ class Message extends Base {
             this.allowMultipleAnswers &#x3D; Boolean(!data.pollSelectableOptionsCount);
             this.pollInvalidated &#x3D; data.pollInvalidated;
             this.isSentCagPollCreation &#x3D; data.isSentCagPollCreation;
-
-            delete this._data.pollName;
-            delete this._data.pollOptions;
-            delete this._data.pollSelectableOptionsCount;
-            delete this._data.pollInvalidated;
-            delete this._data.isSentCagPollCreation;
+            this.messageSecret &#x3D; Object.keys(data.messageSecret).map((key) &#x3D;&gt;  data.messageSecret[key]);
         }
 
         return super._patch(data);
@@ -329,9 +342,9 @@ class Message extends Base {
      * @returns {Promise&amp;lt;Message&gt;}
      */
     async reload() {
-        const newData &#x3D; await this.client.pupPage.evaluate((msgId) &#x3D;&gt; {
-            const msg &#x3D; window.Store.Msg.get(msgId);
-            if(!msg) return null;
+        const newData &#x3D; await this.client.pupPage.evaluate(async (msgId) &#x3D;&gt; {
+            const msg &#x3D; window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
+            if (!msg) return null;
             return window.WWebJS.getMessageModel(msg);
         }, this.id._serialized);
 
@@ -372,6 +385,14 @@ class Message extends Base {
     async getMentions() {
         return await Promise.all(this.mentionedIds.map(async m &#x3D;&gt; await this.client.getContactById(m)));
     }
+    
+    /**
+     * Returns groups mentioned in this message
+     * @returns {Promise&amp;lt;GroupChat[]|[]&gt;}
+     */
+    async getGroupMentions() {
+        return await Promise.all(this.groupMentions.map(async (m) &#x3D;&gt; await this.client.getChatById(m.groupJid._serialized)));
+    }
 
     /**
      * Returns the quoted message, if any
@@ -380,8 +401,8 @@ class Message extends Base {
     async getQuotedMessage() {
         if (!this.hasQuotedMsg) return undefined;
 
-        const quotedMsg &#x3D; await this.client.pupPage.evaluate((msgId) &#x3D;&gt; {
-            const msg &#x3D; window.Store.Msg.get(msgId);
+        const quotedMsg &#x3D; await this.client.pupPage.evaluate(async (msgId) &#x3D;&gt; {
+            const msg &#x3D; window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
             const quotedMsg &#x3D; window.Store.QuotedMsg.getQuotedMsgObj(msg);
             return window.WWebJS.getMessageModel(quotedMsg);
         }, this.id._serialized);
@@ -419,9 +440,10 @@ class Message extends Base {
      */
     async react(reaction){
         await this.client.pupPage.evaluate(async (messageId, reaction) &#x3D;&gt; {
-            if (!messageId) { return undefined; }
-            
-            const msg &#x3D; await window.Store.Msg.get(messageId);
+            if (!messageId) return null;
+            const msg &#x3D;
+                window.Store.Msg.get(messageId) || (await window.Store.Msg.getMessagesById([messageId]))?.messages?.[0];
+            if(!msg) return null;
             await window.Store.sendReactionToMsg(msg, reaction);
         }, this.id._serialized, reaction);
     }
@@ -444,10 +466,7 @@ class Message extends Base {
         const chatId &#x3D; typeof chat &#x3D;&#x3D;&#x3D; &#x27;string&#x27; ? chat : chat.id._serialized;
 
         await this.client.pupPage.evaluate(async (msgId, chatId) &#x3D;&gt; {
-            let msg &#x3D; window.Store.Msg.get(msgId);
-            let chat &#x3D; window.Store.Chat.get(chatId);
-
-            return await chat.forwardMessages([msg]);
+            return window.WWebJS.forwardMessage(chatId, msgId);
         }, this.id._serialized, chatId);
     }
 
@@ -461,9 +480,9 @@ class Message extends Base {
         }
 
         const result &#x3D; await this.client.pupPage.evaluate(async (msgId) &#x3D;&gt; {
-            const msg &#x3D; window.Store.Msg.get(msgId);
-            if (!msg) {
-                return undefined;
+            const msg &#x3D; window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
+            if (!msg || !msg.mediaData) {
+                return null;
             }
             if (msg.mediaData.mediaStage !&#x3D; &#x27;RESOLVED&#x27;) {
                 // try to resolve media
@@ -513,12 +532,16 @@ class Message extends Base {
      */
     async delete(everyone) {
         await this.client.pupPage.evaluate(async (msgId, everyone) &#x3D;&gt; {
-            let msg &#x3D; window.Store.Msg.get(msgId);
+            const msg &#x3D; window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
             let chat &#x3D; await window.Store.Chat.find(msg.id.remote);
             
             const canRevoke &#x3D; window.Store.MsgActionChecks.canSenderRevokeMsg(msg) || window.Store.MsgActionChecks.canAdminRevokeMsg(msg);
             if (everyone &amp;amp;&amp;amp; canRevoke) {
-                return window.Store.Cmd.sendRevokeMsgs(chat, [msg], { clearMedia: true, type: msg.id.fromMe ? &#x27;Sender&#x27; : &#x27;Admin&#x27; });
+                if (window.compareWwebVersions(window.Debug.VERSION, &#x27;&gt;&#x3D;&#x27;, &#x27;2.3000.0&#x27;)) {
+                    return window.Store.Cmd.sendRevokeMsgs(chat, { list: [msg], type: &#x27;message&#x27; }, { clearMedia: true });
+                } else {
+                    return window.Store.Cmd.sendRevokeMsgs(chat, [msg], { clearMedia: true, type: msg.id.fromMe ? &#x27;Sender&#x27; : &#x27;Admin&#x27; });
+                }
             }
 
             return window.Store.Cmd.sendDeleteMsgs(chat, [msg], true);
@@ -530,8 +553,7 @@ class Message extends Base {
      */
     async star() {
         await this.client.pupPage.evaluate(async (msgId) &#x3D;&gt; {
-            let msg &#x3D; window.Store.Msg.get(msgId);
-            
+            const msg &#x3D; window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
             if (window.Store.MsgActionChecks.canStarMsg(msg)) {
                 let chat &#x3D; await window.Store.Chat.find(msg.id.remote);
                 return window.Store.Cmd.sendStarMsgs(chat, [msg], false);
@@ -544,12 +566,32 @@ class Message extends Base {
      */
     async unstar() {
         await this.client.pupPage.evaluate(async (msgId) &#x3D;&gt; {
-            let msg &#x3D; window.Store.Msg.get(msgId);
-
+            const msg &#x3D; window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
             if (window.Store.MsgActionChecks.canStarMsg(msg)) {
                 let chat &#x3D; await window.Store.Chat.find(msg.id.remote);
                 return window.Store.Cmd.sendUnstarMsgs(chat, [msg], false);
             }
+        }, this.id._serialized);
+    }
+
+    /**
+     * Pins the message (group admins can pin messages of all group members)
+     * @param {number} duration The duration in seconds the message will be pinned in a chat
+     * @returns {Promise&amp;lt;boolean&gt;} Returns true if the operation completed successfully, false otherwise
+     */
+    async pin(duration) {
+        return await this.client.pupPage.evaluate(async (msgId, duration) &#x3D;&gt; {
+            return await window.WWebJS.pinUnpinMsgAction(msgId, 1, duration);
+        }, this.id._serialized, duration);
+    }
+
+    /**
+     * Unpins the message (group admins can unpin messages of all group members)
+     * @returns {Promise&amp;lt;boolean&gt;} Returns true if the operation completed successfully, false otherwise
+     */
+    async unpin() {
+        return await this.client.pupPage.evaluate(async (msgId) &#x3D;&gt; {
+            return await window.WWebJS.pinUnpinMsgAction(msgId, 2);
         }, this.id._serialized);
     }
 
@@ -565,15 +607,20 @@ class Message extends Base {
      */
 
     /**
-     * Get information about message delivery status. May return null if the message does not exist or is not sent by you.
+     * Get information about message delivery status.
+     * May return null if the message does not exist or is not sent by you.
      * @returns {Promise&amp;lt;?MessageInfo&gt;}
      */
     async getInfo() {
         const info &#x3D; await this.client.pupPage.evaluate(async (msgId) &#x3D;&gt; {
-            const msg &#x3D; window.Store.Msg.get(msgId);
-            if (!msg) return null;
+            const msg &#x3D; window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
+            if (!msg || !msg.id.fromMe) return null;
 
-            return await window.Store.MessageInfo.sendQueryMsgInfo(msg.id);
+            return new Promise((resolve) &#x3D;&gt; {
+                setTimeout(async () &#x3D;&gt; {
+                    resolve(await window.Store.getMsgInfo(msg.id));
+                }, (Date.now() - msg.t * 1000 &amp;lt; 1250) &amp;amp;&amp;amp; Math.floor(Math.random() * (1200 - 1100 + 1)) + 1100 || 0);
+            });
         }, this.id._serialized);
 
         return info;
@@ -600,7 +647,7 @@ class Message extends Base {
     async getPayment() {
         if (this.type &#x3D;&#x3D;&#x3D; MessageTypes.PAYMENT) {
             const msg &#x3D; await this.client.pupPage.evaluate(async (msgId) &#x3D;&gt; {
-                const msg &#x3D; window.Store.Msg.get(msgId);
+                const msg &#x3D; window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
                 if(!msg) return null;
                 return msg.serialize();
             }, this.id._serialized);
@@ -654,12 +701,20 @@ class Message extends Base {
      * @returns {Promise&amp;lt;?Message&gt;}
      */
     async edit(content, options &#x3D; {}) {
-        if (options.mentions &amp;amp;&amp;amp; options.mentions.some(possiblyContact &#x3D;&gt; possiblyContact instanceof Contact)) {
-            options.mentions &#x3D; options.mentions.map(a &#x3D;&gt; a.id._serialized);
+        if (options.mentions) {
+            !Array.isArray(options.mentions) &amp;amp;&amp;amp; (options.mentions &#x3D; [options.mentions]);
+            if (options.mentions.some((possiblyContact) &#x3D;&gt; possiblyContact instanceof Contact)) {
+                console.warn(&#x27;Mentions with an array of Contact are now deprecated. See more at https://github.com/pedroslopez/whatsapp-web.js/pull/2166.&#x27;);
+                options.mentions &#x3D; options.mentions.map((a) &#x3D;&gt; a.id._serialized);
+            }
         }
+
+        options.groupMentions &amp;amp;&amp;amp; !Array.isArray(options.groupMentions) &amp;amp;&amp;amp; (options.groupMentions &#x3D; [options.groupMentions]);
+
         let internalOptions &#x3D; {
             linkPreview: options.linkPreview &#x3D;&#x3D;&#x3D; false ? undefined : true,
-            mentionedJidList: Array.isArray(options.mentions) ? options.mentions : [],
+            mentionedJidList: options.mentions || [],
+            groupMentions: options.groupMentions,
             extraOptions: options.extra
         };
         
@@ -667,11 +722,11 @@ class Message extends Base {
             return null;
         }
         const messageEdit &#x3D; await this.client.pupPage.evaluate(async (msgId, message, options) &#x3D;&gt; {
-            let msg &#x3D; window.Store.Msg.get(msgId);
+            const msg &#x3D; window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
             if (!msg) return null;
 
-            let catEdit &#x3D; (msg.type &#x3D;&#x3D;&#x3D; &#x27;chat&#x27; &amp;amp;&amp;amp; window.Store.MsgActionChecks.canEditText(msg));
-            if (catEdit) {
+            let canEdit &#x3D; window.Store.MsgActionChecks.canEditText(msg) || window.Store.MsgActionChecks.canEditCaption(msg);
+            if (canEdit) {
                 const msgEdit &#x3D; await window.WWebJS.editMessage(msg, message, options);
                 return msgEdit.serialize();
             }
@@ -695,7 +750,7 @@ module.exports &#x3D; Message;
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on October 21, 2023.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on November 22, 2024.
       </p>
     </div>
   </footer>

@@ -1,0 +1,199 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.6.11">
+  <meta charset="utf-8">
+  <title>whatsapp-web.js 1.26.1-alpha.3 &raquo; Source: util/Injected/LegacyStore.js</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>26.<wbr>1-alpha.<wbr>3</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-banner" role="banner">
+        </div>
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1>Source: util/Injected/LegacyStore.js</h1>
+          </header>
+          <article>
+            <pre class="prettyprint linenums"><code>&#x27;use strict&#x27;;
+
+//TODO: To be removed by version 2.3000.x hard release
+
+// Exposes the internal Store to the WhatsApp Web client
+exports.ExposeLegacyStore &#x3D; () &#x3D;&gt; {
+    window.Store &#x3D; Object.assign({}, window.mR.findModule(m &#x3D;&gt; m.default &amp;amp;&amp;amp; m.default.Chat)[0].default);
+    window.Store.AppState &#x3D; window.mR.findModule(&#x27;Socket&#x27;)[0].Socket;
+    window.Store.Conn &#x3D; window.mR.findModule(&#x27;Conn&#x27;)[0].Conn;
+    window.Store.BlockContact &#x3D; window.mR.findModule(&#x27;blockContact&#x27;)[0];
+    window.Store.Call &#x3D; window.mR.findModule((module) &#x3D;&gt; module.default &amp;amp;&amp;amp; module.default.Call)[0].default.Call;
+    window.Store.Cmd &#x3D; window.mR.findModule(&#x27;Cmd&#x27;)[0].Cmd;
+    window.Store.CryptoLib &#x3D; window.mR.findModule(&#x27;decryptE2EMedia&#x27;)[0];
+    window.Store.DownloadManager &#x3D; window.mR.findModule(&#x27;downloadManager&#x27;)[0].downloadManager;
+    window.Store.GroupMetadata &#x3D; window.mR.findModule(&#x27;GroupMetadata&#x27;)[0].default.GroupMetadata;
+    window.Store.GroupQueryAndUpdate &#x3D; window.mR.findModule(&#x27;queryAndUpdateGroupMetadataById&#x27;)[0].queryAndUpdateGroupMetadataById;
+    window.Store.Label &#x3D; window.mR.findModule(&#x27;LabelCollection&#x27;)[0].LabelCollection;
+    window.Store.MediaPrep &#x3D; window.mR.findModule(&#x27;prepRawMedia&#x27;)[0];
+    window.Store.MediaObject &#x3D; window.mR.findModule(&#x27;getOrCreateMediaObject&#x27;)[0];
+    window.Store.NumberInfo &#x3D; window.mR.findModule(&#x27;formattedPhoneNumber&#x27;)[0];
+    window.Store.MediaTypes &#x3D; window.mR.findModule(&#x27;msgToMediaType&#x27;)[0];
+    window.Store.MediaUpload &#x3D; window.mR.findModule(&#x27;uploadMedia&#x27;)[0];
+    window.Store.MsgKey &#x3D; window.mR.findModule((module) &#x3D;&gt; module.default &amp;amp;&amp;amp; module.default.fromString)[0].default;
+    window.Store.OpaqueData &#x3D; window.mR.findModule(module &#x3D;&gt; module.default &amp;amp;&amp;amp; module.default.createFromData)[0].default;
+    window.Store.QueryProduct &#x3D; window.mR.findModule(&#x27;queryProduct&#x27;)[0];
+    window.Store.QueryOrder &#x3D; window.mR.findModule(&#x27;queryOrder&#x27;)[0];
+    window.Store.SendClear &#x3D; window.mR.findModule(&#x27;sendClear&#x27;)[0];
+    window.Store.SendDelete &#x3D; window.mR.findModule(&#x27;sendDelete&#x27;)[0];
+    window.Store.SendMessage &#x3D; window.mR.findModule(&#x27;addAndSendMsgToChat&#x27;)[0];
+    window.Store.EditMessage &#x3D; window.mR.findModule(&#x27;addAndSendMessageEdit&#x27;)[0];
+    window.Store.SendSeen &#x3D; window.mR.findModule(&#x27;sendSeen&#x27;)[0];
+    window.Store.User &#x3D; window.mR.findModule(&#x27;getMaybeMeUser&#x27;)[0];
+    window.Store.ContactMethods &#x3D; window.mR.findModule(&#x27;getUserid&#x27;)[0];
+    window.Store.UploadUtils &#x3D; window.mR.findModule((module) &#x3D;&gt; (module.default &amp;amp;&amp;amp; module.default.encryptAndUpload) ? module.default : null)[0].default;
+    window.Store.UserConstructor &#x3D; window.mR.findModule((module) &#x3D;&gt; (module.default &amp;amp;&amp;amp; module.default.prototype &amp;amp;&amp;amp; module.default.prototype.isServer &amp;amp;&amp;amp; module.default.prototype.isUser) ? module.default : null)[0].default;
+    window.Store.Validators &#x3D; window.mR.findModule(&#x27;findLinks&#x27;)[0];
+    window.Store.VCard &#x3D; window.mR.findModule(&#x27;vcardFromContactModel&#x27;)[0];
+    window.Store.WidFactory &#x3D; window.mR.findModule(&#x27;createWid&#x27;)[0];
+    window.Store.ProfilePic &#x3D; window.mR.findModule(&#x27;profilePicResync&#x27;)[0];
+    window.Store.PresenceUtils &#x3D; window.mR.findModule(&#x27;sendPresenceAvailable&#x27;)[0];
+    window.Store.ChatState &#x3D; window.mR.findModule(&#x27;sendChatStateComposing&#x27;)[0];
+    window.Store.findCommonGroups &#x3D; window.mR.findModule(&#x27;findCommonGroups&#x27;)[0].findCommonGroups;
+    window.Store.StatusUtils &#x3D; window.mR.findModule(&#x27;setMyStatus&#x27;)[0];
+    window.Store.ConversationMsgs &#x3D; window.mR.findModule(&#x27;loadEarlierMsgs&#x27;)[0];
+    window.Store.sendReactionToMsg &#x3D; window.mR.findModule(&#x27;sendReactionToMsg&#x27;)[0].sendReactionToMsg;
+    window.Store.createOrUpdateReactionsModule &#x3D; window.mR.findModule(&#x27;createOrUpdateReactions&#x27;)[0];
+    window.Store.EphemeralFields &#x3D; window.mR.findModule(&#x27;getEphemeralFields&#x27;)[0];
+    window.Store.MsgActionChecks &#x3D; window.mR.findModule(&#x27;canSenderRevokeMsg&#x27;)[0];
+    window.Store.QuotedMsg &#x3D; window.mR.findModule(&#x27;getQuotedMsgObj&#x27;)[0];
+    window.Store.LinkPreview &#x3D; window.mR.findModule(&#x27;getLinkPreview&#x27;)[0];
+    window.Store.Socket &#x3D; window.mR.findModule(&#x27;deprecatedSendIq&#x27;)[0];
+    window.Store.SocketWap &#x3D; window.mR.findModule(&#x27;wap&#x27;)[0];
+    window.Store.SearchContext &#x3D; window.mR.findModule(&#x27;getSearchContext&#x27;)[0].getSearchContext;
+    window.Store.DrawerManager &#x3D; window.mR.findModule(&#x27;DrawerManager&#x27;)[0].DrawerManager;
+    window.Store.LidUtils &#x3D; window.mR.findModule(&#x27;getCurrentLid&#x27;)[0];
+    window.Store.WidToJid &#x3D; window.mR.findModule(&#x27;widToUserJid&#x27;)[0];
+    window.Store.JidToWid &#x3D; window.mR.findModule(&#x27;userJidToUserWid&#x27;)[0];
+    window.Store.getMsgInfo &#x3D; (window.mR.findModule(&#x27;sendQueryMsgInfo&#x27;)[0] || {}).sendQueryMsgInfo || window.mR.findModule(&#x27;queryMsgInfo&#x27;)[0].queryMsgInfo;
+    window.Store.pinUnpinMsg &#x3D; window.mR.findModule(&#x27;sendPinInChatMsg&#x27;)[0].sendPinInChatMsg;
+    
+    /* eslint-disable no-undef, no-cond-assign */
+    window.Store.QueryExist &#x3D; ((m &#x3D; window.mR.findModule(&#x27;queryExists&#x27;)[0]) ? m.queryExists : window.mR.findModule(&#x27;queryExist&#x27;)[0].queryWidExists);
+    window.Store.ReplyUtils &#x3D; (m &#x3D; window.mR.findModule(&#x27;canReplyMsg&#x27;)).length &gt; 0 &amp;amp;&amp;amp; m[0];
+    /* eslint-enable no-undef, no-cond-assign */
+
+    window.Store.Settings &#x3D; {
+        ...window.mR.findModule(&#x27;ChatlistPanelState&#x27;)[0],
+        setPushname: window.mR.findModule((m) &#x3D;&gt; m.setPushname &amp;amp;&amp;amp; !m.ChatlistPanelState)[0].setPushname
+    };
+    window.Store.StickerTools &#x3D; {
+        ...window.mR.findModule(&#x27;toWebpSticker&#x27;)[0],
+        ...window.mR.findModule(&#x27;addWebpMetadata&#x27;)[0]
+    };
+    window.Store.GroupUtils &#x3D; {
+        ...window.mR.findModule(&#x27;createGroup&#x27;)[0],
+        ...window.mR.findModule(&#x27;setGroupDescription&#x27;)[0],
+        ...window.mR.findModule(&#x27;sendExitGroup&#x27;)[0],
+        ...window.mR.findModule(&#x27;sendSetPicture&#x27;)[0]
+    };
+    window.Store.GroupParticipants &#x3D; {
+        ...window.mR.findModule(&#x27;promoteParticipants&#x27;)[0],
+        ...window.mR.findModule(&#x27;sendAddParticipantsRPC&#x27;)[0]
+    };
+    window.Store.GroupInvite &#x3D; {
+        ...window.mR.findModule(&#x27;resetGroupInviteCode&#x27;)[0],
+        ...window.mR.findModule(&#x27;queryGroupInvite&#x27;)[0]
+    };
+    window.Store.GroupInviteV4 &#x3D; {
+        ...window.mR.findModule(&#x27;queryGroupInviteV4&#x27;)[0],
+        ...window.mR.findModule(&#x27;sendGroupInviteMessage&#x27;)[0]
+    };
+    window.Store.MembershipRequestUtils &#x3D; {
+        ...window.mR.findModule(&#x27;getMembershipApprovalRequests&#x27;)[0],
+        ...window.mR.findModule(&#x27;sendMembershipRequestsActionRPC&#x27;)[0]
+    };
+
+    if (!window.Store.Chat._find) {
+        window.Store.Chat._find &#x3D; e &#x3D;&gt; {
+            const target &#x3D; window.Store.Chat.get(e);
+            return target ? Promise.resolve(target) : Promise.resolve({
+                id: e
+            });
+        };
+    }
+    
+    // eslint-disable-next-line no-undef
+    if ((m &#x3D; window.mR.findModule(&#x27;ChatCollection&#x27;)[0]) &amp;amp;&amp;amp; m.ChatCollection &amp;amp;&amp;amp; typeof m.ChatCollection.findImpl &#x3D;&#x3D;&#x3D; &#x27;undefined&#x27; &amp;amp;&amp;amp; typeof m.ChatCollection._find !&#x3D;&#x3D; &#x27;undefined&#x27;) m.ChatCollection.findImpl &#x3D; m.ChatCollection._find;
+
+    const _isMDBackend &#x3D; window.mR.findModule(&#x27;isMDBackend&#x27;);
+    if(_isMDBackend &amp;amp;&amp;amp; _isMDBackend[0] &amp;amp;&amp;amp; _isMDBackend[0].isMDBackend) {
+        window.Store.MDBackend &#x3D; _isMDBackend[0].isMDBackend();
+    } else {
+        window.Store.MDBackend &#x3D; true;
+    }
+
+    const _features &#x3D; window.mR.findModule(&#x27;FEATURE_CHANGE_EVENT&#x27;)[0];
+    if(_features) {
+        window.Store.Features &#x3D; _features.LegacyPhoneFeatures;
+    }
+
+    /**
+     * Target options object description
+     * @typedef {Object} TargetOptions
+     * @property {string|number} module The name or a key of the target module to search
+     * @property {number} index The index value of the target module
+     * @property {string} function The function name to get from a module
+     */
+
+    /**
+     * Function to modify functions
+     * @param {TargetOptions} target Options specifying the target function to search for modifying
+     * @param {Function} callback Modified function
+     */
+    window.injectToFunction &#x3D; (target, callback) &#x3D;&gt; {
+        const module &#x3D; typeof target.module &#x3D;&#x3D;&#x3D; &#x27;string&#x27;
+            ? window.mR.findModule(target.module)
+            : window.mR.modules[target.module];
+        const originalFunction &#x3D; module[target.index][target.function];
+        const modifiedFunction &#x3D; (...args) &#x3D;&gt; callback(originalFunction, ...args);
+        module[target.index][target.function] &#x3D; modifiedFunction;
+    };
+
+    window.injectToFunction({ module: &#x27;mediaTypeFromProtobuf&#x27;, index: 0, function: &#x27;mediaTypeFromProtobuf&#x27; }, (func, ...args) &#x3D;&gt; { const [proto] &#x3D; args; return proto.locationMessage ? null : func(...args); });
+
+    window.injectToFunction({ module: &#x27;typeAttributeFromProtobuf&#x27;, index: 0, function: &#x27;typeAttributeFromProtobuf&#x27; }, (func, ...args) &#x3D;&gt; { const [proto] &#x3D; args; return proto.locationMessage || proto.groupInviteMessage ? &#x27;text&#x27; : func(...args); });
+};</code></pre>
+          </article>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on November 22, 2024.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

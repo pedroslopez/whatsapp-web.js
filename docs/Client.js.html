@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.23.0 &raquo; Source: Client.js</title>
+  <title>whatsapp-web.js 1.26.1-alpha.3 &raquo; Source: Client.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>23.<wbr>0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>26.<wbr>1-alpha.<wbr>3</a>
       </div>
     </div>
   </nav>
@@ -38,13 +38,17 @@ const moduleRaid &#x3D; require(&#x27;@pedroslopez/moduleraid/moduleraid&#x27;);
 const Util &#x3D; require(&#x27;./util/Util&#x27;);
 const InterfaceController &#x3D; require(&#x27;./util/InterfaceController&#x27;);
 const { WhatsWebURL, DefaultOptions, Events, WAState } &#x3D; require(&#x27;./util/Constants&#x27;);
-const { ExposeStore, LoadUtils } &#x3D; require(&#x27;./util/Injected&#x27;);
+const { ExposeAuthStore } &#x3D; require(&#x27;./util/Injected/AuthStore/AuthStore&#x27;);
+const { ExposeStore } &#x3D; require(&#x27;./util/Injected/Store&#x27;);
+const { ExposeLegacyAuthStore } &#x3D; require(&#x27;./util/Injected/AuthStore/LegacyAuthStore&#x27;);
+const { ExposeLegacyStore } &#x3D; require(&#x27;./util/Injected/LegacyStore&#x27;);
+const { LoadUtils } &#x3D; require(&#x27;./util/Injected/Utils&#x27;);
 const ChatFactory &#x3D; require(&#x27;./factories/ChatFactory&#x27;);
 const ContactFactory &#x3D; require(&#x27;./factories/ContactFactory&#x27;);
 const WebCacheFactory &#x3D; require(&#x27;./webCache/WebCacheFactory&#x27;);
-const { ClientInfo, Message, MessageMedia, Contact, Location, Poll, GroupNotification, Label, Call, Buttons, List, Reaction } &#x3D; require(&#x27;./structures&#x27;);
-const LegacySessionAuth &#x3D; require(&#x27;./authStrategies/LegacySessionAuth&#x27;);
+const { ClientInfo, Message, MessageMedia, Contact, Location, Poll, PollVote, GroupNotification, Label, Call, Buttons, List, Reaction, Broadcast} &#x3D; require(&#x27;./structures&#x27;);
 const NoAuth &#x3D; require(&#x27;./authStrategies/NoAuth&#x27;);
+const {exposeFunctionIfAbsent} &#x3D; require(&#x27;./util/Puppeteer&#x27;);
 
 /**
  * Starting point for interacting with the WhatsApp Web API
@@ -61,7 +65,7 @@ const NoAuth &#x3D; require(&#x27;./authStrategies/NoAuth&#x27;);
  * @param {number} options.takeoverOnConflict - If another whatsapp web session is detected (another browser), take over the session in the current browser
  * @param {number} options.takeoverTimeoutMs - How much time to wait before taking over the session
  * @param {string} options.userAgent - User agent to use in puppeteer
- * @param {string} options.ffmpegPath - Ffmpeg path to use when formating videos to webp while sending stickers 
+ * @param {string} options.ffmpegPath - Ffmpeg path to use when formatting videos to webp while sending stickers 
  * @param {boolean} options.bypassCSP - Sets bypassing of page&#x27;s Content-Security-Policy.
  * @param {object} options.proxyAuthentication - Proxy Authentication object.
  * 
@@ -74,6 +78,8 @@ const NoAuth &#x3D; require(&#x27;./authStrategies/NoAuth&#x27;);
  * @fires Client#message_create
  * @fires Client#message_revoke_me
  * @fires Client#message_revoke_everyone
+ * @fires Client#message_ciphertext
+ * @fires Client#message_edit
  * @fires Client#media_uploaded
  * @fires Client#group_join
  * @fires Client#group_leave
@@ -83,6 +89,7 @@ const NoAuth &#x3D; require(&#x27;./authStrategies/NoAuth&#x27;);
  * @fires Client#contact_changed
  * @fires Client#group_admin_changed
  * @fires Client#group_membership_request
+ * @fires Client#vote_update
  */
 class Client extends EventEmitter {
     constructor(options &#x3D; {}) {
@@ -91,37 +98,213 @@ class Client extends EventEmitter {
         this.options &#x3D; Util.mergeDefault(DefaultOptions, options);
         
         if(!this.options.authStrategy) {
-            if(Object.prototype.hasOwnProperty.call(this.options, &#x27;session&#x27;)) {
-                process.emitWarning(
-                    &#x27;options.session is deprecated and will be removed in a future release due to incompatibility with multi-device. &#x27; +
-                    &#x27;Use the LocalAuth authStrategy, don\&#x27;t pass in a session as an option, or suppress this warning by using the LegacySessionAuth strategy explicitly (see https://wwebjs.dev/guide/authentication.html#legacysessionauth-strategy).&#x27;,
-                    &#x27;DeprecationWarning&#x27;
-                );
-
-                this.authStrategy &#x3D; new LegacySessionAuth({
-                    session: this.options.session,
-                    restartOnAuthFail: this.options.restartOnAuthFail
-                });
-            } else {
-                this.authStrategy &#x3D; new NoAuth();
-            }
+            this.authStrategy &#x3D; new NoAuth();
         } else {
             this.authStrategy &#x3D; this.options.authStrategy;
         }
 
         this.authStrategy.setup(this);
 
+        /**
+         * @type {puppeteer.Browser}
+         */
         this.pupBrowser &#x3D; null;
+        /**
+         * @type {puppeteer.Page}
+         */
         this.pupPage &#x3D; null;
 
+        this.currentIndexHtml &#x3D; null;
+        this.lastLoggedOut &#x3D; false;
+
         Util.setFfmpegPath(this.options.ffmpegPath);
+    }
+    /**
+     * Injection logic
+     * Private function
+     */
+    async inject() {
+        await this.pupPage.waitForFunction(&#x27;window.Debug?.VERSION !&#x3D; undefined&#x27;, {timeout: this.options.authTimeoutMs});
+
+        const version &#x3D; await this.getWWebVersion();
+        const isCometOrAbove &#x3D; parseInt(version.split(&#x27;.&#x27;)?.[1]) &gt;&#x3D; 3000;
+
+        if (isCometOrAbove) {
+            await this.pupPage.evaluate(ExposeAuthStore);
+        } else {
+            await this.pupPage.evaluate(ExposeLegacyAuthStore, moduleRaid.toString());
+        }
+
+        const needAuthentication &#x3D; await this.pupPage.evaluate(async () &#x3D;&gt; {
+            let state &#x3D; window.AuthStore.AppState.state;
+
+            if (state &#x3D;&#x3D;&#x3D; &#x27;OPENING&#x27; || state &#x3D;&#x3D;&#x3D; &#x27;UNLAUNCHED&#x27; || state &#x3D;&#x3D;&#x3D; &#x27;PAIRING&#x27;) {
+                // wait till state changes
+                await new Promise(r &#x3D;&gt; {
+                    window.AuthStore.AppState.on(&#x27;change:state&#x27;, function waitTillInit(_AppState, state) {
+                        if (state !&#x3D;&#x3D; &#x27;OPENING&#x27; &amp;amp;&amp;amp; state !&#x3D;&#x3D; &#x27;UNLAUNCHED&#x27; &amp;amp;&amp;amp; state !&#x3D;&#x3D; &#x27;PAIRING&#x27;) {
+                            window.AuthStore.AppState.off(&#x27;change:state&#x27;, waitTillInit);
+                            r();
+                        } 
+                    });
+                }); 
+            }
+            state &#x3D; window.AuthStore.AppState.state;
+            return state &#x3D;&#x3D; &#x27;UNPAIRED&#x27; || state &#x3D;&#x3D; &#x27;UNPAIRED_IDLE&#x27;;
+        });
+
+        if (needAuthentication) {
+            const { failed, failureEventPayload, restart } &#x3D; await this.authStrategy.onAuthenticationNeeded();
+
+            if(failed) {
+                /**
+                 * Emitted when there has been an error while trying to restore an existing session
+                 * @event Client#auth_failure
+                 * @param {string} message
+                 */
+                this.emit(Events.AUTHENTICATION_FAILURE, failureEventPayload);
+                await this.destroy();
+                if (restart) {
+                    // session restore failed so try again but without session to force new authentication
+                    return this.initialize();
+                }
+                return;
+            }
+
+            // Register qr events
+            let qrRetries &#x3D; 0;
+            await exposeFunctionIfAbsent(this.pupPage, &#x27;onQRChangedEvent&#x27;, async (qr) &#x3D;&gt; {
+                /**
+                * Emitted when a QR code is received
+                * @event Client#qr
+                * @param {string} qr QR Code
+                */
+                this.emit(Events.QR_RECEIVED, qr);
+                if (this.options.qrMaxRetries &gt; 0) {
+                    qrRetries++;
+                    if (qrRetries &gt; this.options.qrMaxRetries) {
+                        this.emit(Events.DISCONNECTED, &#x27;Max qrcode retries reached&#x27;);
+                        await this.destroy();
+                    }
+                }
+            });
+
+
+            await this.pupPage.evaluate(async () &#x3D;&gt; {
+                const registrationInfo &#x3D; await window.AuthStore.RegistrationUtils.waSignalStore.getRegistrationInfo();
+                const noiseKeyPair &#x3D; await window.AuthStore.RegistrationUtils.waNoiseInfo.get();
+                const staticKeyB64 &#x3D; window.AuthStore.Base64Tools.encodeB64(noiseKeyPair.staticKeyPair.pubKey);
+                const identityKeyB64 &#x3D; window.AuthStore.Base64Tools.encodeB64(registrationInfo.identityKeyPair.pubKey);
+                const advSecretKey &#x3D; await window.AuthStore.RegistrationUtils.getADVSecretKey();
+                const platform &#x3D;  window.AuthStore.RegistrationUtils.DEVICE_PLATFORM;
+                const getQR &#x3D; (ref) &#x3D;&gt; ref + &#x27;,&#x27; + staticKeyB64 + &#x27;,&#x27; + identityKeyB64 + &#x27;,&#x27; + advSecretKey + &#x27;,&#x27; + platform;
+                
+                window.onQRChangedEvent(getQR(window.AuthStore.Conn.ref)); // initial qr
+                window.AuthStore.Conn.on(&#x27;change:ref&#x27;, (_, ref) &#x3D;&gt; { window.onQRChangedEvent(getQR(ref)); }); // future QR changes
+            });
+        }
+
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onAuthAppStateChangedEvent&#x27;, async (state) &#x3D;&gt; {
+            if (state &#x3D;&#x3D; &#x27;UNPAIRED_IDLE&#x27;) {
+                // refresh qr code
+                window.Store.Cmd.refreshQR();
+            }
+        });
+
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onAppStateHasSyncedEvent&#x27;, async () &#x3D;&gt; {
+            const authEventPayload &#x3D; await this.authStrategy.getAuthEventPayload();
+            /**
+                 * Emitted when authentication is successful
+                 * @event Client#authenticated
+                 */
+            this.emit(Events.AUTHENTICATED, authEventPayload);
+
+            const injected &#x3D; await this.pupPage.evaluate(async () &#x3D;&gt; {
+                return typeof window.Store !&#x3D;&#x3D; &#x27;undefined&#x27; &amp;amp;&amp;amp; typeof window.WWebJS !&#x3D;&#x3D; &#x27;undefined&#x27;;
+            });
+
+            if (!injected) {
+                if (this.options.webVersionCache.type &#x3D;&#x3D;&#x3D; &#x27;local&#x27; &amp;amp;&amp;amp; this.currentIndexHtml) {
+                    const { type: webCacheType, ...webCacheOptions } &#x3D; this.options.webVersionCache;
+                    const webCache &#x3D; WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
+            
+                    await webCache.persist(this.currentIndexHtml, version);
+                }
+
+                if (isCometOrAbove) {
+                    await this.pupPage.evaluate(ExposeStore);
+                } else {
+                    // make sure all modules are ready before injection
+                    // 2 second delay after authentication makes sense and does not need to be made dyanmic or removed
+                    await new Promise(r &#x3D;&gt; setTimeout(r, 2000)); 
+                    await this.pupPage.evaluate(ExposeLegacyStore);
+                }
+
+                // Check window.Store Injection
+                await this.pupPage.waitForFunction(&#x27;window.Store !&#x3D; undefined&#x27;);
+            
+                /**
+                     * Current connection information
+                     * @type {ClientInfo}
+                     */
+                this.info &#x3D; new ClientInfo(this, await this.pupPage.evaluate(() &#x3D;&gt; {
+                    return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMeUser() };
+                }));
+
+                this.interface &#x3D; new InterfaceController(this);
+
+                //Load util functions (serializers, helper functions)
+                await this.pupPage.evaluate(LoadUtils);
+
+                await this.attachEventListeners();
+            }
+            /**
+                 * Emitted when the client has initialized and is ready to receive messages.
+                 * @event Client#ready
+                 */
+            this.emit(Events.READY);
+            this.authStrategy.afterAuthReady();
+        });
+        let lastPercent &#x3D; null;
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onOfflineProgressUpdateEvent&#x27;, async (percent) &#x3D;&gt; {
+            if (lastPercent !&#x3D;&#x3D; percent) {
+                lastPercent &#x3D; percent;
+                this.emit(Events.LOADING_SCREEN, percent, &#x27;WhatsApp&#x27;); // Message is hardcoded as &quot;WhatsApp&quot; for now
+            }
+        });
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onLogoutEvent&#x27;, async () &#x3D;&gt; {
+            this.lastLoggedOut &#x3D; true;
+            await this.pupPage.waitForNavigation({waitUntil: &#x27;load&#x27;, timeout: 5000}).catch((_) &#x3D;&gt; _);
+        });
+        await this.pupPage.evaluate(() &#x3D;&gt; {
+            window.AuthStore.AppState.on(&#x27;change:state&#x27;, (_AppState, state) &#x3D;&gt; { window.onAuthAppStateChangedEvent(state); });
+            window.AuthStore.AppState.on(&#x27;change:hasSynced&#x27;, () &#x3D;&gt; { window.onAppStateHasSyncedEvent(); });
+            window.AuthStore.Cmd.on(&#x27;offline_progress_update&#x27;, () &#x3D;&gt; {
+                window.onOfflineProgressUpdateEvent(window.AuthStore.OfflineMessageHandler.getOfflineDeliveryProgress()); 
+            });
+            window.AuthStore.Cmd.on(&#x27;logout&#x27;, async () &#x3D;&gt; {
+                await window.onLogoutEvent();
+            });
+        });
     }
 
     /**
      * Sets up events and requirements, kicks off authentication request
      */
     async initialize() {
-        let [browser, page] &#x3D; [null, null];
+
+        let 
+            /**
+             * @type {puppeteer.Browser}
+             */
+            browser, 
+            /**
+             * @type {puppeteer.Page}
+             */
+            page;
+
+        browser &#x3D; null;
+        page &#x3D; null;
 
         await this.authStrategy.beforeBrowserInitialized();
 
@@ -134,6 +317,8 @@ class Client extends EventEmitter {
             if(!browserArgs.find(arg &#x3D;&gt; arg.includes(&#x27;--user-agent&#x27;))) {
                 browserArgs.push(&#x60;--user-agent&#x3D;${this.options.userAgent}&#x60;);
             }
+            // navigator.webdriver fix
+            browserArgs.push(&#x27;--disable-blink-features&#x3D;AutomationControlled&#x27;);
 
             browser &#x3D; await puppeteer.launch({...puppeteerOpts, args: browserArgs});
             page &#x3D; (await browser.pages())[0];
@@ -152,282 +337,101 @@ class Client extends EventEmitter {
         await this.authStrategy.afterBrowserInitialized();
         await this.initWebVersionCache();
 
+        // ocVersion (isOfficialClient patch)
+        // remove after 2.3000.x hard release
+        await page.evaluateOnNewDocument(() &#x3D;&gt; {
+            const originalError &#x3D; Error;
+            window.originalError &#x3D; originalError;
+            //eslint-disable-next-line no-global-assign
+            Error &#x3D; function (message) {
+                const error &#x3D; new originalError(message);
+                const originalStack &#x3D; error.stack;
+                if (error.stack.includes(&#x27;moduleRaid&#x27;)) error.stack &#x3D; originalStack + &#x27;\n    at https://web.whatsapp.com/vendors~lazy_loaded_low_priority_components.05e98054dbd60f980427.js:2:44&#x27;;
+                return error;
+            };
+        });
+        
         await page.goto(WhatsWebURL, {
             waitUntil: &#x27;load&#x27;,
             timeout: 0,
             referer: &#x27;https://whatsapp.com/&#x27;
         });
 
-        await page.evaluate(&#x60;function getElementByXpath(path) {
-            return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-          }&#x60;);
+        await this.inject();
 
-        let lastPercent &#x3D; null,
-            lastPercentMessage &#x3D; null;
-
-        await page.exposeFunction(&#x27;loadingScreen&#x27;, async (percent, message) &#x3D;&gt; {
-            if (lastPercent !&#x3D;&#x3D; percent || lastPercentMessage !&#x3D;&#x3D; message) {
-                this.emit(Events.LOADING_SCREEN, percent, message);
-                lastPercent &#x3D; percent;
-                lastPercentMessage &#x3D; message;
+        this.pupPage.on(&#x27;framenavigated&#x27;, async (frame) &#x3D;&gt; {
+            if(frame.url().includes(&#x27;post_logout&#x3D;1&#x27;) || this.lastLoggedOut) {
+                this.emit(Events.DISCONNECTED, &#x27;LOGOUT&#x27;);
+                await this.authStrategy.logout();
+                await this.authStrategy.beforeBrowserInitialized();
+                await this.authStrategy.afterBrowserInitialized();
+                this.lastLoggedOut &#x3D; false;
             }
+            await this.inject();
         });
+    }
 
-        await page.evaluate(
-            async function (selectors) {
-                var observer &#x3D; new MutationObserver(function () {
-                    let progressBar &#x3D; window.getElementByXpath(
-                        selectors.PROGRESS
-                    );
-                    let progressMessage &#x3D; window.getElementByXpath(
-                        selectors.PROGRESS_MESSAGE
-                    );
+    /**
+     * Request authentication via pairing code instead of QR code
+     * @param {string} phoneNumber - Phone number in international, symbol-free format (e.g. 12025550108 for US, 551155501234 for Brazil)
+     * @param {boolean} showNotification - Show notification to pair on phone number
+     * @returns {Promise&amp;lt;string&gt;} - Returns a pairing code in format &quot;ABCDEFGH&quot;
+     */
+    async requestPairingCode(phoneNumber, showNotification &#x3D; true) {
+        return await this.pupPage.evaluate(async (phoneNumber, showNotification) &#x3D;&gt; {
+            window.AuthStore.PairingCodeLinkUtils.setPairingType(&#x27;ALT_DEVICE_LINKING&#x27;);
+            await window.AuthStore.PairingCodeLinkUtils.initializeAltDeviceLinking();
+            return window.AuthStore.PairingCodeLinkUtils.startAltLinkingFlow(phoneNumber, showNotification);
+        }, phoneNumber, showNotification);
+    }
 
-                    if (progressBar) {
-                        window.loadingScreen(
-                            progressBar.value,
-                            progressMessage.innerText
-                        );
-                    }
-                });
-
-                observer.observe(document, {
-                    attributes: true,
-                    childList: true,
-                    characterData: true,
-                    subtree: true,
-                });
-            },
-            {
-                PROGRESS: &#x27;//*[@id&#x3D;\&#x27;app\&#x27;]/div/div/div[2]/progress&#x27;,
-                PROGRESS_MESSAGE: &#x27;//*[@id&#x3D;\&#x27;app\&#x27;]/div/div/div[3]&#x27;,
-            }
-        );
-
-        const INTRO_IMG_SELECTOR &#x3D; &#x27;[data-icon&#x3D;\&#x27;search\&#x27;]&#x27;;
-        const INTRO_QRCODE_SELECTOR &#x3D; &#x27;div[data-ref] canvas&#x27;;
-
-        // Checks which selector appears first
-        const needAuthentication &#x3D; await Promise.race([
-            new Promise(resolve &#x3D;&gt; {
-                page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: this.options.authTimeoutMs })
-                    .then(() &#x3D;&gt; resolve(false))
-                    .catch((err) &#x3D;&gt; resolve(err));
-            }),
-            new Promise(resolve &#x3D;&gt; {
-                page.waitForSelector(INTRO_QRCODE_SELECTOR, { timeout: this.options.authTimeoutMs })
-                    .then(() &#x3D;&gt; resolve(true))
-                    .catch((err) &#x3D;&gt; resolve(err));
-            })
-        ]);
-
-        // Checks if an error occurred on the first found selector. The second will be discarded and ignored by .race;
-        if (needAuthentication instanceof Error) throw needAuthentication;
-
-        // Scan-qrcode selector was found. Needs authentication
-        if (needAuthentication) {
-            const { failed, failureEventPayload, restart } &#x3D; await this.authStrategy.onAuthenticationNeeded();
-            if(failed) {
-                /**
-                 * Emitted when there has been an error while trying to restore an existing session
-                 * @event Client#auth_failure
-                 * @param {string} message
-                 */
-                this.emit(Events.AUTHENTICATION_FAILURE, failureEventPayload);
-                await this.destroy();
-                if (restart) {
-                    // session restore failed so try again but without session to force new authentication
-                    return this.initialize();
-                }
-                return;
-            }
-
-            const QR_CONTAINER &#x3D; &#x27;div[data-ref]&#x27;;
-            const QR_RETRY_BUTTON &#x3D; &#x27;div[data-ref] &gt; span &gt; button&#x27;;
-            let qrRetries &#x3D; 0;
-            await page.exposeFunction(&#x27;qrChanged&#x27;, async (qr) &#x3D;&gt; {
-                /**
-                * Emitted when a QR code is received
-                * @event Client#qr
-                * @param {string} qr QR Code
-                */
-                this.emit(Events.QR_RECEIVED, qr);
-                if (this.options.qrMaxRetries &gt; 0) {
-                    qrRetries++;
-                    if (qrRetries &gt; this.options.qrMaxRetries) {
-                        this.emit(Events.DISCONNECTED, &#x27;Max qrcode retries reached&#x27;);
-                        await this.destroy();
-                    }
-                }
-            });
-
-            await page.evaluate(function (selectors) {
-                const qr_container &#x3D; document.querySelector(selectors.QR_CONTAINER);
-                window.qrChanged(qr_container.dataset.ref);
-
-                const obs &#x3D; new MutationObserver((muts) &#x3D;&gt; {
-                    muts.forEach(mut &#x3D;&gt; {
-                        // Listens to qr token change
-                        if (mut.type &#x3D;&#x3D;&#x3D; &#x27;attributes&#x27; &amp;amp;&amp;amp; mut.attributeName &#x3D;&#x3D;&#x3D; &#x27;data-ref&#x27;) {
-                            window.qrChanged(mut.target.dataset.ref);
-                        }
-                        // Listens to retry button, when found, click it
-                        else if (mut.type &#x3D;&#x3D;&#x3D; &#x27;childList&#x27;) {
-                            const retry_button &#x3D; document.querySelector(selectors.QR_RETRY_BUTTON);
-                            if (retry_button) retry_button.click();
-                        }
-                    });
-                });
-                obs.observe(qr_container.parentElement, {
-                    subtree: true,
-                    childList: true,
-                    attributes: true,
-                    attributeFilter: [&#x27;data-ref&#x27;],
-                });
-            }, {
-                QR_CONTAINER,
-                QR_RETRY_BUTTON
-            });
-
-            // Wait for code scan
-            try {
-                await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: 0 });
-            } catch(error) {
-                if (
-                    error.name &#x3D;&#x3D;&#x3D; &#x27;ProtocolError&#x27; &amp;amp;&amp;amp; 
-                    error.message &amp;amp;&amp;amp; 
-                    error.message.match(/Target closed/)
-                ) {
-                    // something has called .destroy() while waiting
-                    return;
-                }
-
-                throw error;
-            }
-
-        }
-
-        await page.evaluate(() &#x3D;&gt; {
-            /**
-             * Helper function that compares between two WWeb versions. Its purpose is to help the developer to choose the correct code implementation depending on the comparison value and the WWeb version.
-             * @param {string} lOperand The left operand for the WWeb version string to compare with
-             * @param {string} operator The comparison operator
-             * @param {string} rOperand The right operand for the WWeb version string to compare with
-             * @returns {boolean} Boolean value that indicates the result of the comparison
-             */
-            window.compareWwebVersions &#x3D; (lOperand, operator, rOperand) &#x3D;&gt; {
-                if (![&#x27;&gt;&#x27;, &#x27;&gt;&#x3D;&#x27;, &#x27;&amp;lt;&#x27;, &#x27;&amp;lt;&#x3D;&#x27;, &#x27;&#x3D;&#x27;].includes(operator)) {
-                    throw new class _ extends Error {
-                        constructor(m) { super(m); this.name &#x3D; &#x27;CompareWwebVersionsError&#x27;; }
-                    }(&#x27;Invalid comparison operator is provided&#x27;);
-
-                }
-                if (typeof lOperand !&#x3D;&#x3D; &#x27;string&#x27; || typeof rOperand !&#x3D;&#x3D; &#x27;string&#x27;) {
-                    throw new class _ extends Error {
-                        constructor(m) { super(m); this.name &#x3D; &#x27;CompareWwebVersionsError&#x27;; }
-                    }(&#x27;A non-string WWeb version type is provided&#x27;);
-                }
-
-                lOperand &#x3D; lOperand.replace(/-beta$/, &#x27;&#x27;);
-                rOperand &#x3D; rOperand.replace(/-beta$/, &#x27;&#x27;);
-
-                while (lOperand.length !&#x3D;&#x3D; rOperand.length) {
-                    lOperand.length &gt; rOperand.length
-                        ? rOperand &#x3D; rOperand.concat(&#x27;0&#x27;)
-                        : lOperand &#x3D; lOperand.concat(&#x27;0&#x27;);
-                }
-
-                lOperand &#x3D; Number(lOperand.replace(/\./g, &#x27;&#x27;));
-                rOperand &#x3D; Number(rOperand.replace(/\./g, &#x27;&#x27;));
-
-                return (
-                    operator &#x3D;&#x3D;&#x3D; &#x27;&gt;&#x27; ? lOperand &gt; rOperand :
-                        operator &#x3D;&#x3D;&#x3D; &#x27;&gt;&#x3D;&#x27; ? lOperand &gt;&#x3D; rOperand :
-                            operator &#x3D;&#x3D;&#x3D; &#x27;&amp;lt;&#x27; ? lOperand &amp;lt; rOperand :
-                                operator &#x3D;&#x3D;&#x3D; &#x27;&amp;lt;&#x3D;&#x27; ? lOperand &amp;lt;&#x3D; rOperand :
-                                    operator &#x3D;&#x3D;&#x3D; &#x27;&#x3D;&#x27; ? lOperand &#x3D;&#x3D;&#x3D; rOperand :
-                                        false
-                );
-            };
-        });
-
-        await page.evaluate(ExposeStore, moduleRaid.toString());
-        const authEventPayload &#x3D; await this.authStrategy.getAuthEventPayload();
-
-        /**
-         * Emitted when authentication is successful
-         * @event Client#authenticated
-         */
-        this.emit(Events.AUTHENTICATED, authEventPayload);
-
-        // Check window.Store Injection
-        await page.waitForFunction(&#x27;window.Store !&#x3D; undefined&#x27;);
-
-        await page.evaluate(async () &#x3D;&gt; {
-            // safely unregister service workers
-            const registrations &#x3D; await navigator.serviceWorker.getRegistrations();
-            for (let registration of registrations) {
-                registration.unregister();
-            }
-        });
-
-        //Load util functions (serializers, helper functions)
-        await page.evaluate(LoadUtils);
-
-        // Expose client info
-        /**
-         * Current connection information
-         * @type {ClientInfo}
-         */
-        this.info &#x3D; new ClientInfo(this, await page.evaluate(() &#x3D;&gt; {
-            return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMeUser() };
-        }));
-
-        // Add InterfaceController
-        this.interface &#x3D; new InterfaceController(this);
-
-        // Register events
-        await page.exposeFunction(&#x27;onAddMessageEvent&#x27;, msg &#x3D;&gt; {
+    /**
+     * Attach event listeners to WA Web
+     * Private function
+     * @property {boolean} reinject is this a reinject?
+     */
+    async attachEventListeners() {
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onAddMessageEvent&#x27;, msg &#x3D;&gt; {
             if (msg.type &#x3D;&#x3D;&#x3D; &#x27;gp2&#x27;) {
                 const notification &#x3D; new GroupNotification(this, msg);
                 if ([&#x27;add&#x27;, &#x27;invite&#x27;, &#x27;linked_group_join&#x27;].includes(msg.subtype)) {
                     /**
-                     * Emitted when a user joins the chat via invite link or is added by an admin.
-                     * @event Client#group_join
-                     * @param {GroupNotification} notification GroupNotification with more information about the action
-                     */
+                         * Emitted when a user joins the chat via invite link or is added by an admin.
+                         * @event Client#group_join
+                         * @param {GroupNotification} notification GroupNotification with more information about the action
+                         */
                     this.emit(Events.GROUP_JOIN, notification);
                 } else if (msg.subtype &#x3D;&#x3D;&#x3D; &#x27;remove&#x27; || msg.subtype &#x3D;&#x3D;&#x3D; &#x27;leave&#x27;) {
                     /**
-                     * Emitted when a user leaves the chat or is removed by an admin.
-                     * @event Client#group_leave
-                     * @param {GroupNotification} notification GroupNotification with more information about the action
-                     */
+                         * Emitted when a user leaves the chat or is removed by an admin.
+                         * @event Client#group_leave
+                         * @param {GroupNotification} notification GroupNotification with more information about the action
+                         */
                     this.emit(Events.GROUP_LEAVE, notification);
                 } else if (msg.subtype &#x3D;&#x3D;&#x3D; &#x27;promote&#x27; || msg.subtype &#x3D;&#x3D;&#x3D; &#x27;demote&#x27;) {
                     /**
-                     * Emitted when a current user is promoted to an admin or demoted to a regular user.
-                     * @event Client#group_admin_changed
-                     * @param {GroupNotification} notification GroupNotification with more information about the action
-                     */
+                         * Emitted when a current user is promoted to an admin or demoted to a regular user.
+                         * @event Client#group_admin_changed
+                         * @param {GroupNotification} notification GroupNotification with more information about the action
+                         */
                     this.emit(Events.GROUP_ADMIN_CHANGED, notification);
-                } else if (msg.subtype &#x3D;&#x3D;&#x3D; &#x27;created_membership_requests&#x27;) {
+                } else if (msg.subtype &#x3D;&#x3D;&#x3D; &#x27;membership_approval_request&#x27;) {
                     /**
-                     * Emitted when some user requested to join the group
-                     * that has the membership approval mode turned on
-                     * @event Client#group_membership_request
-                     * @param {GroupNotification} notification GroupNotification with more information about the action
-                     * @param {string} notification.chatId The group ID the request was made for
-                     * @param {string} notification.author The user ID that made a request
-                     * @param {number} notification.timestamp The timestamp the request was made at
-                     */
+                         * Emitted when some user requested to join the group
+                         * that has the membership approval mode turned on
+                         * @event Client#group_membership_request
+                         * @param {GroupNotification} notification GroupNotification with more information about the action
+                         * @param {string} notification.chatId The group ID the request was made for
+                         * @param {string} notification.author The user ID that made a request
+                         * @param {number} notification.timestamp The timestamp the request was made at
+                         */
                     this.emit(Events.GROUP_MEMBERSHIP_REQUEST, notification);
                 } else {
                     /**
-                     * Emitted when group settings are updated, such as subject, description or picture.
-                     * @event Client#group_update
-                     * @param {GroupNotification} notification GroupNotification with more information about the action
-                     */
+                         * Emitted when group settings are updated, such as subject, description or picture.
+                         * @event Client#group_update
+                         * @param {GroupNotification} notification GroupNotification with more information about the action
+                         */
                     this.emit(Events.GROUP_UPDATE, notification);
                 }
                 return;
@@ -436,25 +440,25 @@ class Client extends EventEmitter {
             const message &#x3D; new Message(this, msg);
 
             /**
-             * Emitted when a new message is created, which may include the current user&#x27;s own messages.
-             * @event Client#message_create
-             * @param {Message} message The message that was created
-             */
+                 * Emitted when a new message is created, which may include the current user&#x27;s own messages.
+                 * @event Client#message_create
+                 * @param {Message} message The message that was created
+                 */
             this.emit(Events.MESSAGE_CREATE, message);
 
             if (msg.id.fromMe) return;
 
             /**
-             * Emitted when a new message is received.
-             * @event Client#message
-             * @param {Message} message The message that was received
-             */
+                 * Emitted when a new message is received.
+                 * @event Client#message
+                 * @param {Message} message The message that was received
+                 */
             this.emit(Events.MESSAGE_RECEIVED, message);
         });
 
         let last_message;
 
-        await page.exposeFunction(&#x27;onChangeMessageTypeEvent&#x27;, (msg) &#x3D;&gt; {
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onChangeMessageTypeEvent&#x27;, (msg) &#x3D;&gt; {
 
             if (msg.type &#x3D;&#x3D;&#x3D; &#x27;revoked&#x27;) {
                 const message &#x3D; new Message(this, msg);
@@ -464,33 +468,33 @@ class Client extends EventEmitter {
                 }
 
                 /**
-                 * Emitted when a message is deleted for everyone in the chat.
-                 * @event Client#message_revoke_everyone
-                 * @param {Message} message The message that was revoked, in its current state. It will not contain the original message&#x27;s data.
-                 * @param {?Message} revoked_msg The message that was revoked, before it was revoked. It will contain the message&#x27;s original data. 
-                 * Note that due to the way this data is captured, it may be possible that this param will be undefined.
-                 */
+                     * Emitted when a message is deleted for everyone in the chat.
+                     * @event Client#message_revoke_everyone
+                     * @param {Message} message The message that was revoked, in its current state. It will not contain the original message&#x27;s data.
+                     * @param {?Message} revoked_msg The message that was revoked, before it was revoked. It will contain the message&#x27;s original data. 
+                     * Note that due to the way this data is captured, it may be possible that this param will be undefined.
+                     */
                 this.emit(Events.MESSAGE_REVOKED_EVERYONE, message, revoked_msg);
             }
 
         });
 
-        await page.exposeFunction(&#x27;onChangeMessageEvent&#x27;, (msg) &#x3D;&gt; {
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onChangeMessageEvent&#x27;, (msg) &#x3D;&gt; {
 
             if (msg.type !&#x3D;&#x3D; &#x27;revoked&#x27;) {
                 last_message &#x3D; msg;
             }
 
             /**
-             * The event notification that is received when one of
-             * the group participants changes their phone number.
-             */
+                 * The event notification that is received when one of
+                 * the group participants changes their phone number.
+                 */
             const isParticipant &#x3D; msg.type &#x3D;&#x3D;&#x3D; &#x27;gp2&#x27; &amp;amp;&amp;amp; msg.subtype &#x3D;&#x3D;&#x3D; &#x27;modify&#x27;;
 
             /**
-             * The event notification that is received when one of
-             * the contacts changes their phone number.
-             */
+                 * The event notification that is received when one of
+                 * the contacts changes their phone number.
+                 */
             const isContact &#x3D; msg.type &#x3D;&#x3D;&#x3D; &#x27;notification_template&#x27; &amp;amp;&amp;amp; msg.subtype &#x3D;&#x3D;&#x3D; &#x27;change_number&#x27;;
 
             if (isParticipant || isContact) {
@@ -501,75 +505,74 @@ class Client extends EventEmitter {
                 const oldId &#x3D; isParticipant ? msg.author : msg.templateParams.find(id &#x3D;&gt; id !&#x3D;&#x3D; newId);
 
                 /**
-                 * Emitted when a contact or a group participant changes their phone number.
-                 * @event Client#contact_changed
-                 * @param {Message} message Message with more information about the event.
-                 * @param {String} oldId The user&#x27;s id (an old one) who changed their phone number
-                 * and who triggered the notification.
-                 * @param {String} newId The user&#x27;s new id after the change.
-                 * @param {Boolean} isContact Indicates if a contact or a group participant changed their phone number.
-                 */
+                     * Emitted when a contact or a group participant changes their phone number.
+                     * @event Client#contact_changed
+                     * @param {Message} message Message with more information about the event.
+                     * @param {String} oldId The user&#x27;s id (an old one) who changed their phone number
+                     * and who triggered the notification.
+                     * @param {String} newId The user&#x27;s new id after the change.
+                     * @param {Boolean} isContact Indicates if a contact or a group participant changed their phone number.
+                     */
                 this.emit(Events.CONTACT_CHANGED, message, oldId, newId, isContact);
             }
         });
 
-        await page.exposeFunction(&#x27;onRemoveMessageEvent&#x27;, (msg) &#x3D;&gt; {
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onRemoveMessageEvent&#x27;, (msg) &#x3D;&gt; {
 
             if (!msg.isNewMsg) return;
 
             const message &#x3D; new Message(this, msg);
 
             /**
-             * Emitted when a message is deleted by the current user.
-             * @event Client#message_revoke_me
-             * @param {Message} message The message that was revoked
-             */
+                 * Emitted when a message is deleted by the current user.
+                 * @event Client#message_revoke_me
+                 * @param {Message} message The message that was revoked
+                 */
             this.emit(Events.MESSAGE_REVOKED_ME, message);
 
         });
 
-        await page.exposeFunction(&#x27;onMessageAckEvent&#x27;, (msg, ack) &#x3D;&gt; {
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onMessageAckEvent&#x27;, (msg, ack) &#x3D;&gt; {
 
             const message &#x3D; new Message(this, msg);
 
             /**
-             * Emitted when an ack event occurrs on message type.
-             * @event Client#message_ack
-             * @param {Message} message The message that was affected
-             * @param {MessageAck} ack The new ACK value
-             */
+                 * Emitted when an ack event occurrs on message type.
+                 * @event Client#message_ack
+                 * @param {Message} message The message that was affected
+                 * @param {MessageAck} ack The new ACK value
+                 */
             this.emit(Events.MESSAGE_ACK, message, ack);
 
         });
 
-        await page.exposeFunction(&#x27;onChatUnreadCountEvent&#x27;, async (data) &#x3D;&gt;{
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onChatUnreadCountEvent&#x27;, async (data) &#x3D;&gt;{
             const chat &#x3D; await this.getChatById(data.id);
-            
+                
             /**
-             * Emitted when the chat unread count changes
-             */
+                 * Emitted when the chat unread count changes
+                 */
             this.emit(Events.UNREAD_COUNT, chat);
         });
 
-        await page.exposeFunction(&#x27;onMessageMediaUploadedEvent&#x27;, (msg) &#x3D;&gt; {
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onMessageMediaUploadedEvent&#x27;, (msg) &#x3D;&gt; {
 
             const message &#x3D; new Message(this, msg);
 
             /**
-             * Emitted when media has been uploaded for a message sent by the client.
-             * @event Client#media_uploaded
-             * @param {Message} message The message with media that was uploaded
-             */
+                 * Emitted when media has been uploaded for a message sent by the client.
+                 * @event Client#media_uploaded
+                 * @param {Message} message The message with media that was uploaded
+                 */
             this.emit(Events.MEDIA_UPLOADED, message);
         });
 
-        await page.exposeFunction(&#x27;onAppStateChangedEvent&#x27;, async (state) &#x3D;&gt; {
-
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onAppStateChangedEvent&#x27;, async (state) &#x3D;&gt; {
             /**
-             * Emitted when the connection state changes
-             * @event Client#change_state
-             * @param {WAState} state the new connection state
-             */
+                 * Emitted when the connection state changes
+                 * @event Client#change_state
+                 * @param {WAState} state the new connection state
+                 */
             this.emit(Events.STATE_CHANGED, state);
 
             const ACCEPTED_STATES &#x3D; [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING, WAState.TIMEOUT];
@@ -586,117 +589,137 @@ class Client extends EventEmitter {
 
             if (!ACCEPTED_STATES.includes(state)) {
                 /**
-                 * Emitted when the client has been disconnected
-                 * @event Client#disconnected
-                 * @param {WAState|&quot;NAVIGATION&quot;} reason reason that caused the disconnect
-                 */
+                     * Emitted when the client has been disconnected
+                     * @event Client#disconnected
+                     * @param {WAState|&quot;LOGOUT&quot;} reason reason that caused the disconnect
+                     */
                 await this.authStrategy.disconnect();
                 this.emit(Events.DISCONNECTED, state);
                 this.destroy();
             }
         });
 
-        await page.exposeFunction(&#x27;onBatteryStateChangedEvent&#x27;, (state) &#x3D;&gt; {
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onBatteryStateChangedEvent&#x27;, (state) &#x3D;&gt; {
             const { battery, plugged } &#x3D; state;
 
             if (battery &#x3D;&#x3D;&#x3D; undefined) return;
 
             /**
-             * Emitted when the battery percentage for the attached device changes. Will not be sent if using multi-device.
-             * @event Client#change_battery
-             * @param {object} batteryInfo
-             * @param {number} batteryInfo.battery - The current battery percentage
-             * @param {boolean} batteryInfo.plugged - Indicates if the phone is plugged in (true) or not (false)
-             * @deprecated
-             */
+                 * Emitted when the battery percentage for the attached device changes. Will not be sent if using multi-device.
+                 * @event Client#change_battery
+                 * @param {object} batteryInfo
+                 * @param {number} batteryInfo.battery - The current battery percentage
+                 * @param {boolean} batteryInfo.plugged - Indicates if the phone is plugged in (true) or not (false)
+                 * @deprecated
+                 */
             this.emit(Events.BATTERY_CHANGED, { battery, plugged });
         });
 
-        await page.exposeFunction(&#x27;onIncomingCall&#x27;, (call) &#x3D;&gt; {
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onIncomingCall&#x27;, (call) &#x3D;&gt; {
             /**
-             * Emitted when a call is received
-             * @event Client#incoming_call
-             * @param {object} call
-             * @param {number} call.id - Call id
-             * @param {string} call.peerJid - Who called
-             * @param {boolean} call.isVideo - if is video
-             * @param {boolean} call.isGroup - if is group
-             * @param {boolean} call.canHandleLocally - if we can handle in waweb
-             * @param {boolean} call.outgoing - if is outgoing
-             * @param {boolean} call.webClientShouldHandle - If Waweb should handle
-             * @param {object} call.participants - Participants
-             */
+                 * Emitted when a call is received
+                 * @event Client#incoming_call
+                 * @param {object} call
+                 * @param {number} call.id - Call id
+                 * @param {string} call.peerJid - Who called
+                 * @param {boolean} call.isVideo - if is video
+                 * @param {boolean} call.isGroup - if is group
+                 * @param {boolean} call.canHandleLocally - if we can handle in waweb
+                 * @param {boolean} call.outgoing - if is outgoing
+                 * @param {boolean} call.webClientShouldHandle - If Waweb should handle
+                 * @param {object} call.participants - Participants
+                 */
             const cll &#x3D; new Call(this, call);
             this.emit(Events.INCOMING_CALL, cll);
         });
 
-        await page.exposeFunction(&#x27;onReaction&#x27;, (reactions) &#x3D;&gt; {
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onReaction&#x27;, (reactions) &#x3D;&gt; {
             for (const reaction of reactions) {
                 /**
-                 * Emitted when a reaction is sent, received, updated or removed
-                 * @event Client#message_reaction
-                 * @param {object} reaction
-                 * @param {object} reaction.id - Reaction id
-                 * @param {number} reaction.orphan - Orphan
-                 * @param {?string} reaction.orphanReason - Orphan reason
-                 * @param {number} reaction.timestamp - Timestamp
-                 * @param {string} reaction.reaction - Reaction
-                 * @param {boolean} reaction.read - Read
-                 * @param {object} reaction.msgId - Parent message id
-                 * @param {string} reaction.senderId - Sender id
-                 * @param {?number} reaction.ack - Ack
-                 */
+                     * Emitted when a reaction is sent, received, updated or removed
+                     * @event Client#message_reaction
+                     * @param {object} reaction
+                     * @param {object} reaction.id - Reaction id
+                     * @param {number} reaction.orphan - Orphan
+                     * @param {?string} reaction.orphanReason - Orphan reason
+                     * @param {number} reaction.timestamp - Timestamp
+                     * @param {string} reaction.reaction - Reaction
+                     * @param {boolean} reaction.read - Read
+                     * @param {object} reaction.msgId - Parent message id
+                     * @param {string} reaction.senderId - Sender id
+                     * @param {?number} reaction.ack - Ack
+                     */
 
                 this.emit(Events.MESSAGE_REACTION, new Reaction(this, reaction));
             }
         });
 
-        await page.exposeFunction(&#x27;onRemoveChatEvent&#x27;, async (chat) &#x3D;&gt; {
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onRemoveChatEvent&#x27;, async (chat) &#x3D;&gt; {
             const _chat &#x3D; await this.getChatById(chat.id);
 
             /**
-             * Emitted when a chat is removed
-             * @event Client#chat_removed
-             * @param {Chat} chat
-             */
+                 * Emitted when a chat is removed
+                 * @event Client#chat_removed
+                 * @param {Chat} chat
+                 */
             this.emit(Events.CHAT_REMOVED, _chat);
         });
-        
-        await page.exposeFunction(&#x27;onArchiveChatEvent&#x27;, async (chat, currState, prevState) &#x3D;&gt; {
-            const _chat &#x3D; await this.getChatById(chat.id);
             
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onArchiveChatEvent&#x27;, async (chat, currState, prevState) &#x3D;&gt; {
+            const _chat &#x3D; await this.getChatById(chat.id);
+                
             /**
-             * Emitted when a chat is archived/unarchived
-             * @event Client#chat_archived
-             * @param {Chat} chat
-             * @param {boolean} currState
-             * @param {boolean} prevState
-             */
+                 * Emitted when a chat is archived/unarchived
+                 * @event Client#chat_archived
+                 * @param {Chat} chat
+                 * @param {boolean} currState
+                 * @param {boolean} prevState
+                 */
             this.emit(Events.CHAT_ARCHIVED, _chat, currState, prevState);
         });
 
-        await page.exposeFunction(&#x27;onEditMessageEvent&#x27;, (msg, newBody, prevBody) &#x3D;&gt; {
-            
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onEditMessageEvent&#x27;, (msg, newBody, prevBody) &#x3D;&gt; {
+                
             if(msg.type &#x3D;&#x3D;&#x3D; &#x27;revoked&#x27;){
                 return;
             }
             /**
-             * Emitted when messages are edited
-             * @event Client#message_edit
-             * @param {Message} message
-             * @param {string} newBody
-             * @param {string} prevBody
-             */
+                 * Emitted when messages are edited
+                 * @event Client#message_edit
+                 * @param {Message} message
+                 * @param {string} newBody
+                 * @param {string} prevBody
+                 */
             this.emit(Events.MESSAGE_EDIT, new Message(this, msg), newBody, prevBody);
         });
+            
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onAddMessageCiphertextEvent&#x27;, msg &#x3D;&gt; {
+                
+            /**
+                 * Emitted when messages are edited
+                 * @event Client#message_ciphertext
+                 * @param {Message} message
+                 */
+            this.emit(Events.MESSAGE_CIPHERTEXT, new Message(this, msg));
+        });
 
-        await page.evaluate(() &#x3D;&gt; {
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onPollVoteEvent&#x27;, (vote) &#x3D;&gt; {
+            const _vote &#x3D; new PollVote(this, vote);
+            /**
+             * Emitted when some poll option is selected or deselected,
+             * shows a user&#x27;s current selected option(s) on the poll
+             * @event Client#vote_update
+             */
+            this.emit(Events.VOTE_UPDATE, _vote);
+        });
+
+        await this.pupPage.evaluate(() &#x3D;&gt; {
             window.Store.Msg.on(&#x27;change&#x27;, (msg) &#x3D;&gt; { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on(&#x27;change:type&#x27;, (msg) &#x3D;&gt; { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on(&#x27;change:ack&#x27;, (msg, ack) &#x3D;&gt; { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
             window.Store.Msg.on(&#x27;change:isUnsentMedia&#x27;, (msg, unsent) &#x3D;&gt; { if (msg.id.fromMe &amp;amp;&amp;amp; !unsent) window.onMessageMediaUploadedEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on(&#x27;remove&#x27;, (msg) &#x3D;&gt; { if (msg.isNewMsg) window.onRemoveMessageEvent(window.WWebJS.getMessageModel(msg)); });
-            window.Store.Msg.on(&#x27;change:body&#x27;, (msg, newBody, prevBody) &#x3D;&gt; { window.onEditMessageEvent(window.WWebJS.getMessageModel(msg), newBody, prevBody); });
+            window.Store.Msg.on(&#x27;change:body change:caption&#x27;, (msg, newBody, prevBody) &#x3D;&gt; { window.onEditMessageEvent(window.WWebJS.getMessageModel(msg), newBody, prevBody); });
             window.Store.AppState.on(&#x27;change:state&#x27;, (_AppState, state) &#x3D;&gt; { window.onAppStateChangedEvent(state); });
             window.Store.Conn.on(&#x27;change:battery&#x27;, (state) &#x3D;&gt; { window.onBatteryStateChangedEvent(state); });
             window.Store.Call.on(&#x27;add&#x27;, (call) &#x3D;&gt; { window.onIncomingCall(call); });
@@ -707,14 +730,35 @@ class Client extends EventEmitter {
                     if(msg.type &#x3D;&#x3D;&#x3D; &#x27;ciphertext&#x27;) {
                         // defer message event until ciphertext is resolved (type changed)
                         msg.once(&#x27;change:type&#x27;, (_msg) &#x3D;&gt; window.onAddMessageEvent(window.WWebJS.getMessageModel(_msg)));
+                        window.onAddMessageCiphertextEvent(window.WWebJS.getMessageModel(msg));
                     } else {
                         window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); 
                     }
                 }
             });
             window.Store.Chat.on(&#x27;change:unreadCount&#x27;, (chat) &#x3D;&gt; {window.onChatUnreadCountEvent(chat);});
+            window.Store.PollVote.on(&#x27;add&#x27;, async (vote) &#x3D;&gt; {
+                const pollVoteModel &#x3D; await window.WWebJS.getPollVoteModel(vote);
+                pollVoteModel &amp;amp;&amp;amp; window.onPollVoteEvent(pollVoteModel);
+            });
 
-            {
+            if (window.compareWwebVersions(window.Debug.VERSION, &#x27;&gt;&#x3D;&#x27;, &#x27;2.3000.1014111620&#x27;)) {
+                const module &#x3D; window.Store.AddonReactionTable;
+                const ogMethod &#x3D; module.bulkUpsert;
+                module.bulkUpsert &#x3D; ((...args) &#x3D;&gt; {
+                    window.onReaction(args[0].map(reaction &#x3D;&gt; {
+                        const msgKey &#x3D; reaction.id;
+                        const parentMsgKey &#x3D; reaction.reactionParentKey;
+                        const timestamp &#x3D; reaction.reactionTimestamp / 1000;
+                        const sender &#x3D; reaction.author ?? reaction.from;
+                        const senderUserJid &#x3D; sender._serialized;
+
+                        return {...reaction, msgKey, parentMsgKey, senderUserJid, timestamp };
+                    }));
+
+                    return ogMethod(...args);
+                }).bind(module);
+            } else {
                 const module &#x3D; window.Store.createOrUpdateReactionsModule;
                 const ogMethod &#x3D; module.createOrUpdateReactions;
                 module.createOrUpdateReactions &#x3D; ((...args) &#x3D;&gt; {
@@ -730,24 +774,7 @@ class Client extends EventEmitter {
                 }).bind(module);
             }
         });
-
-        /**
-         * Emitted when the client has initialized and is ready to receive messages.
-         * @event Client#ready
-         */
-        this.emit(Events.READY);
-        this.authStrategy.afterAuthReady();
-
-        // Disconnect when navigating away when in PAIRING state (detect logout)
-        this.pupPage.on(&#x27;framenavigated&#x27;, async () &#x3D;&gt; {
-            const appState &#x3D; await this.getState();
-            if(!appState || appState &#x3D;&#x3D;&#x3D; WAState.PAIRING) {
-                await this.authStrategy.disconnect();
-                this.emit(Events.DISCONNECTED, &#x27;NAVIGATION&#x27;);
-                await this.destroy();
-            }
-        });
-    }
+    }    
 
     async initWebVersionCache() {
         const { type: webCacheType, ...webCacheOptions } &#x3D; this.options.webVersionCache;
@@ -772,7 +799,8 @@ class Client extends EventEmitter {
         } else {
             this.pupPage.on(&#x27;response&#x27;, async (res) &#x3D;&gt; {
                 if(res.ok() &amp;amp;&amp;amp; res.url() &#x3D;&#x3D;&#x3D; WhatsWebURL) {
-                    await webCache.persist(await res.text());
+                    const indexHtml &#x3D; await res.text();
+                    this.currentIndexHtml &#x3D; indexHtml;
                 }
             });
         }
@@ -791,7 +819,9 @@ class Client extends EventEmitter {
      */
     async logout() {
         await this.pupPage.evaluate(() &#x3D;&gt; {
-            return window.Store.AppState.logout();
+            if (window.Store &amp;amp;&amp;amp; window.Store.AppState &amp;amp;&amp;amp; typeof window.Store.AppState.logout &#x3D;&#x3D;&#x3D; &#x27;function&#x27;) {
+                return window.Store.AppState.logout();
+            }
         });
         await this.pupBrowser.close();
         
@@ -829,6 +859,13 @@ class Client extends EventEmitter {
     }
 
     /**
+     * An object representing mentions of groups
+     * @typedef {Object} GroupMention
+     * @property {string} subject - The name of a group to mention (can be custom)
+     * @property {string} id - The group ID, e.g.: &#x27;XXXXXXXXXX@g.us&#x27;
+     */
+
+    /**
      * Message options.
      * @typedef {Object} MessageSendOptions
      * @property {boolean} [linkPreview&#x3D;true] - Show links preview. Has no effect on multi-device accounts.
@@ -840,8 +877,10 @@ class Client extends EventEmitter {
      * @property {boolean} [parseVCards&#x3D;true] - Automatically parse vCards and send them as contacts
      * @property {string} [caption] - Image or video caption
      * @property {string} [quotedMessageId] - Id of the message that is being quoted (or replied to)
-     * @property {Contact[]} [mentions] - Contacts that are being mentioned in the message
+     * @property {GroupMention[]} [groupMentions] - An array of object that handle group mentions
+     * @property {string[]} [mentions] - User IDs to mention in the message
      * @property {boolean} [sendSeen&#x3D;true] - Mark the conversation as seen after sending the message
+     * @property {string} [invokedBotWid&#x3D;undefined] - Bot Wid when doing a bot mention like @Meta AI
      * @property {string} [stickerAuthor&#x3D;undefined] - Sets the author of the sticker, (if sendMediaAsSticker is true).
      * @property {string} [stickerName&#x3D;undefined] - Sets the name of the sticker, (if sendMediaAsSticker is true).
      * @property {string[]} [stickerCategories&#x3D;undefined] - Sets the categories of the sticker, (if sendMediaAsSticker is true). Provide emoji char array, can be null.
@@ -857,10 +896,16 @@ class Client extends EventEmitter {
      * @returns {Promise&amp;lt;Message&gt;} Message that was just sent
      */
     async sendMessage(chatId, content, options &#x3D; {}) {
-        if (options.mentions &amp;amp;&amp;amp; options.mentions.some(possiblyContact &#x3D;&gt; possiblyContact instanceof Contact)) {
-            console.warn(&#x27;Mentions with an array of Contact are now deprecated. See more at https://github.com/pedroslopez/whatsapp-web.js/pull/2166.&#x27;);
-            options.mentions &#x3D; options.mentions.map(a &#x3D;&gt; a.id._serialized);
+        if (options.mentions) {
+            !Array.isArray(options.mentions) &amp;amp;&amp;amp; (options.mentions &#x3D; [options.mentions]);
+            if (options.mentions.some((possiblyContact) &#x3D;&gt; possiblyContact instanceof Contact)) {
+                console.warn(&#x27;Mentions with an array of Contact are now deprecated. See more at https://github.com/pedroslopez/whatsapp-web.js/pull/2166.&#x27;);
+                options.mentions &#x3D; options.mentions.map((a) &#x3D;&gt; a.id._serialized);
+            }
         }
+
+        options.groupMentions &amp;amp;&amp;amp; !Array.isArray(options.groupMentions) &amp;amp;&amp;amp; (options.groupMentions &#x3D; [options.groupMentions]);
+
         let internalOptions &#x3D; {
             linkPreview: options.linkPreview &#x3D;&#x3D;&#x3D; false ? undefined : true,
             sendAudioAsVoice: options.sendAudioAsVoice,
@@ -869,8 +914,10 @@ class Client extends EventEmitter {
             sendMediaAsDocument: options.sendMediaAsDocument,
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
-            parseVCards: options.parseVCards &#x3D;&#x3D;&#x3D; false ? false : true,
-            mentionedJidList: Array.isArray(options.mentions) ? options.mentions : [],
+            parseVCards: options.parseVCards !&#x3D;&#x3D; false,
+            mentionedJidList: options.mentions || [],
+            groupMentions: options.groupMentions,
+            invokedBotWid: options.invokedBotWid,
             extraOptions: options.extra
         };
 
@@ -922,11 +969,11 @@ class Client extends EventEmitter {
 
 
             if (sendSeen) {
-                window.WWebJS.sendSeen(chatId);
+                await window.WWebJS.sendSeen(chatId);
             }
 
             const msg &#x3D; await window.WWebJS.sendMessage(chat, message, options, sendSeen);
-            return msg.serialize();
+            return window.WWebJS.getMessageModel(msg);
         }, chatId, content, internalOptions, sendSeen);
 
         return new Message(this, newMessage);
@@ -1006,7 +1053,7 @@ class Client extends EventEmitter {
             if(msg) return window.WWebJS.getMessageModel(msg);
 
             const params &#x3D; messageId.split(&#x27;_&#x27;);
-            if(params.length !&#x3D;&#x3D; 3) throw new Error(&#x27;Invalid serialized message id specified&#x27;);
+            if (params.length !&#x3D;&#x3D; 3 &amp;amp;&amp;amp; params.length !&#x3D;&#x3D; 4) throw new Error(&#x27;Invalid serialized message id specified&#x27;);
 
             let messagesObject &#x3D; await window.Store.Msg.getMessagesById([messageId]);
             if (messagesObject &amp;amp;&amp;amp; messagesObject.messages.length) msg &#x3D; messagesObject.messages[0];
@@ -1076,14 +1123,8 @@ class Client extends EventEmitter {
     async setDisplayName(displayName) {
         const couldSet &#x3D; await this.pupPage.evaluate(async displayName &#x3D;&gt; {
             if(!window.Store.Conn.canSetMyPushname()) return false;
-
-            if(window.Store.MDBackend) {
-                // TODO
-                return false;
-            } else {
-                const res &#x3D; await window.Store.Wap.setPushname(displayName);
-                return !res.status || res.status &#x3D;&#x3D;&#x3D; 200;
-            }
+            await window.Store.Settings.setPushname(displayName);
+            return true;
         }, displayName);
 
         return couldSet;
@@ -1224,7 +1265,9 @@ class Client extends EventEmitter {
         const profilePic &#x3D; await this.pupPage.evaluate(async contactId &#x3D;&gt; {
             try {
                 const chatWid &#x3D; window.Store.WidFactory.createWid(contactId);
-                return await window.Store.ProfilePic.profilePicFind(chatWid);
+                return window.compareWwebVersions(window.Debug.VERSION, &#x27;&amp;lt;&#x27;, &#x27;2.3000.0&#x27;)
+                    ? await window.Store.ProfilePic.profilePicFind(chatWid)
+                    : await window.Store.ProfilePic.requestProfilePicFromServer(chatWid);
             } catch (err) {
                 if(err.name &#x3D;&#x3D;&#x3D; &#x27;ServerStatusCodeError&#x27;) return undefined;
                 throw err;
@@ -1390,10 +1433,18 @@ class Client extends EventEmitter {
 
             try {
                 createGroupResult &#x3D; await window.Store.GroupUtils.createGroup(
-                    title,
-                    participantWids,
-                    messageTimer,
-                    parentGroupWid
+                    {
+                        &#x27;memberAddMode&#x27;: options.memberAddMode &#x3D;&#x3D;&#x3D; undefined ? true : options.memberAddMode,
+                        &#x27;membershipApprovalMode&#x27;: options.membershipApprovalMode &#x3D;&#x3D;&#x3D; undefined ? false : options.membershipApprovalMode,
+                        &#x27;announce&#x27;: options.announce &#x3D;&#x3D;&#x3D; undefined ? true : options.announce,
+                        &#x27;ephemeralDuration&#x27;: messageTimer,
+                        &#x27;full&#x27;: undefined,
+                        &#x27;parentGroupId&#x27;: parentGroupWid,
+                        &#x27;restrict&#x27;: options.restrict &#x3D;&#x3D;&#x3D; undefined ? true : options.restrict,
+                        &#x27;thumb&#x27;: undefined,
+                        &#x27;title&#x27;: title,
+                    },
+                    participantWids
                 );
             } catch (err) {
                 return &#x27;CreateGroupError: An unknown error occupied while creating a group&#x27;;
@@ -1405,7 +1456,7 @@ class Client extends EventEmitter {
                 const statusCode &#x3D; participant.error ?? 200;
 
                 if (autoSendInviteV4 &amp;amp;&amp;amp; statusCode &#x3D;&#x3D;&#x3D; 403) {
-                    window.Store.ContactCollection.gadd(participant.wid, { silent: true });
+                    window.Store.Contact.gadd(participant.wid, { silent: true });
                     const addParticipantResult &#x3D; await window.Store.GroupInviteV4.sendGroupInviteMessage(
                         await window.Store.Chat.find(participant.wid),
                         createGroupResult.wid._serialized,
@@ -1451,6 +1502,17 @@ class Client extends EventEmitter {
         });
 
         return labels.map(data &#x3D;&gt; new Label(this, data));
+    }
+    
+    /**
+     * Get all current Broadcast
+     * @returns {Promise&amp;lt;Array&amp;lt;Broadcast&gt;&gt;}
+     */
+    async getBroadcasts() {
+        const broadcasts &#x3D; await this.pupPage.evaluate(async () &#x3D;&gt; {
+            return window.WWebJS.getAllStatuses();
+        });
+        return broadcasts.map(data &#x3D;&gt; new Broadcast(this, data));
     }
 
     /**
@@ -1582,8 +1644,8 @@ class Client extends EventEmitter {
      * @returns {Promise&amp;lt;Array&amp;lt;GroupMembershipRequest&gt;&gt;} An array of membership requests
      */
     async getGroupMembershipRequests(groupId) {
-        return await this.pupPage.evaluate(async (gropId) &#x3D;&gt; {
-            const groupWid &#x3D; window.Store.WidFactory.createWid(gropId);
+        return await this.pupPage.evaluate(async (groupId) &#x3D;&gt; {
+            const groupWid &#x3D; window.Store.WidFactory.createWid(groupId);
             return await window.Store.MembershipRequestUtils.getMembershipApprovalRequests(groupWid);
         }, groupId);
     }
@@ -1628,6 +1690,102 @@ class Client extends EventEmitter {
             return await window.WWebJS.membershipRequestAction(groupId, &#x27;Reject&#x27;, requesterIds, sleep);
         }, groupId, options);
     }
+
+
+    /**
+     * Setting  autoload download audio
+     * @param {boolean} flag true/false
+     */
+    async setAutoDownloadAudio(flag) {
+        await this.pupPage.evaluate(async flag &#x3D;&gt; {
+            const autoDownload &#x3D; window.Store.Settings.getAutoDownloadAudio();
+            if (autoDownload &#x3D;&#x3D;&#x3D; flag) {
+                return flag;
+            }
+            await window.Store.Settings.setAutoDownloadAudio(flag);
+            return flag;
+        }, flag);
+    }
+
+    /**
+     * Setting  autoload download documents
+     * @param {boolean} flag true/false
+     */
+    async setAutoDownloadDocuments(flag) {
+        await this.pupPage.evaluate(async flag &#x3D;&gt; {
+            const autoDownload &#x3D; window.Store.Settings.getAutoDownloadDocuments();
+            if (autoDownload &#x3D;&#x3D;&#x3D; flag) {
+                return flag;
+            }
+            await window.Store.Settings.setAutoDownloadDocuments(flag);
+            return flag;
+        }, flag);
+    }
+
+    /**
+     * Setting  autoload download photos
+     * @param {boolean} flag true/false
+     */
+    async setAutoDownloadPhotos(flag) {
+        await this.pupPage.evaluate(async flag &#x3D;&gt; {
+            const autoDownload &#x3D; window.Store.Settings.getAutoDownloadPhotos();
+            if (autoDownload &#x3D;&#x3D;&#x3D; flag) {
+                return flag;
+            }
+            await window.Store.Settings.setAutoDownloadPhotos(flag);
+            return flag;
+        }, flag);
+    }
+
+    /**
+     * Setting  autoload download videos
+     * @param {boolean} flag true/false
+     */
+    async setAutoDownloadVideos(flag) {
+        await this.pupPage.evaluate(async flag &#x3D;&gt; {
+            const autoDownload &#x3D; window.Store.Settings.getAutoDownloadVideos();
+            if (autoDownload &#x3D;&#x3D;&#x3D; flag) {
+                return flag;
+            }
+            await window.Store.Settings.setAutoDownloadVideos(flag);
+            return flag;
+        }, flag);
+    }
+
+    /**
+     * Get user device count by ID
+     * Each WaWeb Connection counts as one device, and the phone (if exists) counts as one
+     * So for a non-enterprise user with one WaWeb connection it should return &quot;2&quot;
+     * @param {string} userId
+     * @returns {Promise&amp;lt;number&gt;}
+     */
+    async getContactDeviceCount(userId) {
+        return await this.pupPage.evaluate(async (userId) &#x3D;&gt; {
+            const devices &#x3D; await window.Store.DeviceList.getDeviceIds([window.Store.WidFactory.createWid(userId)]);
+            if (devices &amp;amp;&amp;amp; devices.length &amp;amp;&amp;amp; devices[0] !&#x3D; null &amp;amp;&amp;amp; typeof devices[0].devices &#x3D;&#x3D; &#x27;object&#x27;) {
+                return devices[0].devices.length;
+            }
+            return 0;
+        }, userId);
+    }
+
+    /**
+     * Sync chat history conversation
+     * @param {string} chatId
+     * @return {Promise&amp;lt;boolean&gt;} True if operation completed successfully, false otherwise.
+     */
+    async syncHistory(chatId) {
+        return await this.pupPage.evaluate(async (chatId) &#x3D;&gt; {
+            const chat &#x3D; await window.WWebJS.getChat(chatId);
+            if (chat.endOfHistoryTransferType &#x3D;&#x3D;&#x3D; 0) {
+                await window.Store.HistorySync.sendPeerDataOperationRequest(3, {
+                    chatId: chat.id
+                });
+                return true;
+            }
+            return false;
+        }, chatId);
+    }
 }
 
 module.exports &#x3D; Client;
@@ -1641,7 +1799,7 @@ module.exports &#x3D; Client;
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on October 21, 2023.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on November 22, 2024.
       </p>
     </div>
   </footer>
