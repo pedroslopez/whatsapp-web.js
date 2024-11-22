@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 exports.LoadUtils = () => {
     window.WWebJS = {};
@@ -9,7 +9,7 @@ exports.LoadUtils = () => {
             (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
         let chat = window.Store.Chat.get(chatId);
 
-        if (window.compareWwebVersions(window.Debug.VERSION, ">", "2.3000.0")) {
+        if (window.compareWwebVersions(window.Debug.VERSION, '>', '2.3000.0')) {
             return window.Store.ForwardUtils.forwardMessagesToChats(
                 [msg],
                 [chat],
@@ -55,11 +55,11 @@ exports.LoadUtils = () => {
                 options.quotedMessageId,
             ]);
 
-            if (quotedMessage["messages"].length != 1) {
-                throw new Error("Could not get the quoted message.");
+            if (quotedMessage['messages'].length != 1) {
+                throw new Error('Could not get the quoted message.');
             }
 
-            quotedMessage = quotedMessage["messages"][0];
+            quotedMessage = quotedMessage['messages'][0];
 
             // TODO remove .canReply() once all clients are updated to >= v2.2241.6
             const canReply = (await window.Store.ReplyUtils)
@@ -99,7 +99,7 @@ exports.LoadUtils = () => {
             url = window.Store.Validators.findLink(url)?.href;
             url && !description && (description = url);
             locationOptions = {
-                type: "location",
+                type: 'location',
                 loc: description,
                 lat: latitude,
                 lng: longitude,
@@ -114,7 +114,7 @@ exports.LoadUtils = () => {
             const { allowMultipleAnswers, messageSecret } =
                 options.poll.options;
             _pollOptions = {
-                type: "poll_creation",
+                type: 'poll_creation',
                 pollName: pollName,
                 pollOptions: pollOptions,
                 pollSelectableOptionsCount: allowMultipleAnswers ? 0 : 1,
@@ -131,7 +131,7 @@ exports.LoadUtils = () => {
             let contact = window.Store.Contact.get(options.contactCard);
             vcardOptions = {
                 body: window.Store.VCard.vcardFromContactModel(contact).vcard,
-                type: "vcard",
+                type: 'vcard',
                 vcardFormattedName: contact.formattedName,
             };
             delete options.contactCard;
@@ -143,22 +143,22 @@ exports.LoadUtils = () => {
                 window.Store.VCard.vcardFromContactModel(c)
             );
             vcardOptions = {
-                type: "multi_vcard",
+                type: 'multi_vcard',
                 vcardList: vcards,
                 body: undefined,
             };
             delete options.contactCardList;
         } else if (
             options.parseVCards &&
-            typeof content === "string" &&
-            content.startsWith("BEGIN:VCARD")
+            typeof content === 'string' &&
+            content.startsWith('BEGIN:VCARD')
         ) {
             delete options.parseVCards;
             try {
                 const parsed = window.Store.VCard.parseVcard(content);
                 if (parsed) {
                     vcardOptions = {
-                        type: "vcard",
+                        type: 'vcard',
                         vcardFormattedName:
                             window.Store.VCard.vcardGetNameFromParsed(parsed),
                     };
@@ -178,7 +178,7 @@ exports.LoadUtils = () => {
                 if (preview && preview.data) {
                     preview = preview.data;
                     preview.preview = true;
-                    preview.subtype = "url";
+                    preview.subtype = 'url';
                     options = { ...options, ...preview };
                 }
             }
@@ -187,11 +187,11 @@ exports.LoadUtils = () => {
         let buttonOptions = {};
         if (options.buttons) {
             let caption;
-            if (options.buttons.type === "chat") {
+            if (options.buttons.type === 'chat') {
                 content = options.buttons.body;
                 caption = content;
             } else {
-                caption = options.caption ? options.caption : " "; //Caption can't be empty
+                caption = options.caption ? options.caption : ' '; //Caption can't be empty
             }
             buttonOptions = {
                 productHeaderImageRejected: false,
@@ -213,13 +213,13 @@ exports.LoadUtils = () => {
         let listOptions = {};
         if (options.list) {
             if (
-                window.Store.Conn.platform === "smba" ||
-                window.Store.Conn.platform === "smbi"
+                window.Store.Conn.platform === 'smba' ||
+                window.Store.Conn.platform === 'smbi'
             ) {
                 throw "[LT01] Whatsapp business can't send this yet";
             }
             listOptions = {
-                type: "list",
+                type: 'list',
                 footer: options.list.footer,
                 list: {
                     ...options.list,
@@ -258,7 +258,7 @@ exports.LoadUtils = () => {
             to: chat.id,
             id: newId,
             participant: chat.id.isGroup() ? meUser : undefined,
-            selfDir: "out",
+            selfDir: 'out',
         });
 
         const extraOptions = options.extraOptions || {};
@@ -275,10 +275,10 @@ exports.LoadUtils = () => {
             from: meUser,
             to: chat.id,
             local: true,
-            self: "out",
+            self: 'out',
             t: parseInt(new Date().getTime() / 1000),
             isNewMsg: true,
-            type: "chat",
+            type: 'chat',
             ...ephemeralFields,
             ...locationOptions,
             ..._pollOptions,
@@ -332,7 +332,7 @@ exports.LoadUtils = () => {
                     link
                 );
                 preview.preview = true;
-                preview.subtype = "url";
+                preview.subtype = 'url';
                 options = { ...options, ...preview };
             }
         }
@@ -351,7 +351,7 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.toStickerData = async (mediaInfo) => {
-        if (mediaInfo.mimetype == "image/webp") return mediaInfo;
+        if (mediaInfo.mimetype == 'image/webp') return mediaInfo;
 
         const file = window.WWebJS.mediaInfoToFile(mediaInfo);
         const webpSticker = await window.Store.StickerTools.toWebpSticker(file);
@@ -359,14 +359,14 @@ exports.LoadUtils = () => {
         const data = window.WWebJS.arrayBufferToBase64(webpBuffer);
 
         return {
-            mimetype: "image/webp",
+            mimetype: 'image/webp',
             data,
         };
     };
 
     window.WWebJS.processStickerData = async (mediaInfo) => {
-        if (mediaInfo.mimetype !== "image/webp")
-            throw new Error("Invalid media type");
+        if (mediaInfo.mimetype !== 'image/webp')
+            throw new Error('Invalid media type');
 
         const file = window.WWebJS.mediaInfoToFile(mediaInfo);
         let filehash = await window.WWebJS.getFileHash(file);
@@ -375,7 +375,7 @@ exports.LoadUtils = () => {
         const controller = new AbortController();
         const uploadedInfo = await window.Store.UploadUtils.encryptAndUpload({
             blob: file,
-            type: "sticker",
+            type: 'sticker',
             signal: controller.signal,
             mediaKey,
         });
@@ -386,7 +386,7 @@ exports.LoadUtils = () => {
             deprecatedMms3Url: uploadedInfo.url,
             uploadhash: uploadedInfo.encFilehash,
             size: file.size,
-            type: "sticker",
+            type: 'sticker',
             filehash,
         };
 
@@ -415,19 +415,19 @@ exports.LoadUtils = () => {
             isGif: mediaData.isGif,
         });
 
-        if (forceVoice && mediaData.type === "audio") {
-            mediaData.type = "ptt";
+        if (forceVoice && mediaData.type === 'audio') {
+            mediaData.type = 'ptt';
             const waveform = mediaObject.contentInfo.waveform;
             mediaData.waveform =
                 waveform ?? (await window.WWebJS.generateWaveform(file));
         }
 
-        if (forceGif && mediaData.type === "video") {
+        if (forceGif && mediaData.type === 'video') {
             mediaData.isGif = true;
         }
 
         if (forceDocument) {
-            mediaData.type = "document";
+            mediaData.type = 'document';
         }
 
         if (!(mediaData.mediaBlob instanceof window.Store.OpaqueData)) {
@@ -449,7 +449,7 @@ exports.LoadUtils = () => {
 
         const mediaEntry = uploadedMedia.mediaEntry;
         if (!mediaEntry) {
-            throw new Error("upload failed: media entry was not created");
+            throw new Error('upload failed: media entry was not created');
         }
 
         mediaData.set({
@@ -495,7 +495,7 @@ exports.LoadUtils = () => {
             msg.replyButtons = JSON.parse(JSON.stringify(msg.replyButtons));
         }
 
-        if (typeof msg.id.remote === "object") {
+        if (typeof msg.id.remote === 'object') {
             msg.id = Object.assign({}, msg.id, {
                 remote: msg.id.remote._serialized,
             });
@@ -580,8 +580,8 @@ exports.LoadUtils = () => {
         // TODO: remove useOldImplementation and its checks once all clients are updated to >= v2.2327.4
         const useOldImplementation = window.compareWwebVersions(
             window.Debug.VERSION,
-            "<",
-            "2.2327.4"
+            '<',
+            '2.2327.4'
         );
 
         res.isMe = useOldImplementation
@@ -662,7 +662,7 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.arrayBufferToBase64 = (arrayBuffer) => {
-        let binary = "";
+        let binary = '';
         const bytes = new Uint8Array(arrayBuffer);
         const len = bytes.byteLength;
         for (let i = 0; i < len; i++) {
@@ -674,11 +674,11 @@ exports.LoadUtils = () => {
     window.WWebJS.arrayBufferToBase64Async = (arrayBuffer) =>
         new Promise((resolve, reject) => {
             const blob = new Blob([arrayBuffer], {
-                type: "application/octet-stream",
+                type: 'application/octet-stream',
             });
             const fileReader = new FileReader();
             fileReader.onload = () => {
-                const [, data] = fileReader.result.split(",");
+                const [, data] = fileReader.result.split(',');
                 resolve(data);
             };
             fileReader.onerror = (e) => reject(e);
@@ -687,14 +687,14 @@ exports.LoadUtils = () => {
 
     window.WWebJS.getFileHash = async (data) => {
         let buffer = await data.arrayBuffer();
-        const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
         return btoa(String.fromCharCode(...new Uint8Array(hashBuffer)));
     };
 
     window.WWebJS.generateHash = async (length) => {
-        var result = "";
+        var result = '';
         var characters =
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         var charactersLength = characters.length;
         for (var i = 0; i < length; i++) {
             result += characters.charAt(
@@ -762,17 +762,17 @@ exports.LoadUtils = () => {
         chatId = window.Store.WidFactory.createWid(chatId);
 
         switch (state) {
-            case "typing":
+            case 'typing':
                 await window.Store.ChatState.sendChatStateComposing(chatId);
                 break;
-            case "recording":
+            case 'recording':
                 await window.Store.ChatState.sendChatStateRecording(chatId);
                 break;
-            case "stop":
+            case 'stop':
                 await window.Store.ChatState.sendChatStatePaused(chatId);
                 break;
             default:
-                throw "Invalid chatstate";
+                throw 'Invalid chatstate';
         }
 
         return true;
@@ -825,21 +825,21 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.rejectCall = async (peerJid, id) => {
-        peerJid = peerJid.split("@")[0] + "@s.whatsapp.net";
+        peerJid = peerJid.split('@')[0] + '@s.whatsapp.net';
         let userId =
-            window.Store.User.getMaybeMeUser().user + "@s.whatsapp.net";
+            window.Store.User.getMaybeMeUser().user + '@s.whatsapp.net';
         const stanza = window.Store.SocketWap.wap(
-            "call",
+            'call',
             {
                 id: window.Store.SocketWap.generateId(),
                 from: window.Store.SocketWap.USER_JID(userId),
                 to: window.Store.SocketWap.USER_JID(peerJid),
             },
             [
-                window.Store.SocketWap.wap("reject", {
-                    "call-id": id,
-                    "call-creator": window.Store.SocketWap.USER_JID(peerJid),
-                    count: "0",
+                window.Store.SocketWap.wap('reject', {
+                    'call-id': id,
+                    'call-creator': window.Store.SocketWap.USER_JID(peerJid),
+                    count: '0',
                 }),
             ]
         );
@@ -847,10 +847,10 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.cropAndResizeImage = async (media, options = {}) => {
-        if (!media.mimetype.includes("image"))
-            throw new Error("Media is not an image");
+        if (!media.mimetype.includes('image'))
+            throw new Error('Media is not an image');
 
-        if (options.mimetype && !options.mimetype.includes("image"))
+        if (options.mimetype && !options.mimetype.includes('image'))
             delete options.mimetype;
 
         options = Object.assign(
@@ -874,11 +874,11 @@ exports.LoadUtils = () => {
         const sx = Math.floor((img.width - sl) / 2);
         const sy = Math.floor((img.height - sl) / 2);
 
-        const canvas = document.createElement("canvas");
+        const canvas = document.createElement('canvas');
         canvas.width = options.size;
         canvas.height = options.size;
 
-        const ctx = canvas.getContext("2d");
+        const ctx = canvas.getContext('2d');
         ctx.drawImage(img, sx, sy, sl, sl, 0, 0, options.size, options.size);
 
         const dataUrl = canvas.toDataURL(options.mimetype, options.quality);
@@ -887,19 +887,19 @@ exports.LoadUtils = () => {
 
         return Object.assign(media, {
             mimetype: options.mimeType,
-            data: dataUrl.replace(`data:${options.mimeType};base64,`, ""),
+            data: dataUrl.replace(`data:${options.mimeType};base64,`, ''),
         });
     };
 
     window.WWebJS.setPicture = async (chatid, media) => {
         const thumbnail = await window.WWebJS.cropAndResizeImage(media, {
             asDataUrl: true,
-            mimetype: "image/jpeg",
+            mimetype: 'image/jpeg',
             size: 96,
         });
         const profilePic = await window.WWebJS.cropAndResizeImage(media, {
             asDataUrl: true,
-            mimetype: "image/jpeg",
+            mimetype: 'image/jpeg',
             size: 640,
         });
 
@@ -915,7 +915,7 @@ exports.LoadUtils = () => {
             );
             return res ? res.status === 200 : false;
         } catch (err) {
-            if (err.name === "ServerStatusCodeError") return false;
+            if (err.name === 'ServerStatusCodeError') return false;
             throw err;
         }
     };
@@ -931,7 +931,7 @@ exports.LoadUtils = () => {
             );
             return res ? res.status === 200 : false;
         } catch (err) {
-            if (err.name === "ServerStatusCodeError") return false;
+            if (err.name === 'ServerStatusCodeError') return false;
             throw err;
         }
     };
@@ -949,7 +949,7 @@ exports.LoadUtils = () => {
                     if (base64Image == null) {
                         resolve(undefined);
                     } else {
-                        const base64Data = base64Image.toString().split(",")[1];
+                        const base64Data = base64Image.toString().split(',')[1];
                         resolve(base64Data);
                     }
                 };
@@ -1012,8 +1012,8 @@ exports.LoadUtils = () => {
         let rpcResult, resultArgs;
         const isOldImpl = window.compareWwebVersions(
             window.Debug.VERSION,
-            "<=",
-            "2.2335.9"
+            '<=',
+            '2.2335.9'
         );
         const data = {
             name: undefined,
@@ -1039,18 +1039,18 @@ exports.LoadUtils = () => {
             return data;
         }
 
-        if (rpcResult.name === "AddParticipantsResponseSuccess") {
-            const code = resultArgs?.value.error ?? "200";
+        if (rpcResult.name === 'AddParticipantsResponseSuccess') {
+            const code = resultArgs?.value.error ?? '200';
             data.name = resultArgs?.name;
             data.code = +code;
             data.inviteV4Code = resultArgs?.value.addRequestCode;
             data.inviteV4CodeExp =
                 resultArgs?.value.addRequestExpiration?.toString();
-        } else if (rpcResult.name === "AddParticipantsResponseClientError") {
+        } else if (rpcResult.name === 'AddParticipantsResponseClientError') {
             const { code: code } =
                 rpcResult.value.errorAddParticipantsClientErrors.value;
             data.code = +code;
-        } else if (rpcResult.name === "AddParticipantsResponseServerError") {
+        } else if (rpcResult.name === 'AddParticipantsResponseServerError') {
             const { code: code } = rpcResult.value.errorServerErrors.value;
             data.code = +code;
         }
@@ -1066,7 +1066,7 @@ exports.LoadUtils = () => {
     ) => {
         const groupWid = window.Store.WidFactory.createWid(groupId);
         const group = await window.Store.Chat.find(groupWid);
-        const toApprove = action === "Approve";
+        const toApprove = action === 'Approve';
         let membershipRequests;
         let response;
         let result = [];
@@ -1117,16 +1117,16 @@ exports.LoadUtils = () => {
 
         const membReqResCodes = {
             default: `An unknown error occupied while ${
-                toApprove ? "approving" : "rejecting"
+                toApprove ? 'approving' : 'rejecting'
             } the participant membership request`,
-            400: "ParticipantNotFoundError",
-            401: "ParticipantNotAuthorizedError",
-            403: "ParticipantForbiddenError",
-            404: "ParticipantRequestNotFoundError",
-            408: "ParticipantTemporarilyBlockedError",
-            409: "ParticipantConflictError",
-            412: "ParticipantParentLinkedGroupsResourceConstraintError",
-            500: "ParticipantResourceConstraintError",
+            400: 'ParticipantNotFoundError',
+            401: 'ParticipantNotAuthorizedError',
+            403: 'ParticipantForbiddenError',
+            404: 'ParticipantRequestNotFoundError',
+            408: 'ParticipantTemporarilyBlockedError',
+            409: 'ParticipantConflictError',
+            412: 'ParticipantParentLinkedGroupsResourceConstraintError',
+            500: 'ParticipantResourceConstraintError',
         };
 
         try {
@@ -1135,13 +1135,13 @@ exports.LoadUtils = () => {
                     await window.Store.MembershipRequestUtils.sendMembershipRequestsActionRPC(
                         {
                             iqTo: groupJid,
-                            [toApprove ? "approveArgs" : "rejectArgs"]:
+                            [toApprove ? 'approveArgs' : 'rejectArgs']:
                                 participant,
                         }
                     );
 
                 if (
-                    response.name === "MembershipRequestsActionResponseSuccess"
+                    response.name === 'MembershipRequestsActionResponseSuccess'
                 ) {
                     const value = toApprove
                         ? response.value.membershipRequestsActionApprove
@@ -1169,8 +1169,8 @@ exports.LoadUtils = () => {
                                     : {
                                           message: `${
                                               toApprove
-                                                  ? "Approved"
-                                                  : "Rejected"
+                                                  ? 'Approved'
+                                                  : 'Rejected'
                                           } successfully`,
                                       }),
                             };
@@ -1182,7 +1182,7 @@ exports.LoadUtils = () => {
                         requesterId: window.Store.JidToWid.userJidToUserWid(
                             participant.participantArgs[0].participantJid
                         )._serialized,
-                        message: "ServerStatusCodeError",
+                        message: 'ServerStatusCodeError',
                     });
                 }
 
@@ -1210,6 +1210,20 @@ exports.LoadUtils = () => {
             action,
             duration
         );
-        return response.messageSendResult === "OK";
+        return response.messageSendResult === 'OK';
+    };
+
+    window.WWebJS.getStatusModel = (status) => {
+        let res = status.serialize();
+        delete res._msgs;
+        res.msgs = status._msgs.map((msg) =>
+            window.WWebJS.getMessageModel(msg)
+        );
+        return res;
+    };
+
+    window.WWebJS.getAllStatuses = () => {
+        const statuses = window.Store.Status.getModelsArray();
+        return statuses.map((status) => window.WWebJS.getStatusModel(status));
     };
 };
