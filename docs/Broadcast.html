@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.26.1-alpha.3 &raquo; Class: Reaction</title>
+  <title>whatsapp-web.js 1.26.1-alpha.3 &raquo; Class: Broadcast</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -25,10 +25,10 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
-            <h1><small></small><span class="symbol-name">Reaction</span></h1>
-            <p class="source-link">Source: <a href="structures_Reaction.js.html#source-line-9">structures/<wbr>Reaction.<wbr>js:9</a></p>
+            <h1><small></small><span class="symbol-name">Broadcast</span></h1>
+            <p class="source-link">Source: <a href="structures_Broadcast.js.html#source-line-10">structures/<wbr>Broadcast.<wbr>js:10</a></p>
             <div class="symbol-classdesc">
-              <p>Represents a Reaction on WhatsApp</p>
+              <p>Represents a Status/Story on WhatsApp</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -39,48 +39,57 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Reaction.html#ack">ack</a></dt>
+                    <dt><a href="Broadcast.html#id">id</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Reaction.html#id">id</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="Reaction.html#msgId">msgId</a></dt>
+                    <dt><a href="Broadcast.html#msgs">msgs</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Reaction.html#orphan">orphan</a></dt>
+                    <dt><a href="Broadcast.html#timestamp">timestamp</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Reaction.html#orphanReason">orphanReason</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="Reaction.html#reaction">reaction</a></dt>
+                    <dt><a href="Broadcast.html#totalCount">totalCount</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Reaction.html#read">read</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="Reaction.html#senderId">senderId</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="Reaction.html#timestamp">timestamp</a></dt>
+                    <dt><a href="Broadcast.html#unreadCount">unreadCount</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
               </div>
             </div>
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Methods</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Broadcast.html#getChat">getChat()</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Broadcast.html#getContact">getContact()</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                </div>
+              </div>
+            </div>
           </section>
           <section>
-            <h2 id="Reaction">new&nbsp;<span class="symbol-name">Reaction</span><span class="signature"><span class="signature-params">()</span></span></h2>
+            <h2 id="Broadcast">new&nbsp;<span class="symbol-name">Broadcast</span><span class="signature"><span class="signature-params">()</span></span></h2>
             <dl class="dl-compact">
               <dt>Extends</dt>
               <dd><a href="Base.html">Base</a></dd>
@@ -89,50 +98,49 @@
           <section>
             <h2>Properties</h2>
             <section>
-              <h3 id="ack"><span class="symbol-name">ack</span><small class="property-type">
-                  &nbsp;nullable number</small></h3>
-              <p>ACK</p>
-              <dl class="dl-compact">
-              </dl>
               <h3 id="id"><span class="symbol-name">id</span><small class="property-type">
                   &nbsp;object</small></h3>
-              <p>Reaction ID</p>
+              <p>ID that represents the chat</p>
               <dl class="dl-compact">
               </dl>
-              <h3 id="msgId"><span class="symbol-name">msgId</span><small class="property-type">
-                  &nbsp;object</small></h3>
-              <p>Message ID</p>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="orphan"><span class="symbol-name">orphan</span><small class="property-type">
-                  &nbsp;number</small></h3>
-              <p>Orphan</p>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="orphanReason"><span class="symbol-name">orphanReason</span><small class="property-type">
-                  &nbsp;nullable string</small></h3>
-              <p>Orphan reason</p>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="reaction"><span class="symbol-name">reaction</span><small class="property-type">
-                  &nbsp;string</small></h3>
-              <p>Reaction</p>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="read"><span class="symbol-name">read</span><small class="property-type">
-                  &nbsp;boolean</small></h3>
-              <p>Read</p>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="senderId"><span class="symbol-name">senderId</span><small class="property-type">
-                  &nbsp;string</small></h3>
-              <p>Sender ID</p>
+              <h3 id="msgs"><span class="symbol-name">msgs</span><small class="property-type">
+                  &nbsp;Array of <a href="Message.html">Message</a></small></h3>
+              <p>Messages statuses</p>
               <dl class="dl-compact">
               </dl>
               <h3 id="timestamp"><span class="symbol-name">timestamp</span><small class="property-type">
                   &nbsp;number</small></h3>
-              <p>Unix timestamp for when the reaction was created</p>
+              <p>Unix timestamp of last status</p>
               <dl class="dl-compact">
+              </dl>
+              <h3 id="totalCount"><span class="symbol-name">totalCount</span><small class="property-type">
+                  &nbsp;number</small></h3>
+              <p>Number of available statuses</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="unreadCount"><span class="symbol-name">unreadCount</span><small class="property-type">
+                  &nbsp;number</small></h3>
+              <p>Number of not viewed</p>
+              <dl class="dl-compact">
+              </dl>
+            </section>
+            <h2>Methods</h2>
+            <section>
+              <h3 id="getChat"><span class="symbol-name">getChat</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="Chat.html">Chat</a></span></span></h3>
+              <p>Returns the Chat this message was sent in</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing <a href="Chat.html">Chat</a></code> </p>
+                </dd>
+              </dl>
+              <h3 id="getContact"><span class="symbol-name">getContact</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="Contact.html">Contact</a></span></span></h3>
+              <p>Returns the Contact this message was sent from</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing <a href="Contact.html">Contact</a></code> </p>
+                </dd>
               </dl>
             </section>
           </section>
