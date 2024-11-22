@@ -1775,7 +1775,7 @@ class Client extends EventEmitter {
         startTime = Math.floor(startTime.getTime() / 1000);
         
         return await this.pupPage.evaluate(async (startTimeTs, callType) => {
-            const response = await window.Store.ScheduledEventMsgUtils.createScheduledEventCallLink(startTimeTs, callType);
+            const response = await window.Store.ScheduledEventMsgUtils.createEventCallLink(startTimeTs, callType);
             return response ?? '';
         }, startTime, callType);
     }
