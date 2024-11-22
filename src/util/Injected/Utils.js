@@ -129,7 +129,7 @@ exports.LoadUtils = () => {
                     degreesLongitude: 0,
                     name: eventSendOptions.location
                 },
-                eventJoinLink: await window.WWebJS.createScheduledEventCallLink(
+                eventJoinLink: await window.Store.ScheduledEventMsgUtils.createEventCallLink(
                     startTimeTs,
                     eventSendOptions.callType
                 ),
@@ -1054,9 +1054,5 @@ exports.LoadUtils = () => {
     window.WWebJS.getAllStatuses = () => {
         const statuses = window.Store.Status.getModelsArray();
         return statuses.map(status => window.WWebJS.getStatusModel(status));
-    };
-
-    window.WWebJS.createScheduledEventCallLink = async (eventStartTimeTs, callLinkType) => {
-        return await window.Store.ScheduledEventMsgUtils.createEventCallLink(eventStartTimeTs, callLinkType);
     };
 };
