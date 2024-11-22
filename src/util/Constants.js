@@ -1,27 +1,23 @@
-"use strict";
+'use strict';
 
-exports.WhatsWebURL = "https://web.whatsapp.com/";
+exports.WhatsWebURL = 'https://web.whatsapp.com/';
 
 exports.DefaultOptions = {
     puppeteer: {
         headless: true,
         defaultViewport: null,
     },
-<<<<<<< HEAD
-    webVersion: "2.2346.52",
-=======
     webVersion: '2.3000.1017054665',
->>>>>>> fc722dd1d3c2aab3fea8262032c7c521702184a8
     webVersionCache: {
-        type: "local",
+        type: 'local',
     },
     authTimeoutMs: 0,
     qrMaxRetries: 0,
     takeoverOnConflict: false,
     takeoverTimeoutMs: 0,
     userAgent:
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36",
-    ffmpegPath: "ffmpeg",
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36',
+    ffmpegPath: 'ffmpeg',
     bypassCSP: false,
     proxyAuthentication: undefined,
 };
@@ -43,36 +39,36 @@ exports.Status = {
  * @enum {string}
  */
 exports.Events = {
-    AUTHENTICATED: "authenticated",
-    AUTHENTICATION_FAILURE: "auth_failure",
-    READY: "ready",
-    CHAT_REMOVED: "chat_removed",
-    CHAT_ARCHIVED: "chat_archived",
-    MESSAGE_RECEIVED: "message",
-    MESSAGE_CIPHERTEXT: "message_ciphertext",
-    MESSAGE_CREATE: "message_create",
-    MESSAGE_REVOKED_EVERYONE: "message_revoke_everyone",
-    MESSAGE_REVOKED_ME: "message_revoke_me",
-    MESSAGE_ACK: "message_ack",
-    MESSAGE_EDIT: "message_edit",
-    UNREAD_COUNT: "unread_count",
-    MESSAGE_REACTION: "message_reaction",
-    MEDIA_UPLOADED: "media_uploaded",
-    CONTACT_CHANGED: "contact_changed",
-    GROUP_JOIN: "group_join",
-    GROUP_LEAVE: "group_leave",
-    GROUP_ADMIN_CHANGED: "group_admin_changed",
-    GROUP_MEMBERSHIP_REQUEST: "group_membership_request",
-    GROUP_UPDATE: "group_update",
-    QR_RECEIVED: "qr",
-    LOADING_SCREEN: "loading_screen",
-    DISCONNECTED: "disconnected",
-    STATE_CHANGED: "change_state",
-    BATTERY_CHANGED: "change_battery",
-    INCOMING_CALL: "call",
-    REMOTE_SESSION_SAVED: "remote_session_saved",
-    VOTE_UPDATE: "vote_update",
-    MESSAGE_REVOKED: "message_revoke",
+    AUTHENTICATED: 'authenticated',
+    AUTHENTICATION_FAILURE: 'auth_failure',
+    READY: 'ready',
+    CHAT_REMOVED: 'chat_removed',
+    CHAT_ARCHIVED: 'chat_archived',
+    MESSAGE_RECEIVED: 'message',
+    MESSAGE_CIPHERTEXT: 'message_ciphertext',
+    MESSAGE_CREATE: 'message_create',
+    MESSAGE_REVOKED_EVERYONE: 'message_revoke_everyone',
+    MESSAGE_REVOKED_ME: 'message_revoke_me',
+    MESSAGE_ACK: 'message_ack',
+    MESSAGE_EDIT: 'message_edit',
+    UNREAD_COUNT: 'unread_count',
+    MESSAGE_REACTION: 'message_reaction',
+    MEDIA_UPLOADED: 'media_uploaded',
+    CONTACT_CHANGED: 'contact_changed',
+    GROUP_JOIN: 'group_join',
+    GROUP_LEAVE: 'group_leave',
+    GROUP_ADMIN_CHANGED: 'group_admin_changed',
+    GROUP_MEMBERSHIP_REQUEST: 'group_membership_request',
+    GROUP_UPDATE: 'group_update',
+    QR_RECEIVED: 'qr',
+    LOADING_SCREEN: 'loading_screen',
+    DISCONNECTED: 'disconnected',
+    STATE_CHANGED: 'change_state',
+    BATTERY_CHANGED: 'change_battery',
+    INCOMING_CALL: 'call',
+    REMOTE_SESSION_SAVED: 'remote_session_saved',
+    VOTE_UPDATE: 'vote_update',
+    MESSAGE_REVOKED: 'message_revoke',
 };
 
 /**
@@ -81,42 +77,42 @@ exports.Events = {
  * @enum {string}
  */
 exports.MessageTypes = {
-    TEXT: "chat",
-    AUDIO: "audio",
-    VOICE: "ptt",
-    IMAGE: "image",
-    VIDEO: "video",
-    DOCUMENT: "document",
-    STICKER: "sticker",
-    LOCATION: "location",
-    CONTACT_CARD: "vcard",
-    CONTACT_CARD_MULTI: "multi_vcard",
-    ORDER: "order",
-    REVOKED: "revoked",
-    PRODUCT: "product",
-    UNKNOWN: "unknown",
-    GROUP_INVITE: "groups_v4_invite",
-    LIST: "list",
-    LIST_RESPONSE: "list_response",
-    BUTTONS_RESPONSE: "buttons_response",
-    PAYMENT: "payment",
-    BROADCAST_NOTIFICATION: "broadcast_notification",
-    CALL_LOG: "call_log",
-    CIPHERTEXT: "ciphertext",
-    DEBUG: "debug",
-    E2E_NOTIFICATION: "e2e_notification",
-    GP2: "gp2",
-    GROUP_NOTIFICATION: "group_notification",
-    HSM: "hsm",
-    INTERACTIVE: "interactive",
-    NATIVE_FLOW: "native_flow",
-    NOTIFICATION: "notification",
-    NOTIFICATION_TEMPLATE: "notification_template",
-    OVERSIZED: "oversized",
-    PROTOCOL: "protocol",
-    REACTION: "reaction",
-    TEMPLATE_BUTTON_REPLY: "template_button_reply",
-    POLL_CREATION: "poll_creation",
+    TEXT: 'chat',
+    AUDIO: 'audio',
+    VOICE: 'ptt',
+    IMAGE: 'image',
+    VIDEO: 'video',
+    DOCUMENT: 'document',
+    STICKER: 'sticker',
+    LOCATION: 'location',
+    CONTACT_CARD: 'vcard',
+    CONTACT_CARD_MULTI: 'multi_vcard',
+    ORDER: 'order',
+    REVOKED: 'revoked',
+    PRODUCT: 'product',
+    UNKNOWN: 'unknown',
+    GROUP_INVITE: 'groups_v4_invite',
+    LIST: 'list',
+    LIST_RESPONSE: 'list_response',
+    BUTTONS_RESPONSE: 'buttons_response',
+    PAYMENT: 'payment',
+    BROADCAST_NOTIFICATION: 'broadcast_notification',
+    CALL_LOG: 'call_log',
+    CIPHERTEXT: 'ciphertext',
+    DEBUG: 'debug',
+    E2E_NOTIFICATION: 'e2e_notification',
+    GP2: 'gp2',
+    GROUP_NOTIFICATION: 'group_notification',
+    HSM: 'hsm',
+    INTERACTIVE: 'interactive',
+    NATIVE_FLOW: 'native_flow',
+    NOTIFICATION: 'notification',
+    NOTIFICATION_TEMPLATE: 'notification_template',
+    OVERSIZED: 'oversized',
+    PROTOCOL: 'protocol',
+    REACTION: 'reaction',
+    TEMPLATE_BUTTON_REPLY: 'template_button_reply',
+    POLL_CREATION: 'poll_creation',
 };
 
 /**
@@ -125,15 +121,15 @@ exports.MessageTypes = {
  * @enum {string}
  */
 exports.GroupNotificationTypes = {
-    ADD: "add",
-    INVITE: "invite",
-    REMOVE: "remove",
-    LEAVE: "leave",
-    SUBJECT: "subject",
-    DESCRIPTION: "description",
-    PICTURE: "picture",
-    ANNOUNCE: "announce",
-    RESTRICT: "restrict",
+    ADD: 'add',
+    INVITE: 'invite',
+    REMOVE: 'remove',
+    LEAVE: 'leave',
+    SUBJECT: 'subject',
+    DESCRIPTION: 'description',
+    PICTURE: 'picture',
+    ANNOUNCE: 'announce',
+    RESTRICT: 'restrict',
 };
 
 /**
@@ -142,9 +138,9 @@ exports.GroupNotificationTypes = {
  * @enum {string}
  */
 exports.ChatTypes = {
-    SOLO: "solo",
-    GROUP: "group",
-    UNKNOWN: "unknown",
+    SOLO: 'solo',
+    GROUP: 'group',
+    UNKNOWN: 'unknown',
 };
 
 /**
@@ -153,18 +149,18 @@ exports.ChatTypes = {
  * @enum {string}
  */
 exports.WAState = {
-    CONFLICT: "CONFLICT",
-    CONNECTED: "CONNECTED",
-    DEPRECATED_VERSION: "DEPRECATED_VERSION",
-    OPENING: "OPENING",
-    PAIRING: "PAIRING",
-    PROXYBLOCK: "PROXYBLOCK",
-    SMB_TOS_BLOCK: "SMB_TOS_BLOCK",
-    TIMEOUT: "TIMEOUT",
-    TOS_BLOCK: "TOS_BLOCK",
-    UNLAUNCHED: "UNLAUNCHED",
-    UNPAIRED: "UNPAIRED",
-    UNPAIRED_IDLE: "UNPAIRED_IDLE",
+    CONFLICT: 'CONFLICT',
+    CONNECTED: 'CONNECTED',
+    DEPRECATED_VERSION: 'DEPRECATED_VERSION',
+    OPENING: 'OPENING',
+    PAIRING: 'PAIRING',
+    PROXYBLOCK: 'PROXYBLOCK',
+    SMB_TOS_BLOCK: 'SMB_TOS_BLOCK',
+    TIMEOUT: 'TIMEOUT',
+    TOS_BLOCK: 'TOS_BLOCK',
+    UNLAUNCHED: 'UNLAUNCHED',
+    UNPAIRED: 'UNPAIRED',
+    UNPAIRED_IDLE: 'UNPAIRED_IDLE',
 };
 
 /**
