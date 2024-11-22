@@ -3,7 +3,6 @@
 const path = require('path');
 const fs = require('fs');
 const BaseAuthStrategy = require('./BaseAuthStrategy');
-const { isRunningInAwsLambda } = require('../util/Util');
 
 /**
  * Local directory-based authentication
@@ -21,7 +20,7 @@ class LocalAuth extends BaseAuthStrategy {
             throw new Error('Invalid clientId. Only alphanumeric characters, underscores and hyphens are allowed.');
         }
 
-        this.dataPath = path.resolve(dataPath || isRunningInAwsLambda() ? '/tmp/wwebjs_auth' : './.wwebjs_auth');
+        this.dataPath = path.resolve(dataPath || './.wwebjs_auth/');
         this.clientId = clientId;
         this.rmMaxRetries = rmMaxRetries ?? 4;
     }

@@ -1,6 +1,6 @@
 const path = require('path');
 const fs = require('fs');
-const { isRunningInAwsLambda } = require('../util/Util');
+
 const { WebCache, VersionResolveError } = require('./WebCache');
 
 /**
@@ -13,7 +13,7 @@ class LocalWebCache extends WebCache {
     constructor(options = {}) {
         super();
 
-        this.path = options.path || isRunningInAwsLambda() ? '/tmp/wwebjs_cache' : './.wwebjs_cache';
+        this.path = options.path || './.wwebjs_cache/';
         this.strict = options.strict || false;
     }
 

@@ -181,14 +181,6 @@ class Util {
     static setFfmpegPath(path) {
         ffmpeg.setFfmpegPath(path);
     }
-
-    /**
-     * Checks if running inside AWS Lambda using environment variables
-     * @returns {boolean}
-     */
-    static isRunningInAwsLambda() {
-        return process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.AWS_EXECUTION_ENV;
-    }
 }
 
 module.exports = Util;
