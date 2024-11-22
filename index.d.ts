@@ -780,7 +780,7 @@ declare namespace WAWebJS {
         REACTION = 'reaction',
         TEMPLATE_BUTTON_REPLY = 'template_button_reply',
         POLL_CREATION = 'poll_creation',
-        EVENT_CREATION = 'event_creation',
+        SCHEDULED_EVENT_CREATION = 'scheduled_event_creation',
     }
 
     /** Client status */
@@ -1030,10 +1030,10 @@ declare namespace WAWebJS {
         /** Edits the current message */
         edit: (content: MessageContent, options?: MessageEditOptions) => Promise<Message | null>,
         /**
-         * Edits the current Event message.
+         * Edits the current ScheduledEvent message.
          * Once the event is canceled, it can not be edited.
          */
-        editEvent: (editedEventObject: Event) => Promise<Message | null>,
+        editScheduledEvent: (editedEventObject: Event) => Promise<Message | null>,
     }
 
     /** ID that represents a message */
@@ -1086,9 +1086,9 @@ declare namespace WAWebJS {
         constructor(pollName: string, pollOptions: Array<string>, options?: PollSendOptions)
     }
 
-    /** Event send options */
-    export interface EventSendOptions {
-        /** The event description */
+    /** ScheduledEvent send options */
+    export interface ScheduledEventSendOptions {
+        /** The scheduled event description */
         description?: string,
         /** The end time of the event */
         endTime?: Date,
@@ -1097,7 +1097,7 @@ declare namespace WAWebJS {
         /** The type of a WhatsApp call link to generate, valid values are: `video` | `voice` */
         callType?: string,
         /**
-         * Indicates if an event should be sent as an already canceled
+         * Indicates if a scheduled event should be sent as an already canceled
          * @default false
          */
         isEventCanceled?: boolean
@@ -1108,8 +1108,8 @@ declare namespace WAWebJS {
         messageSecret: Array<number>|undefined
     }
 
-    /** Represents an Event on WhatsApp */
-    export class Event {
+    /** Represents a ScheduledEvent on WhatsApp */
+    export class ScheduledEvent {
         name: string
         startTimeTs: number
         eventSendOptions: {
@@ -1274,7 +1274,7 @@ declare namespace WAWebJS {
         static fromUrl: (url: string, options?: MediaFromURLOptions) => Promise<MessageMedia>
     }
 
-    export type MessageContent = string | MessageMedia | Location | Poll | Contact | Contact[] | List | Buttons | Event
+    export type MessageContent = string | MessageMedia | Location | Poll | Contact | Contact[] | List | Buttons | ScheduledEvent
 
     /**
      * Represents a Contact on WhatsApp

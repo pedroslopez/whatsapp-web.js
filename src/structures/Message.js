@@ -7,7 +7,7 @@ const Order = require('./Order');
 const Payment = require('./Payment');
 const Reaction = require('./Reaction');
 const Contact = require('./Contact');
-const Event = require('./Event'); // eslint-disable-line no-unused-vars
+const ScheduledEvent = require('./ScheduledEvent'); // eslint-disable-line no-unused-vars
 const { MessageTypes } = require('../util/Constants');
 
 /**
@@ -709,12 +709,12 @@ class Message extends Base {
     }
 
     /**
-     * Edits the current Event message.
-     * Once the event is canceled, it can not be edited.
-     * @param {Event} editedEventObject
+     * Edits the current ScheduledEvent message.
+     * Once the scheduled event is canceled, it can not be edited.
+     * @param {ScheduledEvent} editedEventObject
      * @returns {Promise<?Message>}
      */
-    async editEvent(editedEventObject) {
+    async editScheduledEvent(editedEventObject) {
         if (!this.fromMe) {
             return null;
         }
@@ -734,7 +734,7 @@ class Message extends Base {
                 isEventCanceled: eventSendOptions.isEventCanceled,
             };
 
-            await window.Store.EventMsgUtils.sendEventEditMessage(eventOptions, msg);
+            await window.Store.ScheduledEventMsgUtils.sendEventEditMessage(eventOptions, msg);
             const editedMsg = window.Store.Msg.get(msg.id._serialized);
             return editedMsg?.serialize();
         }, this.id._serialized, editedEventObject);

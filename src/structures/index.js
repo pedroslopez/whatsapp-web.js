@@ -22,5 +22,5 @@ module.exports = {
     Poll: require('./Poll'),
     PollVote: require('./PollVote'),
     Broadcast: require('./Broadcast'),
-    Event: require('./Event'),
+    ScheduledEvent: require('./ScheduledEvent'),
 };

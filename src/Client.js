@@ -15,7 +15,7 @@ const { LoadUtils } = require('./util/Injected/Utils');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
 const WebCacheFactory = require('./webCache/WebCacheFactory');
-const { ClientInfo, Message, MessageMedia, Contact, Location, Poll, PollVote, GroupNotification, Label, Call, Buttons, List, Reaction, Broadcast, Event } = require('./structures');
+const { ClientInfo, Message, MessageMedia, Contact, Location, Poll, PollVote, GroupNotification, Label, Call, Buttons, List, Reaction, Broadcast, ScheduledEvent } = require('./structures');
 const NoAuth = require('./authStrategies/NoAuth');
 const {exposeFunctionIfAbsent} = require('./util/Puppeteer');
 
@@ -907,7 +907,7 @@ class Client extends EventEmitter {
         } else if (content instanceof Poll) {
             internalOptions.poll = content;
             content = '';
-        } else if (content instanceof Event) {
+        } else if (content instanceof ScheduledEvent) {
             internalOptions.event = content;
             content = '';
         } else if (content instanceof Contact) {
@@ -1775,15 +1775,15 @@ class Client extends EventEmitter {
         startTime = Math.floor(startTime.getTime() / 1000);
         
         return await this.pupPage.evaluate(async (startTimeTs, callType) => {
-            const response = await window.Store.EventMsgUtils.createEventCallLink(startTimeTs, callType);
+            const response = await window.Store.ScheduledEventMsgUtils.createScheduledEventCallLink(startTimeTs, callType);
             return response ?? '';
         }, startTime, callType);
     }
 
     /**
-     * Sends a response to the event message, indicating whether a user is going to attend the event or not
-     * @param {number} response The response code to the event message. Valid values are: `0` for NONE response (removes a previous response) | `1` for GOING | `2` for NOT GOING | `3` for MAYBE going
-     * @param {string} eventMessageId The event message ID
+     * Sends a response to the scheduled event message, indicating whether a user is going to attend the event or not
+     * @param {number} response The response code to the scheduled event message. Valid values are: `0` for NONE response (removes a previous response) | `1` for GOING | `2` for NOT GOING | `3` for MAYBE going
+     * @param {string} eventMessageId The scheduled event message ID
      * @returns {Promise<boolean>}
      */
     async sendResponseToEvent(response, eventMessageId) {
@@ -1793,7 +1793,7 @@ class Client extends EventEmitter {
             const eventMsg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
             if (!eventMsg) return false;
 
-            await window.Store.EventMsgUtils.sendEventResponseMsg(response, eventMsg);
+            await window.Store.ScheduledEventMsgUtils.sendEventResponseMsg(response, eventMsg);
             return true;
         }, response, eventMessageId);
     }

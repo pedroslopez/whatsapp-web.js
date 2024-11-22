@@ -1,22 +1,22 @@
 'use strict';
 
 /**
- * Event send options
- * @typedef {Object} EventSendOptions
- * @property {?string} description The event description
+ * ScheduledEvent send options
+ * @typedef {Object} ScheduledEventSendOptions
+ * @property {?string} description The scheduled event description
  * @property {?Date} endTime The end time of the event
  * @property {?string} location The location of the event
  * @property {?string} callType The type of a WhatsApp call link to generate, valid values are: `video` | `voice`
- * @property {boolean} [isEventCanceled = false] Indicates if an event should be sent as an already canceled
+ * @property {boolean} [isEventCanceled = false] Indicates if a scheduled event should be sent as an already canceled
  * @property {?Array<number>} messageSecret The custom message secret, can be used as an event ID. NOTE: it has to be a unique vector with a length of 32
  */
 
-/** Represents an Event on WhatsApp */
-class Event {
+/** Represents a ScheduledEvent on WhatsApp */
+class ScheduledEvent {
     /**
      * @param {string} name
      * @param {Date} startTime
-     * @param {EventSendOptions} options
+     * @param {ScheduledEventSendOptions} options
      */
     constructor(name, startTime, options = {}) {
         /**
@@ -53,13 +53,13 @@ class Event {
      */
     _validateInputs(propName, propValue) {
         if (propName === 'name' && !propValue) {
-            throw new class CreateEventError extends Error {
+            throw new class CreateScheduledEventError extends Error {
                 constructor(m) { super(m); }
             }(`Empty '${propName}' parameter value is provided.`);
         }
 
         if (propName === 'callType' && propValue && !['video', 'voice'].includes(propValue)) {
-            throw new class CreateEventError extends Error {
+            throw new class CreateScheduledEventError extends Error {
                 constructor(m) { super(m); }
             }(`Invalid '${propName}' parameter value is provided. Valid values are: 'voice' | 'video'.`);
         }
@@ -68,4 +68,4 @@ class Event {
     }
 }
 
-module.exports = Event;
+module.exports = ScheduledEvent;
