@@ -1786,7 +1786,7 @@ class Client extends EventEmitter {
      * @param {string} eventMessageId The scheduled event message ID
      * @returns {Promise<boolean>}
      */
-    async sendResponseToEvent(response, eventMessageId) {
+    async sendResponseToScheduledEvent(response, eventMessageId) {
         if (![0, 1, 2, 3].includes(response)) return false;
 
         return await this.pupPage.evaluate(async (response, msgId) => {

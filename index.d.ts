@@ -207,11 +207,11 @@ declare namespace WAWebJS {
         createCallLink(startTime: Date, callType: string): Promise<string>
 
         /**
-         * Sends a response to the event message, indicating whether a user is going to attend the event or not
+         * Sends a response to the scheduled event message, indicating whether a user is going to attend the event or not
          * @param response The response code to the event message. Valid values are: `0` for NONE response (removes a previous response) | `1` for GOING | `2` for NOT GOING | `3` for MAYBE going
          * @param eventMessageId The event message ID
          */
-        sendResponseToEvent(response: number, eventMessageId: string): Promise<boolean>
+        sendResponseToScheduledEvent(response: number, eventMessageId: string): Promise<boolean>
 
         /** Gets an array of membership requests */
         getGroupMembershipRequests: (groupId: string) => Promise<Array<GroupMembershipRequest>>
