@@ -524,8 +524,8 @@ exports.LoadUtils = () => {
         if (!chat) return null;
 
         const model = chat.serialize();
-        model.isGroup = chat.isGroup;
-        model.isMuted = chat.mute && chat.mute.isMuted;
+        model.isGroup = false;
+        model.isMuted = chat.muteExpiration !== 0;
         if (isChannel) {
             model.isChannel = chat.isNewsletter;
         } else {
@@ -533,6 +533,7 @@ exports.LoadUtils = () => {
         }
 
         if (chat.groupMetadata) {
+            model.isGroup = true;
             const chatWid = window.Store.WidFactory.createWid((chat.id._serialized));
             await window.Store.GroupMetadata.update(chatWid);
             model.groupMetadata = chat.groupMetadata.serialize();
