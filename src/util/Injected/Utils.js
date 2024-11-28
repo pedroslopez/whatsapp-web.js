@@ -24,7 +24,7 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.sendMessage = async (chat, content, options = {}) => {
-        const isChannel = chat.isNewsletter;
+        const isChannel = window.Store.ChatGetters.getIsNewsletter(chat);
 
         let mediaOptions = {};
         if (options.media) {
@@ -527,7 +527,7 @@ exports.LoadUtils = () => {
         model.isGroup = false;
         model.isMuted = chat.muteExpiration !== 0;
         if (isChannel) {
-            model.isChannel = chat.isNewsletter;
+            model.isChannel = window.Store.ChatGetters.getIsNewsletter(chat);
         } else {
             model.formattedTitle = chat.formattedTitle;
         }
