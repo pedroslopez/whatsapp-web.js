@@ -947,6 +947,35 @@ class Client extends EventEmitter {
 
         return new Message(this, newMessage);
     }
+
+    /**
+     * Clicks the last button with a specific title in a given chat
+     * @param {string} chatId - The ID of the chat where the button is located
+     * @param {string} buttonTitle - The title of the button to click
+     * @returns {Promise<HTMLElement|null>} The button element that was clicked, or null if not found
+     */
+    async clickButtonInChat(chatId, buttonTitle) {
+        
+        const button = await this.pupPage.evaluate(async (chatId, buttonTitle) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = await window.Store.Chat.find(chatWid);
+
+            if (!chat) {
+                throw new Error(`Chat com ID ${chatId} não encontrado.`);
+            }
+
+            await window.Store.Cmd.openChatBottom(chat);
+            return await window.WWebJS.clickButtonInChat(chat, buttonTitle);
+        }, chatId, buttonTitle);
+
+        if (!button) {
+            console.warn(`Nenhum botão com título "${buttonTitle}" foi encontrado no chat ${chatId}.`);
+            return null;
+        }
+
+        console.log(`Botão com título "${buttonTitle}" foi clicado no chat ${chatId}.`);
+        return button;
+    }
     
     /**
      * Searches for messages

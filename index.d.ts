@@ -132,6 +132,9 @@ declare namespace WAWebJS {
         /** Send a message to a specific chatId */
         sendMessage(chatId: string, content: MessageContent, options?: MessageSendOptions): Promise<Message>
         
+        /** Send a message to a specific chatId */
+        clickButtonInChat(chatId: string, buttonTitle: string): Promise<HTMLElement|null>
+        
         /** Searches for messages */
         searchMessages(query: string, options?: { chatId?: string, page?: number, limit?: number }): Promise<Message[]>
 
@@ -1450,6 +1453,8 @@ declare namespace WAWebJS {
         mute: (unmuteDate?: Date) => Promise<void>,
         /** Send a message to this chat */
         sendMessage: (content: MessageContent, options?: MessageSendOptions) => Promise<Message>,
+        /** Send a message to a specific chatId */
+        clickButtonInChat: (chatId: string, buttonTitle: string) => Promise<HTMLElement|null>,
         /** Set the message as seen */
         sendSeen: () => Promise<void>,
         /** Simulate recording audio in chat. This will last for 25 seconds */

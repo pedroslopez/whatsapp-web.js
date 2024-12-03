@@ -95,6 +95,15 @@ class Chat extends Base {
     }
 
     /**
+     * Clicks the last button with a specific title in a given chat
+     * @param {string} buttonTitle - The title of the button to click
+     * @returns {Promise<HTMLElement|null>} The button element that was clicked, or null if not found
+     */
+    async clickButtonInChat(buttonTitle) {
+        return this.client.clickButtonInChat(this.id._serialized, buttonTitle);
+    }
+
+    /**
      * Set the message as seen
      * @returns {Promise<Boolean>} result
      */

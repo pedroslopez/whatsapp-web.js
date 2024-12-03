@@ -24,6 +24,24 @@ exports.LoadUtils = () => {
 
     };
 
+    window.WWebJS.clickButtonInChat = async (chat, buttonTitle) => {
+        const chatObj = window.Store.Chat.get(chat.id);
+        
+        if (!chatObj) {
+            throw new Error(`Chat com ID ${chat.id} não encontrado.`);
+        }
+
+        const buttons = Array.from(document.querySelectorAll('button')).filter(button => {
+            const span = button.querySelector('span');
+            return span && span.textContent.trim() === buttonTitle;
+        });
+        
+        const lastButton = buttons[buttons.length - 1];
+        lastButton.click();
+        
+        return lastButton;
+    };
+
     window.WWebJS.sendMessage = async (chat, content, options = {}) => {
         let attOptions = {};
         if (options.attachment) {
