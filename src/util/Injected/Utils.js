@@ -28,7 +28,7 @@ exports.LoadUtils = () => {
         const chatObj = window.Store.Chat.get(chat.id);
         
         if (!chatObj) {
-            throw new Error(`Chat com ID ${chat.id} não encontrado.`);
+            throw new Error(`Chat with ID ${chat.id} not found.`);
         }
 
         const hydratedButtons = Array.from(document.querySelectorAll('button')).filter(button => {
@@ -54,7 +54,7 @@ exports.LoadUtils = () => {
         if (lastButton) {
             lastButton.click();
         } else {
-            console.warn('Nenhum botão encontrado com o título:', buttonTitle);
+            console.warn('No button found with the title:', buttonTitle);
         }        
         
         return lastButton;
