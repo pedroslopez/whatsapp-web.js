@@ -961,7 +961,7 @@ class Client extends EventEmitter {
             const chat = await window.Store.Chat.find(chatWid);
 
             if (!chat) {
-                throw new Error(`Chat com ID ${chatId} não encontrado.`);
+                throw new Error(`Chat with ID ${chatId} not found.`);
             }
 
             await window.Store.Cmd.openChatBottom(chat);
@@ -973,7 +973,7 @@ class Client extends EventEmitter {
             return null;
         }
         console.log(`Button with the title "${buttonTitle}" was clicked in chat ${chatId}.`);
-        
+
         return button;
     }
     
