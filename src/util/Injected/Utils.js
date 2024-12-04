@@ -31,13 +31,31 @@ exports.LoadUtils = () => {
             throw new Error(`Chat com ID ${chat.id} não encontrado.`);
         }
 
-        const buttons = Array.from(document.querySelectorAll('button')).filter(button => {
+        const hydratedButtons = Array.from(document.querySelectorAll('button')).filter(button => {
             const span = button.querySelector('span');
             return span && span.textContent.trim() === buttonTitle;
         });
         
-        const lastButton = buttons[buttons.length - 1];
-        lastButton.click();
+        const dynamicReplyButtons = Array.from(document.querySelectorAll('div[role="button"]')).filter(button => {
+            const span = button.querySelector('span');
+            return span && span.textContent.trim() === buttonTitle;
+        });
+        
+        let lastButton = null;
+        
+        if (hydratedButtons.length !== 0) {
+            lastButton = hydratedButtons[hydratedButtons.length - 1];
+        }
+        
+        if (dynamicReplyButtons.length !== 0) {
+            lastButton = dynamicReplyButtons[dynamicReplyButtons.length - 1];
+        }
+        
+        if (lastButton) {
+            lastButton.click();
+        } else {
+            console.warn('Nenhum botão encontrado com o título:', buttonTitle);
+        }        
         
         return lastButton;
     };
