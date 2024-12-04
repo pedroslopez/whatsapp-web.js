@@ -969,11 +969,11 @@ class Client extends EventEmitter {
         }, chatId, buttonTitle);
 
         if (!button) {
-            console.warn(`Nenhum botão com título "${buttonTitle}" foi encontrado no chat ${chatId}.`);
+            console.warn(`No button with the title "${buttonTitle}" was found in chat ${chatId}.`);
             return null;
         }
-
-        console.log(`Botão com título "${buttonTitle}" foi clicado no chat ${chatId}.`);
+        console.log(`Button with the title "${buttonTitle}" was clicked in chat ${chatId}.`);
+        
         return button;
     }
     
