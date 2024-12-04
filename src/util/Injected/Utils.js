@@ -44,11 +44,11 @@ exports.LoadUtils = () => {
         let lastButton = null;
         
         if (hydratedButtons.length !== 0) {
-            lastButton = hydratedButtons[hydratedButtons.length - 1];
+            lastButton = hydratedButtons[hydratedButtons.length - 1]; // Only get the last, need to improve to some ID
         }
         
         if (dynamicReplyButtons.length !== 0) {
-            lastButton = dynamicReplyButtons[dynamicReplyButtons.length - 1];
+            lastButton = dynamicReplyButtons[dynamicReplyButtons.length - 1]; // Only get the last, need to improve to some ID
         }
         
         if (lastButton) {
