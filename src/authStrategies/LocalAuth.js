@@ -44,10 +44,12 @@ class LocalAuth extends BaseAuthStrategy {
 
     async logout() {
         if (this.userDataDir) {
-            await fs.promises.rm(this.userDataDir, { recursive: true, force: true })
-                .catch((e) => {
-                    throw new Error(e);
-                });
+			setTimeout(() => {
+				fs.promises.rm(this.userDataDir, { recursive: true, force: true })
+					.catch((e) => {
+						throw new Error(e);
+					});
+			}, 5000);
         }
     }
 
