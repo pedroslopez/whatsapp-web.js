@@ -800,8 +800,8 @@ class Client extends EventEmitter {
         } else {
             this.pupPage.on('response', async (res) => {
                 const textContent = await res.text();
-                // Get pairing code expiration time in seconds
-                if(this.PairingCodeTTL == null && this.options.pairWithPhoneNumber.phoneNumber){
+                // Get pairing code expiration time in seconds 
+                if(this.pairingCodeTTL == null && this.options.pairWithPhoneNumber.phoneNumber){
                     const index = textContent.indexOf('("WAWebAltDeviceLinkingApi",[');
                     if(index > -1){
                         const execRegex = (reg) => {
@@ -811,7 +811,7 @@ class Client extends EventEmitter {
                         const captureVarName =  execRegex(/.codeGenerationTs>(.+?)\)/g);
                         // Find last occurrence of the variable definition
                         const captureValue = execRegex(new RegExp(`${captureVarName[1]}=(\\d+)(?!.*${captureVarName[1]}=.+?codeGenerationTs>)`,"g"));
-                        this.PairingCodeTTL = Number(captureValue[1]);
+                        this.pairingCodeTTL = Number(captureValue[1]);
                     }
                 }
                 if(res.ok() && res.url() === WhatsWebURL) {
