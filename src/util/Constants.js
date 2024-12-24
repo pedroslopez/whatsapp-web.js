@@ -18,7 +18,11 @@ exports.DefaultOptions = {
     userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36',
     ffmpegPath: 'ffmpeg',
     bypassCSP: false,
-    proxyAuthentication: undefined
+    proxyAuthentication: undefined,
+    pairWithPhoneNumber: {
+        phoneNumber: '',
+        showNotification: true,
+    },
 };
 
 /**
@@ -60,6 +64,7 @@ exports.Events = {
     GROUP_MEMBERSHIP_REQUEST: 'group_membership_request',
     GROUP_UPDATE: 'group_update',
     QR_RECEIVED: 'qr',
+    CODE_RECEIVED: 'code',
     LOADING_SCREEN: 'loading_screen',
     DISCONNECTED: 'disconnected',
     STATE_CHANGED: 'change_state',
