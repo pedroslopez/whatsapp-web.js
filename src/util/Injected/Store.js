@@ -99,13 +99,17 @@ exports.ExposeStore = () => {
     window.Store.BotProfiles = window.require('WAWebBotProfileCollection');
     window.Store.DeviceList = window.require('WAWebApiDeviceList');
     window.Store.HistorySync = window.require('WAWebSendNonMessageDataRequest');
-    if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.1014111620')) 
+    if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.1014111620'))
         window.Store.AddonReactionTable = window.require('WAWebAddonReactionTableMode').reactionTableMode;
     
     window.Store.ForwardUtils = {
         ...window.require('WAWebForwardMessagesToChat')
     };
-
+    window.Store.ScheduledEventMsgUtils = {
+        ...window.require('WAWebEventsCreateCallLinkJob'),
+        ...window.require('WAWebSendEventEditMsgAction'),
+        ...window.require('WAWebSendEventResponseMsgAction'),
+    };
     window.Store.StickerTools = {
         ...window.require('WAWebImageUtils'),
         ...window.require('WAWebAddWebpMetadata')
