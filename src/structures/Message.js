@@ -440,6 +440,35 @@ class Message extends Base {
     }
 
     /**
+     * Returns the attached message media metadata without having to download it
+     * @returns {Promise<JSON>}
+     */
+
+    async getMediaData() {
+        const result = await this.client.pupPage.evaluate(async (msgId) => {
+            const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
+            console.log(msg);  
+            if (!msg || !msg.mediaData) {
+            return null;
+            }
+            if (msg.mediaData.mediaStage.includes('ERROR') || msg.mediaData.mediaStage === 'FETCHING') {
+            // media could not be downloaded
+            return undefined;
+            }
+            return {
+                mimetype: msg.mimetype,
+                filename: msg.filename || '',
+                filesize: msg.size,
+                preview64: msg.mediaData?.preview?._b64 || null,
+                pageCount: msg.mediaData?.pageCount || null,
+                duration: msg.mediaData?.duration || null,
+            };
+        }, this.id._serialized);
+        if (!result) return undefined;
+        return result;
+    }
+
+    /**
      * Downloads and returns the attatched message media
      * @returns {Promise<MessageMedia>}
      */
