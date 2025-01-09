@@ -538,8 +538,7 @@ declare namespace WAWebJS {
         public dataPath?: string;
         constructor(options?: {
             clientId?: string,
-            dataPath?: string,
-            rmMaxRetries?: number
+            dataPath?: string
         })
     }
     
@@ -553,8 +552,7 @@ declare namespace WAWebJS {
             store: Store,
             clientId?: string,
             dataPath?: string,
-            backupSyncIntervalMs: number,
-            rmMaxRetries?: number
+            backupSyncIntervalMs: number
         })
     }
 
@@ -954,6 +952,8 @@ declare namespace WAWebJS {
         acceptGroupV4Invite: () => Promise<{status: number}>,
         /** Deletes the message from the chat */
         delete: (everyone?: boolean) => Promise<void>,
+        /** Returns message media metadata */
+        getMediaData: () => Promise<JSON>,
         /** Downloads and returns the attached message media */
         downloadMedia: () => Promise<MessageMedia>,
         /** Returns the Chat this message was sent in */
