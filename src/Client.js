@@ -6,7 +6,7 @@ const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
 
 const Util = require('./util/Util');
 const InterfaceController = require('./util/InterfaceController');
-const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constants');
+const { WhatsWebURL, WhatsWebStaticURL, DefaultOptions, Events, WAState } = require('./util/Constants');
 const { ExposeAuthStore } = require('./util/Injected/AuthStore/AuthStore');
 const { ExposeStore } = require('./util/Injected/Store');
 const { ExposeLegacyAuthStore } = require('./util/Injected/AuthStore/LegacyAuthStore');
@@ -799,23 +799,27 @@ class Client extends EventEmitter {
             });
         } else {
             this.pupPage.on('response', async (res) => {
-                const textContent = await res.text();
-                // Get pairing code expiration time in seconds 
-                if(this.pairingCodeTTL == null && this.options.pairWithPhoneNumber.phoneNumber){
-                    const index = textContent.indexOf('("WAWebAltDeviceLinkingApi",[');
-                    if(index > -1){
-                        const execRegex = (reg) => {
-                            reg.lastIndex = index;
-                            return reg.exec(textContent);
+                if(res.ok()){
+                    const url = res.url()
+                    if(url.includes(WhatsWebStaticURL)){
+                        const textContent = await res.text();
+                        // Get pairing code expiration time in seconds 
+                        if(this.pairingCodeTTL == null && this.options.pairWithPhoneNumber.phoneNumber){
+                            const index = textContent.indexOf('("WAWebAltDeviceLinkingApi",[');
+                            if(index > -1){
+                                const execRegex = (reg) => {
+                                    reg.lastIndex = index;
+                                    return reg.exec(textContent);
+                                }
+                                const captureVarName =  execRegex(/.codeGenerationTs>(.+?)\)/g);
+                                // Find last occurrence of the variable definition
+                                const captureValue = execRegex(new RegExp(`${captureVarName[1]}=(\\d+)(?!.*${captureVarName[1]}=.+?codeGenerationTs>)`,"g"));
+                                this.pairingCodeTTL = Number(captureValue[1]);
+                            }
                         }
-                        const captureVarName =  execRegex(/.codeGenerationTs>(.+?)\)/g);
-                        // Find last occurrence of the variable definition
-                        const captureValue = execRegex(new RegExp(`${captureVarName[1]}=(\\d+)(?!.*${captureVarName[1]}=.+?codeGenerationTs>)`,"g"));
-                        this.pairingCodeTTL = Number(captureValue[1]);
+                    } else if(url === WhatsWebURL) {
+                        this.currentIndexHtml =  await res.text();
                     }
-                }
-                if(res.ok() && res.url() === WhatsWebURL) {
-                    this.currentIndexHtml = textContent;
                 }
             });
         }
