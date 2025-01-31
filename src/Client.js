@@ -299,7 +299,7 @@ class Client extends EventEmitter {
         if (this.myPronxy !== '') {
             config =
             {
-                headless: false,
+                headless: true,
                 proxy: this.myPronxy,
                 args: [
                     '--lang=pt-BR',
@@ -319,7 +319,7 @@ class Client extends EventEmitter {
             }
         } else {
             config = {
-                headless: false,
+                headless: true,
                 args: [
                     '--lang=pt-BR',
                     '--disable-web-security',
