@@ -1,6 +1,6 @@
 {
-  "name": "whatsapp-web.js-real-browser",
-  "version": "1.26.1-alpha.3",
+  "name": "whatsapp-web-real-browser",
+  "version": "1.0.0",
   "description": "Library for interacting with the WhatsApp Web API ",
   "main": "./index.js",
   "scripts": {
