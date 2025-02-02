@@ -489,7 +489,7 @@ exports.LoadUtils = () => {
         const chats = window.Store.Chat.getModelsArray();
         if (offset >= chats.length) return [];
 
-        const result = chats.slice(offset, limit);
+        const result = chats.slice(offset, offset + limit);
         const chatPromises = result.map(chat => window.WWebJS.getChatModel(chat));
         return await Promise.all(chatPromises);
     };
