@@ -301,6 +301,7 @@ class Client extends EventEmitter {
             {
                 headless: true,
                 proxy: this.myPronxy,
+                disableXvfb: false,
                 args: [
                     '--lang=pt-BR',
                     '--disable-web-security',
@@ -320,6 +321,7 @@ class Client extends EventEmitter {
         } else {
             config = {
                 headless: true,
+                disableXvfb: false,
                 args: [
                     '--lang=pt-BR',
                     '--disable-web-security',
