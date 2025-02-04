@@ -301,7 +301,7 @@ class Client extends EventEmitter {
             {
                 headless: true,
                 proxy: this.myPronxy,
-                disableXvfb: false,
+                disableXvfb: true,
                 args: [
                     '--lang=pt-BR',
                     '--disable-web-security',
@@ -321,7 +321,7 @@ class Client extends EventEmitter {
         } else {
             config = {
                 headless: true,
-                disableXvfb: false,
+                disableXvfb: true,
                 args: [
                     '--lang=pt-BR',
                     '--disable-web-security',
@@ -938,7 +938,7 @@ class Client extends EventEmitter {
      * 
      * @returns {Promise<Message>} Message that was just sent
      */
-    async sendMessage(chatId, content, delay = 0, options = {}) {
+    async sendMessage(chatId, content, options = {}) {
         if (options.mentions) {
             !Array.isArray(options.mentions) && (options.mentions = [options.mentions]);
             if (options.mentions.some((possiblyContact) => possiblyContact instanceof Contact)) {
@@ -1018,10 +1018,6 @@ class Client extends EventEmitter {
             const msg = await window.WWebJS.sendMessage(chat, message, options, sendSeen);
             return window.WWebJS.getMessageModel(msg);
         }, chatId, content, internalOptions, sendSeen);
-
-        if (delay !== 0) {
-            await new Promise(res => setTimeout(res, delay));
-        }
 
         return new Message(this, newMessage);
     }
