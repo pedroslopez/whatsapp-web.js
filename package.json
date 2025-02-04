@@ -1,5 +1,5 @@
 {
-  "name": "docker-supported-whatsapp-web.js",
+  "name": "docker-supported-docker-supported-whatsapp-web.js",
   "version": "1.28.0",
   "description": "Library for interacting with the WhatsApp Web API ",
   "main": "./index.js",
@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/EddySaidin/whatsapp-web.js.git"
+    "url": "git+https://github.com/EddySaidin/docker-supported-whatsapp-web.js.git"
   },
   "keywords": [
     "whatsapp",
@@ -25,7 +25,7 @@
   "author": "Pedro Lopez, Eddy Saidin",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/pedroslopez/whatsapp-web.js/issues"
+    "url": "https://github.com/pedroslopez/docker-supported-whatsapp-web.js/issues"
   },
   "homepage": "https://github.com/EddySaidin",
   "dependencies": {

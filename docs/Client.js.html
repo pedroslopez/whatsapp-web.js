@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.26.1-alpha.3 &raquo; Source: Client.js</title>
+  <title>docker-supported-whatsapp-web.js 1.26.1-alpha.3 &raquo; Source: Client.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -899,7 +899,7 @@ class Client extends EventEmitter {
         if (options.mentions) {
             !Array.isArray(options.mentions) &amp;amp;&amp;amp; (options.mentions &#x3D; [options.mentions]);
             if (options.mentions.some((possiblyContact) &#x3D;&gt; possiblyContact instanceof Contact)) {
-                console.warn(&#x27;Mentions with an array of Contact are now deprecated. See more at https://github.com/pedroslopez/whatsapp-web.js/pull/2166.&#x27;);
+                console.warn(&#x27;Mentions with an array of Contact are now deprecated. See more at https://github.com/pedroslopez/docker-supported-whatsapp-web.js/pull/2166.&#x27;);
                 options.mentions &#x3D; options.mentions.map((a) &#x3D;&gt; a.id._serialized);
             }
         }
