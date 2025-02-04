@@ -1,5 +1,5 @@
 {
-  "name": "whatsapp-web.js",
+  "name": "docker-supported-whatsapp-web.js",
   "version": "1.26.1-alpha.3",
   "description": "Library for interacting with the WhatsApp Web API ",
   "main": "./index.js",
@@ -22,7 +22,7 @@
     "client",
     "node"
   ],
-  "author": "Pedro Lopez",
+  "author": "Pedro Lopez, Eddy Saidin", 
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/pedroslopez/whatsapp-web.js/issues"
