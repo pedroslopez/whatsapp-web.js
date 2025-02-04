@@ -13,6 +13,10 @@
     <br />
 </div>
 
+## WhatsApp Web Dockerized
+
+This is a fork of [whatsapp-web.js](https://github.com/pedroslopez/whatsapp-web.js) by [pedroslopez](https://github.com/pedroslopez) as stated in the linked repository, with modifications to enable it to run in Docker. This package is mainly for my personal use to run it in a docker enviroment. 
+
 ## About
 **A WhatsApp API client that connects through the WhatsApp Web browser app**
 
