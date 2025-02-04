@@ -1,6 +1,6 @@
 {
   "name": "whatsapp-web-real-browser",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Library for interacting with the WhatsApp Web API ",
   "main": "./index.js",
   "scripts": {
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pedroslopez/whatsapp-web.js.git"
+    "url": "git+https://github.com/vitor-vx/whatsapp-web.js.git"
   },
   "keywords": [
     "whatsapp",
