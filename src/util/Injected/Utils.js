@@ -8,7 +8,7 @@ exports.LoadUtils = () => {
         let chat = window.Store.Chat.get(chatId);
 
         if (window.compareWwebVersions(window.Debug.VERSION, '>', '2.3000.0')) {
-            return window.Store.ForwardUtils.forwardMessagesToChats([msg], [chat], false);
+            return window.Store.ForwardUtils.forwardMessagesToChats([msg], [chat], true);
         } else {
             return chat.forwardMessages([msg]);
         }
