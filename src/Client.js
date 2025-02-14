@@ -96,322 +96,327 @@ class Client extends EventEmitter {
      * Private function
      */
     async inject() {
-        await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', { timeout: this.options.authTimeoutMs });
+        try {
+            await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', { timeout: this.options.authTimeoutMs });
 
-        const version = await this.getWWebVersion();
-        const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
+            const version = await this.getWWebVersion();
+            const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
 
-        if (isCometOrAbove) {
-            await this.pupPage.evaluate(ExposeAuthStore);
-        } else {
-            await this.pupPage.evaluate(ExposeLegacyAuthStore, moduleRaid.toString());
-        }
+            if (isCometOrAbove) {
+                await this.pupPage.evaluate(ExposeAuthStore);
+            } else {
+                await this.pupPage.evaluate(ExposeLegacyAuthStore, moduleRaid.toString());
+            }
 
-        const needAuthentication = await this.pupPage.evaluate(async () => {
-            let state = window.AuthStore.AppState.state;
+            const needAuthentication = await this.pupPage.evaluate(async () => {
+                let state = window.AuthStore.AppState.state;
 
-            if (state === 'OPENING' || state === 'UNLAUNCHED' || state === 'PAIRING') {
-                // wait till state changes
-                await new Promise(r => {
-                    window.AuthStore.AppState.on('change:state', function waitTillInit(_AppState, state) {
-                        if (state !== 'OPENING' && state !== 'UNLAUNCHED' && state !== 'PAIRING') {
-                            window.AuthStore.AppState.off('change:state', waitTillInit);
-                            r();
-                        }
+                if (state === 'OPENING' || state === 'UNLAUNCHED' || state === 'PAIRING') {
+                    // wait till state changes
+                    await new Promise(r => {
+                        window.AuthStore.AppState.on('change:state', function waitTillInit(_AppState, state) {
+                            if (state !== 'OPENING' && state !== 'UNLAUNCHED' && state !== 'PAIRING') {
+                                window.AuthStore.AppState.off('change:state', waitTillInit);
+                                r();
+                            }
+                        });
                     });
+                }
+                state = window.AuthStore.AppState.state;
+                return state == 'UNPAIRED' || state == 'UNPAIRED_IDLE';
+            });
+
+            if (needAuthentication) {
+                const { failed, failureEventPayload, restart } = await this.authStrategy.onAuthenticationNeeded();
+
+                if (failed) {
+                    /**
+                     * Emitted when there has been an error while trying to restore an existing session
+                     * @event Client#auth_failure
+                     * @param {string} message
+                     */
+                    this.emit(Events.AUTHENTICATION_FAILURE, failureEventPayload);
+                    await this.destroy();
+                    if (restart) {
+                        // session restore failed so try again but without session to force new authentication
+                        return this.initialize();
+                    }
+                    return;
+                }
+
+                // Register qr events
+                let qrRetries = 0;
+                await exposeFunctionIfAbsent(this.pupPage, 'onQRChangedEvent', async (qr) => {
+                    /**
+                    * Emitted when a QR code is received
+                    * @event Client#qr
+                    * @param {string} qr QR Code
+                    */
+                    this.emit(Events.QR_RECEIVED, qr);
+                    if (this.options.qrMaxRetries > 0) {
+                        qrRetries++;
+                        if (qrRetries > this.options.qrMaxRetries) {
+                            this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
+                            await this.destroy();
+                        }
+                    }
+                });
+
+
+                await this.pupPage.evaluate(async () => {
+                    try {
+                        const registrationInfo = await window.AuthStore.RegistrationUtils.waSignalStore.getRegistrationInfo();
+                        const noiseKeyPair = await window.AuthStore.RegistrationUtils.waNoiseInfo.get();
+                        const staticKeyB64 = window.AuthStore.Base64Tools.encodeB64(noiseKeyPair.staticKeyPair.pubKey);
+                        const identityKeyB64 = window.AuthStore.Base64Tools.encodeB64(registrationInfo.identityKeyPair.pubKey);
+                        const advSecretKey = await window.AuthStore.RegistrationUtils.getADVSecretKey();
+                        const platform = window.AuthStore.RegistrationUtils.DEVICE_PLATFORM;
+                        const getQR = (ref) => ref + ',' + staticKeyB64 + ',' + identityKeyB64 + ',' + advSecretKey + ',' + platform;
+
+                        if (typeof window.onQRChangedEvent === 'function') {
+                            window.onQRChangedEvent(getQR(window.AuthStore.Conn.ref)); // initial qr
+                            window.AuthStore.Conn.on('change:ref', (_, ref) => {
+                                if (typeof window.onQRChangedEvent === 'function') {
+                                    window.onQRChangedEvent(getQR(ref));
+                                }
+                            }); // future QR changes
+                        } else {
+                            console.warn("onQRChangedEvent não está definida");
+                        }
+                    } catch (error) {
+                        console.error("Erro ao gerar o QR Code:", error);
+                    }
                 });
             }
-            state = window.AuthStore.AppState.state;
-            return state == 'UNPAIRED' || state == 'UNPAIRED_IDLE';
-        });
 
-        if (needAuthentication) {
-            const { failed, failureEventPayload, restart } = await this.authStrategy.onAuthenticationNeeded();
-
-            if (failed) {
-                /**
-                 * Emitted when there has been an error while trying to restore an existing session
-                 * @event Client#auth_failure
-                 * @param {string} message
-                 */
-                this.emit(Events.AUTHENTICATION_FAILURE, failureEventPayload);
-                await this.destroy();
-                if (restart) {
-                    // session restore failed so try again but without session to force new authentication
-                    return this.initialize();
-                }
-                return;
-            }
-
-            // Register qr events
-            let qrRetries = 0;
-            await exposeFunctionIfAbsent(this.pupPage, 'onQRChangedEvent', async (qr) => {
-                /**
-                * Emitted when a QR code is received
-                * @event Client#qr
-                * @param {string} qr QR Code
-                */
-                this.emit(Events.QR_RECEIVED, qr);
-                if (this.options.qrMaxRetries > 0) {
-                    qrRetries++;
-                    if (qrRetries > this.options.qrMaxRetries) {
-                        this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
-                        await this.destroy();
-                    }
+            await exposeFunctionIfAbsent(this.pupPage, 'onAuthAppStateChangedEvent', async (state) => {
+                if (state == 'UNPAIRED_IDLE') {
+                    // refresh qr code
+                    window.Store.Cmd.refreshQR();
                 }
             });
 
-
-            await this.pupPage.evaluate(async () => {
-                const registrationInfo = await window.AuthStore.RegistrationUtils.waSignalStore.getRegistrationInfo();
-                const noiseKeyPair = await window.AuthStore.RegistrationUtils.waNoiseInfo.get();
-                const staticKeyB64 = window.AuthStore.Base64Tools.encodeB64(noiseKeyPair.staticKeyPair.pubKey);
-                const identityKeyB64 = window.AuthStore.Base64Tools.encodeB64(registrationInfo.identityKeyPair.pubKey);
-                const advSecretKey = await window.AuthStore.RegistrationUtils.getADVSecretKey();
-                const platform = window.AuthStore.RegistrationUtils.DEVICE_PLATFORM;
-                const getQR = (ref) => ref + ',' + staticKeyB64 + ',' + identityKeyB64 + ',' + advSecretKey + ',' + platform;
-
-                window.onQRChangedEvent(getQR(window.AuthStore.Conn.ref)); // initial qr
-                window.AuthStore.Conn.on('change:ref', (_, ref) => { window.onQRChangedEvent(getQR(ref)); }); // future QR changes
-            });
-        }
-
-        await exposeFunctionIfAbsent(this.pupPage, 'onAuthAppStateChangedEvent', async (state) => {
-            if (state == 'UNPAIRED_IDLE') {
-                // refresh qr code
-                window.Store.Cmd.refreshQR();
-            }
-        });
-
-        await exposeFunctionIfAbsent(this.pupPage, 'onAppStateHasSyncedEvent', async () => {
-            const authEventPayload = await this.authStrategy.getAuthEventPayload();
-            /**
-                 * Emitted when authentication is successful
-                 * @event Client#authenticated
-                 */
-            this.emit(Events.AUTHENTICATED, authEventPayload);
-
-            const injected = await this.pupPage.evaluate(async () => {
-                return typeof window.Store !== 'undefined' && typeof window.WWebJS !== 'undefined';
-            });
-
-            if (!injected) {
-                if (this.options.webVersionCache.type === 'local' && this.currentIndexHtml) {
-                    const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
-                    const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
-
-                    await webCache.persist(this.currentIndexHtml, version);
-                }
-
-                if (isCometOrAbove) {
-                    await this.pupPage.evaluate(ExposeStore);
-                } else {
-                    // make sure all modules are ready before injection
-                    // 2 second delay after authentication makes sense and does not need to be made dyanmic or removed
-                    await new Promise(r => setTimeout(r, 2000));
-                    await this.pupPage.evaluate(ExposeLegacyStore);
-                }
-
-                // Check window.Store Injection
-                await this.pupPage.waitForFunction('window.Store != undefined');
-
+            await exposeFunctionIfAbsent(this.pupPage, 'onAppStateHasSyncedEvent', async () => {
+                const authEventPayload = await this.authStrategy.getAuthEventPayload();
                 /**
-                     * Current connection information
-                     * @type {ClientInfo}
+                     * Emitted when authentication is successful
+                     * @event Client#authenticated
                      */
-                this.info = new ClientInfo(this, await this.pupPage.evaluate(() => {
-                    return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMeUser() };
-                }));
+                this.emit(Events.AUTHENTICATED, authEventPayload);
 
-                this.interface = new InterfaceController(this);
+                const injected = await this.pupPage.evaluate(async () => {
+                    return typeof window.Store !== 'undefined' && typeof window.WWebJS !== 'undefined';
+                });
 
-                //Load util functions (serializers, helper functions)
-                await this.pupPage.evaluate(LoadUtils);
+                if (!injected) {
+                    if (this.options.webVersionCache.type === 'local' && this.currentIndexHtml) {
+                        const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
+                        const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
 
-                await this.attachEventListeners();
-            }
-            /**
-                 * Emitted when the client has initialized and is ready to receive messages.
-                 * @event Client#ready
-                 */
-            this.emit(Events.READY);
-            this.authStrategy.afterAuthReady();
-        });
-        let lastPercent = null;
-        await exposeFunctionIfAbsent(this.pupPage, 'onOfflineProgressUpdateEvent', async (percent) => {
-            if (lastPercent !== percent) {
-                lastPercent = percent;
-                this.emit(Events.LOADING_SCREEN, percent, 'WhatsApp'); // Message is hardcoded as "WhatsApp" for now
-            }
-        });
-        await exposeFunctionIfAbsent(this.pupPage, 'onLogoutEvent', async () => {
-            this.lastLoggedOut = true;
-            await this.pupPage.waitForNavigation({ waitUntil: 'load', timeout: 5000 }).catch((_) => _);
-        });
-        await this.pupPage.evaluate(() => {
-            window.AuthStore.AppState.on('change:state', (_AppState, state) => { window.onAuthAppStateChangedEvent(state); });
-            window.AuthStore.AppState.on('change:hasSynced', () => { window.onAppStateHasSyncedEvent(); });
-            window.AuthStore.Cmd.on('offline_progress_update', () => {
-                window.onOfflineProgressUpdateEvent(window.AuthStore.OfflineMessageHandler.getOfflineDeliveryProgress());
+                        await webCache.persist(this.currentIndexHtml, version);
+                    }
+
+                    if (isCometOrAbove) {
+                        await this.pupPage.evaluate(ExposeStore);
+                    } else {
+                        // make sure all modules are ready before injection
+                        // 2 second delay after authentication makes sense and does not need to be made dyanmic or removed
+                        await new Promise(r => setTimeout(r, 2000));
+                        await this.pupPage.evaluate(ExposeLegacyStore);
+                    }
+
+                    // Check window.Store Injection
+                    await this.pupPage.waitForFunction('window.Store != undefined');
+
+                    /**
+                         * Current connection information
+                         * @type {ClientInfo}
+                         */
+                    this.info = new ClientInfo(this, await this.pupPage.evaluate(() => {
+                        return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMeUser() };
+                    }));
+
+                    this.interface = new InterfaceController(this);
+
+                    //Load util functions (serializers, helper functions)
+                    await this.pupPage.evaluate(LoadUtils);
+
+                    await this.attachEventListeners();
+                }
+                /**
+                     * Emitted when the client has initialized and is ready to receive messages.
+                     * @event Client#ready
+                     */
+                this.emit(Events.READY);
+                this.authStrategy.afterAuthReady();
             });
-            window.AuthStore.Cmd.on('logout', async () => {
-                await window.onLogoutEvent();
+            let lastPercent = null;
+            await exposeFunctionIfAbsent(this.pupPage, 'onOfflineProgressUpdateEvent', async (percent) => {
+                if (lastPercent !== percent) {
+                    lastPercent = percent;
+                    this.emit(Events.LOADING_SCREEN, percent, 'WhatsApp'); // Message is hardcoded as "WhatsApp" for now
+                }
             });
-        });
+
+            await exposeFunctionIfAbsent(this.pupPage, 'onLogoutEvent', async () => {
+                this.lastLoggedOut = true;
+                await this.pupPage.waitForNavigation({ waitUntil: 'load', timeout: 5000 }).catch((_) => _);
+            });
+
+            await this.pupPage.evaluate(() => {
+                window.AuthStore.AppState.on('change:state', (_AppState, state) => { window.onAuthAppStateChangedEvent(state); });
+                window.AuthStore.AppState.on('change:hasSynced', () => { window.onAppStateHasSyncedEvent(); });
+                window.AuthStore.Cmd.on('offline_progress_update', () => {
+                    window.onOfflineProgressUpdateEvent(window.AuthStore.OfflineMessageHandler.getOfflineDeliveryProgress());
+                });
+                window.AuthStore.Cmd.on('logout', async () => {
+                    await window.onLogoutEvent();
+                });
+            });
+        } catch (error) {
+            console.log(`Error ao tentar iniciar a função inject(): ${error.message}`);
+        }
     }
 
     async BypassForBrowser(page) {
-        const AllOperations = [
-            page.emulateTimezone('America/Sao_Paulo'),
-            page.setGeolocation({
-                latitude: -23.5505,
-                longitude: -46.6333,
-                accuracy: 100,
-            }),
-            page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36'),
-        ];
+        try {
+            const AllOperations = [
+                page.emulateTimezone('America/Sao_Paulo'),
+                page.setGeolocation({
+                    latitude: -23.5505,
+                    longitude: -46.6333,
+                    accuracy: 100,
+                }),
+                page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36'),
+            ];
 
-        await Promise.all(AllOperations);
+            await Promise.all(AllOperations);
+        } catch (error) {
+            console.log(`Error ao tentar bypassForBrowser: ${error}`);
+        }
     }
 
     /**
-     * Sets up events and requirements, kicks off authentication request
-     */
+    * Sets up events and requirements, kicks off authentication request
+    */
     async initialize() {
+        try {
+            const puppeteerOpts = this.options.puppeteer;
+            let config;
 
-        // let 
-        //     /**
-        //      * @type {puppeteer.Browser}
-        //      */
-        //     browser, 
-        //     /**
-        //      * @type {puppeteer.Page}
-        //      */
-        //     page;
-
-        // browser = null;
-        // page = null;
-        // let newBrowser = null;
-
-        const puppeteerOpts = this.options.puppeteer;
-        let config;
-
-        if (this.myPronxy !== '') {
-            config =
-            {
-                headless: true,
-                proxy: this.myPronxy,
-                disableXvfb: true,
-                args: [
-                    '--lang=pt-BR',
-                    '--disable-web-security',
-                    '--disable-features=IsolateOrigins,site-per-process',
-                    '--disable-dev-shm-usage',
-                    '--mute-audio',
-                    '--disable-background-timer-throttling',
-                    '--disable-backgrounding-occluded-windows',
-                    '--disable-renderer-backgrounding',
-                    '--disable-gpu',
-                    '--disable-software-rasterizer',
-                    '--disable-extensions',
-                    '--disable-plugins',
-                    '--disable-plugins-discovery',
-                ]
+            if (this.myPronxy !== '') {
+                config = {
+                    headless: true,
+                    proxy: this.myPronxy,
+                    disableXvfb: true,
+                    args: [
+                        '--lang=pt-BR',
+                        '--disable-web-security',
+                        '--disable-features=IsolateOrigins,site-per-process',
+                        '--disable-dev-shm-usage',
+                        '--mute-audio',
+                        '--disable-background-timer-throttling',
+                        '--disable-backgrounding-occluded-windows',
+                        '--disable-renderer-backgrounding',
+                        '--disable-gpu',
+                        '--disable-software-rasterizer',
+                        '--disable-extensions',
+                        '--disable-plugins',
+                        '--disable-plugins-discovery',
+                    ]
+                };
+            } else {
+                config = {
+                    headless: true,
+                    disableXvfb: true,
+                    args: [
+                        '--lang=pt-BR',
+                        '--disable-web-security',
+                        '--disable-features=IsolateOrigins,site-per-process',
+                        '--disable-dev-shm-usage',
+                        '--mute-audio',
+                        '--disable-background-timer-throttling',
+                        '--disable-backgrounding-occluded-windows',
+                        '--disable-renderer-backgrounding',
+                        '--disable-gpu',
+                        '--disable-software-rasterizer',
+                        '--disable-extensions',
+                        '--disable-plugins',
+                        '--disable-plugins-discovery',
+                    ]
+                };
             }
-        } else {
-            config = {
-                headless: true,
-                disableXvfb: true,
-                args: [
-                    '--lang=pt-BR',
-                    '--disable-web-security',
-                    '--disable-features=IsolateOrigins,site-per-process',
-                    '--disable-dev-shm-usage',
-                    '--mute-audio',
-                    '--disable-background-timer-throttling',
-                    '--disable-backgrounding-occluded-windows',
-                    '--disable-renderer-backgrounding',
-                    '--disable-gpu',
-                    '--disable-software-rasterizer',
-                    '--disable-extensions',
-                    '--disable-plugins',
-                    '--disable-plugins-discovery',
-                ]
+
+            let { page, browser } = await newPuppeteer.connect(config);
+
+            await this.BypassForBrowser(page);
+            await this.authStrategy.beforeBrowserInitialized();
+
+            if (puppeteerOpts && puppeteerOpts.browserWSEndpoint) {
+                browser = await newPuppeteer.connect({ headless: true, disableXvfb: true });
+                page = await browser.newPage();
+            } else {
+                const browserArgs = [...(puppeteerOpts.args || [])];
+                if (!browserArgs.find(arg => arg.includes('--user-agent'))) {
+                    browserArgs.push(`--user-agent=${this.options.userAgent}`);
+                }
+                browserArgs.push('--disable-blink-features=AutomationControlled');
+
+                const pages = await browser.pages();
+                page = pages[0];
             }
-        }
 
-        let { page, browser } = await newPuppeteer.connect(config);
+            if (this.options.proxyAuthentication !== undefined) {
+                await page.authenticate(this.options.proxyAuthentication);
+            }
 
-        await this.BypassForBrowser(page);
-        await this.authStrategy.beforeBrowserInitialized();
+            await page.setUserAgent(this.options.userAgent);
+            if (this.options.bypassCSP) await page.setBypassCSP(true);
 
-        if (puppeteerOpts && puppeteerOpts.browserWSEndpoint) {
-            browser = await newPuppeteer.connect({
-                headless: true
+            this.pupBrowser = browser;
+            this.pupPage = page;
+
+            await this.authStrategy.afterBrowserInitialized();
+            await this.initWebVersionCache();
+
+            await page.evaluateOnNewDocument(() => {
+                const originalError = Error;
+                window.originalError = originalError;
+                Error = function (message) {
+                    const error = new originalError(message);
+                    const originalStack = error.stack;
+                    if (error.stack.includes('moduleRaid'))
+                        error.stack = originalStack + '\n    at https://web.whatsapp.com/vendors~lazy_loaded_low_priority_components.05e98054dbd60f980427.js:2:44';
+                    return error;
+                };
             });
 
-            // browser = await puppeteer.connect(puppeteerOpts);
-            page = await browser.newPage();
-        } else {
-            const browserArgs = [...(puppeteerOpts.args || [])];
-            if (!browserArgs.find(arg => arg.includes('--user-agent'))) {
-                browserArgs.push(`--user-agent=${this.options.userAgent}`);
-            }
-            // navigator.webdriver fix
-            browserArgs.push('--disable-blink-features=AutomationControlled');
+            await page.goto(WhatsWebURL, {
+                waitUntil: 'load',
+                timeout: 0,
+                referer: 'https://whatsapp.com/'
+            });
 
-            const pages = await browser.pages();
-            page = pages[0];
-
-            // browser = await puppeteer.launch({...puppeteerOpts, args: browserArgs});
-            // page = (await browser.pages())[0];
-        }
-
-        if (this.options.proxyAuthentication !== undefined) {
-            await page.authenticate(this.options.proxyAuthentication);
-        }
-
-        await page.setUserAgent(this.options.userAgent);
-        if (this.options.bypassCSP) await page.setBypassCSP(true);
-
-        this.pupBrowser = browser;
-        this.pupPage = page;
-
-        await this.authStrategy.afterBrowserInitialized();
-        await this.initWebVersionCache();
-
-        // ocVersion (isOfficialClient patch)
-        // remove after 2.3000.x hard release
-        await page.evaluateOnNewDocument(() => {
-            const originalError = Error;
-            window.originalError = originalError;
-            //eslint-disable-next-line no-global-assign
-            Error = function (message) {
-                const error = new originalError(message);
-                const originalStack = error.stack;
-                if (error.stack.includes('moduleRaid')) error.stack = originalStack + '\n    at https://web.whatsapp.com/vendors~lazy_loaded_low_priority_components.05e98054dbd60f980427.js:2:44';
-                return error;
-            };
-        });
-
-        await page.goto(WhatsWebURL, {
-            waitUntil: 'load',
-            timeout: 0,
-            referer: 'https://whatsapp.com/'
-        });
-
-        await this.inject();
-
-        this.pupPage.on('framenavigated', async (frame) => {
-            if (frame.url().includes('post_logout=1') || this.lastLoggedOut) {
-                this.emit(Events.DISCONNECTED, 'LOGOUT');
-                await this.authStrategy.logout();
-                await this.authStrategy.beforeBrowserInitialized();
-                await this.authStrategy.afterBrowserInitialized();
-                this.lastLoggedOut = false;
-            }
             await this.inject();
-        });
+
+            this.pupPage.on('framenavigated', async (frame) => {
+                try {
+                    if (frame.url().includes('post_logout=1') || this.lastLoggedOut) {
+                        this.emit(Events.DISCONNECTED, 'LOGOUT');
+                        await this.authStrategy.logout();
+                        await this.authStrategy.beforeBrowserInitialized();
+                        await this.authStrategy.afterBrowserInitialized();
+                        this.lastLoggedOut = false;
+                    }
+                    await this.inject();
+                } catch (error) {
+                    console.error('Erro ao processar frame navigation:', error);
+                }
+            });
+        } catch (error) {
+            console.error('Erro na inicialização do Puppeteer:', error);
+            this.emit(Events.DISCONNECTED, 'INITIALIZATION_ERROR');
+        }
     }
 
     /**
