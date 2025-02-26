@@ -484,7 +484,10 @@ declare namespace WAWebJS {
          * @default 'ffmpeg' */
         ffmpegPath?: string,
         /** Object with proxy autentication requirements @default: undefined */
-        proxyAuthentication?: {username: string, password: string} | undefined
+        proxyAuthentication?: {username: string, password: string} | undefined,
+        /** Should the bot send a quoted message without the quoted message if it fails to get the quote?
+         * @default false (disabled) */
+        ignoreQuoteErrors?: boolean,
     }
 
     export interface LocalWebCacheOptions {

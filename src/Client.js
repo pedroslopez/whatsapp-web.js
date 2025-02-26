@@ -37,6 +37,7 @@ const {exposeFunctionIfAbsent} = require('./util/Puppeteer');
  * @param {string} options.ffmpegPath - Ffmpeg path to use when formatting videos to webp while sending stickers 
  * @param {boolean} options.bypassCSP - Sets bypassing of page's Content-Security-Policy.
  * @param {object} options.proxyAuthentication - Proxy Authentication object.
+ * @param {boolean} options.ignoreQuoteErrors - Will send a quoted message even if the quoted message fails
  * 
  * @fires Client#qr
  * @fires Client#authenticated
@@ -255,6 +256,13 @@ class Client extends EventEmitter {
                 await window.onLogoutEvent();
             });
         });
+        if (this.options.ignoreQuoteErrors !== undefined && this.options.ignoreQuoteErrors) {
+            await this.pupPage.evaluate(() => {
+                if(typeof window.WWebJS == 'object') {
+                    window.WWebJS.ignoreQuoteErrors = true;
+                }
+            });
+        }
     }
 
     /**
