@@ -58,7 +58,7 @@ exports.LoadUtils = () => {
                     quotedMsgOptions = quotedMessage.msgContextInfo(chat);
                 }
             }else{
-                if(typeof options.ignoreQuoteErrors != 'undefined' && options.ignoreQuoteErrors) {
+                if(typeof options.ignoreQuoteErrors == 'undefined' || options.ignoreQuoteErrors != true) {
                     throw new Error('Could not get the quoted message.');
                 }
             }
