@@ -63,6 +63,7 @@ exports.LoadUtils = () => {
                 }
             }
             
+            delete options.ignoreQuoteErrors;
             delete options.quotedMessageId;
         }
 
