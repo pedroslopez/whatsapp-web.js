@@ -58,7 +58,7 @@ exports.LoadUtils = () => {
                     quotedMsgOptions = quotedMessage.msgContextInfo(chat);
                 }
             }else{
-                if(typeof window.WWebJS.ignoreQuoteErrors != 'undefined') {
+                if(typeof options.ignoreQuoteErrors != 'undefined' && options.ignoreQuoteErrors) {
                     throw new Error('Could not get the quoted message.');
                 }
             }

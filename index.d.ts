@@ -484,10 +484,7 @@ declare namespace WAWebJS {
          * @default 'ffmpeg' */
         ffmpegPath?: string,
         /** Object with proxy autentication requirements @default: undefined */
-        proxyAuthentication?: {username: string, password: string} | undefined,
-        /** Should the bot send a quoted message without the quoted message if it fails to get the quote?
-         * @default false (disabled) */
-        ignoreQuoteErrors?: boolean,
+        proxyAuthentication?: {username: string, password: string} | undefined
     }
 
     export interface LocalWebCacheOptions {
@@ -1161,7 +1158,10 @@ declare namespace WAWebJS {
         /** Sticker author, if sendMediaAsSticker is true */
         stickerAuthor?: string
         /** Sticker categories, if sendMediaAsSticker is true */
-        stickerCategories?: string[]
+        stickerCategories?: string[],
+        /** Should the bot send a quoted message without the quoted message if it fails to get the quote?
+         * @default false (disabled) */
+        ignoreQuoteErrors?: boolean
     }
 
     /** Options for editing a message */
