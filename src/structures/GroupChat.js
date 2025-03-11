@@ -393,7 +393,7 @@ class GroupChat extends Chat {
 
         return codeRes?.code
             ? codeRes?.code
-            : codeRes
+            : codeRes;
     }
     
     /**
