@@ -5,7 +5,7 @@ const GroupChat = require('../structures/GroupChat');
 
 class ChatFactory {
     static create(client, data) {
-        if(data.isGroup) {
+        if(data.isGroup || data.id.server === 'g.us' ) {
             return new GroupChat(client, data);
         }
 
