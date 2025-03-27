@@ -122,7 +122,8 @@ exports.ExposeStore = () => {
     };
     window.Store.GroupInvite = {
         ...window.require('WAWebGroupInviteJob'),
-        ...window.require('WAWebGroupQueryJob')
+        ...window.require('WAWebGroupQueryJob'),
+        ...window.require('WAWebMexFetchGroupInviteCodeJob')
     };
     window.Store.GroupInviteV4 = {
         ...window.require('WAWebGroupInviteV4Job'),
