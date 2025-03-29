@@ -53,8 +53,8 @@ exports.LoadUtils = () => {
             quotedMessage = quotedMessage['messages'][0];
 
             // TODO remove .canReply() once all clients are updated to >= v2.2241.6
-            const canReply = window.Store.ReplyUtils ? 
-                window.Store.ReplyUtils.canReplyMsg(quotedMessage.unsafe()) : 
+            const canReply = window.Store.ReplyUtils ?
+                window.Store.ReplyUtils.canReplyMsg(quotedMessage.unsafe()) :
                 quotedMessage.canReply();
 
             if (canReply) {
@@ -118,28 +118,29 @@ exports.LoadUtils = () => {
         if (options.contactCard) {
             let contact = window.Store.Contact.get(options.contactCard);
             vcardOptions = {
-                body: window.Store.VCard.vcardFromContactModel(contact).vcard,
+                body: window.Store.VCardUtils.vcardFromContactModel(contact).vcard,
                 type: 'vcard',
                 vcardFormattedName: contact.formattedName
             };
             delete options.contactCard;
         } else if (options.contactCardList) {
             let contacts = options.contactCardList.map(c => window.Store.Contact.get(c));
-            let vcards = contacts.map(c => window.Store.VCard.vcardFromContactModel(c));
+            let vcards = contacts.map(c => window.Store.VCardUtils.vcardFromContactModel(c));
             vcardOptions = {
                 type: 'multi_vcard',
                 vcardList: vcards,
-                body: undefined
+                body: null
             };
             delete options.contactCardList;
         } else if (options.parseVCards && typeof (content) === 'string' && content.startsWith('BEGIN:VCARD')) {
             delete options.parseVCards;
+            delete options.linkPreview;
             try {
-                const parsed = window.Store.VCard.parseVcard(content);
+                const parsed = window.Store.VCardUtils.parseVcard(content);
                 if (parsed) {
                     vcardOptions = {
                         type: 'vcard',
-                        vcardFormattedName: window.Store.VCard.vcardGetNameFromParsed(parsed)
+                        vcardFormattedName: window.Store.VCardUtils.vcardGetNameFromParsed(parsed)
                     };
                 }
             } catch (_) {
@@ -160,7 +161,7 @@ exports.LoadUtils = () => {
                 }
             }
         }
-        
+
         let buttonOptions = {};
         if(options.buttons){
             let caption;
