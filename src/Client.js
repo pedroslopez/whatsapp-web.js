@@ -800,7 +800,7 @@ class Client extends EventEmitter {
         } else {
             this.pupPage.on('response', async (res) => {
                 if(res.ok()){
-                    const url = res.url()
+                    const url = res.url();
                     if(url.includes(WhatsWebStaticURL)){
                         const textContent = await res.text();
                         // Get pairing code expiration time in seconds 
@@ -810,10 +810,10 @@ class Client extends EventEmitter {
                                 const execRegex = (reg) => {
                                     reg.lastIndex = index;
                                     return reg.exec(textContent);
-                                }
+                                };
                                 const captureVarName =  execRegex(/.codeGenerationTs>(.+?)\)/g);
                                 // Find last occurrence of the variable definition
-                                const captureValue = execRegex(new RegExp(`${captureVarName[1]}=(\\d+)(?!.*${captureVarName[1]}=.+?codeGenerationTs>)`,"g"));
+                                const captureValue = execRegex(new RegExp(`${captureVarName[1]}=(\\d+)(?!.*${captureVarName[1]}=.+?codeGenerationTs>)`,'g'));
                                 this.pairingCodeTTL = Number(captureValue[1]);
                             }
                         }
