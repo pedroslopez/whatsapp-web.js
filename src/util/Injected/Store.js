@@ -55,7 +55,6 @@ exports.ExposeStore = () => {
     window.Store.MediaTypes = window.require('WAWebMmsMediaTypes');
     window.Store.MediaUpload = window.require('WAWebMediaMmsV4Upload');
     window.Store.MsgKey = window.require('WAWebMsgKey');
-    window.Store.NumberInfo = window.require('WAPhoneUtils');
     window.Store.OpaqueData = window.require('WAWebMediaOpaqueData');
     window.Store.QueryProduct = window.require('WAWebBizProductCatalogBridge');
     window.Store.QueryOrder = window.require('WAWebBizOrderBridge');
@@ -102,6 +101,11 @@ exports.ExposeStore = () => {
     window.Store.AddonReactionTable = window.require('WAWebAddonReactionTableMode').reactionTableMode;
     window.Store.ChatGetters = window.require('WAWebChatGetters');
     
+    window.Store.NumberInfo = {
+        ...window.require('WAPhoneUtils'),
+        ...window.require('WAPhoneFindCC')
+    };
+    
     window.Store.ForwardUtils = {
         ...window.require('WAWebForwardMessagesToChat')
     };
@@ -121,7 +125,8 @@ exports.ExposeStore = () => {
     };
     window.Store.GroupInvite = {
         ...window.require('WAWebGroupInviteJob'),
-        ...window.require('WAWebGroupQueryJob')
+        ...window.require('WAWebGroupQueryJob'),
+        ...window.require('WAWebMexFetchGroupInviteCodeJob')
     };
     window.Store.GroupInviteV4 = {
         ...window.require('WAWebGroupInviteV4Job'),
