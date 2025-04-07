@@ -11,6 +11,7 @@ module.exports = {
     Chat: require('./src/structures/Chat'),
     PrivateChat: require('./src/structures/PrivateChat'),
     GroupChat: require('./src/structures/GroupChat'),
+    Channel: require('./src/structures/Channel'),
     Message: require('./src/structures/Message'),
     MessageMedia: require('./src/structures/MessageMedia'),
     Contact: require('./src/structures/Contact'),
