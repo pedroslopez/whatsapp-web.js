@@ -1035,6 +1035,40 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Gets instances of all pinned messages in a chat
+     * @param {string} chatId The chat ID
+     * @returns {Promise<[Message]|[]>}
+     */
+    async getPinnedMessages(chatId) {
+        const pinnedMsgs = await this.pupPage.evaluate(async (chatId) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = await window.Store.Chat.find(chatWid);
+            if (!chat) return [];
+            
+            /* await window.Store.PinnedMsgUtils.seekAndDestroyExpiredPins(
+                window.Store.PinnedMsgUtils.PinInChatCollection.byChatId(chatWid).toArray()
+            ).catch((_) => _); */
+            
+            const msgs = await window.Store.PinnedMsgUtils.getTable().equals(['chatId'], chatWid.toString());
+            /* window.Store.PinnedMsgUtils.PinInChatCollection.add(
+                msgs.map(window.Store.PinnedMsgUtils.createPinInChatModel)
+            ); */
+
+            /* for (const msg of window.Store.PinnedMsgUtils.PinInChatCollection.getModelsArray()) {
+                await window.Store.MsgCollection.hydrateOrGetMessages([msg.parentMsgKey.toString()]).catch((_) => _);
+            } */
+
+            const pinnedMsgs = msgs.map((msg) => window.Store.Msg.get(msg.parentMsgKey/* ._serialized */));
+
+            return !pinnedMsgs.length
+                ? []
+                : pinnedMsgs.map((msg) => window.WWebJS.getMessageModel(msg));
+        }, chatId);
+
+        return pinnedMsgs.map((msg) => new Message(this, msg));
+    }
+
+    /**
      * Returns an object with information about the invite code's group
      * @param {string} inviteCode 
      * @returns {Promise<object>} Invite information
