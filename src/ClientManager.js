@@ -50,7 +50,7 @@ class ClientManager {
             ...options,
             puppeteer: {
                 ...this.puppeteerOptions,
-                browserWSEndpoint: this.browser.wsEndpoint(),
+                browser: this.browser,
             }
         });
         this.clients.push(client);

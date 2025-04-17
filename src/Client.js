@@ -278,10 +278,17 @@ class Client extends EventEmitter {
         await this.authStrategy.beforeBrowserInitialized();
 
         const puppeteerOpts = this.options.puppeteer;
-        if (puppeteerOpts && puppeteerOpts.browserWSEndpoint) {
+        
+        if (puppeteerOpts && puppeteerOpts.browser) {
+            browser = puppeteerOpts.browser;
+            const browserContext = await browser.createBrowserContext();
+            page = await browserContext.newPage();
+
+        } else if (puppeteerOpts && puppeteerOpts.browserWSEndpoint) {
             browser = await puppeteer.connect(puppeteerOpts);
             const browserContext = await browser.createBrowserContext();
             page = await browserContext.newPage();
+            
         } else {
             const browserArgs = [...(puppeteerOpts.args || [])];
             if(!browserArgs.find(arg => arg.includes('--user-agent'))) {
