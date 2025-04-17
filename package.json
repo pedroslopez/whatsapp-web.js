@@ -8,6 +8,7 @@
     "test": "mocha tests --recursive --timeout 5000",
     "test-single": "mocha",
     "shell": "node --experimental-repl-await ./shell.js",
+    "shell-multiple-clients": "node --experimental-repl-await ./shell_multiple_clients.js",
     "generate-docs": "npx jsdoc --configure .jsdoc.json --verbose"
   },
   "repository": {
@@ -34,7 +35,7 @@
     "mime": "^3.0.0",
     "node-fetch": "^2.6.9",
     "node-webpmux": "3.1.7",
-    "puppeteer": "^18.2.1"
+    "puppeteer": "^24.6.1"
   },
   "devDependencies": {
     "@types/node-fetch": "^2.5.12",

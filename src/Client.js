@@ -280,7 +280,8 @@ class Client extends EventEmitter {
         const puppeteerOpts = this.options.puppeteer;
         if (puppeteerOpts && puppeteerOpts.browserWSEndpoint) {
             browser = await puppeteer.connect(puppeteerOpts);
-            page = await browser.newPage();
+            const browserContext = await browser.createBrowserContext();
+            page = await browserContext.newPage();
         } else {
             const browserArgs = [...(puppeteerOpts.args || [])];
             if(!browserArgs.find(arg => arg.includes('--user-agent'))) {
@@ -292,6 +293,8 @@ class Client extends EventEmitter {
             browser = await puppeteer.launch({...puppeteerOpts, args: browserArgs});
             page = (await browser.pages())[0];
         }
+
+        // console.log('Browser ID: ', browser.process().pid);
 
         if (this.options.proxyAuthentication !== undefined) {
             await page.authenticate(this.options.proxyAuthentication);

@@ -3,6 +3,8 @@
 const Constants = require('./src/util/Constants');
 
 module.exports = {
+    // Entrypoints
+    ClientManager: require('./src/ClientManager'),
     Client: require('./src/Client'),
     
     version: require('./package.json').version,

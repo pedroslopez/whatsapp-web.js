@@ -2,11 +2,13 @@
 
 exports.WhatsWebURL = 'https://web.whatsapp.com/';
 
+const DefaultPuppeteerOptions = {
+    headless: true,
+    defaultViewport: null
+};
+
 exports.DefaultOptions = {
-    puppeteer: {
-        headless: true,
-        defaultViewport: null
-    },
+    puppeteer: DefaultPuppeteerOptions,
     webVersion: '2.3000.1017054665',
     webVersionCache: {
         type: 'local',
@@ -19,6 +21,10 @@ exports.DefaultOptions = {
     ffmpegPath: 'ffmpeg',
     bypassCSP: false,
     proxyAuthentication: undefined
+};
+
+exports.DefaultClientManagerOptions = {
+    puppeteer: DefaultPuppeteerOptions,
 };
 
 /**

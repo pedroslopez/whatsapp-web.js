@@ -6,6 +6,14 @@ import InterfaceController from './src/util/InterfaceController'
 
 declare namespace WAWebJS {
 
+    export class ClientManager {
+        constructor(options: ManagerClientOptions)
+
+        initialize(): Promise<void>
+        
+        createClient(options: ClientOptions): Promise<Client>
+    }
+
     export class Client extends EventEmitter {
         constructor(options: ClientOptions)
 
@@ -445,6 +453,10 @@ declare namespace WAWebJS {
         device_model: string
         /** OS build number */
         os_build_number: string
+    }
+
+    export interface ManagerClientOptions {
+        puppeteer?: puppeteer.PuppeteerNodeLaunchOptions & puppeteer.ConnectOptions
     }
 
     /** Options for initializing the whatsapp client */
