@@ -212,6 +212,14 @@ declare namespace WAWebJS {
         /** Rejects membership requests if any */
         rejectGroupMembershipRequests: (groupId: string, options: MembershipRequestActionOptions) => Promise<Array<MembershipRequestActionResult>>;
 
+        /**
+         * Post stories for everyone to see
+         * @param {string|MessageMedia} content
+         * @param {MessageSendOptions} [options] - Options used when sending the message
+         * @returns {Promise<object>} Message that was just sent
+         */
+        sendStatus: (content: string | MessageMedia, options?: MessageSendOptions) => Promise<Message>;
+
         /** Generic event */
         on(event: string, listener: (...args: any) => void): this
 

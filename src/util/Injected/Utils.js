@@ -1026,4 +1026,63 @@ exports.LoadUtils = () => {
         const statuses = window.Store.Status.getModelsArray();
         return statuses.map(status => window.WWebJS.getStatusModel(status));
     };
+
+    window.WWebJS.sendStatus = async (content, options = {}) => {
+
+        if (content){
+            return await window.Store.SendStatus.sendStatusTextMsgAction({
+                color: options.color || 4283943423,
+                font: 0,
+                text: content
+            });
+        }
+
+        let attOptions = {};
+        if (options.attachment) {
+            attOptions = await window.WWebJS.processMediaData(options.attachment, {
+                forceGif: options.sendVideoAsGif
+            });
+
+            attOptions.caption = options.caption;
+            content = attOptions.preview;
+
+
+            delete options.attachment;
+        }
+        const meUser = window.Store.User.getMaybeMeUser();
+        const chatBroadcast = window.Store.WidFactory.createWid(window.Store.Jids.STATUS_JID);
+        const newId = await window.Store.MsgKey.newId();
+
+        const newMsgId = new window.Store.MsgKey({
+            from: meUser,
+            to:  chatBroadcast,
+            id: newId,
+            participant: meUser,
+            selfDir: 'out',
+        });
+
+        const extraOptions = options.extraOptions || {};
+        delete options.extraOptions;
+
+        const message = {
+            ...options,
+            id: newMsgId,
+            body: content,
+            author: meUser,
+            type: 'chat',
+            viewMode: 'VISIBLE',
+            t: parseInt(new Date().getTime() / 1000),
+            from: meUser,
+            to: chatBroadcast,
+            isNewMsg: !0,
+            isViewOnce: 0,
+            local: !0,
+            ack: 0,
+            messageSecret: window.crypto.getRandomValues(new Uint8Array(32)),
+            ...(attOptions.toJSON ? attOptions.toJSON() : {}),
+            ...extraOptions
+        };
+        await window.Store.SendStatus.sendStatusMediaMsgAction(message);
+        return window.Store.Msg.get(newMsgId._serialized);
+    };
 };
