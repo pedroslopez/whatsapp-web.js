@@ -1762,7 +1762,7 @@ class Client extends EventEmitter {
      * @param {string} firstName 
      * @param {string} lastName 
      * @param {boolean} [syncToAddressbook = false] If true, saved contact will be save to the user's addressbook on the phone. False by default
-     * @returns {Promise<Object>} Object in a wid format
+     * @returns {Promise<import('..').ChatId>} Object in a wid format
      */
     async saveOrEditAddressbookContact(phoneNumber, firstName, lastName, syncToAddressbook = false)
     {
