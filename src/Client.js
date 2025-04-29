@@ -1776,6 +1776,18 @@ class Client extends EventEmitter {
             );
         }, phoneNumber, firstName, lastName, syncToAddressbook);
     }
+
+    /**
+     * Deletes the contact from user's aressbook
+     * @param {string} phoneNumber The contact's phone number in a format "17182222222", where "1" is a country code
+     * @returns {Promise<void>}
+     */
+    async deleteAddressbookContact(phoneNumber)
+    {
+        return await this.pupPage.evaluate(async (phoneNumber) => {
+            return await window.Store.AddressbookContactUtils.deleteContactAction(phoneNumber);
+        }, phoneNumber);
+    }
 }
 
 module.exports = Client;
