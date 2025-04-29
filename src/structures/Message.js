@@ -461,7 +461,7 @@ class Message extends Base {
                 });
             }
 
-            if (msg.mediaData.mediaStage.includes('ERROR') || msg.mediaData.mediaStage === 'FETCHING') {
+            if (msg.mediaData.mediaStage.includes('ERROR') ) { // #0001 || msg.mediaData.mediaStage === 'FETCHING'
                 // media could not be downloaded
                 return undefined;
             }
