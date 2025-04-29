@@ -1778,7 +1778,7 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Deletes the contact from user's aressbook
+     * Deletes the contact from user's addressbook
      * @param {string} phoneNumber The contact's phone number in a format "17182222222", where "1" is a country code
      * @returns {Promise<void>}
      */
