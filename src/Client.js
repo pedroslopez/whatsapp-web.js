@@ -1769,7 +1769,7 @@ class Client extends EventEmitter {
                 return false;
             }
             const ChatPreference = ChatSettings.getDefault();
-            ChatPreference.set("hdMediaEnabled", flag);
+            ChatPreference.set('hdMediaEnabled', flag);
             return flag;
         }, flag);
     }
