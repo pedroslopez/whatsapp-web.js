@@ -1761,7 +1761,7 @@ class Client extends EventEmitter {
      * @param {boolean} flag true/false
      */
     async setHdMedia(flag) {
-        await this.pupPage.evaluate(async flag => {
+        return await this.pupPage.evaluate(async flag => {
             const ChatSettings = window.Store.Settings.Chat;
             if (!ChatSettings) {
                 return false;
