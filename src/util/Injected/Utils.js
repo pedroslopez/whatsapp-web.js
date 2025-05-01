@@ -33,7 +33,7 @@ exports.LoadUtils = () => {
                     forceVoice: options.sendAudioAsVoice,
                     forceDocument: options.sendMediaAsDocument,
                     forceGif: options.sendVideoAsGif,
-                    forceImageHd: options.sendImageAsHd
+                    forceMediaHd: options.sendMediaAsHd
                 });
             
             attOptions.caption = options.caption;
