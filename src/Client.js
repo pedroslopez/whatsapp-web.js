@@ -842,6 +842,7 @@ class Client extends EventEmitter {
      * @property {boolean} [sendVideoAsGif=false] - Send video as gif
      * @property {boolean} [sendMediaAsSticker=false] - Send media as a sticker
      * @property {boolean} [sendMediaAsDocument=false] - Send media as a document
+     * @property {boolean} [sendMediaAsHd=false] - Send image as quality HD
      * @property {boolean} [isViewOnce=false] - Send photo/video as a view once message
      * @property {boolean} [parseVCards=true] - Automatically parse vCards and send them as contacts
      * @property {string} [caption] - Image or video caption
@@ -881,6 +882,7 @@ class Client extends EventEmitter {
             sendVideoAsGif: options.sendVideoAsGif,
             sendMediaAsSticker: options.sendMediaAsSticker,
             sendMediaAsDocument: options.sendMediaAsDocument,
+            sendMediaAsHd: options.sendMediaAsHd,
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
             parseVCards: options.parseVCards !== false,
@@ -1754,6 +1756,22 @@ class Client extends EventEmitter {
             }
             return false;
         }, chatId);
+    }
+
+    /**
+     * Setting the default media files to be sent in HD format
+     * @param {boolean} flag true/false
+     */
+    async setHdMedia(flag) {
+        return await this.pupPage.evaluate(async flag => {
+            const ChatSettings = window.Store.Settings.Chat;
+            if (!ChatSettings) {
+                return false;
+            }
+            const ChatPreference = ChatSettings.getDefault();
+            ChatPreference.set('hdMediaEnabled', flag);
+            return flag;
+        }, flag);
     }
 }
 
