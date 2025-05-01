@@ -32,7 +32,8 @@ exports.LoadUtils = () => {
                 : await window.WWebJS.processMediaData(options.attachment, {
                     forceVoice: options.sendAudioAsVoice,
                     forceDocument: options.sendMediaAsDocument,
-                    forceGif: options.sendVideoAsGif
+                    forceGif: options.sendVideoAsGif,
+                    forceImageHd: options.sendImageAsHd
                 });
             
             attOptions.caption = options.caption;
@@ -351,10 +352,14 @@ exports.LoadUtils = () => {
         return stickerInfo;
     };
 
-    window.WWebJS.processMediaData = async (mediaInfo, { forceVoice, forceDocument, forceGif }) => {
+    window.WWebJS.processMediaData = async (mediaInfo, { forceVoice, forceDocument, forceGif, forceImageHd }) => {
         const file = window.WWebJS.mediaInfoToFile(mediaInfo);
         const mData = await window.Store.OpaqueData.createFromData(file, file.type);
-        const mediaPrep = window.Store.MediaPrep.prepRawMedia(mData, { asDocument: forceDocument });
+        let mediaParams = { asDocument: forceDocument };
+        if(forceImageHd && file.type.indexOf('image/') === 0) {
+            mediaParams.maxDimension = 2560;
+        }
+        const mediaPrep = window.Store.MediaPrep.prepRawMedia(mData, mediaParams);
         const mediaData = await mediaPrep.waitForPrep();
         const mediaObject = window.Store.MediaObject.getOrCreateMediaObject(mediaData.filehash);
 
