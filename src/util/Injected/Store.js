@@ -101,6 +101,7 @@ exports.ExposeStore = () => {
     if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.1014111620')) 
         window.Store.AddonReactionTable = window.require('WAWebAddonReactionTableMode').reactionTableMode;
     
+    window.Store.Settings.Chat = window.require("WAWebChatPreferenceCollection");
     window.Store.NumberInfo = {
         ...window.require('WAPhoneUtils'),
         ...window.require('WAPhoneFindCC')

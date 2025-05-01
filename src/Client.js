@@ -1755,6 +1755,22 @@ class Client extends EventEmitter {
             return false;
         }, chatId);
     }
+
+    /**
+     * Setting the default media files to be sent in HD format
+     * @param {boolean} flag true/false
+     */
+    async setHdMedia(flag) {
+        await this.pupPage.evaluate(async flag => {
+            const ChatSettings = window.Store.Settings.Chat;
+            if (!ChatSettings) {
+                return false;
+            }
+            const ChatPreference = ChatSettings.getDefault();
+            ChatPreference.set("hdMediaEnabled", flag);
+            return flag;
+        }, flag);
+    }
 }
 
 module.exports = Client;

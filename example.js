@@ -470,6 +470,11 @@ client.on('message', async msg => {
         console.log(statuses);
         const chat = await statuses[0]?.getChat(); // Get user chat of a first status
         console.log(chat);
+    } else if (msg.body.startsWith('!setHdMedia ')) {
+        // Changing the quality of media downloads  true/false
+        let flag = msg.body.split(' ')[1];
+        const hdMedia = await client.setHdMedia(flag === 'true');
+        console.log('hdMedia:', hdMedia);
     }
 });
 
