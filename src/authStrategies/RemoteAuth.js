@@ -145,7 +145,7 @@ class RemoteAuth extends BaseAuthStrategy {
         const archive = archiver('zip');
         const stream = fs.createWriteStream(`${this.sessionName}.zip`);
 
-        await fs.copy(this.userDataDir, this.tempDir).catch(() => {});
+        await this.copyResilient(this.userDataDir, this.tempDir);
         await this.deleteMetadata();
         return new Promise((resolve, reject) => {
             archive
@@ -156,6 +156,25 @@ class RemoteAuth extends BaseAuthStrategy {
             stream.on('close', () => resolve());
             archive.finalize();
         });
+    }
+
+    async copyResilient(srcDir, destDir) {
+        await fs.ensureDir(destDir);
+        const items = await fs.readdir(srcDir);
+
+        for (const item of items) {
+            const srcPath = path.join(srcDir, item);
+            const destPath = path.join(destDir, item);
+
+            try {
+                const stat = await fs.stat(srcPath);
+                if (stat.isDirectory()) {
+                    await this.copyResilient(srcPath, destPath); // recursividad para subcarpetas
+                } else {
+                    await fs.copy(srcPath, destPath);
+                }
+            } catch (err) {}
+        }
     }
 
     async unCompressSession(compressedSessionPath) {
