@@ -166,6 +166,7 @@ class RemoteAuth extends BaseAuthStrategy {
             const srcPath = path.join(srcDir, item);
             const destPath = path.join(destDir, item);
 
+            /*eslint no-empty: "error"*/
             try {
                 const stat = await fs.stat(srcPath);
                 if (stat.isDirectory()) {
@@ -173,7 +174,9 @@ class RemoteAuth extends BaseAuthStrategy {
                 } else {
                     await fs.copy(srcPath, destPath);
                 }
-            } catch (err) {}
+            } catch (err) {
+                /* empty */
+            }
         }
     }
 
