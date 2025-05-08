@@ -428,7 +428,38 @@ declare namespace WAWebJS {
 
         /** Get current battery percentage and charging status for the attached device */
         getBatteryStatus: () => Promise<BatteryInfo>
-    }
+    
+    /**
+     * Subscribe to presence updates for a contact
+     * @param jid The JID of the contact
+     * @param pollInterval Interval in milliseconds to poll for presence updates
+     */
+    subscribePresence(jid: string, pollInterval?: number): Promise<void>;
+    
+    /**
+     * Get the latest presence snapshot
+     * @param jid The JID of the contact
+     */
+    getPresence(jid: string): Promise<PresenceUpdate | null>;
+    
+    /** Emitted when a presence update is received */
+    on(event: 'presence_update', listener: (update: PresenceUpdate) => void): this;
+    /**
+     * Subscribe to presence updates for a contact
+     * @param jid The JID of the contact
+     * @param pollInterval Interval in milliseconds to poll for presence updates
+     */
+    subscribePresence(jid: string, pollInterval?: number): Promise<void>;
+    
+    /**
+     * Get the latest presence snapshot
+     * @param jid The JID of the contact
+     */
+    getPresence(jid: string): Promise<PresenceUpdate | null>;
+    
+    /** Emitted when a presence update is received */
+    on(event: 'presence_update', listener: (update: PresenceUpdate) => void): this;
+}
 
     /** 
      * Information about the phone this client is connected to 
@@ -1833,7 +1864,18 @@ declare namespace WAWebJS {
     }
 
     /** Message type List */
-    export class List {
+    
+export interface PresenceUpdate {
+  jid: string;
+  isOnline: boolean;
+  lastSeen: number;
+}
+export interface PresenceUpdate {
+    jid: string;
+    isOnline: boolean;
+    lastSeen: number;
+}
+export class List {
         body: string
         buttonText: string
         sections: Array<any>
