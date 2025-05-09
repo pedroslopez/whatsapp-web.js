@@ -236,11 +236,8 @@ class Client extends EventEmitter {
 
             // ——— AUTO-CLICK ON MULTIPLE BUTTONS ———
             const buttonSelectors = [
-              // the “A fresh look…” popup
-              'div[role="dialog"] button:last-child',
-              // your other button in the sidebar
-              'span[data-icon="x"]'
-              // here you can add more selectors
+              'div[role="dialog"] button:last-child', // the “A fresh look…” popup
+              'span[data-icon="x"]' // your other button in the sidebar
             ];
             
             for (const sel of buttonSelectors) {
