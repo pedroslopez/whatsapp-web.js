@@ -233,6 +233,22 @@ class Client extends EventEmitter {
                  */
             this.emit(Events.READY);
             this.authStrategy.afterAuthReady();
+
+            // ——— AUTO-CLICK ON MULTIPLE BUTTONS ———
+            const buttonSelectors = [
+                'div[role="dialog"] button:last-child', // the “A fresh look…” popup
+                'span[data-icon="x"]' // your other button in the sidebar
+            ];
+          
+            for (const sel of buttonSelectors) {
+                try {
+                    // wait for each button to appear (up to 5s)
+                    await this.pupPage.waitForSelector(sel, { timeout: 5000 });
+                    await this.pupPage.click(sel);
+                } catch (e) {
+                    // if it doesn't appear, move on to the next
+                }
+            }
         });
         let lastPercent = null;
         await exposeFunctionIfAbsent(this.pupPage, 'onOfflineProgressUpdateEvent', async (percent) => {
