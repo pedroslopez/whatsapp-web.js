@@ -1825,7 +1825,7 @@ Client.prototype.subscribePresence = async function(jid, pollInterval = 5000) {
 
             return false;
         } catch (err) {
-            console.error('Error in subscribePresence:', err);
+            // Silent catch
             return false;
         }
     }, jid);
@@ -1870,7 +1870,7 @@ Client.prototype.getPresence = async function(jid) {
                     return result;
                 }
             } catch (e) {
-                console.log('Error checking Contact model:', e);
+                // Silent catch
             }
 
             // 2. Classic multi‑device
@@ -1887,7 +1887,7 @@ Client.prototype.getPresence = async function(jid) {
                     }
                 }
             } catch (e) {
-                console.log('Error checking PresenceCollection:', e);
+                // Silent catch
             }
 
             // 3. Legacy single‑device
@@ -1904,13 +1904,13 @@ Client.prototype.getPresence = async function(jid) {
                     }
                 }
             } catch (e) {
-                console.log('Error checking Presence:', e);
+                // Silent catch
             }
 
             // If we got here, we didn't find presence data anywhere
             return null;
         } catch (err) {
-            console.error('Error in getPresence:', err);
+            // Silent catch
             return null;
         }
     }, jid);

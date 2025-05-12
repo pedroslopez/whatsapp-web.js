@@ -48,7 +48,6 @@ window.WWebJS.subscribePresence = jid => {
 
         return false;
     } catch (err) {
-        console.error('Error in subscribePresence:', err);
         return false;
     }
 };
@@ -71,7 +70,7 @@ window.WWebJS.getPresence = jid => {
                 return result;
             }
         } catch (e) {
-            console.log('Error checking Contact model:', e);
+            // Silent catch
         }
 
         // 2. Classic multi‑device
@@ -88,7 +87,7 @@ window.WWebJS.getPresence = jid => {
                 }
             }
         } catch (e) {
-            console.log('Error checking PresenceCollection:', e);
+            // Silent catch
         }
 
         // 3. Legacy single‑device
@@ -105,13 +104,12 @@ window.WWebJS.getPresence = jid => {
                 }
             }
         } catch (e) {
-            console.log('Error checking Presence:', e);
+            // Silent catch
         }
 
         // If we got here, we didn't find presence data anywhere
         return null;
     } catch (err) {
-        console.error('Error in getPresence:', err);
         return null;
     }
 };
