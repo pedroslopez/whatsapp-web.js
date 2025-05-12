@@ -245,6 +245,11 @@ class Client extends EventEmitter {
             this.lastLoggedOut = true;
             await this.pupPage.waitForNavigation({waitUntil: 'load', timeout: 5000}).catch((_) => _);
         });
+
+        await exposeFunctionIfAbsent(this.pupPage, 'emitChatStateChanged', (data) => {
+            this.emit(Events.CHAT_STATE_CHANGED, data);
+        });
+
         await this.pupPage.evaluate(() => {
             window.AuthStore.AppState.on('change:state', (_AppState, state) => { window.onAuthAppStateChangedEvent(state); });
             window.AuthStore.AppState.on('change:hasSynced', () => { window.onAppStateHasSyncedEvent(); });
@@ -254,6 +259,48 @@ class Client extends EventEmitter {
             window.AuthStore.Cmd.on('logout', async () => {
                 await window.onLogoutEvent();
             });
+            window.injectPresenceModelInstance = (instance) => {
+                if (instance?.__x_chatstate) {
+                    let type = instance.__x_chatstate?.__x_type;
+
+                    Object.defineProperty(instance.__x_chatstate, '__x_type', {
+                        get() {
+                            return type;
+                        },
+                        set(next) {
+                            window.emitChatStateChanged({
+                                chatId: instance.id._serialized,
+                                chatState: next
+                            });
+                            type = next;
+                        },
+                        configurable: true,
+                        enumerable: true
+                    });
+                }
+                return instance;
+            };
+            window.execPresenceModelInjection = () => {
+                const OriginalModelClass = window.Store.Presence.modelClass;
+                const originalModelPrototype = window.Store.Presence.modelClass.prototype;
+                window.Store.Presence.modelClass = function (...args) {
+                    const instance = Reflect.construct(OriginalModelClass, args);
+                    window.injectPresenceModelInstance(instance);
+                    Object.setPrototypeOf(instance, originalModelPrototype);
+                    return instance;
+                };
+                window.Store.Presence._models.forEach(instance => {
+                    window.injectPresenceModelInstance(instance);
+                    Object.setPrototypeOf(instance, originalModelPrototype);
+                });
+                Object.setPrototypeOf(window.Store.Presence.modelClass.prototype, originalModelPrototype);
+            };
+            let interval = setInterval(() => {
+                if (window?.Store?.Presence !== undefined) {
+                    clearInterval(interval);
+                    window.execPresenceModelInjection();
+                }
+            }, 10);
         });
     }
 

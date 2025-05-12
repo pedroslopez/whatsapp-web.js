@@ -1,4 +1,5 @@
 const { Client, Location, Poll, List, Buttons, LocalAuth } = require('./index');
+const { Events } = require('./src/util/Constants');
 
 const client = new Client({
     authStrategy: new LocalAuth(),
@@ -643,4 +644,8 @@ client.on('message_reaction', async (reaction) => {
 client.on('vote_update', (vote) => {
     /** The vote that was affected: */
     console.log(vote);
+});
+
+client.on(Events.CHAT_STATE_CHANGED, ({ chatId, chatState}) => {
+    console.log(`User ${chatId._serialized} is now ${chatState}`);
 });
