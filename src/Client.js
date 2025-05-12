@@ -15,7 +15,7 @@ const { LoadUtils } = require('./util/Injected/Utils');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
 const WebCacheFactory = require('./webCache/WebCacheFactory');
-const { ClientInfo, Message, MessageMedia, Contact, Location, Poll, PollVote, GroupNotification, Label, Call, Buttons, List, Reaction, Broadcast} = require('./structures');
+const { ClientInfo, Message, MessageMedia, Contact, Location, Poll, PollVote, GroupNotification, Label, Call, Buttons, List, Reaction, Broadcast, ScheduledEvent } = require('./structures');
 const NoAuth = require('./authStrategies/NoAuth');
 const {exposeFunctionIfAbsent} = require('./util/Puppeteer');
 
@@ -907,6 +907,9 @@ class Client extends EventEmitter {
         } else if (content instanceof Poll) {
             internalOptions.poll = content;
             content = '';
+        } else if (content instanceof ScheduledEvent) {
+            internalOptions.event = content;
+            content = '';
         } else if (content instanceof Contact) {
             internalOptions.contactCard = content.id._serialized;
             content = '';
@@ -1754,6 +1757,45 @@ class Client extends EventEmitter {
             }
             return false;
         }, chatId);
+    }
+
+    /**
+     * Generates a WhatsApp call link (video call or voice call)
+     * @param {Date} startTime The start time of the call
+     * @param {string} callType The type of a WhatsApp call link to generate, valid values are: `video` | `voice`
+     * @returns {Promise<string>} The WhatsApp call link (https://call.whatsapp.com/video/XxXxXxXxXxXxXx) or an empty string if a generation failed.
+     */
+    async createCallLink(startTime, callType) {
+        if (!['video', 'voice'].includes(callType)) {
+            throw new class CreateCallLinkError extends Error {
+                constructor(m) { super(m); }
+            }('Invalid \'callType\' parameter value is provided. Valid values are: \'voice\' | \'video\'.');
+        }
+
+        startTime = Math.floor(startTime.getTime() / 1000);
+        
+        return await this.pupPage.evaluate(async (startTimeTs, callType) => {
+            const response = await window.Store.ScheduledEventMsgUtils.createEventCallLink(startTimeTs, callType);
+            return response ?? '';
+        }, startTime, callType);
+    }
+
+    /**
+     * Sends a response to the scheduled event message, indicating whether a user is going to attend the event or not
+     * @param {number} response The response code to the scheduled event message. Valid values are: `0` for NONE response (removes a previous response) | `1` for GOING | `2` for NOT GOING | `3` for MAYBE going
+     * @param {string} eventMessageId The scheduled event message ID
+     * @returns {Promise<boolean>}
+     */
+    async sendResponseToScheduledEvent(response, eventMessageId) {
+        if (![0, 1, 2, 3].includes(response)) return false;
+
+        return await this.pupPage.evaluate(async (response, msgId) => {
+            const eventMsg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
+            if (!eventMsg) return false;
+
+            await window.Store.ScheduledEventMsgUtils.sendEventResponseMsg(response, eventMsg);
+            return true;
+        }, response, eventMessageId);
     }
 }
 
