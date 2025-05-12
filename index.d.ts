@@ -483,6 +483,16 @@ declare namespace WAWebJS {
         /** Ffmpeg path to use when formatting videos to webp while sending stickers 
          * @default 'ffmpeg' */
         ffmpegPath?: string,
+        /** Sets bypassing of page's Content-Security-Policy 
+         * @default false */
+        bypassCSP?: boolean,
+        /** Sets the device name of a current linked device., i.e.: 'TEST' */
+        deviceName?: string,
+        /**
+         * Sets the browser name of a current linked device, i.e.: 'Firefox'.
+         * Valid value are: 'Chrome' | 'Firefox' | 'IE' | 'Opera' | 'Safari' | 'Edge'
+         */
+        browserName?: string,
         /** Object with proxy autentication requirements @default: undefined */
         proxyAuthentication?: {username: string, password: string} | undefined
     }
