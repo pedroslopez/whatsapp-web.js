@@ -46,20 +46,24 @@ exports.LoadUtils = () => {
         if (options.quotedMessageId) {
             let quotedMessage = await window.Store.Msg.getMessagesById([options.quotedMessageId]);
 
-            if (quotedMessage['messages'].length != 1) {
-                throw new Error('Could not get the quoted message.');
+            if (quotedMessage['messages'].length == 1) {
+                quotedMessage = quotedMessage['messages'][0];
+
+                // TODO remove .canReply() once all clients are updated to >= v2.2241.6
+                const canReply = window.Store.ReplyUtils ?
+                    window.Store.ReplyUtils.canReplyMsg(quotedMessage.unsafe()) :
+                    quotedMessage.canReply();
+
+                if (canReply) {
+                    quotedMsgOptions = quotedMessage.msgContextInfo(chat);
+                }
+            }else{
+                if(!options.ignoreQuoteErrors) {
+                    throw new Error('Could not get the quoted message.');
+                }
             }
-
-            quotedMessage = quotedMessage['messages'][0];
-
-            // TODO remove .canReply() once all clients are updated to >= v2.2241.6
-            const canReply = window.Store.ReplyUtils ? 
-                window.Store.ReplyUtils.canReplyMsg(quotedMessage.unsafe()) : 
-                quotedMessage.canReply();
-
-            if (canReply) {
-                quotedMsgOptions = quotedMessage.msgContextInfo(chat);
-            }
+            
+            delete options.ignoreQuoteErrors;
             delete options.quotedMessageId;
         }
 
@@ -921,7 +925,7 @@ exports.LoadUtils = () => {
         let response;
         let result = [];
 
-        await window.Store.GroupQueryAndUpdate(groupWid);
+        await window.Store.GroupQueryAndUpdate({ id: groupId });
 
         if (!requesterIds?.length) {
             membershipRequests = group.groupMetadata.membershipApprovalRequests._models.map(({ id }) => id);
