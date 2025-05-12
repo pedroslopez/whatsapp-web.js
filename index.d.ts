@@ -179,6 +179,11 @@ declare namespace WAWebJS {
          * @param flag true/false on or off
          */
         setAutoDownloadVideos(flag: boolean): Promise<void>
+        /**
+         * Changing the quality of media downloads 
+         * @param flag true/false HD or Standard
+         */
+        setHdMedia(flag: boolean): Promise<void>
 
         /**
          * Get user device count by ID
@@ -1128,6 +1133,8 @@ declare namespace WAWebJS {
         sendMediaAsSticker?: boolean
         /** Send media as document */
         sendMediaAsDocument?: boolean
+        /** Send media as quality HD */
+        sendMediaAsHd?: boolean
         /** Send photo/video as a view once message */
         isViewOnce?: boolean
         /** Automatically parse vCards and send them as contacts */
