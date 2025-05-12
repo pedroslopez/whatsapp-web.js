@@ -282,7 +282,13 @@ exports.LoadUtils = () => {
                 msg: msg,
                 type: message.type === 'chat' ? 'text' : isMedia ? 'media' : 'pollCreation',
                 newsletterJid: chat.id.toJid(),
-                ...(isMedia ? { mediaMetadata: msg.avParams() } : {})
+                ...(isMedia
+                    ? {
+                        mediaMetadata: msg.avParams(),
+                        mediaHandle: isMedia ? mediaOptions.mediaHandle : null,
+                    }
+                    : {}
+                )
             });
 
             if (sendChannelMsgResponse.success) {
@@ -370,7 +376,8 @@ exports.LoadUtils = () => {
         const mediaObject = window.Store.MediaObject.getOrCreateMediaObject(mediaData.filehash);
         const mediaType = window.Store.MediaTypes.msgToMediaType({
             type: mediaData.type,
-            isGif: mediaData.isGif
+            isGif: mediaData.isGif,
+            isNewsletter: sendToChannel,
         });
 
         if (forceVoice && mediaData.type === 'ptt') {
@@ -417,7 +424,8 @@ exports.LoadUtils = () => {
             uploadhash: mediaEntry.uploadHash,
             size: mediaObject.size,
             streamingSidecar: mediaEntry.sidecar,
-            firstFrameSidecar: mediaEntry.firstFrameSidecar
+            firstFrameSidecar: mediaEntry.firstFrameSidecar,
+            mediaHandle: sendToChannel ? mediaEntry.handle : null,
         });
 
         return mediaData;
