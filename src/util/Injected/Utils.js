@@ -48,17 +48,23 @@ exports.LoadUtils = () => {
             let quotedMessage = window.Store.Msg.get(options.quotedMessageId);
             !quotedMessage && (quotedMessage = (await window.Store.Msg.getMessagesById([options.quotedMessageId]))?.messages?.[0]);
 
-            if (!quotedMessage) {
-                throw new Error('Could not get the quoted message.');
-            }
+            if (quotedMessage['messages'].length == 1) {
+                quotedMessage = quotedMessage['messages'][0];
 
-            const canReply = window.Store.ReplyUtils ? 
-                window.Store.ReplyUtils.canReplyMsg(quotedMessage.unsafe()) : 
-                quotedMessage.canReply();
+                const canReply = window.Store.ReplyUtils
+                    ? window.Store.ReplyUtils.canReplyMsg(quotedMessage.unsafe())
+                    : quotedMessage.canReply();
 
-            if (canReply) {
-                quotedMsgOptions = quotedMessage.msgContextInfo(chat);
+                if (canReply) {
+                    quotedMsgOptions = quotedMessage.msgContextInfo(chat);
+                }
+            } else {
+                if (!options.ignoreQuoteErrors) {
+                    throw new Error('Could not get the quoted message.');
+                }
             }
+            
+            delete options.ignoreQuoteErrors;
             delete options.quotedMessageId;
         }
 
