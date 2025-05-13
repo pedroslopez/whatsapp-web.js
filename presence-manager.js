@@ -4,17 +4,10 @@ class PresenceManager {
         this.client = client;
         this.jids = new Set();
         this.history = new Map();
-        this.lastUpdateTimes = new Map(); // Track when each JID was last updated
-        this.connectionHealth = new Map(); // Track connection health for each JID
         this.timer = null;
-        this.healthCheckTimer = null;
         this.lastFocusTime = 0;
         this.focusInterval = 60000; // 1 minute between focus calls
         this.pollInterval = 15000;  // 15 seconds between polls
-        this.healthCheckInterval = 60000; // 1 minute between health checks
-        this.maxUpdateAge = 120000; // 2 minutes before forcing refresh
-        this.subscriptionRenewalInterval = 300000; // 5 minutes before renewing subscription
-        this.lastSubscriptionTimes = new Map(); // Track when each JID was last subscribed
 
         // Add queryPresence method to client if it doesn't exist
         if (!client.queryPresence) {
@@ -29,57 +22,125 @@ class PresenceManager {
             };
         }
 
-        // Listen for native presence updates to also store in history and update timestamps
+        // Listen for native presence updates to also store in history
         client.on('presence_update', update => {
-            // Record the update time
-            this.lastUpdateTimes.set(update.jid, Date.now());
-
-            // Reset connection health counter
-            this.connectionHealth.set(update.jid, {
-                failedAttempts: 0,
-                lastSuccess: Date.now()
-            });
-
-            // Store last seen if available
             if (!update.isOnline && update.lastSeen) {
                 this.storeLastSeen(update.jid, update.lastSeen);
             }
         });
+    }
 
-        // Start health check timer
-        this.startHealthCheck();
+    async openChat(jid) {
+        try {
+            const normalizedJid = jid.endsWith('@c.us') ? jid : `${jid}@c.us`;
+
+            // First try to find and click the chat in the sidebar
+            const clickResult = await this.client.pupPage.evaluate(chatId => {
+                try {
+                    // Find the chat in the sidebar by phone number
+                    const phoneNumber = chatId.replace('@c.us', '');
+
+                    // Look for elements containing the phone number
+                    const chatElements = Array.from(document.querySelectorAll('[data-testid="cell-frame-title"]'));
+                    const targetChat = chatElements.find(el =>
+                        el.textContent.includes(phoneNumber) ||
+            el.innerText.includes(phoneNumber)
+                    );
+
+                    if (targetChat) {
+                        // Find the clickable parent element
+                        let clickableElement = targetChat;
+                        while (clickableElement && !clickableElement.matches('[role="row"]')) {
+                            clickableElement = clickableElement.parentElement;
+                        }
+
+                        if (clickableElement) {
+                            // Click the chat
+                            clickableElement.click();
+                            return { success: true, method: 'sidebar_click' };
+                        }
+                    }
+
+                    return { success: false, error: 'Chat not found in sidebar' };
+                } catch (err) {
+                    return { success: false, error: err.message };
+                }
+            }, normalizedJid);
+
+            if (!clickResult.success) {
+                // If clicking failed, try alternative methods
+
+                // Try using WhatsApp's internal API
+                const apiResult = await this.client.pupPage.evaluate(chatId => {
+                    try {
+                        if (!window.Store || !window.Store.Chat || !window.Store.Cmd) {
+                            return { success: false, error: 'Store not available' };
+                        }
+
+                        const chat = window.Store.Chat.get(chatId);
+                        if (!chat) return { success: false, error: 'Chat not found' };
+
+                        // Try different methods based on WhatsApp version
+                        if (typeof window.Store.Cmd.openChatAt === 'function') {
+                            window.Store.Cmd.openChatAt(chat);
+                            return { success: true, method: 'openChatAt' };
+                        }
+
+                        if (typeof window.Store.Cmd.openChatFromUnread === 'function') {
+                            window.Store.Cmd.openChatFromUnread(chat);
+                            return { success: true, method: 'openChatFromUnread' };
+                        }
+
+                        return { success: false, error: 'No suitable open method found' };
+                    } catch (err) {
+                        return { success: false, error: err.message };
+                    }
+                }, normalizedJid);
+
+                if (!apiResult.success) {
+                    console.log(`Could not open chat: ${apiResult.error}`);
+                } else {
+                    console.log(`Opened chat using ${apiResult.method}`);
+                }
+            } else {
+                console.log(`Opened chat using ${clickResult.method}`);
+            }
+
+            // Wait for the header to load
+            await this.client.pupPage.waitForSelector('[data-testid="conversation-header"]', { timeout: 5000 })
+                .catch(() => console.log('Header not found after opening chat'));
+
+            // Focus the chat
+            await this.softFocus();
+
+            return true;
+        } catch (err) {
+            console.error(`Error opening chat for ${jid}:`, err);
+            return false;
+        }
     }
 
     async add(jid, options = {}) {
-        // Normalize JID format
+    // Normalize JID format
         const normalizedJid = jid.endsWith('@c.us') ? jid : `${jid}@c.us`;
         this.jids.add(normalizedJid);
-
-        // Initialize tracking data
-        this.lastUpdateTimes.set(normalizedJid, Date.now());
-        this.lastSubscriptionTimes.set(normalizedJid, Date.now());
-        this.connectionHealth.set(normalizedJid, {
-            failedAttempts: 0,
-            lastSuccess: Date.now()
-        });
 
         try {
             // Initial subscription
             await this.client.subscribePresence(normalizedJid);
 
+            // Open the chat if requested
+            if (options.openChat) {
+                await this.openChat(normalizedJid);
+            }
+
             // Get initial presence
             const presence = await this.client.getPresence(normalizedJid);
-            if (presence) {
-                // Update last update time
-                this.lastUpdateTimes.set(normalizedJid, Date.now());
-
-                // Store last seen if available
-                if (!presence.isOnline && presence.lastSeen) {
-                    this.storeLastSeen(normalizedJid, presence.lastSeen);
-                }
+            if (presence && !presence.isOnline && presence.lastSeen) {
+                this.storeLastSeen(normalizedJid, presence.lastSeen);
             }
         } catch (err) {
-            // Silent catch
+            console.error(`Error adding ${normalizedJid} to presence tracking:`, err);
         }
 
         return normalizedJid;
@@ -96,10 +157,6 @@ class PresenceManager {
 
         this.tick(); // Run immediately
         this.timer = setInterval(() => this.tick(), this.pollInterval);
-
-        // Make sure health check is running
-        this.startHealthCheck();
-
         return this;
     }
 
@@ -108,170 +165,11 @@ class PresenceManager {
             clearInterval(this.timer);
             this.timer = null;
         }
-
-        this.stopHealthCheck();
-
         return this;
     }
 
     isRunning() {
         return !!this.timer;
-    }
-
-    startHealthCheck() {
-        if (this.healthCheckTimer) return; // Already running
-
-        this.healthCheckTimer = setInterval(() => this.runHealthCheck(), this.healthCheckInterval);
-        return this;
-    }
-
-    stopHealthCheck() {
-        if (this.healthCheckTimer) {
-            clearInterval(this.healthCheckTimer);
-            this.healthCheckTimer = null;
-        }
-        return this;
-    }
-
-    async runHealthCheck() {
-        try {
-            // Check if client is still connected
-            if (!this.client.pupPage || this.client.pupPage.isClosed()) {
-                this.stop();
-                return;
-            }
-
-            const now = Date.now();
-
-            // Process a subset of JIDs each health check cycle to distribute load
-            const jidsToCheck = Array.from(this.jids);
-            const batchSize = Math.min(5, jidsToCheck.length); // Check up to 5 JIDs per cycle
-
-            // Randomly select JIDs to check
-            const selectedJids = this.getRandomSubset(jidsToCheck, batchSize);
-
-            for (const jid of selectedJids) {
-                try {
-                    // Check if updates are stale
-                    const lastUpdateTime = this.lastUpdateTimes.get(jid) || 0;
-                    const lastSubscriptionTime = this.lastSubscriptionTimes.get(jid) || 0;
-                    const updateAge = now - lastUpdateTime;
-                    const subscriptionAge = now - lastSubscriptionTime;
-
-                    // If subscription is old, renew it
-                    if (subscriptionAge > this.subscriptionRenewalInterval) {
-                        await this.renewSubscription(jid);
-                    }
-
-                    // If updates are stale, force a refresh
-                    if (updateAge > this.maxUpdateAge) {
-                        await this.forcePresenceRefresh(jid);
-                    }
-                } catch (err) {
-                    // Silent catch for individual JID errors
-                }
-            }
-        } catch (err) {
-            // If we get a fatal error, stop the health check
-            if (err.message && (
-                err.message.includes('Session closed') ||
-                err.message.includes('Target closed') ||
-                err.message.includes('has been closed')
-            )) {
-                this.stopHealthCheck();
-            }
-        }
-    }
-
-    getRandomSubset(array, size) {
-        const shuffled = [...array].sort(() => 0.5 - Math.random());
-        return shuffled.slice(0, size);
-    }
-
-    async renewSubscription(jid) {
-        try {
-            // Re-subscribe to presence updates
-            await this.client.subscribePresence(jid);
-
-            // Update subscription time
-            this.lastSubscriptionTimes.set(jid, Date.now());
-
-            return true;
-        } catch (err) {
-            return false;
-        }
-    }
-
-    async forcePresenceRefresh(jid) {
-        try {
-            // Try multiple strategies to refresh presence
-
-            // 1. Re-subscribe
-            await this.renewSubscription(jid);
-
-            // 2. Force a direct query
-            await this.client.queryPresence(jid).catch(() => {});
-
-            // 3. Try to open the chat briefly (this often triggers presence updates)
-            await this.openAndCloseChat(jid);
-
-            // Get fresh presence data
-            const presence = await this.client.getPresence(jid);
-            if (presence) {
-                // Update last update time
-                this.lastUpdateTimes.set(jid, Date.now());
-
-                // Reset connection health
-                this.connectionHealth.set(jid, {
-                    failedAttempts: 0,
-                    lastSuccess: Date.now()
-                });
-
-                // Emit the updated presence
-                this.client.emit('presence_update', {
-                    jid,
-                    isOnline: presence.isOnline,
-                    lastSeen: presence.lastSeen
-                });
-
-                return true;
-            }
-
-            return false;
-        } catch (err) {
-            // Track failed attempts
-            const health = this.connectionHealth.get(jid) || { failedAttempts: 0, lastSuccess: 0 };
-            health.failedAttempts++;
-            this.connectionHealth.set(jid, health);
-
-            return false;
-        }
-    }
-
-    async openAndCloseChat(jid) {
-        try {
-            // Open chat to trigger presence updates
-            await this.client.pupPage.evaluate(jid => {
-                try {
-                    const wid = window.Store.WidFactory.createWid(jid);
-                    const chat = window.Store.Chat.get(wid);
-                    if (chat) {
-                        window.Store.Cmd.openChatAt(chat);
-                        return true;
-                    }
-                    return false;
-                } catch (e) {
-                    return false;
-                }
-            }, jid);
-
-            // Wait a moment for presence to update
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            return true;
-        } catch (err) {
-            return false;
-        }
     }
 
     async softFocus() {
@@ -289,7 +187,269 @@ class PresenceManager {
             });
             return true;
         } catch (err) {
+            console.error('Error sending focus:', err);
             return false;
+        }
+    }
+
+    async extractLastSeenFromUI(jid) {
+        try {
+            // First, make sure the chat is open to see the header
+            await this.openChat(jid);
+
+            // Wait a moment for the UI to update
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            return await this.client.pupPage.evaluate(jid => {
+                try {
+                    // Try multiple sources to get the lastSeen timestamp
+
+                    // 1. Try the chat header (most reliable when chat is open)
+                    try {
+                        // Look for the status in the header (online/last seen)
+                        const headerSelectors = [
+                            // Main header status element
+                            'span[title*="last seen"]',
+                            // Alternative selectors for different WhatsApp versions
+                            '[data-testid="conversation-info-header-status"]',
+                            '.ggj6brxn[title*="last seen"]',
+                            '._3-cMa._3Whw5[title*="last seen"]',
+                            // Online status
+                            'span[title="online"]',
+                            '[data-testid="conversation-info-header-status"]:contains("online")'
+                        ];
+
+                        for (const selector of headerSelectors) {
+                            try {
+                                const elements = document.querySelectorAll(selector);
+                                for (const el of elements) {
+                                    const text = el.getAttribute('title') || el.textContent;
+                                    if (text && (text.includes('last seen') || text.includes('online'))) {
+                                        return { source: 'header', text };
+                                    }
+                                }
+                            } catch (err) {
+                                console.log(`Error with selector ${selector}:`, err);
+                            }
+                        }
+
+                        // Try to find any element in the header that might contain last seen info
+                        const headerArea = document.querySelector('[data-testid="conversation-header"]');
+                        if (headerArea) {
+                            const possibleStatusElements = headerArea.querySelectorAll('span, div');
+                            for (const el of possibleStatusElements) {
+                                const text = el.getAttribute('title') || el.textContent;
+                                if (text && (text.includes('last seen') || text.includes('online'))) {
+                                    return { source: 'header_scan', text };
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.log('Error checking header lastSeen:', e);
+                    }
+
+                    // 2. Try the contact info page
+                    try {
+                        const contactInfoLastSeen = document.querySelector('div[title*="last seen"]');
+                        if (contactInfoLastSeen) {
+                            const text = contactInfoLastSeen.getAttribute('title');
+                            if (text && text.includes('last seen')) {
+                                return { source: 'contact_info', text };
+                            }
+                        }
+                    } catch (e) {
+                        console.log('Error checking contact info lastSeen:', e);
+                    }
+
+                    // 3. Try the internal data structures - Contact
+                    try {
+                        if (window.Store && window.Store.Contact && typeof window.Store.Contact.get === 'function') {
+                            const contact = window.Store.Contact.get(jid);
+                            if (contact && contact.presence && contact.presence.lastSeen) {
+                                return { source: 'contact_presence', timestamp: contact.presence.lastSeen };
+                            }
+                        }
+                    } catch (e) {
+                        console.log('Error checking Contact model:', e);
+                    }
+
+                    // 4. Try the chat object
+                    try {
+                        if (window.Store && window.Store.Chat && typeof window.Store.Chat.get === 'function') {
+                            const chat = window.Store.Chat.get(jid);
+                            if (chat && chat.presence && chat.presence.lastSeen) {
+                                return { source: 'chat_presence', timestamp: chat.presence.lastSeen };
+                            }
+                        }
+                    } catch (e) {
+                        console.log('Error checking Chat model:', e);
+                    }
+
+                    // 5. Try the t value in the presence collection
+                    try {
+                        if (window.Store && window.Store.PresenceCollection &&
+                typeof window.Store.PresenceCollection.get === 'function') {
+                            const presenceData = window.Store.PresenceCollection.get(jid);
+                            if (presenceData && presenceData.chatstate && presenceData.chatstate.t) {
+                                return { source: 'chatstate', timestamp: presenceData.chatstate.t };
+                            }
+                        }
+                    } catch (e) {
+                        console.log('Error checking PresenceCollection:', e);
+                    }
+
+                    return null;
+                } catch (err) {
+                    console.error('Error in extractLastSeenFromUI:', err);
+                    return null;
+                }
+            }, jid);
+        } catch (err) {
+            console.error('Error extracting lastSeen from UI:', err);
+            return null;
+        }
+    }
+
+    parseLastSeenText(text) {
+        if (!text) return null;
+
+        // Handle "online" case immediately
+        if (text.toLowerCase() === 'online') {
+            return Math.floor(Date.now() / 1000); // Current timestamp
+        }
+
+        // Convert text like "last seen today at 7:21 pm" to a timestamp
+        try {
+            const now = new Date();
+            const lowerText = text.toLowerCase();
+
+            // Extract time components - handle different formats
+            let timeMatch = lowerText.match(/(\d{1,2}):(\d{2})\s*(am|pm)/i);
+
+            // Try 24-hour format if AM/PM format fails
+            if (!timeMatch) {
+                timeMatch = lowerText.match(/(\d{1,2}):(\d{2})/);
+                if (timeMatch) {
+                    // Assume 24-hour format
+                    const hours = parseInt(timeMatch[1], 10);
+                    const minutes = parseInt(timeMatch[2], 10);
+
+                    // Set the time
+                    const date = new Date(now);
+                    date.setHours(hours, minutes, 0, 0);
+
+                    // Handle relative day references
+                    if (lowerText.includes('yesterday')) {
+                        date.setDate(date.getDate() - 1);
+                    } else if (lowerText.includes('today')) {
+                        // Already set to today
+                    } else if (lowerText.match(/\d+\s+days?\s+ago/)) {
+                        // Handle "X days ago" format
+                        const daysAgoMatch = lowerText.match(/(\d+)\s+days?\s+ago/);
+                        if (daysAgoMatch) {
+                            const daysAgo = parseInt(daysAgoMatch[1], 10);
+                            date.setDate(date.getDate() - daysAgo);
+                        }
+                    } else if (lowerText.match(/\d+\s+weeks?\s+ago/)) {
+                        // Handle "X weeks ago" format
+                        const weeksAgoMatch = lowerText.match(/(\d+)\s+weeks?\s+ago/);
+                        if (weeksAgoMatch) {
+                            const weeksAgo = parseInt(weeksAgoMatch[1], 10);
+                            date.setDate(date.getDate() - (weeksAgo * 7));
+                        }
+                    }
+
+                    // Convert to Unix timestamp (seconds)
+                    return Math.floor(date.getTime() / 1000);
+                }
+
+                return null; // No time format found
+            }
+
+            // Process 12-hour format
+            let hours = parseInt(timeMatch[1], 10);
+            const minutes = parseInt(timeMatch[2], 10);
+            const isPM = timeMatch[3].toLowerCase() === 'pm';
+
+            // Convert to 24-hour format
+            if (isPM && hours < 12) hours += 12;
+            if (!isPM && hours === 12) hours = 0;
+
+            // Set the time
+            const date = new Date(now);
+            date.setHours(hours, minutes, 0, 0);
+
+            // Handle different date references
+            if (lowerText.includes('yesterday')) {
+                date.setDate(date.getDate() - 1);
+            } else if (lowerText.includes('today')) {
+                // Already set to today
+            } else if (lowerText.match(/\d+\s+days?\s+ago/)) {
+                // Handle "X days ago" format
+                const daysAgoMatch = lowerText.match(/(\d+)\s+days?\s+ago/);
+                if (daysAgoMatch) {
+                    const daysAgo = parseInt(daysAgoMatch[1], 10);
+                    date.setDate(date.getDate() - daysAgo);
+                }
+            } else if (lowerText.match(/\d+\s+weeks?\s+ago/)) {
+                // Handle "X weeks ago" format
+                const weeksAgoMatch = lowerText.match(/(\d+)\s+weeks?\s+ago/);
+                if (weeksAgoMatch) {
+                    const weeksAgo = parseInt(weeksAgoMatch[1], 10);
+                    date.setDate(date.getDate() - (weeksAgo * 7));
+                }
+            }
+            // Handle month names (e.g., "last seen January 15 at 7:21 pm")
+            else if (lowerText.match(/january|february|march|april|may|june|july|august|september|october|november|december/)) {
+                const months = {
+                    january: 0, february: 1, march: 2, april: 3, may: 4, june: 5,
+                    july: 6, august: 7, september: 8, october: 9, november: 10, december: 11
+                };
+
+                // Try to extract month and day
+                for (const [monthName, monthIndex] of Object.entries(months)) {
+                    if (lowerText.includes(monthName)) {
+                        const dayMatch = lowerText.match(new RegExp(`${monthName}\\s+(\\d{1,2})`));
+                        if (dayMatch) {
+                            const day = parseInt(dayMatch[1], 10);
+                            date.setMonth(monthIndex, day);
+
+                            // If the resulting date is in the future, assume it's from last year
+                            if (date > now) {
+                                date.setFullYear(date.getFullYear() - 1);
+                            }
+
+                            break;
+                        }
+                    }
+                }
+            }
+            // Handle specific date case (e.g., "last seen 5/12/2023 at 7:21 pm")
+            else if (lowerText.match(/\d{1,2}\/\d{1,2}\/\d{4}/)) {
+                const dateMatch = lowerText.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+                if (dateMatch) {
+                    const month = parseInt(dateMatch[1], 10) - 1; // JS months are 0-indexed
+                    const day = parseInt(dateMatch[2], 10);
+                    const year = parseInt(dateMatch[3], 10);
+                    date.setFullYear(year, month, day);
+                }
+            }
+            // Handle specific date case (e.g., "last seen 12-05-2023 at 7:21 pm")
+            else if (lowerText.match(/\d{1,2}-\d{1,2}-\d{4}/)) {
+                const dateMatch = lowerText.match(/(\d{1,2})-(\d{1,2})-(\d{4})/);
+                if (dateMatch) {
+                    const day = parseInt(dateMatch[1], 10);
+                    const month = parseInt(dateMatch[2], 10) - 1; // JS months are 0-indexed
+                    const year = parseInt(dateMatch[3], 10);
+                    date.setFullYear(year, month, day);
+                }
+            }
+
+            // Convert to Unix timestamp (seconds)
+            return Math.floor(date.getTime() / 1000);
+        } catch (err) {
+            console.error('Error parsing lastSeen text:', err, text);
+            return null;
         }
     }
 
@@ -297,6 +457,7 @@ class PresenceManager {
         try {
             // Check if client is still connected
             if (!this.client.pupPage || this.client.pupPage.isClosed()) {
+                console.log('Browser page is closed, stopping presence manager');
                 this.stop();
                 return;
             }
@@ -304,47 +465,50 @@ class PresenceManager {
             // Send focus to keep connection alive (throttled internally)
             await this.softFocus();
 
-            const now = Date.now();
+            // Group JIDs by online status to optimize processing
+            const jidsToProcess = Array.from(this.jids);
+            const onlineJids = [];
+            const offlineJidsWithLastSeen = [];
+            const offlineJidsWithoutLastSeen = [];
 
-            // Process each JID
-            for (const jid of this.jids) {
+            // First pass: categorize JIDs by current presence status
+            for (const jid of jidsToProcess) {
                 try {
-                    // Check if we need to renew subscription
-                    const lastSubscriptionTime = this.lastSubscriptionTimes.get(jid) || 0;
-                    const subscriptionAge = now - lastSubscriptionTime;
+                    const currentPresence = await this.client.getPresence(jid).catch(() => null);
+                    if (!currentPresence) continue;
 
-                    // Renew subscription if it's old
-                    if (subscriptionAge > this.subscriptionRenewalInterval) {
-                        await this.renewSubscription(jid);
+                    if (currentPresence.isOnline) {
+                        onlineJids.push(jid);
+                    } else if (currentPresence.lastSeen) {
+                        offlineJidsWithLastSeen.push(jid);
+                    } else {
+                        offlineJidsWithoutLastSeen.push(jid);
                     }
+                } catch (err) {
+                    console.log(`Could not get presence for ${jid}, skipping this cycle`);
+                }
+            }
 
+            // Process online JIDs (just emit events, no need to query)
+            for (const jid of onlineJids) {
+                try {
+                    const presence = { jid, isOnline: true };
+                    this.client.emit('enhanced_presence', presence);
+                    this.client.emit('presence_update', presence);
+                } catch (err) {
+                    console.error(`Error processing online presence for ${jid}:`, err);
+                }
+            }
+
+            // Process offline JIDs with lastSeen (query for updates but don't need UI extraction)
+            for (const jid of offlineJidsWithLastSeen) {
+                try {
                     // Query for fresh data
                     await this.client.queryPresence(jid).catch(() => {});
 
                     // Get updated presence
                     const presence = await this.client.getPresence(jid).catch(() => null);
-                    if (!presence) {
-                        // Track failed attempts
-                        const health = this.connectionHealth.get(jid) || { failedAttempts: 0, lastSuccess: 0 };
-                        health.failedAttempts++;
-                        this.connectionHealth.set(jid, health);
-
-                        // If we've failed multiple times, try to force a refresh
-                        if (health.failedAttempts >= 3) {
-                            await this.forcePresenceRefresh(jid);
-                        }
-
-                        continue;
-                    }
-
-                    // Update last update time
-                    this.lastUpdateTimes.set(jid, now);
-
-                    // Reset connection health
-                    this.connectionHealth.set(jid, {
-                        failedAttempts: 0,
-                        lastSuccess: now
-                    });
+                    if (!presence) continue;
 
                     // Store lastSeen if available
                     if (!presence.isOnline && presence.lastSeen) {
@@ -360,16 +524,80 @@ class PresenceManager {
                         lastSeen: enhanced.lastSeen
                     });
                 } catch (err) {
-                    // Silent catch for individual JID errors
+                    console.error(`Error processing presence for ${jid}:`, err);
+                }
+            }
+
+            // Process offline JIDs without lastSeen (need UI extraction)
+            // Only process a few per cycle to avoid too many chat openings
+            const maxUiExtractionsPerCycle = 2;
+            const jidsToExtract = offlineJidsWithoutLastSeen.slice(0, maxUiExtractionsPerCycle);
+
+            for (const jid of jidsToExtract) {
+                try {
+                    // Query for fresh data
+                    await this.client.queryPresence(jid).catch(() => {});
+
+                    // Get updated presence
+                    let presence = await this.client.getPresence(jid).catch(() => null);
+                    if (!presence) continue;
+
+                    // If still no lastSeen, try to extract from UI
+                    if (!presence.isOnline && !presence.lastSeen) {
+                        try {
+                            // Open the chat to see the header
+                            await this.openChat(jid);
+
+                            const uiLastSeen = await this.extractLastSeenFromUI(jid);
+                            if (uiLastSeen) {
+                                console.log(`Extracted lastSeen for ${jid} from ${uiLastSeen.source}:`, uiLastSeen);
+
+                                // If we got a timestamp directly, use it
+                                if (uiLastSeen.timestamp) {
+                                    presence.lastSeen = uiLastSeen.timestamp;
+                                    presence.lastSeenSource = uiLastSeen.source;
+                                }
+                                // If we got text, parse it
+                                else if (uiLastSeen.text) {
+                                    const parsedTimestamp = this.parseLastSeenText(uiLastSeen.text);
+                                    if (parsedTimestamp) {
+                                        presence.lastSeen = parsedTimestamp;
+                                        presence.lastSeenSource = `${uiLastSeen.source}_parsed`;
+                                    }
+                                }
+                            }
+                        } catch (err) {
+                            console.error('Error extracting lastSeen from UI:', err);
+                        }
+                    }
+
+                    // Store lastSeen if available
+                    if (!presence.isOnline && presence.lastSeen) {
+                        this.storeLastSeen(jid, presence.lastSeen);
+                    }
+
+                    // Enhance and emit both events for backward compatibility
+                    const enhanced = this.enhancePresence(jid, presence);
+                    this.client.emit('enhanced_presence', enhanced);
+                    this.client.emit('presence_update', {
+                        jid,
+                        isOnline: enhanced.isOnline,
+                        lastSeen: enhanced.lastSeen
+                    });
+                } catch (err) {
+                    console.error(`Error processing presence for ${jid}:`, err);
                 }
             }
         } catch (err) {
+            console.error('Error in presence tick:', err);
+
             // If we get a fatal error, stop the manager
             if (err.message && (
                 err.message.includes('Session closed') ||
-                err.message.includes('Target closed') ||
-                err.message.includes('has been closed')
+          err.message.includes('Target closed') ||
+          err.message.includes('has been closed')
             )) {
+                console.log('Browser session closed, stopping presence manager');
                 this.stop();
             }
         }
@@ -388,7 +616,7 @@ class PresenceManager {
     }
 
     enhancePresence(jid, presence) {
-        // If we already have lastSeen, no need to enhance
+    // If we already have lastSeen, no need to enhance
         if (presence.lastSeen) return { jid, ...presence };
 
         // Try to get historical lastSeen
@@ -408,6 +636,40 @@ class PresenceManager {
         const normalizedJid = jid.endsWith('@c.us') ? jid : `${jid}@c.us`;
         const history = this.history.get(normalizedJid) || [];
         return history.length > 0 ? history[history.length - 1] : null;
+    }
+
+    // Optional: Persistence methods
+    saveToStorage() {
+    // Convert history Map to serializable object
+        const historyObj = {};
+        for (const [jid, timestamps] of this.history.entries()) {
+            historyObj[jid] = timestamps;
+        }
+
+        return {
+            jids: Array.from(this.jids),
+            history: historyObj
+        };
+    }
+
+    loadFromStorage(data) {
+        if (!data) return this;
+
+        // Restore JIDs
+        if (Array.isArray(data.jids)) {
+            data.jids.forEach(jid => this.jids.add(jid));
+        }
+
+        // Restore history
+        if (data.history && typeof data.history === 'object') {
+            for (const [jid, timestamps] of Object.entries(data.history)) {
+                if (Array.isArray(timestamps)) {
+                    this.history.set(jid, timestamps);
+                }
+            }
+        }
+
+        return this;
     }
 
     getStatus() {
