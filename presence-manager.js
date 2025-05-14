@@ -5,9 +5,23 @@ class PresenceManager {
         this.jids = new Set();
         this.history = new Map();
         this.timer = null;
+        this.clickTimer = null;
         this.lastFocusTime = 0;
-        this.focusInterval = 60000; // 1 minute between focus calls
-        this.pollInterval = 15000;  // 15 seconds between polls
+        this.lastClickTime = 0;
+        this.focusInterval = 30000; // 30 seconds between focus calls (reduced from 60s)
+        this.clickInterval = 30000; // 30 seconds between chat area clicks
+        this.pollInterval = 20000;  // 10 seconds between polls (reduced from 15s)
+        this.lastOpenedChat = null;
+        this.lastOpenTime = 0;
+        this.chatRotationInterval = 120000; // 2 minutes between rotating chats
+        this.debugMode = false; // Set to true to enable verbose logging
+        this.primaryJid = null; // The primary JID to focus on
+
+        // Track online status changes to detect transitions
+        this.onlineStatus = new Map();
+
+        // Track data sources for comparison
+        this.lastSeenSources = new Map();
 
         // Add queryPresence method to client if it doesn't exist
         if (!client.queryPresence) {
@@ -33,111 +47,216 @@ class PresenceManager {
     async openChat(jid) {
         try {
             const normalizedJid = jid.endsWith('@c.us') ? jid : `${jid}@c.us`;
+            const phoneNumber = normalizedJid.replace('@c.us', '');
 
-            // First try to find and click the chat in the sidebar
-            const clickResult = await this.client.pupPage.evaluate(chatId => {
-                try {
-                    // Find the chat in the sidebar by phone number
-                    const phoneNumber = chatId.replace('@c.us', '');
+            // Check if this is the primary JID we want to track
+            const isPrimaryJid = this.primaryJid && normalizedJid === this.primaryJid;
 
-                    // Look for elements containing the phone number
-                    const chatElements = Array.from(document.querySelectorAll('[data-testid="cell-frame-title"]'));
-                    const targetChat = chatElements.find(el =>
-                        el.textContent.includes(phoneNumber) ||
-            el.innerText.includes(phoneNumber)
-                    );
-
-                    if (targetChat) {
-                        // Find the clickable parent element
-                        let clickableElement = targetChat;
-                        while (clickableElement && !clickableElement.matches('[role="row"]')) {
-                            clickableElement = clickableElement.parentElement;
-                        }
-
-                        if (clickableElement) {
-                            // Click the chat
-                            clickableElement.click();
-                            return { success: true, method: 'sidebar_click' };
-                        }
-                    }
-
-                    return { success: false, error: 'Chat not found in sidebar' };
-                } catch (err) {
-                    return { success: false, error: err.message };
+            if (this.debugMode) {
+                console.log(`[PresenceManager] Opening chat for ${normalizedJid} (${phoneNumber})`);
+                if (isPrimaryJid) {
+                    console.log('[PresenceManager] This is our primary JID for tracking');
                 }
-            }, normalizedJid);
-
-            if (!clickResult.success) {
-                // If clicking failed, try alternative methods
-
-                // Try using WhatsApp's internal API
-                const apiResult = await this.client.pupPage.evaluate(chatId => {
-                    try {
-                        if (!window.Store || !window.Store.Chat || !window.Store.Cmd) {
-                            return { success: false, error: 'Store not available' };
-                        }
-
-                        const chat = window.Store.Chat.get(chatId);
-                        if (!chat) return { success: false, error: 'Chat not found' };
-
-                        // Try different methods based on WhatsApp version
-                        if (typeof window.Store.Cmd.openChatAt === 'function') {
-                            window.Store.Cmd.openChatAt(chat);
-                            return { success: true, method: 'openChatAt' };
-                        }
-
-                        if (typeof window.Store.Cmd.openChatFromUnread === 'function') {
-                            window.Store.Cmd.openChatFromUnread(chat);
-                            return { success: true, method: 'openChatFromUnread' };
-                        }
-
-                        return { success: false, error: 'No suitable open method found' };
-                    } catch (err) {
-                        return { success: false, error: err.message };
-                    }
-                }, normalizedJid);
-
-                if (!apiResult.success) {
-                    console.log(`Could not open chat: ${apiResult.error}`);
-                } else {
-                    console.log(`Opened chat using ${apiResult.method}`);
-                }
-            } else {
-                console.log(`Opened chat using ${clickResult.method}`);
             }
 
-            // Wait for the header to load
-            await this.client.pupPage.waitForSelector('[data-testid="conversation-header"]', { timeout: 5000 })
-                .catch(() => console.log('Header not found after opening chat'));
+            // First check if we're already on a chat page
+            const alreadyOnChat = await this.client.pupPage.evaluate(() => {
+                return !!document.querySelector('[data-testid="conversation-panel-body"]');
+            });
 
-            // Focus the chat
-            await this.softFocus();
+            if (alreadyOnChat) {
+                // If we're already on a chat, check if it's the right one
+                const currentChatTitle = await this.client.pupPage.evaluate(() => {
+                    const titleElement = document.querySelector('[data-testid="conversation-header"] [data-testid="conversation-info-header-chat-title"]');
+                    return titleElement ? titleElement.textContent : null;
+                });
+
+                if (currentChatTitle && currentChatTitle.includes(phoneNumber)) {
+                    console.log(`[PresenceManager] Already on the correct chat: ${currentChatTitle}`);
+
+                    // Just focus on the input box
+                    const inputBox = await this.client.pupPage.$('[data-testid="conversation-compose-box-input"]');
+                    if (inputBox) {
+                        await inputBox.click();
+                        console.log('[PresenceManager] Clicked on input box to focus');
+                        return true;
+                    }
+                }
+            }
+
+            // Use direct hash navigation - the most reliable method
+            console.log(`[PresenceManager] Using direct hash navigation for ${phoneNumber}`);
+
+            // Use the phone number from the JID
+            const numberToUse = phoneNumber;
+
+            await this.client.pupPage.evaluate((phone) => {
+                window.location.hash = `#/p/${phone}`;
+            }, numberToUse);
+
+            // Wait for navigation
+            await new Promise(resolve => setTimeout(resolve, 3000));
+
+            // Focus on the input box to ensure we can see presence info
+            const inputBox = await this.client.pupPage.$('[data-testid="conversation-compose-box-input"]');
+            if (inputBox) {
+                await inputBox.click();
+                console.log('[PresenceManager] Clicked on input box to focus');
+            }
 
             return true;
         } catch (err) {
-            console.error(`Error opening chat for ${jid}:`, err);
+            console.error(`[PresenceManager] Error opening chat for ${jid}:`, err);
             return false;
         }
     }
 
+    /**
+     * Enable or disable debug mode
+     * @param {boolean} enabled Whether to enable debug mode
+     */
+    setDebugMode(enabled = true) {
+        this.debugMode = enabled;
+        return this;
+    }
+
+    /**
+     * Set the primary JID to focus on
+     * @param {string} jid The JID to set as primary
+     * @returns {this} The PresenceManager instance for chaining
+     */
+    setPrimaryJid(jid) {
+        const normalizedJid = jid.endsWith('@c.us') ? jid : `${jid}@c.us`;
+        this.primaryJid = normalizedJid;
+
+        if (this.debugMode) {
+            console.log(`[PresenceManager] Set primary JID to ${normalizedJid}`);
+        }
+
+        return this;
+    }
+
+    /**
+     * Get the primary JID
+     * @returns {string|null} The primary JID or null if not set
+     */
+    getPrimaryJid() {
+        return this.primaryJid;
+    }
+
+    /**
+     * Set the click interval in milliseconds
+     * @param {number} interval The interval in milliseconds
+     * @returns {this} The PresenceManager instance for chaining
+     */
+    setClickInterval(interval) {
+        this.clickInterval = interval;
+
+        // Restart the click timer if it's already running
+        if (this.clickTimer) {
+            clearInterval(this.clickTimer);
+            this.clickTimer = setInterval(() => this.simulateChatClick(), this.clickInterval);
+
+            if (this.debugMode) {
+                console.log(`[PresenceManager] Updated click interval to ${interval}ms`);
+            }
+        }
+
+        return this;
+    }
+
+
+
+    /**
+     * Add a contact to presence tracking
+     * @param {string} jid The JID to track
+     * @param {object} options Options for tracking
+     * @param {boolean} options.openChat Whether to open the chat immediately
+     * @param {boolean} options.forceQuery Whether to force a presence query
+     * @param {boolean} options.setPrimary Whether to set this as the primary JID for focus
+     * @returns {string} The normalized JID
+     */
     async add(jid, options = {}) {
-    // Normalize JID format
+        // Normalize JID format
         const normalizedJid = jid.endsWith('@c.us') ? jid : `${jid}@c.us`;
         this.jids.add(normalizedJid);
 
         try {
+            if (this.debugMode) {
+                console.log(`[PresenceManager] Adding ${normalizedJid} to presence tracking`);
+            }
+
+            // Set as primary JID if requested or if this is the first JID added
+            if (options.setPrimary || this.jids.size === 1) {
+                this.setPrimaryJid(normalizedJid);
+            }
+
             // Initial subscription
-            await this.client.subscribePresence(normalizedJid);
+            const subscribed = await this.client.subscribePresence(normalizedJid);
+
+            if (this.debugMode) {
+                console.log(`[PresenceManager] Subscription result for ${normalizedJid}: ${subscribed}`);
+            }
 
             // Open the chat if requested
             if (options.openChat) {
-                await this.openChat(normalizedJid);
+                const opened = await this.openChat(normalizedJid);
+
+                if (this.debugMode) {
+                    console.log(`[PresenceManager] Chat open result for ${normalizedJid}: ${opened}`);
+                }
+
+                // If this is the first chat we're opening, set it as the last opened chat
+                if (opened && !this.lastOpenedChat) {
+                    this.lastOpenedChat = normalizedJid;
+                    this.lastOpenTime = Date.now();
+                }
+            }
+
+            // Force a presence query if requested or if openChat is true
+            if (options.forceQuery || options.openChat) {
+                await this.client.queryPresence(normalizedJid).catch(err => {
+                    if (this.debugMode) {
+                        console.log(`[PresenceManager] Force query failed for ${normalizedJid}:`, err.message);
+                    }
+                });
             }
 
             // Get initial presence
             const presence = await this.client.getPresence(normalizedJid);
+
+            if (this.debugMode) {
+                console.log(`[PresenceManager] Initial presence for ${normalizedJid}:`,
+                    presence ? (presence.isOnline ? 'Online' : 'Offline') : 'No data',
+                    presence && presence.lastSeen ? `Last seen: ${new Date(presence.lastSeen * 1000).toLocaleString()}` : 'No last seen');
+            }
+
             if (presence && !presence.isOnline && presence.lastSeen) {
                 this.storeLastSeen(normalizedJid, presence.lastSeen);
+            }
+
+            // If no lastSeen is available, try to extract it from the UI
+            if (presence && !presence.isOnline && !presence.lastSeen && options.openChat) {
+                try {
+                    const uiLastSeen = await this.extractLastSeenFromUI(normalizedJid);
+                    if (uiLastSeen) {
+                        if (this.debugMode) {
+                            console.log(`[PresenceManager] Extracted initial lastSeen for ${normalizedJid} from ${uiLastSeen.source}`);
+                        }
+
+                        // Process the UI last seen data
+                        if (uiLastSeen.timestamp) {
+                            this.storeLastSeen(normalizedJid, uiLastSeen.timestamp);
+                        } else if (uiLastSeen.text) {
+                            const parsedTimestamp = this.parseLastSeenText(uiLastSeen.text);
+                            if (parsedTimestamp) {
+                                this.storeLastSeen(normalizedJid, parsedTimestamp);
+                            }
+                        }
+                    }
+                } catch (err) {
+                    console.error(`Error extracting initial lastSeen for ${normalizedJid}:`, err);
+                }
             }
         } catch (err) {
             console.error(`Error adding ${normalizedJid} to presence tracking:`, err);
@@ -157,6 +276,15 @@ class PresenceManager {
 
         this.tick(); // Run immediately
         this.timer = setInterval(() => this.tick(), this.pollInterval);
+
+        // Start the chat click timer
+        this.simulateChatClick(); // Run immediately
+        this.clickTimer = setInterval(() => this.simulateChatClick(), this.clickInterval);
+
+        if (this.debugMode) {
+            console.log(`[PresenceManager] Started with poll interval: ${this.pollInterval}ms, click interval: ${this.clickInterval}ms`);
+        }
+
         return this;
     }
 
@@ -165,6 +293,16 @@ class PresenceManager {
             clearInterval(this.timer);
             this.timer = null;
         }
+
+        if (this.clickTimer) {
+            clearInterval(this.clickTimer);
+            this.clickTimer = null;
+        }
+
+        if (this.debugMode) {
+            console.log('[PresenceManager] Stopped all timers');
+        }
+
         return this;
     }
 
@@ -178,16 +316,286 @@ class PresenceManager {
 
         try {
             this.lastFocusTime = now;
-            await this.client.pupPage.evaluate(() => {
+            const result = await this.client.pupPage.evaluate(() => {
                 if (window.Store && window.Store.AppState && typeof window.Store.AppState.sendFocus === 'function') {
                     window.Store.AppState.sendFocus(true);
                     return true;
                 }
                 return false;
             });
-            return true;
+
+            if (this.debugMode) {
+                console.log(`[PresenceManager] Focus sent: ${result}`);
+            }
+
+            return result;
         } catch (err) {
             console.error('Error sending focus:', err);
+            return false;
+        }
+    }
+
+    /**
+     * Performs multiple UI interactions to keep WhatsApp Web active and prevent idle state
+     * This is crucial for maintaining presence detection
+     * @returns {Promise<boolean>} Whether the interactions were successful
+     */
+    async simulateChatClick() {
+        const now = Date.now();
+        if (now < this.lastClickTime + this.clickInterval) return false;
+
+        try {
+            this.lastClickTime = now;
+
+            // First check if we're on a chat page
+            const onChatPage = await this.client.pupPage.evaluate(() => {
+                return !!document.querySelector('[data-testid="conversation-panel-body"]');
+            });
+
+            if (!onChatPage) {
+                if (this.debugMode) {
+                    console.log('[PresenceManager] Not on chat page, opening primary chat');
+                }
+
+                // If we're not on a chat page, try to open the primary chat
+                if (this.primaryJid) {
+                    await this.openChat(this.primaryJid);
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for navigation
+
+                    // Check again if we're on a chat page
+                    const nowOnChatPage = await this.client.pupPage.evaluate(() => {
+                        return !!document.querySelector('[data-testid="conversation-panel-body"]');
+                    });
+
+                    if (!nowOnChatPage) {
+                        if (this.debugMode) {
+                            console.log('[PresenceManager] Failed to open chat page, trying direct navigation');
+                        }
+
+                        // Try direct navigation as a fallback
+                        const phoneNumber = this.primaryJid.replace('@c.us', '');
+                        await this.client.pupPage.evaluate((phone) => {
+                            window.location.hash = `#/p/${phone}`;
+                        }, phoneNumber);
+
+                        await new Promise(resolve => setTimeout(resolve, 1500)); // Wait longer for navigation
+                    }
+                }
+            }
+
+            // Get all the important UI elements we need to interact with
+            const uiElements = await this.client.pupPage.evaluate(() => {
+                try {
+                    const elements = {
+                        header: document.querySelector('[data-testid="conversation-header"]'),
+                        chatTitle: document.querySelector('[data-testid="conversation-info-header-chat-title"]'),
+                        chatArea: document.querySelector('[data-testid="conversation-panel-body"]'),
+                        inputBox: document.querySelector('[data-testid="conversation-compose-box-input"]'),
+                        bubbles: Array.from(document.querySelectorAll('[data-testid="msg-container"]')),
+                        statusElement: document.querySelector('span[title*="last seen"], span[title="online"]'),
+                        searchBox: document.querySelector('[data-testid="chat-list-search"]')
+                    };
+
+                    // Get positions for each element
+                    const positions = {};
+                    for (const [key, element] of Object.entries(elements)) {
+                        if (!element || (Array.isArray(element) && element.length === 0)) {
+                            positions[key] = null;
+                            continue;
+                        }
+
+                        if (Array.isArray(element)) {
+                            // For bubbles, get the middle one
+                            if (element.length > 0) {
+                                const middleIndex = Math.floor(element.length / 2);
+                                const rect = element[middleIndex].getBoundingClientRect();
+                                positions[key] = {
+                                    x: rect.left + (rect.width / 2),
+                                    y: rect.top + (rect.height / 2),
+                                    width: rect.width,
+                                    height: rect.height,
+                                    index: middleIndex,
+                                    total: element.length
+                                };
+                            }
+                        } else {
+                            const rect = element.getBoundingClientRect();
+                            positions[key] = {
+                                x: rect.left + (rect.width / 2),
+                                y: rect.top + (rect.height / 2),
+                                width: rect.width,
+                                height: rect.height
+                            };
+                        }
+                    }
+
+                    return {
+                        success: true,
+                        positions
+                    };
+                } catch (err) {
+                    return { success: false, error: err.message };
+                }
+            });
+
+            if (!uiElements.success) {
+                if (this.debugMode) {
+                    console.log(`[PresenceManager] Failed to get UI elements: ${uiElements.error}`);
+                }
+                return false;
+            }
+
+            const positions = uiElements.positions;
+            let interactionCount = 0;
+
+            // 1. Click on the header if available
+            if (positions.header) {
+                await this.client.pupPage.mouse.move(positions.header.x, positions.header.y);
+                await this.client.pupPage.mouse.down();
+                await new Promise(resolve => setTimeout(resolve, 100));
+                await this.client.pupPage.mouse.up();
+
+                if (this.debugMode) {
+                    console.log(`[PresenceManager] Clicked on header at (${positions.header.x}, ${positions.header.y})`);
+                }
+                interactionCount++;
+
+                // Move mouse across header to trigger any hover effects
+                await this.client.pupPage.mouse.move(
+                    positions.header.x - (positions.header.width * 0.3),
+                    positions.header.y
+                );
+                await new Promise(resolve => setTimeout(resolve, 100));
+                await this.client.pupPage.mouse.move(
+                    positions.header.x + (positions.header.width * 0.3),
+                    positions.header.y
+                );
+
+                // Press Escape key to close any dialogs that might have opened after clicking the header
+                await this.client.pupPage.keyboard.press('Escape');
+
+                if (this.debugMode) {
+                    console.log('[PresenceManager] Pressed Escape key after header interaction');
+                }
+            }
+
+            // 2. Click on chat title if available
+            if (positions.chatTitle) {
+                await this.client.pupPage.mouse.move(positions.chatTitle.x, positions.chatTitle.y);
+                await this.client.pupPage.mouse.down();
+                await new Promise(resolve => setTimeout(resolve, 100));
+                await this.client.pupPage.mouse.up();
+
+                if (this.debugMode) {
+                    console.log(`[PresenceManager] Clicked on chat title at (${positions.chatTitle.x}, ${positions.chatTitle.y})`);
+                }
+                interactionCount++;
+            }
+
+            // 3. Click on a chat bubble if available
+            if (positions.bubbles) {
+                await this.client.pupPage.mouse.move(positions.bubbles.x, positions.bubbles.y);
+                await this.client.pupPage.mouse.down();
+                await new Promise(resolve => setTimeout(resolve, 100));
+                await this.client.pupPage.mouse.up();
+
+                if (this.debugMode) {
+                    console.log(`[PresenceManager] Clicked on chat bubble ${positions.bubbles.index + 1}/${positions.bubbles.total} at (${positions.bubbles.x}, ${positions.bubbles.y})`);
+                }
+                interactionCount++;
+            }
+
+            // 4. Click on the chat area and scroll if available
+            if (positions.chatArea) {
+                // Click in the chat area
+                await this.client.pupPage.mouse.move(positions.chatArea.x, positions.chatArea.y);
+                await this.client.pupPage.mouse.down();
+                await new Promise(resolve => setTimeout(resolve, 100));
+                await this.client.pupPage.mouse.up();
+
+                if (this.debugMode) {
+                    console.log(`[PresenceManager] Clicked in chat area at (${positions.chatArea.x}, ${positions.chatArea.y})`);
+                }
+                interactionCount++;
+
+
+            }
+
+            // 5. Click on the input box
+            if (positions.inputBox) {
+                // Click the input box
+                await this.client.pupPage.mouse.move(positions.inputBox.x, positions.inputBox.y);
+                await this.client.pupPage.mouse.down();
+                await new Promise(resolve => setTimeout(resolve, 100));
+                await this.client.pupPage.mouse.up();
+
+                if (this.debugMode) {
+                    console.log(`[PresenceManager] Clicked on input box at (${positions.inputBox.x}, ${positions.inputBox.y})`);
+                }
+                interactionCount++;
+            }
+
+            // 6. Click on the status element if available
+            if (positions.statusElement) {
+                await this.client.pupPage.mouse.move(positions.statusElement.x, positions.statusElement.y);
+                await this.client.pupPage.mouse.down();
+                await new Promise(resolve => setTimeout(resolve, 100));
+                await this.client.pupPage.mouse.up();
+
+                if (this.debugMode) {
+                    console.log(`[PresenceManager] Clicked on status element at (${positions.statusElement.x}, ${positions.statusElement.y})`);
+                }
+                interactionCount++;
+            }
+
+
+
+            if (this.debugMode) {
+                console.log(`[PresenceManager] Performed ${interactionCount} UI interactions to keep WhatsApp active`);
+            }
+
+            return interactionCount > 0;
+        } catch (err) {
+            console.error('Error performing UI interactions:', err);
+            return false;
+        }
+    }
+
+    /**
+     * Focuses on the primary chat to keep presence subscription active
+     * This is crucial for maintaining online status detection
+     */
+    async rotateFocusedChat() {
+        if (this.jids.size === 0) return false;
+
+        const now = Date.now();
+        if (now < this.lastOpenTime + this.chatRotationInterval) return false;
+
+        try {
+            // Get all JIDs we're tracking
+            const jidsArray = Array.from(this.jids);
+
+            // If we have a primary JID that was previously set, use it
+            // Otherwise use the first JID in the list
+            const targetJid = this.primaryJid || jidsArray[0];
+
+            this.lastOpenedChat = targetJid;
+            this.lastOpenTime = now;
+
+            if (this.debugMode) {
+                console.log(`[PresenceManager] Focusing on primary chat: ${targetJid}`);
+            }
+
+            // Open the chat and resubscribe to presence
+            await this.openChat(targetJid);
+            await this.client.subscribePresence(targetJid);
+
+            // Force a presence query
+            await this.client.queryPresence(targetJid).catch(() => {});
+
+            return true;
+        } catch (err) {
+            console.error('Error focusing on primary chat:', err);
             return false;
         }
     }
@@ -465,6 +873,14 @@ class PresenceManager {
             // Send focus to keep connection alive (throttled internally)
             await this.softFocus();
 
+            // Rotate focused chat to maintain active presence subscriptions
+            // This is crucial for getting consistent online status updates
+            await this.rotateFocusedChat();
+
+            if (this.debugMode) {
+                console.log(`[PresenceManager] Tick started, tracking ${this.jids.size} contacts`);
+            }
+
             // Group JIDs by online status to optimize processing
             const jidsToProcess = Array.from(this.jids);
             const onlineJids = [];
@@ -474,8 +890,26 @@ class PresenceManager {
             // First pass: categorize JIDs by current presence status
             for (const jid of jidsToProcess) {
                 try {
+                    // Force a presence query before getting status
+                    await this.client.queryPresence(jid).catch(() => {
+                        if (this.debugMode) {
+                            console.log(`[PresenceManager] Query presence failed for ${jid}`);
+                        }
+                    });
+
                     const currentPresence = await this.client.getPresence(jid).catch(() => null);
-                    if (!currentPresence) continue;
+                    if (!currentPresence) {
+                        if (this.debugMode) {
+                            console.log(`[PresenceManager] No presence data for ${jid}`);
+                        }
+                        continue;
+                    }
+
+                    if (this.debugMode) {
+                        console.log(`[PresenceManager] Current presence for ${jid}:`,
+                            currentPresence.isOnline ? 'Online' : 'Offline',
+                            currentPresence.lastSeen ? `Last seen: ${new Date(currentPresence.lastSeen * 1000).toLocaleString()}` : 'No last seen');
+                    }
 
                     if (currentPresence.isOnline) {
                         onlineJids.push(jid);
@@ -485,16 +919,41 @@ class PresenceManager {
                         offlineJidsWithoutLastSeen.push(jid);
                     }
                 } catch (err) {
-                    console.log(`Could not get presence for ${jid}, skipping this cycle`);
+                    console.log(`Could not get presence for ${jid}, skipping this cycle:`, err.message);
                 }
             }
 
             // Process online JIDs (just emit events, no need to query)
             for (const jid of onlineJids) {
                 try {
-                    const presence = { jid, isOnline: true };
+                    const normalizedJid = jid.endsWith('@c.us') ? jid : `${jid}@c.us`;
+
+                    // Check if this is a transition from offline to online
+                    const wasOnline = this.onlineStatus.get(normalizedJid);
+                    const isStatusChange = wasOnline !== undefined && wasOnline !== true;
+
+                    if (this.debugMode && isStatusChange) {
+                        console.log(`[PresenceManager] Status change detected for ${normalizedJid}: offline -> online`);
+                    }
+
+                    // For online users, always set lastSeen to null
+                    const presence = {
+                        jid: normalizedJid,
+                        isOnline: true,
+                        lastSeen: null,  // Explicitly set to null for online users
+                        statusChanged: isStatusChange,
+                        previousStatus: wasOnline
+                    };
+
+                    // Store current status
+                    this.onlineStatus.set(normalizedJid, true);
+
                     this.client.emit('enhanced_presence', presence);
-                    this.client.emit('presence_update', presence);
+                    this.client.emit('presence_update', {
+                        jid: normalizedJid,
+                        isOnline: true,
+                        lastSeen: null
+                    });
                 } catch (err) {
                     console.error(`Error processing online presence for ${jid}:`, err);
                 }
@@ -503,23 +962,98 @@ class PresenceManager {
             // Process offline JIDs with lastSeen (query for updates but don't need UI extraction)
             for (const jid of offlineJidsWithLastSeen) {
                 try {
+                    const normalizedJid = jid.endsWith('@c.us') ? jid : `${jid}@c.us`;
+
+                    // Check if this is a transition from online to offline
+                    const wasOnline = this.onlineStatus.get(normalizedJid);
+                    const isStatusChange = wasOnline === true; // Was online, now offline
+
+                    if (this.debugMode && isStatusChange) {
+                        console.log(`[PresenceManager] Status change detected for ${normalizedJid}: online -> offline with API lastSeen`);
+                    }
+
                     // Query for fresh data
-                    await this.client.queryPresence(jid).catch(() => {});
+                    await this.client.queryPresence(jid).catch(() => {
+                        if (this.debugMode) {
+                            console.log(`[PresenceManager] Query presence failed for ${jid}`);
+                        }
+                    });
 
                     // Get updated presence
                     const presence = await this.client.getPresence(jid).catch(() => null);
-                    if (!presence) continue;
-
-                    // Store lastSeen if available
-                    if (!presence.isOnline && presence.lastSeen) {
-                        this.storeLastSeen(jid, presence.lastSeen);
+                    if (!presence) {
+                        if (this.debugMode) {
+                            console.log(`[PresenceManager] No presence data for ${jid} after query`);
+                        }
+                        continue;
                     }
 
-                    // Enhance and emit events
-                    const enhanced = this.enhancePresence(jid, presence);
+                    // If this is a status change (online -> offline), try to extract from UI
+                    let uiLastSeen = null;
+                    let uiSource = null;
+
+                    if (isStatusChange) {
+                        if (this.debugMode) {
+                            console.log(`[PresenceManager] Contact ${normalizedJid} just went offline, checking UI for fresh lastSeen`);
+                        }
+
+                        // Open the chat to see the header
+                        await this.openChat(normalizedJid);
+
+                        // Wait for UI to update
+                        await new Promise(resolve => setTimeout(resolve, 1500));
+
+                        // Extract from UI
+                        const uiData = await this.extractLastSeenFromUI(normalizedJid);
+                        if (uiData) {
+                            if (this.debugMode) {
+                                console.log(`[PresenceManager] Extracted UI lastSeen for ${normalizedJid} after going offline:`, uiData);
+                            }
+
+                            // Process the UI data
+                            if (uiData.timestamp) {
+                                uiLastSeen = uiData.timestamp;
+                                uiSource = uiData.source;
+                            } else if (uiData.text) {
+                                const parsedTimestamp = this.parseLastSeenText(uiData.text);
+                                if (parsedTimestamp) {
+                                    uiLastSeen = parsedTimestamp;
+                                    uiSource = `${uiData.source}_parsed`;
+                                }
+                            }
+                        }
+                    }
+
+                    // Store lastSeen if available from API
+                    if (!presence.isOnline && presence.lastSeen) {
+                        this.storeLastSeen(normalizedJid, presence.lastSeen);
+
+                        if (this.debugMode) {
+                            console.log(`[PresenceManager] Stored API lastSeen for ${normalizedJid}: ${new Date(presence.lastSeen * 1000).toLocaleString()}`);
+                        }
+                    }
+
+                    // Store UI lastSeen if available and newer than API
+                    if (uiLastSeen) {
+                        // Only store UI lastSeen if it's newer than API lastSeen or if API lastSeen is not available
+                        if (!presence.lastSeen || uiLastSeen > presence.lastSeen) {
+                            this.storeLastSeen(normalizedJid, uiLastSeen);
+
+                            if (this.debugMode) {
+                                console.log(`[PresenceManager] Stored UI lastSeen for ${normalizedJid}: ${new Date(uiLastSeen * 1000).toLocaleString()}`);
+                            }
+                        }
+                    }
+
+                    // Enhance and emit events with both API and UI data
+                    const enhanced = await this.enhancePresence(normalizedJid, presence, {
+                        uiLastSeen,
+                        uiSource
+                    });
+
                     this.client.emit('enhanced_presence', enhanced);
                     this.client.emit('presence_update', {
-                        jid,
+                        jid: normalizedJid,
                         isOnline: enhanced.isOnline,
                         lastSeen: enhanced.lastSeen
                     });
@@ -533,54 +1067,146 @@ class PresenceManager {
             const maxUiExtractionsPerCycle = 2;
             const jidsToExtract = offlineJidsWithoutLastSeen.slice(0, maxUiExtractionsPerCycle);
 
+            if (this.debugMode && jidsToExtract.length > 0) {
+                console.log(`[PresenceManager] Attempting UI extraction for ${jidsToExtract.length} contacts without lastSeen`);
+            }
+
             for (const jid of jidsToExtract) {
                 try {
-                    // Query for fresh data
-                    await this.client.queryPresence(jid).catch(() => {});
+                    const normalizedJid = jid.endsWith('@c.us') ? jid : `${jid}@c.us`;
 
-                    // Get updated presence
-                    let presence = await this.client.getPresence(jid).catch(() => null);
-                    if (!presence) continue;
+                    // Check if this is a transition from online to offline
+                    const wasOnline = this.onlineStatus.get(normalizedJid);
+                    const isStatusChange = wasOnline === true; // Was online, now offline
 
-                    // If still no lastSeen, try to extract from UI
-                    if (!presence.isOnline && !presence.lastSeen) {
-                        try {
-                            // Open the chat to see the header
-                            await this.openChat(jid);
-
-                            const uiLastSeen = await this.extractLastSeenFromUI(jid);
-                            if (uiLastSeen) {
-                                console.log(`Extracted lastSeen for ${jid} from ${uiLastSeen.source}:`, uiLastSeen);
-
-                                // If we got a timestamp directly, use it
-                                if (uiLastSeen.timestamp) {
-                                    presence.lastSeen = uiLastSeen.timestamp;
-                                    presence.lastSeenSource = uiLastSeen.source;
-                                }
-                                // If we got text, parse it
-                                else if (uiLastSeen.text) {
-                                    const parsedTimestamp = this.parseLastSeenText(uiLastSeen.text);
-                                    if (parsedTimestamp) {
-                                        presence.lastSeen = parsedTimestamp;
-                                        presence.lastSeenSource = `${uiLastSeen.source}_parsed`;
-                                    }
-                                }
-                            }
-                        } catch (err) {
-                            console.error('Error extracting lastSeen from UI:', err);
+                    if (this.debugMode) {
+                        if (isStatusChange) {
+                            console.log(`[PresenceManager] Status change detected for ${normalizedJid}: online -> offline without API lastSeen`);
+                        } else {
+                            console.log(`[PresenceManager] Processing offline contact ${normalizedJid} without lastSeen`);
                         }
                     }
 
-                    // Store lastSeen if available
-                    if (!presence.isOnline && presence.lastSeen) {
-                        this.storeLastSeen(jid, presence.lastSeen);
+                    // Query for fresh data again
+                    await this.client.queryPresence(jid).catch(() => {
+                        if (this.debugMode) {
+                            console.log(`[PresenceManager] Query presence failed for ${jid}`);
+                        }
+                    });
+
+                    // Get updated presence
+                    let presence = await this.client.getPresence(jid).catch(() => null);
+                    if (!presence) {
+                        if (this.debugMode) {
+                            console.log(`[PresenceManager] No presence data for ${jid} after query`);
+                        }
+                        continue;
                     }
 
-                    // Enhance and emit both events for backward compatibility
-                    const enhanced = this.enhancePresence(jid, presence);
+                    // Variables to store UI extraction results
+                    let uiLastSeen = null;
+                    let uiSource = null;
+
+                    // Always try to extract from UI for offline contacts without lastSeen
+                    // This is especially important for status changes
+                    try {
+                        if (this.debugMode) {
+                            console.log(`[PresenceManager] Opening chat for ${normalizedJid} to extract lastSeen from UI`);
+                        }
+
+                        // Open the chat to see the header
+                        const chatOpened = await this.openChat(normalizedJid);
+
+                        if (!chatOpened) {
+                            if (this.debugMode) {
+                                console.log(`[PresenceManager] Failed to open chat for ${normalizedJid}`);
+                            }
+                        } else {
+                            // Wait longer for the UI to update, especially for status changes
+                            const waitTime = isStatusChange ? 2000 : 1000;
+                            await new Promise(resolve => setTimeout(resolve, waitTime));
+
+                            const uiData = await this.extractLastSeenFromUI(normalizedJid);
+                            if (uiData) {
+                                if (this.debugMode) {
+                                    console.log(`[PresenceManager] Extracted lastSeen for ${normalizedJid} from ${uiData.source}:`, uiData);
+                                }
+
+                                // Process the UI data
+                                if (uiData.timestamp) {
+                                    uiLastSeen = uiData.timestamp;
+                                    uiSource = uiData.source;
+
+                                    // For status changes, immediately update the presence object
+                                    if (isStatusChange) {
+                                        presence.lastSeen = uiData.timestamp;
+                                        presence.lastSeenSource = uiData.source;
+                                    }
+                                }
+                                // If we got text, parse it
+                                else if (uiData.text) {
+                                    const parsedTimestamp = this.parseLastSeenText(uiData.text);
+                                    if (parsedTimestamp) {
+                                        uiLastSeen = parsedTimestamp;
+                                        uiSource = `${uiData.source}_parsed`;
+
+                                        // For status changes, immediately update the presence object
+                                        if (isStatusChange) {
+                                            presence.lastSeen = parsedTimestamp;
+                                            presence.lastSeenSource = `${uiData.source}_parsed`;
+                                        }
+                                    }
+                                }
+
+                                // Log the extracted data with timestamp for comparison
+                                if (this.debugMode && uiLastSeen) {
+                                    console.log(`[PresenceManager] UI lastSeen for ${normalizedJid}: ${new Date(uiLastSeen * 1000).toLocaleString()} (source: ${uiSource})`);
+
+                                    if (presence.lastSeen) {
+                                        console.log(`[PresenceManager] API lastSeen for ${normalizedJid}: ${new Date(presence.lastSeen * 1000).toLocaleString()} (source: ${presence.lastSeenSource || 'unknown'})`);
+                                    }
+                                }
+                            } else if (this.debugMode) {
+                                console.log(`[PresenceManager] Could not extract lastSeen from UI for ${normalizedJid}`);
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Error extracting lastSeen from UI:', err);
+                    }
+
+                    // Store lastSeen if available from API
+                    if (!presence.isOnline && presence.lastSeen) {
+                        this.storeLastSeen(normalizedJid, presence.lastSeen);
+
+                        if (this.debugMode) {
+                            console.log(`[PresenceManager] Stored API lastSeen for ${normalizedJid}: ${new Date(presence.lastSeen * 1000).toLocaleString()}`);
+                        }
+                    }
+
+                    // Store UI lastSeen if available and newer than API
+                    if (uiLastSeen) {
+                        // Only store UI lastSeen if it's newer than API lastSeen or if API lastSeen is not available
+                        if (!presence.lastSeen || uiLastSeen > presence.lastSeen) {
+                            this.storeLastSeen(normalizedJid, uiLastSeen);
+
+                            if (this.debugMode) {
+                                console.log(`[PresenceManager] Stored UI lastSeen for ${normalizedJid}: ${new Date(uiLastSeen * 1000).toLocaleString()}`);
+                            }
+                        }
+                    }
+
+                    // Update online status tracking
+                    this.onlineStatus.set(normalizedJid, false);
+
+                    // Enhance and emit both events with all data sources
+                    const enhanced = await this.enhancePresence(normalizedJid, presence, {
+                        uiLastSeen,
+                        uiSource
+                    });
+
                     this.client.emit('enhanced_presence', enhanced);
                     this.client.emit('presence_update', {
-                        jid,
+                        jid: normalizedJid,
                         isOnline: enhanced.isOnline,
                         lastSeen: enhanced.lastSeen
                     });
@@ -615,20 +1241,182 @@ class PresenceManager {
         while (history.length > 20) history.shift();
     }
 
-    enhancePresence(jid, presence) {
-    // If we already have lastSeen, no need to enhance
-        if (presence.lastSeen) return { jid, ...presence };
+    async enhancePresence(jid, presence, options = {}) {
+        const normalizedJid = jid.endsWith('@c.us') ? jid : `${jid}@c.us`;
 
-        // Try to get historical lastSeen
-        const history = this.history.get(jid) || [];
-        if (history.length === 0) return { jid, ...presence };
+        // Get current status tracking
+        const wasOnline = this.onlineStatus.get(normalizedJid);
+        const isStatusChange = wasOnline !== undefined && wasOnline !== presence.isOnline;
 
-        // Use the most recent historical lastSeen
+        // Store current online status
+        this.onlineStatus.set(normalizedJid, presence.isOnline);
+
+        // If user is online, set lastSeen to null
+        if (presence.isOnline) {
+            if (this.debugMode) {
+                console.log(`[PresenceManager] ${normalizedJid} is online, clearing lastSeen`);
+            }
+
+            return {
+                jid: normalizedJid,
+                ...presence,
+                lastSeen: null,
+                statusChanged: isStatusChange,
+                previousStatus: wasOnline
+            };
+        }
+
+        // Get all available lastSeen sources for comparison
+        const sources = {
+            api: presence.lastSeen || null,
+            apiSource: presence.lastSeenSource || null,
+            ui: options.uiLastSeen || null,
+            uiSource: options.uiSource || null,
+            historical: null,
+            historicalTimestamp: null
+        };
+
+        // Get historical data
+        const history = this.history.get(normalizedJid) || [];
+        if (history.length > 0) {
+            sources.historical = history[history.length - 1];
+            sources.historicalTimestamp = new Date(sources.historical * 1000).toLocaleString();
+        }
+
+        // Store all sources for debugging
+        this.lastSeenSources.set(normalizedJid, sources);
+
+        // If we already have lastSeen from API, use it
+        if (presence.lastSeen) {
+            if (this.debugMode) {
+                console.log(`[PresenceManager] Using API lastSeen for ${normalizedJid}: ${new Date(presence.lastSeen * 1000).toLocaleString()} (source: ${presence.lastSeenSource || 'unknown'})`);
+            }
+
+            return {
+                jid: normalizedJid,
+                ...presence,
+                statusChanged: isStatusChange,
+                previousStatus: wasOnline,
+                lastSeenSources: sources
+            };
+        }
+
+        // If we have UI lastSeen and this is a status change (online -> offline), use it
+        if (options.uiLastSeen && isStatusChange && wasOnline === true) {
+            if (this.debugMode) {
+                console.log(`[PresenceManager] Using UI lastSeen for ${normalizedJid} after status change: ${new Date(options.uiLastSeen * 1000).toLocaleString()} (source: ${options.uiSource || 'unknown'})`);
+            }
+
+            return {
+                jid: normalizedJid,
+                ...presence,
+                lastSeen: options.uiLastSeen,
+                lastSeenSource: options.uiSource || 'ui_extraction',
+                statusChanged: isStatusChange,
+                previousStatus: wasOnline,
+                lastSeenSources: sources
+            };
+        }
+
+        // If this is a status change, try to extract from UI one more time
+        if (isStatusChange && wasOnline === true) {
+            if (this.debugMode) {
+                console.log(`[PresenceManager] Status change detected for ${normalizedJid} (online -> offline), forcing UI extraction`);
+            }
+
+            // Force UI extraction one more time
+            try {
+                // Open the chat to see the header
+                await this.openChat(normalizedJid);
+
+                // Wait longer for UI to update after status change
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                // Extract from UI
+                const uiData = await this.extractLastSeenFromUI(normalizedJid);
+                if (uiData) {
+                    if (this.debugMode) {
+                        console.log(`[PresenceManager] Extracted lastSeen for ${normalizedJid} from ${uiData.source || 'unknown'}`);
+                    }
+
+                    // Process the UI data
+                    if (uiData.timestamp) {
+                        sources.ui = uiData.timestamp;
+                        sources.uiSource = uiData.source;
+
+                        // Use this as the lastSeen
+                        return {
+                            jid: normalizedJid,
+                            ...presence,
+                            lastSeen: uiData.timestamp,
+                            statusChanged: isStatusChange,
+                            previousStatus: wasOnline,
+                            lastSeenSources: sources
+                        };
+                    } else if (uiData.text) {
+                        const parsedTimestamp = this.parseLastSeenText(uiData.text);
+                        if (parsedTimestamp) {
+                            sources.ui = parsedTimestamp;
+                            sources.uiSource = `${uiData.source}_parsed`;
+
+                            // Use this as the lastSeen
+                            return {
+                                jid: normalizedJid,
+                                ...presence,
+                                lastSeen: parsedTimestamp,
+                                statusChanged: isStatusChange,
+                                previousStatus: wasOnline,
+                                lastSeenSources: sources
+                            };
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error(`Error extracting lastSeen after status change for ${normalizedJid}:`, err);
+            }
+
+            // If we still don't have lastSeen, return without it
+            if (this.debugMode) {
+                console.log(`[PresenceManager] Status change detected for ${normalizedJid} (online -> offline) but no lastSeen available`);
+            }
+
+            return {
+                jid: normalizedJid,
+                ...presence,
+                statusChanged: isStatusChange,
+                previousStatus: wasOnline,
+                lastSeenSources: sources
+            };
+        }
+
+        // If we have historical data and no status change, use it
+        if (history.length > 0) {
+            if (this.debugMode) {
+                console.log(`[PresenceManager] Using historical lastSeen for ${normalizedJid}: ${new Date(history[history.length - 1] * 1000).toLocaleString()}`);
+            }
+
+            return {
+                jid: normalizedJid,
+                ...presence,
+                lastSeen: history[history.length - 1],
+                historical: true,
+                statusChanged: isStatusChange,
+                previousStatus: wasOnline,
+                lastSeenSources: sources
+            };
+        }
+
+        // No lastSeen available from any source
+        if (this.debugMode) {
+            console.log(`[PresenceManager] No lastSeen available for ${normalizedJid} from any source`);
+        }
+
         return {
-            jid,
+            jid: normalizedJid,
             ...presence,
-            lastSeen: history[history.length - 1],
-            historical: true
+            statusChanged: isStatusChange,
+            previousStatus: wasOnline,
+            lastSeenSources: sources
         };
     }
 
@@ -673,14 +1461,56 @@ class PresenceManager {
     }
 
     getStatus() {
+        // Prepare lastSeen sources data for display
+        const lastSeenSourcesData = {};
+        for (const [jid, sources] of this.lastSeenSources.entries()) {
+            lastSeenSourcesData[jid] = {
+                api: sources.api ? new Date(sources.api * 1000).toLocaleString() : null,
+                apiSource: sources.apiSource,
+                ui: sources.ui ? new Date(sources.ui * 1000).toLocaleString() : null,
+                uiSource: sources.uiSource,
+                historical: sources.historical ? new Date(sources.historical * 1000).toLocaleString() : null
+            };
+        }
+
+        // Prepare online status data
+        const onlineStatusData = {};
+        for (const [jid, isOnline] of this.onlineStatus.entries()) {
+            onlineStatusData[jid] = isOnline;
+        }
+
+        // Prepare history data
+        const historyData = {};
+        for (const [jid, timestamps] of this.history.entries()) {
+            if (timestamps.length > 0) {
+                const lastTimestamp = timestamps[timestamps.length - 1];
+                historyData[jid] = {
+                    count: timestamps.length,
+                    latest: new Date(lastTimestamp * 1000).toLocaleString(),
+                    latestTimestamp: lastTimestamp
+                };
+            }
+        }
+
         return {
             isRunning: !!this.timer,
+            clickTimerActive: !!this.clickTimer,
             trackedContacts: Array.from(this.jids),
             contactCount: this.jids.size,
             historySize: this.history.size,
+            primaryJid: this.primaryJid,
             lastFocusTime: this.lastFocusTime ? new Date(this.lastFocusTime).toLocaleString() : 'Never',
+            lastClickTime: this.lastClickTime ? new Date(this.lastClickTime).toLocaleString() : 'Never',
+            lastOpenedChat: this.lastOpenedChat,
+            lastOpenTime: this.lastOpenTime ? new Date(this.lastOpenTime).toLocaleString() : 'Never',
             pollInterval: this.pollInterval,
-            focusInterval: this.focusInterval
+            focusInterval: this.focusInterval,
+            clickInterval: this.clickInterval,
+            chatRotationInterval: this.chatRotationInterval,
+            debugMode: this.debugMode,
+            onlineStatus: onlineStatusData,
+            lastSeenSources: lastSeenSourcesData,
+            history: historyData
         };
     }
 }
