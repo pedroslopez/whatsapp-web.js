@@ -6,6 +6,7 @@
  * @property {string} [name] Location name
  * @property {string} [address] Location address
  * @property {string} [url] URL address to be shown within a location message
+ * @property {string} [description] Location full description
  */
 
 /**
