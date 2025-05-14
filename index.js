@@ -29,5 +29,9 @@ module.exports = {
     LocalAuth: require('./src/authStrategies/LocalAuth'),
     RemoteAuth: require('./src/authStrategies/RemoteAuth'),
     
+    //Web Cache
+    LocalWebCache: require('./src/webCache/LocalWebCache'),
+    RemoteWebCache: require('./src/webCache/RemoteWebCache'),
+    
     ...Constants
 };
