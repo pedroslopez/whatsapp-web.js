@@ -503,8 +503,11 @@ class Message extends Base {
         await this.client.pupPage.evaluate(async (msgId, everyone) => {
             const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
             let chat = await window.Store.Chat.find(msg.id.remote);
-            
             const canRevoke = window.Store.MsgActionChecks.canSenderRevokeMsg(msg) || window.Store.MsgActionChecks.canAdminRevokeMsg(msg);
+            const isSelfMsg = msg.from.user === msg.id.remote.user && msg.id.fromMe;
+            if(isSelfMsg) {
+                return window.Store.Cmd.sendDeleteMsgs(chat, { list: [msg], type: 'message' });
+            }
             if (everyone && canRevoke) {
                 if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.0')) {
                     return window.Store.Cmd.sendRevokeMsgs(chat, { list: [msg], type: 'message' }, { clearMedia: true });
