@@ -178,6 +178,8 @@ class Chat extends Base {
      * Loads chat messages, sorted from earliest to latest.
      * @param {Object} searchOptions Options for searching messages. Right now only limit and fromMe is supported.
      * @param {Number} [searchOptions.limit] The amount of messages to return. If no limit is specified, the available messages will be returned. Note that the actual number of returned messages may be smaller if there aren't enough messages in the conversation. Set this to Infinity to load all messages.
+     * @param {Number} [searchOptions.minTimestamp] If specified, filter message by minimum timestamp.
+     * @param {Number} [searchOptions.maxTimestamp] If specified, filter message by maximum timestamp.
      * @param {Boolean} [searchOptions.fromMe] Return only messages from the bot number or vise versa. To get all messages, leave the option undefined.
      * @returns {Promise<Array<Message>>}
      */
@@ -190,8 +192,18 @@ class Chat extends Base {
                 if (searchOptions && searchOptions.fromMe !== undefined && m.id.fromMe !== searchOptions.fromMe) {
                     return false;
                 }
+
+                if (searchOptions && searchOptions.minTimestamp && m.t <= searchOptions.minTimestamp) {
+                    return false;
+                }
+
+                if (searchOptions && searchOptions.maxTimestamp && m.t >= searchOptions.maxTimestamp) {
+                    return false;
+                }
+
                 return true;
             };
+
 
             const chat = window.Store.Chat.get(chatId);
             let msgs = chat.msgs.getModelsArray().filter(msgFilter);
@@ -200,9 +212,13 @@ class Chat extends Base {
                 while (msgs.length < searchOptions.limit) {
                     const loadedMessages = await window.Store.ConversationMsgs.loadEarlierMsgs(chat);
                     if (!loadedMessages || !loadedMessages.length) break;
+
+                    if (searchOptions.minTimestamp && loadedMessages.some(msg => msg.t < searchOptions.minTimestamp))
+                        break;
+
                     msgs = [...loadedMessages.filter(msgFilter), ...msgs];
                 }
-                
+
                 if (msgs.length > searchOptions.limit) {
                     msgs.sort((a, b) => (a.t > b.t) ? 1 : -1);
                     msgs = msgs.splice(msgs.length - searchOptions.limit);
