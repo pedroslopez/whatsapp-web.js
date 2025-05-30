@@ -8,7 +8,7 @@ exports.LoadUtils = () => {
         let chat = window.Store.Chat.get(chatId);
 
         if (window.compareWwebVersions(window.Debug.VERSION, '>', '2.3000.0')) {
-            return window.Store.ForwardUtils.forwardMessagesToChats([msg], [chat], false);
+            return window.Store.ForwardUtils.forwardMessagesToChats([msg], [chat], true);
         } else {
             return chat.forwardMessages([msg]);
         }
@@ -214,8 +214,12 @@ exports.LoadUtils = () => {
             delete options.invokedBotWid;
         }
 
-        const meUser = window.Store.User.getMaybeMeUser();
+        let meUser = window.Store.User.getMaybeMeUser();
         const newId = await window.Store.MsgKey.newId();
+
+        if (chat.id.isGroup() && chat.groupMetadata.isLidAddressingMode) {
+            meUser = window.Store.User.getMaybeMeLidUser();
+        }
         
         const newMsgId = new window.Store.MsgKey({
             from: meUser,
@@ -457,13 +461,14 @@ exports.LoadUtils = () => {
         let res = chat.serialize();
         res.isGroup = false;
         res.formattedTitle = chat.formattedTitle;
-        res.isMuted = chat.muteExpiration == 0 ? false : true;
+        res.isMuted = chat.mute?.expiration !== 0;
 
         if (chat.groupMetadata) {
             res.isGroup = true;
             const chatWid = window.Store.WidFactory.createWid((chat.id._serialized));
             await window.Store.GroupMetadata.update(chatWid);
             res.groupMetadata = chat.groupMetadata.serialize();
+            res.isReadOnly = chat.groupMetadata.announce;
         }
         
         res.lastMessage = null;
@@ -1020,9 +1025,8 @@ exports.LoadUtils = () => {
     };
     
     window.WWebJS.getStatusModel = status => {
-        let res = status.serialize();
+        const res = status.serialize();
         delete res._msgs;
-        res.msgs = status._msgs.map(msg => window.WWebJS.getMessageModel(msg));
         return res;
     };
 

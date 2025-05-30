@@ -498,23 +498,26 @@ class Message extends Base {
     /**
      * Deletes a message from the chat
      * @param {?boolean} everyone If true and the message is sent by the current user or the user is an admin, will delete it for everyone in the chat.
+     * @param {?boolean} [clearMedia = true] If true, any associated media will also be deleted from a device.
      */
-    async delete(everyone) {
-        await this.client.pupPage.evaluate(async (msgId, everyone) => {
+    async delete(everyone, clearMedia = true) {
+        await this.client.pupPage.evaluate(async (msgId, everyone, clearMedia) => {
             const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
-            let chat = await window.Store.Chat.find(msg.id.remote);
+            const chat = window.Store.Chat.get(msg.id.remote) || (await window.Store.Chat.find(msg.id.remote));
             
-            const canRevoke = window.Store.MsgActionChecks.canSenderRevokeMsg(msg) || window.Store.MsgActionChecks.canAdminRevokeMsg(msg);
+            const canRevoke =
+                window.Store.MsgActionChecks.canSenderRevokeMsg(msg) || window.Store.MsgActionChecks.canAdminRevokeMsg(msg);
+
             if (everyone && canRevoke) {
-                if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.0')) {
-                    return window.Store.Cmd.sendRevokeMsgs(chat, { list: [msg], type: 'message' }, { clearMedia: true });
-                } else {
-                    return window.Store.Cmd.sendRevokeMsgs(chat, [msg], { clearMedia: true, type: msg.id.fromMe ? 'Sender' : 'Admin' });
-                }
+                return window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.0')
+                    ? window.Store.Cmd.sendRevokeMsgs(chat, { list: [msg], type: 'message' }, { clearMedia: clearMedia })
+                    : window.Store.Cmd.sendRevokeMsgs(chat, [msg], { clearMedia: true, type: msg.id.fromMe ? 'Sender' : 'Admin' });
             }
 
-            return window.Store.Cmd.sendDeleteMsgs(chat, [msg], true);
-        }, this.id._serialized, everyone);
+            return window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.0')
+                ? window.Store.Cmd.sendDeleteMsgs(chat, { list: [msg], type: 'message' }, clearMedia)
+                : window.Store.Cmd.sendDeleteMsgs(chat, [msg], clearMedia);
+        }, this.id._serialized, everyone, clearMedia);
     }
 
     /**
