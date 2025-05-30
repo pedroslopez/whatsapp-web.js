@@ -105,14 +105,17 @@ exports.ExposeStore = () => {
         ...window.require('WAWebUserPrefsNotifications'),
         setPushname: window.require('WAWebSetPushnameConnAction').setPushname
     };
-  
     window.Store.NumberInfo = {
         ...window.require('WAPhoneUtils'),
         ...window.require('WAPhoneFindCC')
     };
-    
     window.Store.ForwardUtils = {
         ...window.require('WAWebForwardMessagesToChat')
+    };
+    window.Store.ScheduledEventMsgUtils = {
+        ...window.require('WAWebEventsCreateCallLinkJob'),
+        ...window.require('WAWebSendEventEditMsgAction'),
+        ...window.require('WAWebSendEventResponseMsgAction'),
     };
     window.Store.StickerTools = {
         ...window.require('WAWebImageUtils'),
