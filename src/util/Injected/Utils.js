@@ -8,7 +8,7 @@ exports.LoadUtils = () => {
         let chat = window.Store.Chat.get(chatId);
 
         if (window.compareWwebVersions(window.Debug.VERSION, '>', '2.3000.0')) {
-            return window.Store.ForwardUtils.forwardMessagesToChats([msg], [chat], false);
+            return window.Store.ForwardUtils.forwardMessagesToChats([msg], [chat], true);
         } else {
             return chat.forwardMessages([msg]);
         }
@@ -1025,9 +1025,8 @@ exports.LoadUtils = () => {
     };
     
     window.WWebJS.getStatusModel = status => {
-        let res = status.serialize();
+        const res = status.serialize();
         delete res._msgs;
-        res.msgs = status._msgs.map(msg => window.WWebJS.getMessageModel(msg));
         return res;
     };
 

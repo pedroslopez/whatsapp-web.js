@@ -84,7 +84,7 @@ exports.ExposeStore = () => {
     window.Store.LinkPreview = window.require('WAWebLinkPreviewChatAction');
     window.Store.Socket = window.require('WADeprecatedSendIq');
     window.Store.SocketWap = window.require('WAWap');
-    window.Store.SearchContext = window.require('WAWebChatMessageSearch').getSearchContext;
+    window.Store.SearchContext = window.require('WAWebChatMessageSearch');
     window.Store.DrawerManager = window.require('WAWebDrawerManager').DrawerManager;
     window.Store.LidUtils = window.require('WAWebApiContact');
     window.Store.WidToJid = window.require('WAWebWidToJid');
@@ -102,8 +102,10 @@ exports.ExposeStore = () => {
     
     window.Store.Settings = {
         ...window.require('WAWebUserPrefsGeneral'),
-        ...window.require('WAWebUserPrefsNotifications')
+        ...window.require('WAWebUserPrefsNotifications'),
+        setPushname: window.require('WAWebSetPushnameConnAction').setPushname
     };
+  
     window.Store.NumberInfo = {
         ...window.require('WAPhoneUtils'),
         ...window.require('WAPhoneFindCC')
