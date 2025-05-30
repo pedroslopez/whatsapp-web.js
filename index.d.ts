@@ -181,6 +181,13 @@ declare namespace WAWebJS {
         setAutoDownloadVideos(flag: boolean): Promise<void>
 
         /**
+         * Changing the background synchronization setting.
+         * NOTE: this action will take effect after you restart the client.
+         * @param flag true/false on or off
+         */
+        setBackgroundSync(flag: boolean): Promise<void>
+
+        /**
          * Get user device count by ID
          * Each WaWeb Connection counts as one device, and the phone (if exists) counts as one
          * So for a non-enterprise user with one WaWeb connection it should return "2"
