@@ -280,6 +280,14 @@ class Chat extends Base {
     }
 
     /**
+     * Gets instances of all pinned messages in a chat
+     * @returns {Promise<[Message]|[]>}
+     */
+    async getPinnedMessages() {
+        return this.client.getPinnedMessages(this.id._serialized);
+    }
+    
+    /**
      * Sync chat history conversation
      * @return {Promise<boolean>} True if operation completed successfully, false otherwise.
      */
