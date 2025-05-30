@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.28.0 &raquo; Source: Client.js</title>
+  <title>whatsapp-web.js 1.28.1-alpha.0 &raquo; Source: Client.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>28.<wbr>0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>28.<wbr>1-alpha.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -309,7 +309,7 @@ class Client extends EventEmitter {
         await this.authStrategy.beforeBrowserInitialized();
 
         const puppeteerOpts &#x3D; this.options.puppeteer;
-        if (puppeteerOpts &amp;amp;&amp;amp; puppeteerOpts.browserWSEndpoint) {
+        if (puppeteerOpts &amp;amp;&amp;amp; (puppeteerOpts.browserWSEndpoint || puppeteerOpts.browserURL)) {
             browser &#x3D; await puppeteer.connect(puppeteerOpts);
             page &#x3D; await browser.newPage();
         } else {
@@ -1224,25 +1224,38 @@ class Client extends EventEmitter {
     /**
      * Mutes this chat forever, unless a date is specified
      * @param {string} chatId ID of the chat that will be muted
-     * @param {?Date} unmuteDate Date when the chat will be unmuted, leave as is to mute forever
+     * @param {?Date} unmuteDate Date when the chat will be unmuted, don&#x27;t provide a value to mute forever
+     * @returns {Promise&amp;lt;{isMuted: boolean, muteExpiration: number}&gt;}
      */
     async muteChat(chatId, unmuteDate) {
-        unmuteDate &#x3D; unmuteDate ? unmuteDate.getTime() / 1000 : -1;
-        await this.pupPage.evaluate(async (chatId, timestamp) &#x3D;&gt; {
-            let chat &#x3D; await window.Store.Chat.get(chatId);
-            await chat.mute.mute({expiration: timestamp, sendDevice:!0});
-        }, chatId, unmuteDate || -1);
+        unmuteDate &#x3D; unmuteDate ? Math.floor(unmuteDate.getTime() / 1000) : -1;
+        return this._muteUnmuteChat(chatId, &#x27;MUTE&#x27;, unmuteDate);
     }
 
     /**
      * Unmutes the Chat
      * @param {string} chatId ID of the chat that will be unmuted
+     * @returns {Promise&amp;lt;{isMuted: boolean, muteExpiration: number}&gt;}
      */
     async unmuteChat(chatId) {
-        await this.pupPage.evaluate(async chatId &#x3D;&gt; {
-            let chat &#x3D; await window.Store.Chat.get(chatId);
-            await window.Store.Cmd.muteChat(chat, false);
-        }, chatId);
+        return this._muteUnmuteChat(chatId, &#x27;UNMUTE&#x27;);
+    }
+
+    /**
+     * Internal method to mute or unmute the chat
+     * @param {string} chatId ID of the chat that will be muted/unmuted
+     * @param {string} action The action: &#x27;MUTE&#x27; or &#x27;UNMUTE&#x27;
+     * @param {number} unmuteDateTs Timestamp at which the chat will be unmuted
+     * @returns {Promise&amp;lt;{isMuted: boolean, muteExpiration: number}&gt;}
+     */
+    async _muteUnmuteChat (chatId, action, unmuteDateTs) {
+        return this.pupPage.evaluate(async (chatId, action, unmuteDateTs) &#x3D;&gt; {
+            const chat &#x3D; window.Store.Chat.get(chatId) ?? await window.Store.Chat.find(chatId);
+            action &#x3D;&#x3D;&#x3D; &#x27;MUTE&#x27;
+                ? await chat.mute.mute({ expiration: unmuteDateTs, sendDevice: true })
+                : await chat.mute.unmute({ sendDevice: true });
+            return { isMuted: chat.mute.expiration !&#x3D;&#x3D; 0, muteExpiration: chat.mute.expiration };
+        }, chatId, action, unmuteDateTs || -1);
     }
 
     /**
@@ -1312,7 +1325,7 @@ class Client extends EventEmitter {
     */
     async resetState() {
         await this.pupPage.evaluate(() &#x3D;&gt; {
-            window.Store.AppState.phoneWatchdog.shiftTimer.forceRunNow();
+            window.Store.AppState.reconnect(); 
         });
     }
 
@@ -1753,6 +1766,23 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Setting background synchronization.
+     * NOTE: this action will take effect after you restart the client.
+     * @param {boolean} flag true/false
+     * @returns {Promise&amp;lt;boolean&gt;}
+     */
+    async setBackgroundSync(flag) {
+        return await this.pupPage.evaluate(async flag &#x3D;&gt; {
+            const backSync &#x3D; window.Store.Settings.getGlobalOfflineNotifications();
+            if (backSync &#x3D;&#x3D;&#x3D; flag) {
+                return flag;
+            }
+            await window.Store.Settings.setGlobalOfflineNotifications(flag);
+            return flag;
+        }, flag);
+    }
+    
+    /**
      * Get user device count by ID
      * Each WaWeb Connection counts as one device, and the phone (if exists) counts as one
      * So for a non-enterprise user with one WaWeb connection it should return &quot;2&quot;
@@ -1776,8 +1806,9 @@ class Client extends EventEmitter {
      */
     async syncHistory(chatId) {
         return await this.pupPage.evaluate(async (chatId) &#x3D;&gt; {
-            const chat &#x3D; await window.WWebJS.getChat(chatId);
-            if (chat.endOfHistoryTransferType &#x3D;&#x3D;&#x3D; 0) {
+            const chatWid &#x3D; window.Store.WidFactory.createWid(chatId);
+            const chat &#x3D; window.Store.Chat.get(chatWid) ?? (await window.Store.Chat.find(chatWid));
+            if (chat?.endOfHistoryTransferType &#x3D;&#x3D;&#x3D; 0) {
                 await window.Store.HistorySync.sendPeerDataOperationRequest(3, {
                     chatId: chat.id
                 });
@@ -1785,6 +1816,39 @@ class Client extends EventEmitter {
             }
             return false;
         }, chatId);
+    }
+
+    /**
+     * Save new contact to user&#x27;s addressbook or edit the existing one
+     * @param {string} phoneNumber The contact&#x27;s phone number in a format &quot;17182222222&quot;, where &quot;1&quot; is a country code
+     * @param {string} firstName 
+     * @param {string} lastName 
+     * @param {boolean} [syncToAddressbook &#x3D; false] If set to true, the contact will also be saved to the user&#x27;s address book on their phone. False by default
+     * @returns {Promise&amp;lt;import(&#x27;..&#x27;).ChatId&gt;} Object in a wid format
+     */
+    async saveOrEditAddressbookContact(phoneNumber, firstName, lastName, syncToAddressbook &#x3D; false)
+    {
+        return await this.pupPage.evaluate(async (phoneNumber, firstName, lastName, syncToAddressbook) &#x3D;&gt; {
+            return await window.Store.AddressbookContactUtils.saveContactAction(
+                phoneNumber,
+                null,
+                firstName,
+                lastName,
+                syncToAddressbook
+            );
+        }, phoneNumber, firstName, lastName, syncToAddressbook);
+    }
+
+    /**
+     * Deletes the contact from user&#x27;s addressbook
+     * @param {string} phoneNumber The contact&#x27;s phone number in a format &quot;17182222222&quot;, where &quot;1&quot; is a country code
+     * @returns {Promise&amp;lt;void&gt;}
+     */
+    async deleteAddressbookContact(phoneNumber)
+    {
+        return await this.pupPage.evaluate(async (phoneNumber) &#x3D;&gt; {
+            return await window.Store.AddressbookContactUtils.deleteContactAction(phoneNumber);
+        }, phoneNumber);
     }
 }
 
@@ -1799,7 +1863,7 @@ module.exports &#x3D; Client;
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on May 12, 2025.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on May 30, 2025.
       </p>
     </div>
   </footer>
