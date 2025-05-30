@@ -98,7 +98,7 @@ class GroupChat extends Chat {
                 419: 'The participant can\'t be added because the group is full'
             };
 
-            await window.Store.GroupQueryAndUpdate(groupWid);
+            await window.Store.GroupQueryAndUpdate({ id: groupId });
             const groupMetadata = group.groupMetadata;
             const groupParticipants = groupMetadata?.participants;
 
@@ -381,9 +381,9 @@ class GroupChat extends Chat {
         const codeRes = await this.client.pupPage.evaluate(async chatId => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             try {
-                return window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.0')
-                    ? await window.Store.GroupInvite.queryGroupInviteCode(chatWid, true)
-                    : await window.Store.GroupInvite.queryGroupInviteCode(chatWid);
+                return window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.1020730154')
+                    ? await window.Store.GroupInvite.fetchMexGroupInviteCode(chatId)
+                    : await window.Store.GroupInvite.queryGroupInviteCode(chatWid, true);
             }
             catch (err) {
                 if(err.name === 'ServerStatusCodeError') return undefined;
@@ -391,7 +391,9 @@ class GroupChat extends Chat {
             }
         }, this.id._serialized);
 
-        return codeRes?.code;
+        return codeRes?.code
+            ? codeRes?.code
+            : codeRes;
     }
     
     /**
