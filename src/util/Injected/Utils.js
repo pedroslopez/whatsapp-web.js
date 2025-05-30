@@ -214,8 +214,12 @@ exports.LoadUtils = () => {
             delete options.invokedBotWid;
         }
 
-        const meUser = window.Store.User.getMaybeMeUser();
+        let meUser = window.Store.User.getMaybeMeUser();
         const newId = await window.Store.MsgKey.newId();
+
+        if (chat.id.isGroup() && chat.groupMetadata.isLidAddressingMode) {
+            meUser = window.Store.User.getMaybeMeLidUser();
+        }
         
         const newMsgId = new window.Store.MsgKey({
             from: meUser,
