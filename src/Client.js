@@ -1722,6 +1722,23 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Setting background synchronization.
+     * NOTE: this action will take effect after you restart the client.
+     * @param {boolean} flag true/false
+     * @returns {Promise<boolean>}
+     */
+    async setBackgroundSync(flag) {
+        return await this.pupPage.evaluate(async flag => {
+            const backSync = window.Store.Settings.getGlobalOfflineNotifications();
+            if (backSync === flag) {
+                return flag;
+            }
+            await window.Store.Settings.setGlobalOfflineNotifications(flag);
+            return flag;
+        }, flag);
+    }
+    
+    /**
      * Get user device count by ID
      * Each WaWeb Connection counts as one device, and the phone (if exists) counts as one
      * So for a non-enterprise user with one WaWeb connection it should return "2"
