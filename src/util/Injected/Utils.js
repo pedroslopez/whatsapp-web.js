@@ -551,6 +551,7 @@ exports.LoadUtils = () => {
             const chatWid = window.Store.WidFactory.createWid((chat.id._serialized));
             await window.Store.GroupMetadata.update(chatWid);
             model.groupMetadata = chat.groupMetadata.serialize();
+            model.isReadOnly = chat.groupMetadata.announce;
         }
 
         if (chat.newsletterMetadata) {
