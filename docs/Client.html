@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.27.0 &raquo; Class: Client</title>
+  <title>whatsapp-web.js 1.28.1-alpha.0 &raquo; Class: Client</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>27.<wbr>0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>28.<wbr>1-alpha.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -65,6 +65,9 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Client.html#_muteUnmuteChat">_muteUnmuteChat(chatId, action, unmuteDateTs)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#acceptGroupV4Invite">acceptGroupV4Invite(inviteInfo)</a></dt>
                     <dd>
                     </dd>
@@ -84,6 +87,9 @@
                     <dd>
                     </dd>
                     <dt><a href="Client.html#createGroup">createGroup(title, participants, options)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#deleteAddressbookContact">deleteAddressbookContact(phoneNumber)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Client.html#deleteProfilePicture">deleteProfilePicture()</a></dt>
@@ -119,13 +125,13 @@
                     <dt><a href="Client.html#getContactDeviceCount">getContactDeviceCount(userId)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="Client.html#getContacts">getContacts()</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="Client.html#getContacts">getContacts()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#getCountryCode">getCountryCode(number)</a></dt>
                     <dd>
                     </dd>
@@ -190,6 +196,9 @@
                     <dt><a href="Client.html#resetState">resetState()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="Client.html#saveOrEditAddressbookContact">saveOrEditAddressbookContact(phoneNumber, firstName, lastName[, syncToAddressbook])</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="Client.html#searchMessages">searchMessages(query[, options])</a></dt>
                     <dd>
                     </dd>
@@ -215,6 +224,9 @@
                     <dd>
                     </dd>
                     <dt><a href="Client.html#setAutoDownloadVideos">setAutoDownloadVideos(flag)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Client.html#setBackgroundSync">setBackgroundSync(flag)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="Client.html#setDisplayName">setDisplayName(displayName)</a></dt>
@@ -625,6 +637,72 @@
             <h2>Methods</h2>
             <section>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="_muteUnmuteChat"><span class="symbol-name">_muteUnmuteChat</span><span class="signature"><span class="signature-params">(chatId, action, unmuteDateTs)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing {isMuted: boolean, muteExpiration: number}</span></span></h3>
+              <p>Internal method to mute or unmute the chat</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>chatId</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>ID of the chat that will be muted/unmuted</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>action</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The action: 'MUTE' or 'UNMUTE'</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>unmuteDateTs</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Timestamp at which the chat will be unmuted</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing {isMuted: boolean, muteExpiration: number}</code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="acceptGroupV4Invite"><span class="symbol-name">acceptGroupV4Invite</span><span class="signature"><span class="signature-params">(inviteInfo)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Object</span></span></h3>
               <p>Accepts a private invitation to join a group</p>
               <section>
@@ -916,6 +994,44 @@
                   <p><code>Promise containing (<a href="global.html#CreateGroupResult">CreateGroupResult</a> or string)</code> 
                   <p>Object with resulting data or an error message as a string</p>
                   </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="deleteAddressbookContact"><span class="symbol-name">deleteAddressbookContact</span><span class="signature"><span class="signature-params">(phoneNumber)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing void</span></span></h3>
+              <p>Deletes the contact from user's addressbook</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>phoneNumber</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The contact's phone number in a format &quot;17182222222&quot;, where &quot;1&quot; is a country code</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing void</code> </p>
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
@@ -1580,7 +1696,7 @@
               <dl class="dl-compact">
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
-              <h3 id="muteChat"><span class="symbol-name">muteChat</span><span class="signature"><span class="signature-params">(chatId, unmuteDate)</span></span></h3>
+              <h3 id="muteChat"><span class="symbol-name">muteChat</span><span class="signature"><span class="signature-params">(chatId, unmuteDate)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing {isMuted: boolean, muteExpiration: number}</span></span></h3>
               <p>Mutes this chat forever, unless a date is specified</p>
               <section>
                 <h4>Parameters</h4>
@@ -1619,7 +1735,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Date when the chat will be unmuted, leave as is to mute forever</p>
+                        <p>Date when the chat will be unmuted, don't provide a value to mute forever</p>
                         <p>Value can be null.</p>
                       </td>
                     </tr>
@@ -1627,6 +1743,10 @@
                 </table>
               </section>
               <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing {isMuted: boolean, muteExpiration: number}</code> </p>
+                </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="pinChat"><span class="symbol-name">pinChat</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
@@ -1754,6 +1874,83 @@
               <h3 id="resetState"><span class="symbol-name">resetState</span><span class="signature"><span class="signature-params">()</span></span></h3>
               <p>Force reset of connection state for the client</p>
               <dl class="dl-compact">
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="saveOrEditAddressbookContact"><span class="symbol-name">saveOrEditAddressbookContact</span><span class="signature"><span class="signature-params">(phoneNumber, firstName, lastName[, syncToAddressbook])</span></span></h3>
+              <p>Save new contact to user's addressbook or edit the existing one</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>phoneNumber</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The contact's phone number in a format &quot;17182222222&quot;, where &quot;1&quot; is a country code</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>firstName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>lastName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>syncToAddressbook</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>If set to true, the contact will also be saved to the user's address book on their phone. False by default</p>
+                        <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd></dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="searchMessages"><span class="symbol-name">searchMessages</span><span class="signature"><span class="signature-params">(query[, options])</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of <a href="Message.html">Message</a></span></span></h3>
@@ -2109,6 +2306,45 @@
               <dl class="dl-compact">
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="setBackgroundSync"><span class="symbol-name">setBackgroundSync</span><span class="signature"><span class="signature-params">(flag)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Setting background synchronization.
+                NOTE: this action will take effect after you restart the client.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>flag</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>true/false</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="setDisplayName"><span class="symbol-name">setDisplayName</span><span class="signature"><span class="signature-params">(displayName)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Boolean</span></span></h3>
               <p>Sets the current user's display name.
                 This is the name shown to WhatsApp users that have not added you as a contact beside your number in groups and in your profile.</p>
@@ -2269,7 +2505,7 @@
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
-              <h3 id="unmuteChat"><span class="symbol-name">unmuteChat</span><span class="signature"><span class="signature-params">(chatId)</span></span></h3>
+              <h3 id="unmuteChat"><span class="symbol-name">unmuteChat</span><span class="signature"><span class="signature-params">(chatId)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing {isMuted: boolean, muteExpiration: number}</span></span></h3>
               <p>Unmutes the Chat</p>
               <section>
                 <h4>Parameter</h4>
@@ -2301,6 +2537,10 @@
                 </table>
               </section>
               <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing {isMuted: boolean, muteExpiration: number}</code> </p>
+                </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="unpinChat"><span class="symbol-name">unpinChat</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
@@ -3580,7 +3820,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on March 27, 2025.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on May 30, 2025.
       </p>
     </div>
   </footer>
