@@ -1772,6 +1772,44 @@ class Client extends EventEmitter {
             return false;
         }, chatId);
     }
+
+    /**
+     * Reinitializes the crypto store
+     * @returns {Promise<void>}
+     */
+    async reinitializeCryptoStore() {
+        await this.pupPage.evaluate(() => {
+            // Force reinitialization of crypto modules
+            if (window.Store.CryptoLib) {
+                // Reinitialize the crypto state
+                window.Store.CryptoLib.initializeWebCrypto();
+            }
+            
+            // Ensure the message handling pipeline is properly connected to crypto
+            const originalAddHandler = window.Store.Msg.on;
+            window.Store.Msg.on = function(event, handler) {
+                if (event === 'add') {
+                    return originalAddHandler.call(this, event, async (msg) => {
+                        if (msg.isNewMsg) {
+                            if (msg.type === 'ciphertext') {
+                                try {
+                                    // Force immediate decryption attempt
+                                    await window.Store.CryptoLib.decryptE2EMessage(msg);
+                                    msg.once('change:type', (_msg) => window.onAddMessageEvent(window.WWebJS.getMessageModel(_msg)));
+                                    window.onAddMessageCiphertextEvent(window.WWebJS.getMessageModel(msg));
+                                } catch (err) {
+                                    console.error('Failed to decrypt message:', err);
+                                }
+                            } else {
+                                handler(msg);
+                            }
+                        }
+                    });
+                }
+                return originalAddHandler.call(this, event, handler);
+            };
+        });
+    }
 }
 
 module.exports = Client;

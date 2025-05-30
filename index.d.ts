@@ -1,4 +1,3 @@
-
 import { EventEmitter } from 'events'
 import { RequestInit } from 'node-fetch'
 import * as puppeteer from 'puppeteer'
@@ -198,6 +197,9 @@ declare namespace WAWebJS {
         /** Sync history conversation of the Chat */
         syncHistory(chatId: string): Promise<boolean>
         
+        /** Reinitializes the crypto store and message handling pipeline */
+        reinitializeCryptoStore(): Promise<void>
+
         /** Changes and returns the archive state of the Chat */
         unarchiveChat(chatId: string): Promise<boolean>
 
