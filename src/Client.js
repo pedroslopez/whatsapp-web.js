@@ -278,7 +278,7 @@ class Client extends EventEmitter {
         await this.authStrategy.beforeBrowserInitialized();
 
         const puppeteerOpts = this.options.puppeteer;
-        if (puppeteerOpts && puppeteerOpts.browserWSEndpoint) {
+        if (puppeteerOpts && (puppeteerOpts.browserWSEndpoint || puppeteerOpts.browserURL)) {
             browser = await puppeteer.connect(puppeteerOpts);
             page = await browser.newPage();
         } else {
@@ -1195,25 +1195,38 @@ class Client extends EventEmitter {
     /**
      * Mutes this chat forever, unless a date is specified
      * @param {string} chatId ID of the chat that will be muted
-     * @param {?Date} unmuteDate Date when the chat will be unmuted, leave as is to mute forever
+     * @param {?Date} unmuteDate Date when the chat will be unmuted, don't provide a value to mute forever
+     * @returns {Promise<{isMuted: boolean, muteExpiration: number}>}
      */
     async muteChat(chatId, unmuteDate) {
-        unmuteDate = unmuteDate ? unmuteDate.getTime() / 1000 : -1;
-        await this.pupPage.evaluate(async (chatId, timestamp) => {
-            let chat = await window.Store.Chat.get(chatId);
-            await chat.mute.mute({expiration: timestamp, sendDevice:!0});
-        }, chatId, unmuteDate || -1);
+        unmuteDate = unmuteDate ? Math.floor(unmuteDate.getTime() / 1000) : -1;
+        return this._muteUnmuteChat(chatId, 'MUTE', unmuteDate);
     }
 
     /**
      * Unmutes the Chat
      * @param {string} chatId ID of the chat that will be unmuted
+     * @returns {Promise<{isMuted: boolean, muteExpiration: number}>}
      */
     async unmuteChat(chatId) {
-        await this.pupPage.evaluate(async chatId => {
-            let chat = await window.Store.Chat.get(chatId);
-            await window.Store.Cmd.muteChat(chat, false);
-        }, chatId);
+        return this._muteUnmuteChat(chatId, 'UNMUTE');
+    }
+
+    /**
+     * Internal method to mute or unmute the chat
+     * @param {string} chatId ID of the chat that will be muted/unmuted
+     * @param {string} action The action: 'MUTE' or 'UNMUTE'
+     * @param {number} unmuteDateTs Timestamp at which the chat will be unmuted
+     * @returns {Promise<{isMuted: boolean, muteExpiration: number}>}
+     */
+    async _muteUnmuteChat (chatId, action, unmuteDateTs) {
+        return this.pupPage.evaluate(async (chatId, action, unmuteDateTs) => {
+            const chat = window.Store.Chat.get(chatId) ?? await window.Store.Chat.find(chatId);
+            action === 'MUTE'
+                ? await chat.mute.mute({ expiration: unmuteDateTs, sendDevice: true })
+                : await chat.mute.unmute({ sendDevice: true });
+            return { isMuted: chat.mute.expiration !== 0, muteExpiration: chat.mute.expiration };
+        }, chatId, action, unmuteDateTs || -1);
     }
 
     /**
@@ -1283,7 +1296,7 @@ class Client extends EventEmitter {
     */
     async resetState() {
         await this.pupPage.evaluate(() => {
-            window.Store.AppState.phoneWatchdog.shiftTimer.forceRunNow();
+            window.Store.AppState.reconnect(); 
         });
     }
 
@@ -1724,6 +1737,23 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Setting background synchronization.
+     * NOTE: this action will take effect after you restart the client.
+     * @param {boolean} flag true/false
+     * @returns {Promise<boolean>}
+     */
+    async setBackgroundSync(flag) {
+        return await this.pupPage.evaluate(async flag => {
+            const backSync = window.Store.Settings.getGlobalOfflineNotifications();
+            if (backSync === flag) {
+                return flag;
+            }
+            await window.Store.Settings.setGlobalOfflineNotifications(flag);
+            return flag;
+        }, flag);
+    }
+    
+    /**
      * Get user device count by ID
      * Each WaWeb Connection counts as one device, and the phone (if exists) counts as one
      * So for a non-enterprise user with one WaWeb connection it should return "2"
@@ -1747,8 +1777,9 @@ class Client extends EventEmitter {
      */
     async syncHistory(chatId) {
         return await this.pupPage.evaluate(async (chatId) => {
-            const chat = await window.WWebJS.getChat(chatId);
-            if (chat.endOfHistoryTransferType === 0) {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = window.Store.Chat.get(chatWid) ?? (await window.Store.Chat.find(chatWid));
+            if (chat?.endOfHistoryTransferType === 0) {
                 await window.Store.HistorySync.sendPeerDataOperationRequest(3, {
                     chatId: chat.id
                 });
@@ -1772,6 +1803,39 @@ class Client extends EventEmitter {
             ChatPreference.set('hdMediaEnabled', flag);
             return flag;
         }, flag);
+    }
+  
+    /**
+     * Save new contact to user's addressbook or edit the existing one
+     * @param {string} phoneNumber The contact's phone number in a format "17182222222", where "1" is a country code
+     * @param {string} firstName 
+     * @param {string} lastName 
+     * @param {boolean} [syncToAddressbook = false] If set to true, the contact will also be saved to the user's address book on their phone. False by default
+     * @returns {Promise<import('..').ChatId>} Object in a wid format
+     */
+    async saveOrEditAddressbookContact(phoneNumber, firstName, lastName, syncToAddressbook = false)
+    {
+        return await this.pupPage.evaluate(async (phoneNumber, firstName, lastName, syncToAddressbook) => {
+            return await window.Store.AddressbookContactUtils.saveContactAction(
+                phoneNumber,
+                null,
+                firstName,
+                lastName,
+                syncToAddressbook
+            );
+        }, phoneNumber, firstName, lastName, syncToAddressbook);
+    }
+
+    /**
+     * Deletes the contact from user's addressbook
+     * @param {string} phoneNumber The contact's phone number in a format "17182222222", where "1" is a country code
+     * @returns {Promise<void>}
+     */
+    async deleteAddressbookContact(phoneNumber)
+    {
+        return await this.pupPage.evaluate(async (phoneNumber) => {
+            return await window.Store.AddressbookContactUtils.deleteContactAction(phoneNumber);
+        }, phoneNumber);
     }
 }
 

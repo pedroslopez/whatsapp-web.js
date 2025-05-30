@@ -476,6 +476,10 @@ client.on('message', async msg => {
             const media = await quotedMsg.downloadMedia();
             await client.sendMessage(msg.from, media, { sendMediaAsHd: true });
         }
+    } else if (msg.body === '!changeSync') {
+        // NOTE: this action will take effect after you restart the client.
+        const backgroundSync = await client.setBackgroundSync(true);
+        console.log(backgroundSync);
     }
 });
 

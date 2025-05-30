@@ -84,7 +84,7 @@ exports.ExposeStore = () => {
     window.Store.LinkPreview = window.require('WAWebLinkPreviewChatAction');
     window.Store.Socket = window.require('WADeprecatedSendIq');
     window.Store.SocketWap = window.require('WAWap');
-    window.Store.SearchContext = window.require('WAWebChatMessageSearch').getSearchContext;
+    window.Store.SearchContext = window.require('WAWebChatMessageSearch');
     window.Store.DrawerManager = window.require('WAWebDrawerManager').DrawerManager;
     window.Store.LidUtils = window.require('WAWebApiContact');
     window.Store.WidToJid = window.require('WAWebWidToJid');
@@ -93,24 +93,26 @@ exports.ExposeStore = () => {
     window.Store.pinUnpinMsg = window.require('WAWebSendPinMessageAction').sendPinInChatMsg;
     window.Store.QueryExist = window.require('WAWebQueryExistsJob').queryWidExists;
     window.Store.ReplyUtils = window.require('WAWebMsgReply');
-    window.Store.Settings = window.require('WAWebUserPrefsGeneral');
     window.Store.BotSecret = window.require('WAWebBotMessageSecret');
     window.Store.BotProfiles = window.require('WAWebBotProfileCollection');
     window.Store.DeviceList = window.require('WAWebApiDeviceList');
     window.Store.HistorySync = window.require('WAWebSendNonMessageDataRequest');
-    if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.1014111620')) 
+    if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.1014111620'))
         window.Store.AddonReactionTable = window.require('WAWebAddonReactionTableMode').reactionTableMode;
     
-    window.Store.Settings.Chat = window.require('WAWebChatPreferenceCollection');
+    window.Store.Settings = {
+        ...window.require('WAWebUserPrefsGeneral'),
+        ...window.require('WAWebUserPrefsNotifications'),
+        setPushname: window.require('WAWebSetPushnameConnAction').setPushname,
+        Chat: window.require('WAWebChatPreferenceCollection')
+    };
     window.Store.NumberInfo = {
         ...window.require('WAPhoneUtils'),
         ...window.require('WAPhoneFindCC')
     };
-    
     window.Store.ForwardUtils = {
         ...window.require('WAWebForwardMessagesToChat')
     };
-
     window.Store.StickerTools = {
         ...window.require('WAWebImageUtils'),
         ...window.require('WAWebAddWebpMetadata')
@@ -137,6 +139,10 @@ exports.ExposeStore = () => {
     window.Store.MembershipRequestUtils = {
         ...window.require('WAWebApiMembershipApprovalRequestStore'),
         ...window.require('WASmaxGroupsMembershipRequestsActionRPC')
+    };
+    window.Store.AddressbookContactUtils = {
+        ...window.require('WAWebSaveContactAction'),
+        ...window.require('WAWebDeleteContactAction')
     };
 
     if (!window.Store.Chat._find || !window.Store.Chat.findImpl) {
