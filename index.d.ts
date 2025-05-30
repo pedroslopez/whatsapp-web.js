@@ -197,6 +197,12 @@ declare namespace WAWebJS {
         
         /** Sync history conversation of the Chat */
         syncHistory(chatId: string): Promise<boolean>
+
+        /** Save new contact to user's addressbook or edit the existing one */
+        saveOrEditAddressbookContact(phoneNumber: string, firstName: string, lastName: string, syncToAddressbook?: boolean): Promise<ChatId>
+
+        /** Deletes the contact from user's addressbook */
+        deleteAddressbookContact(honeNumber: string): Promise<void>
         
         /** Changes and returns the archive state of the Chat */
         unarchiveChat(chatId: string): Promise<boolean>

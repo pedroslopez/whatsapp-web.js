@@ -1786,6 +1786,39 @@ class Client extends EventEmitter {
             return false;
         }, chatId);
     }
+
+    /**
+     * Save new contact to user's addressbook or edit the existing one
+     * @param {string} phoneNumber The contact's phone number in a format "17182222222", where "1" is a country code
+     * @param {string} firstName 
+     * @param {string} lastName 
+     * @param {boolean} [syncToAddressbook = false] If set to true, the contact will also be saved to the user's address book on their phone. False by default
+     * @returns {Promise<import('..').ChatId>} Object in a wid format
+     */
+    async saveOrEditAddressbookContact(phoneNumber, firstName, lastName, syncToAddressbook = false)
+    {
+        return await this.pupPage.evaluate(async (phoneNumber, firstName, lastName, syncToAddressbook) => {
+            return await window.Store.AddressbookContactUtils.saveContactAction(
+                phoneNumber,
+                null,
+                firstName,
+                lastName,
+                syncToAddressbook
+            );
+        }, phoneNumber, firstName, lastName, syncToAddressbook);
+    }
+
+    /**
+     * Deletes the contact from user's addressbook
+     * @param {string} phoneNumber The contact's phone number in a format "17182222222", where "1" is a country code
+     * @returns {Promise<void>}
+     */
+    async deleteAddressbookContact(phoneNumber)
+    {
+        return await this.pupPage.evaluate(async (phoneNumber) => {
+            return await window.Store.AddressbookContactUtils.deleteContactAction(phoneNumber);
+        }, phoneNumber);
+    }
 }
 
 module.exports = Client;
