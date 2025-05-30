@@ -181,6 +181,13 @@ declare namespace WAWebJS {
         setAutoDownloadVideos(flag: boolean): Promise<void>
 
         /**
+         * Changing the background synchronization setting.
+         * NOTE: this action will take effect after you restart the client.
+         * @param flag true/false on or off
+         */
+        setBackgroundSync(flag: boolean): Promise<void>
+
+        /**
          * Get user device count by ID
          * Each WaWeb Connection counts as one device, and the phone (if exists) counts as one
          * So for a non-enterprise user with one WaWeb connection it should return "2"
@@ -982,7 +989,7 @@ declare namespace WAWebJS {
         /** Accept the Group V4 Invite in message */
         acceptGroupV4Invite: () => Promise<{status: number}>,
         /** Deletes the message from the chat */
-        delete: (everyone?: boolean) => Promise<void>,
+        delete: (everyone?: boolean, clearMedia?: boolean) => Promise<void>,
         /** Downloads and returns the attached message media */
         downloadMedia: () => Promise<MessageMedia>,
         /** Returns the Chat this message was sent in */
@@ -1060,7 +1067,10 @@ declare namespace WAWebJS {
     export class Location {
         latitude: string;
         longitude: string;
-        options?: LocationSendOptions;
+        name?: string;
+        address?: string;
+        url?: string;
+        description?: string;
         
         constructor(latitude: number, longitude: number, options?: LocationSendOptions)
     }
