@@ -144,6 +144,10 @@ exports.ExposeStore = () => {
         ...window.require('WAWebApiMembershipApprovalRequestStore'),
         ...window.require('WASmaxGroupsMembershipRequestsActionRPC')
     };
+    window.Store.AddressbookContactUtils = {
+        ...window.require('WAWebSaveContactAction'),
+        ...window.require('WAWebDeleteContactAction')
+    };
 
     if (!window.Store.Chat._find || !window.Store.Chat.findImpl) {
         window.Store.Chat._find = e => {

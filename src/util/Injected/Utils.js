@@ -242,8 +242,12 @@ exports.LoadUtils = () => {
             delete options.invokedBotWid;
         }
 
-        const meUser = window.Store.User.getMaybeMeUser();
+        let meUser = window.Store.User.getMaybeMeUser();
         const newId = await window.Store.MsgKey.newId();
+
+        if (chat.id.isGroup() && chat.groupMetadata.isLidAddressingMode) {
+            meUser = window.Store.User.getMaybeMeLidUser();
+        }
         
         const newMsgId = new window.Store.MsgKey({
             from: meUser,
@@ -486,7 +490,7 @@ exports.LoadUtils = () => {
         let res = chat.serialize();
         res.isGroup = false;
         res.formattedTitle = chat.formattedTitle;
-        res.isMuted = chat.muteExpiration == 0 ? false : true;
+        res.isMuted = chat.mute?.expiration !== 0;
 
         if (chat.groupMetadata) {
             res.isGroup = true;
