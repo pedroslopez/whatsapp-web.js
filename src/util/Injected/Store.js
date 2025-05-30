@@ -105,12 +105,10 @@ exports.ExposeStore = () => {
         ...window.require('WAWebUserPrefsNotifications'),
         setPushname: window.require('WAWebSetPushnameConnAction').setPushname
     };
-  
     window.Store.NumberInfo = {
         ...window.require('WAPhoneUtils'),
         ...window.require('WAPhoneFindCC')
     };
-    
     window.Store.ForwardUtils = {
         ...window.require('WAWebForwardMessagesToChat')
     };
@@ -171,6 +169,10 @@ exports.ExposeStore = () => {
     window.Store.ChannelSubscribers = {
         ...window.require('WAWebMexFetchNewsletterSubscribersJob'),
         ...window.require('WAWebNewsletterSubscriberListAction')
+    };
+    window.Store.AddressbookContactUtils = {
+        ...window.require('WAWebSaveContactAction'),
+        ...window.require('WAWebDeleteContactAction')
     };
 
     if (!window.Store.Chat._find || !window.Store.Chat.findImpl) {

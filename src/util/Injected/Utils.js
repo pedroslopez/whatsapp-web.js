@@ -539,7 +539,7 @@ exports.LoadUtils = () => {
 
         const model = chat.serialize();
         model.isGroup = false;
-        model.isMuted = chat.muteExpiration !== 0;
+        model.isMuted = chat.mute?.expiration !== 0;
         if (isChannel) {
             model.isChannel = window.Store.ChatGetters.getIsNewsletter(chat);
         } else {
