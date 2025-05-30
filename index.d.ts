@@ -119,7 +119,7 @@ declare namespace WAWebJS {
          * @param chatId ID of the chat that will be muted
          * @param unmuteDate Date when the chat will be unmuted, leave as is to mute forever
          */
-        muteChat(chatId: string, unmuteDate?: Date): Promise<void>
+        muteChat(chatId: string, unmuteDate?: Date): Promise<{ isMuted: boolean, muteExpiration: number }>
 
         /**
          * Request authentication via pairing code instead of QR code
@@ -200,12 +200,18 @@ declare namespace WAWebJS {
         
         /** Sync history conversation of the Chat */
         syncHistory(chatId: string): Promise<boolean>
+
+        /** Save new contact to user's addressbook or edit the existing one */
+        saveOrEditAddressbookContact(phoneNumber: string, firstName: string, lastName: string, syncToAddressbook?: boolean): Promise<ChatId>
+
+        /** Deletes the contact from user's addressbook */
+        deleteAddressbookContact(honeNumber: string): Promise<void>
         
         /** Changes and returns the archive state of the Chat */
         unarchiveChat(chatId: string): Promise<boolean>
 
         /** Unmutes the Chat */
-        unmuteChat(chatId: string): Promise<void>
+        unmuteChat(chatId: string): Promise<{ isMuted: boolean, muteExpiration: number }>
 
         /** Sets the current user's profile picture */
         setProfilePicture(media: MessageMedia): Promise<boolean>
@@ -1465,10 +1471,10 @@ declare namespace WAWebJS {
         /** Loads chat messages, sorted from earliest to latest. */
         fetchMessages: (searchOptions: MessageSearchOptions) => Promise<Message[]>,
         /** Mutes this chat forever, unless a date is specified */
-        mute: (unmuteDate?: Date) => Promise<void>,
+        mute: (unmuteDate?: Date) => Promise<{ isMuted: boolean, muteExpiration: number }>,
         /** Send a message to this chat */
         sendMessage: (content: MessageContent, options?: MessageSendOptions) => Promise<Message>,
-        /** Set the message as seen */
+        /** Set the chat as seen */
         sendSeen: () => Promise<void>,
         /** Simulate recording audio in chat. This will last for 25 seconds */
         sendStateRecording: () => Promise<void>,
@@ -1477,7 +1483,7 @@ declare namespace WAWebJS {
         /** un-archives this chat */
         unarchive: () => Promise<void>,
         /** Unmutes this chat */
-        unmute: () => Promise<void>,
+        unmute: () => Promise<{ isMuted: boolean, muteExpiration: number }>,
         /** Returns the Contact that corresponds to this Chat. */
         getContact: () => Promise<Contact>,
         /** Marks this Chat as unread */
