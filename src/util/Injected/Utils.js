@@ -467,6 +467,9 @@ exports.LoadUtils = () => {
             res.isGroup = true;
             const chatWid = window.Store.WidFactory.createWid((chat.id._serialized));
             await window.Store.GroupMetadata.update(chatWid);
+            chat.groupMetadata.participants._models
+                .filter(x => x.id._serialized.endsWith('@lid'))
+                .forEach(x => { x.id = x.contact.phoneNumber; });
             res.groupMetadata = chat.groupMetadata.serialize();
             res.isReadOnly = chat.groupMetadata.announce;
         }
