@@ -48,7 +48,7 @@ exports.LoadUtils = () => {
             let quotedMessage = window.Store.Msg.get(options.quotedMessageId);
             !quotedMessage && (quotedMessage = (await window.Store.Msg.getMessagesById([options.quotedMessageId]))?.messages?.[0]);
 
-            if (quotedMessage['messages'].length == 1) {
+            if (quotedMessage['messages']?.length == 1) {
                 quotedMessage = quotedMessage['messages'][0];
 
                 const canReply = window.Store.ReplyUtils
