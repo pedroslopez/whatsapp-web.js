@@ -548,8 +548,11 @@ exports.LoadUtils = () => {
 
         if (chat.groupMetadata) {
             model.isGroup = true;
-            const chatWid = window.Store.WidFactory.createWid((chat.id._serialized));
+            const chatWid = window.Store.WidFactory.createWid(chat.id._serialized);
             await window.Store.GroupMetadata.update(chatWid);
+            model.groupMetadata.participants._models
+                .filter(x => x.id._serialized.endsWith('@lid'))
+                .forEach(x => { x.id = x.contact.phoneNumber; });
             model.groupMetadata = chat.groupMetadata.serialize();
             model.isReadOnly = chat.groupMetadata.announce;
         }
@@ -583,57 +586,30 @@ exports.LoadUtils = () => {
             res.businessProfile = contact.businessProfile.serialize();
         }
 
-        // TODO: remove useOldImplementation and its checks once all clients are updated to >= v2.2327.4
-        const useOldImplementation
-            = window.compareWwebVersions(window.Debug.VERSION, '<', '2.2327.4');
-
-        res.isMe = useOldImplementation
-            ? contact.isMe
-            : window.Store.ContactMethods.getIsMe(contact);
-        res.isUser = useOldImplementation
-            ? contact.isUser
-            : window.Store.ContactMethods.getIsUser(contact);
-        res.isGroup = useOldImplementation
-            ? contact.isGroup
-            : window.Store.ContactMethods.getIsGroup(contact);
-        res.isWAContact = useOldImplementation
-            ? contact.isWAContact
-            : window.Store.ContactMethods.getIsWAContact(contact);
-        res.isMyContact = useOldImplementation
-            ? contact.isMyContact
-            : window.Store.ContactMethods.getIsMyContact(contact);
+        res.isMe = window.Store.ContactMethods.getIsMe(contact);
+        res.isUser = window.Store.ContactMethods.getIsUser(contact);
+        res.isGroup = window.Store.ContactMethods.getIsGroup(contact);
+        res.isWAContact = window.Store.ContactMethods.getIsWAContact(contact);
+        res.isMyContact = window.Store.ContactMethods.getIsMyContact(contact);
         res.isBlocked = contact.isContactBlocked;
-        res.userid = useOldImplementation
-            ? contact.userid
-            : window.Store.ContactMethods.getUserid(contact);
-        res.isEnterprise = useOldImplementation
-            ? contact.isEnterprise
-            : window.Store.ContactMethods.getIsEnterprise(contact);
-        res.verifiedName = useOldImplementation
-            ? contact.verifiedName
-            : window.Store.ContactMethods.getVerifiedName(contact);
-        res.verifiedLevel = useOldImplementation
-            ? contact.verifiedLevel
-            : window.Store.ContactMethods.getVerifiedLevel(contact);
-        res.statusMute = useOldImplementation
-            ? contact.statusMute
-            : window.Store.ContactMethods.getStatusMute(contact);
-        res.name = useOldImplementation
-            ? contact.name
-            : window.Store.ContactMethods.getName(contact);
-        res.shortName = useOldImplementation
-            ? contact.shortName
-            : window.Store.ContactMethods.getShortName(contact);
-        res.pushname = useOldImplementation
-            ? contact.pushname
-            : window.Store.ContactMethods.getPushname(contact);
+        res.userid = window.Store.ContactMethods.getUserid(contact);
+        res.isEnterprise = window.Store.ContactMethods.getIsEnterprise(contact);
+        res.verifiedName = window.Store.ContactMethods.getVerifiedName(contact);
+        res.verifiedLevel = window.Store.ContactMethods.getVerifiedLevel(contact);
+        res.statusMute = window.Store.ContactMethods.getStatusMute(contact);
+        res.name = window.Store.ContactMethods.getName(contact);
+        res.shortName = window.Store.ContactMethods.getShortName(contact);
+        res.pushname = window.Store.ContactMethods.getPushname(contact);
 
         return res;
     };
 
     window.WWebJS.getContact = async contactId => {
         const wid = window.Store.WidFactory.createWid(contactId);
-        const contact = await window.Store.Contact.find(wid);
+        let contact = await window.Store.Contact.find(wid);
+        if (contact.id._serialized.endsWith('@lid')) {
+            contact.id = contact.phoneNumber;
+        }
         const bizProfile = await window.Store.BusinessProfile.fetchBizProfile(wid);
         bizProfile.profileOptions && (contact.businessProfile = bizProfile);
         return window.WWebJS.getContactModel(contact);
@@ -700,10 +676,6 @@ exports.LoadUtils = () => {
         return result;
     };
 
-    /**
-     * Referenced from and modified:
-     * @see https://github.com/wppconnect-team/wa-js/commit/290ebfefe6021b3d17f7fdfdda5545bb0473b26f
-     */
     window.WWebJS.generateWaveform = async (audioFile) => {
         try {
             const audioData = await audioFile.arrayBuffer();
