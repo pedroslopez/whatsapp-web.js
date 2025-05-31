@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.28.0 &raquo; Source: util/Injected/Store.js</title>
+  <title>whatsapp-web.js 1.29.0 &raquo; Source: util/Injected/Store.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>28.<wbr>0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>29.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -96,7 +96,6 @@ exports.ExposeStore &#x3D; () &#x3D;&gt; {
     window.Store.SendSeen &#x3D; window.require(&#x27;WAWebUpdateUnreadChatAction&#x27;);
     window.Store.User &#x3D; window.require(&#x27;WAWebUserPrefsMeUser&#x27;);
     window.Store.ContactMethods &#x3D; window.require(&#x27;WAWebContactGetters&#x27;);
-    window.Store.UploadUtils &#x3D; window.require(&#x27;WAWebUploadManager&#x27;);
     window.Store.UserConstructor &#x3D; window.require(&#x27;WAWebWid&#x27;);
     window.Store.Validators &#x3D; window.require(&#x27;WALinkify&#x27;);
     window.Store.VCard &#x3D; window.require(&#x27;WAWebFrontendVcardUtils&#x27;);
@@ -115,7 +114,7 @@ exports.ExposeStore &#x3D; () &#x3D;&gt; {
     window.Store.LinkPreview &#x3D; window.require(&#x27;WAWebLinkPreviewChatAction&#x27;);
     window.Store.Socket &#x3D; window.require(&#x27;WADeprecatedSendIq&#x27;);
     window.Store.SocketWap &#x3D; window.require(&#x27;WAWap&#x27;);
-    window.Store.SearchContext &#x3D; window.require(&#x27;WAWebChatMessageSearch&#x27;).getSearchContext;
+    window.Store.SearchContext &#x3D; window.require(&#x27;WAWebChatMessageSearch&#x27;);
     window.Store.DrawerManager &#x3D; window.require(&#x27;WAWebDrawerManager&#x27;).DrawerManager;
     window.Store.LidUtils &#x3D; window.require(&#x27;WAWebApiContact&#x27;);
     window.Store.WidToJid &#x3D; window.require(&#x27;WAWebWidToJid&#x27;);
@@ -124,23 +123,26 @@ exports.ExposeStore &#x3D; () &#x3D;&gt; {
     window.Store.pinUnpinMsg &#x3D; window.require(&#x27;WAWebSendPinMessageAction&#x27;).sendPinInChatMsg;
     window.Store.QueryExist &#x3D; window.require(&#x27;WAWebQueryExistsJob&#x27;).queryWidExists;
     window.Store.ReplyUtils &#x3D; window.require(&#x27;WAWebMsgReply&#x27;);
-    window.Store.Settings &#x3D; window.require(&#x27;WAWebUserPrefsGeneral&#x27;);
     window.Store.BotSecret &#x3D; window.require(&#x27;WAWebBotMessageSecret&#x27;);
     window.Store.BotProfiles &#x3D; window.require(&#x27;WAWebBotProfileCollection&#x27;);
+    window.Store.ContactCollection &#x3D; window.require(&#x27;WAWebContactCollection&#x27;).ContactCollection;
     window.Store.DeviceList &#x3D; window.require(&#x27;WAWebApiDeviceList&#x27;);
     window.Store.HistorySync &#x3D; window.require(&#x27;WAWebSendNonMessageDataRequest&#x27;);
-    if (window.compareWwebVersions(window.Debug.VERSION, &#x27;&gt;&#x3D;&#x27;, &#x27;2.3000.1014111620&#x27;)) 
-        window.Store.AddonReactionTable &#x3D; window.require(&#x27;WAWebAddonReactionTableMode&#x27;).reactionTableMode;
+    window.Store.AddonReactionTable &#x3D; window.require(&#x27;WAWebAddonReactionTableMode&#x27;).reactionTableMode;
+    window.Store.ChatGetters &#x3D; window.require(&#x27;WAWebChatGetters&#x27;);
     
+    window.Store.Settings &#x3D; {
+        ...window.require(&#x27;WAWebUserPrefsGeneral&#x27;),
+        ...window.require(&#x27;WAWebUserPrefsNotifications&#x27;),
+        setPushname: window.require(&#x27;WAWebSetPushnameConnAction&#x27;).setPushname
+    };
     window.Store.NumberInfo &#x3D; {
         ...window.require(&#x27;WAPhoneUtils&#x27;),
         ...window.require(&#x27;WAPhoneFindCC&#x27;)
     };
-    
     window.Store.ForwardUtils &#x3D; {
         ...window.require(&#x27;WAWebForwardMessagesToChat&#x27;)
     };
-
     window.Store.StickerTools &#x3D; {
         ...window.require(&#x27;WAWebImageUtils&#x27;),
         ...window.require(&#x27;WAWebAddWebpMetadata&#x27;)
@@ -167,6 +169,41 @@ exports.ExposeStore &#x3D; () &#x3D;&gt; {
     window.Store.MembershipRequestUtils &#x3D; {
         ...window.require(&#x27;WAWebApiMembershipApprovalRequestStore&#x27;),
         ...window.require(&#x27;WASmaxGroupsMembershipRequestsActionRPC&#x27;)
+    };
+    window.Store.ChannelUtils &#x3D; {
+        ...window.require(&#x27;WAWebLoadNewsletterPreviewChatAction&#x27;),
+        ...window.require(&#x27;WAWebNewsletterMetadataQueryJob&#x27;),
+        ...window.require(&#x27;WAWebNewsletterCreateQueryJob&#x27;),
+        ...window.require(&#x27;WAWebEditNewsletterMetadataAction&#x27;),
+        ...window.require(&#x27;WAWebNewsletterDeleteAction&#x27;),
+        ...window.require(&#x27;WAWebNewsletterSubscribeAction&#x27;),
+        ...window.require(&#x27;WAWebNewsletterUnsubscribeAction&#x27;),
+        ...window.require(&#x27;WAWebNewsletterDirectorySearchAction&#x27;),
+        ...window.require(&#x27;WAWebNewsletterToggleMuteStateJob&#x27;),
+        ...window.require(&#x27;WAWebNewsletterGatingUtils&#x27;),
+        ...window.require(&#x27;WAWebNewsletterModelUtils&#x27;),
+        ...window.require(&#x27;WAWebMexAcceptNewsletterAdminInviteJob&#x27;),
+        ...window.require(&#x27;WAWebMexRevokeNewsletterAdminInviteJob&#x27;),
+        ...window.require(&#x27;WAWebChangeNewsletterOwnerAction&#x27;),
+        ...window.require(&#x27;WAWebDemoteNewsletterAdminAction&#x27;),
+        ...window.require(&#x27;WAWebNewsletterDemoteAdminJob&#x27;),
+        countryCodesIso: window.require(&#x27;WAWebCountriesNativeCountryNames&#x27;),
+        currentRegion: window.require(&#x27;WAWebL10N&#x27;).getRegion(),
+    };
+    window.Store.SendChannelMessage &#x3D; {
+        ...window.require(&#x27;WAWebNewsletterUpdateMsgsRecordsJob&#x27;),
+        ...window.require(&#x27;WAWebMsgDataFromModel&#x27;),
+        ...window.require(&#x27;WAWebNewsletterSendMessageJob&#x27;),
+        ...window.require(&#x27;WAWebNewsletterSendMsgAction&#x27;),
+        ...window.require(&#x27;WAMediaCalculateFilehash&#x27;)
+    };
+    window.Store.ChannelSubscribers &#x3D; {
+        ...window.require(&#x27;WAWebMexFetchNewsletterSubscribersJob&#x27;),
+        ...window.require(&#x27;WAWebNewsletterSubscriberListAction&#x27;)
+    };
+    window.Store.AddressbookContactUtils &#x3D; {
+        ...window.require(&#x27;WAWebSaveContactAction&#x27;),
+        ...window.require(&#x27;WAWebDeleteContactAction&#x27;)
     };
 
     if (!window.Store.Chat._find || !window.Store.Chat.findImpl) {
@@ -212,7 +249,7 @@ exports.ExposeStore &#x3D; () &#x3D;&gt; {
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on May 12, 2025.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on May 31, 2025.
       </p>
     </div>
   </footer>
