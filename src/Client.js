@@ -851,7 +851,7 @@ class Client extends EventEmitter {
      * @property {string} [stickerAuthor=undefined] - Sets the author of the sticker, (if sendMediaAsSticker is true).
      * @property {string} [stickerName=undefined] - Sets the name of the sticker, (if sendMediaAsSticker is true).
      * @property {string[]} [stickerCategories=undefined] - Sets the categories of the sticker, (if sendMediaAsSticker is true). Provide emoji char array, can be null.
-     * @property {boolean} [ignoreQuoteErrors = false] - Should the bot send a quoted message without the quoted message if it fails to get the quote?
+     * @property {boolean} [ignoreQuoteErrors = true] - Should the bot send a quoted message without the quoted message if it fails to get the quote?
      * @property {MessageMedia} [media] - Media to be sent
      * @property {any} [extra] - Extra options
      */
@@ -900,7 +900,7 @@ class Client extends EventEmitter {
             mentionedJidList: options.mentions || [],
             groupMentions: options.groupMentions,
             invokedBotWid: options.invokedBotWid,
-            ignoreQuoteErrors: options.ignoreQuoteErrors,
+            ignoreQuoteErrors: options.ignoreQuoteErrors !== false,
             extraOptions: options.extra
         };
 
