@@ -1261,7 +1261,7 @@ declare namespace WAWebJS {
         /** Sticker categories, if sendMediaAsSticker is true */
         stickerCategories?: string[],
         /** Should the bot send a quoted message without the quoted message if it fails to get the quote?
-         * @default false (disabled) */
+         * @default true (enabled) */
         ignoreQuoteErrors?: boolean
     }
 

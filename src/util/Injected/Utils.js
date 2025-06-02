@@ -48,7 +48,7 @@ exports.LoadUtils = () => {
             let quotedMessage = window.Store.Msg.get(options.quotedMessageId);
             !quotedMessage && (quotedMessage = (await window.Store.Msg.getMessagesById([options.quotedMessageId]))?.messages?.[0]);
 
-            if (quotedMessage['messages'].length == 1) {
+            if (quotedMessage['messages']?.length == 1) {
                 quotedMessage = quotedMessage['messages'][0];
 
                 const canReply = window.Store.ReplyUtils
@@ -550,7 +550,7 @@ exports.LoadUtils = () => {
             model.isGroup = true;
             const chatWid = window.Store.WidFactory.createWid(chat.id._serialized);
             await window.Store.GroupMetadata.update(chatWid);
-            model.groupMetadata.participants._models
+            chat.groupMetadata.participants._models
                 .filter(x => x.id._serialized.endsWith('@lid'))
                 .forEach(x => { x.id = x.contact.phoneNumber; });
             model.groupMetadata = chat.groupMetadata.serialize();
