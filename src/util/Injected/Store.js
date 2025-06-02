@@ -65,7 +65,6 @@ exports.ExposeStore = () => {
     window.Store.SendSeen = window.require('WAWebUpdateUnreadChatAction');
     window.Store.User = window.require('WAWebUserPrefsMeUser');
     window.Store.ContactMethods = window.require('WAWebContactGetters');
-    window.Store.UploadUtils = window.require('WAWebUploadManager');
     window.Store.UserConstructor = window.require('WAWebWid');
     window.Store.Validators = window.require('WALinkify');
     window.Store.VCard = window.require('WAWebFrontendVcardUtils');
@@ -95,10 +94,12 @@ exports.ExposeStore = () => {
     window.Store.ReplyUtils = window.require('WAWebMsgReply');
     window.Store.BotSecret = window.require('WAWebBotMessageSecret');
     window.Store.BotProfiles = window.require('WAWebBotProfileCollection');
+    window.Store.ContactCollection = window.require('WAWebContactCollection').ContactCollection;
     window.Store.DeviceList = window.require('WAWebApiDeviceList');
     window.Store.HistorySync = window.require('WAWebSendNonMessageDataRequest');
     window.Store.AddonReactionTable = window.require('WAWebAddonReactionTableMode').reactionTableMode;
     window.Store.PinnedMsgUtils = window.require('WAWebPinInChatSchema');
+    window.Store.ChatGetters = window.require('WAWebChatGetters');
     
     window.Store.Settings = {
         ...window.require('WAWebUserPrefsGeneral'),
@@ -138,6 +139,37 @@ exports.ExposeStore = () => {
     window.Store.MembershipRequestUtils = {
         ...window.require('WAWebApiMembershipApprovalRequestStore'),
         ...window.require('WASmaxGroupsMembershipRequestsActionRPC')
+    };
+    window.Store.ChannelUtils = {
+        ...window.require('WAWebLoadNewsletterPreviewChatAction'),
+        ...window.require('WAWebNewsletterMetadataQueryJob'),
+        ...window.require('WAWebNewsletterCreateQueryJob'),
+        ...window.require('WAWebEditNewsletterMetadataAction'),
+        ...window.require('WAWebNewsletterDeleteAction'),
+        ...window.require('WAWebNewsletterSubscribeAction'),
+        ...window.require('WAWebNewsletterUnsubscribeAction'),
+        ...window.require('WAWebNewsletterDirectorySearchAction'),
+        ...window.require('WAWebNewsletterToggleMuteStateJob'),
+        ...window.require('WAWebNewsletterGatingUtils'),
+        ...window.require('WAWebNewsletterModelUtils'),
+        ...window.require('WAWebMexAcceptNewsletterAdminInviteJob'),
+        ...window.require('WAWebMexRevokeNewsletterAdminInviteJob'),
+        ...window.require('WAWebChangeNewsletterOwnerAction'),
+        ...window.require('WAWebDemoteNewsletterAdminAction'),
+        ...window.require('WAWebNewsletterDemoteAdminJob'),
+        countryCodesIso: window.require('WAWebCountriesNativeCountryNames'),
+        currentRegion: window.require('WAWebL10N').getRegion(),
+    };
+    window.Store.SendChannelMessage = {
+        ...window.require('WAWebNewsletterUpdateMsgsRecordsJob'),
+        ...window.require('WAWebMsgDataFromModel'),
+        ...window.require('WAWebNewsletterSendMessageJob'),
+        ...window.require('WAWebNewsletterSendMsgAction'),
+        ...window.require('WAMediaCalculateFilehash')
+    };
+    window.Store.ChannelSubscribers = {
+        ...window.require('WAWebMexFetchNewsletterSubscribersJob'),
+        ...window.require('WAWebNewsletterSubscriberListAction')
     };
     window.Store.AddressbookContactUtils = {
         ...window.require('WAWebSaveContactAction'),
