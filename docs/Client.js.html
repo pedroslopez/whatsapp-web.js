@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.30.0 &raquo; Source: Client.js</title>
+  <title>whatsapp-web.js 1.30.1-alpha.0 &raquo; Source: Client.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>30.<wbr>0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>30.<wbr>1-alpha.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -871,6 +871,7 @@ class Client extends EventEmitter {
      * @property {boolean} [sendVideoAsGif&#x3D;false] - Send video as gif
      * @property {boolean} [sendMediaAsSticker&#x3D;false] - Send media as a sticker
      * @property {boolean} [sendMediaAsDocument&#x3D;false] - Send media as a document
+     * @property {boolean} [sendMediaAsHd&#x3D;false] - Send image as quality HD
      * @property {boolean} [isViewOnce&#x3D;false] - Send photo/video as a view once message
      * @property {boolean} [parseVCards&#x3D;true] - Automatically parse vCards and send them as contacts
      * @property {string} [caption] - Image or video caption
@@ -925,6 +926,7 @@ class Client extends EventEmitter {
             sendVideoAsGif: options.sendVideoAsGif,
             sendMediaAsSticker: options.sendMediaAsSticker,
             sendMediaAsDocument: options.sendMediaAsDocument,
+            sendMediaAsHd: options.sendMediaAsHd,
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
             parseVCards: options.parseVCards !&#x3D;&#x3D; false,
@@ -2176,7 +2178,7 @@ class Client extends EventEmitter {
             return false;
         }, chatId);
     }
-
+  
     /**
      * Save new contact to user&#x27;s addressbook or edit the existing one
      * @param {string} phoneNumber The contact&#x27;s phone number in a format &quot;17182222222&quot;, where &quot;1&quot; is a country code
