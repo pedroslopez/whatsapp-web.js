@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.23.0 &raquo; Class: GroupChat</title>
+  <title>whatsapp-web.js 1.30.0 &raquo; Class: GroupChat</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>23.<wbr>0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>30.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -187,6 +187,9 @@
                     <dt><a href="GroupChat.html#sendStateTyping">sendStateTyping()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="GroupChat.html#setAddMembersAdminsOnly">setAddMembersAdminsOnly([adminsOnly])</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="GroupChat.html#setDescription">setDescription(description)</a></dt>
                     <dd>
                     </dd>
@@ -200,6 +203,9 @@
                     <dd>
                     </dd>
                     <dt><a href="GroupChat.html#setSubject">setSubject(subject)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="GroupChat.html#syncHistory">syncHistory()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="GroupChat.html#unarchive">unarchive()</a></dt>
@@ -464,7 +470,7 @@
                 <dd></dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
-              <h3 id="clearMessages"><span class="symbol-name">clearMessages</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Boolean</span></span></h3>
+              <h3 id="clearMessages"><span class="symbol-name">clearMessages</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
               <p>Clears all messages from the chat</p>
               <dl class="dl-compact">
                 <dt>Inherited from</dt>
@@ -678,7 +684,7 @@
                 <dd><a href="Chat.html#markUnread">Chat#markUnread</a></dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
-              <h3 id="mute"><span class="symbol-name">mute</span><span class="signature"><span class="signature-params">(unmuteDate)</span></span></h3>
+              <h3 id="mute"><span class="symbol-name">mute</span><span class="signature"><span class="signature-params">(unmuteDate)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing {isMuted: boolean, muteExpiration: number}</span></span></h3>
               <p>Mutes this chat forever, unless a date is specified</p>
               <section>
                 <h4>Parameter</h4>
@@ -703,7 +709,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Date at which the Chat will be unmuted, leave as is to mute forever</p>
+                        <p>Date when the chat will be unmuted, don't provide a value to mute forever</p>
                         <p>Value can be null.</p>
                       </td>
                     </tr>
@@ -713,6 +719,8 @@
               <dl class="dl-compact">
                 <dt>Inherited from</dt>
                 <dd><a href="Chat.html#mute">Chat#mute</a></dd>
+                <dt>Returns</dt>
+                <dd></dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="pin"><span class="symbol-name">pin</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
@@ -906,7 +914,7 @@
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="sendSeen"><span class="symbol-name">sendSeen</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Boolean</span></span></h3>
-              <p>Set the message as seen</p>
+              <p>Sets the chat as seen</p>
               <dl class="dl-compact">
                 <dt>Inherited from</dt>
                 <dd><a href="Chat.html#sendSeen">Chat#sendSeen</a></dd>
@@ -928,6 +936,47 @@
               <dl class="dl-compact">
                 <dt>Inherited from</dt>
                 <dd><a href="Chat.html#sendStateTyping">Chat#sendStateTyping</a></dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="setAddMembersAdminsOnly"><span class="symbol-name">setAddMembersAdminsOnly</span><span class="signature"><span class="signature-params">([adminsOnly])</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Updates the group setting to allow only admins to add members to the group.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>adminsOnly</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Enable or disable this option</p>
+                        <p>Defaults to <code>true</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code> 
+                  <p>Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.</p>
+                  </p>
+                </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="setDescription"><span class="symbol-name">setDescription</span><span class="signature"><span class="signature-params">(description)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
@@ -1129,6 +1178,17 @@
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="syncHistory"><span class="symbol-name">syncHistory</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Sync chat history conversation</p>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#syncHistory">Chat#syncHistory</a></dd>
+                <dt>Returns</dt>
+                <dd>
+                  <p>True if operation completed successfully, false otherwise.</p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="unarchive"><span class="symbol-name">unarchive</span><span class="signature"><span class="signature-params">()</span></span></h3>
               <p>un-archives this chat</p>
               <dl class="dl-compact">
@@ -1136,11 +1196,13 @@
                 <dd><a href="Chat.html#unarchive">Chat#unarchive</a></dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
-              <h3 id="unmute"><span class="symbol-name">unmute</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <h3 id="unmute"><span class="symbol-name">unmute</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing {isMuted: boolean, muteExpiration: number}</span></span></h3>
               <p>Unmutes this chat</p>
               <dl class="dl-compact">
                 <dt>Inherited from</dt>
                 <dd><a href="Chat.html#unmute">Chat#unmute</a></dd>
+                <dt>Returns</dt>
+                <dd></dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="unpin"><span class="symbol-name">unpin</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
@@ -1163,7 +1225,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on October 21, 2023.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on June 2, 2025.
       </p>
     </div>
   </footer>

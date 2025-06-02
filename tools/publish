@@ -70,6 +70,8 @@ npm version $VERSION_ARGS || exit 1
 
 git push && git push --tags || exit 1
 
+npm install
+
 npm run generate-docs
 
 git add .

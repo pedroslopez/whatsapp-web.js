@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.23.0 &raquo; Class: PrivateChat</title>
+  <title>whatsapp-web.js 1.30.0 &raquo; Class: PrivateChat</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>23.<wbr>0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>30.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -107,13 +107,13 @@
                     <dt><a href="PrivateChat.html#fetchMessages">fetchMessages(searchOptions)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="PrivateChat.html#getContact">getContact()</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="PrivateChat.html#getContact">getContact()</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="PrivateChat.html#getLabels">getLabels()</a></dt>
                     <dd>
                     </dd>
@@ -129,17 +129,20 @@
                     <dt><a href="PrivateChat.html#sendMessage">sendMessage(content[, options])</a></dt>
                     <dd>
                     </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
                     <dt><a href="PrivateChat.html#sendSeen">sendSeen()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="PrivateChat.html#sendStateRecording">sendStateRecording()</a></dt>
                     <dd>
                     </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
                     <dt><a href="PrivateChat.html#sendStateTyping">sendStateTyping()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="PrivateChat.html#syncHistory">syncHistory()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="PrivateChat.html#unarchive">unarchive()</a></dt>
@@ -291,7 +294,7 @@
                 <dd></dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
-              <h3 id="clearMessages"><span class="symbol-name">clearMessages</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Boolean</span></span></h3>
+              <h3 id="clearMessages"><span class="symbol-name">clearMessages</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
               <p>Clears all messages from the chat</p>
               <dl class="dl-compact">
                 <dt>Inherited from</dt>
@@ -424,7 +427,7 @@
                 <dd><a href="Chat.html#markUnread">Chat#markUnread</a></dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
-              <h3 id="mute"><span class="symbol-name">mute</span><span class="signature"><span class="signature-params">(unmuteDate)</span></span></h3>
+              <h3 id="mute"><span class="symbol-name">mute</span><span class="signature"><span class="signature-params">(unmuteDate)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing {isMuted: boolean, muteExpiration: number}</span></span></h3>
               <p>Mutes this chat forever, unless a date is specified</p>
               <section>
                 <h4>Parameter</h4>
@@ -449,7 +452,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Date at which the Chat will be unmuted, leave as is to mute forever</p>
+                        <p>Date when the chat will be unmuted, don't provide a value to mute forever</p>
                         <p>Value can be null.</p>
                       </td>
                     </tr>
@@ -459,6 +462,8 @@
               <dl class="dl-compact">
                 <dt>Inherited from</dt>
                 <dd><a href="Chat.html#mute">Chat#mute</a></dd>
+                <dt>Returns</dt>
+                <dd></dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="pin"><span class="symbol-name">pin</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
@@ -525,7 +530,7 @@
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="sendSeen"><span class="symbol-name">sendSeen</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Boolean</span></span></h3>
-              <p>Set the message as seen</p>
+              <p>Sets the chat as seen</p>
               <dl class="dl-compact">
                 <dt>Inherited from</dt>
                 <dd><a href="Chat.html#sendSeen">Chat#sendSeen</a></dd>
@@ -549,6 +554,17 @@
                 <dd><a href="Chat.html#sendStateTyping">Chat#sendStateTyping</a></dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="syncHistory"><span class="symbol-name">syncHistory</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Sync chat history conversation</p>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="Chat.html#syncHistory">Chat#syncHistory</a></dd>
+                <dt>Returns</dt>
+                <dd>
+                  <p>True if operation completed successfully, false otherwise.</p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="unarchive"><span class="symbol-name">unarchive</span><span class="signature"><span class="signature-params">()</span></span></h3>
               <p>un-archives this chat</p>
               <dl class="dl-compact">
@@ -556,11 +572,13 @@
                 <dd><a href="Chat.html#unarchive">Chat#unarchive</a></dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
-              <h3 id="unmute"><span class="symbol-name">unmute</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <h3 id="unmute"><span class="symbol-name">unmute</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing {isMuted: boolean, muteExpiration: number}</span></span></h3>
               <p>Unmutes this chat</p>
               <dl class="dl-compact">
                 <dt>Inherited from</dt>
                 <dd><a href="Chat.html#unmute">Chat#unmute</a></dd>
+                <dt>Returns</dt>
+                <dd></dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
               <h3 id="unpin"><span class="symbol-name">unpin</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
@@ -583,7 +601,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on October 21, 2023.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on June 2, 2025.
       </p>
     </div>
   </footer>

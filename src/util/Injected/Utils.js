@@ -1,196 +1,70 @@
 'use strict';
 
-// Exposes the internal Store to the WhatsApp Web client
-exports.ExposeStore = (moduleRaidStr) => {
-    eval('var moduleRaid = ' + moduleRaidStr);
-    // eslint-disable-next-line no-undef
-    window.mR = moduleRaid();
-    window.Store = Object.assign({}, window.mR.findModule(m => m.default && m.default.Chat)[0].default);
-    window.Store.AppState = window.mR.findModule('Socket')[0].Socket;
-    window.Store.Conn = window.mR.findModule('Conn')[0].Conn;
-    window.Store.BlockContact = window.mR.findModule('blockContact')[0];
-    window.Store.Call = window.mR.findModule((module) => module.default && module.default.Call)[0].default.Call;
-    window.Store.Cmd = window.mR.findModule('Cmd')[0].Cmd;
-    window.Store.CryptoLib = window.mR.findModule('decryptE2EMedia')[0];
-    window.Store.DownloadManager = window.mR.findModule('downloadManager')[0].downloadManager;
-    window.Store.GroupMetadata = window.mR.findModule('GroupMetadata')[0].default.GroupMetadata;
-    window.Store.GroupMetadata.queryAndUpdate = window.mR.findModule('queryAndUpdateGroupMetadataById')[0].queryAndUpdateGroupMetadataById;
-    window.Store.Label = window.mR.findModule('LabelCollection')[0].LabelCollection;
-    window.Store.ContactCollection = window.mR.findModule('ContactCollection')[0].ContactCollection;
-    window.Store.MediaPrep = window.mR.findModule('prepRawMedia')[0];
-    window.Store.MediaObject = window.mR.findModule('getOrCreateMediaObject')[0];
-    window.Store.NumberInfo = window.mR.findModule('formattedPhoneNumber')[0];
-    window.Store.MediaTypes = window.mR.findModule('msgToMediaType')[0];
-    window.Store.MediaUpload = window.mR.findModule('uploadMedia')[0];
-    window.Store.MsgKey = window.mR.findModule((module) => module.default && module.default.fromString)[0].default;
-    window.Store.OpaqueData = window.mR.findModule(module => module.default && module.default.createFromData)[0].default;
-    window.Store.QueryProduct = window.mR.findModule('queryProduct')[0];
-    window.Store.QueryOrder = window.mR.findModule('queryOrder')[0];
-    window.Store.SendClear = window.mR.findModule('sendClear')[0];
-    window.Store.SendDelete = window.mR.findModule('sendDelete')[0];
-    window.Store.SendMessage = window.mR.findModule('addAndSendMsgToChat')[0];
-    window.Store.EditMessage = window.mR.findModule('addAndSendMessageEdit')[0];
-    window.Store.SendSeen = window.mR.findModule('sendSeen')[0];
-    window.Store.User = window.mR.findModule('getMaybeMeUser')[0];
-    window.Store.ContactMethods = window.mR.findModule('getUserid')[0];
-    window.Store.BusinessProfileCollection = window.mR.findModule('BusinessProfileCollection')[0].BusinessProfileCollection;
-    window.Store.UploadUtils = window.mR.findModule((module) => (module.default && module.default.encryptAndUpload) ? module.default : null)[0].default;
-    window.Store.UserConstructor = window.mR.findModule((module) => (module.default && module.default.prototype && module.default.prototype.isServer && module.default.prototype.isUser) ? module.default : null)[0].default;
-    window.Store.Validators = window.mR.findModule('findLinks')[0];
-    window.Store.VCard = window.mR.findModule('vcardFromContactModel')[0];
-    window.Store.WidFactory = window.mR.findModule('createWid')[0];
-    window.Store.ProfilePic = window.mR.findModule('profilePicResync')[0];
-    window.Store.PresenceUtils = window.mR.findModule('sendPresenceAvailable')[0];
-    window.Store.ChatState = window.mR.findModule('sendChatStateComposing')[0];
-    window.Store.findCommonGroups = window.mR.findModule('findCommonGroups')[0].findCommonGroups;
-    window.Store.StatusUtils = window.mR.findModule('setMyStatus')[0];
-    window.Store.ConversationMsgs = window.mR.findModule('loadEarlierMsgs')[0];
-    window.Store.sendReactionToMsg = window.mR.findModule('sendReactionToMsg')[0].sendReactionToMsg;
-    window.Store.createOrUpdateReactionsModule = window.mR.findModule('createOrUpdateReactions')[0];
-    window.Store.EphemeralFields = window.mR.findModule('getEphemeralFields')[0];
-    window.Store.MsgActionChecks = window.mR.findModule('canSenderRevokeMsg')[0];
-    window.Store.QuotedMsg = window.mR.findModule('getQuotedMsgObj')[0];
-    window.Store.LinkPreview = window.mR.findModule('getLinkPreview')[0];
-    window.Store.Socket = window.mR.findModule('deprecatedSendIq')[0];
-    window.Store.SocketWap = window.mR.findModule('wap')[0];
-    window.Store.SearchContext = window.mR.findModule('getSearchContext')[0].getSearchContext;
-    window.Store.DrawerManager = window.mR.findModule('DrawerManager')[0].DrawerManager;
-    window.Store.LidUtils = window.mR.findModule('getCurrentLid')[0];
-    window.Store.WidToJid = window.mR.findModule('widToUserJid')[0];
-    window.Store.JidToWid = window.mR.findModule('userJidToUserWid')[0];
-    window.Store.getMsgInfo = (window.mR.findModule('sendQueryMsgInfo')[0] || {}).sendQueryMsgInfo || window.mR.findModule('queryMsgInfo')[0].queryMsgInfo;
-    window.Store.pinUnpinMsg = window.mR.findModule('sendPinInChatMsg')[0].sendPinInChatMsg;
-    
-    /* eslint-disable no-undef, no-cond-assign */
-    window.Store.QueryExist = ((m = window.mR.findModule('queryExists')[0]) ? m.queryExists : window.mR.findModule('queryExist')[0].queryWidExists);
-    window.Store.ReplyUtils = (m = window.mR.findModule('canReplyMsg')).length > 0 && m[0];
-    /* eslint-enable no-undef, no-cond-assign */
-
-    window.Store.Settings = {
-        ...window.mR.findModule('ChatlistPanelState')[0],
-        setPushname: window.mR.findModule((m) => m.setPushname && !m.ChatlistPanelState)[0].setPushname
-    };
-    window.Store.StickerTools = {
-        ...window.mR.findModule('toWebpSticker')[0],
-        ...window.mR.findModule('addWebpMetadata')[0]
-    };
-    window.Store.GroupUtils = {
-        ...window.mR.findModule('createGroup')[0],
-        ...window.mR.findModule('setGroupDescription')[0],
-        ...window.mR.findModule('sendExitGroup')[0],
-        ...window.mR.findModule('sendSetPicture')[0]
-    };
-    window.Store.GroupParticipants = {
-        ...window.mR.findModule('promoteParticipants')[0],
-        ...window.mR.findModule('sendAddParticipantsRPC')[0]
-    };
-    window.Store.GroupInvite = {
-        ...window.mR.findModule('resetGroupInviteCode')[0],
-        ...window.mR.findModule('queryGroupInvite')[0]
-    };
-    window.Store.GroupInviteV4 = {
-        ...window.mR.findModule('queryGroupInviteV4')[0],
-        ...window.mR.findModule('sendGroupInviteMessage')[0]
-    };
-    window.Store.MembershipRequestUtils = {
-        ...window.mR.findModule('getMembershipApprovalRequests')[0],
-        ...window.mR.findModule('sendMembershipRequestsActionRPC')[0]
-    };
-
-    if (!window.Store.Chat._find) {
-        window.Store.Chat._find = e => {
-            const target = window.Store.Chat.get(e);
-            return target ? Promise.resolve(target) : Promise.resolve({
-                id: e
-            });
-        };
-    }
-    
-    // eslint-disable-next-line no-undef
-    if ((m = window.mR.findModule('ChatCollection')[0]) && m.ChatCollection && typeof m.ChatCollection.findImpl === 'undefined' && typeof m.ChatCollection._find !== 'undefined') m.ChatCollection.findImpl = m.ChatCollection._find;
-
-    const _isMDBackend = window.mR.findModule('isMDBackend');
-    if(_isMDBackend && _isMDBackend[0] && _isMDBackend[0].isMDBackend) {
-        window.Store.MDBackend = _isMDBackend[0].isMDBackend();
-    } else {
-        window.Store.MDBackend = true;
-    }
-
-    const _features = window.mR.findModule('FEATURE_CHANGE_EVENT')[0];
-    if(_features) {
-        window.Store.Features = _features.LegacyPhoneFeatures;
-    }
-
-    /**
-     * Target options object description
-     * @typedef {Object} TargetOptions
-     * @property {string|number} module The name or a key of the target module to search
-     * @property {number} index The index value of the target module
-     * @property {string} function The function name to get from a module
-     */
-
-    /**
-     * Function to modify functions
-     * @param {TargetOptions} target Options specifying the target function to search for modifying
-     * @param {Function} callback Modified function
-     */
-    window.injectToFunction = (target, callback) => {
-        const module = typeof target.module === 'string'
-            ? window.mR.findModule(target.module)
-            : window.mR.modules[target.module];
-        const originalFunction = module[target.index][target.function];
-        const modifiedFunction = (...args) => callback(originalFunction, ...args);
-        module[target.index][target.function] = modifiedFunction;
-    };
-
-    window.injectToFunction({ module: 'mediaTypeFromProtobuf', index: 0, function: 'mediaTypeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? null : func(...args); });
-
-    window.injectToFunction({ module: 'typeAttributeFromProtobuf', index: 0, function: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage || proto.groupInviteMessage ? 'text' : func(...args); });
-};
-
 exports.LoadUtils = () => {
     window.WWebJS = {};
 
+    window.WWebJS.forwardMessage = async (chatId, msgId) => {
+        const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
+        const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
+
+        if (window.compareWwebVersions(window.Debug.VERSION, '>', '2.3000.0')) {
+            return window.Store.ForwardUtils.forwardMessagesToChats([msg], [chat], true);
+        } else {
+            return chat.forwardMessages([msg]);
+        }
+    };
+
     window.WWebJS.sendSeen = async (chatId) => {
-        let chat = window.Store.Chat.get(chatId);
-        if (chat !== undefined) {
-            await window.Store.SendSeen.sendSeen(chat, false);
+        const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
+        if (chat) {
+            await window.Store.SendSeen.sendSeen(chat);
             return true;
         }
         return false;
-
     };
 
     window.WWebJS.sendMessage = async (chat, content, options = {}) => {
-        let attOptions = {};
-        if (options.attachment) {
-            attOptions = options.sendMediaAsSticker
-                ? await window.WWebJS.processStickerData(options.attachment)
-                : await window.WWebJS.processMediaData(options.attachment, {
+        const isChannel = window.Store.ChatGetters.getIsNewsletter(chat);
+
+        let mediaOptions = {};
+        if (options.media) {
+            mediaOptions = await window.WWebJS.processMediaData(
+                options.media, {
+                    forceSticker: options.sendMediaAsSticker,
+                    forceGif: options.sendVideoAsGif,
                     forceVoice: options.sendAudioAsVoice,
                     forceDocument: options.sendMediaAsDocument,
-                    forceGif: options.sendVideoAsGif
+                    sendToChannel: isChannel
                 });
-            
-            attOptions.caption = options.caption;
-            content = options.sendMediaAsSticker ? undefined : attOptions.preview;
-            attOptions.isViewOnce = options.isViewOnce;
-
-            delete options.attachment;
+            mediaOptions.caption = options.caption;
+            content = options.sendMediaAsSticker ? undefined : mediaOptions.preview;
+            mediaOptions.isViewOnce = options.isViewOnce;
+            delete options.media;
             delete options.sendMediaAsSticker;
         }
+
         let quotedMsgOptions = {};
         if (options.quotedMessageId) {
             let quotedMessage = window.Store.Msg.get(options.quotedMessageId);
+            !quotedMessage && (quotedMessage = (await window.Store.Msg.getMessagesById([options.quotedMessageId]))?.messages?.[0]);
 
-            // TODO remove .canReply() once all clients are updated to >= v2.2241.6
-            const canReply = window.Store.ReplyUtils ? 
-                window.Store.ReplyUtils.canReplyMsg(quotedMessage.unsafe()) : 
-                quotedMessage.canReply();
+            if (quotedMessage['messages']?.length == 1) {
+                quotedMessage = quotedMessage['messages'][0];
 
-            if (canReply) {
-                quotedMsgOptions = quotedMessage.msgContextInfo(chat);
+                const canReply = window.Store.ReplyUtils
+                    ? window.Store.ReplyUtils.canReplyMsg(quotedMessage.unsafe())
+                    : quotedMessage.canReply();
+
+                if (canReply) {
+                    quotedMsgOptions = quotedMessage.msgContextInfo(chat);
+                }
+            } else {
+                if (!options.ignoreQuoteErrors) {
+                    throw new Error('Could not get the quoted message.');
+                }
             }
+            
+            delete options.ignoreQuoteErrors;
             delete options.quotedMessageId;
         }
 
@@ -233,14 +107,15 @@ exports.LoadUtils = () => {
             const { pollName, pollOptions } = options.poll;
             const { allowMultipleAnswers, messageSecret } = options.poll.options;
             _pollOptions = {
+                kind: 'pollCreation',
                 type: 'poll_creation',
                 pollName: pollName,
                 pollOptions: pollOptions,
                 pollSelectableOptionsCount: allowMultipleAnswers ? 0 : 1,
                 messageSecret:
-                Array.isArray(messageSecret) && messageSecret.length === 32
-                    ? new Uint8Array(messageSecret)
-                    : window.crypto.getRandomValues(new Uint8Array(32))
+                    Array.isArray(messageSecret) && messageSecret.length === 32
+                        ? new Uint8Array(messageSecret)
+                        : window.crypto.getRandomValues(new Uint8Array(32))
             };
             delete options.poll;
         }
@@ -291,9 +166,9 @@ exports.LoadUtils = () => {
                 }
             }
         }
-        
+
         let buttonOptions = {};
-        if(options.buttons){
+        if (options.buttons) {
             let caption;
             if (options.buttons.type === 'chat') {
                 content = options.buttons.body;
@@ -332,15 +207,31 @@ exports.LoadUtils = () => {
             delete listOptions.list.footer;
         }
 
+        const botOptions = {};
+        if (options.invokedBotWid) {
+            botOptions.messageSecret = window.crypto.getRandomValues(new Uint8Array(32));
+            botOptions.botMessageSecret = await window.Store.BotSecret.genBotMsgSecretFromMsgSecret(botOptions.messageSecret);
+            botOptions.invokedBotWid = window.Store.WidFactory.createWid(options.invokedBotWid);
+            botOptions.botPersonaId = window.Store.BotProfiles.BotProfileCollection.get(options.invokedBotWid).personaId;
+            delete options.invokedBotWid;
+        }
+
+        const lidUser = window.Store.User.getMaybeMeLidUser();
         const meUser = window.Store.User.getMaybeMeUser();
-        const isMD = window.Store.MDBackend;
         const newId = await window.Store.MsgKey.newId();
-        
-        const newMsgId = new window.Store.MsgKey({
-            from: meUser,
+        let from = chat.id.isLid() ? lidUser : meUser;
+        let participant;
+
+        if (chat.isGroup) {
+            from = chat.groupMetadata && chat.groupMetadata.isLidAddressingMode ? lidUser : meUser;
+            participant = window.Store.WidFactory.toUserWid(from);
+        }
+
+        const newMsgKey = new window.Store.MsgKey({
+            from: from,
             to: chat.id,
             id: newId,
-            participant: isMD && chat.id.isGroup() ? meUser : undefined,
+            participant: participant,
             selfDir: 'out',
         });
 
@@ -351,7 +242,7 @@ exports.LoadUtils = () => {
 
         const message = {
             ...options,
-            id: newMsgId,
+            id: newMsgKey,
             ack: 0,
             body: content,
             from: meUser,
@@ -362,23 +253,58 @@ exports.LoadUtils = () => {
             isNewMsg: true,
             type: 'chat',
             ...ephemeralFields,
+            ...mediaOptions,
+            ...(mediaOptions.toJSON ? mediaOptions.toJSON() : {}),
+            ...quotedMsgOptions,
             ...locationOptions,
             ..._pollOptions,
-            ...attOptions,
-            ...(attOptions.toJSON ? attOptions.toJSON() : {}),
-            ...quotedMsgOptions,
             ...vcardOptions,
             ...buttonOptions,
             ...listOptions,
+            ...botOptions,
             ...extraOptions
         };
+        
+        // Bot's won't reply if canonicalUrl is set (linking)
+        if (botOptions) {
+            delete message.canonicalUrl;
+        }
+
+        if (isChannel) {
+            const msg = new window.Store.Msg.modelClass(message);
+            const msgDataFromMsgModel = window.Store.SendChannelMessage.msgDataFromMsgModel(msg);
+            const isMedia = Object.keys(mediaOptions).length > 0;
+            await window.Store.SendChannelMessage.addNewsletterMsgsRecords([msgDataFromMsgModel]);
+            chat.msgs.add(msg);
+            chat.t = msg.t;
+
+            const sendChannelMsgResponse = await window.Store.SendChannelMessage.sendNewsletterMessageJob({
+                msg: msg,
+                type: message.type === 'chat' ? 'text' : isMedia ? 'media' : 'pollCreation',
+                newsletterJid: chat.id.toJid(),
+                ...(isMedia
+                    ? {
+                        mediaMetadata: msg.avParams(),
+                        mediaHandle: isMedia ? mediaOptions.mediaHandle : null,
+                    }
+                    : {}
+                )
+            });
+
+            if (sendChannelMsgResponse.success) {
+                msg.t = sendChannelMsgResponse.ack.t;
+                msg.serverId = sendChannelMsgResponse.serverId;
+            }
+            msg.updateAck(1, true);
+            await window.Store.SendChannelMessage.updateNewsletterMsgRecord(msg);
+            return msg;
+        }
 
         await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
-        return window.Store.Msg.get(newMsgId._serialized);
+        return window.Store.Msg.get(newMsgKey._serialized);
     };
 	
     window.WWebJS.editMessage = async (msg, content, options = {}) => {
-
         const extraOptions = options.extraOptions || {};
         delete options.extraOptions;
         
@@ -436,74 +362,51 @@ exports.LoadUtils = () => {
         };
     };
 
-    window.WWebJS.processStickerData = async (mediaInfo) => {
-        if (mediaInfo.mimetype !== 'image/webp') throw new Error('Invalid media type');
-
+    window.WWebJS.processMediaData = async (mediaInfo, { forceSticker, forceGif, forceVoice, forceDocument, sendToChannel }) => {
         const file = window.WWebJS.mediaInfoToFile(mediaInfo);
-        let filehash = await window.WWebJS.getFileHash(file);
-        let mediaKey = await window.WWebJS.generateHash(32);
-
-        const controller = new AbortController();
-        const uploadedInfo = await window.Store.UploadUtils.encryptAndUpload({
-            blob: file,
-            type: 'sticker',
-            signal: controller.signal,
-            mediaKey
-        });
-
-        const stickerInfo = {
-            ...uploadedInfo,
-            clientUrl: uploadedInfo.url,
-            deprecatedMms3Url: uploadedInfo.url,
-            uploadhash: uploadedInfo.encFilehash,
-            size: file.size,
-            type: 'sticker',
-            filehash
-        };
-
-        return stickerInfo;
-    };
-
-    window.WWebJS.processMediaData = async (mediaInfo, { forceVoice, forceDocument, forceGif }) => {
-        const file = window.WWebJS.mediaInfoToFile(mediaInfo);
-        const mData = await window.Store.OpaqueData.createFromData(file, file.type);
-        const mediaPrep = window.Store.MediaPrep.prepRawMedia(mData, { asDocument: forceDocument });
+        const opaqueData = await window.Store.OpaqueData.createFromData(file, file.type);
+        const mediaPrep = window.Store.MediaPrep.prepRawMedia(
+            opaqueData, {
+                asSticker: forceSticker,
+                asGif: forceGif,
+                isPtt: forceVoice,
+                asDocument: forceDocument
+            });
         const mediaData = await mediaPrep.waitForPrep();
         const mediaObject = window.Store.MediaObject.getOrCreateMediaObject(mediaData.filehash);
-
         const mediaType = window.Store.MediaTypes.msgToMediaType({
             type: mediaData.type,
-            isGif: mediaData.isGif
+            isGif: mediaData.isGif,
+            isNewsletter: sendToChannel,
         });
 
-        if (forceVoice && mediaData.type === 'audio') {
-            mediaData.type = 'ptt';
+        if (forceVoice && mediaData.type === 'ptt') {
             const waveform = mediaObject.contentInfo.waveform;
             mediaData.waveform =
-                waveform ?? await window.WWebJS.generateWaveform(file);
-        }
-
-        if (forceGif && mediaData.type === 'video') {
-            mediaData.isGif = true;
-        }
-
-        if (forceDocument) {
-            mediaData.type = 'document';
+                waveform || await window.WWebJS.generateWaveform(file);
         }
 
         if (!(mediaData.mediaBlob instanceof window.Store.OpaqueData)) {
-            mediaData.mediaBlob = await window.Store.OpaqueData.createFromData(mediaData.mediaBlob, mediaData.mediaBlob.type);
+            mediaData.mediaBlob = await window.Store.OpaqueData.createFromData(
+                mediaData.mediaBlob,
+                mediaData.mediaBlob.type
+            );
         }
 
         mediaData.renderableUrl = mediaData.mediaBlob.url();
         mediaObject.consolidate(mediaData.toJSON());
         mediaData.mediaBlob.autorelease();
 
-        const uploadedMedia = await window.Store.MediaUpload.uploadMedia({
+        const dataToUpload = {
             mimetype: mediaData.mimetype,
             mediaObject,
-            mediaType
-        });
+            mediaType,
+            ...(sendToChannel ? { calculateToken: window.Store.SendChannelMessage.getRandomFilehash } : {})
+        };
+
+        const uploadedMedia = !sendToChannel
+            ? await window.Store.MediaUpload.uploadMedia(dataToUpload)
+            : await window.Store.MediaUpload.uploadUnencryptedMedia(dataToUpload);
 
         const mediaEntry = uploadedMedia.mediaEntry;
         if (!mediaEntry) {
@@ -521,13 +424,14 @@ exports.LoadUtils = () => {
             uploadhash: mediaEntry.uploadHash,
             size: mediaObject.size,
             streamingSidecar: mediaEntry.sidecar,
-            firstFrameSidecar: mediaEntry.firstFrameSidecar
+            firstFrameSidecar: mediaEntry.firstFrameSidecar,
+            mediaHandle: sendToChannel ? mediaEntry.handle : null,
         });
 
         return mediaData;
     };
 
-    window.WWebJS.getMessageModel = message => {
+    window.WWebJS.getMessageModel = (message) => {
         const msg = message.serialize();
 
         msg.isEphemeral = message.isEphemeral;
@@ -556,55 +460,122 @@ exports.LoadUtils = () => {
         return msg;
     };
 
-    window.WWebJS.getPollVoteModel = (vote) => {
+    window.WWebJS.getPollVoteModel = async (vote) => {
         const _vote = vote.serialize();
-        if (vote.parentMsgKey) {
-            const msg = window.Store.Msg.get(vote.parentMsgKey);
-            msg && (_vote.parentMessage = window.WWebJS.getMessageModel(msg));
-            return _vote;
-        }
-        return null;
+        if (!vote.parentMsgKey) return null;
+        const msg =
+            window.Store.Msg.get(vote.parentMsgKey) || (await window.Store.Msg.getMessagesById([vote.parentMsgKey]))?.messages?.[0];
+        msg && (_vote.parentMessage = window.WWebJS.getMessageModel(msg));
+        return _vote;
     };
 
-    window.WWebJS.getChatModel = async chat => {
-
-        let res = chat.serialize();
-        res.isGroup = chat.isGroup;
-        res.formattedTitle = chat.formattedTitle;
-        res.isMuted = chat.mute && chat.mute.isMuted;
-
-        if (chat.groupMetadata) {
-            const chatWid = window.Store.WidFactory.createWid((chat.id._serialized));
-            await window.Store.GroupMetadata.update(chatWid);
-            res.groupMetadata = chat.groupMetadata.serialize();
-        }
-        
-        res.lastMessage = null;
-        if (res.msgs && res.msgs.length) {
-            const lastMessage = chat.lastReceivedKey ? window.Store.Msg.get(chat.lastReceivedKey._serialized) : null;
-            if (lastMessage) {
-                res.lastMessage = window.WWebJS.getMessageModel(lastMessage);
-            }
-        }
-        
-        delete res.msgs;
-        delete res.msgUnsyncedButtonReplyMsgs;
-        delete res.unsyncedButtonReplies;
-
-        return res;
-    };
-
-    window.WWebJS.getChat = async chatId => {
+    window.WWebJS.getChat = async (chatId, { getAsModel = true } = {}) => {
+        const isChannel = /@\w*newsletter\b/.test(chatId);
         const chatWid = window.Store.WidFactory.createWid(chatId);
-        const chat = await window.Store.Chat.find(chatWid);
-        return await window.WWebJS.getChatModel(chat);
+        let chat;
+
+        if (isChannel) {
+            try {
+                chat = window.Store.NewsletterCollection.get(chatId);
+                if (!chat) {
+                    await window.Store.ChannelUtils.loadNewsletterPreviewChat(chatId);
+                    chat = await window.Store.NewsletterCollection.find(chatWid);
+                }
+            } catch (err) {
+                chat = null;
+            }
+        } else {
+            chat = window.Store.Chat.get(chatWid) || (await window.Store.Chat.find(chatWid));
+        }
+
+        return getAsModel && chat
+            ? await window.WWebJS.getChatModel(chat, { isChannel: isChannel })
+            : chat;
+    };
+
+    window.WWebJS.getChannelMetadata = async (inviteCode) => {
+        const response =
+            await window.Store.ChannelUtils.queryNewsletterMetadataByInviteCode(
+                inviteCode,
+                window.Store.ChannelUtils.getRoleByIdentifier(inviteCode)
+            );
+
+        const picUrl = response.newsletterPictureMetadataMixin?.picture[0]?.queryPictureDirectPathOrEmptyResponseMixinGroup.value.directPath;
+
+        return {
+            id: response.idJid,
+            createdAtTs: response.newsletterCreationTimeMetadataMixin.creationTimeValue,
+            titleMetadata: {
+                title: response.newsletterNameMetadataMixin.nameElementValue,
+                updatedAtTs: response.newsletterNameMetadataMixin.nameUpdateTime
+            },
+            descriptionMetadata: {
+                description: response.newsletterDescriptionMetadataMixin.descriptionQueryDescriptionResponseMixin.elementValue,
+                updatedAtTs: response.newsletterDescriptionMetadataMixin.descriptionQueryDescriptionResponseMixin.updateTime
+            },
+            inviteLink: `https://whatsapp.com/channel/${response.newsletterInviteLinkMetadataMixin.inviteCode}`,
+            membershipType: window.Store.ChannelUtils.getRoleByIdentifier(inviteCode),
+            stateType: response.newsletterStateMetadataMixin.stateType,
+            pictureUrl: picUrl ? `https://pps.whatsapp.net${picUrl}` : null,
+            subscribersCount: response.newsletterSubscribersMetadataMixin.subscribersCount,
+            isVerified: response.newsletterVerificationMetadataMixin.verificationState === 'verified'
+        };
     };
 
     window.WWebJS.getChats = async () => {
         const chats = window.Store.Chat.getModelsArray();
-
         const chatPromises = chats.map(chat => window.WWebJS.getChatModel(chat));
         return await Promise.all(chatPromises);
+    };
+
+    window.WWebJS.getChannels = async () => {
+        const channels = window.Store.NewsletterCollection.getModelsArray();
+        const channelPromises = channels?.map((channel) => window.WWebJS.getChatModel(channel, { isChannel: true }));
+        return await Promise.all(channelPromises);
+    };
+
+    window.WWebJS.getChatModel = async (chat, { isChannel = false } = {}) => {
+        if (!chat) return null;
+
+        const model = chat.serialize();
+        model.isGroup = false;
+        model.isMuted = chat.mute?.expiration !== 0;
+        if (isChannel) {
+            model.isChannel = window.Store.ChatGetters.getIsNewsletter(chat);
+        } else {
+            model.formattedTitle = chat.formattedTitle;
+        }
+
+        if (chat.groupMetadata) {
+            model.isGroup = true;
+            const chatWid = window.Store.WidFactory.createWid(chat.id._serialized);
+            await window.Store.GroupMetadata.update(chatWid);
+            chat.groupMetadata.participants._models
+                .filter(x => x.id._serialized.endsWith('@lid'))
+                .forEach(x => { x.id = x.contact.phoneNumber; });
+            model.groupMetadata = chat.groupMetadata.serialize();
+            model.isReadOnly = chat.groupMetadata.announce;
+        }
+
+        if (chat.newsletterMetadata) {
+            await window.Store.NewsletterMetadataCollection.update(chat.id);
+            model.channelMetadata = chat.newsletterMetadata.serialize();
+            model.channelMetadata.createdAtTs = chat.newsletterMetadata.creationTime;
+        }
+
+        model.lastMessage = null;
+        if (model.msgs && model.msgs.length) {
+            const lastMessage = chat.lastReceivedKey
+                ? window.Store.Msg.get(chat.lastReceivedKey._serialized) || (await window.Store.Msg.getMessagesById([chat.lastReceivedKey._serialized]))?.messages?.[0]
+                : null;
+            lastMessage && (model.lastMessage = window.WWebJS.getMessageModel(lastMessage));
+        }
+
+        delete model.msgs;
+        delete model.msgUnsyncedButtonReplyMsgs;
+        delete model.unsyncedButtonReplies;
+
+        return model;
     };
 
     window.WWebJS.getContactModel = contact => {
@@ -615,58 +586,31 @@ exports.LoadUtils = () => {
             res.businessProfile = contact.businessProfile.serialize();
         }
 
-        // TODO: remove useOldImplementation and its checks once all clients are updated to >= v2.2327.4
-        const useOldImplementation
-            = window.compareWwebVersions(window.Debug.VERSION, '<', '2.2327.4');
-
-        res.isMe = useOldImplementation
-            ? contact.isMe
-            : window.Store.ContactMethods.getIsMe(contact);
-        res.isUser = useOldImplementation
-            ? contact.isUser
-            : window.Store.ContactMethods.getIsUser(contact);
-        res.isGroup = useOldImplementation
-            ? contact.isGroup
-            : window.Store.ContactMethods.getIsGroup(contact);
-        res.isWAContact = useOldImplementation
-            ? contact.isWAContact
-            : window.Store.ContactMethods.getIsWAContact(contact);
-        res.isMyContact = useOldImplementation
-            ? contact.isMyContact
-            : window.Store.ContactMethods.getIsMyContact(contact);
+        res.isMe = window.Store.ContactMethods.getIsMe(contact);
+        res.isUser = window.Store.ContactMethods.getIsUser(contact);
+        res.isGroup = window.Store.ContactMethods.getIsGroup(contact);
+        res.isWAContact = window.Store.ContactMethods.getIsWAContact(contact);
+        res.isMyContact = window.Store.ContactMethods.getIsMyContact(contact);
         res.isBlocked = contact.isContactBlocked;
-        res.userid = useOldImplementation
-            ? contact.userid
-            : window.Store.ContactMethods.getUserid(contact);
-        res.isEnterprise = useOldImplementation
-            ? contact.isEnterprise
-            : window.Store.ContactMethods.getIsEnterprise(contact);
-        res.verifiedName = useOldImplementation
-            ? contact.verifiedName
-            : window.Store.ContactMethods.getVerifiedName(contact);
-        res.verifiedLevel = useOldImplementation
-            ? contact.verifiedLevel
-            : window.Store.ContactMethods.getVerifiedLevel(contact);
-        res.statusMute = useOldImplementation
-            ? contact.statusMute
-            : window.Store.ContactMethods.getStatusMute(contact);
-        res.name = useOldImplementation
-            ? contact.name
-            : window.Store.ContactMethods.getName(contact);
-        res.shortName = useOldImplementation
-            ? contact.shortName
-            : window.Store.ContactMethods.getShortName(contact);
-        res.pushname = useOldImplementation
-            ? contact.pushname
-            : window.Store.ContactMethods.getPushname(contact);
+        res.userid = window.Store.ContactMethods.getUserid(contact);
+        res.isEnterprise = window.Store.ContactMethods.getIsEnterprise(contact);
+        res.verifiedName = window.Store.ContactMethods.getVerifiedName(contact);
+        res.verifiedLevel = window.Store.ContactMethods.getVerifiedLevel(contact);
+        res.statusMute = window.Store.ContactMethods.getStatusMute(contact);
+        res.name = window.Store.ContactMethods.getName(contact);
+        res.shortName = window.Store.ContactMethods.getShortName(contact);
+        res.pushname = window.Store.ContactMethods.getPushname(contact);
 
         return res;
     };
 
     window.WWebJS.getContact = async contactId => {
         const wid = window.Store.WidFactory.createWid(contactId);
-        const contact = await window.Store.Contact.find(wid);
-        const bizProfile = await window.Store.BusinessProfileCollection.fetchBizProfile(wid);
+        let contact = await window.Store.Contact.find(wid);
+        if (contact.id._serialized.endsWith('@lid')) {
+            contact.id = contact.phoneNumber;
+        }
+        const bizProfile = await window.Store.BusinessProfile.fetchBizProfile(wid);
         bizProfile.profileOptions && (contact.businessProfile = bizProfile);
         return window.WWebJS.getContactModel(contact);
     };
@@ -732,10 +676,6 @@ exports.LoadUtils = () => {
         return result;
     };
 
-    /**
-     * Referenced from and modified:
-     * @see https://github.com/wppconnect-team/wa-js/commit/290ebfefe6021b3d17f7fdfdda5545bb0473b26f
-     */
     window.WWebJS.generateWaveform = async (audioFile) => {
         try {
             const audioData = await audioFile.arrayBuffer();
@@ -769,7 +709,7 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.sendClearChat = async (chatId) => {
-        let chat = window.Store.Chat.get(chatId);
+        let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
         if (chat !== undefined) {
             await window.Store.SendClear.sendClear(chat, false);
             return true;
@@ -778,7 +718,7 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.sendDeleteChat = async (chatId) => {
-        let chat = window.Store.Chat.get(chatId);
+        let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
         if (chat !== undefined) {
             await window.Store.SendDelete.sendDelete(chat);
             return true;
@@ -787,9 +727,8 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.sendChatstate = async (state, chatId) => {
-        if (window.Store.MDBackend) {
-            chatId = window.Store.WidFactory.createWid(chatId);
-        }
+        chatId = window.Store.WidFactory.createWid(chatId);
+
         switch (state) {
         case 'typing':
             await window.Store.ChatState.sendChatStateComposing(chatId);
@@ -1009,7 +948,7 @@ exports.LoadUtils = () => {
         }
 
         if (rpcResult.name === 'AddParticipantsResponseSuccess') {
-            const code = resultArgs?.value.error ?? '200';
+            const code = resultArgs?.value.error || '200';
             data.name = resultArgs?.name;
             data.code = +code;
             data.inviteV4Code = resultArgs?.value.addRequestCode;
@@ -1037,7 +976,7 @@ exports.LoadUtils = () => {
         let response;
         let result = [];
 
-        await window.Store.GroupMetadata.queryAndUpdate(groupWid);
+        await window.Store.GroupQueryAndUpdate({ id: groupId });
 
         if (!requesterIds?.length) {
             membershipRequests = group.groupMetadata.membershipApprovalRequests._models.map(({ id }) => id);
@@ -1124,11 +1063,40 @@ exports.LoadUtils = () => {
         }
     };
 
+    window.WWebJS.subscribeToUnsubscribeFromChannel = async (channelId, action, options = {}) => {
+        const channel = await window.WWebJS.getChat(channelId, { getAsModel: false });
+
+        if (!channel || channel.newsletterMetadata.membershipType === 'owner') return false;
+        options = { eventSurface: 3, deleteLocalModels: options.deleteLocalModels ?? true };
+
+        try {
+            if (action === 'Subscribe') {
+                await window.Store.ChannelUtils.subscribeToNewsletterAction(channel, options);
+            } else if (action === 'Unsubscribe') {
+                await window.Store.ChannelUtils.unsubscribeFromNewsletterAction(channel, options);
+            } else return false;
+            return true;
+        } catch (err) {
+            if (err.name === 'ServerStatusCodeError') return false;
+            throw err;
+        }
+    };
+
     window.WWebJS.pinUnpinMsgAction = async (msgId, action, duration) => {
-        const message = window.Store.Msg.get(msgId);
+        const message = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
         if (!message) return false;
         const response = await window.Store.pinUnpinMsg(message, action, duration);
-        if (response.messageSendResult === 'OK') return true;
-        return false;
+        return response.messageSendResult === 'OK';
+    };
+    
+    window.WWebJS.getStatusModel = status => {
+        const res = status.serialize();
+        delete res._msgs;
+        return res;
+    };
+
+    window.WWebJS.getAllStatuses = () => {
+        const statuses = window.Store.Status.getModelsArray();
+        return statuses.map(status => window.WWebJS.getStatusModel(status));
     };
 };

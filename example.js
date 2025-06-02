@@ -5,19 +5,30 @@ const client = new Client({
     // proxyAuthentication: { username: 'username', password: 'password' },
     puppeteer: { 
         // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
-        headless: false
+        headless: false,
     }
 });
 
+// client initialize does not finish at ready now.
 client.initialize();
 
 client.on('loading_screen', (percent, message) => {
     console.log('LOADING SCREEN', percent, message);
 });
 
-client.on('qr', (qr) => {
+// Pairing code only needs to be requested once
+let pairingCodeRequested = false;
+client.on('qr', async (qr) => {
     // NOTE: This event will not be fired if a session is specified.
     console.log('QR RECEIVED', qr);
+
+    // paiuting code example
+    const pairingCodeEnabled = false;
+    if (pairingCodeEnabled && !pairingCodeRequested) {
+        const pairingCode = await client.requestPairingCode('96170100100'); // enter the target phone number
+        console.log('Pairing code enabled, code: '+ pairingCode);
+        pairingCodeRequested = true;
+    }
 });
 
 client.on('authenticated', () => {
@@ -29,8 +40,18 @@ client.on('auth_failure', msg => {
     console.error('AUTHENTICATION FAILURE', msg);
 });
 
-client.on('ready', () => {
+client.on('ready', async () => {
     console.log('READY');
+    const debugWWebVersion = await client.getWWebVersion();
+    console.log(`WWebVersion = ${debugWWebVersion}`);
+
+    client.pupPage.on('pageerror', function(err) {
+        console.log('Page error: ' + err.toString());
+    });
+    client.pupPage.on('error', function(err) {
+        console.log('Page error: ' + err.toString());
+    });
+    
 });
 
 client.on('message', async msg => {
@@ -418,7 +439,7 @@ client.on('message', async msg => {
             requesterIds: ['number1@c.us', 'number2@c.us'],
             sleep: null
         });
-    } else {
+    } else if (msg.body === '!pinmsg') {
         /**
          * Pins a message in a chat, a method takes a number in seconds for the message to be pinned.
          * WhatsApp default values for duration to pass to the method are:
@@ -429,6 +450,30 @@ client.on('message', async msg => {
          */
         const result = await msg.pin(60); // Will pin a message for 1 minute
         console.log(result); // True if the operation completed successfully, false otherwise
+    } else if (msg.body === '!howManyConnections') {
+        /**
+         * Get user device count by ID
+         * Each WaWeb Connection counts as one device, and the phone (if exists) counts as one
+         * So for a non-enterprise user with one WaWeb connection it should return "2"
+         */
+        let deviceCount = await client.getContactDeviceCount(msg.from);
+        await msg.reply(`You have *${deviceCount}* devices connected`);
+    } else if (msg.body === '!syncHistory') {
+        const isSynced = await client.syncHistory(msg.from);
+        // Or through the Chat object:
+        // const chat = await client.getChatById(msg.from);
+        // const isSynced = await chat.syncHistory();
+        
+        await msg.reply(isSynced ? 'Historical chat is syncing..' : 'There is no historical chat to sync.');
+    } else if (msg.body === '!statuses') {
+        const statuses = await client.getBroadcasts();
+        console.log(statuses);
+        const chat = await statuses[0]?.getChat(); // Get user chat of a first status
+        console.log(chat);
+    } else if (msg.body === '!changeSync') {
+        // NOTE: this action will take effect after you restart the client.
+        const backgroundSync = await client.setBackgroundSync(true);
+        console.log(backgroundSync);
     }
 });
 
@@ -593,6 +638,10 @@ client.on('group_membership_request', async (notification) => {
     /** You can approve or reject the newly appeared membership request: */
     await client.approveGroupMembershipRequestss(notification.chatId, notification.author);
     await client.rejectGroupMembershipRequests(notification.chatId, notification.author);
+});
+
+client.on('message_reaction', async (reaction) => {
+    console.log('REACTION RECEIVED', reaction);
 });
 
 client.on('vote_update', (vote) => {
