@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       release_type:
-        description: "`alpha`, `alpha-minor`, `alpha-major` release?"
+        description: "`alpha`, `alpha-minor`, `alpha-major`, `release-minor`, `release-patch` release?"
         required: true
         default: "alpha"
 

@@ -1,0 +1,911 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.6.11">
+  <meta charset="utf-8">
+  <title>whatsapp-web.js 1.30.1-alpha.0 &raquo; Class: Channel</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>30.<wbr>1-alpha.<wbr>0</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
+            <h1><small></small><span class="symbol-name">Channel</span></h1>
+            <p class="source-link">Source: <a href="structures_Channel.js.html#source-line-18">structures/<wbr>Channel.<wbr>js:18</a></p>
+            <div class="symbol-classdesc">
+              <p>Represents a Channel on WhatsApp</p>
+            </div>
+            <dl class="dl-compact">
+            </dl>
+          </header>
+          <section id="summary">
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Properties</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Channel.html#description">description</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Channel.html#id">id</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Channel.html#isChannel">isChannel</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Channel.html#isGroup">isGroup</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Channel.html#isMuted">isMuted</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Channel.html#isReadOnly">isReadOnly</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Channel.html#lastMessage">lastMessage</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Channel.html#muteExpiration">muteExpiration</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Channel.html#name">name</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Channel.html#timestamp">timestamp</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Channel.html#unreadCount">unreadCount</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Methods</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Channel.html#_muteUnmuteChannel">_muteUnmuteChannel(action)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Channel.html#_setChannelMetadata">_setChannelMetadata(value, property)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Channel.html#acceptChannelAdminInvite">acceptChannelAdminInvite()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Channel.html#deleteChannel">deleteChannel()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Channel.html#demoteChannelAdmin">demoteChannelAdmin(userId)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Channel.html#fetchMessages">fetchMessages(searchOptions)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Channel.html#getSubscribers">getSubscribers(limit)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Channel.html#mute">mute()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Channel.html#revokeChannelAdminInvite">revokeChannelAdminInvite(userId)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Channel.html#sendChannelAdminInvite">sendChannelAdminInvite(chatId, options)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Channel.html#sendMessage">sendMessage(content, options)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Channel.html#sendSeen">sendSeen()</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="Channel.html#setDescription">setDescription(newDescription)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Channel.html#setProfilePicture">setProfilePicture(newProfilePicture)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Channel.html#setReactionSetting">setReactionSetting(reactionCode)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Channel.html#setSubject">setSubject(newSubject)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Channel.html#transferChannelOwnership">transferChannelOwnership(newOwnerId, options)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="Channel.html#unmute">unmute()</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section>
+            <h2 id="Channel">new&nbsp;<span class="symbol-name">Channel</span><span class="signature"><span class="signature-params">()</span></span></h2>
+            <dl class="dl-compact">
+              <dt>Extends</dt>
+              <dd><a href="Base.html">Base</a></dd>
+            </dl>
+          </section>
+          <section>
+            <h2>Properties</h2>
+            <section>
+              <h3 id="description"><span class="symbol-name">description</span><small class="property-type">
+                  &nbsp;string</small></h3>
+              <p>The channel description</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="id"><span class="symbol-name">id</span><small class="property-type">
+                  &nbsp;<a href="global.html#ChannelId">ChannelId</a></small></h3>
+              <p>ID that represents the channel</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="isChannel"><span class="symbol-name">isChannel</span><small class="property-type">
+                  &nbsp;boolean</small></h3>
+              <p>Indicates if it is a Channel</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="isGroup"><span class="symbol-name">isGroup</span><small class="property-type">
+                  &nbsp;boolean</small></h3>
+              <p>Indicates if it is a Group</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="isMuted"><span class="symbol-name">isMuted</span><small class="property-type">
+                  &nbsp;boolean</small></h3>
+              <p>Indicates if the channel is muted or not</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="isReadOnly"><span class="symbol-name">isReadOnly</span><small class="property-type">
+                  &nbsp;boolean</small></h3>
+              <p>Indicates if the channel is readonly</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="lastMessage"><span class="symbol-name">lastMessage</span><small class="property-type">
+                  &nbsp;<a href="Message.html">Message</a></small></h3>
+              <p>Last message in the channel</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="muteExpiration"><span class="symbol-name">muteExpiration</span><small class="property-type">
+                  &nbsp;number</small></h3>
+              <p>Unix timestamp for when the mute expires</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="name"><span class="symbol-name">name</span><small class="property-type">
+                  &nbsp;string</small></h3>
+              <p>Title of the channel</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="timestamp"><span class="symbol-name">timestamp</span><small class="property-type">
+                  &nbsp;number</small></h3>
+              <p>Unix timestamp for when the last activity occurred</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="unreadCount"><span class="symbol-name">unreadCount</span><small class="property-type">
+                  &nbsp;number</small></h3>
+              <p>Amount of messages unread</p>
+              <dl class="dl-compact">
+              </dl>
+            </section>
+            <h2>Methods</h2>
+            <section>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="_muteUnmuteChannel"><span class="symbol-name">_muteUnmuteChannel</span><span class="signature"><span class="signature-params">(action)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Internal method to mute or unmute the channel</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>action</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The action: 'MUTE' or 'UNMUTE'</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code> 
+                  <p>Returns true if the operation completed successfully, false otherwise</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="_setChannelMetadata"><span class="symbol-name">_setChannelMetadata</span><span class="signature"><span class="signature-params">(value, property)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Internal method to change the channel metadata</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>value</p>
+                      </td>
+                      <td>
+                        <p>(string, number, or <a href="MessageMedia.html">MessageMedia</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The new value to set</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>property</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The property of a channel metadata to change</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code> 
+                  <p>Returns true if the operation completed successfully, false otherwise</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="acceptChannelAdminInvite"><span class="symbol-name">acceptChannelAdminInvite</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Accepts a channel admin invitation and promotes the current user to a channel admin</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code> 
+                  <p>Returns true if the operation completed successfully, false otherwise</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="deleteChannel"><span class="symbol-name">deleteChannel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Deletes the channel you created</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code> 
+                  <p>Returns true if the operation completed successfully, false otherwise</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="demoteChannelAdmin"><span class="symbol-name">demoteChannelAdmin</span><span class="signature"><span class="signature-params">(userId)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Demotes a channel admin to a regular subscriber (can be used also for self-demotion)</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>userId</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The user ID to demote</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code> 
+                  <p>Returns true if the operation completed successfully, false otherwise</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="fetchMessages"><span class="symbol-name">fetchMessages</span><span class="signature"><span class="signature-params">(searchOptions)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of <a href="Message.html">Message</a></span></span></h3>
+              <p>Loads channel messages, sorted from earliest to latest</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>searchOptions</p>
+                      </td>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Options for searching messages. Right now only limit and fromMe is supported</p>
+                        <p>Values in <code>searchOptions</code> have the following properties:</p>
+                        <table class="jsdoc-details-table">
+                          <thead>
+                            <tr>
+                              <th>Name</th>
+                              <th>Type</th>
+                              <th>Optional</th>
+                              <th>Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>
+                                <p>limit</p>
+                              </td>
+                              <td>
+                                <p>Number</p>
+                              </td>
+                              <td>
+                                <p>Yes</p>
+                              </td>
+                              <td>
+                                <p>The amount of messages to return. If no limit is specified, the available messages will be returned. Note that the actual number of returned messages may be smaller if there aren't enough messages in the conversation. Set this to Infinity to load all messages</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>fromMe</p>
+                              </td>
+                              <td>
+                                <p>Boolean</p>
+                              </td>
+                              <td>
+                                <p>Yes</p>
+                              </td>
+                              <td>
+                                <p>Return only messages from the bot number or vise versa. To get all messages, leave the option undefined</p>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing Array of <a href="Message.html">Message</a></code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="getSubscribers"><span class="symbol-name">getSubscribers</span><span class="signature"><span class="signature-params">(limit)</span></span></h3>
+              <p>Gets the subscribers of the channel (only those who are in your contact list)</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>limit</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Optional parameter to specify the limit of subscribers to retrieve</p>
+                        <p>Value can be null.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd></dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="mute"><span class="symbol-name">mute</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Mutes the channel</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code> 
+                  <p>Returns true if the operation completed successfully, false otherwise</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="revokeChannelAdminInvite"><span class="symbol-name">revokeChannelAdminInvite</span><span class="signature"><span class="signature-params">(userId)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Revokes a channel admin invitation sent to a user by a channel owner</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>userId</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The user ID the invitation was sent to</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code> 
+                  <p>Returns true if the operation completed successfully, false otherwise</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="sendChannelAdminInvite"><span class="symbol-name">sendChannelAdminInvite</span><span class="signature"><span class="signature-params">(chatId, options)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Sends a channel admin invitation to a user, allowing them to become an admin of the channel</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>chatId</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The ID of a user to send the channel admin invitation to</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>options</p>
+                      </td>
+                      <td>
+                        <p><a href="global.html#SendChannelAdminInviteOptions">SendChannelAdminInviteOptions</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code> 
+                  <p>Returns true if an invitation was sent successfully, false otherwise</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="sendMessage"><span class="symbol-name">sendMessage</span><span class="signature"><span class="signature-params">(content, options)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing <a href="Message.html">Message</a></span></span></h3>
+              <p>Sends a message to this channel</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>content</p>
+                      </td>
+                      <td>
+                        <p>(string or <a href="MessageMedia.html">MessageMedia</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>options</p>
+                      </td>
+                      <td>
+                        <p><a href="global.html#MessageSendOptions">MessageSendOptions</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Value can be null.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing <a href="Message.html">Message</a></code> 
+                  <p>Message that was just sent</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="sendSeen"><span class="symbol-name">sendSeen</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Sets the channel as seen</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code> </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="setDescription"><span class="symbol-name">setDescription</span><span class="signature"><span class="signature-params">(newDescription)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Updates the channel description</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>newDescription</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code> 
+                  <p>Returns true if the operation completed successfully, false otherwise</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="setProfilePicture"><span class="symbol-name">setProfilePicture</span><span class="signature"><span class="signature-params">(newProfilePicture)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Updates the channel profile picture</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>newProfilePicture</p>
+                      </td>
+                      <td>
+                        <p><a href="MessageMedia.html">MessageMedia</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code> 
+                  <p>Returns true if the operation completed successfully, false otherwise</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="setReactionSetting"><span class="symbol-name">setReactionSetting</span><span class="signature"><span class="signature-params">(reactionCode)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Updates available reactions to use in the channel</p>
+              <p>Valid values for passing to the method are:
+                0 for NONE reactions to be avaliable
+                1 for BASIC reactions to be available: 👍, ❤️, 😂, 😮, 😢, 🙏
+                2 for ALL reactions to be available</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>reactionCode</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code> 
+                  <p>Returns true if the operation completed successfully, false otherwise</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="setSubject"><span class="symbol-name">setSubject</span><span class="signature"><span class="signature-params">(newSubject)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Updates the channel subject</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>newSubject</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code> 
+                  <p>Returns true if the subject was properly updated. This can return false if the user does not have the necessary permissions.</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="transferChannelOwnership"><span class="symbol-name">transferChannelOwnership</span><span class="signature"><span class="signature-params">(newOwnerId, options)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Transfers a channel ownership to another user.
+                Note: the user you are transferring the channel ownership to must be a channel admin.</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>newOwnerId</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>options</p>
+                      </td>
+                      <td>
+                        <p><a href="global.html#TransferChannelOwnershipOptions">TransferChannelOwnershipOptions</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code> 
+                  <p>Returns true if the operation completed successfully, false otherwise</p>
+                  </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="unmute"><span class="symbol-name">unmute</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Unmutes the channel</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code> 
+                  <p>Returns true if the operation completed successfully, false otherwise</p>
+                  </p>
+                </dd>
+              </dl>
+            </section>
+          </section>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on June 2, 2025.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

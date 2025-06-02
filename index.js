@@ -11,6 +11,7 @@ module.exports = {
     Chat: require('./src/structures/Chat'),
     PrivateChat: require('./src/structures/PrivateChat'),
     GroupChat: require('./src/structures/GroupChat'),
+    Channel: require('./src/structures/Channel'),
     Message: require('./src/structures/Message'),
     MessageMedia: require('./src/structures/MessageMedia'),
     Contact: require('./src/structures/Contact'),
@@ -22,12 +23,12 @@ module.exports = {
     ProductMetadata: require('./src/structures/ProductMetadata'),
     List: require('./src/structures/List'),
     Buttons: require('./src/structures/Buttons'),
+    Broadcast: require('./src/structures/Broadcast'),
     
     // Auth Strategies
     NoAuth: require('./src/authStrategies/NoAuth'),
     LocalAuth: require('./src/authStrategies/LocalAuth'),
     RemoteAuth: require('./src/authStrategies/RemoteAuth'),
-    LegacySessionAuth: require('./src/authStrategies/LegacySessionAuth'),
     
     ...Constants
 };

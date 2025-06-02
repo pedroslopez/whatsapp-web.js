@@ -1,6 +1,6 @@
 {
   "name": "whatsapp-web.js",
-  "version": "1.23.1-alpha.6",
+  "version": "1.30.1-alpha.0",
   "description": "Library for interacting with the WhatsApp Web API ",
   "main": "./index.js",
   "typings": "./index.d.ts",
@@ -8,7 +8,7 @@
     "test": "mocha tests --recursive --timeout 5000",
     "test-single": "mocha",
     "shell": "node --experimental-repl-await ./shell.js",
-    "generate-docs": "node_modules/.bin/jsdoc --configure .jsdoc.json --verbose"
+    "generate-docs": "npx jsdoc --configure .jsdoc.json --verbose"
   },
   "repository": {
     "type": "git",

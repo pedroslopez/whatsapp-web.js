@@ -7,13 +7,17 @@ const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
 const Util = require('./util/Util');
 const InterfaceController = require('./util/InterfaceController');
 const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constants');
-const { ExposeStore, LoadUtils } = require('./util/Injected');
+const { ExposeAuthStore } = require('./util/Injected/AuthStore/AuthStore');
+const { ExposeStore } = require('./util/Injected/Store');
+const { ExposeLegacyAuthStore } = require('./util/Injected/AuthStore/LegacyAuthStore');
+const { ExposeLegacyStore } = require('./util/Injected/LegacyStore');
+const { LoadUtils } = require('./util/Injected/Utils');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
 const WebCacheFactory = require('./webCache/WebCacheFactory');
-const { ClientInfo, Message, MessageMedia, Contact, Location, Poll, PollVote, GroupNotification, Label, Call, Buttons, List, Reaction } = require('./structures');
-const LegacySessionAuth = require('./authStrategies/LegacySessionAuth');
+const { Broadcast, Buttons, Call, ClientInfo, Contact, GroupNotification, Label, List, Location, Message, MessageMedia, Poll, PollVote, Reaction } = require('./structures');
 const NoAuth = require('./authStrategies/NoAuth');
+const {exposeFunctionIfAbsent} = require('./util/Puppeteer');
 
 /**
  * Starting point for interacting with the WhatsApp Web API
@@ -63,42 +67,218 @@ class Client extends EventEmitter {
         this.options = Util.mergeDefault(DefaultOptions, options);
         
         if(!this.options.authStrategy) {
-            if(Object.prototype.hasOwnProperty.call(this.options, 'session')) {
-                process.emitWarning(
-                    'options.session is deprecated and will be removed in a future release due to incompatibility with multi-device. ' +
-                    'Use the LocalAuth authStrategy, don\'t pass in a session as an option, or suppress this warning by using the LegacySessionAuth strategy explicitly (see https://wwebjs.dev/guide/authentication.html#legacysessionauth-strategy).',
-                    'DeprecationWarning'
-                );
-
-                this.authStrategy = new LegacySessionAuth({
-                    session: this.options.session,
-                    restartOnAuthFail: this.options.restartOnAuthFail
-                });
-            } else {
-                this.authStrategy = new NoAuth();
-            }
+            this.authStrategy = new NoAuth();
         } else {
             this.authStrategy = this.options.authStrategy;
         }
 
         this.authStrategy.setup(this);
 
+        /**
+         * @type {puppeteer.Browser}
+         */
         this.pupBrowser = null;
+        /**
+         * @type {puppeteer.Page}
+         */
         this.pupPage = null;
 
+        this.currentIndexHtml = null;
+        this.lastLoggedOut = false;
+
         Util.setFfmpegPath(this.options.ffmpegPath);
+    }
+    /**
+     * Injection logic
+     * Private function
+     */
+    async inject() {
+        await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', {timeout: this.options.authTimeoutMs});
+
+        const version = await this.getWWebVersion();
+        const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
+
+        if (isCometOrAbove) {
+            await this.pupPage.evaluate(ExposeAuthStore);
+        } else {
+            await this.pupPage.evaluate(ExposeLegacyAuthStore, moduleRaid.toString());
+        }
+
+        const needAuthentication = await this.pupPage.evaluate(async () => {
+            let state = window.AuthStore.AppState.state;
+
+            if (state === 'OPENING' || state === 'UNLAUNCHED' || state === 'PAIRING') {
+                // wait till state changes
+                await new Promise(r => {
+                    window.AuthStore.AppState.on('change:state', function waitTillInit(_AppState, state) {
+                        if (state !== 'OPENING' && state !== 'UNLAUNCHED' && state !== 'PAIRING') {
+                            window.AuthStore.AppState.off('change:state', waitTillInit);
+                            r();
+                        } 
+                    });
+                }); 
+            }
+            state = window.AuthStore.AppState.state;
+            return state == 'UNPAIRED' || state == 'UNPAIRED_IDLE';
+        });
+
+        if (needAuthentication) {
+            const { failed, failureEventPayload, restart } = await this.authStrategy.onAuthenticationNeeded();
+
+            if(failed) {
+                /**
+                 * Emitted when there has been an error while trying to restore an existing session
+                 * @event Client#auth_failure
+                 * @param {string} message
+                 */
+                this.emit(Events.AUTHENTICATION_FAILURE, failureEventPayload);
+                await this.destroy();
+                if (restart) {
+                    // session restore failed so try again but without session to force new authentication
+                    return this.initialize();
+                }
+                return;
+            }
+
+            // Register qr events
+            let qrRetries = 0;
+            await exposeFunctionIfAbsent(this.pupPage, 'onQRChangedEvent', async (qr) => {
+                /**
+                * Emitted when a QR code is received
+                * @event Client#qr
+                * @param {string} qr QR Code
+                */
+                this.emit(Events.QR_RECEIVED, qr);
+                if (this.options.qrMaxRetries > 0) {
+                    qrRetries++;
+                    if (qrRetries > this.options.qrMaxRetries) {
+                        this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
+                        await this.destroy();
+                    }
+                }
+            });
+
+
+            await this.pupPage.evaluate(async () => {
+                const registrationInfo = await window.AuthStore.RegistrationUtils.waSignalStore.getRegistrationInfo();
+                const noiseKeyPair = await window.AuthStore.RegistrationUtils.waNoiseInfo.get();
+                const staticKeyB64 = window.AuthStore.Base64Tools.encodeB64(noiseKeyPair.staticKeyPair.pubKey);
+                const identityKeyB64 = window.AuthStore.Base64Tools.encodeB64(registrationInfo.identityKeyPair.pubKey);
+                const advSecretKey = await window.AuthStore.RegistrationUtils.getADVSecretKey();
+                const platform =  window.AuthStore.RegistrationUtils.DEVICE_PLATFORM;
+                const getQR = (ref) => ref + ',' + staticKeyB64 + ',' + identityKeyB64 + ',' + advSecretKey + ',' + platform;
+                
+                window.onQRChangedEvent(getQR(window.AuthStore.Conn.ref)); // initial qr
+                window.AuthStore.Conn.on('change:ref', (_, ref) => { window.onQRChangedEvent(getQR(ref)); }); // future QR changes
+            });
+        }
+
+        await exposeFunctionIfAbsent(this.pupPage, 'onAuthAppStateChangedEvent', async (state) => {
+            if (state == 'UNPAIRED_IDLE') {
+                // refresh qr code
+                window.Store.Cmd.refreshQR();
+            }
+        });
+
+        await exposeFunctionIfAbsent(this.pupPage, 'onAppStateHasSyncedEvent', async () => {
+            const authEventPayload = await this.authStrategy.getAuthEventPayload();
+            /**
+                 * Emitted when authentication is successful
+                 * @event Client#authenticated
+                 */
+            this.emit(Events.AUTHENTICATED, authEventPayload);
+
+            const injected = await this.pupPage.evaluate(async () => {
+                return typeof window.Store !== 'undefined' && typeof window.WWebJS !== 'undefined';
+            });
+
+            if (!injected) {
+                if (this.options.webVersionCache.type === 'local' && this.currentIndexHtml) {
+                    const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
+                    const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
+            
+                    await webCache.persist(this.currentIndexHtml, version);
+                }
+
+                if (isCometOrAbove) {
+                    await this.pupPage.evaluate(ExposeStore);
+                } else {
+                    // make sure all modules are ready before injection
+                    // 2 second delay after authentication makes sense and does not need to be made dyanmic or removed
+                    await new Promise(r => setTimeout(r, 2000)); 
+                    await this.pupPage.evaluate(ExposeLegacyStore);
+                }
+
+                // Check window.Store Injection
+                await this.pupPage.waitForFunction('window.Store != undefined');
+            
+                /**
+                     * Current connection information
+                     * @type {ClientInfo}
+                     */
+                this.info = new ClientInfo(this, await this.pupPage.evaluate(() => {
+                    return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMeUser() };
+                }));
+
+                this.interface = new InterfaceController(this);
+
+                //Load util functions (serializers, helper functions)
+                await this.pupPage.evaluate(LoadUtils);
+
+                await this.attachEventListeners();
+            }
+            /**
+                 * Emitted when the client has initialized and is ready to receive messages.
+                 * @event Client#ready
+                 */
+            this.emit(Events.READY);
+            this.authStrategy.afterAuthReady();
+        });
+        let lastPercent = null;
+        await exposeFunctionIfAbsent(this.pupPage, 'onOfflineProgressUpdateEvent', async (percent) => {
+            if (lastPercent !== percent) {
+                lastPercent = percent;
+                this.emit(Events.LOADING_SCREEN, percent, 'WhatsApp'); // Message is hardcoded as "WhatsApp" for now
+            }
+        });
+        await exposeFunctionIfAbsent(this.pupPage, 'onLogoutEvent', async () => {
+            this.lastLoggedOut = true;
+            await this.pupPage.waitForNavigation({waitUntil: 'load', timeout: 5000}).catch((_) => _);
+        });
+        await this.pupPage.evaluate(() => {
+            window.AuthStore.AppState.on('change:state', (_AppState, state) => { window.onAuthAppStateChangedEvent(state); });
+            window.AuthStore.AppState.on('change:hasSynced', () => { window.onAppStateHasSyncedEvent(); });
+            window.AuthStore.Cmd.on('offline_progress_update', () => {
+                window.onOfflineProgressUpdateEvent(window.AuthStore.OfflineMessageHandler.getOfflineDeliveryProgress()); 
+            });
+            window.AuthStore.Cmd.on('logout', async () => {
+                await window.onLogoutEvent();
+            });
+        });
     }
 
     /**
      * Sets up events and requirements, kicks off authentication request
      */
     async initialize() {
-        let [browser, page] = [null, null];
+
+        let 
+            /**
+             * @type {puppeteer.Browser}
+             */
+            browser, 
+            /**
+             * @type {puppeteer.Page}
+             */
+            page;
+
+        browser = null;
+        page = null;
 
         await this.authStrategy.beforeBrowserInitialized();
 
         const puppeteerOpts = this.options.puppeteer;
-        if (puppeteerOpts && puppeteerOpts.browserWSEndpoint) {
+        if (puppeteerOpts && (puppeteerOpts.browserWSEndpoint || puppeteerOpts.browserURL)) {
             browser = await puppeteer.connect(puppeteerOpts);
             page = await browser.newPage();
         } else {
@@ -126,9 +306,11 @@ class Client extends EventEmitter {
         await this.authStrategy.afterBrowserInitialized();
         await this.initWebVersionCache();
 
-        // ocVesion (isOfficialClient patch)
+        // ocVersion (isOfficialClient patch)
+        // remove after 2.3000.x hard release
         await page.evaluateOnNewDocument(() => {
             const originalError = Error;
+            window.originalError = originalError;
             //eslint-disable-next-line no-global-assign
             Error = function (message) {
                 const error = new originalError(message);
@@ -144,276 +326,81 @@ class Client extends EventEmitter {
             referer: 'https://whatsapp.com/'
         });
 
-        await page.evaluate(`function getElementByXpath(path) {
-            return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-          }`);
+        await this.inject();
 
-        let lastPercent = null,
-            lastPercentMessage = null;
-
-        await page.exposeFunction('loadingScreen', async (percent, message) => {
-            if (lastPercent !== percent || lastPercentMessage !== message) {
-                this.emit(Events.LOADING_SCREEN, percent, message);
-                lastPercent = percent;
-                lastPercentMessage = message;
+        this.pupPage.on('framenavigated', async (frame) => {
+            if(frame.url().includes('post_logout=1') || this.lastLoggedOut) {
+                this.emit(Events.DISCONNECTED, 'LOGOUT');
+                await this.authStrategy.logout();
+                await this.authStrategy.beforeBrowserInitialized();
+                await this.authStrategy.afterBrowserInitialized();
+                this.lastLoggedOut = false;
             }
+            await this.inject();
         });
+    }
 
-        await page.evaluate(
-            async function (selectors) {
-                var observer = new MutationObserver(function () {
-                    let progressBar = window.getElementByXpath(
-                        selectors.PROGRESS
-                    );
-                    let progressMessage = window.getElementByXpath(
-                        selectors.PROGRESS_MESSAGE
-                    );
+    /**
+     * Request authentication via pairing code instead of QR code
+     * @param {string} phoneNumber - Phone number in international, symbol-free format (e.g. 12025550108 for US, 551155501234 for Brazil)
+     * @param {boolean} showNotification - Show notification to pair on phone number
+     * @returns {Promise<string>} - Returns a pairing code in format "ABCDEFGH"
+     */
+    async requestPairingCode(phoneNumber, showNotification = true) {
+        return await this.pupPage.evaluate(async (phoneNumber, showNotification) => {
+            window.AuthStore.PairingCodeLinkUtils.setPairingType('ALT_DEVICE_LINKING');
+            await window.AuthStore.PairingCodeLinkUtils.initializeAltDeviceLinking();
+            return window.AuthStore.PairingCodeLinkUtils.startAltLinkingFlow(phoneNumber, showNotification);
+        }, phoneNumber, showNotification);
+    }
 
-                    if (progressBar) {
-                        window.loadingScreen(
-                            progressBar.value,
-                            progressMessage.innerText
-                        );
-                    }
-                });
-
-                observer.observe(document, {
-                    attributes: true,
-                    childList: true,
-                    characterData: true,
-                    subtree: true,
-                });
-            },
-            {
-                PROGRESS: '//*[@id=\'app\']/div/div/div[2]/progress',
-                PROGRESS_MESSAGE: '//*[@id=\'app\']/div/div/div[3]',
-            }
-        );
-
-        const INTRO_IMG_SELECTOR = '[data-icon=\'search\']';
-        const INTRO_QRCODE_SELECTOR = 'div[data-ref] canvas';
-
-        // Checks which selector appears first
-        const needAuthentication = await Promise.race([
-            new Promise(resolve => {
-                page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: this.options.authTimeoutMs })
-                    .then(() => resolve(false))
-                    .catch((err) => resolve(err));
-            }),
-            new Promise(resolve => {
-                page.waitForSelector(INTRO_QRCODE_SELECTOR, { timeout: this.options.authTimeoutMs })
-                    .then(() => resolve(true))
-                    .catch((err) => resolve(err));
-            })
-        ]);
-
-        // Checks if an error occurred on the first found selector. The second will be discarded and ignored by .race;
-        if (needAuthentication instanceof Error) throw needAuthentication;
-
-        // Scan-qrcode selector was found. Needs authentication
-        if (needAuthentication) {
-            const { failed, failureEventPayload, restart } = await this.authStrategy.onAuthenticationNeeded();
-            if(failed) {
-                /**
-                 * Emitted when there has been an error while trying to restore an existing session
-                 * @event Client#auth_failure
-                 * @param {string} message
-                 */
-                this.emit(Events.AUTHENTICATION_FAILURE, failureEventPayload);
-                await this.destroy();
-                if (restart) {
-                    // session restore failed so try again but without session to force new authentication
-                    return this.initialize();
-                }
-                return;
-            }
-
-            const QR_CONTAINER = 'div[data-ref]';
-            const QR_RETRY_BUTTON = 'div[data-ref] > span > button';
-            let qrRetries = 0;
-            await page.exposeFunction('qrChanged', async (qr) => {
-                /**
-                * Emitted when a QR code is received
-                * @event Client#qr
-                * @param {string} qr QR Code
-                */
-                this.emit(Events.QR_RECEIVED, qr);
-                if (this.options.qrMaxRetries > 0) {
-                    qrRetries++;
-                    if (qrRetries > this.options.qrMaxRetries) {
-                        this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
-                        await this.destroy();
-                    }
-                }
-            });
-
-            await page.evaluate(function (selectors) {
-                const qr_container = document.querySelector(selectors.QR_CONTAINER);
-                window.qrChanged(qr_container.dataset.ref);
-
-                const obs = new MutationObserver((muts) => {
-                    muts.forEach(mut => {
-                        // Listens to qr token change
-                        if (mut.type === 'attributes' && mut.attributeName === 'data-ref') {
-                            window.qrChanged(mut.target.dataset.ref);
-                        }
-                        // Listens to retry button, when found, click it
-                        else if (mut.type === 'childList') {
-                            const retry_button = document.querySelector(selectors.QR_RETRY_BUTTON);
-                            if (retry_button) retry_button.click();
-                        }
-                    });
-                });
-                obs.observe(qr_container.parentElement, {
-                    subtree: true,
-                    childList: true,
-                    attributes: true,
-                    attributeFilter: ['data-ref'],
-                });
-            }, {
-                QR_CONTAINER,
-                QR_RETRY_BUTTON
-            });
-
-            // Wait for code scan
-            try {
-                await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: 0 });
-            } catch(error) {
-                if (
-                    error.name === 'ProtocolError' && 
-                    error.message && 
-                    error.message.match(/Target closed/)
-                ) {
-                    // something has called .destroy() while waiting
-                    return;
-                }
-
-                throw error;
-            }
-
-        }
-
-        await page.evaluate(() => {
-            /**
-             * Helper function that compares between two WWeb versions. Its purpose is to help the developer to choose the correct code implementation depending on the comparison value and the WWeb version.
-             * @param {string} lOperand The left operand for the WWeb version string to compare with
-             * @param {string} operator The comparison operator
-             * @param {string} rOperand The right operand for the WWeb version string to compare with
-             * @returns {boolean} Boolean value that indicates the result of the comparison
-             */
-            window.compareWwebVersions = (lOperand, operator, rOperand) => {
-                if (!['>', '>=', '<', '<=', '='].includes(operator)) {
-                    throw new class _ extends Error {
-                        constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
-                    }('Invalid comparison operator is provided');
-
-                }
-                if (typeof lOperand !== 'string' || typeof rOperand !== 'string') {
-                    throw new class _ extends Error {
-                        constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
-                    }('A non-string WWeb version type is provided');
-                }
-
-                lOperand = lOperand.replace(/-beta$/, '');
-                rOperand = rOperand.replace(/-beta$/, '');
-
-                while (lOperand.length !== rOperand.length) {
-                    lOperand.length > rOperand.length
-                        ? rOperand = rOperand.concat('0')
-                        : lOperand = lOperand.concat('0');
-                }
-
-                lOperand = Number(lOperand.replace(/\./g, ''));
-                rOperand = Number(rOperand.replace(/\./g, ''));
-
-                return (
-                    operator === '>' ? lOperand > rOperand :
-                        operator === '>=' ? lOperand >= rOperand :
-                            operator === '<' ? lOperand < rOperand :
-                                operator === '<=' ? lOperand <= rOperand :
-                                    operator === '=' ? lOperand === rOperand :
-                                        false
-                );
-            };
-        });
-
-        await page.evaluate(ExposeStore, moduleRaid.toString());
-        const authEventPayload = await this.authStrategy.getAuthEventPayload();
-
-        /**
-         * Emitted when authentication is successful
-         * @event Client#authenticated
-         */
-        this.emit(Events.AUTHENTICATED, authEventPayload);
-
-        // Check window.Store Injection
-        await page.waitForFunction('window.Store != undefined');
-
-        await page.evaluate(async () => {
-            // safely unregister service workers
-            const registrations = await navigator.serviceWorker.getRegistrations();
-            for (let registration of registrations) {
-                registration.unregister();
-            }
-        });
-
-        //Load util functions (serializers, helper functions)
-        await page.evaluate(LoadUtils);
-
-        // Expose client info
-        /**
-         * Current connection information
-         * @type {ClientInfo}
-         */
-        this.info = new ClientInfo(this, await page.evaluate(() => {
-            return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMeUser() };
-        }));
-
-        // Add InterfaceController
-        this.interface = new InterfaceController(this);
-
-        // Register events
-        await page.exposeFunction('onAddMessageEvent', msg => {
+    /**
+     * Attach event listeners to WA Web
+     * Private function
+     * @property {boolean} reinject is this a reinject?
+     */
+    async attachEventListeners() {
+        await exposeFunctionIfAbsent(this.pupPage, 'onAddMessageEvent', msg => {
             if (msg.type === 'gp2') {
                 const notification = new GroupNotification(this, msg);
                 if (['add', 'invite', 'linked_group_join'].includes(msg.subtype)) {
                     /**
-                     * Emitted when a user joins the chat via invite link or is added by an admin.
-                     * @event Client#group_join
-                     * @param {GroupNotification} notification GroupNotification with more information about the action
-                     */
+                         * Emitted when a user joins the chat via invite link or is added by an admin.
+                         * @event Client#group_join
+                         * @param {GroupNotification} notification GroupNotification with more information about the action
+                         */
                     this.emit(Events.GROUP_JOIN, notification);
                 } else if (msg.subtype === 'remove' || msg.subtype === 'leave') {
                     /**
-                     * Emitted when a user leaves the chat or is removed by an admin.
-                     * @event Client#group_leave
-                     * @param {GroupNotification} notification GroupNotification with more information about the action
-                     */
+                         * Emitted when a user leaves the chat or is removed by an admin.
+                         * @event Client#group_leave
+                         * @param {GroupNotification} notification GroupNotification with more information about the action
+                         */
                     this.emit(Events.GROUP_LEAVE, notification);
                 } else if (msg.subtype === 'promote' || msg.subtype === 'demote') {
                     /**
-                     * Emitted when a current user is promoted to an admin or demoted to a regular user.
-                     * @event Client#group_admin_changed
-                     * @param {GroupNotification} notification GroupNotification with more information about the action
-                     */
+                         * Emitted when a current user is promoted to an admin or demoted to a regular user.
+                         * @event Client#group_admin_changed
+                         * @param {GroupNotification} notification GroupNotification with more information about the action
+                         */
                     this.emit(Events.GROUP_ADMIN_CHANGED, notification);
                 } else if (msg.subtype === 'membership_approval_request') {
                     /**
-                     * Emitted when some user requested to join the group
-                     * that has the membership approval mode turned on
-                     * @event Client#group_membership_request
-                     * @param {GroupNotification} notification GroupNotification with more information about the action
-                     * @param {string} notification.chatId The group ID the request was made for
-                     * @param {string} notification.author The user ID that made a request
-                     * @param {number} notification.timestamp The timestamp the request was made at
-                     */
+                         * Emitted when some user requested to join the group
+                         * that has the membership approval mode turned on
+                         * @event Client#group_membership_request
+                         * @param {GroupNotification} notification GroupNotification with more information about the action
+                         * @param {string} notification.chatId The group ID the request was made for
+                         * @param {string} notification.author The user ID that made a request
+                         * @param {number} notification.timestamp The timestamp the request was made at
+                         */
                     this.emit(Events.GROUP_MEMBERSHIP_REQUEST, notification);
                 } else {
                     /**
-                     * Emitted when group settings are updated, such as subject, description or picture.
-                     * @event Client#group_update
-                     * @param {GroupNotification} notification GroupNotification with more information about the action
-                     */
+                         * Emitted when group settings are updated, such as subject, description or picture.
+                         * @event Client#group_update
+                         * @param {GroupNotification} notification GroupNotification with more information about the action
+                         */
                     this.emit(Events.GROUP_UPDATE, notification);
                 }
                 return;
@@ -422,25 +409,25 @@ class Client extends EventEmitter {
             const message = new Message(this, msg);
 
             /**
-             * Emitted when a new message is created, which may include the current user's own messages.
-             * @event Client#message_create
-             * @param {Message} message The message that was created
-             */
+                 * Emitted when a new message is created, which may include the current user's own messages.
+                 * @event Client#message_create
+                 * @param {Message} message The message that was created
+                 */
             this.emit(Events.MESSAGE_CREATE, message);
 
             if (msg.id.fromMe) return;
 
             /**
-             * Emitted when a new message is received.
-             * @event Client#message
-             * @param {Message} message The message that was received
-             */
+                 * Emitted when a new message is received.
+                 * @event Client#message
+                 * @param {Message} message The message that was received
+                 */
             this.emit(Events.MESSAGE_RECEIVED, message);
         });
 
         let last_message;
 
-        await page.exposeFunction('onChangeMessageTypeEvent', (msg) => {
+        await exposeFunctionIfAbsent(this.pupPage, 'onChangeMessageTypeEvent', (msg) => {
 
             if (msg.type === 'revoked') {
                 const message = new Message(this, msg);
@@ -450,33 +437,33 @@ class Client extends EventEmitter {
                 }
 
                 /**
-                 * Emitted when a message is deleted for everyone in the chat.
-                 * @event Client#message_revoke_everyone
-                 * @param {Message} message The message that was revoked, in its current state. It will not contain the original message's data.
-                 * @param {?Message} revoked_msg The message that was revoked, before it was revoked. It will contain the message's original data. 
-                 * Note that due to the way this data is captured, it may be possible that this param will be undefined.
-                 */
+                     * Emitted when a message is deleted for everyone in the chat.
+                     * @event Client#message_revoke_everyone
+                     * @param {Message} message The message that was revoked, in its current state. It will not contain the original message's data.
+                     * @param {?Message} revoked_msg The message that was revoked, before it was revoked. It will contain the message's original data. 
+                     * Note that due to the way this data is captured, it may be possible that this param will be undefined.
+                     */
                 this.emit(Events.MESSAGE_REVOKED_EVERYONE, message, revoked_msg);
             }
 
         });
 
-        await page.exposeFunction('onChangeMessageEvent', (msg) => {
+        await exposeFunctionIfAbsent(this.pupPage, 'onChangeMessageEvent', (msg) => {
 
             if (msg.type !== 'revoked') {
                 last_message = msg;
             }
 
             /**
-             * The event notification that is received when one of
-             * the group participants changes their phone number.
-             */
+                 * The event notification that is received when one of
+                 * the group participants changes their phone number.
+                 */
             const isParticipant = msg.type === 'gp2' && msg.subtype === 'modify';
 
             /**
-             * The event notification that is received when one of
-             * the contacts changes their phone number.
-             */
+                 * The event notification that is received when one of
+                 * the contacts changes their phone number.
+                 */
             const isContact = msg.type === 'notification_template' && msg.subtype === 'change_number';
 
             if (isParticipant || isContact) {
@@ -487,75 +474,74 @@ class Client extends EventEmitter {
                 const oldId = isParticipant ? msg.author : msg.templateParams.find(id => id !== newId);
 
                 /**
-                 * Emitted when a contact or a group participant changes their phone number.
-                 * @event Client#contact_changed
-                 * @param {Message} message Message with more information about the event.
-                 * @param {String} oldId The user's id (an old one) who changed their phone number
-                 * and who triggered the notification.
-                 * @param {String} newId The user's new id after the change.
-                 * @param {Boolean} isContact Indicates if a contact or a group participant changed their phone number.
-                 */
+                     * Emitted when a contact or a group participant changes their phone number.
+                     * @event Client#contact_changed
+                     * @param {Message} message Message with more information about the event.
+                     * @param {String} oldId The user's id (an old one) who changed their phone number
+                     * and who triggered the notification.
+                     * @param {String} newId The user's new id after the change.
+                     * @param {Boolean} isContact Indicates if a contact or a group participant changed their phone number.
+                     */
                 this.emit(Events.CONTACT_CHANGED, message, oldId, newId, isContact);
             }
         });
 
-        await page.exposeFunction('onRemoveMessageEvent', (msg) => {
+        await exposeFunctionIfAbsent(this.pupPage, 'onRemoveMessageEvent', (msg) => {
 
             if (!msg.isNewMsg) return;
 
             const message = new Message(this, msg);
 
             /**
-             * Emitted when a message is deleted by the current user.
-             * @event Client#message_revoke_me
-             * @param {Message} message The message that was revoked
-             */
+                 * Emitted when a message is deleted by the current user.
+                 * @event Client#message_revoke_me
+                 * @param {Message} message The message that was revoked
+                 */
             this.emit(Events.MESSAGE_REVOKED_ME, message);
 
         });
 
-        await page.exposeFunction('onMessageAckEvent', (msg, ack) => {
+        await exposeFunctionIfAbsent(this.pupPage, 'onMessageAckEvent', (msg, ack) => {
 
             const message = new Message(this, msg);
 
             /**
-             * Emitted when an ack event occurrs on message type.
-             * @event Client#message_ack
-             * @param {Message} message The message that was affected
-             * @param {MessageAck} ack The new ACK value
-             */
+                 * Emitted when an ack event occurrs on message type.
+                 * @event Client#message_ack
+                 * @param {Message} message The message that was affected
+                 * @param {MessageAck} ack The new ACK value
+                 */
             this.emit(Events.MESSAGE_ACK, message, ack);
 
         });
 
-        await page.exposeFunction('onChatUnreadCountEvent', async (data) =>{
+        await exposeFunctionIfAbsent(this.pupPage, 'onChatUnreadCountEvent', async (data) =>{
             const chat = await this.getChatById(data.id);
-            
+                
             /**
-             * Emitted when the chat unread count changes
-             */
+                 * Emitted when the chat unread count changes
+                 */
             this.emit(Events.UNREAD_COUNT, chat);
         });
 
-        await page.exposeFunction('onMessageMediaUploadedEvent', (msg) => {
+        await exposeFunctionIfAbsent(this.pupPage, 'onMessageMediaUploadedEvent', (msg) => {
 
             const message = new Message(this, msg);
 
             /**
-             * Emitted when media has been uploaded for a message sent by the client.
-             * @event Client#media_uploaded
-             * @param {Message} message The message with media that was uploaded
-             */
+                 * Emitted when media has been uploaded for a message sent by the client.
+                 * @event Client#media_uploaded
+                 * @param {Message} message The message with media that was uploaded
+                 */
             this.emit(Events.MEDIA_UPLOADED, message);
         });
 
-        await page.exposeFunction('onAppStateChangedEvent', async (state) => {
-
+        await exposeFunctionIfAbsent(this.pupPage, 'onAppStateChangedEvent', async (state) => {
             /**
-             * Emitted when the connection state changes
-             * @event Client#change_state
-             * @param {WAState} state the new connection state
-             */
+                 * Emitted when the connection state changes
+                 * @event Client#change_state
+                 * @param {WAState} state the new connection state
+                 */
             this.emit(Events.STATE_CHANGED, state);
 
             const ACCEPTED_STATES = [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING, WAState.TIMEOUT];
@@ -572,121 +558,121 @@ class Client extends EventEmitter {
 
             if (!ACCEPTED_STATES.includes(state)) {
                 /**
-                 * Emitted when the client has been disconnected
-                 * @event Client#disconnected
-                 * @param {WAState|"NAVIGATION"} reason reason that caused the disconnect
-                 */
+                     * Emitted when the client has been disconnected
+                     * @event Client#disconnected
+                     * @param {WAState|"LOGOUT"} reason reason that caused the disconnect
+                     */
                 await this.authStrategy.disconnect();
                 this.emit(Events.DISCONNECTED, state);
                 this.destroy();
             }
         });
 
-        await page.exposeFunction('onBatteryStateChangedEvent', (state) => {
+        await exposeFunctionIfAbsent(this.pupPage, 'onBatteryStateChangedEvent', (state) => {
             const { battery, plugged } = state;
 
             if (battery === undefined) return;
 
             /**
-             * Emitted when the battery percentage for the attached device changes. Will not be sent if using multi-device.
-             * @event Client#change_battery
-             * @param {object} batteryInfo
-             * @param {number} batteryInfo.battery - The current battery percentage
-             * @param {boolean} batteryInfo.plugged - Indicates if the phone is plugged in (true) or not (false)
-             * @deprecated
-             */
+                 * Emitted when the battery percentage for the attached device changes. Will not be sent if using multi-device.
+                 * @event Client#change_battery
+                 * @param {object} batteryInfo
+                 * @param {number} batteryInfo.battery - The current battery percentage
+                 * @param {boolean} batteryInfo.plugged - Indicates if the phone is plugged in (true) or not (false)
+                 * @deprecated
+                 */
             this.emit(Events.BATTERY_CHANGED, { battery, plugged });
         });
 
-        await page.exposeFunction('onIncomingCall', (call) => {
+        await exposeFunctionIfAbsent(this.pupPage, 'onIncomingCall', (call) => {
             /**
-             * Emitted when a call is received
-             * @event Client#incoming_call
-             * @param {object} call
-             * @param {number} call.id - Call id
-             * @param {string} call.peerJid - Who called
-             * @param {boolean} call.isVideo - if is video
-             * @param {boolean} call.isGroup - if is group
-             * @param {boolean} call.canHandleLocally - if we can handle in waweb
-             * @param {boolean} call.outgoing - if is outgoing
-             * @param {boolean} call.webClientShouldHandle - If Waweb should handle
-             * @param {object} call.participants - Participants
-             */
+                 * Emitted when a call is received
+                 * @event Client#incoming_call
+                 * @param {object} call
+                 * @param {number} call.id - Call id
+                 * @param {string} call.peerJid - Who called
+                 * @param {boolean} call.isVideo - if is video
+                 * @param {boolean} call.isGroup - if is group
+                 * @param {boolean} call.canHandleLocally - if we can handle in waweb
+                 * @param {boolean} call.outgoing - if is outgoing
+                 * @param {boolean} call.webClientShouldHandle - If Waweb should handle
+                 * @param {object} call.participants - Participants
+                 */
             const cll = new Call(this, call);
             this.emit(Events.INCOMING_CALL, cll);
         });
 
-        await page.exposeFunction('onReaction', (reactions) => {
+        await exposeFunctionIfAbsent(this.pupPage, 'onReaction', (reactions) => {
             for (const reaction of reactions) {
                 /**
-                 * Emitted when a reaction is sent, received, updated or removed
-                 * @event Client#message_reaction
-                 * @param {object} reaction
-                 * @param {object} reaction.id - Reaction id
-                 * @param {number} reaction.orphan - Orphan
-                 * @param {?string} reaction.orphanReason - Orphan reason
-                 * @param {number} reaction.timestamp - Timestamp
-                 * @param {string} reaction.reaction - Reaction
-                 * @param {boolean} reaction.read - Read
-                 * @param {object} reaction.msgId - Parent message id
-                 * @param {string} reaction.senderId - Sender id
-                 * @param {?number} reaction.ack - Ack
-                 */
+                     * Emitted when a reaction is sent, received, updated or removed
+                     * @event Client#message_reaction
+                     * @param {object} reaction
+                     * @param {object} reaction.id - Reaction id
+                     * @param {number} reaction.orphan - Orphan
+                     * @param {?string} reaction.orphanReason - Orphan reason
+                     * @param {number} reaction.timestamp - Timestamp
+                     * @param {string} reaction.reaction - Reaction
+                     * @param {boolean} reaction.read - Read
+                     * @param {object} reaction.msgId - Parent message id
+                     * @param {string} reaction.senderId - Sender id
+                     * @param {?number} reaction.ack - Ack
+                     */
 
                 this.emit(Events.MESSAGE_REACTION, new Reaction(this, reaction));
             }
         });
 
-        await page.exposeFunction('onRemoveChatEvent', async (chat) => {
+        await exposeFunctionIfAbsent(this.pupPage, 'onRemoveChatEvent', async (chat) => {
             const _chat = await this.getChatById(chat.id);
 
             /**
-             * Emitted when a chat is removed
-             * @event Client#chat_removed
-             * @param {Chat} chat
-             */
+                 * Emitted when a chat is removed
+                 * @event Client#chat_removed
+                 * @param {Chat} chat
+                 */
             this.emit(Events.CHAT_REMOVED, _chat);
         });
-        
-        await page.exposeFunction('onArchiveChatEvent', async (chat, currState, prevState) => {
-            const _chat = await this.getChatById(chat.id);
             
+        await exposeFunctionIfAbsent(this.pupPage, 'onArchiveChatEvent', async (chat, currState, prevState) => {
+            const _chat = await this.getChatById(chat.id);
+                
             /**
-             * Emitted when a chat is archived/unarchived
-             * @event Client#chat_archived
-             * @param {Chat} chat
-             * @param {boolean} currState
-             * @param {boolean} prevState
-             */
+                 * Emitted when a chat is archived/unarchived
+                 * @event Client#chat_archived
+                 * @param {Chat} chat
+                 * @param {boolean} currState
+                 * @param {boolean} prevState
+                 */
             this.emit(Events.CHAT_ARCHIVED, _chat, currState, prevState);
         });
 
-        await page.exposeFunction('onEditMessageEvent', (msg, newBody, prevBody) => {
-            
+        await exposeFunctionIfAbsent(this.pupPage, 'onEditMessageEvent', (msg, newBody, prevBody) => {
+                
             if(msg.type === 'revoked'){
                 return;
             }
             /**
-             * Emitted when messages are edited
-             * @event Client#message_edit
-             * @param {Message} message
-             * @param {string} newBody
-             * @param {string} prevBody
-             */
+                 * Emitted when messages are edited
+                 * @event Client#message_edit
+                 * @param {Message} message
+                 * @param {string} newBody
+                 * @param {string} prevBody
+                 */
             this.emit(Events.MESSAGE_EDIT, new Message(this, msg), newBody, prevBody);
         });
-        
-        await page.exposeFunction('onAddMessageCiphertextEvent', msg => {
             
+        await exposeFunctionIfAbsent(this.pupPage, 'onAddMessageCiphertextEvent', msg => {
+                
             /**
-             * Emitted when messages are edited
-             * @event Client#message_ciphertext
-             * @param {Message} message
-             */
+                 * Emitted when messages are edited
+                 * @event Client#message_ciphertext
+                 * @param {Message} message
+                 */
             this.emit(Events.MESSAGE_CIPHERTEXT, new Message(this, msg));
         });
 
-        await page.exposeFunction('onPollVoteEvent', (vote) => {
+        await exposeFunctionIfAbsent(this.pupPage, 'onPollVoteEvent', (vote) => {
             const _vote = new PollVote(this, vote);
             /**
              * Emitted when some poll option is selected or deselected,
@@ -696,7 +682,7 @@ class Client extends EventEmitter {
             this.emit(Events.VOTE_UPDATE, _vote);
         });
 
-        await page.evaluate(() => {
+        await this.pupPage.evaluate(() => {
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:ack', (msg, ack) => { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
@@ -720,12 +706,28 @@ class Client extends EventEmitter {
                 }
             });
             window.Store.Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
-            window.Store.PollVote.on('add', (vote) => {
-                const pollVoteModel = window.WWebJS.getPollVoteModel(vote);
+            window.Store.PollVote.on('add', async (vote) => {
+                const pollVoteModel = await window.WWebJS.getPollVoteModel(vote);
                 pollVoteModel && window.onPollVoteEvent(pollVoteModel);
             });
 
-            {
+            if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.1014111620')) {
+                const module = window.Store.AddonReactionTable;
+                const ogMethod = module.bulkUpsert;
+                module.bulkUpsert = ((...args) => {
+                    window.onReaction(args[0].map(reaction => {
+                        const msgKey = reaction.id;
+                        const parentMsgKey = reaction.reactionParentKey;
+                        const timestamp = reaction.reactionTimestamp / 1000;
+                        const sender = reaction.author ?? reaction.from;
+                        const senderUserJid = sender._serialized;
+
+                        return {...reaction, msgKey, parentMsgKey, senderUserJid, timestamp };
+                    }));
+
+                    return ogMethod(...args);
+                }).bind(module);
+            } else {
                 const module = window.Store.createOrUpdateReactionsModule;
                 const ogMethod = module.createOrUpdateReactions;
                 module.createOrUpdateReactions = ((...args) => {
@@ -741,24 +743,7 @@ class Client extends EventEmitter {
                 }).bind(module);
             }
         });
-
-        /**
-         * Emitted when the client has initialized and is ready to receive messages.
-         * @event Client#ready
-         */
-        this.emit(Events.READY);
-        this.authStrategy.afterAuthReady();
-
-        // Disconnect when navigating away when in PAIRING state (detect logout)
-        this.pupPage.on('framenavigated', async () => {
-            const appState = await this.getState();
-            if(!appState || appState === WAState.PAIRING) {
-                await this.authStrategy.disconnect();
-                this.emit(Events.DISCONNECTED, 'NAVIGATION');
-                await this.destroy();
-            }
-        });
-    }
+    }    
 
     async initWebVersionCache() {
         const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
@@ -783,7 +768,8 @@ class Client extends EventEmitter {
         } else {
             this.pupPage.on('response', async (res) => {
                 if(res.ok() && res.url() === WhatsWebURL) {
-                    await webCache.persist(await res.text());
+                    const indexHtml = await res.text();
+                    this.currentIndexHtml = indexHtml;
                 }
             });
         }
@@ -802,7 +788,9 @@ class Client extends EventEmitter {
      */
     async logout() {
         await this.pupPage.evaluate(() => {
-            return window.Store.AppState.logout();
+            if (window.Store && window.Store.AppState && typeof window.Store.AppState.logout === 'function') {
+                return window.Store.AppState.logout();
+            }
         });
         await this.pupBrowser.close();
         
@@ -832,11 +820,9 @@ class Client extends EventEmitter {
      * 
      */
     async sendSeen(chatId) {
-        const result = await this.pupPage.evaluate(async (chatId) => {
+        return await this.pupPage.evaluate(async (chatId) => {
             return window.WWebJS.sendSeen(chatId);
-
         }, chatId);
-        return result;
     }
 
     /**
@@ -854,6 +840,7 @@ class Client extends EventEmitter {
      * @property {boolean} [sendVideoAsGif=false] - Send video as gif
      * @property {boolean} [sendMediaAsSticker=false] - Send media as a sticker
      * @property {boolean} [sendMediaAsDocument=false] - Send media as a document
+     * @property {boolean} [sendMediaAsHd=false] - Send image as quality HD
      * @property {boolean} [isViewOnce=false] - Send photo/video as a view once message
      * @property {boolean} [parseVCards=true] - Automatically parse vCards and send them as contacts
      * @property {string} [caption] - Image or video caption
@@ -861,10 +848,13 @@ class Client extends EventEmitter {
      * @property {GroupMention[]} [groupMentions] - An array of object that handle group mentions
      * @property {string[]} [mentions] - User IDs to mention in the message
      * @property {boolean} [sendSeen=true] - Mark the conversation as seen after sending the message
+     * @property {string} [invokedBotWid=undefined] - Bot Wid when doing a bot mention like @Meta AI
      * @property {string} [stickerAuthor=undefined] - Sets the author of the sticker, (if sendMediaAsSticker is true).
      * @property {string} [stickerName=undefined] - Sets the name of the sticker, (if sendMediaAsSticker is true).
      * @property {string[]} [stickerCategories=undefined] - Sets the categories of the sticker, (if sendMediaAsSticker is true). Provide emoji char array, can be null.
+     * @property {boolean} [ignoreQuoteErrors = true] - Should the bot send a quoted message without the quoted message if it fails to get the quote?
      * @property {MessageMedia} [media] - Media to be sent
+     * @property {any} [extra] - Extra options
      */
     
     /**
@@ -876,6 +866,19 @@ class Client extends EventEmitter {
      * @returns {Promise<Message>} Message that was just sent
      */
     async sendMessage(chatId, content, options = {}) {
+        const isChannel = /@\w*newsletter\b/.test(chatId);
+
+        if (isChannel && [
+            options.sendMediaAsDocument, options.quotedMessageId, 
+            options.parseVCards, options.isViewOnce,
+            content instanceof Location, content instanceof Contact,
+            content instanceof Buttons, content instanceof List,
+            Array.isArray(content) && content.length > 0 && content[0] instanceof Contact
+        ].includes(true)) {
+            console.warn('The message type is currently not supported for sending in channels,\nthe supported message types are: text, image, sticker, gif, video, voice and poll.');
+            return null;
+        }
+    
         if (options.mentions) {
             !Array.isArray(options.mentions) && (options.mentions = [options.mentions]);
             if (options.mentions.some((possiblyContact) => possiblyContact instanceof Contact)) {
@@ -885,29 +888,32 @@ class Client extends EventEmitter {
         }
 
         options.groupMentions && !Array.isArray(options.groupMentions) && (options.groupMentions = [options.groupMentions]);
-
+        
         let internalOptions = {
             linkPreview: options.linkPreview === false ? undefined : true,
             sendAudioAsVoice: options.sendAudioAsVoice,
             sendVideoAsGif: options.sendVideoAsGif,
             sendMediaAsSticker: options.sendMediaAsSticker,
             sendMediaAsDocument: options.sendMediaAsDocument,
+            sendMediaAsHd: options.sendMediaAsHd,
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
-            parseVCards: options.parseVCards === false ? false : true,
+            parseVCards: options.parseVCards !== false,
             mentionedJidList: options.mentions || [],
             groupMentions: options.groupMentions,
+            invokedBotWid: options.invokedBotWid,
+            ignoreQuoteErrors: options.ignoreQuoteErrors !== false,
             extraOptions: options.extra
         };
 
-        const sendSeen = typeof options.sendSeen === 'undefined' ? true : options.sendSeen;
+        const sendSeen = options.sendSeen !== false;
 
         if (content instanceof MessageMedia) {
-            internalOptions.attachment = content;
+            internalOptions.media = content;
             internalOptions.isViewOnce = options.isViewOnce,
             content = '';
         } else if (options.media instanceof MessageMedia) {
-            internalOptions.attachment = options.media;
+            internalOptions.media = options.media;
             internalOptions.caption = content;
             internalOptions.isViewOnce = options.isViewOnce,
             content = '';
@@ -924,17 +930,19 @@ class Client extends EventEmitter {
             internalOptions.contactCardList = content.map(contact => contact.id._serialized);
             content = '';
         } else if (content instanceof Buttons) {
+            console.warn('Buttons are now deprecated. See more at https://www.youtube.com/watch?v=hv1R1rLeVVE.');
             if (content.type !== 'chat') { internalOptions.attachment = content.body; }
             internalOptions.buttons = content;
             content = '';
         } else if (content instanceof List) {
+            console.warn('Lists are now deprecated. See more at https://www.youtube.com/watch?v=hv1R1rLeVVE.');
             internalOptions.list = content;
             content = '';
         }
 
-        if (internalOptions.sendMediaAsSticker && internalOptions.attachment) {
-            internalOptions.attachment = await Util.formatToWebpSticker(
-                internalOptions.attachment, {
+        if (internalOptions.sendMediaAsSticker && internalOptions.media) {
+            internalOptions.media = await Util.formatToWebpSticker(
+                internalOptions.media, {
                     name: options.stickerName,
                     author: options.stickerAuthor,
                     categories: options.stickerCategories
@@ -942,20 +950,60 @@ class Client extends EventEmitter {
             );
         }
 
-        const newMessage = await this.pupPage.evaluate(async (chatId, message, options, sendSeen) => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
-            const chat = await window.Store.Chat.find(chatWid);
+        const sentMsg = await this.pupPage.evaluate(async (chatId, content, options, sendSeen) => {
+            const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
 
+            if (!chat) return null;
 
             if (sendSeen) {
                 await window.WWebJS.sendSeen(chatId);
             }
 
-            const msg = await window.WWebJS.sendMessage(chat, message, options, sendSeen);
-            return window.WWebJS.getMessageModel(msg);
+            const msg = await window.WWebJS.sendMessage(chat, content, options);
+            return msg
+                ? window.WWebJS.getMessageModel(msg)
+                : undefined;
         }, chatId, content, internalOptions, sendSeen);
 
-        return new Message(this, newMessage);
+        return sentMsg
+            ? new Message(this, sentMsg)
+            : undefined;
+    }
+
+    /**
+     * @typedef {Object} SendChannelAdminInviteOptions
+     * @property {?string} comment The comment to be added to an invitation
+     */
+
+    /**
+     * Sends a channel admin invitation to a user, allowing them to become an admin of the channel
+     * @param {string} chatId The ID of a user to send the channel admin invitation to
+     * @param {string} channelId The ID of a channel for which the invitation is being sent
+     * @param {SendChannelAdminInviteOptions} options 
+     * @returns {Promise<boolean>} Returns true if an invitation was sent successfully, false otherwise
+     */
+    async sendChannelAdminInvite(chatId, channelId, options = {}) {
+        const response = await this.pupPage.evaluate(async (chatId, channelId, options) => {
+            const channelWid = window.Store.WidFactory.createWid(channelId);
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = window.Store.Chat.get(chatWid) || (await window.Store.Chat.find(chatWid));
+
+            if (!chatWid.isUser()) {
+                return false;
+            }
+            
+            return await window.Store.SendChannelMessage.sendNewsletterAdminInviteMessage(
+                chat,
+                {
+                    newsletterWid: channelWid,
+                    invitee: chatWid,
+                    inviteMessage: options.comment,
+                    base64Thumb: await window.WWebJS.getProfilePicThumbToBase64(channelWid)
+                }
+            );
+        }, chatId, channelId, options);
+
+        return response.messageSendResult === 'OK';
     }
     
     /**
@@ -981,7 +1029,7 @@ class Client extends EventEmitter {
      * @returns {Promise<Array<Chat>>}
      */
     async getChats() {
-        let chats = await this.pupPage.evaluate(async () => {
+        const chats = await this.pupPage.evaluate(async () => {
             return await window.WWebJS.getChats();
         });
 
@@ -989,16 +1037,51 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Get chat instance by ID
+     * Gets all cached {@link Channel} instance
+     * @returns {Promise<Array<Channel>>}
+     */
+    async getChannels() {
+        const channels = await this.pupPage.evaluate(async () => {
+            return await window.WWebJS.getChannels();
+        });
+
+        return channels.map((channel) => ChatFactory.create(this, channel));
+    }
+
+    /**
+     * Gets chat or channel instance by ID
      * @param {string} chatId 
-     * @returns {Promise<Chat>}
+     * @returns {Promise<Chat|Channel>}
      */
     async getChatById(chatId) {
-        let chat = await this.pupPage.evaluate(async chatId => {
+        const chat = await this.pupPage.evaluate(async chatId => {
             return await window.WWebJS.getChat(chatId);
         }, chatId);
+        return chat
+            ? ChatFactory.create(this, chat)
+            : undefined;
+    }
 
-        return ChatFactory.create(this, chat);
+    /**
+     * Gets a {@link Channel} instance by invite code
+     * @param {string} inviteCode The code that comes after the 'https://whatsapp.com/channel/'
+     * @returns {Promise<Channel>}
+     */
+    async getChannelByInviteCode(inviteCode) {
+        const channel = await this.pupPage.evaluate(async (inviteCode) => {
+            let channelMetadata;
+            try {
+                channelMetadata = await window.WWebJS.getChannelMetadata(inviteCode);
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return null;
+                throw err;
+            }
+            return await window.WWebJS.getChat(channelMetadata.id);
+        }, inviteCode);
+
+        return channel
+            ? ChatFactory.create(this, channel)
+            : undefined;
     }
 
     /**
@@ -1032,7 +1115,7 @@ class Client extends EventEmitter {
             if(msg) return window.WWebJS.getMessageModel(msg);
 
             const params = messageId.split('_');
-            if(params.length !== 3) throw new Error('Invalid serialized message id specified');
+            if (params.length !== 3 && params.length !== 4) throw new Error('Invalid serialized message id specified');
 
             let messagesObject = await window.Store.Msg.getMessagesById([messageId]);
             if (messagesObject && messagesObject.messages.length) msg = messagesObject.messages[0];
@@ -1069,6 +1152,61 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Accepts a channel admin invitation and promotes the current user to a channel admin
+     * @param {string} channelId The channel ID to accept the admin invitation from
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async acceptChannelAdminInvite(channelId) {
+        return await this.pupPage.evaluate(async (channelId) => {
+            try {
+                await window.Store.ChannelUtils.acceptNewsletterAdminInvite(channelId);
+                return true;
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return false;
+                throw err;
+            }
+        }, channelId);
+    }
+
+    /**
+     * Revokes a channel admin invitation sent to a user by a channel owner
+     * @param {string} channelId The channel ID an invitation belongs to
+     * @param {string} userId The user ID the invitation was sent to
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async revokeChannelAdminInvite(channelId, userId) {
+        return await this.pupPage.evaluate(async (channelId, userId) => {
+            try {
+                const userWid = window.Store.WidFactory.createWid(userId);
+                await window.Store.ChannelUtils.revokeNewsletterAdminInvite(channelId, userWid);
+                return true;
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return false;
+                throw err;
+            }
+        }, channelId, userId);
+    }
+
+    /**
+     * Demotes a channel admin to a regular subscriber (can be used also for self-demotion)
+     * @param {string} channelId The channel ID to demote an admin in
+     * @param {string} userId The user ID to demote
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async demoteChannelAdmin(channelId, userId) {
+        return await this.pupPage.evaluate(async (channelId, userId) => {
+            try {
+                const userWid = window.Store.WidFactory.createWid(userId);
+                await window.Store.ChannelUtils.demoteNewsletterAdmin(channelId, userWid);
+                return true;
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return false;
+                throw err;
+            }
+        }, channelId, userId);
+    }
+
+    /**
      * Accepts a private invitation to join a group
      * @param {object} inviteInfo Invite V4 Info
      * @returns {Promise<Object>}
@@ -1102,14 +1240,8 @@ class Client extends EventEmitter {
     async setDisplayName(displayName) {
         const couldSet = await this.pupPage.evaluate(async displayName => {
             if(!window.Store.Conn.canSetMyPushname()) return false;
-
-            if(window.Store.MDBackend) {
-                await window.Store.Settings.setPushname(displayName);
-                return true;
-            } else {
-                const res = await window.Store.Wap.setPushname(displayName);
-                return !res.status || res.status === 200;
-            }
+            await window.Store.Settings.setPushname(displayName);
+            return true;
         }, displayName);
 
         return couldSet;
@@ -1150,7 +1282,7 @@ class Client extends EventEmitter {
      */
     async archiveChat(chatId) {
         return await this.pupPage.evaluate(async chatId => {
-            let chat = await window.Store.Chat.get(chatId);
+            let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             await window.Store.Cmd.archiveChat(chat, true);
             return true;
         }, chatId);
@@ -1162,7 +1294,7 @@ class Client extends EventEmitter {
      */
     async unarchiveChat(chatId) {
         return await this.pupPage.evaluate(async chatId => {
-            let chat = await window.Store.Chat.get(chatId);
+            let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             await window.Store.Cmd.archiveChat(chat, false);
             return false;
         }, chatId);
@@ -1174,7 +1306,7 @@ class Client extends EventEmitter {
      */
     async pinChat(chatId) {
         return this.pupPage.evaluate(async chatId => {
-            let chat = window.Store.Chat.get(chatId);
+            let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             if (chat.pin) {
                 return true;
             }
@@ -1197,7 +1329,7 @@ class Client extends EventEmitter {
      */
     async unpinChat(chatId) {
         return this.pupPage.evaluate(async chatId => {
-            let chat = window.Store.Chat.get(chatId);
+            let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             if (!chat.pin) {
                 return false;
             }
@@ -1209,25 +1341,38 @@ class Client extends EventEmitter {
     /**
      * Mutes this chat forever, unless a date is specified
      * @param {string} chatId ID of the chat that will be muted
-     * @param {?Date} unmuteDate Date when the chat will be unmuted, leave as is to mute forever
+     * @param {?Date} unmuteDate Date when the chat will be unmuted, don't provide a value to mute forever
+     * @returns {Promise<{isMuted: boolean, muteExpiration: number}>}
      */
     async muteChat(chatId, unmuteDate) {
-        unmuteDate = unmuteDate ? unmuteDate.getTime() / 1000 : -1;
-        await this.pupPage.evaluate(async (chatId, timestamp) => {
-            let chat = await window.Store.Chat.get(chatId);
-            await chat.mute.mute({expiration: timestamp, sendDevice:!0});
-        }, chatId, unmuteDate || -1);
+        unmuteDate = unmuteDate ? Math.floor(unmuteDate.getTime() / 1000) : -1;
+        return this._muteUnmuteChat(chatId, 'MUTE', unmuteDate);
     }
 
     /**
      * Unmutes the Chat
      * @param {string} chatId ID of the chat that will be unmuted
+     * @returns {Promise<{isMuted: boolean, muteExpiration: number}>}
      */
     async unmuteChat(chatId) {
-        await this.pupPage.evaluate(async chatId => {
-            let chat = await window.Store.Chat.get(chatId);
-            await window.Store.Cmd.muteChat(chat, false);
-        }, chatId);
+        return this._muteUnmuteChat(chatId, 'UNMUTE');
+    }
+
+    /**
+     * Internal method to mute or unmute the chat
+     * @param {string} chatId ID of the chat that will be muted/unmuted
+     * @param {string} action The action: 'MUTE' or 'UNMUTE'
+     * @param {number} unmuteDateTs Timestamp at which the chat will be unmuted
+     * @returns {Promise<{isMuted: boolean, muteExpiration: number}>}
+     */
+    async _muteUnmuteChat (chatId, action, unmuteDateTs) {
+        return this.pupPage.evaluate(async (chatId, action, unmuteDateTs) => {
+            const chat = window.Store.Chat.get(chatId) ?? await window.Store.Chat.find(chatId);
+            action === 'MUTE'
+                ? await chat.mute.mute({ expiration: unmuteDateTs, sendDevice: true })
+                : await chat.mute.unmute({ sendDevice: true });
+            return { isMuted: chat.mute.expiration !== 0, muteExpiration: chat.mute.expiration };
+        }, chatId, action, unmuteDateTs || -1);
     }
 
     /**
@@ -1236,7 +1381,7 @@ class Client extends EventEmitter {
      */
     async markChatUnread(chatId) {
         await this.pupPage.evaluate(async chatId => {
-            let chat = await window.Store.Chat.get(chatId);
+            let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             await window.Store.Cmd.markChatUnread(chat, true);
         }, chatId);
     }
@@ -1295,7 +1440,7 @@ class Client extends EventEmitter {
     */
     async resetState() {
         await this.pupPage.evaluate(() => {
-            window.Store.AppState.phoneWatchdog.shiftTimer.forceRunNow();
+            window.Store.AppState.reconnect(); 
         });
     }
 
@@ -1416,10 +1561,18 @@ class Client extends EventEmitter {
 
             try {
                 createGroupResult = await window.Store.GroupUtils.createGroup(
-                    title,
-                    participantWids,
-                    messageTimer,
-                    parentGroupWid
+                    {
+                        'memberAddMode': options.memberAddMode === undefined ? true : options.memberAddMode,
+                        'membershipApprovalMode': options.membershipApprovalMode === undefined ? false : options.membershipApprovalMode,
+                        'announce': options.announce === undefined ? true : options.announce,
+                        'ephemeralDuration': messageTimer,
+                        'full': undefined,
+                        'parentGroupId': parentGroupWid,
+                        'restrict': options.restrict === undefined ? true : options.restrict,
+                        'thumb': undefined,
+                        'title': title,
+                    },
+                    participantWids
                 );
             } catch (err) {
                 return 'CreateGroupError: An unknown error occupied while creating a group';
@@ -1428,10 +1581,10 @@ class Client extends EventEmitter {
             for (const participant of createGroupResult.participants) {
                 let isInviteV4Sent = false;
                 const participantId = participant.wid._serialized;
-                const statusCode = participant.error ?? 200;
+                const statusCode = participant.error || 200;
 
                 if (autoSendInviteV4 && statusCode === 403) {
-                    window.Store.ContactCollection.gadd(participant.wid, { silent: true });
+                    window.Store.Contact.gadd(participant.wid, { silent: true });
                     const addParticipantResult = await window.Store.GroupInviteV4.sendGroupInviteMessage(
                         await window.Store.Chat.find(participant.wid),
                         createGroupResult.wid._serialized,
@@ -1468,6 +1621,219 @@ class Client extends EventEmitter {
     }
 
     /**
+     * An object that handles the result for {@link createChannel} method
+     * @typedef {Object} CreateChannelResult
+     * @property {string} title A channel title
+     * @property {ChatId} nid An object that handels the newly created channel ID
+     * @property {string} nid.server 'newsletter'
+     * @property {string} nid.user 'XXXXXXXXXX'
+     * @property {string} nid._serialized 'XXXXXXXXXX@newsletter'
+     * @property {string} inviteLink The channel invite link, starts with 'https://whatsapp.com/channel/'
+     * @property {number} createdAtTs The timestamp the channel was created at
+     */
+
+    /**
+     * Options for the channel creation
+     * @typedef {Object} CreateChannelOptions
+     * @property {?string} description The channel description
+     * @property {?MessageMedia} picture The channel profile picture
+     */
+
+    /**
+     * Creates a new channel
+     * @param {string} title The channel name
+     * @param {CreateChannelOptions} options 
+     * @returns {Promise<CreateChannelResult|string>} Returns an object that handles the result for the channel creation or an error message as a string
+     */
+    async createChannel(title, options = {}) {
+        return await this.pupPage.evaluate(async (title, options) => {
+            let response, { description = null, picture = null } = options;
+
+            if (!window.Store.ChannelUtils.isNewsletterCreationEnabled()) {
+                return 'CreateChannelError: A channel creation is not enabled';
+            }
+
+            if (picture) {
+                picture = await window.WWebJS.cropAndResizeImage(picture, {
+                    asDataUrl: true,
+                    mimetype: 'image/jpeg',
+                    size: 640,
+                    quality: 1
+                });
+            }
+
+            try {
+                response = await window.Store.ChannelUtils.createNewsletterQuery({
+                    name: title,
+                    description: description,
+                    picture: picture,
+                });
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') {
+                    return 'CreateChannelError: An error occupied while creating a channel';
+                }
+                throw err;
+            }
+
+            return {
+                title: title,
+                nid: window.Store.JidToWid.newsletterJidToWid(response.idJid),
+                inviteLink: `https://whatsapp.com/channel/${response.newsletterInviteLinkMetadataMixin.inviteCode}`,
+                createdAtTs: response.newsletterCreationTimeMetadataMixin.creationTimeValue
+            };
+        }, title, options);
+    }
+
+    /**
+     * Subscribe to channel
+     * @param {string} channelId The channel ID
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async subscribeToChannel(channelId) {
+        return await this.pupPage.evaluate(async (channelId) => {
+            return await window.WWebJS.subscribeToUnsubscribeFromChannel(channelId, 'Subscribe');
+        }, channelId);
+    }
+
+    /**
+     * Options for unsubscribe from a channel
+     * @typedef {Object} UnsubscribeOptions
+     * @property {boolean} [deleteLocalModels = false] If true, after an unsubscription, it will completely remove a channel from the channel collection making it seem like the current user have never interacted with it. Otherwise it will only remove a channel from the list of channels the current user is subscribed to and will set the membership type for that channel to GUEST
+     */
+
+    /**
+     * Unsubscribe from channel
+     * @param {string} channelId The channel ID
+     * @param {UnsubscribeOptions} options
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async unsubscribeFromChannel(channelId, options) {
+        return await this.pupPage.evaluate(async (channelId, options) => {
+            return await window.WWebJS.subscribeToUnsubscribeFromChannel(channelId, 'Unsubscribe', options);
+        }, channelId, options);
+    }
+
+    /**
+     * Options for transferring a channel ownership to another user
+     * @typedef {Object} TransferChannelOwnershipOptions
+     * @property {boolean} [shouldDismissSelfAsAdmin = false] If true, after the channel ownership is being transferred to another user, the current user will be dismissed as a channel admin and will become to a channel subscriber.
+     */
+
+    /**
+     * Transfers a channel ownership to another user.
+     * Note: the user you are transferring the channel ownership to must be a channel admin.
+     * @param {string} channelId
+     * @param {string} newOwnerId
+     * @param {TransferChannelOwnershipOptions} options
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async transferChannelOwnership(channelId, newOwnerId, options = {}) {
+        return await this.pupPage.evaluate(async (channelId, newOwnerId, options) => {
+            const channel = await window.WWebJS.getChat(channelId, { getAsModel: false });
+            const newOwner = window.Store.Contact.get(newOwnerId) || (await window.Store.Contact.find(newOwnerId));
+            if (!channel.newsletterMetadata) {
+                await window.Store.NewsletterMetadataCollection.update(channel.id);
+            }
+
+            try {
+                await window.Store.ChannelUtils.changeNewsletterOwnerAction(channel, newOwner);
+
+                if (options.shouldDismissSelfAsAdmin) {
+                    const meContact = window.Store.ContactCollection.getMeContact();
+                    meContact && (await window.Store.ChannelUtils.demoteNewsletterAdminAction(channel, meContact));
+                }
+            } catch (error) {
+                return false;
+            }
+
+            return true;
+        }, channelId, newOwnerId, options);
+    }
+
+    /**
+     * Searches for channels based on search criteria, there are some notes:
+     * 1. The method finds only channels you are not subscribed to currently
+     * 2. If you have never been subscribed to a found channel
+     * or you have unsubscribed from it with {@link UnsubscribeOptions.deleteLocalModels} set to 'true',
+     * the lastMessage property of a found channel will be 'null'
+     *
+     * @param {Object} searchOptions Search options
+     * @param {string} [searchOptions.searchText = ''] Text to search
+     * @param {Array<string>} [searchOptions.countryCodes = [your local region]] Array of country codes in 'ISO 3166-1 alpha-2' standart (@see https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) to search for channels created in these countries
+     * @param {boolean} [searchOptions.skipSubscribedNewsletters = false] If true, channels that user is subscribed to won't appear in found channels
+     * @param {number} [searchOptions.view = 0] View type, makes sense only when the searchText is empty. Valid values to provide are:
+     * 0 for RECOMMENDED channels
+     * 1 for TRENDING channels
+     * 2 for POPULAR channels
+     * 3 for NEW channels
+     * @param {number} [searchOptions.limit = 50] The limit of found channels to be appear in the returnig result
+     * @returns {Promise<Array<Channel>|[]>} Returns an array of Channel objects or an empty array if no channels were found
+     */
+    async searchChannels(searchOptions = {}) {
+        return await this.pupPage.evaluate(async ({
+            searchText = '',
+            countryCodes = [window.Store.ChannelUtils.currentRegion],
+            skipSubscribedNewsletters = false,
+            view = 0,
+            limit = 50
+        }) => {
+            searchText = searchText.trim();
+            const currentRegion = window.Store.ChannelUtils.currentRegion;
+            if (![0, 1, 2, 3].includes(view)) view = 0;
+
+            countryCodes = countryCodes.length === 1 && countryCodes[0] === currentRegion
+                ? countryCodes
+                : countryCodes.filter((code) => Object.keys(window.Store.ChannelUtils.countryCodesIso).includes(code));
+
+            const viewTypeMapping = {
+                0: 'RECOMMENDED',
+                1: 'TRENDING',
+                2: 'POPULAR',
+                3: 'NEW'
+            };
+
+            searchOptions = {
+                searchText: searchText,
+                countryCodes: countryCodes,
+                skipSubscribedNewsletters: skipSubscribedNewsletters,
+                view: viewTypeMapping[view],
+                categories: [],
+                cursorToken: ''
+            };
+            
+            const originalFunction = window.Store.ChannelUtils.getNewsletterDirectoryPageSize;
+            limit !== 50 && (window.Store.ChannelUtils.getNewsletterDirectoryPageSize = () => limit);
+
+            const channels = (await window.Store.ChannelUtils.fetchNewsletterDirectories(searchOptions)).newsletters;
+
+            limit !== 50 && (window.Store.ChannelUtils.getNewsletterDirectoryPageSize = originalFunction);
+
+            return channels
+                ? await Promise.all(channels.map((channel) => window.WWebJS.getChatModel(channel, { isChannel: true })))
+                : [];
+        }, searchOptions);
+    }
+
+    /**
+     * Deletes the channel you created
+     * @param {string} channelId The ID of a channel to delete
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async deleteChannel(channelId) {
+        return await this.client.pupPage.evaluate(async (channelId) => {
+            const channel = await window.WWebJS.getChat(channelId, { getAsModel: false });
+            if (!channel) return false;
+            try {
+                await window.Store.ChannelUtils.deleteNewsletterAction(channel);
+                return true;
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return false;
+                throw err;
+            }
+        }, channelId);
+    }
+
+    /**
      * Get all current Labels
      * @returns {Promise<Array<Label>>}
      */
@@ -1477,6 +1843,17 @@ class Client extends EventEmitter {
         });
 
         return labels.map(data => new Label(this, data));
+    }
+    
+    /**
+     * Get all current Broadcast
+     * @returns {Promise<Array<Broadcast>>}
+     */
+    async getBroadcasts() {
+        const broadcasts = await this.pupPage.evaluate(async () => {
+            return window.WWebJS.getAllStatuses();
+        });
+        return broadcasts.map(data => new Broadcast(this, data));
     }
 
     /**
@@ -1608,8 +1985,8 @@ class Client extends EventEmitter {
      * @returns {Promise<Array<GroupMembershipRequest>>} An array of membership requests
      */
     async getGroupMembershipRequests(groupId) {
-        return await this.pupPage.evaluate(async (gropId) => {
-            const groupWid = window.Store.WidFactory.createWid(gropId);
+        return await this.pupPage.evaluate(async (groupId) => {
+            const groupWid = window.Store.WidFactory.createWid(groupId);
             return await window.Store.MembershipRequestUtils.getMembershipApprovalRequests(groupWid);
         }, groupId);
     }
@@ -1714,6 +2091,92 @@ class Client extends EventEmitter {
             await window.Store.Settings.setAutoDownloadVideos(flag);
             return flag;
         }, flag);
+    }
+
+    /**
+     * Setting background synchronization.
+     * NOTE: this action will take effect after you restart the client.
+     * @param {boolean} flag true/false
+     * @returns {Promise<boolean>}
+     */
+    async setBackgroundSync(flag) {
+        return await this.pupPage.evaluate(async flag => {
+            const backSync = window.Store.Settings.getGlobalOfflineNotifications();
+            if (backSync === flag) {
+                return flag;
+            }
+            await window.Store.Settings.setGlobalOfflineNotifications(flag);
+            return flag;
+        }, flag);
+    }
+    
+    /**
+     * Get user device count by ID
+     * Each WaWeb Connection counts as one device, and the phone (if exists) counts as one
+     * So for a non-enterprise user with one WaWeb connection it should return "2"
+     * @param {string} userId
+     * @returns {Promise<number>}
+     */
+    async getContactDeviceCount(userId) {
+        return await this.pupPage.evaluate(async (userId) => {
+            const devices = await window.Store.DeviceList.getDeviceIds([window.Store.WidFactory.createWid(userId)]);
+            if (devices && devices.length && devices[0] != null && typeof devices[0].devices == 'object') {
+                return devices[0].devices.length;
+            }
+            return 0;
+        }, userId);
+    }
+
+    /**
+     * Sync chat history conversation
+     * @param {string} chatId
+     * @return {Promise<boolean>} True if operation completed successfully, false otherwise.
+     */
+    async syncHistory(chatId) {
+        return await this.pupPage.evaluate(async (chatId) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = window.Store.Chat.get(chatWid) ?? (await window.Store.Chat.find(chatWid));
+            if (chat?.endOfHistoryTransferType === 0) {
+                await window.Store.HistorySync.sendPeerDataOperationRequest(3, {
+                    chatId: chat.id
+                });
+                return true;
+            }
+            return false;
+        }, chatId);
+    }
+  
+    /**
+     * Save new contact to user's addressbook or edit the existing one
+     * @param {string} phoneNumber The contact's phone number in a format "17182222222", where "1" is a country code
+     * @param {string} firstName 
+     * @param {string} lastName 
+     * @param {boolean} [syncToAddressbook = false] If set to true, the contact will also be saved to the user's address book on their phone. False by default
+     * @returns {Promise<import('..').ChatId>} Object in a wid format
+     */
+    async saveOrEditAddressbookContact(phoneNumber, firstName, lastName, syncToAddressbook = false)
+    {
+        return await this.pupPage.evaluate(async (phoneNumber, firstName, lastName, syncToAddressbook) => {
+            return await window.Store.AddressbookContactUtils.saveContactAction(
+                phoneNumber,
+                null,
+                firstName,
+                lastName,
+                syncToAddressbook
+            );
+        }, phoneNumber, firstName, lastName, syncToAddressbook);
+    }
+
+    /**
+     * Deletes the contact from user's addressbook
+     * @param {string} phoneNumber The contact's phone number in a format "17182222222", where "1" is a country code
+     * @returns {Promise<void>}
+     */
+    async deleteAddressbookContact(phoneNumber)
+    {
+        return await this.pupPage.evaluate(async (phoneNumber) => {
+            return await window.Store.AddressbookContactUtils.deleteContactAction(phoneNumber);
+        }, phoneNumber);
     }
 }
 

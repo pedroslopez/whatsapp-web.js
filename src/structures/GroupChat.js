@@ -98,7 +98,7 @@ class GroupChat extends Chat {
                 419: 'The participant can\'t be added because the group is full'
             };
 
-            await window.Store.GroupMetadata.queryAndUpdate(groupWid);
+            await window.Store.GroupQueryAndUpdate({ id: groupId });
             const groupMetadata = group.groupMetadata;
             const groupParticipants = groupMetadata?.participants;
 
@@ -152,7 +152,7 @@ class GroupChat extends Chat {
 
                 if (autoSendInviteV4 && rpcResultCode === 403) {
                     let userChat, isInviteV4Sent = false;
-                    window.Store.ContactCollection.gadd(pWid, { silent: true });
+                    window.Store.Contact.gadd(pWid, { silent: true });
 
                     if (rpcResult.name === 'ParticipantRequestCodeCanBeSent' &&
                         (userChat = await window.Store.Chat.find(pWid))) {
@@ -191,8 +191,7 @@ class GroupChat extends Chat {
      */
     async removeParticipants(participantIds) {
         return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
-            const chat = await window.Store.Chat.find(chatWid);
+            const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             const participants = participantIds.map(p => {
                 return chat.groupMetadata.participants.get(p);
             }).filter(p => Boolean(p));
@@ -208,8 +207,7 @@ class GroupChat extends Chat {
      */
     async promoteParticipants(participantIds) {
         return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
-            const chat = await window.Store.Chat.find(chatWid);
+            const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             const participants = participantIds.map(p => {
                 return chat.groupMetadata.participants.get(p);
             }).filter(p => Boolean(p));
@@ -225,8 +223,7 @@ class GroupChat extends Chat {
      */
     async demoteParticipants(participantIds) {
         return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
-            const chat = await window.Store.Chat.find(chatWid);
+            const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             const participants = participantIds.map(p => {
                 return chat.groupMetadata.participants.get(p);
             }).filter(p => Boolean(p));
@@ -380,10 +377,20 @@ class GroupChat extends Chat {
     async getInviteCode() {
         const codeRes = await this.client.pupPage.evaluate(async chatId => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            return window.Store.GroupInvite.queryGroupInviteCode(chatWid);
+            try {
+                return window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.1020730154')
+                    ? await window.Store.GroupInvite.fetchMexGroupInviteCode(chatId)
+                    : await window.Store.GroupInvite.queryGroupInviteCode(chatWid, true);
+            }
+            catch (err) {
+                if(err.name === 'ServerStatusCodeError') return undefined;
+                throw err;
+            }
         }, this.id._serialized);
 
-        return codeRes.code;
+        return codeRes?.code
+            ? codeRes?.code
+            : codeRes;
     }
     
     /**
@@ -456,8 +463,7 @@ class GroupChat extends Chat {
      */
     async leave() {
         await this.client.pupPage.evaluate(async chatId => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
-            const chat = await window.Store.Chat.find(chatWid);
+            const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             return window.Store.GroupUtils.sendExitGroup(chat);
         }, this.id._serialized);
     }

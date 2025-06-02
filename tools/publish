@@ -25,6 +25,16 @@ then
   PRERELEASE='true'
   VERSION_ARGS="premajor --preid alpha"
   DIST_TAG="next"
+elif [[ "$RELEASE_MODE" == "release-patch" ]]
+then
+  PRERELEASE='false'
+  VERSION_ARGS="patch"
+  DIST_TAG="latest" 
+elif [[ "$RELEASE_MODE" == "release-minor" ]]
+then
+  PRERELEASE='false'
+  VERSION_ARGS="minor"
+  DIST_TAG="latest" 
 else
   echo 'Release Mode required'
   exit 1
@@ -57,7 +67,18 @@ echo "-----> BUMP VERSION"
 echo ""
 
 npm version $VERSION_ARGS || exit 1
+
 git push && git push --tags || exit 1
+
+npm install
+
+npm run generate-docs
+
+git add .
+
+git commit -am "chore(${NEW_VERSION}): generate docs"
+
+git push 
 
 NEW_VERSION=`cat package.json | jq -r .version`
 echo "New Version: $NEW_VERSION"
