@@ -2147,22 +2147,6 @@ class Client extends EventEmitter {
             return false;
         }, chatId);
     }
-
-    /**
-     * Setting the default media files to be sent in HD format
-     * @param {boolean} flag true/false
-     */
-    async setHdMedia(flag) {
-        return await this.pupPage.evaluate(async flag => {
-            const ChatSettings = window.Store.Settings.Chat;
-            if (!ChatSettings) {
-                return false;
-            }
-            const ChatPreference = ChatSettings.getDefault();
-            ChatPreference.set('hdMediaEnabled', flag);
-            return flag;
-        }, flag);
-    }
   
     /**
      * Save new contact to user's addressbook or edit the existing one
