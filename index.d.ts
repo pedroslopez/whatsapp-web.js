@@ -991,7 +991,7 @@ declare namespace WAWebJS {
         /** MediaKey that represents the sticker 'ID' */
         mediaKey?: string,
         /** Indicates the mentions in the message body. */
-        mentionedIds: ChatId[],
+        mentionedIds: string[],
         /** Indicates whether there are group mentions in the message body */
         groupMentions: {
             groupSubject: string;
