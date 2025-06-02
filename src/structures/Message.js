@@ -46,7 +46,7 @@ class Message extends Base {
          * Indicates if the message has media available for download
          * @type {boolean}
          */
-        this.hasMedia = Boolean(data.mediaKey && data.directPath);
+        this.hasMedia = Boolean(data.directPath);
 
         /**
          * Message content
