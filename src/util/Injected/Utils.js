@@ -1088,12 +1088,12 @@ exports.LoadUtils = () => {
 
         if (typeof duration !== 'number') return false;
         
-        const originalFunction = window.Store.PinnedMsgUtils.getPinExpiryDuration;
-        window.Store.PinnedMsgUtils.getPinExpiryDuration = () => duration;
+        const originalFunction = window.require('WAWebPinMsgConstants').getPinExpiryDuration;
+        window.require('WAWebPinMsgConstants').getPinExpiryDuration = () => duration;
         
         const response = await window.Store.PinnedMsgUtils.sendPinInChatMsg(message, action, duration);
 
-        window.Store.PinnedMsgUtils.getPinExpiryDuration = originalFunction;
+        window.require('WAWebPinMsgConstants').getPinExpiryDuration = originalFunction;
 
         return response.messageSendResult === 'OK';
     };
