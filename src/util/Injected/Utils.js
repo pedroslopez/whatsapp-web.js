@@ -124,14 +124,14 @@ exports.LoadUtils = () => {
         if (options.contactCard) {
             let contact = window.Store.Contact.get(options.contactCard);
             vcardOptions = {
-                body: window.Store.VCardUtils.vcardFromContactModel(contact).vcard,
+                body: window.Store.VCard.vcardFromContactModel(contact).vcard,
                 type: 'vcard',
                 vcardFormattedName: contact.formattedName
             };
             delete options.contactCard;
         } else if (options.contactCardList) {
             let contacts = options.contactCardList.map(c => window.Store.Contact.get(c));
-            let vcards = contacts.map(c => window.Store.VCardUtils.vcardFromContactModel(c));
+            let vcards = contacts.map(c => window.Store.VCard.vcardFromContactModel(c));
             vcardOptions = {
                 type: 'multi_vcard',
                 vcardList: vcards,
@@ -142,11 +142,11 @@ exports.LoadUtils = () => {
             delete options.parseVCards;
             delete options.linkPreview;
             try {
-                const parsed = window.Store.VCardUtils.parseVcard(content);
+                const parsed = window.Store.VCard.parseVcard(content);
                 if (parsed) {
                     vcardOptions = {
                         type: 'vcard',
-                        vcardFormattedName: window.Store.VCardUtils.vcardGetNameFromParsed(parsed)
+                        vcardFormattedName: window.Store.VCard.vcardGetNameFromParsed(parsed)
                     };
                 }
             } catch (_) {

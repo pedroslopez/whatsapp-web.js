@@ -111,7 +111,7 @@ exports.ExposeStore = () => {
     window.Store.ForwardUtils = {
         ...window.require('WAWebForwardMessagesToChat')
     };
-    window.Store.VCardUtils = {
+    window.Store.VCard = {
         ...window.require('WAWebFrontendVcardUtils'),
         ...window.require('WAWebVcardParsingUtils'),
         ...window.require('WAWebVcardGetNameFromParsed')
