@@ -97,27 +97,20 @@ exports.ExposeStore = () => {
     window.Store.BotProfiles = window.require('WAWebBotProfileCollection');
     window.Store.DeviceList = window.require('WAWebApiDeviceList');
     window.Store.HistorySync = window.require('WAWebSendNonMessageDataRequest');
-    if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.1014111620'))
-        window.Store.AddonReactionTable = window.require('WAWebAddonReactionTableMode').reactionTableMode;
+    window.Store.AddonReactionTable = window.require('WAWebAddonReactionTableMode').reactionTableMode;
+    window.Store.PinnedMsgUtils = window.require('WAWebPinInChatSchema');
     
     window.Store.Settings = {
         ...window.require('WAWebUserPrefsGeneral'),
         ...window.require('WAWebUserPrefsNotifications'),
         setPushname: window.require('WAWebSetPushnameConnAction').setPushname
     };
-  
     window.Store.NumberInfo = {
         ...window.require('WAPhoneUtils'),
         ...window.require('WAPhoneFindCC')
     };
-    
     window.Store.ForwardUtils = {
         ...window.require('WAWebForwardMessagesToChat')
-    };
-    window.Store.PinnedMsgUtils = {
-        /* ...window.require('WAWebPinInChatCollection'),
-        ...window.require('WAWebPinMessageAction'), */
-        ...window.require('WAWebPinInChatSchema')
     };
     window.Store.StickerTools = {
         ...window.require('WAWebImageUtils'),
