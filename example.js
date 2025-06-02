@@ -476,6 +476,30 @@ client.on('message', async msg => {
             const media = await quotedMsg.downloadMedia();
             await client.sendMessage(msg.from, media, { sendMediaAsHd: true });
         }
+    } else if (msg.body === '!parseVCard') {
+        const vCard =
+            'BEGIN:VCARD\n' +
+            'VERSION:3.0\n' +
+            'FN:John Doe\n' +
+            'ORG:Microsoft;\n' +
+            'EMAIL;type=INTERNET:john.doe@gmail.com\n' +
+            'URL:www.johndoe.com\n' +
+            'TEL;type=CELL;type=VOICE;waid=18006427676:+1 (800) 642 7676\n' +
+            'END:VCARD';
+        const vCardExtended =
+            'BEGIN:VCARD\n' +
+            'VERSION:3.0\n' +
+            'FN:John Doe\n' +
+            'ORG:Microsoft;\n' +
+            'item1.TEL:+1 (800) 642 7676\n' +
+            'item1.X-ABLabel:USA Customer Service\n' +
+            'item2.TEL:+55 11 4706 0900\n' +
+            'item2.X-ABLabel:Brazil Customer Service\n' +
+            'PHOTO;BASE64:here you can paste a binary data of a contact photo in Base64 encoding\n' +
+            'END:VCARD';
+        const userId = 'XXXXXXXXXX@c.us';
+        await client.sendMessage(userId, vCard);
+        await client.sendMessage(userId, vCardExtended);
     } else if (msg.body === '!changeSync') {
         // NOTE: this action will take effect after you restart the client.
         const backgroundSync = await client.setBackgroundSync(true);
