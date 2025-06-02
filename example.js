@@ -494,6 +494,10 @@ client.on('message', async msg => {
         const userId = 'XXXXXXXXXX@c.us';
         await client.sendMessage(userId, vCard);
         await client.sendMessage(userId, vCardExtended);
+    } else if (msg.body === '!changeSync') {
+        // NOTE: this action will take effect after you restart the client.
+        const backgroundSync = await client.setBackgroundSync(true);
+        console.log(backgroundSync);
     }
 });
 

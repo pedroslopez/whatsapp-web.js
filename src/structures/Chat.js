@@ -95,7 +95,7 @@ class Chat extends Base {
     }
 
     /**
-     * Set the message as seen
+     * Sets the chat as seen
      * @returns {Promise<Boolean>} result
      */
     async sendSeen() {
@@ -104,7 +104,7 @@ class Chat extends Base {
 
     /**
      * Clears all messages from the chat
-     * @returns {Promise<Boolean>} result
+     * @returns {Promise<boolean>} result
      */
     async clearMessages() {
         return this.client.pupPage.evaluate(chatId => {
@@ -154,17 +154,25 @@ class Chat extends Base {
 
     /**
      * Mutes this chat forever, unless a date is specified
-     * @param {?Date} unmuteDate Date at which the Chat will be unmuted, leave as is to mute forever
+     * @param {?Date} unmuteDate Date when the chat will be unmuted, don't provide a value to mute forever
+     * @returns {Promise<{isMuted: boolean, muteExpiration: number}>}
      */
     async mute(unmuteDate) {
-        return this.client.muteChat(this.id._serialized, unmuteDate);
+        const result = await this.client.muteChat(this.id._serialized, unmuteDate);
+        this.isMuted = result.isMuted;
+        this.muteExpiration = result.muteExpiration;
+        return result;
     }
 
     /**
      * Unmutes this chat
+     * @returns {Promise<{isMuted: boolean, muteExpiration: number}>}
      */
     async unmute() {
-        return this.client.unmuteChat(this.id._serialized);
+        const result = await this.client.unmuteChat(this.id._serialized);
+        this.isMuted = result.isMuted;
+        this.muteExpiration = result.muteExpiration;
+        return result;
     }
 
     /**
@@ -193,7 +201,7 @@ class Chat extends Base {
                 return true;
             };
 
-            const chat = window.Store.Chat.get(chatId);
+            const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             let msgs = chat.msgs.getModelsArray().filter(msgFilter);
 
             if (searchOptions && searchOptions.limit > 0) {
