@@ -1006,15 +1006,11 @@ declare namespace WAWebJS {
         /** MediaKey that represents the sticker 'ID' */
         mediaKey?: string,
         /** Indicates the mentions in the message body. */
-        mentionedIds: ChatId[],
+        mentionedIds: string[],
         /** Indicates whether there are group mentions in the message body */
         groupMentions: {
             groupSubject: string;
-            groupJid: {
-                server: string;
-                user: string;
-                _serialized: string;
-            };
+            groupJid: string;
         }[],
         /** Unix timestamp for when the message was created */
         timestamp: number,
@@ -1244,6 +1240,8 @@ declare namespace WAWebJS {
         sendMediaAsSticker?: boolean
         /** Send media as document */
         sendMediaAsDocument?: boolean
+        /** Send media as quality HD */
+        sendMediaAsHd?: boolean
         /** Send photo/video as a view once message */
         isViewOnce?: boolean
         /** Automatically parse vCards and send them as contacts */
@@ -1276,7 +1274,7 @@ declare namespace WAWebJS {
         /** Sticker categories, if sendMediaAsSticker is true */
         stickerCategories?: string[],
         /** Should the bot send a quoted message without the quoted message if it fails to get the quote?
-         * @default false (disabled) */
+         * @default true (enabled) */
         ignoreQuoteErrors?: boolean
     }
 

@@ -890,6 +890,7 @@ class Client extends EventEmitter {
      * @property {boolean} [sendVideoAsGif=false] - Send video as gif
      * @property {boolean} [sendMediaAsSticker=false] - Send media as a sticker
      * @property {boolean} [sendMediaAsDocument=false] - Send media as a document
+     * @property {boolean} [sendMediaAsHd=false] - Send image as quality HD
      * @property {boolean} [isViewOnce=false] - Send photo/video as a view once message
      * @property {boolean} [parseVCards=true] - Automatically parse vCards and send them as contacts
      * @property {string} [caption] - Image or video caption
@@ -901,6 +902,7 @@ class Client extends EventEmitter {
      * @property {string} [stickerAuthor=undefined] - Sets the author of the sticker, (if sendMediaAsSticker is true).
      * @property {string} [stickerName=undefined] - Sets the name of the sticker, (if sendMediaAsSticker is true).
      * @property {string[]} [stickerCategories=undefined] - Sets the categories of the sticker, (if sendMediaAsSticker is true). Provide emoji char array, can be null.
+     * @property {boolean} [ignoreQuoteErrors = true] - Should the bot send a quoted message without the quoted message if it fails to get the quote?
      * @property {MessageMedia} [media] - Media to be sent
      * @property {any} [extra] - Extra options
      */
@@ -943,12 +945,14 @@ class Client extends EventEmitter {
             sendVideoAsGif: options.sendVideoAsGif,
             sendMediaAsSticker: options.sendMediaAsSticker,
             sendMediaAsDocument: options.sendMediaAsDocument,
+            sendMediaAsHd: options.sendMediaAsHd,
             caption: options.caption,
             quotedMessageId: options.quotedMessageId,
             parseVCards: options.parseVCards !== false,
             mentionedJidList: options.mentions || [],
             groupMentions: options.groupMentions,
             invokedBotWid: options.invokedBotWid,
+            ignoreQuoteErrors: options.ignoreQuoteErrors !== false,
             extraOptions: options.extra
         };
 
@@ -2193,7 +2197,7 @@ class Client extends EventEmitter {
             return false;
         }, chatId);
     }
-
+  
     /**
      * Save new contact to user's addressbook or edit the existing one
      * @param {string} phoneNumber The contact's phone number in a format "17182222222", where "1" is a country code

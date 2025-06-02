@@ -34,6 +34,7 @@ exports.LoadUtils = () => {
                     forceGif: options.sendVideoAsGif,
                     forceVoice: options.sendAudioAsVoice,
                     forceDocument: options.sendMediaAsDocument,
+                    forceMediaHd: options.sendMediaAsHd,
                     sendToChannel: isChannel
                 });
             mediaOptions.caption = options.caption;
@@ -48,7 +49,7 @@ exports.LoadUtils = () => {
             let quotedMessage = window.Store.Msg.get(options.quotedMessageId);
             !quotedMessage && (quotedMessage = (await window.Store.Msg.getMessagesById([options.quotedMessageId]))?.messages?.[0]);
 
-            if (quotedMessage['messages'].length == 1) {
+            if (quotedMessage['messages']?.length == 1) {
                 quotedMessage = quotedMessage['messages'][0];
 
                 const canReply = window.Store.ReplyUtils
@@ -135,11 +136,12 @@ exports.LoadUtils = () => {
             vcardOptions = {
                 type: 'multi_vcard',
                 vcardList: vcards,
-                body: undefined
+                body: null
             };
             delete options.contactCardList;
         } else if (options.parseVCards && typeof (content) === 'string' && content.startsWith('BEGIN:VCARD')) {
             delete options.parseVCards;
+            delete options.linkPreview;
             try {
                 const parsed = window.Store.VCard.parseVcard(content);
                 if (parsed) {
@@ -362,16 +364,21 @@ exports.LoadUtils = () => {
         };
     };
 
-    window.WWebJS.processMediaData = async (mediaInfo, { forceSticker, forceGif, forceVoice, forceDocument, sendToChannel }) => {
+    window.WWebJS.processMediaData = async (mediaInfo, { forceSticker, forceGif, forceVoice, forceDocument, forceMediaHd, sendToChannel }) => {
         const file = window.WWebJS.mediaInfoToFile(mediaInfo);
         const opaqueData = await window.Store.OpaqueData.createFromData(file, file.type);
-        const mediaPrep = window.Store.MediaPrep.prepRawMedia(
-            opaqueData, {
-                asSticker: forceSticker,
-                asGif: forceGif,
-                isPtt: forceVoice,
-                asDocument: forceDocument
-            });
+        const mediaParams = {
+            asSticker: forceSticker,
+            asGif: forceGif,
+            isPtt: forceVoice,
+            asDocument: forceDocument
+        };
+      
+        if (forceMediaHd && file.type.indexOf('image/') === 0) {
+            mediaParams.maxDimension = 2560;
+        }
+      
+        const mediaPrep = window.Store.MediaPrep.prepRawMedia(opaqueData, mediaParams);
         const mediaData = await mediaPrep.waitForPrep();
         const mediaObject = window.Store.MediaObject.getOrCreateMediaObject(mediaData.filehash);
         const mediaType = window.Store.MediaTypes.msgToMediaType({
@@ -550,7 +557,7 @@ exports.LoadUtils = () => {
             model.isGroup = true;
             const chatWid = window.Store.WidFactory.createWid(chat.id._serialized);
             await window.Store.GroupMetadata.update(chatWid);
-            model.groupMetadata.participants._models
+            chat.groupMetadata.participants._models
                 .filter(x => x.id._serialized.endsWith('@lid'))
                 .forEach(x => { x.id = x.contact.phoneNumber; });
             model.groupMetadata = chat.groupMetadata.serialize();
