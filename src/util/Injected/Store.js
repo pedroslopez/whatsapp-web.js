@@ -67,7 +67,6 @@ exports.ExposeStore = () => {
     window.Store.ContactMethods = window.require('WAWebContactGetters');
     window.Store.UserConstructor = window.require('WAWebWid');
     window.Store.Validators = window.require('WALinkify');
-    window.Store.VCard = window.require('WAWebFrontendVcardUtils');
     window.Store.WidFactory = window.require('WAWebWidFactory');
     window.Store.ProfilePic = window.require('WAWebContactProfilePicThumbBridge');
     window.Store.PresenceUtils = window.require('WAWebPresenceChatAction');
@@ -111,6 +110,11 @@ exports.ExposeStore = () => {
     };
     window.Store.ForwardUtils = {
         ...window.require('WAWebForwardMessagesToChat')
+    };
+    window.Store.VCard = {
+        ...window.require('WAWebFrontendVcardUtils'),
+        ...window.require('WAWebVcardParsingUtils'),
+        ...window.require('WAWebVcardGetNameFromParsed')
     };
     window.Store.StickerTools = {
         ...window.require('WAWebImageUtils'),
