@@ -34,6 +34,7 @@ exports.LoadUtils = () => {
                     forceGif: options.sendVideoAsGif,
                     forceVoice: options.sendAudioAsVoice,
                     forceDocument: options.sendMediaAsDocument,
+                    forceMediaHd: options.sendMediaAsHd,
                     sendToChannel: isChannel
                 });
             mediaOptions.caption = options.caption;
@@ -363,16 +364,21 @@ exports.LoadUtils = () => {
         };
     };
 
-    window.WWebJS.processMediaData = async (mediaInfo, { forceSticker, forceGif, forceVoice, forceDocument, sendToChannel }) => {
+    window.WWebJS.processMediaData = async (mediaInfo, { forceSticker, forceGif, forceVoice, forceDocument, forceMediaHd, sendToChannel }) => {
         const file = window.WWebJS.mediaInfoToFile(mediaInfo);
         const opaqueData = await window.Store.OpaqueData.createFromData(file, file.type);
-        const mediaPrep = window.Store.MediaPrep.prepRawMedia(
-            opaqueData, {
-                asSticker: forceSticker,
-                asGif: forceGif,
-                isPtt: forceVoice,
-                asDocument: forceDocument
-            });
+        const mediaParams = {
+            asSticker: forceSticker,
+            asGif: forceGif,
+            isPtt: forceVoice,
+            asDocument: forceDocument
+        };
+      
+        if (forceMediaHd && file.type.indexOf('image/') === 0) {
+            mediaParams.maxDimension = 2560;
+        }
+      
+        const mediaPrep = window.Store.MediaPrep.prepRawMedia(opaqueData, mediaParams);
         const mediaData = await mediaPrep.waitForPrep();
         const mediaObject = window.Store.MediaObject.getOrCreateMediaObject(mediaData.filehash);
         const mediaType = window.Store.MediaTypes.msgToMediaType({

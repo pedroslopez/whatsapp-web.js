@@ -470,6 +470,12 @@ client.on('message', async msg => {
         console.log(statuses);
         const chat = await statuses[0]?.getChat(); // Get user chat of a first status
         console.log(chat);
+    } else if (msg.body === '!sendMediaHD' && msg.hasQuotedMsg) {
+        const quotedMsg = await msg.getQuotedMessage();
+        if (quotedMsg.hasMedia) {
+            const media = await quotedMsg.downloadMedia();
+            await client.sendMessage(msg.from, media, { sendMediaAsHd: true });
+        }
     } else if (msg.body === '!parseVCard') {
         const vCard =
             'BEGIN:VCARD\n' +

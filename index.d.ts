@@ -1225,6 +1225,8 @@ declare namespace WAWebJS {
         sendMediaAsSticker?: boolean
         /** Send media as document */
         sendMediaAsDocument?: boolean
+        /** Send media as quality HD */
+        sendMediaAsHd?: boolean
         /** Send photo/video as a view once message */
         isViewOnce?: boolean
         /** Automatically parse vCards and send them as contacts */
