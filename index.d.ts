@@ -995,11 +995,7 @@ declare namespace WAWebJS {
         /** Indicates whether there are group mentions in the message body */
         groupMentions: {
             groupSubject: string;
-            groupJid: {
-                server: string;
-                user: string;
-                _serialized: string;
-            };
+            groupJid: string;
         }[],
         /** Unix timestamp for when the message was created */
         timestamp: number,
