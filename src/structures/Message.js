@@ -45,7 +45,7 @@ class Message extends Base {
          * Indicates if the message has media available for download
          * @type {boolean}
          */
-        this.hasMedia = Boolean(data.mediaKey && data.directPath);
+        this.hasMedia = Boolean(data.directPath);
 
         /**
          * Message content
@@ -187,25 +187,15 @@ class Message extends Base {
         } : undefined;
 
         /**
-         * @typedef {Object} Mention
-         * @property {string} server
-         * @property {string} user
-         * @property {string} _serialized
-         */
-
-        /**
          * Indicates the mentions in the message body.
-         * @type {Mention[]}
+         * @type {string[]}
          */
         this.mentionedIds = data.mentionedJidList || [];
 
         /**
          * @typedef {Object} GroupMention
          * @property {string} groupSubject The name  of the group
-         * @property {Object} groupJid The group ID
-         * @property {string} groupJid.server
-         * @property {string} groupJid.user
-         * @property {string} groupJid._serialized
+         * @property {string} groupJid The group ID
          */
 
         /**
