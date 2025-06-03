@@ -87,11 +87,6 @@ class Client extends EventEmitter {
         this.lastLoggedOut = false;
 
         Util.setFfmpegPath(this.options.ffmpegPath);
-
-        /** 
-         * @type {number} - The time in seconds before pairing code expires 
-         */
-        this.pairingCodeTTL = null;
     }
     /**
      * Injection logic
@@ -157,7 +152,7 @@ class Client extends EventEmitter {
                     this.emit(Events.CODE_RECEIVED, code);
                     return code;
                 });
-                this.requestPairingCode(pairWithPhoneNumber.phoneNumber,pairWithPhoneNumber.showNotification);
+                this.requestPairingCode(pairWithPhoneNumber.phoneNumber,pairWithPhoneNumber.showNotification,pairWithPhoneNumber.intervalMs);
             } else {
                 let qrRetries = 0;
                 await exposeFunctionIfAbsent(this.pupPage, 'onQRChangedEvent', async (qr) => {
@@ -363,10 +358,11 @@ class Client extends EventEmitter {
      * Request authentication via pairing code instead of QR code
      * @param {string} phoneNumber - Phone number in international, symbol-free format (e.g. 12025550108 for US, 551155501234 for Brazil)
      * @param {boolean} [showNotification = true] - Show notification to pair on phone number
+     * @param {number} [intervalMs = 180000] - The interval in milliseconds on how frequent to generate pairing code (WhatsApp default to 3 minutes)
      * @returns {Promise<string>} - Returns a pairing code in format "ABCDEFGH"
      */
-    async requestPairingCode(phoneNumber, showNotification = true) {
-        return await this.pupPage.evaluate(async (phoneNumber, showNotification, pairingCodeTTL) => {
+    async requestPairingCode(phoneNumber, showNotification = true, intervalMs = 180000) {
+        return await this.pupPage.evaluate(async (phoneNumber, showNotification, intervalMs) => {
             const getCode = async () => {
                 window.AuthStore.PairingCodeLinkUtils.setPairingType('ALT_DEVICE_LINKING');
                 await window.AuthStore.PairingCodeLinkUtils.initializeAltDeviceLinking();
@@ -381,9 +377,9 @@ class Client extends EventEmitter {
                     return;
                 }
                 window.onCodeReceivedEvent(await getCode());
-            }, pairingCodeTTL * 1000);
+            }, intervalMs);
             return window.onCodeReceivedEvent(await getCode());
-        }, phoneNumber, showNotification, this.pairingCodeTTL);
+        }, phoneNumber, showNotification, intervalMs);
     }
 
     /**
@@ -799,27 +795,9 @@ class Client extends EventEmitter {
             });
         } else {
             this.pupPage.on('response', async (res) => {
-                if(res.ok()){
-                    const url = res.url();
-                    if(url.includes(WhatsWebStaticURL)){
-                        const textContent = await res.text();
-                        // Get pairing code expiration time in seconds 
-                        if(this.pairingCodeTTL == null && this.options.pairWithPhoneNumber.phoneNumber){
-                            const index = textContent.indexOf('("WAWebAltDeviceLinkingApi",[');
-                            if(index > -1){
-                                const execRegex = (reg) => {
-                                    reg.lastIndex = index;
-                                    return reg.exec(textContent);
-                                };
-                                const captureVarName =  execRegex(/.codeGenerationTs>(.+?)\)/g);
-                                // Find last occurrence of the variable definition
-                                const captureValue = execRegex(new RegExp(`${captureVarName[1]}=(\\d+)(?!.*${captureVarName[1]}=.+?codeGenerationTs>)`,'g'));
-                                this.pairingCodeTTL = Number(captureValue[1]);
-                            }
-                        }
-                    } else if(url === WhatsWebURL) {
-                        this.currentIndexHtml =  await res.text();
-                    }
+                if(res.ok() && res.url() === WhatsWebURL) {
+                    const indexHtml = await res.text();
+                    this.currentIndexHtml = indexHtml;
                 }
             });
         }
