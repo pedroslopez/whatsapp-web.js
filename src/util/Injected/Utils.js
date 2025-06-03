@@ -558,7 +558,7 @@ exports.LoadUtils = () => {
             const chatWid = window.Store.WidFactory.createWid(chat.id._serialized);
             await window.Store.GroupMetadata.update(chatWid);
             chat.groupMetadata.participants._models
-                .filter(x => x.id._serialized.endsWith('@lid'))
+                .filter(x => x.id?._serialized?.endsWith('@lid'))
                 .forEach(x => { x.id = x.contact.phoneNumber; });
             model.groupMetadata = chat.groupMetadata.serialize();
             model.isReadOnly = chat.groupMetadata.announce;
