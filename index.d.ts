@@ -24,6 +24,15 @@ declare namespace WAWebJS {
         /**Accepts an invitation to join a group */
         acceptInvite(inviteCode: string): Promise<string>
 
+        /** Accepts a channel admin invitation and promotes the current user to a channel admin */
+        acceptChannelAdminInvite(channelId: string): Promise<boolean>
+
+        /** Revokes a channel admin invitation sent to a user by a channel owner */
+        revokeChannelAdminInvite(channelId: string, userId: string): Promise<boolean>
+
+        /** Demotes a channel admin to a regular subscriber (can be used also for self-demotion) */
+        demoteChannelAdmin(channelId: string, userId: string): Promise<boolean>
+
         /** Accepts a private invitation to join a group (v4 invite) */
         acceptGroupV4Invite: (inviteV4: InviteV4Data) => Promise<{status: number}>
 
@@ -42,6 +51,27 @@ declare namespace WAWebJS {
         /** Creates a new group */
         createGroup(title: string, participants?: string | Contact | Contact[] | string[], options?: CreateGroupOptions): Promise<CreateGroupResult|string>
 
+        /** Creates a new channel */
+        createChannel(title: string, options?: CreateChannelOptions): Promise<CreateChannelResult | string>
+
+        /** Deletes the channel you created */
+        deleteChannel(channelId: string): Promise<boolean>;
+
+        /** Subscribe to channel */
+        subscribeToChannel(channelId: string): Promise<boolean>
+
+        /** Unsubscribe from channel */
+        unsubscribeFromChannel(channelId: string, options?: UnsubscribeOptions): Promise<boolean>
+
+        /**
+         * Searches for channels based on search criteria, there are some notes:
+         * 1. The method finds only channels you are not subscribed to currently
+         * 2. If you have never been subscribed to a found channel
+         * or you have unsubscribed from it with {@link UnsubscribeOptions.deleteLocalModels} set to 'true',
+         * the lastMessage property of a found channel will be 'null'
+         */
+        searchChannels(searchOptions: SearchChannelsOptions): Promise<Array<Channel> | []>
+
         /** Closes the client */
         destroy(): Promise<void>
 
@@ -51,11 +81,17 @@ declare namespace WAWebJS {
         /** Get all blocked contacts by host account */
         getBlockedContacts(): Promise<Contact[]>
 
-        /** Get chat instance by ID */
+        /** Gets chat or channel instance by ID */
         getChatById(chatId: string): Promise<Chat>
+
+        /** Gets a {@link Channel} instance by invite code */
+        getChannelByInviteCode(inviteCode: string): Promise<Channel>
 
         /** Get all current chat instances */
         getChats(): Promise<Chat[]>
+
+        /** Gets all cached {@link Channel} instances */
+        getChannels(): Promise<Channel[]>
 
         /** Get contact instance by ID */
         getContactById(contactId: string): Promise<Contact>
@@ -116,7 +152,7 @@ declare namespace WAWebJS {
          * @param chatId ID of the chat that will be muted
          * @param unmuteDate Date when the chat will be unmuted, leave as is to mute forever
          */
-        muteChat(chatId: string, unmuteDate?: Date): Promise<void>
+        muteChat(chatId: string, unmuteDate?: Date): Promise<{ isMuted: boolean, muteExpiration: number }>
 
         /**
          * Request authentication via pairing code instead of QR code
@@ -131,6 +167,9 @@ declare namespace WAWebJS {
 
         /** Send a message to a specific chatId */
         sendMessage(chatId: string, content: MessageContent, options?: MessageSendOptions): Promise<Message>
+
+        /** Sends a channel admin invitation to a user, allowing them to become an admin of the channel */
+        sendChannelAdminInvite(chatId: string, channelId: string, options?: { comment?: string }): Promise<boolean>
         
         /** Searches for messages */
         searchMessages(query: string, options?: { chatId?: string, page?: number, limit?: number }): Promise<Message[]>
@@ -181,6 +220,13 @@ declare namespace WAWebJS {
         setAutoDownloadVideos(flag: boolean): Promise<void>
 
         /**
+         * Changing the background synchronization setting.
+         * NOTE: this action will take effect after you restart the client.
+         * @param flag true/false on or off
+         */
+        setBackgroundSync(flag: boolean): Promise<void>
+
+        /**
          * Get user device count by ID
          * Each WaWeb Connection counts as one device, and the phone (if exists) counts as one
          * So for a non-enterprise user with one WaWeb connection it should return "2"
@@ -190,12 +236,18 @@ declare namespace WAWebJS {
         
         /** Sync history conversation of the Chat */
         syncHistory(chatId: string): Promise<boolean>
+
+        /** Save new contact to user's addressbook or edit the existing one */
+        saveOrEditAddressbookContact(phoneNumber: string, firstName: string, lastName: string, syncToAddressbook?: boolean): Promise<ChatId>
+
+        /** Deletes the contact from user's addressbook */
+        deleteAddressbookContact(honeNumber: string): Promise<void>
         
         /** Changes and returns the archive state of the Chat */
         unarchiveChat(chatId: string): Promise<boolean>
 
         /** Unmutes the Chat */
-        unmuteChat(chatId: string): Promise<void>
+        unmuteChat(chatId: string): Promise<{ isMuted: boolean, muteExpiration: number }>
 
         /** Sets the current user's profile picture */
         setProfilePicture(media: MessageMedia): Promise<boolean>
@@ -204,13 +256,19 @@ declare namespace WAWebJS {
         deleteProfilePicture(): Promise<boolean>
 
         /** Gets an array of membership requests */
-        getGroupMembershipRequests: (groupId: string) => Promise<Array<GroupMembershipRequest>>
+        getGroupMembershipRequests(groupId: string): Promise<Array<GroupMembershipRequest>>
 
         /** Approves membership requests if any */
-        approveGroupMembershipRequests: (groupId: string, options: MembershipRequestActionOptions) => Promise<Array<MembershipRequestActionResult>>;
+        approveGroupMembershipRequests(groupId: string, options: MembershipRequestActionOptions): Promise<Array<MembershipRequestActionResult>>;
 
         /** Rejects membership requests if any */
-        rejectGroupMembershipRequests: (groupId: string, options: MembershipRequestActionOptions) => Promise<Array<MembershipRequestActionResult>>;
+        rejectGroupMembershipRequests(groupId: string, options: MembershipRequestActionOptions): Promise<Array<MembershipRequestActionResult>>;
+        
+        /**
+         * Transfers a channel ownership to another user.
+         * Note: the user you are transferring the channel ownership to must be a channel admin.
+         */
+        transferChannelOwnership(channelId: string, newOwnerId: string, options?: TransferChannelOwnershipOptions): Promise<boolean>;
 
         /** Generic event */
         on(event: string, listener: (...args: any) => void): this
@@ -657,6 +715,46 @@ declare namespace WAWebJS {
         };
     }
 
+    /** An object that handles options for channel creation */
+    export interface CreateChannelOptions {
+        /** The channel description */
+        description?: string,
+        /** The channel profile picture */
+        picture?: MessageMedia
+    }
+
+    /** An object that handles the result for createGroup method */
+    export interface CreateChannelResult {
+        /** A channel title */
+        title: string,
+        /** An object that handles the newly created channel ID */
+        nid: ChatId,
+        /** The channel invite link, starts with 'https://whatsapp.com/channel/' */
+        inviteLink: string,
+        /** The timestamp the channel was created at */
+        createdAtTs: number
+    }
+
+    /** Options for unsubscribe from a channel */
+    export interface UnsubscribeOptions {
+        /**
+         * If true, after an unsubscription, it will completely remove a channel from the channel collection
+         * making it seem like the current user have never interacted with it.
+         * Otherwise it will only remove a channel from the list of channels the current user is subscribed to
+         * and will set the membership type for that channel to GUEST
+         */
+        deleteLocalModels?: boolean
+    }
+
+    /** Options for searching for channels */
+    export interface SearchChannelsOptions {
+        searchText?: string;
+        countryCodes?: string[];
+        skipSubscribedNewsletters?: boolean;
+        view?: number;
+        limit?: number;
+    }
+
     export interface GroupNotification {
         /** ContactId for the user that produced the GroupNotification */
         author: string,
@@ -908,15 +1006,11 @@ declare namespace WAWebJS {
         /** MediaKey that represents the sticker 'ID' */
         mediaKey?: string,
         /** Indicates the mentions in the message body. */
-        mentionedIds: ChatId[],
+        mentionedIds: string[],
         /** Indicates whether there are group mentions in the message body */
         groupMentions: {
             groupSubject: string;
-            groupJid: {
-                server: string;
-                user: string;
-                _serialized: string;
-            };
+            groupJid: string;
         }[],
         /** Unix timestamp for when the message was created */
         timestamp: number,
@@ -968,7 +1062,7 @@ declare namespace WAWebJS {
         /** Accept the Group V4 Invite in message */
         acceptGroupV4Invite: () => Promise<{status: number}>,
         /** Deletes the message from the chat */
-        delete: (everyone?: boolean) => Promise<void>,
+        delete: (everyone?: boolean, clearMedia?: boolean) => Promise<void>,
         /** Downloads and returns the attached message media */
         downloadMedia: () => Promise<MessageMedia>,
         /** Returns the Chat this message was sent in */
@@ -1041,7 +1135,10 @@ declare namespace WAWebJS {
     export class Location {
         latitude: string;
         longitude: string;
-        options?: LocationSendOptions;
+        name?: string;
+        address?: string;
+        url?: string;
+        description?: string;
         
         constructor(latitude: number, longitude: number, options?: LocationSendOptions)
     }
@@ -1143,6 +1240,8 @@ declare namespace WAWebJS {
         sendMediaAsSticker?: boolean
         /** Send media as document */
         sendMediaAsDocument?: boolean
+        /** Send media as quality HD */
+        sendMediaAsHd?: boolean
         /** Send photo/video as a view once message */
         isViewOnce?: boolean
         /** Automatically parse vCards and send them as contacts */
@@ -1175,7 +1274,7 @@ declare namespace WAWebJS {
         /** Sticker categories, if sendMediaAsSticker is true */
         stickerCategories?: string[],
         /** Should the bot send a quoted message without the quoted message if it fails to get the quote?
-         * @default false (disabled) */
+         * @default true (enabled) */
         ignoreQuoteErrors?: boolean
     }
 
@@ -1467,11 +1566,11 @@ declare namespace WAWebJS {
         /** Loads chat messages, sorted from earliest to latest. */
         fetchMessages: (searchOptions: MessageSearchOptions) => Promise<Message[]>,
         /** Mutes this chat forever, unless a date is specified */
-        mute: (unmuteDate?: Date) => Promise<void>,
+        mute: (unmuteDate?: Date) => Promise<{ isMuted: boolean, muteExpiration: number }>,
         /** Send a message to this chat */
         sendMessage: (content: MessageContent, options?: MessageSendOptions) => Promise<Message>,
-        /** Set the message as seen */
-        sendSeen: () => Promise<void>,
+        /** Sets the chat as seen */
+        sendSeen: () => Promise<boolean>,
         /** Simulate recording audio in chat. This will last for 25 seconds */
         sendStateRecording: () => Promise<void>,
         /** Simulate typing in chat. This will last for 25 seconds. */
@@ -1479,7 +1578,7 @@ declare namespace WAWebJS {
         /** un-archives this chat */
         unarchive: () => Promise<void>,
         /** Unmutes this chat */
-        unmute: () => Promise<void>,
+        unmute: () => Promise<{ isMuted: boolean, muteExpiration: number }>,
         /** Returns the Contact that corresponds to this Chat. */
         getContact: () => Promise<Contact>,
         /** Marks this Chat as unread */
@@ -1490,6 +1589,99 @@ declare namespace WAWebJS {
         changeLabels: (labelIds: Array<string | number>) => Promise<void>
         /** Sync history conversation of the Chat */
         syncHistory: () => Promise<boolean>
+    }
+
+    export interface Channel {
+        /** ID that represents the channel */
+        id: {
+            server: string;
+            user: string;
+            _serialized: string;
+        };
+        /** Title of the channel */
+        name: string;
+        /** The channel description */
+        description: string;
+        /** Indicates if it is a Channel */
+        isChannel: boolean;
+        /** Indicates if it is a Group */
+        isGroup: boolean;
+        /** Indicates if the channel is readonly */
+        isReadOnly: boolean;
+        /** Amount of messages unread */
+        unreadCount: number;
+        /** Unix timestamp for when the last activity occurred */
+        timestamp: number;
+        /** Indicates if the channel is muted or not */
+        isMuted: boolean;
+        /** Unix timestamp for when the mute expires */
+        muteExpiration: number;
+        /** Last message in the channel */
+        lastMessage: Message | undefined;
+
+        /** Gets the subscribers of the channel (only those who are in your contact list) */
+        getSubscribers(limit?: number): Promise<{contact: Contact, role: string}[]>;
+        /** Updates the channel subject */
+        setSubject(newSubject: string): Promise<boolean>;
+        /** Updates the channel description */
+        setDescription(newDescription: string): Promise<boolean>;
+        /** Updates the channel profile picture */
+        setProfilePicture(newProfilePicture: MessageMedia): Promise<boolean>;
+        /**
+         * Updates available reactions to use in the channel
+         * 
+         * Valid values for passing to the method are:
+         * 0 for NONE reactions to be avaliable
+         * 1 for BASIC reactions to be available: 👍, ❤️, 😂, 😮, 😢, 🙏
+         * 2 for ALL reactions to be available
+         */
+        setReactionSetting(reactionCode: number): Promise<boolean>;
+        /** Mutes the channel */
+        mute(): Promise<boolean>;
+        /** Unmutes the channel */
+        unmute(): Promise<boolean>;
+        /** Sends a message to this channel */
+        sendMessage(content: string|MessageMedia, options?: MessageSendChannelOptions): Promise<Message>;
+        /** Sets the channel as seen */
+        sendSeen(): Promise<boolean>;
+        /** Sends a channel admin invitation to a user, allowing them to become an admin of the channel */
+        sendChannelAdminInvite(chatId: string, options?: { comment?: string }): Promise<boolean>;
+        /** Accepts a channel admin invitation and promotes the current user to a channel admin */
+        acceptChannelAdminInvite(): Promise<boolean>;
+        /** Revokes a channel admin invitation sent to a user by a channel owner */
+        revokeChannelAdminInvite(userId: string): Promise<boolean>;
+        /** Demotes a channel admin to a regular subscriber (can be used also for self-demotion) */
+        demoteChannelAdmin(userId: string): Promise<boolean>;
+        /** Loads channel messages, sorted from earliest to latest */
+        fetchMessages: (searchOptions: MessageSearchOptions) => Promise<Message[]>;
+        /**
+         * Transfers a channel ownership to another user.
+         * Note: the user you are transferring the channel ownership to must be a channel admin.
+         */
+        transferChannelOwnership(newOwnerId: string, options?: TransferChannelOwnershipOptions): Promise<boolean>;
+        /** Deletes the channel you created */
+        deleteChannel(): Promise<boolean>;
+    }
+
+    /** Options for transferring a channel ownership to another user */
+    export interface TransferChannelOwnershipOptions {
+        /**
+         * If true, after the channel ownership is being transferred to another user,
+         * the current user will be dismissed as a channel admin and will become to a channel subscriber.
+         */
+        shouldDismissSelfAsAdmin?: boolean
+    }
+
+    /** Options for sending a message */
+    export interface MessageSendChannelOptions {
+        /** Image or videos caption */
+        caption?: string
+        /** User IDs of user that will be mentioned in the message */
+        mentions?: string[]
+        /** Image or video to be sent */
+        media?: MessageMedia
+        /** Extra options */
+        extra?: any
     }
 
     export interface MessageSearchOptions {
