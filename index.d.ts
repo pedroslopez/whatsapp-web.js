@@ -158,9 +158,10 @@ declare namespace WAWebJS {
          * Request authentication via pairing code instead of QR code
          * @param phoneNumber - Phone number in international, symbol-free format (e.g. 12025550108 for US, 551155501234 for Brazil)
          * @param showNotification - Show notification to pair on phone number. Defaults to `true`
+         * @param intervalMs - The interval in milliseconds on how frequent to generate pairing code (WhatsApp default to 3 minutes). Defaults to `180000`
          * @returns {Promise<string>} - Returns a pairing code in format "ABCDEFGH"
          */
-        requestPairingCode(phoneNumber: string, showNotification?: boolean): Promise<string>
+        requestPairingCode(phoneNumber: string, showNotification?: boolean, intervalMs?: number): Promise<string>
 
         /** Force reset of connection state for the client */
         resetState(): Promise<void>
@@ -555,9 +556,10 @@ declare namespace WAWebJS {
          * {
          *   phoneNumber: "",
          *   showNotification: true,
+         *   intervalMs: 180000,
          * }
         */
-        pairWithPhoneNumber?: {phoneNumber: string, showNotification?: boolean}
+        pairWithPhoneNumber?: {phoneNumber: string, showNotification?: boolean, intervalMs?: number}
     }
 
     export interface LocalWebCacheOptions {

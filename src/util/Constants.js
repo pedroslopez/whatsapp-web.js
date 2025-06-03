@@ -24,6 +24,7 @@ exports.DefaultOptions = {
     pairWithPhoneNumber: {
         phoneNumber: '',
         showNotification: true,
+        intervalMs: 180000,
     },
 };
 
