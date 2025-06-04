@@ -28,7 +28,7 @@ exports.LoadUtils = () => {
 
         let mediaOptions = {};
         if (options.media) {
-            mediaOptions =  options.sendMediaAsSticker
+            mediaOptions =  options.sendMediaAsSticker && !isChannel
                 ? await window.WWebJS.processStickerData(options.media)
                 : await window.WWebJS.processMediaData(options.media, {
                     forceSticker: options.sendMediaAsSticker,
