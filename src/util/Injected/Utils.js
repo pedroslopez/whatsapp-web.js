@@ -849,13 +849,13 @@ exports.LoadUtils = () => {
 
         const chatWid = window.Store.WidFactory.createWid(chatid);
         try {
-            const collection = window.Store.ProfilePicThumb.get(chatid);
-            if (!collection.canSet()) return;
+            const collection = window.Store.ProfilePicThumb.get(chatid) || await window.Store.ProfilePicThumb.find(chatId);
+            if (!collection?.canSet()) return false;
 
             const res = await window.Store.GroupUtils.sendSetPicture(chatWid, thumbnail, profilePic);
             return res ? res.status === 200 : false;
         } catch (err) {
-            if(err.name === 'ServerStatusCodeError') return false;
+            if (err.name === 'ServerStatusCodeError') return false;
             throw err;
         }
     };
