@@ -28,8 +28,9 @@ exports.LoadUtils = () => {
 
         let mediaOptions = {};
         if (options.media) {
-            mediaOptions = await window.WWebJS.processMediaData(
-                options.media, {
+            mediaOptions =  options.sendMediaAsSticker && !isChannel
+                ? await window.WWebJS.processStickerData(options.media)
+                : await window.WWebJS.processMediaData(options.media, {
                     forceSticker: options.sendMediaAsSticker,
                     forceGif: options.sendVideoAsGif,
                     forceVoice: options.sendAudioAsVoice,
@@ -360,6 +361,34 @@ exports.LoadUtils = () => {
             mimetype: 'image/webp',
             data
         };
+    };
+
+    window.WWebJS.processStickerData = async (mediaInfo) => {
+        if (mediaInfo.mimetype !== 'image/webp') throw new Error('Invalid media type');
+
+        const file = window.WWebJS.mediaInfoToFile(mediaInfo);
+        let filehash = await window.WWebJS.getFileHash(file);
+        let mediaKey = await window.WWebJS.generateHash(32);
+
+        const controller = new AbortController();
+        const uploadedInfo = await window.Store.UploadUtils.encryptAndUpload({
+            blob: file,
+            type: 'sticker',
+            signal: controller.signal,
+            mediaKey
+        });
+
+        const stickerInfo = {
+            ...uploadedInfo,
+            clientUrl: uploadedInfo.url,
+            deprecatedMms3Url: uploadedInfo.url,
+            uploadhash: uploadedInfo.encFilehash,
+            size: file.size,
+            type: 'sticker',
+            filehash
+        };
+
+        return stickerInfo;
     };
 
     window.WWebJS.processMediaData = async (mediaInfo, { forceSticker, forceGif, forceVoice, forceDocument, forceMediaHd, sendToChannel }) => {
