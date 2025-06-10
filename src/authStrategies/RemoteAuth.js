@@ -170,12 +170,12 @@ class RemoteAuth extends BaseAuthStrategy {
             try {
                 const stat = await fs.stat(srcPath);
                 if (stat.isDirectory()) {
-                    await this.copyResilient(srcPath, destPath); // recursividad para subcarpetas
+                    await this.copyResilient(srcPath, destPath);
                 } else {
                     await fs.copy(srcPath, destPath);
                 }
             } catch (err) {
-                /* empty */
+                console.error(`Error copying ${srcPath}:`, err);
             }
         }
     }
