@@ -994,13 +994,11 @@ class Client extends EventEmitter {
 
         if (content instanceof MessageMedia) {
             internalOptions.media = content;
-            internalOptions.isViewOnce = options.isViewOnce,
-                content = '';
+            internalOptions.isViewOnce = options.isViewOnce, content = '';
         } else if (options.media instanceof MessageMedia) {
             internalOptions.media = options.media;
             internalOptions.caption = content;
-            internalOptions.isViewOnce = options.isViewOnce,
-                content = '';
+            internalOptions.isViewOnce = options.isViewOnce, content = '';
         } else if (content instanceof Location) {
             internalOptions.location = content;
             content = '';
@@ -1027,10 +1025,10 @@ class Client extends EventEmitter {
         if (internalOptions.sendMediaAsSticker && internalOptions.media) {
             internalOptions.media = await Util.formatToWebpSticker(
                 internalOptions.media, {
-                name: options.stickerName,
-                author: options.stickerAuthor,
-                categories: options.stickerCategories
-            }, this.pupPage
+                    name: options.stickerName,
+                    author: options.stickerAuthor,
+                    categories: options.stickerCategories
+                }, this.pupPage
             );
         }
 
