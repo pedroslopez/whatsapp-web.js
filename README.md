@@ -128,9 +128,9 @@ For further details on saving and restoring sessions, explore the provided [Auth
 | Set user status message | ✅ |
 | React to messages | ✅ |
 | Create polls | ✅ |
+| Channels | ✅ |
 | Vote in polls | 🔜 |
 | Communities | 🔜 |
-| Channels | 🔜 |
 
 Something missing? Make an issue and let us know!
 
