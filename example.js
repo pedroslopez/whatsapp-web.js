@@ -9,51 +9,221 @@ const client = new Client({
     }
 });
 
-// client initialize does not finish at ready now.
-client.initialize();
+// Variables for retry logic
+let initializationAttempts = 0;
+const maxRetries = 3;
+let isClientReady = false;
 
-client.on('loading_screen', (percent, message) => {
-    console.log('LOADING SCREEN', percent, message);
-});
+// Function to initialize with retries
+async function initializeWithRetries() {
+    initializationAttempts++;
+    console.log(`Initialization attempt ${initializationAttempts}/${maxRetries}`);
+    
+    try {
+        await client.initialize();
+    } catch (error) {
+        console.error(`Initialization attempt ${initializationAttempts} failed:`, error.message);
+        
+        if (error.message.includes('Execution context was destroyed')) {
+            console.log('Context destruction error - this is common during WhatsApp Web loading');
+        }
+        
+        if (initializationAttempts < maxRetries && !isClientReady) {
+            console.log(`Retrying in 3 seconds... (${maxRetries - initializationAttempts} attempts left)`);
+            setTimeout(() => {
+                // Destroy current client and create new one
+                client.destroy().then(() => {
+                    console.log('Destroyed previous client instance');
+                    // Create new client instance
+                    const { Client, LocalAuth } = require('./index');
+                    const newClient = new Client({
+                        authStrategy: new LocalAuth(),
+                        puppeteer: { 
+                            headless: false,
+                        }
+                    });
+                    
+                    // Re-attach all event listeners to new client
+                    setupClientEvents(newClient);
+                    
+                    // Replace global client reference
+                    global.client = newClient;
+                    
+                    // Retry initialization
+                    initializeWithRetries();
+                }).catch(err => {
+                    console.error('Error destroying client:', err.message);
+                    // Retry anyway
+                    initializeWithRetries();
+                });
+            }, 3000);
+        } else {
+            console.error(`Failed to initialize after ${maxRetries} attempts`);
+            process.exit(1);
+        }
+    }
+}
 
-// Pairing code only needs to be requested once
-let pairingCodeRequested = false;
-client.on('qr', async (qr) => {
-    // NOTE: This event will not be fired if a session is specified.
-    console.log('QR RECEIVED', qr);
-
-    // paiuting code example
-    const pairingCodeEnabled = false;
-    if (pairingCodeEnabled && !pairingCodeRequested) {
-        const pairingCode = await client.requestPairingCode('96170100100'); // enter the target phone number
-        console.log('Pairing code enabled, code: '+ pairingCode);
-        pairingCodeRequested = true;
+// Handle uncaught exceptions during initialization
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err.message);
+    if (err.message.includes('Execution context was destroyed') && !isClientReady) {
+        console.log('Context destroyed during initialization - this will be handled by retry logic');
+        return; // Don't exit, let retry logic handle it
     }
 });
 
-client.on('authenticated', () => {
-    console.log('AUTHENTICATED');
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection:', reason?.message || reason);
+    if (reason?.message?.includes('Execution context was destroyed') && !isClientReady) {
+        console.log('Context destroyed during initialization - this will be handled by retry logic');
+        return; // Don't exit, let retry logic handle it
+    }
 });
 
-client.on('auth_failure', msg => {
-    // Fired if session restore was unsuccessful
-    console.error('AUTHENTICATION FAILURE', msg);
-});
-
-client.on('ready', async () => {
-    console.log('READY');
-    const debugWWebVersion = await client.getWWebVersion();
-    console.log(`WWebVersion = ${debugWWebVersion}`);
-
-    client.pupPage.on('pageerror', function(err) {
-        console.log('Page error: ' + err.toString());
+// Function to setup all client events (for reuse with new client instances)
+function setupClientEvents(clientInstance) {
+    clientInstance.on('loading_screen', (percent, message) => {
+        console.log('LOADING SCREEN', percent, message);
     });
-    client.pupPage.on('error', function(err) {
-        console.log('Page error: ' + err.toString());
-    });
-    
-});
 
+    // Pairing code only needs to be requested once
+    let pairingCodeRequested = false;
+    clientInstance.on('qr', async (qr) => {
+        // NOTE: This event will not be fired if a session is specified.
+        console.log('QR RECEIVED', qr);
+
+        // pairing code example
+        const pairingCodeEnabled = false;
+        if (pairingCodeEnabled && !pairingCodeRequested) {
+            const pairingCode = await clientInstance.requestPairingCode('96170100100'); // enter the target phone number
+            console.log('Pairing code enabled, code: '+ pairingCode);
+            pairingCodeRequested = true;
+        }
+    });
+
+    clientInstance.on('authenticated', () => {
+        console.log('AUTHENTICATED');
+    });
+
+    clientInstance.on('auth_failure', msg => {
+        console.error('AUTHENTICATION FAILURE', msg);
+    });
+
+    clientInstance.on('ready', async () => {
+        console.log('CLIENT IS READY!');
+        isClientReady = true; // Mark as ready to stop retries
+        
+        try {
+            const debugWWebVersion = await clientInstance.getWWebVersion();
+            console.log(`WWebVersion = ${debugWWebVersion}`);
+        } catch (err) {
+            console.log('Could not get WWeb version during initialization:', err.message);
+        }
+
+        // Add robust error handlers for page events
+        clientInstance.pupPage.on('pageerror', function(err) {
+            console.log('Page error: ' + err.toString());
+        });
+        clientInstance.pupPage.on('error', function(err) {
+            console.log('Page error: ' + err.toString());
+        });
+        clientInstance.pupPage.on('console', function(msg) {
+            if (msg.type() === 'error') {
+                console.log('Console error: ' + msg.text());
+            }
+        });
+
+        // Test catalog functionality automatically
+        console.log('Testing catalog functionality...');
+        try {
+            const myNumber = clientInstance.info.wid._serialized;
+            console.log(`My number: ${myNumber}`);
+            
+            // Test getting personal catalog
+            const catalog = await clientInstance.getCatalog(myNumber);
+            
+            if (catalog) {
+                console.log(`Catalog found: ${catalog.isMe ? 'Personal' : 'External'} catalog`);
+                
+                // Test getProducts()
+                console.log('Testing getProducts()...');
+                const products = await catalog.getProducts();
+                console.log(`Found ${products.length} products in catalog`);
+                
+                if (products.length > 0) {
+                    console.log('First 3 products:');
+                    for (let i = 0; i < Math.min(3, products.length); i++) {
+                        const product = products[i];
+                        try {
+                            const formattedPrice = await product.getFormattedPrice();
+                            console.log(`  ${i + 1}. ${product.name} - ${formattedPrice}`);
+                            console.log(`     ID: ${product.id}`);
+                            console.log(`     Currency: ${product.currency}`);
+                            
+                            // Test metadata
+                            const metadata = await product.getData();
+                            if (metadata) {
+                                console.log(`     Description: ${metadata.description || 'N/A'}`);
+                                console.log(`     Availability: ${metadata.availability || 'N/A'}`);
+                                console.log(`     Review Status: ${metadata.reviewStatus || 'N/A'}`);
+                            }
+                        } catch (err) {
+                            console.log(`     Error getting details: ${err.message}`);
+                        }
+                    }
+                }
+                
+                // Test getCollections()
+                console.log('Testing getCollections()...');
+                try {
+                    const collections = await catalog.getCollections();
+                    console.log(`Found ${collections.length} collections in catalog`);
+                    
+                    if (collections.length > 0) {
+                        console.log('First 2 collections:');
+                        for (let i = 0; i < Math.min(2, collections.length); i++) {
+                            const collection = collections[i];
+                            console.log(`  ${i + 1}. ${collection.name} (ID: ${collection.id})`);
+                            
+                            try {
+                                const collectionProducts = await collection.getProducts();
+                                console.log(`     Products in collection: ${collectionProducts.length}`);
+                            } catch (err) {
+                                console.log(`     Error getting collection products: ${err.message}`);
+                            }
+                        }
+                    }
+                } catch (err) {
+                    console.log(`Error getting collections: ${err.message}`);
+                }
+                
+            } else {
+                console.log('No catalog found. This may not be a business account.');
+            }
+            
+        } catch (error) {
+            console.log(`Error testing catalog: ${error.message}`);
+        }
+        
+        console.log('Catalog testing completed. Client ready for commands.');
+    });
+
+    clientInstance.on('disconnected', (reason) => {
+        console.log('Client was logged out', reason);
+        isClientReady = false; // Allow retries if disconnected
+    });
+
+    // Message handler is set up separately below
+}
+
+// Setup events for initial client
+setupClientEvents(client);
+
+// Start initialization with retries
+initializeWithRetries();
+
+// All the existing event handlers will remain here
 client.on('message', async msg => {
     console.log('MESSAGE RECEIVED', msg);
 
@@ -504,13 +674,222 @@ client.on('message', async msg => {
         // NOTE: this action will take effect after you restart the client.
         const backgroundSync = await client.setBackgroundSync(true);
         console.log(backgroundSync);
+    } else if (msg.body === '!catalog') {
+        // Get and display the personal catalog with product images (business accounts only)
+        try {
+            // Wait a moment if context might be unstable
+            if (!client.info || !client.info.wid) {
+                msg.reply('Client not fully ready. Please try again in a moment.');
+                return;
+            }
+            
+            const myNumber = client.info.wid._serialized;
+            const catalog = await client.getCatalog(myNumber);
+            
+            if (catalog) {
+                const products = await catalog.getProducts();
+                const productPreview = await Promise.all(
+                    products.slice(0, 3).map(async p => `• ${p.name} - ${await p.getFormattedPrice()}`)
+                );
+                
+                // Send catalog info first
+                await msg.reply(`📦 *Catalog Info*\n` +
+                               `Type: ${catalog.isMe ? 'Personal' : 'External'}\n` +
+                               `Products: ${products.length}\n\n` +
+                               productPreview.join('\n') +
+                               (products.length > 3 ? `\n...and ${products.length - 3} more` : ''));
+                
+                // Send all products as native WhatsApp product messages
+                if (products.length > 0) {
+                    await msg.reply(`🛍️ Sending ${products.length} products from catalog...`);
+                    
+                    let successCount = 0;
+                    let failureCount = 0;
+                    
+                    for (const product of products) {
+                        try {
+                            // Delay between messages to avoid rate limiting
+                            await new Promise(resolve => setTimeout(resolve, 500));
+                            
+                            const metadata = await product.getData();
+                            const formattedPrice = await product.getFormattedPrice();
+                            
+                            // Send product image with information
+                            try {
+                                if (metadata && metadata.imageCdnUrl) {
+                                    const { MessageMedia } = require('./index');
+                                    const media = await MessageMedia.fromUrl(metadata.imageCdnUrl);
+                                    
+                                    const caption = `🛍️ *${product.name}*\n` +
+                                                  `💰 ${formattedPrice}\n` +
+                                                  `📝 ${metadata.description || 'No description available'}\n` +
+                                                  `🆔 Product ID: ${product.id}` +
+                                                  (metadata.url ? `\n🔗 ${metadata.url}` : '');
+                                    
+                                    await client.sendMessage(msg.from, media, { caption });
+                                } else {
+                                    // If no image, send text message with product info
+                                    const productInfo = `🛍️ *${product.name}*\n` +
+                                                       `💰 ${formattedPrice}\n` +
+                                                       `📝 ${metadata ? metadata.description || 'No description available' : 'No description available'}\n` +
+                                                       `🆔 Product ID: ${product.id}` +
+                                                       (metadata && metadata.url ? `\n🔗 ${metadata.url}` : '');
+                                    
+                                    await client.sendMessage(msg.from, productInfo);
+                                }
+                            } catch (imageError) {
+                                console.error(`Error sending product image for ${product.name}:`, imageError.message);
+                                // Fallback to text message
+                                const productInfo = `🛍️ *${product.name}*\n` +
+                                                   `💰 ${formattedPrice}\n` +
+                                                   `📝 ${metadata ? metadata.description || 'No description available' : 'No description available'}\n` +
+                                                   `🆔 Product ID: ${product.id}`;
+                                
+                                await client.sendMessage(msg.from, productInfo);
+                            }
+                            
+                            successCount++;
+                            
+                        } catch (productError) {
+                            console.error(`Error sending product ${product.name}:`, productError.message);
+                            failureCount++;
+                            
+                            // Fallback to image + caption if product message fails
+                            try {
+                                const metadata = await product.getData();
+                                if (metadata && metadata.imageCdnUrl) {
+                                    const { MessageMedia } = require('./index');
+                                    const media = await MessageMedia.fromUrl(metadata.imageCdnUrl);
+                                    const formattedPrice = await product.getFormattedPrice();
+                                    
+                                    await client.sendMessage(msg.from, media, {
+                                        caption: `🛍️ *${product.name}*\n💰 ${formattedPrice}\n📝 ${metadata.description || 'No description available'}`
+                                    });
+                                    
+                                    successCount++;
+                                    failureCount--;
+                                    
+                                } else {
+                                    console.log(`Could not display product "${product.name}" - no image available`);
+                                }
+                            } catch (imgError) {
+                                console.error(`Error sending image for product ${product.name}:`, imgError.message);
+                            }
+                        }
+                    }
+                    
+                    // Summary message
+                    await msg.reply(`✅ Catalog complete!\n📊 Successfully sent: ${successCount} products${failureCount > 0 ? `\n❌ Failed: ${failureCount} products` : ''}`);
+                    
+                } else {
+                    msg.reply('📷 No products available to display.');
+                }
+            } else {
+                msg.reply('No catalog found. This feature is only available for business accounts.');
+            }
+        } catch (error) {
+            if (error.message.includes('Execution context was destroyed')) {
+                msg.reply('WhatsApp is still initializing. Please try again in a moment.');
+            } else {
+                msg.reply(`Error accessing catalog: ${error.message}`);
+            }
+            console.error('Catalog error:', error);
+        }
+    } else if (msg.body.startsWith('!catalogof ')) {
+        // Get catalog of a specific business number with product images
+        const businessNumber = msg.body.split(' ')[1];
+        const contactId = businessNumber.includes('@c.us') ? businessNumber : `${businessNumber}@c.us`;
+        
+        try {
+            const catalog = await client.getCatalog(contactId);
+            
+            if (catalog) {
+                const products = await catalog.getProducts();
+                const collections = await catalog.getCollections();
+                const productPreview = await Promise.all(
+                    products.slice(0, 3).map(async p => `• ${p.name} - ${await p.getFormattedPrice()}`)
+                );
+                
+                // Send catalog info first
+                await msg.reply(`📦 *External Catalog Info*\n` +
+                               `Business: ${contactId}\n` +
+                               `Products: ${products.length}\n` +
+                               `Collections: ${collections.length}\n\n` +
+                               productPreview.join('\n') +
+                               (products.length > 3 ? `\n...and ${products.length - 3} more` : ''));
+                
+                // Send product images (first 3 products with images)
+                const productsWithImages = products.slice(0, 3).filter(p => {
+                    const metadata = p.data;
+                    return metadata && metadata.imageCdnUrl && metadata.imageCdnUrl.trim() !== '';
+                });
+                
+                if (productsWithImages.length > 0) {
+                    msg.reply('📸 External Catalog Images:');
+                    
+                    for (const product of productsWithImages) {
+                        try {
+                            const metadata = await product.getData();
+                            if (metadata && metadata.imageCdnUrl) {
+                                const { MessageMedia } = require('./index');
+                                const media = await MessageMedia.fromUrl(metadata.imageCdnUrl);
+                                const formattedPrice = await product.getFormattedPrice();
+                                
+                                await client.sendMessage(msg.from, media, {
+                                    caption: `🛍️ *${product.name}*\n💰 ${formattedPrice}\n📝 ${metadata.description || 'No description available'}\n🏪 From: ${contactId}`
+                                });
+                            }
+                        } catch (imgError) {
+                            console.error(`Error sending image for product ${product.name}:`, imgError.message);
+                            msg.reply(`❌ Could not load image for "${product.name}"`);
+                        }
+                    }
+                } else {
+                    msg.reply('📷 No product images available to display.');
+                }
+            } else {
+                msg.reply('No catalog found for this business number.');
+            }
+        } catch (error) {
+            msg.reply(`Error accessing external catalog: ${error.message}`);
+        }
+    } else if (msg.body === '!collections') {
+        // Get and display collections from personal catalog
+        try {
+            const myNumber = client.info.wid._serialized;
+            const catalog = await client.getCatalog(myNumber);
+            
+            if (catalog) {
+                const collections = await catalog.getCollections();
+                
+                if (collections.length > 0) {
+                    const collectionInfo = await Promise.all(
+                        collections.slice(0, 5).map(async col => {
+                            const products = await col.getProducts();
+                            return `• ${col.name}: ${products.length} products`;
+                        })
+                    );
+                    
+                    msg.reply(`📂 *Catalog Collections*\n` +
+                             `Total: ${collections.length}\n\n` +
+                             collectionInfo.join('\n') +
+                             (collections.length > 5 ? `\n...and ${collections.length - 5} more` : ''));
+                } else {
+                    msg.reply('No collections found in catalog.');
+                }
+            } else {
+                msg.reply('No catalog found. This feature is only available for business accounts.');
+            }
+        } catch (error) {
+            msg.reply(`Error accessing collections: ${error.message}`);
+        }
     }
 });
 
 client.on('message_create', async (msg) => {
     // Fired on all message creations, including your own
     if (msg.fromMe) {
-        // do stuff here
+        console.log(msg);
     }
 
     // Unpins a message

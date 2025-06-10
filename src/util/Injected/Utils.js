@@ -277,6 +277,8 @@ exports.LoadUtils = () => {
             delete options.invokedBotWid;
         }
 
+
+
         const lidUser = window.Store.User.getMaybeMeLidUser();
         const meUser = window.Store.User.getMaybeMeUser();
         const newId = await window.Store.MsgKey.newId();
@@ -1164,5 +1166,114 @@ exports.LoadUtils = () => {
     window.WWebJS.getAllStatuses = () => {
         const statuses = window.Store.Status.getModelsArray();
         return statuses.map(status => window.WWebJS.getStatusModel(status));
+    };
+
+    // Catalog functions
+    window.WWebJS.getCatalogProductModel = product => {
+        return product.serialize();
+    };
+
+
+
+    window.WWebJS.isCatalogReady = () => {
+        try {
+            // Simple check - if CatalogCollection exists, catalog is ready
+            return window.Store.CatalogCollection && 
+                   window.Store.CatalogCollection.CatalogCollection;
+        } catch (err) {
+            return false;
+        }
+    };
+
+    window.WWebJS.discoverCatalog = async userid => {
+        try {
+            await window.Store.CatalogCollection.CatalogCollection.findCarouselCatalog(userid);
+            return true;
+        } catch (err) {
+            return false;
+        }
+    };
+
+    window.WWebJS.getCatalogProducts = async userid => {
+        try {
+            // Ensure catalog is loaded first
+            await window.WWebJS.discoverCatalog(userid);
+            
+            // Get the specific catalog
+            const catalog = window.Store.CatalogCollection.CatalogCollection.get(userid);
+            if (catalog && catalog.productCollection && catalog.productCollection.getModelsArray) {
+                return catalog.productCollection.getModelsArray()
+                    .map(product => window.WWebJS.getCatalogProductModel(product));
+            }
+            
+            return [];
+        } catch (err) {
+            console.error('Error getting catalog products:', err);
+            return [];
+        }
+    };
+
+    window.WWebJS.getMeCatalog = async () => {
+        try {
+            const user = window.Store.User.getMaybeMeUser();
+            if (!user) return [];
+            
+            // Ensure catalog is loaded first
+            await window.WWebJS.discoverCatalog(user._serialized);
+            
+            // Get user's catalog
+            const catalog = window.Store.CatalogCollection.CatalogCollection.get(user._serialized);
+            if (catalog && catalog.productCollection && catalog.productCollection.getModelsArray) {
+                return catalog.productCollection.getModelsArray()
+                    .map(product => window.WWebJS.getCatalogProductModel(product));
+            }
+            return [];
+        } catch(err) { 
+            console.error('Error in getMeCatalog:', err);
+            return [];
+        }
+    };
+
+    window.WWebJS.getCatalogCollectionsModel = collection => {
+        return collection.serialize();
+    };
+
+    window.WWebJS.getCatalogCollections = async(userid) => {
+        try {
+            // Ensure catalog is loaded first
+            await window.WWebJS.discoverCatalog(userid);
+            
+            const catalog = window.Store.CatalogCollection.CatalogCollection.get(userid);
+            if (catalog && catalog.collections && catalog.collections.getModelsArray) {
+                const collections = catalog.collections.getModelsArray();
+                return collections.map(collection => window.WWebJS.getCatalogCollectionsModel(collection));
+            }
+            return [];
+        } catch (err) {
+            console.error('Error getting catalog collections:', err);
+            return [];
+        }
+    };
+
+    window.WWebJS.getCollectionProducts = async (userid, collectionId) => {
+        try {
+            // Ensure catalog is loaded first
+            await window.WWebJS.discoverCatalog(userid);
+            
+            const catalog = window.Store.CatalogCollection.CatalogCollection.get(userid);
+            if (catalog && catalog.collections) {
+                const collection = catalog.collections.get(collectionId);
+                if (collection && collection.productCollection) {
+                    const products = collection.productCollection.getModelsArray ? 
+                        collection.productCollection.getModelsArray() : 
+                        collection.productCollection;
+                    return products.map(product => window.WWebJS.getCatalogProductModel(product));
+                }
+            }
+            return [];
+        } catch (err) {
+            console.error('Error getting collection products:', err);
+            return [];
+        }
     };
 };
