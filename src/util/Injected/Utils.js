@@ -22,7 +22,7 @@ exports.LoadUtils = () => {
                 const streamAvailable = window.Store.Stream ?
                     (window.Store.Stream.available !== false) :
                     (window.Store.Conn && window.Store.Conn.state === 'CONNECTED');
-                    
+
                 // If stream is available, also try dual system
                 if (streamAvailable) {
                     // Implement dual pattern discovered: Promise.all([sendSeen, sendReceipt])
@@ -90,13 +90,14 @@ exports.LoadUtils = () => {
         if (options.media) {
             mediaOptions = await window.WWebJS.processMediaData(
                 options.media, {
-                forceSticker: options.sendMediaAsSticker,
-                forceGif: options.sendVideoAsGif,
-                forceVoice: options.sendAudioAsVoice,
-                forceDocument: options.sendMediaAsDocument,
-                forceMediaHd: options.sendMediaAsHd,
-                sendToChannel: isChannel
-            });
+                    forceSticker: options.sendMediaAsSticker,
+                    forceGif: options.sendVideoAsGif,
+                    forceVoice: options.sendAudioAsVoice,
+                    forceDocument: options.sendMediaAsDocument,
+                    forceMediaHd: options.sendMediaAsHd,
+                    sendToChannel: isChannel
+                }
+            );
             mediaOptions.caption = options.caption;
             content = options.sendMediaAsSticker ? undefined : mediaOptions.preview;
             mediaOptions.isViewOnce = options.isViewOnce;
