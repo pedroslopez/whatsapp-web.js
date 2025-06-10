@@ -14,6 +14,7 @@ const { ExposeLegacyStore } = require('./util/Injected/LegacyStore');
 const { LoadUtils } = require('./util/Injected/Utils');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
+const CatalogFactory = require('./factories/CatalogFactory');
 const WebCacheFactory = require('./webCache/WebCacheFactory');
 const { Broadcast, Buttons, Call, ClientInfo, Contact, GroupNotification, Label, List, Location, Message, MessageMedia, Poll, PollVote, Reaction } = require('./structures');
 const NoAuth = require('./authStrategies/NoAuth');
@@ -2260,6 +2261,23 @@ class Client extends EventEmitter {
             return await window.Store.AddressbookContactUtils.deleteContactAction(phoneNumber);
         }, phoneNumber);
     }
+
+
+
+    /**
+     * Get Catalog by userid
+     * @param {string} userid 
+     * @returns {Promise<PersonalCatalog | ExternalCatalog>}
+     */
+    async getCatalog(userid) {
+        const isMe = await this.pupPage.evaluate(userid => {
+            return window.Store.User.getMeUser()._serialized == userid;
+        }, userid);
+
+        return CatalogFactory.create(this, {userid, isMe});
+    }
+
+
 }
 
 module.exports = Client;
