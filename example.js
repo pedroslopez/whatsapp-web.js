@@ -653,23 +653,6 @@ client.on('message', async msg => {
                 console.error('Error sending fallback confirmation:', fallbackError.message);
             }
         }
-    } else if (msg.body === '!resendmedia' && msg.hasQuotedMsg) {
-        const quotedMsg = await msg.getQuotedMessage();
-        if (quotedMsg.hasMedia) {
-            const attachmentData = await quotedMsg.downloadMedia();
-            client.sendMessage(msg.from, attachmentData, { caption: 'Here\'s your requested media.' });
-        }
-        // Handle audio specifically (only if not already handled above)
-        else if (quotedMsg.hasMedia && quotedMsg.type === 'audio') {
-            const audio = await quotedMsg.downloadMedia();
-            await client.sendMessage(msg.from, audio, { sendAudioAsVoice: true });
-        }
-    } else if (msg.body === '!isviewonce' && msg.hasQuotedMsg) {
-        const quotedMsg = await msg.getQuotedMessage();
-        if (quotedMsg.hasMedia) {
-            const media = await quotedMsg.downloadMedia();
-            await client.sendMessage(msg.from, media, { isViewOnce: true });
-        }
     } else if (msg.body === '!location') {
         // only latitude and longitude
         await msg.reply(new Location(37.422, -122.084));
