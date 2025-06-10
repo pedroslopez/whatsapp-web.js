@@ -73,7 +73,7 @@ process.on('uncaughtException', (err) => {
     }
 });
 
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', (reason) => {
     console.error('Unhandled Rejection:', reason?.message || reason);
     if (reason?.message?.includes('Execution context was destroyed') && !isClientReady) {
         console.log('Context destroyed during initialization - this will be handled by retry logic');
@@ -420,16 +420,16 @@ client.on('message', async msg => {
                 const productDescription = quotedMsg.description || quotedMsg._data.description || '';
                 
                 // Build product info message
-                let productInfo = `🛍️ *Product Information*\n\n`;
-                productInfo += `📦 *Name:* ${productTitle}\n`;
-                productInfo += `🆔 *Product ID:* ${productId}\n`;
+                let productInfo = `*Product Information*\n\n`;
+                productInfo += `*Name:* ${productTitle}\n`;
+                productInfo += `*Product ID:* ${productId}\n`;
                 
                 if (productDescription) {
-                    productInfo += `📝 *Description:* ${productDescription}\n`;
+                    productInfo += `*Description:* ${productDescription}\n`;
                 }
                 
                 if (businessOwnerJid) {
-                    productInfo += `🏪 *Business:* ${businessOwnerJid}\n`;
+                    productInfo += `*Business:* ${businessOwnerJid}\n`;
                 }
 
                 // Try to get more detailed product information from catalog
@@ -444,18 +444,18 @@ client.on('message', async msg => {
                                 const formattedPrice = await product.getFormattedPrice();
                                 const metadata = await product.getData();
                                 
-                                productInfo += `💰 *Price:* ${formattedPrice}\n`;
-                                productInfo += `📋 *Currency:* ${product.currency}\n`;
+                                productInfo += `*Price:* ${formattedPrice}\n`;
+                                productInfo += `*Currency:* ${product.currency}\n`;
                                 
                                 if (metadata) {
                                     if (metadata.availability) {
-                                        productInfo += `✅ *Availability:* ${metadata.availability}\n`;
+                                        productInfo += `*Availability:* ${metadata.availability}\n`;
                                     }
                                     if (metadata.reviewStatus) {
-                                        productInfo += `⭐ *Review Status:* ${metadata.reviewStatus}\n`;
+                                        productInfo += `*Review Status:* ${metadata.reviewStatus}\n`;
                                     }
                                     if (metadata.url) {
-                                        productInfo += `🔗 *Product URL:* ${metadata.url}\n`;
+                                        productInfo += `*Product URL:* ${metadata.url}\n`;
                                     }
                                 }
 
@@ -468,31 +468,31 @@ client.on('message', async msg => {
                                         const { MessageMedia } = require('./index');
                                         const media = await MessageMedia.fromUrl(metadata.imageCdnUrl);
                                         
-                                        const imageCaption = `📸 *${productTitle}*\n` +
-                                                           `💰 ${formattedPrice}\n` +
-                                                           `🆔 ID: ${productId}`;
+                                        const imageCaption = `*${productTitle}*\n` +
+                                                           `Price: ${formattedPrice}\n` +
+                                                           `ID: ${productId}`;
                                         
                                         await client.sendMessage(msg.from, media, { caption: imageCaption });
                                         console.log(`Product image sent for: ${productTitle}`);
                                         
                                     } catch (imageError) {
                                         console.error('Error sending product image:', imageError.message);
-                                        await msg.reply('❌ Could not load product image.');
+                                        await msg.reply('Could not load product image.');
                                     }
                                 } else {
-                                    await msg.reply('📷 No product image available.');
+                                    await msg.reply('No product image available.');
                                 }
                                 
                             } else {
-                                await msg.reply(productInfo + '\n❌ Product not found in catalog.');
+                                await msg.reply(productInfo + '\nProduct not found in catalog.');
                             }
                         } else {
-                            await msg.reply(productInfo + '\n❌ Business catalog not accessible.');
+                            await msg.reply(productInfo + '\nBusiness catalog not accessible.');
                         }
                         
                     } catch (catalogError) {
                         console.error('Error accessing catalog for quoted product:', catalogError.message);
-                        await msg.reply(productInfo + '\n❌ Could not access product catalog.');
+                        await msg.reply(productInfo + '\nCould not access product catalog.');
                     }
                     
                 } else {
@@ -503,7 +503,7 @@ client.on('message', async msg => {
                     if (quotedMsg.hasMedia) {
                         try {
                             const media = await quotedMsg.downloadMedia();
-                            const imageCaption = `📸 *${productTitle}*\n🆔 ID: ${productId}`;
+                            const imageCaption = `*${productTitle}*\nID: ${productId}`;
                             await client.sendMessage(msg.from, media, { caption: imageCaption });
                             console.log(`Quoted product media sent for: ${productTitle}`);
                         } catch (mediaError) {
@@ -518,18 +518,18 @@ client.on('message', async msg => {
                     const order = await quotedMsg.getOrder();
                     
                     if (order && order.products && order.products.length > 0) {
-                        let orderInfo = `📋 *Quoted Order Information*\n\n`;
-                        orderInfo += `🆔 *Order ID:* ${quotedMsg.orderId || 'N/A'}\n`;
-                        orderInfo += `💰 *Total:* ${order.total} ${order.currency}\n`;
-                        orderInfo += `📦 *Products (${order.products.length}):\n\n`;
+                        let orderInfo = `*Quoted Order Information*\n\n`;
+                        orderInfo += `*Order ID:* ${quotedMsg.orderId || 'N/A'}\n`;
+                        orderInfo += `*Total:* ${order.total} ${order.currency}\n`;
+                        orderInfo += `*Products (${order.products.length}):\n\n`;
                         
                         order.products.forEach((product, index) => {
                             orderInfo += `${index + 1}. **${product.name || 'Product'}**\n`;
                             if (product.price) {
-                                orderInfo += `   💰 Price: ${product.price} ${order.currency}\n`;
+                                orderInfo += `   Price: ${product.price} ${order.currency}\n`;
                             }
                             if (product.quantity) {
-                                orderInfo += `   📊 Quantity: ${product.quantity}\n`;
+                                orderInfo += `   Quantity: ${product.quantity}\n`;
                             }
                             orderInfo += '\n';
                         });
@@ -538,12 +538,12 @@ client.on('message', async msg => {
                         console.log(`Quoted order info sent for order: ${quotedMsg.orderId}`);
                         
                     } else {
-                        await msg.reply(`📋 *Quoted Order*\n🆔 Order ID: ${quotedMsg.orderId || 'N/A'}\n❌ No detailed product information available.`);
+                        await msg.reply(`*Quoted Order*\nOrder ID: ${quotedMsg.orderId || 'N/A'}\nNo detailed product information available.`);
                     }
                     
                 } catch (orderError) {
                     console.error('Error processing quoted order:', orderError.message);
-                    await msg.reply(`📋 *Quoted Order*\n🆔 Order ID: ${quotedMsg.orderId || 'N/A'}\n❌ Could not access order details.`);
+                    await msg.reply(`*Quoted Order*\nOrder ID: ${quotedMsg.orderId || 'N/A'}\nCould not access order details.`);
                 }
             }
             
@@ -577,7 +577,7 @@ client.on('message', async msg => {
                 // Build product list from order.products
                 let productList = '';
                 if (order.products && order.products.length > 0) {
-                    productList = '\n\n🛍️ *Products:*\n';
+                    productList = '\n\n*Products:*\n';
                     order.products.forEach((product, index) => {
                         productList += `${index + 1}. ${product.name || 'Product'}\n`;
                         if (product.price) {
@@ -590,12 +590,12 @@ client.on('message', async msg => {
                 } else {
                     // Fallback to basic item count if products array is not available
                     const itemCount = msg._data.itemCount || 1;
-                    productList = `\n\n🛍️ *Items:* ${itemCount} product(s)`;
+                    productList = `\n\n*Items:* ${itemCount} product(s)`;
                 }
 
                 // Send detailed confirmation message in English
                 const confirmationMessage = `Thank you for your order! Your products will be ready soon.\n\n` +
-                                           `📋 *Order Details:*\n` +
+                                           `*Order Details:*\n` +
                                            `• Order ID: ${orderId}\n` +
                                            `• Business: ${orderTitle}\n` +
                                            `• Subtotal: ${subtotal} ${currency}\n` +
@@ -614,8 +614,8 @@ client.on('message', async msg => {
                 const totalAmount = msg._data.totalAmount1000 ? (msg._data.totalAmount1000 / 1000).toFixed(2) : 'N/A';
                 const currency = msg._data.totalCurrencyCode || 'USD';
 
-                const confirmationMessage = `Thank you for your order! Your products from "${orderTitle}" will be ready soon.\n\n` +
-                                           `📋 *Order Details:*\n` +
+                const confirmationMessage = `Thank you for your order! Your products from '${orderTitle}' will be ready soon.\n\n` +
+                                           `*Order Details:*\n` +
                                            `• Order ID: ${orderId}\n` +
                                            `• Items: ${itemCount}\n` +
                                            `• Total: ${totalAmount} ${currency}\n\n` +
@@ -642,7 +642,8 @@ client.on('message', async msg => {
             const attachmentData = await quotedMsg.downloadMedia();
             client.sendMessage(msg.from, attachmentData, { caption: 'Here\'s your requested media.' });
         }
-        if (quotedMsg.hasMedia && quotedMsg.type === 'audio') {
+        // Handle audio specifically (only if not already handled above)
+        else if (quotedMsg.hasMedia && quotedMsg.type === 'audio') {
             const audio = await quotedMsg.downloadMedia();
             await client.sendMessage(msg.from, audio, { sendAudioAsVoice: true });
         }
@@ -929,7 +930,7 @@ client.on('message', async msg => {
                 );
                 
                 // Send catalog info first
-                await msg.reply(`📦 *Catalog Info*\n` +
+                await msg.reply('*Catalog Info*\n' +
                                `Type: ${catalog.isMe ? 'Personal' : 'External'}\n` +
                                `Products: ${products.length}\n\n` +
                                productPreview.join('\n') +
@@ -937,7 +938,7 @@ client.on('message', async msg => {
                 
                 // Send all products as native WhatsApp product messages
                 if (products.length > 0) {
-                    await msg.reply(`🛍️ Sending ${products.length} products from catalog...`);
+                    await msg.reply(`Sending ${products.length} products from catalog...`);
                     
                     let successCount = 0;
                     let failureCount = 0;
@@ -956,30 +957,30 @@ client.on('message', async msg => {
                                     const { MessageMedia } = require('./index');
                                     const media = await MessageMedia.fromUrl(metadata.imageCdnUrl);
                                     
-                                    const caption = `🛍️ *${product.name}*\n` +
-                                                  `💰 ${formattedPrice}\n` +
-                                                  `📝 ${metadata.description || 'No description available'}\n` +
-                                                  `🆔 Product ID: ${product.id}` +
-                                                  (metadata.url ? `\n🔗 ${metadata.url}` : '');
+                                    const caption = `*${product.name}*\n` +
+                                                  `Price: ${formattedPrice}\n` +
+                                                  `Description: ${metadata.description || 'No description available'}\n` +
+                                                  `Product ID: ${product.id}` +
+                                                  (metadata.url ? `\nURL: ${metadata.url}` : '');
                                     
                                     await client.sendMessage(msg.from, media, { caption });
                                 } else {
                                     // If no image, send text message with product info
-                                    const productInfo = `🛍️ *${product.name}*\n` +
-                                                       `💰 ${formattedPrice}\n` +
-                                                       `📝 ${metadata ? metadata.description || 'No description available' : 'No description available'}\n` +
-                                                       `🆔 Product ID: ${product.id}` +
-                                                       (metadata && metadata.url ? `\n🔗 ${metadata.url}` : '');
+                                    const productInfo = `*${product.name}*\n` +
+                                                       `Price: ${formattedPrice}\n` +
+                                                       `Description: ${metadata ? metadata.description || 'No description available' : 'No description available'}\n` +
+                                                       `Product ID: ${product.id}` +
+                                                       (metadata && metadata.url ? `\nURL: ${metadata.url}` : '');
                                     
                                     await client.sendMessage(msg.from, productInfo);
                                 }
                             } catch (imageError) {
                                 console.error(`Error sending product image for ${product.name}:`, imageError.message);
                                 // Fallback to text message
-                                const productInfo = `🛍️ *${product.name}*\n` +
-                                                   `💰 ${formattedPrice}\n` +
-                                                   `📝 ${metadata ? metadata.description || 'No description available' : 'No description available'}\n` +
-                                                   `🆔 Product ID: ${product.id}`;
+                                const productInfo = `*${product.name}*\n` +
+                                                   `Price: ${formattedPrice}\n` +
+                                                   `Description: ${metadata ? metadata.description || 'No description available' : 'No description available'}\n` +
+                                                   `Product ID: ${product.id}`;
                                 
                                 await client.sendMessage(msg.from, productInfo);
                             }
@@ -999,7 +1000,7 @@ client.on('message', async msg => {
                                     const formattedPrice = await product.getFormattedPrice();
                                     
                                     await client.sendMessage(msg.from, media, {
-                                        caption: `🛍️ *${product.name}*\n💰 ${formattedPrice}\n📝 ${metadata.description || 'No description available'}`
+                                        caption: `*${product.name}*\nPrice: ${formattedPrice}\nDescription: ${metadata.description || 'No description available'}`
                                     });
                                     
                                     successCount++;
@@ -1015,10 +1016,10 @@ client.on('message', async msg => {
                     }
                     
                     // Summary message
-                    await msg.reply(`✅ Catalog complete!\n📊 Successfully sent: ${successCount} products${failureCount > 0 ? `\n❌ Failed: ${failureCount} products` : ''}`);
+                    await msg.reply(`Catalog complete!\nSuccessfully sent: ${successCount} products${failureCount > 0 ? `\nFailed: ${failureCount} products` : ''}`);
                     
                 } else {
-                    msg.reply('📷 No products available to display.');
+                    msg.reply('No products available to display.');
                 }
             } else {
                 msg.reply('No catalog found. This feature is only available for business accounts.');
@@ -1047,7 +1048,7 @@ client.on('message', async msg => {
                 );
                 
                 // Send catalog info first
-                await msg.reply(`📦 *External Catalog Info*\n` +
+                await msg.reply('*External Catalog Info*\n' +
                                `Business: ${contactId}\n` +
                                `Products: ${products.length}\n` +
                                `Collections: ${collections.length}\n\n` +
@@ -1061,7 +1062,7 @@ client.on('message', async msg => {
                 });
                 
                 if (productsWithImages.length > 0) {
-                    msg.reply('📸 External Catalog Images:');
+                    msg.reply('External Catalog Images:');
                     
                     for (const product of productsWithImages) {
                         try {
@@ -1072,16 +1073,16 @@ client.on('message', async msg => {
                                 const formattedPrice = await product.getFormattedPrice();
                                 
                                 await client.sendMessage(msg.from, media, {
-                                    caption: `🛍️ *${product.name}*\n💰 ${formattedPrice}\n📝 ${metadata.description || 'No description available'}\n🏪 From: ${contactId}`
+                                    caption: `*${product.name}*\nPrice: ${formattedPrice}\nDescription: ${metadata.description || 'No description available'}\nFrom: ${contactId}`
                                 });
                             }
                         } catch (imgError) {
                             console.error(`Error sending image for product ${product.name}:`, imgError.message);
-                            msg.reply(`❌ Could not load image for "${product.name}"`);
+                            msg.reply(`Could not load image for "${product.name}"`);
                         }
                     }
                 } else {
-                    msg.reply('📷 No product images available to display.');
+                    msg.reply('No product images available to display.');
                 }
             } else {
                 msg.reply('No catalog found for this business number.');
@@ -1106,7 +1107,7 @@ client.on('message', async msg => {
                         })
                     );
                     
-                    msg.reply(`📂 *Catalog Collections*\n` +
+                    msg.reply('*Catalog Collections*\n' +
                              `Total: ${collections.length}\n\n` +
                              collectionInfo.join('\n') +
                              (collections.length > 5 ? `\n...and ${collections.length - 5} more` : ''));

@@ -277,8 +277,6 @@ exports.LoadUtils = () => {
             delete options.invokedBotWid;
         }
 
-
-
         const lidUser = window.Store.User.getMaybeMeLidUser();
         const meUser = window.Store.User.getMaybeMeUser();
         const newId = await window.Store.MsgKey.newId();
