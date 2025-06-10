@@ -1173,12 +1173,10 @@ exports.LoadUtils = () => {
         return product.serialize();
     };
 
-
-
     window.WWebJS.isCatalogReady = () => {
         try {
             // Simple check - if CatalogCollection exists, catalog is ready
-            return window.Store.CatalogCollection && 
+            return window.Store.CatalogCollection &&
                    window.Store.CatalogCollection.CatalogCollection;
         } catch (err) {
             return false;
@@ -1198,14 +1196,14 @@ exports.LoadUtils = () => {
         try {
             // Ensure catalog is loaded first
             await window.WWebJS.discoverCatalog(userid);
-            
+
             // Get the specific catalog
             const catalog = window.Store.CatalogCollection.CatalogCollection.get(userid);
             if (catalog && catalog.productCollection && catalog.productCollection.getModelsArray) {
                 return catalog.productCollection.getModelsArray()
                     .map(product => window.WWebJS.getCatalogProductModel(product));
             }
-            
+
             return [];
         } catch (err) {
             console.error('Error getting catalog products:', err);
@@ -1217,10 +1215,10 @@ exports.LoadUtils = () => {
         try {
             const user = window.Store.User.getMaybeMeUser();
             if (!user) return [];
-            
+
             // Ensure catalog is loaded first
             await window.WWebJS.discoverCatalog(user._serialized);
-            
+
             // Get user's catalog
             const catalog = window.Store.CatalogCollection.CatalogCollection.get(user._serialized);
             if (catalog && catalog.productCollection && catalog.productCollection.getModelsArray) {
@@ -1228,7 +1226,7 @@ exports.LoadUtils = () => {
                     .map(product => window.WWebJS.getCatalogProductModel(product));
             }
             return [];
-        } catch(err) { 
+        } catch (err) {
             console.error('Error in getMeCatalog:', err);
             return [];
         }
@@ -1238,11 +1236,11 @@ exports.LoadUtils = () => {
         return collection.serialize();
     };
 
-    window.WWebJS.getCatalogCollections = async(userid) => {
+    window.WWebJS.getCatalogCollections = async (userid) => {
         try {
             // Ensure catalog is loaded first
             await window.WWebJS.discoverCatalog(userid);
-            
+
             const catalog = window.Store.CatalogCollection.CatalogCollection.get(userid);
             if (catalog && catalog.collections && catalog.collections.getModelsArray) {
                 const collections = catalog.collections.getModelsArray();
@@ -1259,13 +1257,13 @@ exports.LoadUtils = () => {
         try {
             // Ensure catalog is loaded first
             await window.WWebJS.discoverCatalog(userid);
-            
+
             const catalog = window.Store.CatalogCollection.CatalogCollection.get(userid);
             if (catalog && catalog.collections) {
                 const collection = catalog.collections.get(collectionId);
                 if (collection && collection.productCollection) {
-                    const products = collection.productCollection.getModelsArray ? 
-                        collection.productCollection.getModelsArray() : 
+                    const products = collection.productCollection.getModelsArray ?
+                        collection.productCollection.getModelsArray() :
                         collection.productCollection;
                     return products.map(product => window.WWebJS.getCatalogProductModel(product));
                 }

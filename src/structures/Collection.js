@@ -11,7 +11,7 @@ class Collection extends Base {
     constructor(client, data) {
         super(client);
 
-        if(data) this._patch(data);
+        if (data) this._patch(data);
     }
 
     _patch(data) {
@@ -64,7 +64,6 @@ class Collection extends Base {
             return product;
         });
     }
-
 }
 
 module.exports = Collection; 
