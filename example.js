@@ -9,221 +9,51 @@ const client = new Client({
     }
 });
 
-// Variables for retry logic
-let initializationAttempts = 0;
-const maxRetries = 3;
-let isClientReady = false;
+// client initialize does not finish at ready now.
+client.initialize();
 
-// Function to initialize with retries
-async function initializeWithRetries() {
-    initializationAttempts++;
-    console.log(`Initialization attempt ${initializationAttempts}/${maxRetries}`);
+client.on('loading_screen', (percent, message) => {
+    console.log('LOADING SCREEN', percent, message);
+});
+
+// Pairing code only needs to be requested once
+let pairingCodeRequested = false;
+client.on('qr', async (qr) => {
+    // NOTE: This event will not be fired if a session is specified.
+    console.log('QR RECEIVED', qr);
+
+    // paiuting code example
+    const pairingCodeEnabled = false;
+    if (pairingCodeEnabled && !pairingCodeRequested) {
+        const pairingCode = await client.requestPairingCode('96170100100'); // enter the target phone number
+        console.log('Pairing code enabled, code: '+ pairingCode);
+        pairingCodeRequested = true;
+    }
+});
+
+client.on('authenticated', () => {
+    console.log('AUTHENTICATED');
+});
+
+client.on('auth_failure', msg => {
+    // Fired if session restore was unsuccessful
+    console.error('AUTHENTICATION FAILURE', msg);
+});
+
+client.on('ready', async () => {
+    console.log('READY');
+    const debugWWebVersion = await client.getWWebVersion();
+    console.log(`WWebVersion = ${debugWWebVersion}`);
+
+    client.pupPage.on('pageerror', function(err) {
+        console.log('Page error: ' + err.toString());
+    });
+    client.pupPage.on('error', function(err) {
+        console.log('Page error: ' + err.toString());
+    });
     
-    try {
-        await client.initialize();
-    } catch (error) {
-        console.error(`Initialization attempt ${initializationAttempts} failed:`, error.message);
-        
-        if (error.message.includes('Execution context was destroyed')) {
-            console.log('Context destruction error - this is common during WhatsApp Web loading');
-        }
-        
-        if (initializationAttempts < maxRetries && !isClientReady) {
-            console.log(`Retrying in 3 seconds... (${maxRetries - initializationAttempts} attempts left)`);
-            setTimeout(() => {
-                // Destroy current client and create new one
-                client.destroy().then(() => {
-                    console.log('Destroyed previous client instance');
-                    // Create new client instance
-                    const { Client, LocalAuth } = require('./index');
-                    const newClient = new Client({
-                        authStrategy: new LocalAuth(),
-                        puppeteer: { 
-                            headless: false,
-                        }
-                    });
-                    
-                    // Re-attach all event listeners to new client
-                    setupClientEvents(newClient);
-                    
-                    // Replace global client reference
-                    global.client = newClient;
-                    
-                    // Retry initialization
-                    initializeWithRetries();
-                }).catch(err => {
-                    console.error('Error destroying client:', err.message);
-                    // Retry anyway
-                    initializeWithRetries();
-                });
-            }, 3000);
-        } else {
-            console.error(`Failed to initialize after ${maxRetries} attempts`);
-            process.exit(1);
-        }
-    }
-}
-
-// Handle uncaught exceptions during initialization
-process.on('uncaughtException', (err) => {
-    console.error('Uncaught Exception:', err.message);
-    if (err.message.includes('Execution context was destroyed') && !isClientReady) {
-        console.log('Context destroyed during initialization - this will be handled by retry logic');
-        return; // Don't exit, let retry logic handle it
-    }
 });
 
-process.on('unhandledRejection', (reason) => {
-    console.error('Unhandled Rejection:', reason?.message || reason);
-    if (reason?.message?.includes('Execution context was destroyed') && !isClientReady) {
-        console.log('Context destroyed during initialization - this will be handled by retry logic');
-        return; // Don't exit, let retry logic handle it
-    }
-});
-
-// Function to setup all client events (for reuse with new client instances)
-function setupClientEvents(clientInstance) {
-    clientInstance.on('loading_screen', (percent, message) => {
-        console.log('LOADING SCREEN', percent, message);
-    });
-
-    // Pairing code only needs to be requested once
-    let pairingCodeRequested = false;
-    clientInstance.on('qr', async (qr) => {
-        // NOTE: This event will not be fired if a session is specified.
-        console.log('QR RECEIVED', qr);
-
-        // pairing code example
-        const pairingCodeEnabled = false;
-        if (pairingCodeEnabled && !pairingCodeRequested) {
-            const pairingCode = await clientInstance.requestPairingCode('96170100100'); // enter the target phone number
-            console.log('Pairing code enabled, code: '+ pairingCode);
-            pairingCodeRequested = true;
-        }
-    });
-
-    clientInstance.on('authenticated', () => {
-        console.log('AUTHENTICATED');
-    });
-
-    clientInstance.on('auth_failure', msg => {
-        console.error('AUTHENTICATION FAILURE', msg);
-    });
-
-    clientInstance.on('ready', async () => {
-        console.log('CLIENT IS READY!');
-        isClientReady = true; // Mark as ready to stop retries
-        
-        try {
-            const debugWWebVersion = await clientInstance.getWWebVersion();
-            console.log(`WWebVersion = ${debugWWebVersion}`);
-        } catch (err) {
-            console.log('Could not get WWeb version during initialization:', err.message);
-        }
-
-        // Add robust error handlers for page events
-        clientInstance.pupPage.on('pageerror', function(err) {
-            console.log('Page error: ' + err.toString());
-        });
-        clientInstance.pupPage.on('error', function(err) {
-            console.log('Page error: ' + err.toString());
-        });
-        clientInstance.pupPage.on('console', function(msg) {
-            if (msg.type() === 'error') {
-                console.log('Console error: ' + msg.text());
-            }
-        });
-
-        // Test catalog functionality automatically
-        console.log('Testing catalog functionality...');
-        try {
-            const myNumber = clientInstance.info.wid._serialized;
-            console.log(`My number: ${myNumber}`);
-            
-            // Test getting personal catalog
-            const catalog = await clientInstance.getCatalog(myNumber);
-            
-            if (catalog) {
-                console.log(`Catalog found: ${catalog.isMe ? 'Personal' : 'External'} catalog`);
-                
-                // Test getProducts()
-                console.log('Testing getProducts()...');
-                const products = await catalog.getProducts();
-                console.log(`Found ${products.length} products in catalog`);
-                
-                if (products.length > 0) {
-                    console.log('First 3 products:');
-                    for (let i = 0; i < Math.min(3, products.length); i++) {
-                        const product = products[i];
-                        try {
-                            const formattedPrice = await product.getFormattedPrice();
-                            console.log(`  ${i + 1}. ${product.name} - ${formattedPrice}`);
-                            console.log(`     ID: ${product.id}`);
-                            console.log(`     Currency: ${product.currency}`);
-                            
-                            // Test metadata
-                            const metadata = await product.getData();
-                            if (metadata) {
-                                console.log(`     Description: ${metadata.description || 'N/A'}`);
-                                console.log(`     Availability: ${metadata.availability || 'N/A'}`);
-                                console.log(`     Review Status: ${metadata.reviewStatus || 'N/A'}`);
-                            }
-                        } catch (err) {
-                            console.log(`     Error getting details: ${err.message}`);
-                        }
-                    }
-                }
-                
-                // Test getCollections()
-                console.log('Testing getCollections()...');
-                try {
-                    const collections = await catalog.getCollections();
-                    console.log(`Found ${collections.length} collections in catalog`);
-                    
-                    if (collections.length > 0) {
-                        console.log('First 2 collections:');
-                        for (let i = 0; i < Math.min(2, collections.length); i++) {
-                            const collection = collections[i];
-                            console.log(`  ${i + 1}. ${collection.name} (ID: ${collection.id})`);
-                            
-                            try {
-                                const collectionProducts = await collection.getProducts();
-                                console.log(`     Products in collection: ${collectionProducts.length}`);
-                            } catch (err) {
-                                console.log(`     Error getting collection products: ${err.message}`);
-                            }
-                        }
-                    }
-                } catch (err) {
-                    console.log(`Error getting collections: ${err.message}`);
-                }
-                
-            } else {
-                console.log('No catalog found. This may not be a business account.');
-            }
-            
-        } catch (error) {
-            console.log(`Error testing catalog: ${error.message}`);
-        }
-        
-        console.log('Catalog testing completed. Client ready for commands.');
-    });
-
-    clientInstance.on('disconnected', (reason) => {
-        console.log('Client was logged out', reason);
-        isClientReady = false; // Allow retries if disconnected
-    });
-
-    // Message handler is set up separately below
-}
-
-// Setup events for initial client
-setupClientEvents(client);
-
-// Start initialization with retries
-initializeWithRetries();
-
-// All the existing event handlers will remain here
 client.on('message', async msg => {
     console.log('MESSAGE RECEIVED', msg);
 
@@ -406,8 +236,7 @@ client.on('message', async msg => {
             const attachmentData = await quotedMsg.downloadMedia();
             client.sendMessage(msg.from, attachmentData, { caption: 'Here\'s your requested media.' });
         }
-        // Handle audio specifically (only if not already handled above)
-        else if (quotedMsg.hasMedia && quotedMsg.type === 'audio') {
+        if (quotedMsg.hasMedia && quotedMsg.type === 'audio') {
             const audio = await quotedMsg.downloadMedia();
             await client.sendMessage(msg.from, audio, { sendAudioAsVoice: true });
         }
@@ -416,242 +245,6 @@ client.on('message', async msg => {
         if (quotedMsg.hasMedia) {
             const media = await quotedMsg.downloadMedia();
             await client.sendMessage(msg.from, media, { isViewOnce: true });
-        }
-    } else if (msg.hasQuotedMsg) {
-        try {
-            const quotedMsg = await msg.getQuotedMessage();
-            
-            // Check if quoted message contains product information
-            if (quotedMsg && (quotedMsg.type === 'product' || quotedMsg._data.productId || quotedMsg.productId)) {
-                console.log('QUOTED PRODUCT DETECTED:', {
-                    type: quotedMsg.type,
-                    productId: quotedMsg.productId || quotedMsg._data.productId,
-                    businessOwnerJid: quotedMsg.businessOwnerJid || quotedMsg._data.businessOwnerJid,
-                    hasMedia: quotedMsg.hasMedia
-                });
-
-                // Extract product information
-                const productId = quotedMsg.productId || quotedMsg._data.productId || 'N/A';
-                const businessOwnerJid = quotedMsg.businessOwnerJid || quotedMsg._data.businessOwnerJid;
-                const productTitle = quotedMsg.title || quotedMsg._data.title || 'Product';
-                const productDescription = quotedMsg.description || quotedMsg._data.description || '';
-                
-                // Build product info message
-                let productInfo = '*Product Information*\n\n';
-                productInfo += `*Name:* ${productTitle}\n`;
-                productInfo += `*Product ID:* ${productId}\n`;
-                
-                if (productDescription) {
-                    productInfo += `*Description:* ${productDescription}\n`;
-                }
-                
-                if (businessOwnerJid) {
-                    productInfo += `*Business:* ${businessOwnerJid}\n`;
-                }
-
-                // Try to get more detailed product information from catalog
-                if (businessOwnerJid && productId !== 'N/A') {
-                    try {
-                        const catalog = await client.getCatalog(businessOwnerJid);
-                        if (catalog) {
-                            const products = await catalog.getProducts();
-                            const product = products.find(p => p.id === productId);
-                            
-                            if (product) {
-                                const formattedPrice = await product.getFormattedPrice();
-                                const metadata = await product.getData();
-                                
-                                productInfo += `*Price:* ${formattedPrice}\n`;
-                                productInfo += `*Currency:* ${product.currency}\n`;
-                                
-                                if (metadata) {
-                                    if (metadata.availability) {
-                                        productInfo += `*Availability:* ${metadata.availability}\n`;
-                                    }
-                                    if (metadata.reviewStatus) {
-                                        productInfo += `*Review Status:* ${metadata.reviewStatus}\n`;
-                                    }
-                                    if (metadata.url) {
-                                        productInfo += `*Product URL:* ${metadata.url}\n`;
-                                    }
-                                }
-
-                                // Send product information
-                                await msg.reply(productInfo);
-
-                                // Try to send product image if available
-                                if (metadata && metadata.imageCdnUrl) {
-                                    try {
-                                        const { MessageMedia } = require('./index');
-                                        const media = await MessageMedia.fromUrl(metadata.imageCdnUrl);
-                                        
-                                        const imageCaption = `*${productTitle}*\n` +
-                                                           `Price: ${formattedPrice}\n` +
-                                                           `ID: ${productId}`;
-                                        
-                                        await client.sendMessage(msg.from, media, { caption: imageCaption });
-                                        console.log(`Product image sent for: ${productTitle}`);
-                                        
-                                    } catch (imageError) {
-                                        console.error('Error sending product image:', imageError.message);
-                                        await msg.reply('Could not load product image.');
-                                    }
-                                } else {
-                                    await msg.reply('No product image available.');
-                                }
-                                
-                            } else {
-                                await msg.reply(productInfo + '\nProduct not found in catalog.');
-                            }
-                        } else {
-                            await msg.reply(productInfo + '\nBusiness catalog not accessible.');
-                        }
-                        
-                    } catch (catalogError) {
-                        console.error('Error accessing catalog for quoted product:', catalogError.message);
-                        await msg.reply(productInfo + '\nCould not access product catalog.');
-                    }
-                    
-                } else {
-                    // Send basic product info if detailed lookup fails
-                    await msg.reply(productInfo);
-                    
-                    // Try to get image from quoted message if it has media
-                    if (quotedMsg.hasMedia) {
-                        try {
-                            const media = await quotedMsg.downloadMedia();
-                            const imageCaption = `*${productTitle}*\nID: ${productId}`;
-                            await client.sendMessage(msg.from, media, { caption: imageCaption });
-                            console.log(`Quoted product media sent for: ${productTitle}`);
-                        } catch (mediaError) {
-                            console.error('Error downloading quoted product media:', mediaError.message);
-                        }
-                    }
-                }
-                
-            } else if (quotedMsg && quotedMsg.type === 'order') {
-                // Handle quoted order messages
-                try {
-                    const order = await quotedMsg.getOrder();
-                    
-                    if (order && order.products && order.products.length > 0) {
-                        let orderInfo = '*Quoted Order Information*\n\n';
-                        orderInfo += `*Order ID:* ${quotedMsg.orderId || 'N/A'}\n`;
-                        orderInfo += `*Total:* ${order.total} ${order.currency}\n`;
-                        orderInfo += `*Products (${order.products.length}):\n\n`;
-                        
-                        order.products.forEach((product, index) => {
-                            orderInfo += `${index + 1}. **${product.name || 'Product'}**\n`;
-                            if (product.price) {
-                                orderInfo += `   Price: ${product.price} ${order.currency}\n`;
-                            }
-                            if (product.quantity) {
-                                orderInfo += `   Quantity: ${product.quantity}\n`;
-                            }
-                            orderInfo += '\n';
-                        });
-                        
-                        await msg.reply(orderInfo);
-                        console.log(`Quoted order info sent for order: ${quotedMsg.orderId}`);
-                        
-                    } else {
-                        await msg.reply(`*Quoted Order*\nOrder ID: ${quotedMsg.orderId || 'N/A'}\nNo detailed product information available.`);
-                    }
-                    
-                } catch (orderError) {
-                    console.error('Error processing quoted order:', orderError.message);
-                    await msg.reply(`*Quoted Order*\nOrder ID: ${quotedMsg.orderId || 'N/A'}\nCould not access order details.`);
-                }
-            }
-            
-        } catch (error) {
-            console.error('Error processing quoted message:', error.message);
-        }
-    } else if (msg.type === 'order') {
-        // Handle WhatsApp Business order messages using built-in functions
-        console.log('ORDER RECEIVED:', {
-            orderId: msg.orderId,
-            orderTitle: msg._data.orderTitle,
-            itemCount: msg._data.itemCount,
-            totalAmount: msg._data.totalAmount1000,
-            currency: msg._data.totalCurrencyCode,
-            status: msg._data.status,
-            token: msg.token
-        });
-
-        try {
-            // Use the built-in getOrder() method to get complete order details
-            const order = await msg.getOrder();
-            
-            if (order) {
-                // Extract complete order information
-                const orderTitle = msg._data.orderTitle || 'Your order';
-                const orderId = msg.orderId || 'N/A';
-                const currency = order.currency || msg._data.totalCurrencyCode || 'USD';
-                const total = order.total || (msg._data.totalAmount1000 ? (msg._data.totalAmount1000 / 1000).toFixed(2) : 'N/A');
-                const subtotal = order.subtotal || 'N/A';
-                
-                // Build product list from order.products
-                let productList = '';
-                if (order.products && order.products.length > 0) {
-                    productList = '\n\n*Products:*\n';
-                    order.products.forEach((product, index) => {
-                        productList += `${index + 1}. ${product.name || 'Product'}\n`;
-                        if (product.price) {
-                            productList += `   Price: ${product.price} ${currency}\n`;
-                        }
-                        if (product.quantity) {
-                            productList += `   Quantity: ${product.quantity}\n`;
-                        }
-                    });
-                } else {
-                    // Fallback to basic item count if products array is not available
-                    const itemCount = msg._data.itemCount || 1;
-                    productList = `\n\n*Items:* ${itemCount} product(s)`;
-                }
-
-                // Send detailed confirmation message in English
-                const confirmationMessage = 'Thank you for your order! Your products will be ready soon.\n\n' +
-                                           '*Order Details:*\n' +
-                                           `• Order ID: ${orderId}\n` +
-                                           `• Business: ${orderTitle}\n` +
-                                           `• Subtotal: ${subtotal} ${currency}\n` +
-                                           `• Total: ${total} ${currency}` +
-                                           productList + '\n\n' +
-                                           'We will process your order and notify you when it\'s ready for pickup/delivery.';
-
-                await msg.reply(confirmationMessage);
-                console.log(`Detailed order confirmation sent for order ID: ${orderId} with ${order.products ? order.products.length : 'unknown'} products`);
-                
-            } else {
-                // Fallback to basic order info if getOrder() fails
-                const orderTitle = msg._data.orderTitle || 'Your order';
-                const orderId = msg.orderId || 'N/A';
-                const itemCount = msg._data.itemCount || 1;
-                const totalAmount = msg._data.totalAmount1000 ? (msg._data.totalAmount1000 / 1000).toFixed(2) : 'N/A';
-                const currency = msg._data.totalCurrencyCode || 'USD';
-
-                const confirmationMessage = `Thank you for your order! Your products from '${orderTitle}' will be ready soon.\n\n` +
-                                           '*Order Details:*\n' +
-                                           `• Order ID: ${orderId}\n` +
-                                           `• Items: ${itemCount}\n` +
-                                           `• Total: ${totalAmount} ${currency}\n\n` +
-                                           'We will process your order and notify you when it\'s ready for pickup/delivery.';
-
-                await msg.reply(confirmationMessage);
-                console.log(`Basic order confirmation sent for order ID: ${orderId}`);
-            }
-            
-        } catch (error) {
-            console.error('Error processing order or sending confirmation:', error.message);
-            
-            // Emergency fallback
-            try {
-                await msg.reply('Thank you for your order! We have received it and will process it soon.');
-                console.log('Emergency fallback confirmation sent');
-            } catch (fallbackError) {
-                console.error('Error sending fallback confirmation:', fallbackError.message);
-            }
         }
     } else if (msg.body === '!location') {
         // only latitude and longitude
@@ -911,222 +504,13 @@ client.on('message', async msg => {
         // NOTE: this action will take effect after you restart the client.
         const backgroundSync = await client.setBackgroundSync(true);
         console.log(backgroundSync);
-    } else if (msg.body === '!catalog') {
-        // Get and display the personal catalog with product images (business accounts only)
-        try {
-            // Wait a moment if context might be unstable
-            if (!client.info || !client.info.wid) {
-                msg.reply('Client not fully ready. Please try again in a moment.');
-                return;
-            }
-            
-            const myNumber = client.info.wid._serialized;
-            const catalog = await client.getCatalog(myNumber);
-            
-            if (catalog) {
-                const products = await catalog.getProducts();
-                const productPreview = await Promise.all(
-                    products.slice(0, 3).map(async p => `• ${p.name} - ${await p.getFormattedPrice()}`)
-                );
-                
-                // Send catalog info first
-                await msg.reply('*Catalog Info*\n' +
-                               `Type: ${catalog.isMe ? 'Personal' : 'External'}\n` +
-                               `Products: ${products.length}\n\n` +
-                               productPreview.join('\n') +
-                               (products.length > 3 ? `\n...and ${products.length - 3} more` : ''));
-                
-                // Send all products as native WhatsApp product messages
-                if (products.length > 0) {
-                    await msg.reply(`Sending ${products.length} products from catalog...`);
-                    
-                    let successCount = 0;
-                    let failureCount = 0;
-                    
-                    for (const product of products) {
-                        try {
-                            // Delay between messages to avoid rate limiting
-                            await new Promise(resolve => setTimeout(resolve, 500));
-                            
-                            const metadata = await product.getData();
-                            const formattedPrice = await product.getFormattedPrice();
-                            
-                            // Send product image with information
-                            try {
-                                if (metadata && metadata.imageCdnUrl) {
-                                    const { MessageMedia } = require('./index');
-                                    const media = await MessageMedia.fromUrl(metadata.imageCdnUrl);
-                                    
-                                    const caption = `*${product.name}*\n` +
-                                                  `Price: ${formattedPrice}\n` +
-                                                  `Description: ${metadata.description || 'No description available'}\n` +
-                                                  `Product ID: ${product.id}` +
-                                                  (metadata.url ? `\nURL: ${metadata.url}` : '');
-                                    
-                                    await client.sendMessage(msg.from, media, { caption });
-                                } else {
-                                    // If no image, send text message with product info
-                                    const productInfo = `*${product.name}*\n` +
-                                                       `Price: ${formattedPrice}\n` +
-                                                       `Description: ${metadata ? metadata.description || 'No description available' : 'No description available'}\n` +
-                                                       `Product ID: ${product.id}` +
-                                                       (metadata && metadata.url ? `\nURL: ${metadata.url}` : '');
-                                    
-                                    await client.sendMessage(msg.from, productInfo);
-                                }
-                            } catch (imageError) {
-                                console.error(`Error sending product image for ${product.name}:`, imageError.message);
-                                // Fallback to text message
-                                const productInfo = `*${product.name}*\n` +
-                                                   `Price: ${formattedPrice}\n` +
-                                                   `Description: ${metadata ? metadata.description || 'No description available' : 'No description available'}\n` +
-                                                   `Product ID: ${product.id}`;
-                                
-                                await client.sendMessage(msg.from, productInfo);
-                            }
-                            
-                            successCount++;
-                            
-                        } catch (productError) {
-                            console.error(`Error sending product ${product.name}:`, productError.message);
-                            failureCount++;
-                            
-                            // Fallback to image + caption if product message fails
-                            try {
-                                const metadata = await product.getData();
-                                if (metadata && metadata.imageCdnUrl) {
-                                    const { MessageMedia } = require('./index');
-                                    const media = await MessageMedia.fromUrl(metadata.imageCdnUrl);
-                                    const formattedPrice = await product.getFormattedPrice();
-                                    
-                                    await client.sendMessage(msg.from, media, {
-                                        caption: `*${product.name}*\nPrice: ${formattedPrice}\nDescription: ${metadata.description || 'No description available'}`
-                                    });
-                                    
-                                    successCount++;
-                                    failureCount--;
-                                    
-                                } else {
-                                    console.log(`Could not display product "${product.name}" - no image available`);
-                                }
-                            } catch (imgError) {
-                                console.error(`Error sending image for product ${product.name}:`, imgError.message);
-                            }
-                        }
-                    }
-                    
-                    // Summary message
-                    await msg.reply(`Catalog complete!\nSuccessfully sent: ${successCount} products${failureCount > 0 ? `\nFailed: ${failureCount} products` : ''}`);
-                    
-                } else {
-                    msg.reply('No products available to display.');
-                }
-            } else {
-                msg.reply('No catalog found. This feature is only available for business accounts.');
-            }
-        } catch (error) {
-            if (error.message.includes('Execution context was destroyed')) {
-                msg.reply('WhatsApp is still initializing. Please try again in a moment.');
-            } else {
-                msg.reply(`Error accessing catalog: ${error.message}`);
-            }
-            console.error('Catalog error:', error);
-        }
-    } else if (msg.body.startsWith('!catalogof ')) {
-        // Get catalog of a specific business number with product images
-        const businessNumber = msg.body.split(' ')[1];
-        const contactId = businessNumber.includes('@c.us') ? businessNumber : `${businessNumber}@c.us`;
-        
-        try {
-            const catalog = await client.getCatalog(contactId);
-            
-            if (catalog) {
-                const products = await catalog.getProducts();
-                const collections = await catalog.getCollections();
-                const productPreview = await Promise.all(
-                    products.slice(0, 3).map(async p => `• ${p.name} - ${await p.getFormattedPrice()}`)
-                );
-                
-                // Send catalog info first
-                await msg.reply('*External Catalog Info*\n' +
-                               `Business: ${contactId}\n` +
-                               `Products: ${products.length}\n` +
-                               `Collections: ${collections.length}\n\n` +
-                               productPreview.join('\n') +
-                               (products.length > 3 ? `\n...and ${products.length - 3} more` : ''));
-                
-                // Send product images (first 3 products with images)
-                const productsWithImages = products.slice(0, 3).filter(p => {
-                    const metadata = p.data;
-                    return metadata && metadata.imageCdnUrl && metadata.imageCdnUrl.trim() !== '';
-                });
-                
-                if (productsWithImages.length > 0) {
-                    msg.reply('External Catalog Images:');
-                    
-                    for (const product of productsWithImages) {
-                        try {
-                            const metadata = await product.getData();
-                            if (metadata && metadata.imageCdnUrl) {
-                                const { MessageMedia } = require('./index');
-                                const media = await MessageMedia.fromUrl(metadata.imageCdnUrl);
-                                const formattedPrice = await product.getFormattedPrice();
-                                
-                                await client.sendMessage(msg.from, media, {
-                                    caption: `*${product.name}*\nPrice: ${formattedPrice}\nDescription: ${metadata.description || 'No description available'}\nFrom: ${contactId}`
-                                });
-                            }
-                        } catch (imgError) {
-                            console.error(`Error sending image for product ${product.name}:`, imgError.message);
-                            msg.reply(`Could not load image for "${product.name}"`);
-                        }
-                    }
-                } else {
-                    msg.reply('No product images available to display.');
-                }
-            } else {
-                msg.reply('No catalog found for this business number.');
-            }
-        } catch (error) {
-            msg.reply(`Error accessing external catalog: ${error.message}`);
-        }
-    } else if (msg.body === '!collections') {
-        // Get and display collections from personal catalog
-        try {
-            const myNumber = client.info.wid._serialized;
-            const catalog = await client.getCatalog(myNumber);
-            
-            if (catalog) {
-                const collections = await catalog.getCollections();
-                
-                if (collections.length > 0) {
-                    const collectionInfo = await Promise.all(
-                        collections.slice(0, 5).map(async col => {
-                            const products = await col.getProducts();
-                            return `• ${col.name}: ${products.length} products`;
-                        })
-                    );
-                    
-                    msg.reply('*Catalog Collections*\n' +
-                             `Total: ${collections.length}\n\n` +
-                             collectionInfo.join('\n') +
-                             (collections.length > 5 ? `\n...and ${collections.length - 5} more` : ''));
-                } else {
-                    msg.reply('No collections found in catalog.');
-                }
-            } else {
-                msg.reply('No catalog found. This feature is only available for business accounts.');
-            }
-        } catch (error) {
-            msg.reply(`Error accessing collections: ${error.message}`);
-        }
     }
 });
 
 client.on('message_create', async (msg) => {
     // Fired on all message creations, including your own
     if (msg.fromMe) {
-        console.log(msg);
+        // do stuff here
     }
 
     // Unpins a message

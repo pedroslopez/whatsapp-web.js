@@ -96,8 +96,7 @@ exports.LoadUtils = () => {
                     forceDocument: options.sendMediaAsDocument,
                     forceMediaHd: options.sendMediaAsHd,
                     sendToChannel: isChannel
-                }
-            );
+                });
             mediaOptions.caption = options.caption;
             content = options.sendMediaAsSticker ? undefined : mediaOptions.preview;
             mediaOptions.isViewOnce = options.isViewOnce;
