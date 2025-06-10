@@ -63,6 +63,8 @@ exports.ExposeStore = () => {
     window.Store.SendMessage = window.require('WAWebSendMsgChatAction');
     window.Store.EditMessage = window.require('WAWebSendMessageEditAction');
     window.Store.SendSeen = window.require('WAWebUpdateUnreadChatAction');
+    window.Store.SendReceipt = window.require('WAWebSendReceiptJobCommon');
+    window.Store.MessageReceiptBatcher = window.require('WAWebMessageReceiptBatcher');
     window.Store.User = window.require('WAWebUserPrefsMeUser');
     window.Store.ContactMethods = window.require('WAWebContactGetters');
     window.Store.UserConstructor = window.require('WAWebWid');
