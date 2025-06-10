@@ -400,6 +400,23 @@ client.on('message', async msg => {
             Timestamp: ${quotedMsg.timestamp}
             Has Media? ${quotedMsg.hasMedia}
         `);
+    } else if (msg.body === '!resendmedia' && msg.hasQuotedMsg) {
+        const quotedMsg = await msg.getQuotedMessage();
+        if (quotedMsg.hasMedia) {
+            const attachmentData = await quotedMsg.downloadMedia();
+            client.sendMessage(msg.from, attachmentData, { caption: 'Here\'s your requested media.' });
+        }
+        // Handle audio specifically (only if not already handled above)
+        else if (quotedMsg.hasMedia && quotedMsg.type === 'audio') {
+            const audio = await quotedMsg.downloadMedia();
+            await client.sendMessage(msg.from, audio, { sendAudioAsVoice: true });
+        }
+    } else if (msg.body === '!isviewonce' && msg.hasQuotedMsg) {
+        const quotedMsg = await msg.getQuotedMessage();
+        if (quotedMsg.hasMedia) {
+            const media = await quotedMsg.downloadMedia();
+            await client.sendMessage(msg.from, media, { isViewOnce: true });
+        }
     } else if (msg.hasQuotedMsg) {
         try {
             const quotedMsg = await msg.getQuotedMessage();
@@ -420,7 +437,7 @@ client.on('message', async msg => {
                 const productDescription = quotedMsg.description || quotedMsg._data.description || '';
                 
                 // Build product info message
-                let productInfo = `*Product Information*\n\n`;
+                let productInfo = '*Product Information*\n\n';
                 productInfo += `*Name:* ${productTitle}\n`;
                 productInfo += `*Product ID:* ${productId}\n`;
                 
@@ -518,7 +535,7 @@ client.on('message', async msg => {
                     const order = await quotedMsg.getOrder();
                     
                     if (order && order.products && order.products.length > 0) {
-                        let orderInfo = `*Quoted Order Information*\n\n`;
+                        let orderInfo = '*Quoted Order Information*\n\n';
                         orderInfo += `*Order ID:* ${quotedMsg.orderId || 'N/A'}\n`;
                         orderInfo += `*Total:* ${order.total} ${order.currency}\n`;
                         orderInfo += `*Products (${order.products.length}):\n\n`;
@@ -594,14 +611,14 @@ client.on('message', async msg => {
                 }
 
                 // Send detailed confirmation message in English
-                const confirmationMessage = `Thank you for your order! Your products will be ready soon.\n\n` +
-                                           `*Order Details:*\n` +
+                const confirmationMessage = 'Thank you for your order! Your products will be ready soon.\n\n' +
+                                           '*Order Details:*\n' +
                                            `• Order ID: ${orderId}\n` +
                                            `• Business: ${orderTitle}\n` +
                                            `• Subtotal: ${subtotal} ${currency}\n` +
                                            `• Total: ${total} ${currency}` +
-                                           productList + `\n\n` +
-                                           `We will process your order and notify you when it's ready for pickup/delivery.`;
+                                           productList + '\n\n' +
+                                           'We will process your order and notify you when it\'s ready for pickup/delivery.';
 
                 await msg.reply(confirmationMessage);
                 console.log(`Detailed order confirmation sent for order ID: ${orderId} with ${order.products ? order.products.length : 'unknown'} products`);
@@ -615,11 +632,11 @@ client.on('message', async msg => {
                 const currency = msg._data.totalCurrencyCode || 'USD';
 
                 const confirmationMessage = `Thank you for your order! Your products from '${orderTitle}' will be ready soon.\n\n` +
-                                           `*Order Details:*\n` +
+                                           '*Order Details:*\n' +
                                            `• Order ID: ${orderId}\n` +
                                            `• Items: ${itemCount}\n` +
                                            `• Total: ${totalAmount} ${currency}\n\n` +
-                                           `We will process your order and notify you when it's ready for pickup/delivery.`;
+                                           'We will process your order and notify you when it\'s ready for pickup/delivery.';
 
                 await msg.reply(confirmationMessage);
                 console.log(`Basic order confirmation sent for order ID: ${orderId}`);
