@@ -88,7 +88,6 @@ exports.ExposeStore = () => {
     window.Store.WidToJid = window.require('WAWebWidToJid');
     window.Store.JidToWid = window.require('WAWebJidToWid');
     window.Store.getMsgInfo = window.require('WAWebApiMessageInfoStore').queryMsgInfo;
-    window.Store.pinUnpinMsg = window.require('WAWebSendPinMessageAction').sendPinInChatMsg;
     window.Store.QueryExist = window.require('WAWebQueryExistsJob').queryWidExists;
     window.Store.ReplyUtils = window.require('WAWebMsgReply');
     window.Store.BotSecret = window.require('WAWebBotMessageSecret');
@@ -98,6 +97,7 @@ exports.ExposeStore = () => {
     window.Store.HistorySync = window.require('WAWebSendNonMessageDataRequest');
     window.Store.AddonReactionTable = window.require('WAWebAddonReactionTableMode').reactionTableMode;
     window.Store.ChatGetters = window.require('WAWebChatGetters');
+    window.Store.PinnedMsgUtils = window.require('WAWebSendPinMessageAction');
     window.Store.UploadUtils = window.require('WAWebUploadManager');
     
     window.Store.Settings = {
