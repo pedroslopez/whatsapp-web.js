@@ -19,15 +19,18 @@ exports.LoadUtils = () => {
         if (chat !== undefined) {
             try {
                 // Check stream availability with correct properties
-                const streamAvailable = window.Store.Stream ?
-                    (window.Store.Stream.available !== false) :
+                const streamAvailable = window.Store.Stream ? 
+                    (window.Store.Stream.available !== false) : 
                     (window.Store.Conn && window.Store.Conn.state === 'CONNECTED');
-
+    
+                // First try basic sendSeen operation
+                const basicSeenResult = await window.Store.SendSeen.sendSeen(chat, false);
+    
                 // If stream is available, also try dual system
                 if (streamAvailable) {
                     // Implement dual pattern discovered: Promise.all([sendSeen, sendReceipt])
                     const additionalOperations = [];
-
+    
                     // 2. Delivery confirmation (receipt) - the missing part
                     if (window.Store.SendReceipt && window.Store.SendReceipt.sendAggregateReceipts) {
                         additionalOperations.push(
@@ -55,7 +58,7 @@ exports.LoadUtils = () => {
                             })
                         );
                     }
-
+    
                     // Execute additional operations if available
                     if (additionalOperations.length > 0) {
                         await Promise.all(additionalOperations).catch(err => {
@@ -64,12 +67,12 @@ exports.LoadUtils = () => {
                         });
                     }
                 }
-
+    
                 return true;
-
+    
             } catch (error) {
                 console.error('Error in sendSeen operation:', error);
-
+                
                 // Fallback: try basic operation only
                 try {
                     await window.Store.SendSeen.sendSeen(chat, false);
