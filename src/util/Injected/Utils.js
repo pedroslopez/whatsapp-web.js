@@ -24,7 +24,7 @@ exports.LoadUtils = () => {
                     (window.Store.Conn && window.Store.Conn.state === 'CONNECTED');
     
                 // First try basic sendSeen operation
-                const basicSeenResult = await window.Store.SendSeen.sendSeen(chat, false);
+                await window.Store.SendSeen.sendSeen(chat, false);
     
                 // If stream is available, also try dual system
                 if (streamAvailable) {
