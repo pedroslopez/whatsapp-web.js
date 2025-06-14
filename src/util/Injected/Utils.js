@@ -35,8 +35,11 @@ exports.LoadUtils = () => {
                     if (window.Store.SendReceipt && window.Store.SendReceipt.sendAggregateReceipts) {
                         additionalOperations.push(
                             window.Store.SendReceipt.sendAggregateReceipts({
+                                to: window.Store.WidFactory.createWid(chatId),
                                 type: window.Store.SendReceipt.RECEIPT_TYPE?.READ || 'read',
-                                chatId: chatId
+                                t: Math.floor(Date.now() / 1000),
+                                groupedReceipt: null,
+                                recipient: null
                             }).catch(err => {
                                 console.warn('SendReceipt operation failed:', err);
                                 return true; // Don't fail if only receipt fails
