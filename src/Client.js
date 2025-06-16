@@ -95,33 +95,39 @@ class Client extends EventEmitter {
      */
     async inject() {
         await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', { timeout: this.options.authTimeoutMs });
+        let hasReloaded = false;
+        const reloadHandler = async () => {
+            hasReloaded = true;
+        };
+        try {
+            this.pupPage.on('framenavigated', reloadHandler);
 
-        const version = await this.getWWebVersion();
-        const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
+            const version = await this.getWWebVersion();
+            const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
 
-        if (isCometOrAbove) {
-            await this.pupPage.evaluate(ExposeAuthStore);
-        } else {
-            await this.pupPage.evaluate(ExposeLegacyAuthStore, moduleRaid.toString());
-        }
-
-        const needAuthentication = await this.pupPage.evaluate(async () => {
-            let state = window.AuthStore.AppState.state;
-
-            if (state === 'OPENING' || state === 'UNLAUNCHED' || state === 'PAIRING') {
-                // wait till state changes
-                await new Promise(r => {
-                    window.AuthStore.AppState.on('change:state', function waitTillInit(_AppState, state) {
-                        if (state !== 'OPENING' && state !== 'UNLAUNCHED' && state !== 'PAIRING') {
-                            window.AuthStore.AppState.off('change:state', waitTillInit);
-                            r();
-                        }
-                    });
-                });
+            if (isCometOrAbove) {
+                await this.pupPage.evaluate(ExposeAuthStore);
+            } else {
+                await this.pupPage.evaluate(ExposeLegacyAuthStore, moduleRaid.toString());
             }
-            state = window.AuthStore.AppState.state;
-            return state == 'UNPAIRED' || state == 'UNPAIRED_IDLE';
-        });
+
+            const needAuthentication = await this.pupPage.evaluate(async () => {
+                let state = window.AuthStore.AppState.state;
+
+                if (state === 'OPENING' || state === 'UNLAUNCHED' || state === 'PAIRING') {
+                    // wait till state changes
+                    await new Promise(r => {
+                        window.AuthStore.AppState.on('change:state', function waitTillInit(_AppState, state) {
+                            if (state !== 'OPENING' && state !== 'UNLAUNCHED' && state !== 'PAIRING') {
+                                window.AuthStore.AppState.off('change:state', waitTillInit);
+                                r();
+                            }
+                        });
+                    });
+                }
+                state = window.AuthStore.AppState.state;
+                return state == 'UNPAIRED' || state == 'UNPAIRED_IDLE';
+            });
 
         if (needAuthentication) {
             const { failed, failureEventPayload, restart } = await this.authStrategy.onAuthenticationNeeded();
@@ -246,16 +252,23 @@ class Client extends EventEmitter {
             this.lastLoggedOut = true;
             await this.pupPage.waitForNavigation({ waitUntil: 'load', timeout: 5000 }).catch((_) => _);
         });
-        await this.pupPage.evaluate(() => {
-            window.AuthStore.AppState.on('change:state', (_AppState, state) => { window.onAuthAppStateChangedEvent(state); });
-            window.AuthStore.AppState.on('change:hasSynced', () => { window.onAppStateHasSyncedEvent(); });
-            window.AuthStore.Cmd.on('offline_progress_update', () => {
-                window.onOfflineProgressUpdateEvent(window.AuthStore.OfflineMessageHandler.getOfflineDeliveryProgress());
+            await this.pupPage.evaluate(() => {
+                window.AuthStore.AppState.on('change:state', (_AppState, state) => { window.onAuthAppStateChangedEvent(state); });
+                window.AuthStore.AppState.on('change:hasSynced', () => { window.onAppStateHasSyncedEvent(); });
+                window.AuthStore.Cmd.on('offline_progress_update', () => {
+                    window.onOfflineProgressUpdateEvent(window.AuthStore.OfflineMessageHandler.getOfflineDeliveryProgress());
+                });
+                window.AuthStore.Cmd.on('logout', async () => {
+                    await window.onLogoutEvent();
+                });
             });
-            window.AuthStore.Cmd.on('logout', async () => {
-                await window.onLogoutEvent();
-            });
-        });
+
+        } catch(err) {
+            if(!hasReloaded)
+                throw err;
+        } finally {
+            this.pupPage.off('framenavigated', reloadHandler);
+        }
     }
 
     /**
