@@ -364,6 +364,9 @@ class Client extends EventEmitter {
     async requestPairingCode(phoneNumber, showNotification = true, intervalMs = 180000) {
         return await this.pupPage.evaluate(async (phoneNumber, showNotification, intervalMs) => {
             const getCode = async () => {
+                while (!window.AuthStore.PairingCodeLinkUtils) {
+                    await new Promise(resolve => setTimeout(resolve, 250));
+                }
                 window.AuthStore.PairingCodeLinkUtils.setPairingType('ALT_DEVICE_LINKING');
                 await window.AuthStore.PairingCodeLinkUtils.initializeAltDeviceLinking();
                 return window.AuthStore.PairingCodeLinkUtils.startAltLinkingFlow(phoneNumber, showNotification);
