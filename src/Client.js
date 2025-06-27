@@ -985,11 +985,24 @@ class Client extends EventEmitter {
                 buffer: Buffer.from(stickerMedia.data, 'base64')
             }));
 
-            const sharp = require('sharp');
-            const thumbnailBuffer = await sharp(stickers[0].buffer)
-                .resize(64, 64, { fit: 'cover' })
-                .png()
-                .toBuffer();
+            let thumbnailBuffer;
+            if (options.stickerPackThumbnail) {
+                const thumbMedia = options.stickerPackThumbnail;
+                if (!(thumbMedia && typeof thumbMedia === 'object' && thumbMedia.data && thumbMedia.mimetype && thumbMedia.mimetype.startsWith('image/'))) {
+                    throw new Error('stickerPackThumbnail must be a MessageMedia instance with image data');
+                }
+                const sharp = require('sharp');
+                thumbnailBuffer = await sharp(Buffer.from(thumbMedia.data, 'base64'))
+                    .resize(64, 64, { fit: 'cover' })
+                    .png()
+                    .toBuffer();
+            } else {
+                const sharp = require('sharp');
+                thumbnailBuffer = await sharp(stickers[0].buffer)
+                    .resize(64, 64, { fit: 'cover' })
+                    .png()
+                    .toBuffer();
+            }
 
             const archiver = require('archiver');
             const zip = archiver('zip');

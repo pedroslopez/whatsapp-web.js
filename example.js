@@ -546,6 +546,20 @@ client.on('message', async msg => {
             stickerName: 'Sticker Name',
             stickerAuthor: 'Sticker Author',
         });
+    } else if (msg.body === '!packthumb') {
+        const medias = await Promise.all(
+            stickerExamples.map(url => MessageMedia.fromUrl(url, { unsafeMime: true }))
+        );
+        const thumbUrl = 'https://wwebjs.dev/images/logo.png';
+        const thumbMedia = await MessageMedia.fromUrl(thumbUrl, { unsafeMime: true });
+        await client.sendMessage(msg.from, medias, {
+            sendMediaAsStickerPack: true,
+            stickerPackName: 'Pack With Thumb',
+            stickerPackPublisher: 'Pack Publisher',
+            stickerName: 'Sticker Name',
+            stickerAuthor: 'Sticker Author',
+            stickerPackThumbnail: thumbMedia // Providing a custom thumbnail for the sticker pack
+        });
     }
 });
 
