@@ -991,17 +991,20 @@ class Client extends EventEmitter {
                 if (!(thumbMedia && typeof thumbMedia === 'object' && thumbMedia.data && thumbMedia.mimetype && thumbMedia.mimetype.startsWith('image/'))) {
                     throw new Error('stickerPackThumbnail must be a MessageMedia instance with image data');
                 }
-                const sharp = require('sharp');
-                thumbnailBuffer = await sharp(Buffer.from(thumbMedia.data, 'base64'))
-                    .resize(64, 64, { fit: 'cover' })
-                    .png()
-                    .toBuffer();
+                const dataUrl = await this.pupPage.evaluate(async (media) => {
+                    return await window.WWebJS.cropAndResizeImage(media, { asDataUrl: true, mimetype: 'image/png', size: 64 });
+                }, thumbMedia);
+                thumbnailBuffer = Buffer.from(dataUrl.split(',')[1], 'base64');
             } else {
-                const sharp = require('sharp');
-                thumbnailBuffer = await sharp(stickers[0].buffer)
-                    .resize(64, 64, { fit: 'cover' })
-                    .png()
-                    .toBuffer();
+                const stickerMedia = internalOptions.media[0];
+                const media = {
+                    mimetype: 'image/webp',
+                    data: stickerMedia.data || stickers[0].buffer.toString('base64')
+                };
+                const dataUrl = await this.pupPage.evaluate(async (media) => {
+                    return await window.WWebJS.cropAndResizeImage(media, { asDataUrl: true, mimetype: 'image/png', size: 64 });
+                }, media);
+                thumbnailBuffer = Buffer.from(dataUrl.split(',')[1], 'base64');
             }
 
             const archiver = require('archiver');
