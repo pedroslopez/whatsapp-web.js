@@ -78,3 +78,6 @@ typings/
 # IDE's
 .idea
 .vscode
+
+# Obfuscated code directory
+obfuscated/
