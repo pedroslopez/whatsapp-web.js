@@ -160,7 +160,7 @@ declare namespace WAWebJS {
          * @param showNotification - Show notification to pair on phone number
          * @returns {Promise<string>} - Returns a pairing code in format "ABCDEFGH"
          */
-        requestPairingCode(phoneNumber: string, showNotification = true): Promise<string>
+        requestPairingCode(phoneNumber: string, showNotification?: boolean): Promise<string>
 
         /** Force reset of connection state for the client */
         resetState(): Promise<void>
