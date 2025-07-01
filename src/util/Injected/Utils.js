@@ -317,7 +317,7 @@ exports.LoadUtils = () => {
             return null;
         };
 
-        return await waitForMsg(newMsgId._serialized);    
+        return await waitForMsg(newMsgKey._serialized);    
     };
 	
     window.WWebJS.editMessage = async (msg, content, options = {}) => {
