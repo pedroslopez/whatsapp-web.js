@@ -302,10 +302,22 @@ exports.LoadUtils = () => {
         }
 
         await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
-        await window.Store.HistorySync.sendPeerDataOperationRequest(3, {
-            chatId: chat.id
-        });
-        return window.Store.Msg.get(newMsgKey._serialized);
+
+        // await window.Store.HistorySync.sendPeerDataOperationRequest(3, {
+        //     chatId: chat.id
+        // });
+        // return window.Store.Msg.get(newMsgKey._serialized);
+        
+        const waitForMsg = async (msgId, attempts = 10, delay = 100) => {
+            for (let i = 0; i < attempts; i++) {
+                const msg = window.Store.Msg.get(msgId);
+                if (msg) return msg;
+                await new Promise(res => setTimeout(res, delay));
+            }
+            return null;
+        };
+
+        return await waitForMsg(newMsgId._serialized);    
     };
 	
     window.WWebJS.editMessage = async (msg, content, options = {}) => {
