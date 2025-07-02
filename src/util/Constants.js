@@ -111,6 +111,7 @@ exports.MessageTypes = {
     REACTION: 'reaction',
     TEMPLATE_BUTTON_REPLY: 'template_button_reply',
     POLL_CREATION: 'poll_creation',
+    SCHEDULED_EVENT_CREATION: 'scheduled_event_creation',
 };
 
 /**
