@@ -99,6 +99,9 @@ declare namespace WAWebJS {
         /** Get message by ID */
         getMessageById(messageId: string): Promise<Message>
 
+        /** Gets instances of all pinned messages in a chat */
+        getPinnedMessages(chatId: string): Promise<[Message]|[]>
+
         /** Get all current contact instances */
         getContacts(): Promise<Contact[]>
         
@@ -1572,6 +1575,8 @@ declare namespace WAWebJS {
         getLabels: () => Promise<Label[]>,
         /** Add or remove labels to this Chat */
         changeLabels: (labelIds: Array<string | number>) => Promise<void>
+        /** Gets instances of all pinned messages in a chat */
+        getPinnedMessages: () => Promise<[Message]|[]>
         /** Sync history conversation of the Chat */
         syncHistory: () => Promise<boolean>
     }
