@@ -184,9 +184,10 @@ class Chat extends Base {
 
     /**
      * Loads chat messages, sorted from earliest to latest.
-     * @param {Object} searchOptions Options for searching messages. Right now only limit and fromMe is supported.
+     * @param {Object} searchOptions Options for searching messages. Right now only limit and fromMe and since is supported.
      * @param {Number} [searchOptions.limit] The amount of messages to return. If no limit is specified, the available messages will be returned. Note that the actual number of returned messages may be smaller if there aren't enough messages in the conversation. Set this to Infinity to load all messages.
      * @param {Boolean} [searchOptions.fromMe] Return only messages from the bot number or vise versa. To get all messages, leave the option undefined.
+     * @param {Number} [searchOptions.since] Unix timestamp **in seconds**. Only messages with a timestamp `m.t` **greater than or equal** `since` will be returned.
      * @returns {Promise<Array<Message>>}
      */
     async fetchMessages(searchOptions) {
@@ -196,6 +197,9 @@ class Chat extends Base {
                     return false; // dont include notification messages
                 }
                 if (searchOptions && searchOptions.fromMe !== undefined && m.id.fromMe !== searchOptions.fromMe) {
+                    return false;
+                }
+                if (searchOptions && searchOptions.since !== undefined && Number.isFinite(searchOptions.since) && m.t <= searchOptions.since) {
                     return false;
                 }
                 return true;
