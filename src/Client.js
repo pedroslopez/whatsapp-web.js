@@ -38,6 +38,7 @@ const { exposeFunctionIfAbsent } = require('./util/Puppeteer');
  * @param {string} options.ffmpegPath - Ffmpeg path to use when formatting videos to webp while sending stickers 
  * @param {boolean} options.bypassCSP - Sets bypassing of page's Content-Security-Policy.
  * @param {object} options.proxyAuthentication - Proxy Authentication object.
+ * @param {boolean} options.autoClickModals - Automatically click buttons in modals that appear during initialization (default: true)
  * 
  * @fires Client#qr
  * @fires Client#authenticated
@@ -86,6 +87,9 @@ class Client extends EventEmitter {
 
         this.currentIndexHtml = null;
         this.lastLoggedOut = false;
+        
+        // Variable de control para evitar inyecciones concurrentes
+        this._isInjecting = false;
 
         Util.setFfmpegPath(this.options.ffmpegPath);
     }
@@ -94,40 +98,153 @@ class Client extends EventEmitter {
      * Private function
      */
     async inject() {
-        await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', { timeout: this.options.authTimeoutMs });
+        // Configurar estado de control de navegación ANTES de cualquier operación
         let hasReloaded = false;
+        let isInjecting = false;
+        
         const reloadHandler = async () => {
             hasReloaded = true;
         };
+        
+        // Función auxiliar para verificar si la página está en un estado válido
+        const isPageValid = async () => {
+            try {
+                await this.pupPage.evaluate(() => window.location.href);
+                return true;
+            } catch (err) {
+                return false;
+            }
+        };
+        
+        // Función auxiliar para esperar con timeout
+        const waitWithTimeout = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+        
         try {
+            // Evitar inyecciones concurrentes
+            if (this._isInjecting) {
+                console.warn('Injection already in progress, skipping...');
+                return;
+            }
+            this._isInjecting = true;
+            
+            // Configurar manejador de navegación INMEDIATAMENTE
             this.pupPage.on('framenavigated', reloadHandler);
-
+            
+            // Verificar que la página esté válida antes de continuar
+            if (!(await isPageValid())) {
+                throw new Error('Page context is not valid for injection');
+            }
+            
+            // Esperar con timeout robusto para Debug.VERSION
+            await this.pupPage.waitForFunction(
+                'window.Debug?.VERSION != undefined', 
+                { 
+                    timeout: this.options.authTimeoutMs,
+                    polling: 'raf' // Usar requestAnimationFrame para mejor rendimiento
+                }
+            );
+            
+            // Verificar navegación después de la espera inicial
+            if (hasReloaded) {
+                console.log('Page reloaded during initial wait, aborting injection');
+                return;
+            }
+            
+            // Delay estratégico para estabilidad
+            await waitWithTimeout(100);
+            
+            // Verificar contexto antes de obtener versión
+            if (!(await isPageValid())) {
+                throw new Error('Page context became invalid before getting version');
+            }
+            
             const version = await this.getWWebVersion();
             const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
-
-            if (isCometOrAbove) {
-                await this.pupPage.evaluate(ExposeAuthStore);
-            } else {
-                await this.pupPage.evaluate(ExposeLegacyAuthStore, moduleRaid.toString());
+            
+            // Verificar navegación después de obtener versión
+            if (hasReloaded) {
+                console.log('Page reloaded after getting version, aborting injection');
+                return;
             }
-
-            const needAuthentication = await this.pupPage.evaluate(async () => {
-                let state = window.AuthStore.AppState.state;
-
-                if (state === 'OPENING' || state === 'UNLAUNCHED' || state === 'PAIRING') {
-                    // wait till state changes
-                    await new Promise(r => {
-                        window.AuthStore.AppState.on('change:state', function waitTillInit(_AppState, state) {
-                            if (state !== 'OPENING' && state !== 'UNLAUNCHED' && state !== 'PAIRING') {
-                                window.AuthStore.AppState.off('change:state', waitTillInit);
-                                r();
-                            }
-                        });
-                    });
+            
+            // Inyección de AuthStore con verificación de contexto
+            if (isCometOrAbove) {
+                try {
+                    await this.pupPage.evaluate(ExposeAuthStore);
+                } catch (err) {
+                    if (err.message.includes('Execution context was destroyed')) {
+                        console.log('Context destroyed during ExposeAuthStore, aborting injection');
+                        return;
+                    }
+                    throw err;
                 }
-                state = window.AuthStore.AppState.state;
-                return state == 'UNPAIRED' || state == 'UNPAIRED_IDLE';
-            });
+            } else {
+                try {
+                    await this.pupPage.evaluate(ExposeLegacyAuthStore, moduleRaid.toString());
+                } catch (err) {
+                    if (err.message.includes('Execution context was destroyed')) {
+                        console.log('Context destroyed during ExposeLegacyAuthStore, aborting injection');
+                        return;
+                    }
+                    throw err;
+                }
+            }
+            
+            // Verificar navegación después de inyección de AuthStore
+            if (hasReloaded) {
+                console.log('Page reloaded after AuthStore injection, aborting injection');
+                return;
+            }
+            
+            // Delay adicional para estabilidad del AuthStore
+            await waitWithTimeout(200);
+            
+            // Verificar autenticación con manejo robusto de errores
+            let needAuthentication;
+            try {
+                needAuthentication = await this.pupPage.evaluate(async () => {
+                    // Verificar que AuthStore esté disponible
+                    if (!window.AuthStore || !window.AuthStore.AppState) {
+                        throw new Error('AuthStore not available');
+                    }
+                    
+                    let state = window.AuthStore.AppState.state;
+
+                    if (state === 'OPENING' || state === 'UNLAUNCHED' || state === 'PAIRING') {
+                        // wait till state changes con timeout
+                        await new Promise((resolve, reject) => {
+                            const timeout = setTimeout(() => {
+                                window.AuthStore.AppState.off('change:state', waitTillInit);
+                                reject(new Error('Timeout waiting for state change'));
+                            }, 30000); // 30 segundo timeout
+                            
+                            function waitTillInit(_AppState, state) {
+                                if (state !== 'OPENING' && state !== 'UNLAUNCHED' && state !== 'PAIRING') {
+                                    clearTimeout(timeout);
+                                    window.AuthStore.AppState.off('change:state', waitTillInit);
+                                    resolve();
+                                }
+                            }
+                            
+                            window.AuthStore.AppState.on('change:state', waitTillInit);
+                        });
+                    }
+                    state = window.AuthStore.AppState.state;
+                    return state == 'UNPAIRED' || state == 'UNPAIRED_IDLE';
+                });
+            } catch (err) {
+                if (err.message.includes('Execution context was destroyed')) {
+                    console.log('Context destroyed during authentication check, aborting injection');
+                    return;
+                }
+                throw err;
+            }
+            
+            // Verificar navegación después de verificar autenticación
+            if (hasReloaded) {
+                console.log('Page reloaded after authentication check, aborting injection');
+                return;
+            }
 
         if (needAuthentication) {
             const { failed, failureEventPayload, restart } = await this.authStrategy.onAuthenticationNeeded();
@@ -165,25 +282,43 @@ class Client extends EventEmitter {
                 }
             });
 
+            // Verificar navegación antes de configurar QR
+            if (hasReloaded) {
+                console.log('Page reloaded before QR setup, aborting injection');
+                return;
+            }
 
-            await this.pupPage.evaluate(async () => {
-                const registrationInfo = await window.AuthStore.RegistrationUtils.waSignalStore.getRegistrationInfo();
-                const noiseKeyPair = await window.AuthStore.RegistrationUtils.waNoiseInfo.get();
-                const staticKeyB64 = window.AuthStore.Base64Tools.encodeB64(noiseKeyPair.staticKeyPair.pubKey);
-                const identityKeyB64 = window.AuthStore.Base64Tools.encodeB64(registrationInfo.identityKeyPair.pubKey);
-                const advSecretKey = await window.AuthStore.RegistrationUtils.getADVSecretKey();
-                const platform = window.AuthStore.RegistrationUtils.DEVICE_PLATFORM;
-                const getQR = (ref) => ref + ',' + staticKeyB64 + ',' + identityKeyB64 + ',' + advSecretKey + ',' + platform;
+            try {
+                await this.pupPage.evaluate(async () => {
+                    const registrationInfo = await window.AuthStore.RegistrationUtils.waSignalStore.getRegistrationInfo();
+                    const noiseKeyPair = await window.AuthStore.RegistrationUtils.waNoiseInfo.get();
+                    const staticKeyB64 = window.AuthStore.Base64Tools.encodeB64(noiseKeyPair.staticKeyPair.pubKey);
+                    const identityKeyB64 = window.AuthStore.Base64Tools.encodeB64(registrationInfo.identityKeyPair.pubKey);
+                    const advSecretKey = await window.AuthStore.RegistrationUtils.getADVSecretKey();
+                    const platform = window.AuthStore.RegistrationUtils.DEVICE_PLATFORM;
+                    const getQR = (ref) => ref + ',' + staticKeyB64 + ',' + identityKeyB64 + ',' + advSecretKey + ',' + platform;
 
-                window.onQRChangedEvent(getQR(window.AuthStore.Conn.ref)); // initial qr
-                window.AuthStore.Conn.on('change:ref', (_, ref) => { window.onQRChangedEvent(getQR(ref)); }); // future QR changes
-            });
+                    window.onQRChangedEvent(getQR(window.AuthStore.Conn.ref)); // initial qr
+                    window.AuthStore.Conn.on('change:ref', (_, ref) => { window.onQRChangedEvent(getQR(ref)); }); // future QR changes
+                });
+            } catch (err) {
+                if (err.message.includes('Execution context was destroyed')) {
+                    console.log('Context destroyed during QR setup, aborting injection');
+                    return;
+                }
+                throw err;
+            }
         }
 
+        // Configurar event handlers con verificaciones de contexto
         await exposeFunctionIfAbsent(this.pupPage, 'onAuthAppStateChangedEvent', async (state) => {
             if (state == 'UNPAIRED_IDLE') {
                 // refresh qr code
-                window.Store.Cmd.refreshQR();
+                try {
+                    await window.Store.Cmd.refreshQR();
+                } catch (err) {
+                    console.warn('Failed to refresh QR:', err.message);
+                }
             }
         });
 
@@ -234,6 +369,10 @@ class Client extends EventEmitter {
 
                 await this.attachEventListeners();
             }
+            
+            // Verificar y manejar modales/botones que requieren interacción
+            await this._handleModalButtons();
+            
             /**
                  * Emitted when the client has initialized and is ready to receive messages.
                  * @event Client#ready
@@ -241,6 +380,7 @@ class Client extends EventEmitter {
             this.emit(Events.READY);
             this.authStrategy.afterAuthReady();
         });
+        
         let lastPercent = null;
         await exposeFunctionIfAbsent(this.pupPage, 'onOfflineProgressUpdateEvent', async (percent) => {
             if (lastPercent !== percent) {
@@ -248,10 +388,19 @@ class Client extends EventEmitter {
                 this.emit(Events.LOADING_SCREEN, percent, 'WhatsApp'); // Message is hardcoded as "WhatsApp" for now
             }
         });
+        
         await exposeFunctionIfAbsent(this.pupPage, 'onLogoutEvent', async () => {
             this.lastLoggedOut = true;
             await this.pupPage.waitForNavigation({ waitUntil: 'load', timeout: 5000 }).catch((_) => _);
         });
+        
+        // Verificar navegación antes de configurar listeners finales
+        if (hasReloaded) {
+            console.log('Page reloaded before final setup, aborting injection');
+            return;
+        }
+        
+        try {
             await this.pupPage.evaluate(() => {
                 window.AuthStore.AppState.on('change:state', (_AppState, state) => { window.onAuthAppStateChangedEvent(state); });
                 window.AuthStore.AppState.on('change:hasSynced', () => { window.onAppStateHasSyncedEvent(); });
@@ -262,12 +411,138 @@ class Client extends EventEmitter {
                     await window.onLogoutEvent();
                 });
             });
+        } catch (err) {
+            if (err.message.includes('Execution context was destroyed')) {
+                console.log('Context destroyed during final setup, aborting injection');
+                return;
+            }
+            throw err;
+        }
 
         } catch(err) {
-            if(!hasReloaded)
+            // Verificar si el error es debido a navegación
+            if (err.message && err.message.includes('Execution context was destroyed')) {
+                console.log('Injection aborted due to navigation:', err.message);
+                return; // Salir silenciosamente, la navegación manejará la reinyección
+            }
+            
+            if(!hasReloaded) {
+                console.error('Injection failed with error:', err);
                 throw err;
+            } else {
+                console.log('Injection failed due to page reload, will retry on next navigation');
+            }
         } finally {
+            // Limpiar manejador de eventos y estado
             this.pupPage.off('framenavigated', reloadHandler);
+            this._isInjecting = false;
+        }
+    }
+
+    /**
+     * Maneja automáticamente modales y botones que aparecen durante la inicialización
+     * @private
+     */
+    async _handleModalButtons() {
+        // Verificar si la funcionalidad está habilitada
+        if (!this.options.autoClickModals) {
+            console.log('Auto-click modals is disabled, skipping modal detection');
+            return;
+        }
+        
+        try {
+            console.log('Checking for modal buttons...');
+            
+            // Esperar un momento para que los modales aparezcan
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Buscar y hacer clic en botones de modales comunes
+            const buttonClicked = await this.pupPage.evaluate(async () => {
+                // Función auxiliar para esperar
+                const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+                
+                // Lista de selectores comunes para botones en modales
+                const buttonSelectors = [
+                    'button',  // Selector básico proporcionado por el usuario
+                    '[data-testid="popup-controls-ok"]',
+                    '[data-testid="modal-action-button"]',
+                    'button[data-testid*="ok"]',
+                    'button[data-testid*="confirm"]',
+                    'button[data-testid*="continue"]',
+                    'button[data-testid*="accept"]',
+                    'div[role="button"]',
+                    '.popup-controls button',
+                    '[aria-label*="Continuar"]',
+                    '[aria-label*="Aceptar"]',
+                    '[aria-label*="OK"]',
+                    '[aria-label*="Continue"]',
+                    '[aria-label*="Accept"]'
+                ];
+                
+                let clickedButton = null;
+                
+                // Intentar con cada selector
+                for (const selector of buttonSelectors) {
+                    try {
+                        const buttons = document.querySelectorAll(selector);
+                        
+                        for (const button of buttons) {
+                            // Verificar si el botón es visible y clickeable
+                            const rect = button.getBoundingClientRect();
+                            const isVisible = rect.width > 0 && rect.height > 0;
+                            const isDisplayed = window.getComputedStyle(button).display !== 'none';
+                            const isVisibilityVisible = window.getComputedStyle(button).visibility !== 'hidden';
+                            
+                            if (isVisible && isDisplayed && isVisibilityVisible) {
+                                // Verificar si el botón está en un modal/popup
+                                let isInModal = false;
+                                let parent = button.parentElement;
+                                while (parent && parent !== document.body) {
+                                    const styles = window.getComputedStyle(parent);
+                                    const classList = parent.classList.toString().toLowerCase();
+                                    
+                                    // Detectar características de modal
+                                    if (styles.position === 'fixed' || 
+                                        styles.position === 'absolute' ||
+                                        classList.includes('modal') ||
+                                        classList.includes('popup') ||
+                                        classList.includes('dialog') ||
+                                        parent.getAttribute('role') === 'dialog') {
+                                        isInModal = true;
+                                        break;
+                                    }
+                                    parent = parent.parentElement;
+                                }
+                                
+                                if (isInModal) {
+                                    console.log(`Clicking button with selector: ${selector}`, button);
+                                    button.click();
+                                    clickedButton = selector;
+                                    await wait(500); // Esperar después del clic
+                                    return clickedButton;
+                                }
+                            }
+                        }
+                    } catch (error) {
+                        // Continuar con el siguiente selector si este falla
+                        console.warn(`Error with selector ${selector}:`, error.message);
+                    }
+                }
+                
+                return clickedButton;
+            });
+            
+            if (buttonClicked) {
+                console.log(`✅ Modal button clicked successfully using selector: ${buttonClicked}`);
+                // Esperar un momento adicional para que el modal se cierre
+                await new Promise(resolve => setTimeout(resolve, 1500));
+            } else {
+                console.log('No modal buttons found or no action needed');
+            }
+            
+        } catch (error) {
+            console.warn('Error handling modal buttons:', error.message);
+            // No lanzar el error, solo advertir ya que esto no es crítico
         }
     }
 
@@ -343,6 +618,13 @@ class Client extends EventEmitter {
         await this.inject();
 
         this.pupPage.on('framenavigated', async (frame) => {
+            // Evitar múltiples inyecciones concurrentes
+            if (this._isInjecting) {
+                console.log('Injection already in progress, skipping framenavigated handler');
+                return;
+            }
+            
+            // Verificar si es una navegación de logout
             if (frame.url().includes('post_logout=1') || this.lastLoggedOut) {
                 this.emit(Events.DISCONNECTED, 'LOGOUT');
                 await this.authStrategy.logout();
@@ -350,7 +632,27 @@ class Client extends EventEmitter {
                 await this.authStrategy.afterBrowserInitialized();
                 this.lastLoggedOut = false;
             }
-            await this.inject();
+            
+            // Pequeño delay para permitir que la página se estabilice
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Verificar que la página esté en un estado válido antes de reinyectar
+            try {
+                await this.pupPage.evaluate(() => window.location.href);
+                console.log('Page navigated, re-injecting...');
+                await this.inject();
+            } catch (err) {
+                console.warn('Failed to re-inject after navigation:', err.message);
+                // Intentar reinicializar si la inyección falla completamente
+                setTimeout(() => {
+                    if (!this._isInjecting) {
+                        console.log('Attempting delayed re-injection...');
+                        this.inject().catch(error => {
+                            console.error('Delayed re-injection failed:', error.message);
+                        });
+                    }
+                }, 2000);
+            }
         });
     }
 
@@ -793,8 +1095,50 @@ class Client extends EventEmitter {
      * Closes the client
      */
     async destroy() {
-        await this.pupBrowser.close();
-        await this.authStrategy.destroy();
+        try {
+            // Asegurar que la inyección se haya completado antes del cierre
+            let attempts = 0;
+            while (this._isInjecting && attempts < 50) { // Máximo 5 segundos
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+            
+            if (this.pupBrowser && this.pupBrowser.isConnected()) {
+                // Cerrar todas las páginas primero
+                const pages = await this.pupBrowser.pages();
+                await Promise.all(pages.map(page => 
+                    page.close().catch(err => 
+                        console.warn('Failed to close page:', err.message)
+                    )
+                ));
+                
+                // Esperar un momento para que las páginas se cierren completamente
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Cerrar el navegador
+                await this.pupBrowser.close();
+                
+                // Verificar que el navegador se haya cerrado
+                let maxWait = 30; // 3 segundos máximo
+                while (this.pupBrowser.isConnected() && maxWait > 0) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    maxWait--;
+                }
+                
+                if (this.pupBrowser.isConnected()) {
+                    console.warn('Browser did not close gracefully, forcing close...');
+                }
+            }
+        } catch (error) {
+            console.warn('Error during browser cleanup:', error.message);
+        }
+        
+        // Limpiar estrategia de autenticación
+        try {
+            await this.authStrategy.destroy();
+        } catch (error) {
+            console.warn('Error during auth strategy cleanup:', error.message);
+        }
     }
 
     /**
