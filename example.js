@@ -3,14 +3,36 @@ const { Client, Location, Poll, List, Buttons, LocalAuth } = require('./index');
 const client = new Client({
     authStrategy: new LocalAuth(),
     // proxyAuthentication: { username: 'username', password: 'password' },
-    puppeteer: { 
+    puppeteer: {
         // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
         headless: false,
-    }
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+    },
+    // Timeout más generoso para depuración
+    authTimeoutMs: 60000,
+    // Hacer clic automáticamente en modales durante la inicialización (por defecto: true)
+    // Cambia a false si prefieres manejar manualmente los modales
+    autoClickModals: true
 });
 
 // client initialize does not finish at ready now.
-client.initialize();
+async function start() {
+    try {
+        console.log('Initializing WhatsApp Web client...');
+        await client.initialize();
+        console.log('Client initialized successfully!');
+    } catch (error) {
+        console.error('Failed to initialize client:', error);
+        
+        // Intentar reinicializar después de un delay
+        console.log('Attempting to restart in 5 seconds...');
+        setTimeout(() => {
+            start();
+        }, 5000);
+    }
+}
+
+start();
 
 client.on('loading_screen', (percent, message) => {
     console.log('LOADING SCREEN', percent, message);
@@ -510,7 +532,15 @@ client.on('message', async msg => {
 client.on('message_create', async (msg) => {
     // Fired on all message creations, including your own
     if (msg.fromMe) {
-        // do stuff here
+        // Ignore messages from the bot itself
+        return;
+    }
+
+    console.log('MESSAGE CREATED', msg.body);
+
+    if (msg.body === '!ping') {
+        // Send a pong reply to the same chat
+        client.sendMessage(msg.from, 'pong');
     }
 
     // Unpins a message
@@ -596,78 +626,56 @@ client.on('disconnected', (reason) => {
 });
 
 client.on('contact_changed', async (message, oldId, newId, isContact) => {
-    /** The time the event occurred. */
-    const eventTime = (new Date(message.timestamp * 1000)).toLocaleString();
+    /** The time the contact or group participant changed their phone number. */
 
-    console.log(
-        `The contact ${oldId.slice(0, -5)}` +
-        `${!isContact ? ' that participates in group ' +
-            `${(await client.getChatById(message.to ?? message.from)).name} ` : ' '}` +
-        `changed their phone number\nat ${eventTime}.\n` +
-        `Their new phone number is ${newId.slice(0, -5)}.\n`);
+    /** The contact or group participant that changed their phone number. */
+    const contact = await message.getContact();
+    console.log(`Phone number changed for ${contact.name || contact.pushname}. Old number: ${oldId.user}. New number: ${newId.user}.`);
 
-    /**
-     * Information about the @param {message}:
-     * 
-     * 1. If a notification was emitted due to a group participant changing their phone number:
-     * @param {message.author} is a participant's id before the change.
-     * @param {message.recipients[0]} is a participant's id after the change (a new one).
-     * 
-     * 1.1 If the contact who changed their number WAS in the current user's contact list at the time of the change:
-     * @param {message.to} is a group chat id the event was emitted in.
-     * @param {message.from} is a current user's id that got an notification message in the group.
-     * Also the @param {message.fromMe} is TRUE.
-     * 
-     * 1.2 Otherwise:
-     * @param {message.from} is a group chat id the event was emitted in.
-     * @param {message.to} is @type {undefined}.
-     * Also @param {message.fromMe} is FALSE.
-     * 
-     * 2. If a notification was emitted due to a contact changing their phone number:
-     * @param {message.templateParams} is an array of two user's ids:
-     * the old (before the change) and a new one, stored in alphabetical order.
-     * @param {message.from} is a current user's id that has a chat with a user,
-     * whos phone number was changed.
-     * @param {message.to} is a user's id (after the change), the current user has a chat with.
-     */
+    /** The chat or group where the phone number change occurred. */
+    const chat = await message.getChat();
+    console.log(`This change occurred at ${chat.name || chat.id.user}.`);
+
+    /** The old, changed phone number. */
+    console.log(`${oldId.user}`);
+
+    /** The new phone number. */
+    console.log(`${newId.user}`);
+
+    /** Determines whether a contact or a group participant changed their phone number. */
+    console.log(`Is contact? ${isContact}`);
 });
 
 client.on('group_admin_changed', (notification) => {
     if (notification.type === 'promote') {
         /** 
-          * Emitted when a current user is promoted to an admin.
-          * {@link notification.author} is a user who performs the action of promoting/demoting the current user.
-          */
-        console.log(`You were promoted by ${notification.author}`);
+            * Emitted when a current user is promoted to an admin.
+            * {@link notification.author} is a user whos running the {@link Client}.
+            * {@link notification.recipients} is a [] of users who got an admin access.
+        */
     } else if (notification.type === 'demote')
-        /** Emitted when a current user is demoted to a regular user. */
-        console.log(`You were demoted by ${notification.author}`);
+        /** 
+            * Emitted when a current user is demoted to a regular user.
+            * {@link notification.author} is a user whos running the {@link Client}.
+            * {@link notification.recipients} is a [] of users who lost an admin access.
+        */
+    console.log(notification);
 });
 
 client.on('group_membership_request', async (notification) => {
     /**
-     * The example of the {@link notification} output:
-     * {
-     *     id: {
-     *         fromMe: false,
-     *         remote: 'groupId@g.us',
-     *         id: '123123123132132132',
-     *         participant: 'number@c.us',
-     *         _serialized: 'false_groupId@g.us_123123123132132132_number@c.us'
-     *     },
-     *     body: '',
-     *     type: 'created_membership_requests',
-     *     timestamp: 1694456538,
-     *     chatId: 'groupId@g.us',
-     *     author: 'number@c.us',
-     *     recipientIds: []
-     * }
-     *
+     * When notification.id.fromMe is true, it means the current user sent a membership request.
+     * When notification.id.fromMe is false, it means that someone else sent a membership request.
      */
-    console.log(notification);
-    /** You can approve or reject the newly appeared membership request: */
-    await client.approveGroupMembershipRequestss(notification.chatId, notification.author);
-    await client.rejectGroupMembershipRequests(notification.chatId, notification.author);
+    console.log(notification.id.fromMe ? 'You sent a group membership request' : 'Someone sent a group membership request');
+    console.log(notification.chatId); // => the group id, can be used to fetch the group.
+    console.log(notification.author); // => the user who sent a group membership request.
+    console.log(notification.timestamp); // => the timestamp when the request was sent.
+    if (notification.id.fromMe) {
+        console.log('IM TRYING TO JOIN A GROUP');
+    } else {
+        console.log('SOMEONE TRYING TO JOIN MY GROUP');
+    }
 });
 
 client.on('message_reaction', async (reaction) => {
@@ -677,4 +685,29 @@ client.on('message_reaction', async (reaction) => {
 client.on('vote_update', (vote) => {
     /** The vote that was affected: */
     console.log(vote);
+});
+
+// Manejo mejorado de errores
+process.on('unhandledRejection', (reason, promise) => {
+    // Filtrar errores específicos de archivos bloqueados en Windows
+    if (reason && reason.message && reason.message.includes('EBUSY: resource busy or locked')) {
+        console.warn('\n⚠️  WARNING: Session cleanup incomplete due to Windows file locks');
+        console.warn('This is normal on Windows and will not affect functionality.');
+        console.warn('Files will be cleaned up automatically on next session start.\n');
+        return;
+    }
+    
+    // Para otros errores no manejados, mostrar información completa
+    console.error('\n❌ Unhandled Promise Rejection:');
+    console.error('Promise:', promise);
+    console.error('Reason:', reason);
+    console.error('Stack:', reason?.stack || 'No stack trace available');
+    console.error('\n');
+});
+
+process.on('uncaughtException', (error) => {
+    console.error('\n💥 Uncaught Exception:', error);
+    console.error('Stack:', error.stack);
+    console.error('\n');
+    // No terminar el proceso inmediatamente para permitir recovery
 });
