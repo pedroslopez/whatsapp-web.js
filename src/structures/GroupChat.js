@@ -190,6 +190,9 @@ class GroupChat extends Chat {
      * @returns {Promise<{ status: number }>}
      */
     async removeParticipants(participantIds) {
+        const participants = this.participants.filter(p => participantIds.includes(p.id._serialized));
+        participantIds = participants.map(p => p.lid._serialized);
+        
         return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
             const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             const participants = participantIds.map(p => {
