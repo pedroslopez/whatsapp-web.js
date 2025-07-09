@@ -893,6 +893,11 @@ class Client extends EventEmitter {
         }
     
         if (options.mentions) {
+            const group = await this.getChatById(chatId);
+            const participants = options.mentions.map(mention => {
+                return group.participants.find(participant => participant.id._serialized === mention);
+            });
+            options.mentions = participants.map(participant => participant.lid._serialized);
             !Array.isArray(options.mentions) && (options.mentions = [options.mentions]);
             if (options.mentions.some((possiblyContact) => possiblyContact instanceof Contact)) {
                 console.warn('Mentions with an array of Contact are now deprecated. See more at https://github.com/pedroslopez/whatsapp-web.js/pull/2166.');
@@ -1177,6 +1182,19 @@ class Client extends EventEmitter {
                         const contactId = await this.getOriginalContactIdByLid(item);
                         if (contactId) {
                             msg.recipients[index] = contactId;
+                        }
+                    }
+                })
+            );
+        }
+
+        if (msg.mentionedJidList?.length) {
+            await Promise.all(
+                msg.mentionedJidList.map(async (item, index) => {
+                    if (item.endsWith('@lid')) {
+                        const contactId = await this.getOriginalContactIdByLid(item);
+                        if (contactId) {
+                            msg.mentionedJidList[index] = contactId;
                         }
                     }
                 })
