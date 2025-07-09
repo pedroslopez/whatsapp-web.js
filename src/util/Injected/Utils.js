@@ -559,10 +559,20 @@ exports.LoadUtils = () => {
         };
     };
 
-    window.WWebJS.getChats = async () => {
-        const chats = window.Store.Chat.getModelsArray();
-        const chatPromises = chats.map(chat => window.WWebJS.getChatModel(chat));
-        return await Promise.all(chatPromises);
+    window.WWebJS.getChats = async (options = {}) => {
+        const { since } = options;
+        
+        const allChats = window.Store.Chat.getModelsArray();
+
+        const isValidSince = Number.isFinite(since) && since > 0;
+
+        const filteredChats = isValidSince
+            ? allChats.filter(chat => chat.t >= since)
+            : allChats;
+
+        return await Promise.all(
+            filteredChats.map(chat => window.WWebJS.getChatModel(chat))
+        );
     };
 
     window.WWebJS.getChannels = async () => {
