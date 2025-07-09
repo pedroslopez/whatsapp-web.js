@@ -19,6 +19,8 @@ const { Broadcast, Buttons, Call, ClientInfo, Contact, GroupNotification, Label,
 const NoAuth = require('./authStrategies/NoAuth');
 const {exposeFunctionIfAbsent} = require('./util/Puppeteer');
 
+const lidHash = {};
+
 /**
  * Starting point for interacting with the WhatsApp Web API
  * @extends {EventEmitter}
@@ -60,6 +62,7 @@ const {exposeFunctionIfAbsent} = require('./util/Puppeteer');
  * @fires Client#group_membership_request
  * @fires Client#vote_update
  */
+
 class Client extends EventEmitter {
     constructor(options = {}) {
         super();
@@ -1102,8 +1105,21 @@ class Client extends EventEmitter {
         let contacts = await this.pupPage.evaluate(() => {
             return window.WWebJS.getContacts();
         });
+        const contactIds = Array.from(new Set(await Promise.all(contacts.map(async contact => {
+            const contactId = contact.id._serialized;
+            if (contactId.endsWith('@lid')) {
+                const newContactId = await this.getOriginalContactIdByLid(contactId);
+                return newContactId;
+            }
+            return contactId;
+        }))));
 
-        return contacts.map(contact => ContactFactory.create(this, contact));
+        const filteredContacts = await Promise.all(contactIds.map(async contactId => {
+            const contact = await this.getContactById(contactId);
+            return contact;
+        }));
+        
+        return filteredContacts.map(contact => ContactFactory.create(this, contact));
     }
 
     /**
@@ -1120,42 +1136,37 @@ class Client extends EventEmitter {
     }
 
     async getOriginalContactIdByLid(lid) {
+        if (lidHash[lid]) {
+            return lidHash[lid];
+        }
+
         let contact = await this.getContactById(lid);
+        console.log('getOriginalContactIdByLid', lid, contact?.id._serialized);
+
+        lidHash[lid] = contact?.id._serialized;
+
         return contact?.id._serialized;
     }
 
     async fixMessageLid(msg) {
-        const lidHash = {};
-
         if (msg.id.participant && msg.id.participant.endsWith('@lid')) {
             const contactId = await this.getOriginalContactIdByLid(msg.id.participant);
             if (contactId) {
-                lidHash[msg.id.participant] = contactId;
                 msg.id.participant = contactId;
             }
         }
 
         if (msg.from && msg.from.endsWith('@lid')) {
-            if (lidHash[msg.from]) {
-                msg.from = lidHash[msg.from];
-            } else {
-                const contactId = await this.getOriginalContactIdByLid(msg.from);
-                if (contactId) {
-                    lidHash[msg.from] = contactId;
-                    msg.from = contactId;
-                }
+            const contactId = await this.getOriginalContactIdByLid(msg.from);
+            if (contactId) {
+                msg.from = contactId;
             }
         }
 
         if (msg.author && msg.author.endsWith('@lid')) {
-            if (lidHash[msg.author]) {
-                msg.author = lidHash[msg.author];
-            } else {
-                const contactId = await this.getOriginalContactIdByLid(msg.author);
-                if (contactId) {
-                    lidHash[msg.author] = contactId;
-                    msg.author = contactId;
-                }
+            const contactId = await this.getOriginalContactIdByLid(msg.author);
+            if (contactId) {
+                msg.author = contactId;
             }
         }
         
@@ -1163,14 +1174,9 @@ class Client extends EventEmitter {
             await Promise.all(
                 msg.recipients.map(async (item, index) => {
                     if (item.endsWith('@lid')) {
-                        if (lidHash[item]) {
-                            msg.recipients[index] = lidHash[item];
-                        } else {
-                            const contactId = await this.getOriginalContactIdByLid(item);
-                            if (contactId) {
-                                lidHash[item] = contactId;
-                                msg.recipients[index] = contactId;
-                            }
+                        const contactId = await this.getOriginalContactIdByLid(item);
+                        if (contactId) {
+                            msg.recipients[index] = contactId;
                         }
                     }
                 })
