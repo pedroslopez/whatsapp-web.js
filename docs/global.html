@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.30.0 &raquo; Globals</title>
+  <title>whatsapp-web.js 1.31.1-alpha.0 &raquo; Globals</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>30.<wbr>0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>31.<wbr>1-alpha.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -148,9 +148,6 @@
                     <dt><a href="global.html#MembershipRequestActionResult">MembershipRequestActionResult</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="global.html#Mention">Mention</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="global.html#MessageInfo">MessageInfo</a></dt>
                     <dd>
                     </dd>
@@ -160,13 +157,13 @@
                     <dt><a href="global.html#MessageSendOptions">MessageSendOptions</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="global.html#ParticipantResult">ParticipantResult</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="global.html#ParticipantResult">ParticipantResult</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="global.html#PollSendOptions">PollSendOptions</a></dt>
                     <dd>
                     </dd>
@@ -2684,65 +2681,13 @@
                         <p>groupJid</p>
                       </td>
                       <td>
-                        <p>Object</p>
+                        <p>string</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
                         <p>The group ID</p>
-                        <p>Values in <code>groupJid</code> have the following properties:</p>
-                        <table class="jsdoc-details-table">
-                          <thead>
-                            <tr>
-                              <th>Name</th>
-                              <th>Type</th>
-                              <th>Optional</th>
-                              <th>Description</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <td>
-                                <p>server</p>
-                              </td>
-                              <td>
-                                <p>string</p>
-                              </td>
-                              <td>
-                                <p>&nbsp;</p>
-                              </td>
-                              <td>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <p>user</p>
-                              </td>
-                              <td>
-                                <p>string</p>
-                              </td>
-                              <td>
-                                <p>&nbsp;</p>
-                              </td>
-                              <td>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <p>_serialized</p>
-                              </td>
-                              <td>
-                                <p>string</p>
-                              </td>
-                              <td>
-                                <p>&nbsp;</p>
-                              </td>
-                              <td>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
                       </td>
                     </tr>
                   </tbody>
@@ -3105,64 +3050,6 @@
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="Mention"><span class="symbol-name">Mention</span><small class="property-type">
-                  &nbsp;Object</small></h3>
-              <section>
-                <h4>Properties</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>server</p>
-                      </td>
-                      <td>
-                        <p>string</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>user</p>
-                      </td>
-                      <td>
-                        <p>string</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>_serialized</p>
-                      </td>
-                      <td>
-                        <p>string</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-              </dl>
               <h3 id="MessageInfo"><span class="symbol-name">MessageInfo</span><small class="property-type">
                   &nbsp;Object</small></h3>
               <p>Message Info</p>
@@ -3354,6 +3241,21 @@
                       </td>
                       <td>
                         <p>Send media as a document</p>
+                        <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>sendMediaAsHd</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Send image as quality HD</p>
                         <p>Defaults to <code>false</code>.</p>
                       </td>
                     </tr>
@@ -4229,7 +4131,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on June 2, 2025.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on June 30, 2025.
       </p>
     </div>
   </footer>

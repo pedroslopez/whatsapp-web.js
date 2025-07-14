@@ -28,12 +28,14 @@ exports.LoadUtils = () => {
 
         let mediaOptions = {};
         if (options.media) {
-            mediaOptions = await window.WWebJS.processMediaData(
-                options.media, {
+            mediaOptions =  options.sendMediaAsSticker && !isChannel
+                ? await window.WWebJS.processStickerData(options.media)
+                : await window.WWebJS.processMediaData(options.media, {
                     forceSticker: options.sendMediaAsSticker,
                     forceGif: options.sendVideoAsGif,
                     forceVoice: options.sendAudioAsVoice,
                     forceDocument: options.sendMediaAsDocument,
+                    forceMediaHd: options.sendMediaAsHd,
                     sendToChannel: isChannel
                 });
             mediaOptions.caption = options.caption;
@@ -47,9 +49,7 @@ exports.LoadUtils = () => {
         if (options.quotedMessageId) {
             let quotedMessage = window.Store.Msg.get(options.quotedMessageId);
             !quotedMessage && (quotedMessage = (await window.Store.Msg.getMessagesById([options.quotedMessageId]))?.messages?.[0]);
-
-            if (quotedMessage['messages']?.length == 1) {
-                quotedMessage = quotedMessage['messages'][0];
+            if (quotedMessage) {
 
                 const canReply = window.Store.ReplyUtils
                     ? window.Store.ReplyUtils.canReplyMsg(quotedMessage.unsafe())
@@ -135,11 +135,12 @@ exports.LoadUtils = () => {
             vcardOptions = {
                 type: 'multi_vcard',
                 vcardList: vcards,
-                body: undefined
+                body: null
             };
             delete options.contactCardList;
         } else if (options.parseVCards && typeof (content) === 'string' && content.startsWith('BEGIN:VCARD')) {
             delete options.parseVCards;
+            delete options.linkPreview;
             try {
                 const parsed = window.Store.VCard.parseVcard(content);
                 if (parsed) {
@@ -301,6 +302,9 @@ exports.LoadUtils = () => {
         }
 
         await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
+        await window.Store.HistorySync.sendPeerDataOperationRequest(3, {
+            chatId: chat.id
+        });
         return window.Store.Msg.get(newMsgKey._serialized);
     };
 	
@@ -362,16 +366,49 @@ exports.LoadUtils = () => {
         };
     };
 
-    window.WWebJS.processMediaData = async (mediaInfo, { forceSticker, forceGif, forceVoice, forceDocument, sendToChannel }) => {
+    window.WWebJS.processStickerData = async (mediaInfo) => {
+        if (mediaInfo.mimetype !== 'image/webp') throw new Error('Invalid media type');
+
+        const file = window.WWebJS.mediaInfoToFile(mediaInfo);
+        let filehash = await window.WWebJS.getFileHash(file);
+        let mediaKey = await window.WWebJS.generateHash(32);
+
+        const controller = new AbortController();
+        const uploadedInfo = await window.Store.UploadUtils.encryptAndUpload({
+            blob: file,
+            type: 'sticker',
+            signal: controller.signal,
+            mediaKey
+        });
+
+        const stickerInfo = {
+            ...uploadedInfo,
+            clientUrl: uploadedInfo.url,
+            deprecatedMms3Url: uploadedInfo.url,
+            uploadhash: uploadedInfo.encFilehash,
+            size: file.size,
+            type: 'sticker',
+            filehash
+        };
+
+        return stickerInfo;
+    };
+
+    window.WWebJS.processMediaData = async (mediaInfo, { forceSticker, forceGif, forceVoice, forceDocument, forceMediaHd, sendToChannel }) => {
         const file = window.WWebJS.mediaInfoToFile(mediaInfo);
         const opaqueData = await window.Store.OpaqueData.createFromData(file, file.type);
-        const mediaPrep = window.Store.MediaPrep.prepRawMedia(
-            opaqueData, {
-                asSticker: forceSticker,
-                asGif: forceGif,
-                isPtt: forceVoice,
-                asDocument: forceDocument
-            });
+        const mediaParams = {
+            asSticker: forceSticker,
+            asGif: forceGif,
+            isPtt: forceVoice,
+            asDocument: forceDocument
+        };
+      
+        if (forceMediaHd && file.type.indexOf('image/') === 0) {
+            mediaParams.maxDimension = 2560;
+        }
+      
+        const mediaPrep = window.Store.MediaPrep.prepRawMedia(opaqueData, mediaParams);
         const mediaData = await mediaPrep.waitForPrep();
         const mediaObject = window.Store.MediaObject.getOrCreateMediaObject(mediaData.filehash);
         const mediaType = window.Store.MediaTypes.msgToMediaType({
@@ -551,8 +588,8 @@ exports.LoadUtils = () => {
             const chatWid = window.Store.WidFactory.createWid(chat.id._serialized);
             await window.Store.GroupMetadata.update(chatWid);
             chat.groupMetadata.participants._models
-                .filter(x => x.id._serialized.endsWith('@lid'))
-                .forEach(x => { x.id = x.contact.phoneNumber; });
+                .filter(x => x.id?._serialized?.endsWith('@lid'))
+                .forEach(x => x.contact?.phoneNumber && (x.id = x.contact.phoneNumber));
             model.groupMetadata = chat.groupMetadata.serialize();
             model.isReadOnly = chat.groupMetadata.announce;
         }
@@ -838,19 +875,19 @@ exports.LoadUtils = () => {
         });
     };
 
-    window.WWebJS.setPicture = async (chatid, media) => {
+    window.WWebJS.setPicture = async (chatId, media) => {
         const thumbnail = await window.WWebJS.cropAndResizeImage(media, { asDataUrl: true, mimetype: 'image/jpeg', size: 96 });
         const profilePic = await window.WWebJS.cropAndResizeImage(media, { asDataUrl: true, mimetype: 'image/jpeg', size: 640 });
 
-        const chatWid = window.Store.WidFactory.createWid(chatid);
+        const chatWid = window.Store.WidFactory.createWid(chatId);
         try {
-            const collection = window.Store.ProfilePicThumb.get(chatid);
-            if (!collection.canSet()) return;
+            const collection = window.Store.ProfilePicThumb.get(chatId) || await window.Store.ProfilePicThumb.find(chatId);
+            if (!collection?.canSet()) return false;
 
             const res = await window.Store.GroupUtils.sendSetPicture(chatWid, thumbnail, profilePic);
             return res ? res.status === 200 : false;
         } catch (err) {
-            if(err.name === 'ServerStatusCodeError') return false;
+            if (err.name === 'ServerStatusCodeError') return false;
             throw err;
         }
     };
