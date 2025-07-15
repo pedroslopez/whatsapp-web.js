@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "WhatsApp Web.js Manager",
+  "version": "1.0.0",
+  "description": "A comprehensive and modern frontend for whatsapp-web.js library with full feature support",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "notifications",
+    "background",
+    "downloads",
+    "clipboardWrite",
+    "clipboardRead"
+  ],
+  "host_permissions": [
+    "http://localhost/*",
+    "https://localhost/*",
+    "http://127.0.0.1/*",
+    "https://127.0.0.1/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://web.whatsapp.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "WhatsApp Web.js Manager"
+  },
+  "options_page": "options.html",
+  "web_accessible_resources": [
+    {
+      "resources": ["inject.js"],
+      "matches": ["https://web.whatsapp.com/*"]
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

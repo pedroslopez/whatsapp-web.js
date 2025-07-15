@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Web.js Manager</title>
+    <link rel="stylesheet" href="styles/popup.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <i class="fab fa-whatsapp"></i>
+                <h1>WhatsApp Web.js</h1>
+            </div>
+            <div class="status-indicator">
+                <div class="status-dot" id="connectionStatus"></div>
+                <span id="statusText">Disconnected</span>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="nav-tabs">
+            <button class="tab-btn active" data-tab="dashboard">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </button>
+            <button class="tab-btn" data-tab="messages">
+                <i class="fas fa-comments"></i>
+                <span>Messages</span>
+            </button>
+            <button class="tab-btn" data-tab="contacts">
+                <i class="fas fa-address-book"></i>
+                <span>Contacts</span>
+            </button>
+            <button class="tab-btn" data-tab="groups">
+                <i class="fas fa-users"></i>
+                <span>Groups</span>
+            </button>
+            <button class="tab-btn" data-tab="media">
+                <i class="fas fa-photo-video"></i>
+                <span>Media</span>
+            </button>
+            <button class="tab-btn" data-tab="automation">
+                <i class="fas fa-robot"></i>
+                <span>Automation</span>
+            </button>
+        </nav>
+
+        <!-- Content Sections -->
+        <main class="content">
+            <!-- Dashboard Tab -->
+            <section id="dashboard" class="tab-content active">
+                <div class="card">
+                    <h2><i class="fas fa-info-circle"></i> Connection Status</h2>
+                    <div class="connection-info">
+                        <div class="info-item">
+                            <span class="label">Status:</span>
+                            <span id="detailedStatus">Not Connected</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Phone:</span>
+                            <span id="phoneNumber">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Device:</span>
+                            <span id="deviceInfo">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Battery:</span>
+                            <span id="batteryInfo">-</span>
+                        </div>
+                    </div>
+                    <div class="actions">
+                        <button id="connectBtn" class="btn btn-primary">
+                            <i class="fas fa-plug"></i> Connect
+                        </button>
+                        <button id="disconnectBtn" class="btn btn-secondary" disabled>
+                            <i class="fas fa-power-off"></i> Disconnect
+                        </button>
+                        <button id="restartBtn" class="btn btn-warning" disabled>
+                            <i class="fas fa-redo"></i> Restart
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-qrcode"></i> QR Code Authentication</h2>
+                    <div id="qrCodeContainer">
+                        <p class="text-center">Click connect to generate QR code</p>
+                    </div>
+                    <button id="refreshQR" class="btn btn-outline" disabled>
+                        <i class="fas fa-sync-alt"></i> Refresh QR Code
+                    </button>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-chart-line"></i> Statistics</h2>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-number" id="totalChats">0</div>
+                            <div class="stat-label">Total Chats</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="totalContacts">0</div>
+                            <div class="stat-label">Contacts</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="totalGroups">0</div>
+                            <div class="stat-label">Groups</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="unreadMessages">0</div>
+                            <div class="stat-label">Unread</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Messages Tab -->
+            <section id="messages" class="tab-content">
+                <div class="card">
+                    <h2><i class="fas fa-paper-plane"></i> Send Message</h2>
+                    <form id="sendMessageForm">
+                        <div class="form-group">
+                            <label for="messageRecipient">Recipient:</label>
+                            <input type="text" id="messageRecipient" placeholder="Phone number or contact name" required>
+                            <button type="button" id="selectContact" class="btn btn-outline btn-sm">
+                                <i class="fas fa-address-book"></i>
+                            </button>
+                        </div>
+                        <div class="form-group">
+                            <label for="messageType">Message Type:</label>
+                            <select id="messageType">
+                                <option value="text">Text Message</option>
+                                <option value="media">Media (Image/Video/Document)</option>
+                                <option value="location">Location</option>
+                                <option value="contact">Contact Card</option>
+                                <option value="poll">Poll</option>
+                                <option value="sticker">Sticker</option>
+                            </select>
+                        </div>
+
+                        <!-- Text Message Options -->
+                        <div id="textOptions" class="message-options">
+                            <div class="form-group">
+                                <label for="messageText">Message:</label>
+                                <textarea id="messageText" rows="4" placeholder="Type your message here..."></textarea>
+                            </div>
+                            <div class="formatting-tools">
+                                <button type="button" class="format-btn" data-format="*">
+                                    <i class="fas fa-bold"></i> Bold
+                                </button>
+                                <button type="button" class="format-btn" data-format="_">
+                                    <i class="fas fa-italic"></i> Italic
+                                </button>
+                                <button type="button" class="format-btn" data-format="~">
+                                    <i class="fas fa-strikethrough"></i> Strike
+                                </button>
+                                <button type="button" class="format-btn" data-format="```">
+                                    <i class="fas fa-code"></i> Code
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Media Options -->
+                        <div id="mediaOptions" class="message-options" style="display: none;">
+                            <div class="form-group">
+                                <label for="mediaFile">Select File:</label>
+                                <input type="file" id="mediaFile" accept="image/*,video/*,.pdf,.doc,.docx,.zip">
+                            </div>
+                            <div class="form-group">
+                                <label for="mediaCaption">Caption (optional):</label>
+                                <textarea id="mediaCaption" rows="2" placeholder="Add a caption..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Location Options -->
+                        <div id="locationOptions" class="message-options" style="display: none;">
+                            <div class="form-group">
+                                <label for="locationName">Location Name:</label>
+                                <input type="text" id="locationName" placeholder="e.g., Starbucks Coffee">
+                            </div>
+                            <div class="form-group">
+                                <label for="locationAddress">Address:</label>
+                                <input type="text" id="locationAddress" placeholder="Street address">
+                            </div>
+                            <div class="form-group">
+                                <label for="locationLat">Latitude:</label>
+                                <input type="number" id="locationLat" step="any" placeholder="40.7128">
+                            </div>
+                            <div class="form-group">
+                                <label for="locationLng">Longitude:</label>
+                                <input type="number" id="locationLng" step="any" placeholder="-74.0060">
+                            </div>
+                            <button type="button" id="getCurrentLocation" class="btn btn-outline">
+                                <i class="fas fa-map-marker-alt"></i> Use Current Location
+                            </button>
+                        </div>
+
+                        <!-- Poll Options -->
+                        <div id="pollOptions" class="message-options" style="display: none;">
+                            <div class="form-group">
+                                <label for="pollQuestion">Poll Question:</label>
+                                <input type="text" id="pollQuestion" placeholder="What's your favorite color?">
+                            </div>
+                            <div class="form-group">
+                                <label>Poll Options:</label>
+                                <div id="pollOptionsContainer">
+                                    <input type="text" class="poll-option" placeholder="Option 1">
+                                    <input type="text" class="poll-option" placeholder="Option 2">
+                                </div>
+                                <button type="button" id="addPollOption" class="btn btn-outline btn-sm">
+                                    <i class="fas fa-plus"></i> Add Option
+                                </button>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="allowMultipleAnswers">
+                                    Allow multiple answers
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> Send Message
+                            </button>
+                            <button type="button" id="scheduleMessage" class="btn btn-outline">
+                                <i class="fas fa-clock"></i> Schedule
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-list"></i> Bulk Messaging</h2>
+                    <form id="bulkMessageForm">
+                        <div class="form-group">
+                            <label for="bulkRecipients">Recipients:</label>
+                            <textarea id="bulkRecipients" rows="4" placeholder="Enter phone numbers or contact names, one per line"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="bulkMessage">Message:</label>
+                            <textarea id="bulkMessage" rows="4" placeholder="Your message to send to all recipients"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="bulkDelay">Delay between messages (seconds):</label>
+                            <input type="number" id="bulkDelay" min="1" max="60" value="5">
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-broadcast-tower"></i> Send Bulk Messages
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-history"></i> Recent Messages</h2>
+                    <div id="recentMessages" class="message-list">
+                        <p class="text-center">No recent messages</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Contacts Tab -->
+            <section id="contacts" class="tab-content">
+                <div class="card">
+                    <h2><i class="fas fa-search"></i> Contact Management</h2>
+                    <div class="search-bar">
+                        <input type="text" id="contactSearch" placeholder="Search contacts...">
+                        <button id="refreshContacts" class="btn btn-outline">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                    <div id="contactsList" class="contacts-list">
+                        <p class="text-center">Loading contacts...</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-user-plus"></i> Add Contact</h2>
+                    <form id="addContactForm">
+                        <div class="form-group">
+                            <label for="contactPhone">Phone Number:</label>
+                            <input type="tel" id="contactPhone" placeholder="+1234567890" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contactFirstName">First Name:</label>
+                            <input type="text" id="contactFirstName" placeholder="John" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contactLastName">Last Name:</label>
+                            <input type="text" id="contactLastName" placeholder="Doe">
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add Contact
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-ban"></i> Blocked Contacts</h2>
+                    <div id="blockedContactsList" class="contacts-list">
+                        <p class="text-center">No blocked contacts</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Groups Tab -->
+            <section id="groups" class="tab-content">
+                <div class="card">
+                    <h2><i class="fas fa-users"></i> Group Management</h2>
+                    <div class="search-bar">
+                        <input type="text" id="groupSearch" placeholder="Search groups...">
+                        <button id="refreshGroups" class="btn btn-outline">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                    <div id="groupsList" class="groups-list">
+                        <p class="text-center">Loading groups...</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-plus-circle"></i> Create Group</h2>
+                    <form id="createGroupForm">
+                        <div class="form-group">
+                            <label for="groupName">Group Name:</label>
+                            <input type="text" id="groupName" placeholder="My New Group" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="groupDescription">Description (optional):</label>
+                            <textarea id="groupDescription" rows="3" placeholder="Group description..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="groupParticipants">Participants:</label>
+                            <textarea id="groupParticipants" rows="4" placeholder="Enter phone numbers or contact names, one per line" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Create Group
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-link"></i> Join Group by Invite</h2>
+                    <form id="joinGroupForm">
+                        <div class="form-group">
+                            <label for="inviteCode">Invite Code or Link:</label>
+                            <input type="text" id="inviteCode" placeholder="Paste group invite link here" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> Join Group
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Media Tab -->
+            <section id="media" class="tab-content">
+                <div class="card">
+                    <h2><i class="fas fa-download"></i> Media Downloads</h2>
+                    <div class="form-group">
+                        <label for="chatSelect">Select Chat:</label>
+                        <select id="chatSelect">
+                            <option value="">Select a chat...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="mediaType">Media Type:</label>
+                        <select id="mediaType">
+                            <option value="all">All Media</option>
+                            <option value="image">Images</option>
+                            <option value="video">Videos</option>
+                            <option value="audio">Audio</option>
+                            <option value="document">Documents</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="downloadLimit">Limit (number of files):</label>
+                        <input type="number" id="downloadLimit" min="1" max="100" value="10">
+                    </div>
+                    <button id="downloadMedia" class="btn btn-primary">
+                        <i class="fas fa-download"></i> Download Media
+                    </button>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-chart-pie"></i> Media Statistics</h2>
+                    <div id="mediaStats" class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-number" id="totalImages">0</div>
+                            <div class="stat-label">Images</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="totalVideos">0</div>
+                            <div class="stat-label">Videos</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="totalAudio">0</div>
+                            <div class="stat-label">Audio</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="totalDocuments">0</div>
+                            <div class="stat-label">Documents</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Automation Tab -->
+            <section id="automation" class="tab-content">
+                <div class="card">
+                    <h2><i class="fas fa-robot"></i> Auto-Reply</h2>
+                    <form id="autoReplyForm">
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="enableAutoReply">
+                                Enable Auto-Reply
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label for="autoReplyMessage">Auto-Reply Message:</label>
+                            <textarea id="autoReplyMessage" rows="3" placeholder="Thanks for your message! I'll get back to you soon."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="autoReplyDelay">Delay before reply (seconds):</label>
+                            <input type="number" id="autoReplyDelay" min="0" max="300" value="5">
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Settings
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-eye"></i> Message Monitoring</h2>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="enableMessageLog">
+                            Log all messages
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="enableNotifications">
+                            Browser notifications for new messages
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="keywordFilter">Keyword Alerts:</label>
+                        <input type="text" id="keywordFilter" placeholder="urgent, important, help (comma separated)">
+                    </div>
+                    <button id="saveMonitoringSettings" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Settings
+                    </button>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-clock"></i> Scheduled Messages</h2>
+                    <div id="scheduledMessagesList" class="scheduled-list">
+                        <p class="text-center">No scheduled messages</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-links">
+                <button id="settingsBtn" class="btn btn-link">
+                    <i class="fas fa-cog"></i> Settings
+                </button>
+                <button id="logsBtn" class="btn btn-link">
+                    <i class="fas fa-list-alt"></i> Logs
+                </button>
+                <button id="helpBtn" class="btn btn-link">
+                    <i class="fas fa-question-circle"></i> Help
+                </button>
+            </div>
+            <div class="version">v1.0.0</div>
+        </footer>
+    </div>
+
+    <!-- Modals -->
+    <div id="contactModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Select Contact</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="modalContactSearch" placeholder="Search contacts...">
+                <div id="modalContactsList" class="contacts-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="scheduleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Schedule Message</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="scheduleDate">Date:</label>
+                    <input type="date" id="scheduleDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="scheduleTime">Time:</label>
+                    <input type="time" id="scheduleTime" required>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="scheduleRepeat">
+                        Repeat daily
+                    </label>
+                </div>
+                <button id="confirmSchedule" class="btn btn-primary">Schedule</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Processing...</p>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="notification-container"></div>
+
+    <script src="scripts/popup.js"></script>
+</body>
+</html>
