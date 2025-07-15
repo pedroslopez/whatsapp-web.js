@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "description": "A comprehensive Chrome extension for managing WhatsApp Web with advanced features like auto-reply, message monitoring, and automation",
   "scripts": {
-    "build": "zip -r whatsapp-webjs-manager.zip . -x '*.git*' '*.DS_Store*' 'node_modules/*' 'package*.json' 'README.md'",
-    "test": "echo \"No tests specified for Chrome extension\"",
-    "lint": "eslint *.js"
+    "build": "node build.js",
+    "build-zip": "zip -r whatsapp-webjs-manager.zip . -x '*.git*' '*.DS_Store*' 'node_modules/*' 'package*.json' 'README.md' 'build.js'",
+    "test": "node build.js && echo \"Build test completed\"",
+    "lint": "eslint *.js",
+    "dev": "echo \"Load the extension from the current directory in Chrome Developer Mode\"",
+    "validate": "node -e \"JSON.parse(require('fs').readFileSync('manifest.json', 'utf8')); console.log('✅ Manifest is valid JSON')\""
   },
   "repository": {
     "type": "git",

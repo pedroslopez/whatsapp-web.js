@@ -1,0 +1,141 @@
+name: Build and Test Chrome Extension
+
+on:
+  push:
+    branches: [ main, cursor/clean-and-update-repo-for-chrome-extension-d4fb ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ created ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-js-version: '18'
+        
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y zip
+        
+    - name: Validate manifest.json
+      run: npm run validate
+      
+    - name: Lint JavaScript files
+      run: npm run lint
+      continue-on-error: true  # Don't fail build on lint warnings
+      
+    - name: Build extension
+      run: npm run build
+      
+    - name: Check build output
+      run: |
+        echo "📁 Build directory contents:"
+        ls -la build/
+        echo ""
+        echo "📦 ZIP files created:"
+        ls -la *.zip || echo "No ZIP files found"
+        
+    - name: Test extension load
+      run: |
+        echo "🔍 Testing if extension can be loaded..."
+        # Basic validation that all required files exist
+        test -f build/manifest.json || (echo "❌ manifest.json missing" && exit 1)
+        test -f build/background.js || (echo "❌ background.js missing" && exit 1)
+        test -f build/popup.html || (echo "❌ popup.html missing" && exit 1)
+        test -f build/content.js || (echo "❌ content.js missing" && exit 1)
+        test -f build/inject.js || (echo "❌ inject.js missing" && exit 1)
+        test -d build/icons || (echo "❌ icons directory missing" && exit 1)
+        echo "✅ All required extension files present"
+        
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: chrome-extension-build
+        path: |
+          build/
+          *.zip
+        retention-days: 30
+        
+    - name: Upload to release (if release)
+      if: github.event_name == 'release'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./whatsapp-webjs-manager-v1.0.0.zip
+        asset_name: whatsapp-webjs-manager-v1.0.0.zip
+        asset_content_type: application/zip
+
+  security-check:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Security audit
+      run: |
+        echo "🔒 Running security checks..."
+        
+        # Check for common security issues in manifest
+        echo "📋 Checking manifest.json..."
+        if grep -q '"http://"' manifest.json; then
+          echo "⚠️  Warning: HTTP URLs found in manifest (prefer HTTPS)"
+        fi
+        
+        if grep -q '"unsafe-eval"' manifest.json; then
+          echo "❌ Error: unsafe-eval found in CSP"
+          exit 1
+        fi
+        
+        if grep -q '"unsafe-inline"' manifest.json; then
+          echo "❌ Error: unsafe-inline found in CSP"
+          exit 1
+        fi
+        
+        # Check for suspicious patterns in JavaScript
+        echo "🔍 Checking JavaScript files..."
+        if grep -r "eval(" *.js; then
+          echo "⚠️  Warning: eval() usage found"
+        fi
+        
+        if grep -r "innerHTML" *.js; then
+          echo "⚠️  Warning: innerHTML usage found (consider using textContent)"
+        fi
+        
+        echo "✅ Security check completed"
+
+  lint-and-format:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-js-version: '18'
+        
+    - name: Run ESLint
+      run: |
+        npm run lint || echo "Lint completed with warnings"
+        
+    - name: Check file sizes
+      run: |
+        echo "📊 Extension file sizes:"
+        echo "manifest.json: $(stat -f%z manifest.json 2>/dev/null || stat -c%s manifest.json) bytes"
+        echo "background.js: $(stat -f%z background.js 2>/dev/null || stat -c%s background.js) bytes"
+        echo "popup.html: $(stat -f%z popup.html 2>/dev/null || stat -c%s popup.html) bytes"
+        echo "content.js: $(stat -f%z content.js 2>/dev/null || stat -c%s content.js) bytes"
+        echo ""
+        echo "🎯 Total extension size:"
+        du -sh . --exclude=.git

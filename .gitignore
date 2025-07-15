@@ -57,6 +57,7 @@ temp/
 build/
 dist/
 out/
+*.zip
 
 # Developer tools
 .cache/
