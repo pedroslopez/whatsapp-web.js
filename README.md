@@ -1,185 +1,206 @@
+# WhatsApp Web.js Manager - Chrome Extension
+
 <div align="center">
-    <br />
+    <img src="icons/icon128.png" alt="WhatsApp Web.js Manager" width="128" height="128">
+    <h2>A comprehensive Chrome extension for managing WhatsApp Web</h2>
     <p>
-        <a href="https://wwebjs.dev"><img src="https://github.com/wwebjs/logos/blob/main/4_Full%20Logo%20Lockup_Small/small_banner_blue.png?raw=true" title="whatsapp-web.js" alt="WWebJS Website" width="500" /></a>
+        <img src="https://img.shields.io/badge/Chrome-Extension-brightgreen.svg" alt="Chrome Extension" />
+        <img src="https://img.shields.io/badge/Manifest-V3-blue.svg" alt="Manifest V3" />
+        <img src="https://img.shields.io/badge/License-Apache%202.0-yellow.svg" alt="License" />
     </p>
-    <br />
-    <p>
-		<a href="https://www.npmjs.com/package/whatsapp-web.js"><img src="https://img.shields.io/npm/v/whatsapp-web.js.svg" alt="npm" /></a>
-        <a href="https://depfu.com/github/pedroslopez/whatsapp-web.js?project_id=9765"><img src="https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg" alt="Depfu" /></a>
-        <img src="https://img.shields.io/badge/WhatsApp_Web-2.3000.1017054665-brightgreen.svg" alt="WhatsApp_Web 2.2346.52" />
-        <a href="https://discord.gg/H7DqQs4"><img src="https://img.shields.io/discord/698610475432411196.svg?logo=discord" alt="Discord server" /></a>
-	</p>
-    <br />
 </div>
 
-## About
-**A WhatsApp API client that connects through the WhatsApp Web browser app**
+## 🚀 Features
 
-The library works by launching the WhatsApp Web browser application and managing it using Puppeteer to create an instance of WhatsApp Web, thereby mitigating the risk of being blocked. The WhatsApp API client connects through the WhatsApp Web browser app, accessing its internal functions. This grants you access to nearly all the features available on WhatsApp Web, enabling dynamic handling similar to any other Node.js application.
+### 📊 **Dashboard & Monitoring**
+- Real-time connection status with WhatsApp Web
+- Message statistics and analytics
+- Contact and group management
+- Media file organization
 
-> [!IMPORTANT]
-> **It is not guaranteed you will not be blocked by using this method. WhatsApp does not allow bots or unofficial clients on their platform, so this shouldn't be considered totally safe.**
+### 🤖 **Automation & Auto-Reply**
+- Customizable auto-reply messages
+- Keyword-based message monitoring
+- Scheduled message sending
+- Smart response templates
 
-## Links
+### 🔧 **Advanced Management**
+- Export/import chat data
+- Message search and filtering
+- Contact organization tools
+- Group administration features
 
-* [Website][website]
-* [Guide][guide] ([source][guide-source]) _(work in progress)_
-* [Documentation][documentation] ([source][documentation-source])
-* [WWebJS Discord][discord]
-* [GitHub][gitHub]
-* [npm][npm]
+### 🛡️ **Privacy & Security**
+- Local data storage (no cloud sync)
+- Encrypted message logs
+- Secure session management
+- Privacy-focused design
 
-## Installation
+## 📥 Installation
 
-The module is now available on npm! `npm i whatsapp-web.js`
+### Method 1: Chrome Web Store (Recommended)
+*Coming Soon - Extension is under review*
 
-> [!NOTE]
-> **Node ``v18+`` is required.**
+### Method 2: Manual Installation (Developer Mode)
 
-## QUICK STEPS TO UPGRADE NODE
+1. **Download the Extension**
+   ```bash
+   git clone https://github.com/your-username/whatsapp-webjs-manager-extension.git
+   cd whatsapp-webjs-manager-extension
+   ```
 
-### Windows
+2. **Enable Developer Mode in Chrome**
+   - Open Chrome and go to `chrome://extensions/`
+   - Toggle "Developer mode" in the top-right corner
 
-#### Manual
-Just get the latest LTS from the [official node website][nodejs].
+3. **Load the Extension**
+   - Click "Load unpacked"
+   - Select the downloaded extension folder
+   - The extension should now appear in your Chrome toolbar
 
-#### npm
-```powershell
-sudo npm install -g n
-sudo n stable
+## 🎯 Quick Start
+
+1. **Install the Extension** following the instructions above
+
+2. **Open WhatsApp Web**
+   - Navigate to [web.whatsapp.com](https://web.whatsapp.com)
+   - Log in with your WhatsApp account
+
+3. **Access the Extension**
+   - Click the WhatsApp Web.js Manager icon in your Chrome toolbar
+   - The extension popup will show your connection status
+
+4. **Configure Settings**
+   - Right-click the extension icon and select "Options"
+   - Configure auto-reply, monitoring, and other features
+
+## 🔧 Usage
+
+### Setting Up Auto-Reply
+1. Open the extension popup
+2. Navigate to the "Automation" tab
+3. Enable auto-reply and set your message
+4. Configure delay and trigger conditions
+
+### Message Monitoring
+1. Go to extension Options (right-click icon → Options)
+2. Enable message logging and notifications
+3. Set up keyword monitoring for important messages
+
+### Contact Management
+1. Use the "Contacts" tab in the extension popup
+2. View, search, and organize your contacts
+3. Export contact lists for backup
+
+## 🛠️ Configuration
+
+The extension offers comprehensive configuration options:
+
+### Auto-Reply Settings
+- **Enable/Disable**: Toggle auto-reply functionality
+- **Message Templates**: Create custom response messages
+- **Delay Settings**: Configure response timing (1-60 seconds)
+- **Trigger Conditions**: Set when auto-reply should activate
+
+### Monitoring Options
+- **Message Logging**: Keep local logs of conversations
+- **Keyword Alerts**: Get notified for specific words/phrases
+- **Desktop Notifications**: Chrome notification integration
+
+### Connection Settings
+- **Auto-Reconnect**: Automatically reconnect on connection loss
+- **Session Timeout**: Configure inactive session handling
+- **Backup Settings**: Automatic data backup options
+
+## 📁 File Structure
+
+```
+whatsapp-webjs-manager-extension/
+├── manifest.json          # Extension manifest (Chrome Extension config)
+├── background.js          # Service worker (main extension logic)
+├── popup.html            # Extension popup interface
+├── content.js            # Content script (injected into WhatsApp Web)
+├── inject.js             # Page script (interacts with WhatsApp Web)
+├── options.html          # Extension settings page
+├── styles/
+│   └── popup.css         # Styling for popup interface
+├── icons/
+│   ├── icon16.png        # Extension icons (various sizes)
+│   ├── icon32.png
+│   ├── icon48.png
+│   └── icon128.png
+└── README.md             # This file
 ```
 
-#### Choco
-```powershell
-choco install nodejs-lts
-```
+## 🔒 Permissions
 
-#### Winget
-```powershell
-winget install OpenJS.NodeJS.LTS
-```
+The extension requires the following permissions:
 
-### Ubuntu / Debian
-```bash
-curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - &&\
-sudo apt-get install -y nodejs
-```
+- **storage**: To save your settings and preferences
+- **activeTab**: To interact with WhatsApp Web pages
+- **notifications**: To show desktop notifications
+- **background**: To run background processes
+- **downloads**: To export data and media files
+- **clipboardWrite/Read**: For copy/paste functionality
 
-## Example usage
+## 🚨 Important Notes
 
-```js
-const { Client } = require('whatsapp-web.js');
+> **⚠️ Disclaimer**: This extension is not officially affiliated with WhatsApp or Meta. Use at your own risk. WhatsApp may block accounts that use unofficial tools.
 
-const client = new Client();
+- This extension works only with [web.whatsapp.com](https://web.whatsapp.com)
+- Ensure you're logged into WhatsApp Web before using extension features
+- Some features may stop working if WhatsApp updates their web interface
+- Keep the extension updated for the best experience
 
-client.on('qr', (qr) => {
-    // Generate and scan this code with your phone
-    console.log('QR RECEIVED', qr);
-});
+## 🐛 Troubleshooting
 
-client.on('ready', () => {
-    console.log('Client is ready!');
-});
+### Extension Not Working
+1. Refresh the WhatsApp Web page
+2. Disable and re-enable the extension
+3. Check if you're logged into WhatsApp Web
+4. Try restarting Chrome
 
-client.on('message', msg => {
-    if (msg.body == '!ping') {
-        msg.reply('pong');
-    }
-});
+### Auto-Reply Not Responding
+1. Verify auto-reply is enabled in settings
+2. Check the message delay settings
+3. Ensure you're not in an active conversation
+4. Verify WhatsApp Web connection status
 
-client.initialize();
-```
+### Connection Issues
+1. Check your internet connection
+2. Refresh WhatsApp Web page
+3. Clear browser cache and cookies
+4. Try incognito mode
 
-Take a look at [example.js][examples] for another examples with additional use cases.  
-For further details on saving and restoring sessions, explore the provided [Authentication Strategies][auth-strategies].
+## 🤝 Contributing
 
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
 
-## Supported features
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-| Feature  | Status |
-| ------------- | ------------- |
-| Multi Device  | ✅  |
-| Send messages  | ✅  |
-| Receive messages  | ✅  |
-| Send media (images/audio/documents)  | ✅  |
-| Send media (video)  | ✅ [(requires Google Chrome)][google-chrome]  |
-| Send stickers | ✅ |
-| Receive media (images/audio/video/documents)  | ✅  |
-| Send contact cards | ✅ |
-| Send location | ✅ |
-| Send buttons | ❌  [(DEPRECATED)][deprecated-video] |
-| Send lists | ❌  [(DEPRECATED)][deprecated-video] |
-| Receive location | ✅ | 
-| Message replies | ✅ |
-| Join groups by invite  | ✅ |
-| Get invite for group  | ✅ |
-| Modify group info (subject, description)  | ✅  |
-| Modify group settings (send messages, edit info)  | ✅  |
-| Add group participants  | ✅  |
-| Kick group participants  | ✅  |
-| Promote/demote group participants | ✅ |
-| Mention users | ✅ |
-| Mention groups | ✅ |
-| Mute/unmute chats | ✅ |
-| Block/unblock contacts | ✅ |
-| Get contact info | ✅ |
-| Get profile pictures | ✅ |
-| Set user status message | ✅ |
-| React to messages | ✅ |
-| Create polls | ✅ |
-| Channels | ✅ |
-| Vote in polls | 🔜 |
-| Communities | 🔜 |
+## 📄 License
 
-Something missing? Make an issue and let us know!
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
-## Contributing
+## 🙏 Acknowledgments
 
-Feel free to open pull requests; we welcome contributions! However, for significant changes, it's best to open an issue beforehand. Make sure to review our [contribution guidelines][contributing] before creating a pull request. Before creating your own issue or pull request, always check to see if one already exists!
+- Inspired by the [whatsapp-web.js](https://github.com/pedroslopez/whatsapp-web.js) library
+- Icons from various open-source icon libraries
+- Chrome Extension documentation and community
 
-## Supporting the project
+## 📞 Support
 
-You can support the maintainer of this project through the links below
+- **Issues**: [GitHub Issues](https://github.com/your-username/whatsapp-webjs-manager-extension/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-username/whatsapp-webjs-manager-extension/discussions)
+- **Email**: your-email@example.com
 
-- [Support via GitHub Sponsors][gitHub-sponsors]
-- [Support via PayPal][support-payPal]
-- [Sign up for DigitalOcean][digitalocean] and get $200 in credit when you sign up (Referral)
+---
 
-## Disclaimer
-
-This project is not affiliated, associated, authorized, endorsed by, or in any way officially connected with WhatsApp or any of its subsidiaries or its affiliates. The official WhatsApp website can be found at [whatsapp.com][whatsapp]. "WhatsApp" as well as related names, marks, emblems and images are registered trademarks of their respective owners. Also it is not guaranteed you will not be blocked by using this method. WhatsApp does not allow bots or unofficial clients on their platform, so this shouldn't be considered totally safe.
-
-## License
-
-Copyright 2019 Pedro S Lopez  
-
-Licensed under the Apache License, Version 2.0 (the "License");  
-you may not use this project except in compliance with the License.  
-You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.  
-
-Unless required by applicable law or agreed to in writing, software  
-distributed under the License is distributed on an "AS IS" BASIS,  
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  
-See the License for the specific language governing permissions and  
-limitations under the License.  
-
-
-[website]: https://wwebjs.dev
-[guide]: https://guide.wwebjs.dev/guide
-[guide-source]: https://github.com/wwebjs/wwebjs.dev/tree/main
-[documentation]: https://docs.wwebjs.dev/
-[documentation-source]: https://github.com/pedroslopez/whatsapp-web.js/tree/main/docs
-[discord]: https://discord.gg/H7DqQs4
-[gitHub]: https://github.com/pedroslopez/whatsapp-web.js
-[npm]: https://npmjs.org/package/whatsapp-web.js
-[nodejs]: https://nodejs.org/en/download/
-[examples]: https://github.com/pedroslopez/whatsapp-web.js/blob/master/example.js
-[auth-strategies]: https://wwebjs.dev/guide/creating-your-bot/authentication.html
-[google-chrome]: https://wwebjs.dev/guide/creating-your-bot/handling-attachments.html#caveat-for-sending-videos-and-gifs
-[deprecated-video]: https://www.youtube.com/watch?v=hv1R1rLeVVE
-[gitHub-sponsors]: https://github.com/sponsors/pedroslopez
-[support-payPal]: https://www.paypal.me/psla/
-[digitalocean]: https://m.do.co/c/73f906a36ed4
-[contributing]: https://github.com/pedroslopez/whatsapp-web.js/blob/main/CODE_OF_CONDUCT.md
-[whatsapp]: https://whatsapp.com
+<div align="center">
+    <p>Made with ❤️ for the WhatsApp Web community</p>
+    <p>⭐ Star this repository if you find it helpful!</p>
+</div>
