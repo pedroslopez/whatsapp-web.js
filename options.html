@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Web.js Manager - Settings</title>
+    <link rel="stylesheet" href="styles/popup.css">
+    <style>
+        body {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f7fa;
+        }
+        .settings-container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .settings-section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e1e5e9;
+        }
+        .settings-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .setting-label {
+            font-weight: 500;
+            color: #34495e;
+        }
+        .setting-description {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 4px;
+        }
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: #bdc3c7;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .toggle-switch.active {
+            background: #25d366;
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+        .toggle-switch.active::after {
+            transform: translateX(26px);
+        }
+        .input-field {
+            padding: 8px 12px;
+            border: 1px solid #bdc3c7;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .save-btn {
+            background: #25d366;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .save-btn:hover {
+            background: #128c7e;
+        }
+        .status-message {
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 15px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="settings-container">
+        <h1>WhatsApp Web.js Manager Settings</h1>
+        
+        <div class="settings-section">
+            <h2 class="section-title">Auto Reply</h2>
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Enable Auto Reply</div>
+                    <div class="setting-description">Automatically respond to incoming messages</div>
+                </div>
+                <div class="toggle-switch" id="autoReplyToggle"></div>
+            </div>
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Auto Reply Message</div>
+                    <div class="setting-description">Message to send automatically</div>
+                </div>
+                <input type="text" class="input-field" id="autoReplyMessage" placeholder="Thanks for your message!">
+            </div>
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Reply Delay (seconds)</div>
+                    <div class="setting-description">Delay before sending auto reply</div>
+                </div>
+                <input type="number" class="input-field" id="autoReplyDelay" min="1" max="60" value="5">
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h2 class="section-title">Monitoring</h2>
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Log Messages</div>
+                    <div class="setting-description">Keep a log of all messages</div>
+                </div>
+                <div class="toggle-switch" id="logMessagesToggle"></div>
+            </div>
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Desktop Notifications</div>
+                    <div class="setting-description">Show notifications for new messages</div>
+                </div>
+                <div class="toggle-switch" id="notificationsToggle"></div>
+            </div>
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Keyword Monitoring</div>
+                    <div class="setting-description">Monitor specific keywords (comma separated)</div>
+                </div>
+                <input type="text" class="input-field" id="keywordMonitoring" placeholder="urgent, important, help">
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h2 class="section-title">Connection</h2>
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Auto Reconnect</div>
+                    <div class="setting-description">Automatically reconnect when connection is lost</div>
+                </div>
+                <div class="toggle-switch active" id="autoReconnectToggle"></div>
+            </div>
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Session Timeout (minutes)</div>
+                    <div class="setting-description">Timeout for inactive sessions</div>
+                </div>
+                <input type="number" class="input-field" id="sessionTimeout" min="5" max="180" value="30">
+            </div>
+        </div>
+
+        <button class="save-btn" id="saveSettings">Save Settings</button>
+        
+        <div class="status-message" id="statusMessage"></div>
+    </div>
+
+    <script>
+        // Settings management
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSettings();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Toggle switches
+            document.querySelectorAll('.toggle-switch').forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                });
+            });
+
+            // Save button
+            document.getElementById('saveSettings').addEventListener('click', saveSettings);
+        }
+
+        async function loadSettings() {
+            try {
+                const result = await chrome.storage.sync.get([
+                    'autoReply',
+                    'monitoring',
+                    'connection'
+                ]);
+
+                if (result.autoReply) {
+                    document.getElementById('autoReplyToggle').classList.toggle('active', result.autoReply.enabled);
+                    document.getElementById('autoReplyMessage').value = result.autoReply.message || '';
+                    document.getElementById('autoReplyDelay').value = result.autoReply.delay || 5;
+                }
+
+                if (result.monitoring) {
+                    document.getElementById('logMessagesToggle').classList.toggle('active', result.monitoring.logMessages);
+                    document.getElementById('notificationsToggle').classList.toggle('active', result.monitoring.notifications);
+                    document.getElementById('keywordMonitoring').value = result.monitoring.keywords?.join(', ') || '';
+                }
+
+                if (result.connection) {
+                    document.getElementById('autoReconnectToggle').classList.toggle('active', result.connection.autoReconnect !== false);
+                    document.getElementById('sessionTimeout').value = result.connection.sessionTimeout || 30;
+                }
+            } catch (error) {
+                console.error('Error loading settings:', error);
+            }
+        }
+
+        async function saveSettings() {
+            try {
+                const settings = {
+                    autoReply: {
+                        enabled: document.getElementById('autoReplyToggle').classList.contains('active'),
+                        message: document.getElementById('autoReplyMessage').value,
+                        delay: parseInt(document.getElementById('autoReplyDelay').value) || 5
+                    },
+                    monitoring: {
+                        logMessages: document.getElementById('logMessagesToggle').classList.contains('active'),
+                        notifications: document.getElementById('notificationsToggle').classList.contains('active'),
+                        keywords: document.getElementById('keywordMonitoring').value.split(',').map(k => k.trim()).filter(k => k)
+                    },
+                    connection: {
+                        autoReconnect: document.getElementById('autoReconnectToggle').classList.contains('active'),
+                        sessionTimeout: parseInt(document.getElementById('sessionTimeout').value) || 30
+                    }
+                };
+
+                await chrome.storage.sync.set(settings);
+                
+                // Send message to background script to update settings
+                chrome.runtime.sendMessage({
+                    action: 'update_settings',
+                    data: settings
+                });
+
+                showStatusMessage('Settings saved successfully!', 'success');
+            } catch (error) {
+                console.error('Error saving settings:', error);
+                showStatusMessage('Error saving settings. Please try again.', 'error');
+            }
+        }
+
+        function showStatusMessage(message, type) {
+            const statusElement = document.getElementById('statusMessage');
+            statusElement.textContent = message;
+            statusElement.className = `status-message ${type}`;
+            statusElement.style.display = 'block';
+            
+            setTimeout(() => {
+                statusElement.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
