@@ -15,10 +15,73 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.sendSeen = async (chatId) => {
-        const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
-        if (chat) {
-            await window.Store.SendSeen.sendSeen(chat);
-            return true;
+        let chat = window.Store.Chat.get(chatId);
+        if (chat !== undefined) {
+            try {
+                // Check stream availability with correct properties
+                const streamAvailable = window.Store.Stream ? 
+                    (window.Store.Stream.available !== false) : 
+                    (window.Store.Conn && window.Store.Conn.state === 'CONNECTED');
+    
+                // First try basic sendSeen operation
+                await window.Store.SendSeen.sendSeen(chat, false);
+    
+                // If stream is available, also try dual system
+                if (streamAvailable) {
+                    // Implement dual pattern discovered: Promise.all([sendSeen, sendReceipt])
+                    const additionalOperations = [];
+    
+                    // 2. Delivery confirmation (receipt) - the missing part
+                    if (window.Store.SendReceipt && window.Store.SendReceipt.sendAggregateReceipts) {
+                        additionalOperations.push(
+                            window.Store.SendReceipt.sendAggregateReceipts({
+                                type: window.Store.SendReceipt.RECEIPT_TYPE?.READ || 'read',
+                                chatId: chatId
+                            }).catch(err => {
+                                console.warn('SendReceipt operation failed:', err);
+                                return true; // Don't fail if only receipt fails
+                            })
+                        );
+                    } else if (window.Store.MessageReceiptBatcher && window.Store.MessageReceiptBatcher.receiptBatcher) {
+                        // Fallback using MessageReceiptBatcher
+                        additionalOperations.push(
+                            Promise.resolve().then(() => {
+                                try {
+                                    return window.Store.MessageReceiptBatcher.receiptBatcher.acceptOtherReceipt({
+                                        chatId: chatId,
+                                        type: 'read'
+                                    });
+                                } catch (err) {
+                                    console.warn('MessageReceiptBatcher operation failed:', err);
+                                    return true; // Don't fail if only receipt fails
+                                }
+                            })
+                        );
+                    }
+    
+                    // Execute additional operations if available
+                    if (additionalOperations.length > 0) {
+                        await Promise.all(additionalOperations).catch(err => {
+                            console.warn('Additional receipt operations failed:', err);
+                            // Don't fail main function if only additional operations fail
+                        });
+                    }
+                }
+    
+                return true;
+    
+            } catch (error) {
+                console.error('Error in sendSeen operation:', error);
+                
+                // Fallback: try basic operation only
+                try {
+                    await window.Store.SendSeen.sendSeen(chat, false);
+                    return true;
+                } catch (fallbackError) {
+                    console.error('Fallback sendSeen also failed:', fallbackError);
+                    return false;
+                }
+            }
         }
         return false;
     };
@@ -63,7 +126,7 @@ exports.LoadUtils = () => {
                     throw new Error('Could not get the quoted message.');
                 }
             }
-            
+
             delete options.ignoreQuoteErrors;
             delete options.quotedMessageId;
         }
@@ -163,7 +226,7 @@ exports.LoadUtils = () => {
                     preview = preview.data;
                     preview.preview = true;
                     preview.subtype = 'url';
-                    options = {...options, ...preview};
+                    options = { ...options, ...preview };
                 }
             }
         }
@@ -265,7 +328,7 @@ exports.LoadUtils = () => {
             ...botOptions,
             ...extraOptions
         };
-        
+
         // Bot's won't reply if canonicalUrl is set (linking)
         if (botOptions) {
             delete message.canonicalUrl;
@@ -302,16 +365,13 @@ exports.LoadUtils = () => {
         }
 
         await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
-        await window.Store.HistorySync.sendPeerDataOperationRequest(3, {
-            chatId: chat.id
-        });
         return window.Store.Msg.get(newMsgKey._serialized);
     };
-	
+
     window.WWebJS.editMessage = async (msg, content, options = {}) => {
         const extraOptions = options.extraOptions || {};
         delete options.extraOptions;
-        
+
         if (options.mentionedJidList) {
             options.mentionedJidList = await Promise.all(
                 options.mentionedJidList.map(async (id) => {
@@ -403,11 +463,11 @@ exports.LoadUtils = () => {
             isPtt: forceVoice,
             asDocument: forceDocument
         };
-      
+
         if (forceMediaHd && file.type.indexOf('image/') === 0) {
             mediaParams.maxDimension = 2560;
         }
-      
+
         const mediaPrep = window.Store.MediaPrep.prepRawMedia(opaqueData, mediaParams);
         const mediaData = await mediaPrep.waitForPrep();
         const mediaObject = window.Store.MediaObject.getOrCreateMediaObject(mediaData.filehash);
@@ -846,7 +906,7 @@ exports.LoadUtils = () => {
 
         options = Object.assign({ size: 640, mimetype: media.mimetype, quality: .75, asDataUrl: false }, options);
 
-        const img = await new Promise ((resolve, reject) => {
+        const img = await new Promise((resolve, reject) => {
             const img = new Image();
             img.onload = () => resolve(img);
             img.onerror = reject;
@@ -901,11 +961,11 @@ exports.LoadUtils = () => {
             const res = await window.Store.GroupUtils.requestDeletePicture(chatWid);
             return res ? res.status === 200 : false;
         } catch (err) {
-            if(err.name === 'ServerStatusCodeError') return false;
+            if (err.name === 'ServerStatusCodeError') return false;
             throw err;
         }
     };
-    
+
     window.WWebJS.getProfilePicThumbToBase64 = async (chatWid) => {
         const profilePicCollection = await window.Store.ProfilePicThumb.find(chatWid);
 
@@ -1033,7 +1093,7 @@ exports.LoadUtils = () => {
         }));
 
         const groupJid = window.Store.WidToJid.widToGroupJid(groupWid);
-        
+
         const _getSleepTime = (sleep) => {
             if (!Array.isArray(sleep) || (sleep.length === 2 && sleep[0] === sleep[1])) {
                 return sleep;
@@ -1125,7 +1185,7 @@ exports.LoadUtils = () => {
         const response = await window.Store.pinUnpinMsg(message, action, duration);
         return response.messageSendResult === 'OK';
     };
-    
+
     window.WWebJS.getStatusModel = status => {
         const res = status.serialize();
         delete res._msgs;
