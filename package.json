@@ -1,6 +1,6 @@
 {
   "name": "whatsapp-webjs-manager-extension",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A comprehensive Chrome extension for managing WhatsApp Web with advanced features like auto-reply, message monitoring, and automation",
   "scripts": {
     "build": "node build.js",
@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bioenable/whatsapp-web.js.git"
+    "url": "git+https://github.com/bioenable/whatsapp-web-chrome-extension.git"
   },
   "keywords": [
     "whatsapp",
@@ -27,17 +27,17 @@
   "author": "Your Name",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/bioenable/whatsapp-web.js/issues"
+    "url": "https://github.com/bioenable/whatsapp-web-chrome-extension/issues"
   },
-  "homepage": "https://github.com/bioenable/whatsapp-web.js#readme",
+  "homepage": "https://github.com/bioenable/whatsapp-web-chrome-extension#readme",
+  "dependencies": {
+    "whatsapp-web.js": "^1.31.0"
+  },
   "devDependencies": {
     "eslint": "^8.4.1"
   },
   "engines": {
     "chrome": ">=88"
   },
-  "manifest_version": 3,
-  "dependencies": {
-    "whatsapp-web.js": "^1.31.0"
-  }
+  "manifest_version": 3
 }
