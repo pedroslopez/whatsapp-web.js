@@ -17,24 +17,36 @@
 - Message statistics and analytics
 - Contact and group management
 - Media file organization
+- Live message monitoring and notifications
 
 ### 🤖 **Automation & Auto-Reply**
 - Customizable auto-reply messages
 - Keyword-based message monitoring
 - Scheduled message sending
 - Smart response templates
+- Intelligent message filtering
 
 ### 🔧 **Advanced Management**
 - Export/import chat data
 - Message search and filtering
 - Contact organization tools
 - Group administration features
+- Message history retrieval
+- Mark messages as read
 
 ### 🛡️ **Privacy & Security**
 - Local data storage (no cloud sync)
 - Encrypted message logs
 - Secure session management
 - Privacy-focused design
+- No external dependencies
+
+### 🔌 **Robust Integration**
+- Direct WhatsApp Web API access
+- Real-time message synchronization
+- Automatic reconnection handling
+- Cross-tab communication
+- Error recovery and fallback mechanisms
 
 ## 📥 Installation
 
@@ -70,10 +82,12 @@
 2. **Open WhatsApp Web**
    - Navigate to [web.whatsapp.com](https://web.whatsapp.com)
    - Log in with your WhatsApp account
+   - Ensure you're connected and ready
 
 3. **Access the Extension**
    - Click the WhatsApp Web.js Manager icon in your Chrome toolbar
    - The extension popup will show your connection status
+   - Wait for "Connected to WhatsApp Web" status
 
 4. **Configure Settings**
    - Right-click the extension icon and select "Options"
@@ -86,16 +100,25 @@
 2. Navigate to the "Automation" tab
 3. Enable auto-reply and set your message
 4. Configure delay and trigger conditions
+5. Save settings
 
 ### Message Monitoring
 1. Go to extension Options (right-click icon → Options)
 2. Enable message logging and notifications
 3. Set up keyword monitoring for important messages
+4. Configure notification preferences
 
 ### Contact Management
 1. Use the "Contacts" tab in the extension popup
 2. View, search, and organize your contacts
 3. Export contact lists for backup
+4. Get detailed contact information
+
+### Chat Management
+1. Access chat list through the extension
+2. View message history and statistics
+3. Mark conversations as read
+4. Monitor group activities
 
 ## 🛠️ Configuration
 
@@ -111,11 +134,65 @@ The extension offers comprehensive configuration options:
 - **Message Logging**: Keep local logs of conversations
 - **Keyword Alerts**: Get notified for specific words/phrases
 - **Desktop Notifications**: Chrome notification integration
+- **Real-time Updates**: Live message monitoring
 
 ### Connection Settings
 - **Auto-Reconnect**: Automatically reconnect on connection loss
 - **Session Timeout**: Configure inactive session handling
 - **Backup Settings**: Automatic data backup options
+- **Error Recovery**: Automatic error handling and recovery
+
+## 🏗️ Architecture
+
+This Chrome extension uses a sophisticated architecture to integrate with WhatsApp Web:
+
+### Core Components
+
+1. **Background Script** (`background.js`)
+   - Manages extension state and settings
+   - Handles communication between components
+   - Provides auto-reply and monitoring features
+   - Manages Chrome extension APIs
+
+2. **Content Script** (`content.js`)
+   - Injects into WhatsApp Web pages
+   - Provides communication bridge
+   - Handles page navigation and script injection
+   - Manages message queuing and timeouts
+
+3. **Inject Script** (`inject.js`)
+   - Runs in WhatsApp Web page context
+   - Accesses WhatsApp Web internal APIs
+   - Provides message sending/receiving capabilities
+   - Handles contact and chat management
+
+4. **WhatsApp Web.js Library** (`lib/`)
+   - Adapted version of whatsapp-web.js library
+   - Provides WhatsApp Web API utilities
+   - Handles message parsing and formatting
+   - Manages WhatsApp Web store access
+
+### Communication Flow
+
+```
+Extension Popup/Options
+         ↕
+   Background Script
+         ↕
+   Content Script
+         ↕
+   Inject Script
+         ↕
+   WhatsApp Web APIs
+```
+
+### Key Features
+
+- **Direct API Access**: Uses WhatsApp Web's internal APIs directly
+- **Real-time Communication**: Live message synchronization
+- **Error Handling**: Robust error recovery and fallback mechanisms
+- **Cross-tab Support**: Works across multiple WhatsApp Web tabs
+- **Privacy Focused**: All data stays local, no external servers
 
 ## 📁 File Structure
 
@@ -130,6 +207,9 @@ whatsapp-web.js/
 ├── lib/                  # Local whatsapp-web.js library
 │   ├── index.js          # Main library entry point
 │   ├── src/              # Library source files
+│   │   ├── util/         # WhatsApp Web utilities
+│   │   ├── structures/   # Data structures
+│   │   └── ...
 │   └── package.json      # Library package info
 ├── styles/
 │   └── popup.css         # Styling for popup interface
@@ -151,6 +231,7 @@ The extension requires the following permissions:
 - **background**: To run background processes
 - **downloads**: To export data and media files
 - **clipboardWrite/Read**: For copy/paste functionality
+- **tabs**: To find and communicate with WhatsApp Web tabs
 
 ## 🚨 Important Notes
 
@@ -160,26 +241,35 @@ The extension requires the following permissions:
 - Ensure you're logged into WhatsApp Web before using extension features
 - Some features may stop working if WhatsApp updates their web interface
 - Keep the extension updated for the best experience
+- The extension requires an active WhatsApp Web tab to function
 
 ## 🐛 Troubleshooting
 
 ### Extension Not Working
-1. Refresh the WhatsApp Web page
-2. Disable and re-enable the extension
-3. Check if you're logged into WhatsApp Web
-4. Try restarting Chrome
+1. Ensure WhatsApp Web is open and connected
+2. Refresh the WhatsApp Web page
+3. Disable and re-enable the extension
+4. Check if you're logged into WhatsApp Web
+5. Try restarting Chrome
 
 ### Auto-Reply Not Responding
 1. Verify auto-reply is enabled in settings
 2. Check the message delay settings
-3. Ensure you're not in an active conversation
-4. Verify WhatsApp Web connection status
+3. Ensure WhatsApp Web is connected
+4. Verify the extension status shows "Connected"
 
 ### Connection Issues
 1. Check your internet connection
 2. Refresh WhatsApp Web page
 3. Clear browser cache and cookies
 4. Try incognito mode
+5. Check extension permissions
+
+### Message Not Sending
+1. Verify WhatsApp Web is connected
+2. Check if the recipient is valid
+3. Ensure you have permission to send messages
+4. Try refreshing the page
 
 ## 🤝 Contributing
 
@@ -198,8 +288,8 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 ## 🙏 Acknowledgments
 
 - Inspired by the [whatsapp-web.js](https://github.com/pedroslopez/whatsapp-web.js) library
-- Icons from various open-source icon libraries
 - Chrome Extension documentation and community
+- WhatsApp Web API research and reverse engineering
 
 ## 📞 Support
 

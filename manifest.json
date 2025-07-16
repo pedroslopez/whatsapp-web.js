@@ -10,13 +10,15 @@
     "background",
     "downloads",
     "clipboardWrite",
-    "clipboardRead"
+    "clipboardRead",
+    "tabs"
   ],
   "host_permissions": [
     "http://localhost/*",
     "https://localhost/*",
     "http://127.0.0.1/*",
-    "https://127.0.0.1/*"
+    "https://127.0.0.1/*",
+    "https://web.whatsapp.com/*"
   ],
   "background": {
     "service_worker": "background.js"
