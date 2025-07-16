@@ -1,305 +1,215 @@
-# WhatsApp Web.js Manager - Chrome Extension
+# WhatsApp Web.js Manager Extension
 
-<div align="center">
-    <img src="icons/icon128.png" alt="WhatsApp Web.js Manager" width="128" height="128">
-    <h2>A comprehensive Chrome extension for managing WhatsApp Web</h2>
-    <p>
-        <img src="https://img.shields.io/badge/Chrome-Extension-brightgreen.svg" alt="Chrome Extension" />
-        <img src="https://img.shields.io/badge/Manifest-V3-blue.svg" alt="Manifest V3" />
-        <img src="https://img.shields.io/badge/License-Apache%202.0-yellow.svg" alt="License" />
-    </p>
-</div>
+A comprehensive and modern Chrome extension that provides a powerful interface for managing WhatsApp Web through the whatsapp-web.js library. This extension integrates directly with WhatsApp Web in your browser, offering advanced features for message management, contact handling, and automation.
 
 ## 🚀 Features
 
-### 📊 **Dashboard & Monitoring**
-- Real-time connection status with WhatsApp Web
-- Message statistics and analytics
-- Contact and group management
-- Media file organization
-- Live message monitoring and notifications
+### Core Functionality
+- **Direct WhatsApp Web Integration**: Seamlessly connects to WhatsApp Web without external dependencies
+- **Real-time Message Management**: Send, receive, and manage messages directly from the extension
+- **Contact Management**: View, search, and manage your WhatsApp contacts
+- **Chat Management**: Access and manage all your WhatsApp chats
+- **Right Sidebar Interface**: Modern sidebar interface for easy access and management
 
-### 🤖 **Automation & Auto-Reply**
-- Customizable auto-reply messages
-- Keyword-based message monitoring
-- Scheduled message sending
-- Smart response templates
-- Intelligent message filtering
+### Advanced Features
+- **Message Automation**: Set up auto-replies and message monitoring
+- **Data Export/Import**: Export and import your WhatsApp data
+- **Real-time Notifications**: Get notified of new messages and events
+- **Search & Filter**: Advanced search and filtering capabilities
+- **Activity Logging**: Track all extension activities and events
 
-### 🔧 **Advanced Management**
-- Export/import chat data
-- Message search and filtering
-- Contact organization tools
-- Group administration features
-- Message history retrieval
-- Mark messages as read
+### Sidebar Interface
+- **Dashboard**: Overview of messages, contacts, and chats with quick actions
+- **Messages Tab**: View, search, and filter messages by chat
+- **Contacts Tab**: Manage contacts with search and filtering options
+- **Automation Tab**: Configure auto-replies and monitoring settings
+- **Settings Tab**: Extension configuration and data management
 
-### 🛡️ **Privacy & Security**
-- Local data storage (no cloud sync)
-- Encrypted message logs
-- Secure session management
-- Privacy-focused design
-- No external dependencies
+## 📦 Installation
 
-### 🔌 **Robust Integration**
-- Direct WhatsApp Web API access
-- Real-time message synchronization
-- Automatic reconnection handling
-- Cross-tab communication
-- Error recovery and fallback mechanisms
-
-## 📥 Installation
-
-### Method 1: Chrome Web Store (Recommended)
-*Coming Soon - Extension is under review*
-
-### Method 2: Direct Installation from GitHub
-1. **Download the latest release** from [GitHub Releases](https://github.com/bioenable/whatsapp-web.js/releases)
-2. **Extract the ZIP file** to a folder on your computer
-3. **Follow the Manual Installation steps below**
-
-### Method 3: Manual Installation (Developer Mode)
-
-1. **Download the Extension**
+### From Source
+1. Clone the repository:
    ```bash
-   git clone https://github.com/bioenable/whatsapp-web.js.git
-   cd whatsapp-web.js
+   git clone https://github.com/yourusername/whatsapp-webjs-manager-extension.git
+   cd whatsapp-webjs-manager-extension
    ```
 
-2. **Enable Developer Mode in Chrome**
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Build the extension:
+   ```bash
+   npm run build
+   ```
+
+4. Load the extension in Chrome:
    - Open Chrome and go to `chrome://extensions/`
-   - Toggle "Developer mode" in the top-right corner
+   - Enable "Developer mode"
+   - Click "Load unpacked" and select the `build` folder
 
-3. **Load the Extension**
-   - Click "Load unpacked"
-   - Select the downloaded extension folder
-   - The extension should now appear in your Chrome toolbar
-
-## 🎯 Quick Start
-
-1. **Install the Extension** following the instructions above
-
-2. **Open WhatsApp Web**
-   - Navigate to [web.whatsapp.com](https://web.whatsapp.com)
-   - Log in with your WhatsApp account
-   - Ensure you're connected and ready
-
-3. **Access the Extension**
-   - Click the WhatsApp Web.js Manager icon in your Chrome toolbar
-   - The extension popup will show your connection status
-   - Wait for "Connected to WhatsApp Web" status
-
-4. **Configure Settings**
-   - Right-click the extension icon and select "Options"
-   - Configure auto-reply, monitoring, and other features
+### From Release
+1. Download the latest release ZIP file
+2. Extract the ZIP file
+3. Load the extracted folder in Chrome as described above
 
 ## 🔧 Usage
 
-### Setting Up Auto-Reply
-1. Open the extension popup
-2. Navigate to the "Automation" tab
-3. Enable auto-reply and set your message
-4. Configure delay and trigger conditions
-5. Save settings
+### Initial Setup
+1. Install the extension
+2. Open WhatsApp Web (https://web.whatsapp.com)
+3. Scan the QR code with your phone
+4. The extension will automatically connect to WhatsApp Web
 
-### Message Monitoring
-1. Go to extension Options (right-click icon → Options)
-2. Enable message logging and notifications
-3. Set up keyword monitoring for important messages
-4. Configure notification preferences
-
-### Contact Management
-1. Use the "Contacts" tab in the extension popup
-2. View, search, and organize your contacts
-3. Export contact lists for backup
-4. Get detailed contact information
-
-### Chat Management
-1. Access chat list through the extension
-2. View message history and statistics
-3. Mark conversations as read
-4. Monitor group activities
-
-## 🛠️ Configuration
-
-The extension offers comprehensive configuration options:
-
-### Auto-Reply Settings
-- **Enable/Disable**: Toggle auto-reply functionality
-- **Message Templates**: Create custom response messages
-- **Delay Settings**: Configure response timing (1-60 seconds)
-- **Trigger Conditions**: Set when auto-reply should activate
-
-### Monitoring Options
-- **Message Logging**: Keep local logs of conversations
-- **Keyword Alerts**: Get notified for specific words/phrases
-- **Desktop Notifications**: Chrome notification integration
-- **Real-time Updates**: Live message monitoring
-
-### Connection Settings
-- **Auto-Reconnect**: Automatically reconnect on connection loss
-- **Session Timeout**: Configure inactive session handling
-- **Backup Settings**: Automatic data backup options
-- **Error Recovery**: Automatic error handling and recovery
-
-## 🏗️ Architecture
-
-This Chrome extension uses a sophisticated architecture to integrate with WhatsApp Web:
-
-### Core Components
-
-1. **Background Script** (`background.js`)
-   - Manages extension state and settings
-   - Handles communication between components
-   - Provides auto-reply and monitoring features
-   - Manages Chrome extension APIs
-
-2. **Content Script** (`content.js`)
-   - Injects into WhatsApp Web pages
-   - Provides communication bridge
-   - Handles page navigation and script injection
-   - Manages message queuing and timeouts
-
-3. **Inject Script** (`inject.js`)
-   - Runs in WhatsApp Web page context
-   - Accesses WhatsApp Web internal APIs
-   - Provides message sending/receiving capabilities
-   - Handles contact and chat management
-
-4. **WhatsApp Web.js Library** (`lib/`)
-   - Adapted version of whatsapp-web.js library
-   - Provides WhatsApp Web API utilities
-   - Handles message parsing and formatting
-   - Manages WhatsApp Web store access
-
-### Communication Flow
-
-```
-Extension Popup/Options
-         ↕
-   Background Script
-         ↕
-   Content Script
-         ↕
-   Inject Script
-         ↕
-   WhatsApp Web APIs
-```
+### Using the Sidebar
+1. Click the extension icon in your browser toolbar
+2. The sidebar will open on the right side of your browser
+3. Navigate between tabs to access different features:
+   - **Dashboard**: Overview and quick actions
+   - **Messages**: View and manage messages
+   - **Contacts**: Manage your contacts
+   - **Automation**: Configure automation settings
+   - **Settings**: Extension configuration
 
 ### Key Features
+- **Refresh Data**: Click the refresh button to update contacts, chats, and messages
+- **Search**: Use the search boxes to filter messages and contacts
+- **Export Data**: Export your WhatsApp data for backup
+- **Auto-reply**: Set up automatic replies to incoming messages
+- **Message Logging**: Enable logging to track all messages
 
-- **Direct API Access**: Uses WhatsApp Web's internal APIs directly
-- **Real-time Communication**: Live message synchronization
-- **Error Handling**: Robust error recovery and fallback mechanisms
-- **Cross-tab Support**: Works across multiple WhatsApp Web tabs
-- **Privacy Focused**: All data stays local, no external servers
+## 🛠️ Technical Details
 
-## 📁 File Structure
+### Architecture
+- **Background Script**: Manages extension state and communication
+- **Content Script**: Injects into WhatsApp Web pages
+- **Inject Script**: Integrates with WhatsApp Web's internal APIs
+- **Sidebar**: Modern UI for extension management
+- **Popup**: Quick access interface
+
+### Communication Flow
+1. **Background Script** ↔ **Content Script**: Manages WhatsApp Web integration
+2. **Content Script** ↔ **Inject Script**: Executes WhatsApp Web operations
+3. **Sidebar** ↔ **Background Script**: UI interactions and data requests
+4. **WhatsApp Web** ↔ **Inject Script**: Direct API access
+
+### Fixed Issues
+- **Module Loading**: Resolved WhatsApp Web module dependency issues
+- **Communication**: Fixed extension context invalidation errors
+- **Connection**: Improved connection stability and retry mechanisms
+- **UI Responsiveness**: Enhanced sidebar interface with proper state management
+
+## 📁 Project Structure
 
 ```
-whatsapp-web.js/
-├── manifest.json          # Extension manifest (Chrome Extension config)
-├── background.js          # Service worker (main extension logic)
-├── popup.html            # Extension popup interface
-├── content.js            # Content script (injected into WhatsApp Web)
-├── inject.js             # Page script (interacts with WhatsApp Web)
-├── options.html          # Extension settings page
-├── lib/                  # Local whatsapp-web.js library
-│   ├── index.js          # Main library entry point
-│   ├── src/              # Library source files
-│   │   ├── util/         # WhatsApp Web utilities
-│   │   ├── structures/   # Data structures
-│   │   └── ...
-│   └── package.json      # Library package info
-├── styles/
-│   └── popup.css         # Styling for popup interface
-├── icons/
-│   ├── icon16.png        # Extension icons (various sizes)
-│   ├── icon32.png
-│   ├── icon48.png
-│   └── icon128.png
-└── README.md             # This file
+whatsapp-webjs-manager-extension/
+├── src/
+│   ├── background.js          # Background service worker
+│   ├── content.js             # Content script for WhatsApp Web
+│   ├── inject.js              # WhatsApp Web integration script
+│   ├── sidebar.html           # Sidebar interface
+│   ├── sidebar.js             # Sidebar functionality
+│   ├── sidebar.css            # Sidebar styling
+│   ├── popup.html             # Extension popup
+│   ├── options.html           # Options page
+│   └── manifest.json          # Extension manifest
+├── lib/                       # whatsapp-web.js library
+├── styles/                    # CSS styles
+├── icons/                     # Extension icons
+├── build/                     # Built extension
+├── package.json               # Project configuration
+└── README.md                  # This file
 ```
 
 ## 🔒 Permissions
 
 The extension requires the following permissions:
-
-- **storage**: To save your settings and preferences
-- **activeTab**: To interact with WhatsApp Web pages
-- **notifications**: To show desktop notifications
-- **background**: To run background processes
-- **downloads**: To export data and media files
-- **clipboardWrite/Read**: For copy/paste functionality
-- **tabs**: To find and communicate with WhatsApp Web tabs
+- `storage`: Save settings and data
+- `activeTab`: Access current tab
+- `tabs`: Manage browser tabs
+- `sidePanel`: Display sidebar interface
+- `notifications`: Show desktop notifications
+- `background`: Run background processes
+- `downloads`: Export data
+- `clipboardWrite/Read`: Copy/paste functionality
 
 ## 🚨 Important Notes
 
-> **⚠️ Disclaimer**: This extension is not officially affiliated with WhatsApp or Meta. Use at your own risk. WhatsApp may block accounts that use unofficial tools.
+### WhatsApp Web Requirements
+- You must be logged into WhatsApp Web for the extension to work
+- The extension only works on https://web.whatsapp.com
+- Keep WhatsApp Web open for the extension to function
 
-- This extension works only with [web.whatsapp.com](https://web.whatsapp.com)
-- Ensure you're logged into WhatsApp Web before using extension features
-- Some features may stop working if WhatsApp updates their web interface
-- Keep the extension updated for the best experience
-- The extension requires an active WhatsApp Web tab to function
+### Privacy & Security
+- The extension only accesses WhatsApp Web data
+- No data is sent to external servers
+- All data is stored locally in your browser
+- You can export and delete your data at any time
+
+### Limitations
+- The extension requires WhatsApp Web to be open
+- Some features may be limited by WhatsApp Web's API
+- The extension cannot bypass WhatsApp Web's security measures
 
 ## 🐛 Troubleshooting
 
-### Extension Not Working
-1. Ensure WhatsApp Web is open and connected
-2. Refresh the WhatsApp Web page
-3. Disable and re-enable the extension
-4. Check if you're logged into WhatsApp Web
-5. Try restarting Chrome
+### Common Issues
 
-### Auto-Reply Not Responding
-1. Verify auto-reply is enabled in settings
-2. Check the message delay settings
-3. Ensure WhatsApp Web is connected
-4. Verify the extension status shows "Connected"
+**Extension shows "Disconnected"**
+- Make sure WhatsApp Web is open and you're logged in
+- Refresh the WhatsApp Web page
+- Check if the extension is enabled
 
-### Connection Issues
-1. Check your internet connection
-2. Refresh WhatsApp Web page
-3. Clear browser cache and cookies
-4. Try incognito mode
-5. Check extension permissions
+**"Extension context invalidated" error**
+- Reload the extension from chrome://extensions/
+- Close and reopen WhatsApp Web
+- Clear browser cache and cookies
 
-### Message Not Sending
-1. Verify WhatsApp Web is connected
-2. Check if the recipient is valid
-3. Ensure you have permission to send messages
-4. Try refreshing the page
+**Sidebar not loading**
+- Check if the extension has the `sidePanel` permission
+- Try refreshing the page
+- Restart the browser
+
+**Messages not loading**
+- Ensure you're logged into WhatsApp Web
+- Check the browser console for errors
+- Try refreshing the data from the sidebar
+
+### Debug Mode
+1. Open Chrome DevTools
+2. Go to the Console tab
+3. Look for messages starting with "WhatsApp Web.js Manager"
+4. Check for any error messages
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
-
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch: `git checkout -b feature-name`
+3. Make your changes
+4. Test thoroughly
+5. Commit your changes: `git commit -am 'Add feature'`
+6. Push to the branch: `git push origin feature-name`
+7. Submit a pull request
 
 ## 📄 License
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- Inspired by the [whatsapp-web.js](https://github.com/pedroslopez/whatsapp-web.js) library
-- Chrome Extension documentation and community
-- WhatsApp Web API research and reverse engineering
+- [whatsapp-web.js](https://github.com/pedroslopez/whatsapp-web.js) - The underlying WhatsApp Web library
+- Chrome Extension APIs - For the extension framework
+- WhatsApp Web - For the web interface
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/bioenable/whatsapp-web.js/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/bioenable/whatsapp-web.js/discussions)
-- **Email**: support@bioenable.com
+If you encounter any issues or have questions:
+1. Check the troubleshooting section above
+2. Search existing issues on GitHub
+3. Create a new issue with detailed information
+4. Include browser version, extension version, and error messages
 
 ---
 
-<div align="center">
-    <p>Made with ❤️ for the WhatsApp Web community</p>
-    <p>⭐ Star this repository if you find it helpful!</p>
-</div>
+**Note**: This extension is not affiliated with WhatsApp Inc. Use at your own risk and in compliance with WhatsApp's Terms of Service.

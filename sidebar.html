@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Web.js Manager</title>
+    <link rel="stylesheet" href="sidebar.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="sidebar-container">
+        <!-- Header -->
+        <div class="sidebar-header">
+            <div class="header-content">
+                <img src="icons/icon32.png" alt="WhatsApp Manager" class="header-icon">
+                <h1>WhatsApp Manager</h1>
+            </div>
+            <div class="connection-status" id="connectionStatus">
+                <i class="fas fa-circle status-indicator" id="statusIndicator"></i>
+                <span id="statusText">Connecting...</span>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="sidebar-tabs">
+            <button class="tab-button active" data-tab="dashboard">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </button>
+            <button class="tab-button" data-tab="messages">
+                <i class="fas fa-comments"></i>
+                <span>Messages</span>
+            </button>
+            <button class="tab-button" data-tab="contacts">
+                <i class="fas fa-address-book"></i>
+                <span>Contacts</span>
+            </button>
+            <button class="tab-button" data-tab="automation">
+                <i class="fas fa-robot"></i>
+                <span>Automation</span>
+            </button>
+            <button class="tab-button" data-tab="settings">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </button>
+        </div>
+
+        <!-- Content Area -->
+        <div class="sidebar-content">
+            <!-- Dashboard Tab -->
+            <div class="tab-content active" id="dashboard">
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-comment"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalMessages">0</h3>
+                            <p>Total Messages</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalContacts">0</h3>
+                            <p>Contacts</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalChats">0</h3>
+                            <p>Chats</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <h3>Quick Actions</h3>
+                    <div class="action-buttons">
+                        <button class="action-btn" id="refreshData">
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh Data
+                        </button>
+                        <button class="action-btn" id="getContacts">
+                            <i class="fas fa-address-book"></i>
+                            Get Contacts
+                        </button>
+                        <button class="action-btn" id="getChats">
+                            <i class="fas fa-comments"></i>
+                            Get Chats
+                        </button>
+                    </div>
+                </div>
+
+                <div class="recent-activity">
+                    <h3>Recent Activity</h3>
+                    <div class="activity-list" id="activityList">
+                        <div class="activity-item">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Extension loaded successfully</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages Tab -->
+            <div class="tab-content" id="messages">
+                <div class="messages-header">
+                    <h3>Message Management</h3>
+                    <button class="refresh-btn" id="refreshMessages">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                
+                <div class="message-filters">
+                    <select id="chatFilter" class="filter-select">
+                        <option value="">All Chats</option>
+                    </select>
+                    <input type="text" id="messageSearch" placeholder="Search messages..." class="search-input">
+                </div>
+
+                <div class="messages-list" id="messagesList">
+                    <div class="no-messages">
+                        <i class="fas fa-comments"></i>
+                        <p>No messages loaded</p>
+                        <button class="load-btn" id="loadMessages">Load Messages</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contacts Tab -->
+            <div class="tab-content" id="contacts">
+                <div class="contacts-header">
+                    <h3>Contact Management</h3>
+                    <button class="refresh-btn" id="refreshContacts">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+
+                <div class="contact-filters">
+                    <input type="text" id="contactSearch" placeholder="Search contacts..." class="search-input">
+                    <select id="contactFilter" class="filter-select">
+                        <option value="">All Contacts</option>
+                        <option value="my">My Contacts</option>
+                        <option value="wa">WhatsApp Contacts</option>
+                    </select>
+                </div>
+
+                <div class="contacts-list" id="contactsList">
+                    <div class="no-contacts">
+                        <i class="fas fa-address-book"></i>
+                        <p>No contacts loaded</p>
+                        <button class="load-btn" id="loadContacts">Load Contacts</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Automation Tab -->
+            <div class="tab-content" id="automation">
+                <div class="automation-header">
+                    <h3>Automation Settings</h3>
+                </div>
+
+                <div class="automation-section">
+                    <h4>Auto-Reply</h4>
+                    <div class="setting-group">
+                        <label class="toggle-label">
+                            <input type="checkbox" id="autoReplyEnabled">
+                            <span class="toggle-slider"></span>
+                            Enable Auto-Reply
+                        </label>
+                    </div>
+                    
+                    <div class="setting-group" id="autoReplySettings">
+                        <label>Reply Message:</label>
+                        <textarea id="autoReplyMessage" placeholder="Enter your auto-reply message..." rows="3"></textarea>
+                        
+                        <label>Delay (seconds):</label>
+                        <input type="number" id="autoReplyDelay" min="1" max="60" value="5">
+                    </div>
+                </div>
+
+                <div class="automation-section">
+                    <h4>Message Monitoring</h4>
+                    <div class="setting-group">
+                        <label class="toggle-label">
+                            <input type="checkbox" id="messageLoggingEnabled">
+                            <span class="toggle-slider"></span>
+                            Enable Message Logging
+                        </label>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <label class="toggle-label">
+                            <input type="checkbox" id="notificationsEnabled">
+                            <span class="toggle-slider"></span>
+                            Enable Desktop Notifications
+                        </label>
+                    </div>
+
+                    <div class="setting-group">
+                        <label>Keyword Monitoring:</label>
+                        <input type="text" id="keywordMonitoring" placeholder="Enter keywords separated by commas">
+                    </div>
+                </div>
+
+                <div class="automation-actions">
+                    <button class="save-btn" id="saveAutomation">Save Settings</button>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="tab-content" id="settings">
+                <div class="settings-header">
+                    <h3>Extension Settings</h3>
+                </div>
+
+                <div class="settings-section">
+                    <h4>General</h4>
+                    <div class="setting-group">
+                        <label>Auto-refresh interval (seconds):</label>
+                        <input type="number" id="refreshInterval" min="5" max="300" value="30">
+                    </div>
+                    
+                    <div class="setting-group">
+                        <label class="toggle-label">
+                            <input type="checkbox" id="startupEnabled">
+                            <span class="toggle-slider"></span>
+                            Auto-start with browser
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h4>Data Management</h4>
+                    <div class="setting-group">
+                        <button class="action-btn" id="exportData">
+                            <i class="fas fa-download"></i>
+                            Export Data
+                        </button>
+                        <button class="action-btn" id="importData">
+                            <i class="fas fa-upload"></i>
+                            Import Data
+                        </button>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <button class="danger-btn" id="clearData">
+                            <i class="fas fa-trash"></i>
+                            Clear All Data
+                        </button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h4>About</h4>
+                    <div class="about-info">
+                        <p><strong>Version:</strong> <span id="extensionVersion">1.1.1</span></p>
+                        <p><strong>WhatsApp Web.js:</strong> <span id="libraryVersion">1.31.0</span></p>
+                        <p><strong>Last Updated:</strong> <span id="lastUpdated">2024-12-19</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="sidebar.js"></script>
+</body>
+</html>

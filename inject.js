@@ -145,45 +145,122 @@
         }
 
         initStore() {
+            // Simplified store initialization - use existing WhatsApp Web objects
             if (window.Store) {
                 this.Store = window.Store;
             } else if (window.require) {
                 try {
-                    // Initialize Store with WhatsApp Web modules
-                    this.Store = Object.assign({}, window.require('WAWebCollections'));
-                    this.Store.AppState = window.require('WAWebSocketModel').Socket;
-                    this.Store.Conn = window.require('WAWebConnModel').Conn;
-                    this.Store.Cmd = window.require('WAWebCmd').Cmd;
-                    this.Store.SendMessage = window.require('WAWebSendMsgChatAction');
-                    this.Store.SendSeen = window.require('WAWebUpdateUnreadChatAction');
-                    this.Store.User = window.require('WAWebUserPrefsMeUser');
-                    this.Store.WidFactory = window.require('WAWebWidFactory');
-                    this.Store.Validators = window.require('WALinkify');
-                    this.Store.ProfilePic = window.require('WAWebContactProfilePicThumbBridge');
-                    this.Store.ChatGetters = window.require('WAWebChatGetters');
-                    this.Store.QueryExist = window.require('WAWebQueryExistsJob').queryWidExists;
-                    this.Store.ReplyUtils = window.require('WAWebMsgReply');
-                    this.Store.LinkPreview = window.require('WAWebLinkPreviewChatAction');
-                    this.Store.VCard = {
-                        ...window.require('WAWebFrontendVcardUtils'),
-                        ...window.require('WAWebVcardParsingUtils'),
-                        ...window.require('WAWebVcardGetNameFromParsed')
-                    };
-                    this.Store.GroupUtils = {
-                        ...window.require('WAWebGroupCreateJob'),
-                        ...window.require('WAWebGroupModifyInfoJob'),
-                        ...window.require('WAWebExitGroupAction')
-                    };
-                    this.Store.GroupParticipants = {
-                        ...window.require('WAWebModifyParticipantsGroupAction'),
-                        ...window.require('WASmaxGroupsAddParticipantsRPC')
-                    };
-                    this.Store.AddressbookContactUtils = {
-                        ...window.require('WAWebSaveContactAction'),
-                        ...window.require('WAWebDeleteContactAction')
-                    };
+                    // Use basic WhatsApp Web collections
+                    this.Store = window.require('WAWebCollections');
+                    
+                    // Add essential modules if available
+                    try {
+                        this.Store.Conn = window.require('WAWebConnModel')?.Conn;
+                    } catch (e) {
+                        console.log('Conn module not available');
+                    }
+                    
+                    try {
+                        this.Store.SendMessage = window.require('WAWebSendMsgChatAction');
+                    } catch (e) {
+                        console.log('SendMessage module not available');
+                    }
+                    
+                    try {
+                        this.Store.SendSeen = window.require('WAWebUpdateUnreadChatAction');
+                    } catch (e) {
+                        console.log('SendSeen module not available');
+                    }
+                    
+                    try {
+                        this.Store.User = window.require('WAWebUserPrefsMeUser');
+                    } catch (e) {
+                        console.log('User module not available');
+                    }
+                    
+                    try {
+                        this.Store.WidFactory = window.require('WAWebWidFactory');
+                    } catch (e) {
+                        console.log('WidFactory module not available');
+                    }
+                    
+                    try {
+                        this.Store.Validators = window.require('WALinkify');
+                    } catch (e) {
+                        console.log('Validators module not available');
+                    }
+                    
+                    try {
+                        this.Store.ProfilePic = window.require('WAWebContactProfilePicThumbBridge');
+                    } catch (e) {
+                        console.log('ProfilePic module not available');
+                    }
+                    
+                    try {
+                        this.Store.ChatGetters = window.require('WAWebChatGetters');
+                    } catch (e) {
+                        console.log('ChatGetters module not available');
+                    }
+                    
+                    try {
+                        this.Store.QueryExist = window.require('WAWebQueryExistsJob')?.queryWidExists;
+                    } catch (e) {
+                        console.log('QueryExist module not available');
+                    }
+                    
+                    try {
+                        this.Store.ReplyUtils = window.require('WAWebMsgReply');
+                    } catch (e) {
+                        console.log('ReplyUtils module not available');
+                    }
+                    
+                    try {
+                        this.Store.LinkPreview = window.require('WAWebLinkPreviewChatAction');
+                    } catch (e) {
+                        console.log('LinkPreview module not available');
+                    }
+                    
+                    try {
+                        this.Store.VCard = {
+                            ...window.require('WAWebFrontendVcardUtils'),
+                            ...window.require('WAWebVcardParsingUtils'),
+                            ...window.require('WAWebVcardGetNameFromParsed')
+                        };
+                    } catch (e) {
+                        console.log('VCard modules not available');
+                    }
+                    
+                    try {
+                        this.Store.GroupUtils = {
+                            ...window.require('WAWebGroupCreateJob'),
+                            ...window.require('WAWebGroupModifyInfoJob'),
+                            ...window.require('WAWebExitGroupAction')
+                        };
+                    } catch (e) {
+                        console.log('GroupUtils modules not available');
+                    }
+                    
+                    try {
+                        this.Store.GroupParticipants = {
+                            ...window.require('WAWebModifyParticipantsGroupAction'),
+                            ...window.require('WASmaxGroupsAddParticipantsRPC')
+                        };
+                    } catch (e) {
+                        console.log('GroupParticipants modules not available');
+                    }
+                    
+                    try {
+                        this.Store.AddressbookContactUtils = {
+                            ...window.require('WAWebSaveContactAction'),
+                            ...window.require('WAWebDeleteContactAction')
+                        };
+                    } catch (e) {
+                        console.log('AddressbookContactUtils modules not available');
+                    }
+                    
                 } catch (e) {
-                    console.warn('Could not fully initialize WhatsApp Store:', e);
+                    console.warn('Could not initialize WhatsApp Store:', e);
+                    // Fallback to basic store
                     this.Store = window.require('WAWebCollections');
                 }
             }

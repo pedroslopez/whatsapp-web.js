@@ -6,6 +6,22 @@
 
     let injectScriptLoaded = false;
     let messageQueue = [];
+    let isExtensionContextValid = true;
+
+    // Check if extension context is still valid
+    function checkExtensionContext() {
+        try {
+            // Try to access chrome.runtime to check if context is valid
+            if (chrome.runtime && chrome.runtime.id) {
+                return true;
+            }
+        } catch (error) {
+            console.warn('Extension context invalidated:', error);
+            isExtensionContextValid = false;
+            return false;
+        }
+        return true;
+    }
 
     // Inject the main script into the page context
     function injectScript() {
@@ -29,7 +45,7 @@
         };
         script.onerror = function() {
             console.error('Failed to load inject script');
-            chrome.runtime.sendMessage({
+            sendToBackground({
                 action: 'whatsapp_event',
                 data: {
                     type: 'integration_failed',
@@ -40,6 +56,27 @@
         (document.head || document.documentElement).appendChild(script);
     }
 
+    // Safe function to send messages to background script
+    function sendToBackground(message) {
+        if (!checkExtensionContext()) {
+            console.warn('Cannot send message - extension context invalid');
+            return;
+        }
+
+        try {
+            chrome.runtime.sendMessage(message).catch(error => {
+                console.error('Failed to send message to background script:', error);
+                // Don't mark context as invalid for communication errors
+                // as they might be temporary
+            });
+        } catch (error) {
+            console.error('Error sending message to background script:', error);
+            if (error.message.includes('Extension context invalidated')) {
+                isExtensionContextValid = false;
+            }
+        }
+    }
+
     // Communication bridge between injected script and extension
     window.addEventListener('message', function(event) {
         // Only accept messages from same origin
@@ -47,17 +84,20 @@
 
         if (event.data.type && event.data.type === 'FROM_INJECT_SCRIPT') {
             // Forward to background script
-            chrome.runtime.sendMessage({
+            sendToBackground({
                 action: 'whatsapp_event',
                 data: event.data.payload
-            }).catch(error => {
-                console.error('Failed to send message to background script:', error);
             });
         }
     });
 
     // Listen for messages from extension
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        if (!checkExtensionContext()) {
+            sendResponse({ success: false, error: 'Extension context invalid' });
+            return;
+        }
+
         if (message.action === 'execute_script') {
             if (injectScriptLoaded) {
                 // Script is loaded, send message directly
@@ -125,6 +165,11 @@
             injectScript();
         }
     }).observe(document, { subtree: true, childList: true });
+
+    // Periodic context check
+    setInterval(() => {
+        checkExtensionContext();
+    }, 5000);
 
     console.log('WhatsApp Web.js Manager content script loaded');
 })();

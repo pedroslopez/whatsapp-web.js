@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "WhatsApp Web.js Manager",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A comprehensive and modern frontend for whatsapp-web.js library with full feature support",
   "permissions": [
     "storage",
@@ -11,7 +11,8 @@
     "downloads",
     "clipboardWrite",
     "clipboardRead",
-    "tabs"
+    "tabs",
+    "sidePanel"
   ],
   "host_permissions": [
     "http://localhost/*",
@@ -34,10 +35,13 @@
     "default_popup": "popup.html",
     "default_title": "WhatsApp Web.js Manager"
   },
+  "side_panel": {
+    "default_path": "sidebar.html"
+  },
   "options_page": "options.html",
   "web_accessible_resources": [
     {
-      "resources": ["inject.js", "lib/*"],
+      "resources": ["inject.js", "lib/*", "sidebar.html", "sidebar.js", "sidebar.css"],
       "matches": ["https://web.whatsapp.com/*"]
     }
   ],
