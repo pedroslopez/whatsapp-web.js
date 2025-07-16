@@ -20,6 +20,7 @@ const EXTENSION_FILES = [
     'inject.js',
     'popup.html',
     'options.html',
+    'lib/',
     'styles/',
     'icons/',
     'LICENSE'

@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/your-username/whatsapp-webjs-manager-extension.git"
+    "url": "git+https://github.com/bioenable/whatsapp-web.js.git"
   },
   "keywords": [
     "whatsapp",
@@ -27,14 +27,17 @@
   "author": "Your Name",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/your-username/whatsapp-webjs-manager-extension/issues"
+    "url": "https://github.com/bioenable/whatsapp-web.js/issues"
   },
-  "homepage": "https://github.com/your-username/whatsapp-webjs-manager-extension#readme",
+  "homepage": "https://github.com/bioenable/whatsapp-web.js#readme",
   "devDependencies": {
     "eslint": "^8.4.1"
   },
   "engines": {
     "chrome": ">=88"
   },
-  "manifest_version": 3
+  "manifest_version": 3,
+  "dependencies": {
+    "whatsapp-web.js": "^1.31.0"
+  }
 }

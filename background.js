@@ -1,5 +1,5 @@
 // WhatsApp Web.js Manager - Background Service Worker
-importScripts('https://cdn.jsdelivr.net/npm/whatsapp-web.js@1.31.0/index.js');
+importScripts('lib/index.js');
 
 class WhatsAppWebJSManager {
     constructor() {
@@ -146,7 +146,7 @@ class WhatsAppWebJSManager {
 
         try {
             // Use LocalAuth for session persistence
-            const { Client, LocalAuth } = await import('whatsapp-web.js');
+            const { Client, LocalAuth } = await import('./lib/index.js');
             
             this.client = new Client({
                 authStrategy: new LocalAuth({
@@ -315,7 +315,7 @@ class WhatsAppWebJSManager {
                     break;
 
                 case 'media':
-                    const { MessageMedia } = await import('whatsapp-web.js');
+                    const { MessageMedia } = await import('./lib/index.js');
                     const mediaObj = new MessageMedia(
                         data.mimetype,
                         data.media.split(',')[1], // Remove data URL prefix
@@ -327,7 +327,7 @@ class WhatsAppWebJSManager {
                     break;
 
                 case 'location':
-                    const { Location } = await import('whatsapp-web.js');
+                    const { Location } = await import('./lib/index.js');
                     const locationObj = new Location(
                         location.latitude,
                         location.longitude,
@@ -337,7 +337,7 @@ class WhatsAppWebJSManager {
                     break;
 
                 case 'poll':
-                    const { Poll } = await import('whatsapp-web.js');
+                    const { Poll } = await import('./lib/index.js');
                     const pollObj = new Poll(poll.name, poll.options, {
                         allowMultipleAnswers: poll.allowMultipleAnswers
                     });

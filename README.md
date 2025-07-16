@@ -41,12 +41,17 @@
 ### Method 1: Chrome Web Store (Recommended)
 *Coming Soon - Extension is under review*
 
-### Method 2: Manual Installation (Developer Mode)
+### Method 2: Direct Installation from GitHub
+1. **Download the latest release** from [GitHub Releases](https://github.com/bioenable/whatsapp-web.js/releases)
+2. **Extract the ZIP file** to a folder on your computer
+3. **Follow the Manual Installation steps below**
+
+### Method 3: Manual Installation (Developer Mode)
 
 1. **Download the Extension**
    ```bash
-   git clone https://github.com/your-username/whatsapp-webjs-manager-extension.git
-   cd whatsapp-webjs-manager-extension
+   git clone https://github.com/bioenable/whatsapp-web.js.git
+   cd whatsapp-web.js
    ```
 
 2. **Enable Developer Mode in Chrome**
@@ -115,13 +120,17 @@ The extension offers comprehensive configuration options:
 ## 📁 File Structure
 
 ```
-whatsapp-webjs-manager-extension/
+whatsapp-web.js/
 ├── manifest.json          # Extension manifest (Chrome Extension config)
 ├── background.js          # Service worker (main extension logic)
 ├── popup.html            # Extension popup interface
 ├── content.js            # Content script (injected into WhatsApp Web)
 ├── inject.js             # Page script (interacts with WhatsApp Web)
 ├── options.html          # Extension settings page
+├── lib/                  # Local whatsapp-web.js library
+│   ├── index.js          # Main library entry point
+│   ├── src/              # Library source files
+│   └── package.json      # Library package info
 ├── styles/
 │   └── popup.css         # Styling for popup interface
 ├── icons/
@@ -194,9 +203,9 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/your-username/whatsapp-webjs-manager-extension/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-username/whatsapp-webjs-manager-extension/discussions)
-- **Email**: your-email@example.com
+- **Issues**: [GitHub Issues](https://github.com/bioenable/whatsapp-web.js/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/bioenable/whatsapp-web.js/discussions)
+- **Email**: support@bioenable.com
 
 ---
 
