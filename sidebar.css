@@ -636,6 +636,142 @@ body {
     line-height: 1.4;
 }
 
+.contact-actions {
+    margin-top: 8px;
+    display: flex;
+    gap: 8px;
+}
+
+.action-btn.small {
+    padding: 4px 8px;
+    font-size: 12px;
+    background: #25d366;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: background 0.2s ease;
+}
+
+.action-btn.small:hover {
+    background: #128c7e;
+}
+
+/* Message Sending Interface */
+.message-sending {
+    background: #ffffff;
+    border: 1px solid #e4e6ea;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 16px;
+}
+
+.message-sending h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #1c1e21;
+}
+
+.send-message-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.form-group label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1c1e21;
+}
+
+.form-group span {
+    font-size: 14px;
+    color: #65676b;
+    padding: 8px 12px;
+    background: #f0f2f5;
+    border-radius: 6px;
+    border: 1px solid #e4e6ea;
+}
+
+.form-group textarea {
+    padding: 8px 12px;
+    border: 1px solid #e4e6ea;
+    border-radius: 6px;
+    font-size: 14px;
+    background: #ffffff;
+    color: #1c1e21;
+    resize: vertical;
+    min-height: 80px;
+}
+
+.form-group textarea:focus {
+    outline: none;
+    border-color: #25d366;
+    box-shadow: 0 0 0 2px rgba(37, 211, 102, 0.1);
+}
+
+.form-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.send-btn {
+    flex: 1;
+    padding: 10px 16px;
+    background: #25d366;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.2s ease;
+}
+
+.send-btn:hover {
+    background: #128c7e;
+}
+
+.send-btn:disabled {
+    background: #c1c3c6;
+    cursor: not-allowed;
+}
+
+.cancel-btn {
+    padding: 10px 16px;
+    background: #f0f2f5;
+    color: #65676b;
+    border: 1px solid #e4e6ea;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.cancel-btn:hover {
+    background: #e4e6ea;
+    color: #1c1e21;
+}
+
 /* Error States */
 .error-message {
     background: #ffebee;

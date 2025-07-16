@@ -131,6 +131,31 @@
                         <button class="load-btn" id="loadMessages">Load Messages</button>
                     </div>
                 </div>
+
+                <!-- Message Sending Interface -->
+                <div class="message-sending" id="messageSending" style="display: none;">
+                    <h4>Send Message</h4>
+                    <div class="send-message-form">
+                        <div class="form-group">
+                            <label>To:</label>
+                            <span id="selectedChatName">Select a chat</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Message:</label>
+                            <textarea id="messageInput" placeholder="Type your message..." rows="3"></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button class="send-btn" id="sendMessageBtn">
+                                <i class="fas fa-paper-plane"></i>
+                                Send Message
+                            </button>
+                            <button class="cancel-btn" id="cancelSendBtn">
+                                <i class="fas fa-times"></i>
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Contacts Tab -->

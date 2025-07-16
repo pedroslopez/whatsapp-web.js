@@ -1,6 +1,6 @@
 {
-  "name": "whatsapp-webjs-manager-extension",
-  "version": "1.1.0",
+  "name": "whatsapp-web-chrome-extension",
+  "version": "1.1.2",
   "description": "A comprehensive Chrome extension for managing WhatsApp Web with advanced features like auto-reply, message monitoring, and automation",
   "scripts": {
     "build": "node build.js",

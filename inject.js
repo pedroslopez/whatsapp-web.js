@@ -455,6 +455,9 @@
                 case 'send_message':
                     this.sendMessage(data);
                     break;
+                case 'send_message_to_user':
+                    this.sendMessageToUser(data);
+                    break;
                 case 'get_chat':
                     this.getChat(data.chatId);
                     break;
@@ -489,6 +492,50 @@
             }
         }
 
+        async sendMessageToUser(data) {
+            try {
+                // Validate data parameter
+                if (!data || typeof data !== 'object') {
+                    throw new Error('Invalid data parameter provided');
+                }
+
+                const { chatId, message, options = {} } = data;
+                
+                if (!chatId) {
+                    throw new Error('Chat ID is required');
+                }
+
+                if (!message || typeof message !== 'string') {
+                    throw new Error('Message content is required');
+                }
+
+                const chat = await this.Utils.getChat(chatId);
+                
+                if (!chat) {
+                    throw new Error('Chat not found');
+                }
+
+                // Send message using WhatsApp Web API
+                const result = await this.Utils.sendMessage(chatId, message, options);
+                
+                this.sendToExtension('message_sent', { 
+                    success: true,
+                    messageId: result?.id?._serialized || result?.id,
+                    chatId,
+                    message,
+                    timestamp: Date.now()
+                });
+            } catch (error) {
+                console.error('Error sending message:', error);
+                this.sendToExtension('message_sent', { 
+                    success: false,
+                    error: error.message,
+                    chatId: data?.chatId || 'unknown',
+                    message: data?.message || ''
+                });
+            }
+        }
+
         async getChats() {
             try {
                 if (!this.Store || !this.Store.Chat) {
@@ -507,7 +554,17 @@
 
         async getMessages(data) {
             try {
+                // Validate data parameter
+                if (!data || typeof data !== 'object') {
+                    throw new Error('Invalid data parameter provided');
+                }
+
                 const { chatId, limit = 50 } = data;
+                
+                if (!chatId) {
+                    throw new Error('Chat ID is required');
+                }
+
                 const chat = await this.Utils.getChat(chatId);
                 
                 if (!chat) {
@@ -524,7 +581,10 @@
                 });
             } catch (error) {
                 console.error('Error getting messages:', error);
-                this.sendToExtension('messages_data', { error: error.message });
+                this.sendToExtension('messages_data', { 
+                    error: error.message,
+                    chatId: data?.chatId || 'unknown'
+                });
             }
         }
 

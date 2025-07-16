@@ -16,6 +16,7 @@ class WhatsAppSidebar {
         };
         this.settings = {};
         this.activityLog = [];
+        this.selectedChat = null;
         
         this.init();
     }
@@ -45,6 +46,10 @@ class WhatsAppSidebar {
         document.getElementById('loadMessages').addEventListener('click', () => this.getMessages());
         document.getElementById('messageSearch').addEventListener('input', (e) => this.filterMessages(e.target.value));
         document.getElementById('chatFilter').addEventListener('change', (e) => this.filterMessagesByChat(e.target.value));
+        
+        // Message sending
+        document.getElementById('sendMessageBtn').addEventListener('click', () => this.sendMessage());
+        document.getElementById('cancelSendBtn').addEventListener('click', () => this.cancelSendMessage());
 
         // Contacts tab
         document.getElementById('refreshContacts').addEventListener('click', () => this.getContacts());
@@ -325,6 +330,17 @@ class WhatsAppSidebar {
                 </div>
             </div>
         `).join('');
+
+        // Add click handlers for message items to select chat
+        container.querySelectorAll('.message-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const messageId = item.dataset.id;
+                const message = messages.find(m => m.id === messageId);
+                if (message && message.chat) {
+                    this.selectChatForSending(message.chat);
+                }
+            });
+        });
     }
 
     filterContacts(searchTerm) {
@@ -370,6 +386,12 @@ class WhatsAppSidebar {
                 <div class="contact-info">
                     ${contact.isMyContact ? 'My Contact' : 'WhatsApp Contact'}
                     ${contact.isGroup ? ' (Group)' : ''}
+                </div>
+                <div class="contact-actions">
+                    <button class="action-btn small" onclick="window.whatsappSidebar.selectContactForSending('${contact.id}')">
+                        <i class="fas fa-comment"></i>
+                        Send Message
+                    </button>
                 </div>
             </div>
         `).join('');
@@ -531,6 +553,82 @@ class WhatsAppSidebar {
         
         const date = new Date(timestamp * 1000);
         return date.toLocaleString();
+    }
+
+    selectChatForSending(chatId) {
+        const chat = this.data.chats.find(c => c.id === chatId);
+        if (chat) {
+            this.selectedChat = chat;
+            document.getElementById('selectedChatName').textContent = chat.name || chat.id;
+            document.getElementById('messageSending').style.display = 'block';
+            this.addActivity(`Selected chat: ${chat.name || chat.id}`);
+        }
+    }
+
+    selectContactForSending(contactId) {
+        const contact = this.data.contacts.find(c => c.id === contactId);
+        if (contact) {
+            // Create a chat object for the contact
+            this.selectedChat = {
+                id: contact.id,
+                name: contact.name || contact.pushname || contact.number,
+                isGroup: contact.isGroup
+            };
+            document.getElementById('selectedChatName').textContent = this.selectedChat.name;
+            document.getElementById('messageSending').style.display = 'block';
+            this.addActivity(`Selected contact: ${this.selectedChat.name}`);
+        }
+    }
+
+    async sendMessage() {
+        if (!this.selectedChat) {
+            this.addActivity('No chat selected for sending message', 'error');
+            return;
+        }
+
+        const messageInput = document.getElementById('messageInput');
+        const message = messageInput.value.trim();
+        
+        if (!message) {
+            this.addActivity('Please enter a message', 'error');
+            return;
+        }
+
+        const sendBtn = document.getElementById('sendMessageBtn');
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+        try {
+            const response = await this.sendToBackground({
+                action: 'execute_script',
+                data: {
+                    type: 'send_message_to_user',
+                    chatId: this.selectedChat.id,
+                    message: message,
+                    options: {}
+                }
+            });
+
+            if (response.success) {
+                this.addActivity(`Message sent to ${this.selectedChat.name}`, 'success');
+                messageInput.value = '';
+                this.cancelSendMessage();
+            } else {
+                this.addActivity(`Failed to send message: ${response.error}`, 'error');
+            }
+        } catch (error) {
+            this.addActivity(`Error sending message: ${error.message}`, 'error');
+        } finally {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
+        }
+    }
+
+    cancelSendMessage() {
+        this.selectedChat = null;
+        document.getElementById('selectedChatName').textContent = 'Select a chat';
+        document.getElementById('messageInput').value = '';
+        document.getElementById('messageSending').style.display = 'none';
     }
 
     async loadSettings() {

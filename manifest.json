@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "WhatsApp Web.js Manager",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "A comprehensive and modern frontend for whatsapp-web.js library with full feature support",
   "permissions": [
     "storage",

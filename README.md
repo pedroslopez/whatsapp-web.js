@@ -30,8 +30,8 @@ A comprehensive and modern Chrome extension that provides a powerful interface f
 ### From Source
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/whatsapp-webjs-manager-extension.git
-   cd whatsapp-webjs-manager-extension
+   git clone https://github.com/bioenable/whatsapp-web-chrome-extension.git
+   cd whatsapp-web-chrome-extension
    ```
 
 2. Install dependencies:
@@ -103,7 +103,7 @@ A comprehensive and modern Chrome extension that provides a powerful interface f
 ## 📁 Project Structure
 
 ```
-whatsapp-webjs-manager-extension/
+whatsapp-web-chrome-extension/
 ├── src/
 │   ├── background.js          # Background service worker
 │   ├── content.js             # Content script for WhatsApp Web

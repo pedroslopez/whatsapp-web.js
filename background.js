@@ -109,7 +109,16 @@ class WhatsAppBackgroundManager {
                 type: 'get_connection_state'
             });
             
-            this.updateConnectionStatus(response.isConnected, response.state);
+            // Validate response before using it
+            if (response && typeof response === 'object') {
+                this.updateConnectionStatus(
+                    response.isConnected || false, 
+                    response.state || 'UNKNOWN'
+                );
+            } else {
+                console.warn('Invalid connection response:', response);
+                this.updateConnectionStatus(false, 'INVALID_RESPONSE');
+            }
         } catch (error) {
             console.error('Error checking connection:', error);
             this.updateConnectionStatus(false, 'ERROR');
@@ -233,13 +242,31 @@ class WhatsAppBackgroundManager {
         if (!this.whatsappTab) return;
 
         try {
-            await chrome.scripting.executeScript({
-                target: { tabId: this.whatsappTab },
-                files: ['content.js']
-            });
-            console.log('Content script injected');
+            // Check if chrome.scripting is available (Manifest V3)
+            if (chrome.scripting && chrome.scripting.executeScript) {
+                await chrome.scripting.executeScript({
+                    target: { tabId: this.whatsappTab },
+                    files: ['content.js']
+                });
+                console.log('Content script injected via chrome.scripting');
+            } else {
+                // Fallback for older Chrome versions or Manifest V2
+                await chrome.tabs.executeScript(this.whatsappTab, {
+                    file: 'content.js'
+                });
+                console.log('Content script injected via chrome.tabs.executeScript');
+            }
         } catch (error) {
             console.error('Error injecting content script:', error);
+            // Try alternative injection method
+            try {
+                await chrome.tabs.executeScript(this.whatsappTab, {
+                    file: 'content.js'
+                });
+                console.log('Content script injected via fallback method');
+            } catch (fallbackError) {
+                console.error('Fallback injection also failed:', fallbackError);
+            }
         }
     }
 
