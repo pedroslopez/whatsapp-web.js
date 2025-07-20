@@ -88,7 +88,7 @@ declare namespace WAWebJS {
         getChannelByInviteCode(inviteCode: string): Promise<Channel>
 
         /** Get all current chat instances */
-        getChats(): Promise<Chat[]>
+        getChats(searchOptions: ChatSearchOptions): Promise<Chat[]>
 
         /** Gets all cached {@link Channel} instances */
         getChannels(): Promise<Channel[]>
@@ -1680,6 +1680,11 @@ declare namespace WAWebJS {
         * Return only messages from the bot number or vise versa. To get all messages, leave the option undefined.
         */
         fromMe?: boolean
+        /**
+         * Lower bound for message timestamps.
+         * Only messages whose internal timestamp `m.t` is **greater than or equal** to this value will be returned.
+         */
+        since?: number
     }
 
     /**
@@ -2063,6 +2068,14 @@ declare namespace WAWebJS {
         aggregateEmoji: string,
         hasReactionByMe: boolean,
         senders: Array<Reaction>
+    }
+    
+    export interface ChatSearchOptions {
+        /**
+         * Lower bound for chat timestamps.
+         * Only chats whose internal timestamp `chat.t` is **greater than or equal** to this value will be returned.
+         */
+        since?: number 
     }
 }
 
