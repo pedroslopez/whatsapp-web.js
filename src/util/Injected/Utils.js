@@ -31,19 +31,27 @@ exports.LoadUtils = () => {
         if (options.media) {
             mediaOptions =  options.sendMediaAsSticker && !isChannel
                 ? await window.WWebJS.processStickerData(options.media)
-                : await window.WWebJS.processMediaData(options.media, {
-                    forceSticker: options.sendMediaAsSticker,
-                    forceGif: options.sendVideoAsGif,
-                    forceVoice: options.sendAudioAsVoice,
-                    forceDocument: options.sendMediaAsDocument,
-                    forceMediaHd: options.sendMediaAsHd,
-                    sendToChannel: isChannel
-                });
+                : options.sendMediaAsStickerPack && !isChannel
+                    ? await window.WWebJS.processStickerPackData(options.media, {
+                        stickers: options.extraOptions.stickers,
+                        stickerPackId: options.extraOptions.stickerPackId, // Optional, if not provided a random one will be generated
+                        stickerPackName: options.extraOptions.stickerPackName,
+                        stickerPackPublisher: options.extraOptions.stickerPackPublisher
+                    })
+                    : await window.WWebJS.processMediaData(options.media, {
+                        forceSticker: options.sendMediaAsSticker,
+                        forceGif: options.sendVideoAsGif,
+                        forceVoice: options.sendAudioAsVoice,
+                        forceDocument: options.sendMediaAsDocument,
+                        forceMediaHd: options.sendMediaAsHd,
+                        sendToChannel: isChannel
+                    });
             mediaOptions.caption = options.caption;
-            content = options.sendMediaAsSticker ? undefined : mediaOptions.preview;
+            content = options.sendMediaAsSticker || options.sendMediaAsStickerPack ? undefined : mediaOptions.preview;
             mediaOptions.isViewOnce = options.isViewOnce;
             delete options.media;
             delete options.sendMediaAsSticker;
+            delete options.sendMediaAsStickerPack;
         }
 
         let quotedMsgOptions = {};
@@ -393,6 +401,33 @@ exports.LoadUtils = () => {
         };
 
         return stickerInfo;
+    };
+
+    window.WWebJS.processStickerPackData = async (mediaInfo, { stickers, stickerPackId, stickerPackName = 'Sticker Pack', stickerPackPublisher = 'WWebJS' }) => {
+        if (mediaInfo.mimetype !== 'application/zip') throw new Error('Invalid media type');
+        const file = window.WWebJS.mediaInfoToFile(mediaInfo);
+        const filehash = await window.WWebJS.getFileHash(file);
+        const mediaKey = await window.WWebJS.generateHash(32);
+        stickerPackId = stickerPackId || await window.WWebJS.generateHash(32);
+
+        const uploadedInfo = await window.Store.UploadUtils.encryptAndUpload({
+            blob: file,
+            type: 'sticker-pack',
+            signal: (new AbortController()).signal,
+            mediaKey
+        });
+
+        return {
+            ...uploadedInfo,
+            size: file.size,
+            type: 'sticker-pack',
+            filename: stickerPackName,
+            stickerPackId,
+            stickerPackPublisher,
+            stickers,
+            trayIconFileName: 'thumbnail.png',
+            filehash
+        };
     };
 
     window.WWebJS.processMediaData = async (mediaInfo, { forceSticker, forceGif, forceVoice, forceDocument, forceMediaHd, sendToChannel }) => {

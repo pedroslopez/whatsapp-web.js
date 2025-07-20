@@ -1,9 +1,9 @@
-const { Client, Location, Poll, List, Buttons, LocalAuth } = require('./index');
+const { Client, Location, Poll, List, Buttons, LocalAuth, MessageMedia } = require('./index');
 
 const client = new Client({
     authStrategy: new LocalAuth(),
     // proxyAuthentication: { username: 'username', password: 'password' },
-    puppeteer: { 
+    puppeteer: {
         // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
         headless: false,
     }
@@ -26,7 +26,7 @@ client.on('qr', async (qr) => {
     const pairingCodeEnabled = false;
     if (pairingCodeEnabled && !pairingCodeRequested) {
         const pairingCode = await client.requestPairingCode('96170100100'); // enter the target phone number
-        console.log('Pairing code enabled, code: '+ pairingCode);
+        console.log('Pairing code enabled, code: ' + pairingCode);
         pairingCodeRequested = true;
     }
 });
@@ -45,14 +45,37 @@ client.on('ready', async () => {
     const debugWWebVersion = await client.getWWebVersion();
     console.log(`WWebVersion = ${debugWWebVersion}`);
 
-    client.pupPage.on('pageerror', function(err) {
+    client.pupPage.on('pageerror', function (err) {
         console.log('Page error: ' + err.toString());
     });
-    client.pupPage.on('error', function(err) {
+    client.pupPage.on('error', function (err) {
         console.log('Page error: ' + err.toString());
     });
-    
+
 });
+
+let stickerExamples = [
+    'https://stickerly.pstatic.net/sticker_pack/MZOvILL1UU9OrOqPFu41Vg/QM62PS/24/1593284278.png',
+    'https://stickerly.pstatic.net/sticker_pack/MZOvILL1UU9OrOqPFu41Vg/QM62PS/24/-2080214990.png',
+    'https://stickerly.pstatic.net/sticker_pack/MZOvILL1UU9OrOqPFu41Vg/QM62PS/24/-2079378858.png',
+    'https://stickerly.pstatic.net/sticker_pack/MZOvILL1UU9OrOqPFu41Vg/QM62PS/24/-2078537883.png',
+    'https://stickerly.pstatic.net/sticker_pack/MZOvILL1UU9OrOqPFu41Vg/QM62PS/24/-2077441451.png',
+    'https://stickerly.pstatic.net/sticker_pack/MZOvILL1UU9OrOqPFu41Vg/QM62PS/24/-2076634171.png',
+    'https://stickerly.pstatic.net/sticker_pack/MZOvILL1UU9OrOqPFu41Vg/QM62PS/24/-2075803934.png',
+    'https://stickerly.pstatic.net/sticker_pack/MZOvILL1UU9OrOqPFu41Vg/QM62PS/24/-2075588576.png',
+    'https://stickerly.pstatic.net/sticker_pack/MZOvILL1UU9OrOqPFu41Vg/QM62PS/24/-2074758401.png',
+    'https://stickerly.pstatic.net/sticker_pack/MZOvILL1UU9OrOqPFu41Vg/QM62PS/24/-2073955000.png',
+    'https://stickerly.pstatic.net/sticker_pack/MZOvILL1UU9OrOqPFu41Vg/QM62PS/24/-2073746214.png',
+    'https://stickerly.pstatic.net/sticker_pack/MZOvILL1UU9OrOqPFu41Vg/QM62PS/24/-2072914211.png',
+    'https://stickerly.pstatic.net/sticker_pack/MZOvILL1UU9OrOqPFu41Vg/QM62PS/24/-2072015698.png',
+    'https://stickerly.pstatic.net/sticker_pack/MZOvILL1UU9OrOqPFu41Vg/QM62PS/24/-2051792358.png',
+    'https://stickerly.pstatic.net/sticker_pack/MZOvILL1UU9OrOqPFu41Vg/QM62PS/24/-2051553126.png',
+    'https://stickerly.pstatic.net/sticker_pack/MZOvILL1UU9OrOqPFu41Vg/QM62PS/24/-2050721616.png',
+    'https://stickerly.pstatic.net/sticker_pack/MZOvILL1UU9OrOqPFu41Vg/QM62PS/24/-2048963168.png',
+    'https://stickerly.pstatic.net/sticker_pack/MZOvILL1UU9OrOqPFu41Vg/QM62PS/24/-2048779500.png',
+    'https://stickerly.pstatic.net/sticker_pack/MZOvILL1UU9OrOqPFu41Vg/QM62PS/24/-2047946439.png',
+    'https://stickerly.pstatic.net/sticker_pack/MZOvILL1UU9OrOqPFu41Vg/QM62PS/24/-2045321011.png'
+];
 
 client.on('message', async msg => {
     console.log('MESSAGE RECEIVED', msg);
@@ -463,7 +486,7 @@ client.on('message', async msg => {
         // Or through the Chat object:
         // const chat = await client.getChatById(msg.from);
         // const isSynced = await chat.syncHistory();
-        
+
         await msg.reply(isSynced ? 'Historical chat is syncing..' : 'There is no historical chat to sync.');
     } else if (msg.body === '!statuses') {
         const statuses = await client.getBroadcasts();
@@ -504,6 +527,39 @@ client.on('message', async msg => {
         // NOTE: this action will take effect after you restart the client.
         const backgroundSync = await client.setBackgroundSync(true);
         console.log(backgroundSync);
+    } else if (msg.body === '!sticker') {
+        const url = stickerExamples[Math.floor(Math.random() * stickerExamples.length)];
+        const media = await MessageMedia.fromUrl(url, { unsafeMime: true });
+        await client.sendMessage(msg.from, media, {
+            sendMediaAsSticker: true,
+            stickerName: 'Sticker Name',
+            stickerAuthor: 'Sticker Author',
+        });
+    } else if (msg.body === '!pack') {
+        const medias = await Promise.all(
+            stickerExamples.map(url => MessageMedia.fromUrl(url, { unsafeMime: true }))
+        );
+        await client.sendMessage(msg.from, medias, {
+            sendMediaAsStickerPack: true,
+            stickerPackName: 'Pack Name',
+            stickerPackPublisher: 'Pack Publisher',
+            stickerName: 'Sticker Name',
+            stickerAuthor: 'Sticker Author',
+        });
+    } else if (msg.body === '!packthumb') {
+        const medias = await Promise.all(
+            stickerExamples.map(url => MessageMedia.fromUrl(url, { unsafeMime: true }))
+        );
+        const thumbUrl = 'https://wwebjs.dev/images/logo.png';
+        const thumbMedia = await MessageMedia.fromUrl(thumbUrl, { unsafeMime: true });
+        await client.sendMessage(msg.from, medias, {
+            sendMediaAsStickerPack: true,
+            stickerPackName: 'Pack With Thumb',
+            stickerPackPublisher: 'Pack Publisher',
+            stickerName: 'Sticker Name',
+            stickerAuthor: 'Sticker Author',
+            stickerPackThumbnail: thumbMedia // Providing a custom thumbnail for the sticker pack
+        });
     }
 });
 
@@ -528,7 +584,7 @@ client.on('message_ciphertext', (msg) => {
     // Receiving new incoming messages that have been encrypted
     // msg.type === 'ciphertext'
     msg.body = 'Waiting for this message. Check your phone.';
-    
+
     // do stuff here
 });
 

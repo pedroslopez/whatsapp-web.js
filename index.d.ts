@@ -1223,6 +1223,8 @@ declare namespace WAWebJS {
         sendVideoAsGif?: boolean
         /** Send media as sticker */
         sendMediaAsSticker?: boolean
+        /** Send media as sticker pack */
+        sendMediaAsStickerPack?: boolean
         /** Send media as document */
         sendMediaAsDocument?: boolean
         /** Send media as quality HD */
@@ -1258,6 +1260,12 @@ declare namespace WAWebJS {
         stickerAuthor?: string
         /** Sticker categories, if sendMediaAsSticker is true */
         stickerCategories?: string[],
+        /** Sticker pack ID, if sendMediaAsStickerPack is true */
+        stickerPackId?: string
+        /** Sticker pack name, if sendMediaAsStickerPack is true */
+        stickerPackName?: string
+        /** Sticker pack publisher, if sendMediaAsStickerPack is true */
+        stickerPackPublisher?: string
         /** Should the bot send a quoted message without the quoted message if it fails to get the quote?
          * @default true (enabled) */
         ignoreQuoteErrors?: boolean
