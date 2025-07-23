@@ -22,5 +22,7 @@ module.exports = {
     Reaction: require('./Reaction'),
     Poll: require('./Poll'),
     PollVote: require('./PollVote'),
-    Broadcast: require('./Broadcast')
+    Broadcast: require('./Broadcast'),
+    Catalog: require('./Catalog'),
+    Collection: require('./Collection'),
 };

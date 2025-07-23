@@ -64,7 +64,7 @@ exports.LoadUtils = () => {
                     throw new Error('Could not get the quoted message.');
                 }
             }
-            
+
             delete options.ignoreQuoteErrors;
             delete options.quotedMessageId;
         }
@@ -164,7 +164,7 @@ exports.LoadUtils = () => {
                     preview = preview.data;
                     preview.preview = true;
                     preview.subtype = 'url';
-                    options = {...options, ...preview};
+                    options = { ...options, ...preview };
                 }
             }
         }
@@ -266,7 +266,7 @@ exports.LoadUtils = () => {
             ...botOptions,
             ...extraOptions
         };
-        
+
         // Bot's won't reply if canonicalUrl is set (linking)
         if (botOptions) {
             delete message.canonicalUrl;
@@ -308,11 +308,11 @@ exports.LoadUtils = () => {
         });
         return window.Store.Msg.get(newMsgKey._serialized);
     };
-	
+
     window.WWebJS.editMessage = async (msg, content, options = {}) => {
         const extraOptions = options.extraOptions || {};
         delete options.extraOptions;
-        
+
         if (options.mentionedJidList) {
             options.mentionedJidList = await Promise.all(
                 options.mentionedJidList.map(async (id) => {
@@ -404,11 +404,11 @@ exports.LoadUtils = () => {
             isPtt: forceVoice,
             asDocument: forceDocument
         };
-      
+
         if (forceMediaHd && file.type.indexOf('image/') === 0) {
             mediaParams.maxDimension = 2560;
         }
-      
+
         const mediaPrep = window.Store.MediaPrep.prepRawMedia(opaqueData, mediaParams);
         const mediaData = await mediaPrep.waitForPrep();
         const mediaObject = window.Store.MediaObject.getOrCreateMediaObject(mediaData.filehash);
@@ -847,7 +847,7 @@ exports.LoadUtils = () => {
 
         options = Object.assign({ size: 640, mimetype: media.mimetype, quality: .75, asDataUrl: false }, options);
 
-        const img = await new Promise ((resolve, reject) => {
+        const img = await new Promise((resolve, reject) => {
             const img = new Image();
             img.onload = () => resolve(img);
             img.onerror = reject;
@@ -902,11 +902,11 @@ exports.LoadUtils = () => {
             const res = await window.Store.GroupUtils.requestDeletePicture(chatWid);
             return res ? res.status === 200 : false;
         } catch (err) {
-            if(err.name === 'ServerStatusCodeError') return false;
+            if (err.name === 'ServerStatusCodeError') return false;
             throw err;
         }
     };
-    
+
     window.WWebJS.getProfilePicThumbToBase64 = async (chatWid) => {
         const profilePicCollection = await window.Store.ProfilePicThumb.find(chatWid);
 
@@ -1034,7 +1034,7 @@ exports.LoadUtils = () => {
         }));
 
         const groupJid = window.Store.WidToJid.widToGroupJid(groupWid);
-        
+
         const _getSleepTime = (sleep) => {
             if (!Array.isArray(sleep) || (sleep.length === 2 && sleep[0] === sleep[1])) {
                 return sleep;
@@ -1126,7 +1126,7 @@ exports.LoadUtils = () => {
         const response = await window.Store.pinUnpinMsg(message, action, duration);
         return response.messageSendResult === 'OK';
     };
-    
+
     window.WWebJS.getStatusModel = status => {
         const res = status.serialize();
         delete res._msgs;
@@ -1136,5 +1136,112 @@ exports.LoadUtils = () => {
     window.WWebJS.getAllStatuses = () => {
         const statuses = window.Store.Status.getModelsArray();
         return statuses.map(status => window.WWebJS.getStatusModel(status));
+    };
+
+    // Catalog functions
+    window.WWebJS.getCatalogProductModel = product => {
+        return product.serialize();
+    };
+
+    window.WWebJS.isCatalogReady = () => {
+        try {
+            // Simple check - if CatalogCollection exists, catalog is ready
+            return window.Store.CatalogCollection &&
+                   window.Store.CatalogCollection.CatalogCollection;
+        } catch (err) {
+            return false;
+        }
+    };
+
+    window.WWebJS.discoverCatalog = async userid => {
+        try {
+            await window.Store.CatalogCollection.CatalogCollection.findCarouselCatalog(userid);
+            return true;
+        } catch (err) {
+            return false;
+        }
+    };
+
+    window.WWebJS.getCatalogProducts = async userid => {
+        try {
+            // Ensure catalog is loaded first
+            await window.WWebJS.discoverCatalog(userid);
+
+            // Get the specific catalog
+            const catalog = window.Store.CatalogCollection.CatalogCollection.get(userid);
+            if (catalog && catalog.productCollection && catalog.productCollection.getModelsArray) {
+                return catalog.productCollection.getModelsArray()
+                    .map(product => window.WWebJS.getCatalogProductModel(product));
+            }
+
+            return [];
+        } catch (err) {
+            console.error('Error getting catalog products:', err);
+            return [];
+        }
+    };
+
+    window.WWebJS.getMeCatalog = async () => {
+        try {
+            const user = window.Store.User.getMaybeMeUser();
+            if (!user) return [];
+
+            // Ensure catalog is loaded first
+            await window.WWebJS.discoverCatalog(user._serialized);
+
+            // Get user's catalog
+            const catalog = window.Store.CatalogCollection.CatalogCollection.get(user._serialized);
+            if (catalog && catalog.productCollection && catalog.productCollection.getModelsArray) {
+                return catalog.productCollection.getModelsArray()
+                    .map(product => window.WWebJS.getCatalogProductModel(product));
+            }
+            return [];
+        } catch (err) {
+            console.error('Error in getMeCatalog:', err);
+            return [];
+        }
+    };
+
+    window.WWebJS.getCatalogCollectionsModel = collection => {
+        return collection.serialize();
+    };
+
+    window.WWebJS.getCatalogCollections = async (userid) => {
+        try {
+            // Ensure catalog is loaded first
+            await window.WWebJS.discoverCatalog(userid);
+
+            const catalog = window.Store.CatalogCollection.CatalogCollection.get(userid);
+            if (catalog && catalog.collections && catalog.collections.getModelsArray) {
+                const collections = catalog.collections.getModelsArray();
+                return collections.map(collection => window.WWebJS.getCatalogCollectionsModel(collection));
+            }
+            return [];
+        } catch (err) {
+            console.error('Error getting catalog collections:', err);
+            return [];
+        }
+    };
+
+    window.WWebJS.getCollectionProducts = async (userid, collectionId) => {
+        try {
+            // Ensure catalog is loaded first
+            await window.WWebJS.discoverCatalog(userid);
+
+            const catalog = window.Store.CatalogCollection.CatalogCollection.get(userid);
+            if (catalog && catalog.collections) {
+                const collection = catalog.collections.get(collectionId);
+                if (collection && collection.productCollection) {
+                    const products = collection.productCollection.getModelsArray ?
+                        collection.productCollection.getModelsArray() :
+                        collection.productCollection;
+                    return products.map(product => window.WWebJS.getCatalogProductModel(product));
+                }
+            }
+            return [];
+        } catch (err) {
+            console.error('Error getting collection products:', err);
+            return [];
+        }
     };
 };
