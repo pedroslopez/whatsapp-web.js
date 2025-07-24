@@ -2181,7 +2181,7 @@ class Client extends EventEmitter {
         }, phoneNumber);
     }
 
-     /**
+    /**
      * Get lid or phone number 
      * @param {string} userId
      * @returns {Promise<string>}
