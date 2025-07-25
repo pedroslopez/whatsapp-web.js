@@ -2188,7 +2188,7 @@ class Client extends EventEmitter {
      */
     async getContactLidOrPhone(userId) {
         return await this.pupPage.evaluate(async (userId) => {
-            const wId = await window.Store.WidFactory.createWid(userId);
+            const wid = window.Store.WidFactory.createWid(userId);
             return wid.server === 'lid'
                 ? window.Store.LidUtils.getPhoneNumber(wid)._serialized
                 : window.Store.LidUtils.getCurrentLid(wid)._serialized;
