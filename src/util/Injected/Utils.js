@@ -942,12 +942,16 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getAddParticipantsRpcResult = async (groupMetadata, groupWid, participantWid) => {
-        const participantLidArgs = groupMetadata?.isLidAddressingMode
+        const participantLidArgs = groupMetadata?.isLidAddressingMode && participantWid.server == 'lid'
             ? {
-                phoneNumber: participantWid,
-                lid: window.Store.LidUtils.getCurrentLid(participantWid)
+                phoneNumber: window.Store.LidUtils.getPhoneNumber(participantWid),
+                lid: participantWid
             }
-            : { phoneNumber: participantWid };
+            : { 
+                phoneNumber: participantWid.server == 'lid' 
+                    ? window.Store.LidUtils.getPhoneNumber(participantWid)
+                    : participantWid 
+            };
 
         const iqTo = window.Store.WidToJid.widToGroupJid(groupWid);
 
