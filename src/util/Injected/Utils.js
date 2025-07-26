@@ -17,6 +17,7 @@ exports.LoadUtils = () => {
     window.WWebJS.sendSeen = async (chatId) => {
         const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
         if (chat) {
+            window.Store.WAWebStreamModel.Stream.markAvailable();
             await window.Store.SendSeen.sendSeen(chat);
             return true;
         }
@@ -302,6 +303,9 @@ exports.LoadUtils = () => {
         }
 
         await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
+        await window.Store.HistorySync.sendPeerDataOperationRequest(3, {
+            chatId: chat.id
+        });
         return window.Store.Msg.get(newMsgKey._serialized);
     };
 	
