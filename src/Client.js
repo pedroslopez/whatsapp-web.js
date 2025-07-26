@@ -93,6 +93,11 @@ class Client extends EventEmitter {
      * Private function
      */
     async inject() {
+        let hasReloaded = false;
+        const reloadHandler = () => { hasReloaded = true; };
+        try{
+        this.pupPage.on('framenavigated', reloadHandler);
+
         await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', {timeout: this.options.authTimeoutMs});
 
         const version = await this.getWWebVersion();
@@ -255,6 +260,13 @@ class Client extends EventEmitter {
                 await window.onLogoutEvent();
             });
         });
+
+        }catch(err){
+            if(!hasReloaded)
+                throw err;
+        }finally{
+            this.pupPage.off('framenavigated', reloadHandler);
+        }
     }
 
     /**
