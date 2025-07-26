@@ -6,7 +6,7 @@ const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
 
 const Util = require('./util/Util');
 const InterfaceController = require('./util/InterfaceController');
-const { WhatsWebURL, WhatsWebStaticURL, DefaultOptions, Events, WAState } = require('./util/Constants');
+const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constants');
 const { ExposeAuthStore } = require('./util/Injected/AuthStore/AuthStore');
 const { ExposeStore } = require('./util/Injected/Store');
 const { ExposeLegacyAuthStore } = require('./util/Injected/AuthStore/LegacyAuthStore');

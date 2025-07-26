@@ -2,8 +2,6 @@
 
 exports.WhatsWebURL = 'https://web.whatsapp.com/';
 
-exports.WhatsWebStaticURL = 'https://static.whatsapp.net/';
-
 exports.DefaultOptions = {
     puppeteer: {
         headless: true,
