@@ -19,6 +19,8 @@ const { Broadcast, Buttons, Call, ClientInfo, Contact, GroupNotification, Label,
 const NoAuth = require('./authStrategies/NoAuth');
 const {exposeFunctionIfAbsent} = require('./util/Puppeteer');
 
+const lidHash = {};
+
 /**
  * Starting point for interacting with the WhatsApp Web API
  * @extends {EventEmitter}
@@ -60,6 +62,7 @@ const {exposeFunctionIfAbsent} = require('./util/Puppeteer');
  * @fires Client#group_membership_request
  * @fires Client#vote_update
  */
+
 class Client extends EventEmitter {
     constructor(options = {}) {
         super();
@@ -360,7 +363,10 @@ class Client extends EventEmitter {
      * @property {boolean} reinject is this a reinject?
      */
     async attachEventListeners() {
-        await exposeFunctionIfAbsent(this.pupPage, 'onAddMessageEvent', msg => {
+        await exposeFunctionIfAbsent(this.pupPage, 'onAddMessageEvent', async msg => {
+
+            await this.fixMessageLid(msg);
+
             if (msg.type === 'gp2') {
                 const notification = new GroupNotification(this, msg);
                 if (['add', 'invite', 'linked_group_join'].includes(msg.subtype)) {
@@ -427,7 +433,8 @@ class Client extends EventEmitter {
 
         let last_message;
 
-        await exposeFunctionIfAbsent(this.pupPage, 'onChangeMessageTypeEvent', (msg) => {
+        await exposeFunctionIfAbsent(this.pupPage, 'onChangeMessageTypeEvent', async (msg) => {
+            await this.fixMessageLid(msg);
 
             if (msg.type === 'revoked') {
                 const message = new Message(this, msg);
@@ -448,7 +455,8 @@ class Client extends EventEmitter {
 
         });
 
-        await exposeFunctionIfAbsent(this.pupPage, 'onChangeMessageEvent', (msg) => {
+        await exposeFunctionIfAbsent(this.pupPage, 'onChangeMessageEvent', async (msg) => {
+            await this.fixMessageLid(msg);
 
             if (msg.type !== 'revoked') {
                 last_message = msg;
@@ -486,7 +494,8 @@ class Client extends EventEmitter {
             }
         });
 
-        await exposeFunctionIfAbsent(this.pupPage, 'onRemoveMessageEvent', (msg) => {
+        await exposeFunctionIfAbsent(this.pupPage, 'onRemoveMessageEvent', async (msg) => {
+            await this.fixMessageLid(msg);
 
             if (!msg.isNewMsg) return;
 
@@ -501,7 +510,8 @@ class Client extends EventEmitter {
 
         });
 
-        await exposeFunctionIfAbsent(this.pupPage, 'onMessageAckEvent', (msg, ack) => {
+        await exposeFunctionIfAbsent(this.pupPage, 'onMessageAckEvent', async (msg, ack) => {
+            await this.fixMessageLid(msg);
 
             const message = new Message(this, msg);
 
@@ -524,7 +534,8 @@ class Client extends EventEmitter {
             this.emit(Events.UNREAD_COUNT, chat);
         });
 
-        await exposeFunctionIfAbsent(this.pupPage, 'onMessageMediaUploadedEvent', (msg) => {
+        await exposeFunctionIfAbsent(this.pupPage, 'onMessageMediaUploadedEvent', async (msg) => {
+            await this.fixMessageLid(msg);
 
             const message = new Message(this, msg);
 
@@ -647,7 +658,8 @@ class Client extends EventEmitter {
             this.emit(Events.CHAT_ARCHIVED, _chat, currState, prevState);
         });
 
-        await exposeFunctionIfAbsent(this.pupPage, 'onEditMessageEvent', (msg, newBody, prevBody) => {
+        await exposeFunctionIfAbsent(this.pupPage, 'onEditMessageEvent', async (msg, newBody, prevBody) => {
+            await this.fixMessageLid(msg);
                 
             if(msg.type === 'revoked'){
                 return;
@@ -662,7 +674,8 @@ class Client extends EventEmitter {
             this.emit(Events.MESSAGE_EDIT, new Message(this, msg), newBody, prevBody);
         });
             
-        await exposeFunctionIfAbsent(this.pupPage, 'onAddMessageCiphertextEvent', msg => {
+        await exposeFunctionIfAbsent(this.pupPage, 'onAddMessageCiphertextEvent', async (msg) => {
+            await this.fixMessageLid(msg);
                 
             /**
                  * Emitted when messages are edited
@@ -880,6 +893,11 @@ class Client extends EventEmitter {
         }
     
         if (options.mentions) {
+            const group = await this.getChatById(chatId);
+            const participants = options.mentions.map(mention => {
+                return group.participants.find(participant => participant.id._serialized === mention);
+            });
+            options.mentions = participants.map(participant => participant.lid._serialized);
             !Array.isArray(options.mentions) && (options.mentions = [options.mentions]);
             if (options.mentions.some((possiblyContact) => possiblyContact instanceof Contact)) {
                 console.warn('Mentions with an array of Contact are now deprecated. See more at https://github.com/pedroslopez/whatsapp-web.js/pull/2166.');
@@ -1092,8 +1110,21 @@ class Client extends EventEmitter {
         let contacts = await this.pupPage.evaluate(() => {
             return window.WWebJS.getContacts();
         });
+        const contactIds = Array.from(new Set(await Promise.all(contacts.map(async contact => {
+            const contactId = contact.id._serialized;
+            if (contactId.endsWith('@lid')) {
+                const newContactId = await this.getOriginalContactIdByLid(contactId);
+                return newContactId;
+            }
+            return contactId;
+        }))));
 
-        return contacts.map(contact => ContactFactory.create(this, contact));
+        const filteredContacts = await Promise.all(contactIds.map(async contactId => {
+            const contact = await this.getContactById(contactId);
+            return contact;
+        }));
+        
+        return filteredContacts.map(contact => ContactFactory.create(this, contact));
     }
 
     /**
@@ -1107,6 +1138,68 @@ class Client extends EventEmitter {
         }, contactId);
 
         return ContactFactory.create(this, contact);
+    }
+
+    async getOriginalContactIdByLid(lid) {
+        if (lidHash[lid]) {
+            return lidHash[lid];
+        }
+
+        let contact = await this.getContactById(lid);
+        console.log('getOriginalContactIdByLid', lid, contact?.id._serialized);
+
+        lidHash[lid] = contact?.id._serialized;
+
+        return contact?.id._serialized;
+    }
+
+    async fixMessageLid(msg) {
+        if (msg.id.participant && msg.id.participant.endsWith('@lid')) {
+            const contactId = await this.getOriginalContactIdByLid(msg.id.participant);
+            if (contactId) {
+                msg.id.participant = contactId;
+            }
+        }
+
+        if (msg.from && msg.from.endsWith('@lid')) {
+            const contactId = await this.getOriginalContactIdByLid(msg.from);
+            if (contactId) {
+                msg.from = contactId;
+            }
+        }
+
+        if (msg.author && msg.author.endsWith('@lid')) {
+            const contactId = await this.getOriginalContactIdByLid(msg.author);
+            if (contactId) {
+                msg.author = contactId;
+            }
+        }
+        
+        if (msg.recipients?.length) {
+            await Promise.all(
+                msg.recipients.map(async (item, index) => {
+                    if (item.endsWith('@lid')) {
+                        const contactId = await this.getOriginalContactIdByLid(item);
+                        if (contactId) {
+                            msg.recipients[index] = contactId;
+                        }
+                    }
+                })
+            );
+        }
+
+        if (msg.mentionedJidList?.length) {
+            await Promise.all(
+                msg.mentionedJidList.map(async (item, index) => {
+                    if (item.endsWith('@lid')) {
+                        const contactId = await this.getOriginalContactIdByLid(item);
+                        if (contactId) {
+                            msg.mentionedJidList[index] = contactId;
+                        }
+                    }
+                })
+            );
+        }
     }
     
     async getMessageById(messageId) {
