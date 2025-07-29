@@ -2192,7 +2192,10 @@ class Client extends EventEmitter {
             const isLid = wid.server === 'lid';
             const lid = isLid ? wid : window.Store.LidUtils.getCurrentLid(wid);
             const phone = isLid ? window.Store.LidUtils.getPhoneNumber(wid) : wid;
-            return { lid, phone };
+            return {
+                lid: lid._serialized,
+                pn: phone._serialized
+            };
         }, userId);
     }
 }
