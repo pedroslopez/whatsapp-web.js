@@ -193,8 +193,11 @@ class GroupChat extends Chat {
         return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
             const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             const participants = participantIds.map(p => {
-                return chat.groupMetadata.participants.get(p);
-            }).filter(p => Boolean(p));
+                const wid = window.Store.WidFactory.createWid(p);
+                const lid = wid.server!=='lid' ? window.Store.LidUtils.getCurrentLid(wid) : wid;
+                const phone = wid.server=='lid' ? window.Store.LidUtils.getPhoneNumber(wid) : wid;
+                return (chat.groupMetadata.participants.get(lid._serialized) || chat.groupMetadata.participants.get(phone._serialized));
+            });
             await window.Store.GroupParticipants.removeParticipants(chat, participants);
             return { status: 200 };
         }, this.id._serialized, participantIds);
@@ -209,8 +212,11 @@ class GroupChat extends Chat {
         return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
             const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             const participants = participantIds.map(p => {
-                return chat.groupMetadata.participants.get(p);
-            }).filter(p => Boolean(p));
+                const wid = window.Store.WidFactory.createWid(p);
+                const lid = wid.server!=='lid' ? window.Store.LidUtils.getCurrentLid(wid) : wid;
+                const phone = wid.server=='lid' ? window.Store.LidUtils.getPhoneNumber(wid) : wid;
+                return (chat.groupMetadata.participants.get(lid._serialized) || chat.groupMetadata.participants.get(phone._serialized));
+            });
             await window.Store.GroupParticipants.promoteParticipants(chat, participants);
             return { status: 200 };
         }, this.id._serialized, participantIds);
@@ -225,8 +231,11 @@ class GroupChat extends Chat {
         return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
             const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             const participants = participantIds.map(p => {
-                return chat.groupMetadata.participants.get(p);
-            }).filter(p => Boolean(p));
+                const wid = window.Store.WidFactory.createWid(p);
+                const lid = wid.server!=='lid' ? window.Store.LidUtils.getCurrentLid(wid) : wid;
+                const phone = wid.server=='lid' ? window.Store.LidUtils.getPhoneNumber(wid) : wid;
+                return (chat.groupMetadata.participants.get(lid._serialized) || chat.groupMetadata.participants.get(phone._serialized));
+            });
             await window.Store.GroupParticipants.demoteParticipants(chat, participants);
             return { status: 200 };
         }, this.id._serialized, participantIds);
