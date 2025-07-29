@@ -2184,7 +2184,7 @@ class Client extends EventEmitter {
     /**
      * Get lid or phone number 
      * @param {string} userId
-     * @returns {Promise<string>}
+     * @returns {Promise<{ lid: string, pn: string }>}
      */
     async getContactLidOrPhone(userId) {
         return await this.pupPage.evaluate((userId) => {
