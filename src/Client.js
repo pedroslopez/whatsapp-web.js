@@ -2182,21 +2182,25 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Get lid and phone number 
-     * @param {string} userId
-     * @returns {Promise<{ lid: string, pn: string }>}
+     * Get lid and phone number for multiple users
+     * @param {string[]} userIds - Array of user IDs
+     * @returns {Promise<Array<{ lid: string, pn: string }>>}
      */
-    async getContactLidAndPhone(userId) {
-        return await this.pupPage.evaluate((userId) => {
-            const wid = window.Store.WidFactory.createWid(userId);
-            const isLid = wid.server === 'lid';
-            const lid = isLid ? wid : window.Store.LidUtils.getCurrentLid(wid);
-            const phone = isLid ? window.Store.LidUtils.getPhoneNumber(wid) : wid;
-            return {
-                lid: lid._serialized,
-                pn: phone._serialized
-            };
-        }, userId);
+    async getContactLidAndPhone(userIds) {
+        return await this.pupPage.evaluate((userIds) => {
+            !Array.isArray(userIds) && (userIds = [userIds]);
+            return userIds.map(userId => {
+                const wid = window.Store.WidFactory.createWid(userId);
+                const isLid = wid.server === 'lid';
+                const lid = isLid ? wid : window.Store.LidUtils.getCurrentLid(wid);
+                const phone = isLid ? window.Store.LidUtils.getPhoneNumber(wid) : wid;
+
+                return {
+                    lid: lid._serialized,
+                    pn: phone._serialized
+                };
+            });
+        }, userIds);
     }
 }
 
