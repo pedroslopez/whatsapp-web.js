@@ -2182,11 +2182,11 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Get lid or phone number 
+     * Get lid and phone number 
      * @param {string} userId
      * @returns {Promise<{ lid: string, pn: string }>}
      */
-    async getContactLidOrPhone(userId) {
+    async getContactLidAndPhone(userId) {
         return await this.pupPage.evaluate((userId) => {
             const wid = window.Store.WidFactory.createWid(userId);
             const isLid = wid.server === 'lid';
