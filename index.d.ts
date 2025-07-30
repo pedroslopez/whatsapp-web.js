@@ -242,6 +242,9 @@ declare namespace WAWebJS {
 
         /** Deletes the contact from user's addressbook */
         deleteAddressbookContact(honeNumber: string): Promise<void>
+
+        /** Get Contact lid and phone */
+        getContactLidAndPhone(userIds: string[]): Promise<{ lid: string; pn: string }[]>
         
         /** Changes and returns the archive state of the Chat */
         unarchiveChat(chatId: string): Promise<boolean>
