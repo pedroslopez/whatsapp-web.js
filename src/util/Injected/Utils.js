@@ -306,7 +306,25 @@ exports.LoadUtils = () => {
         await window.Store.HistorySync.sendPeerDataOperationRequest(3, {
             chatId: chat.id
         });
-        return window.Store.Msg.get(newMsgKey._serialized);
+
+        // return window.Store.Msg.get(newMsgKey._serialized);
+
+        // Add polling to wait for the message to appear in Store.Msg
+        let returnedMsg = window.Store.Msg.get(newMsgKey._serialized);
+        let attempts = 0;
+        const maxAttempts = 20; // Adjust as needed; e.g., waits up to ~2 seconds
+        while (!returnedMsg && attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 100)); // 100ms delay per attempt
+            returnedMsg = window.Store.Msg.get(newMsgKey._serialized);
+            attempts++;
+        }
+    
+        if (!returnedMsg) {
+            console.error('Message not found in Store.Msg after polling');
+            // Optionally throw an error or return null/undefined
+        }
+    
+        return returnedMsg;
     };
 	
     window.WWebJS.editMessage = async (msg, content, options = {}) => {
