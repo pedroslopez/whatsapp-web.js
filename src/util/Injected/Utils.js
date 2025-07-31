@@ -15,73 +15,11 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.sendSeen = async (chatId) => {
-        let chat = window.Store.Chat.get(chatId);
-        if (chat !== undefined) {
-            try {
-                // Check stream availability with correct properties
-                const streamAvailable = window.Store.Stream ? 
-                    (window.Store.Stream.available !== false) : 
-                    (window.Store.Conn && window.Store.Conn.state === 'CONNECTED');
-    
-                // First try basic sendSeen operation
-                await window.Store.SendSeen.sendSeen(chat, false);
-    
-                // If stream is available, also try dual system
-                if (streamAvailable) {
-                    // Implement dual pattern discovered: Promise.all([sendSeen, sendReceipt])
-                    const additionalOperations = [];
-    
-                    // 2. Delivery confirmation (receipt) - the missing part
-                    if (window.Store.SendReceipt && window.Store.SendReceipt.sendAggregateReceipts) {
-                        additionalOperations.push(
-                            window.Store.SendReceipt.sendAggregateReceipts({
-                                type: window.Store.SendReceipt.RECEIPT_TYPE?.READ || 'read',
-                                chatId: chatId
-                            }).catch(err => {
-                                console.warn('SendReceipt operation failed:', err);
-                                return true; // Don't fail if only receipt fails
-                            })
-                        );
-                    } else if (window.Store.MessageReceiptBatcher && window.Store.MessageReceiptBatcher.receiptBatcher) {
-                        // Fallback using MessageReceiptBatcher
-                        additionalOperations.push(
-                            Promise.resolve().then(() => {
-                                try {
-                                    return window.Store.MessageReceiptBatcher.receiptBatcher.acceptOtherReceipt({
-                                        chatId: chatId,
-                                        type: 'read'
-                                    });
-                                } catch (err) {
-                                    console.warn('MessageReceiptBatcher operation failed:', err);
-                                    return true; // Don't fail if only receipt fails
-                                }
-                            })
-                        );
-                    }
-    
-                    // Execute additional operations if available
-                    if (additionalOperations.length > 0) {
-                        await Promise.all(additionalOperations).catch(err => {
-                            console.warn('Additional receipt operations failed:', err);
-                            // Don't fail main function if only additional operations fail
-                        });
-                    }
-                }
-    
-                return true;
-    
-            } catch (error) {
-                console.error('Error in sendSeen operation:', error);
-                
-                // Fallback: try basic operation only
-                try {
-                    await window.Store.SendSeen.sendSeen(chat, false);
-                    return true;
-                } catch (fallbackError) {
-                    console.error('Fallback sendSeen also failed:', fallbackError);
-                    return false;
-                }
-            }
+        const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
+        if (chat) {
+            window.Store.WAWebStreamModel.Stream.markAvailable();
+            await window.Store.SendSeen.sendSeen(chat);
+            return true;
         }
         return false;
     };
