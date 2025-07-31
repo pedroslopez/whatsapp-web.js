@@ -1555,8 +1555,17 @@ class Client extends EventEmitter {
 
             for (const participant of participants) {
                 const pWid = window.Store.WidFactory.createWid(participant);
-                if ((await window.Store.QueryExist(pWid))?.wid) participantWids.push(pWid);
-                else failedParticipants.push(participant);
+                if ((await window.Store.QueryExist(pWid))?.wid){
+                    const participantArg = { 
+                        phoneNumber: pWid.server == 'lid' 
+                            ? window.Store.LidUtils.getPhoneNumber(pWid)
+                            : pWid 
+                    };
+                    participantWids.push(participantArg);
+                } 
+                else{
+                    failedParticipants.push(participant);
+                }
             }
 
             parentGroupId && (parentGroupWid = window.Store.WidFactory.createWid(parentGroupId));
