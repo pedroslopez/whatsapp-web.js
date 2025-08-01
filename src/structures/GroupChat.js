@@ -199,8 +199,8 @@ class GroupChat extends Chat {
                 const wid = window.Store.WidFactory.createWid(p);
                 const lid = wid.server!=='lid' ? window.Store.LidUtils.getCurrentLid(wid) : wid;
                 const phone = wid.server=='lid' ? window.Store.LidUtils.getPhoneNumber(wid) : wid;
-                return (chat.groupMetadata.participants.get(lid._serialized) || chat.groupMetadata.participants.get(phone._serialized));
-            });
+                return chat.groupMetadata.participants.get(lid?._serialized) || chat.groupMetadata.participants.get(phone?._serialized);
+            }).filter(p => Boolean(p));
             await window.Store.GroupParticipants.removeParticipants(chat, participants);
             return { status: 200 };
         }, this.id._serialized, participantIds);
