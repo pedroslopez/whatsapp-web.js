@@ -82,7 +82,7 @@ class GroupChat extends Chat {
 
             !Array.isArray(participantIds) && (participantIds = [participantIds]);
             const groupWid = window.Store.WidFactory.createWid(groupId);
-            const group = await window.Store.Chat.find(groupWid);
+            const group = window.Store.Chat.get(groupWid) || (await window.Store.Chat.find(groupWid));
             const participantWids = participantIds.map((p) => window.Store.WidFactory.createWid(p));
 
             const errorCodes = {
@@ -99,8 +99,8 @@ class GroupChat extends Chat {
             };
 
             await window.Store.GroupQueryAndUpdate({ id: groupId });
-            const groupMetadata = group.groupMetadata;
-            const groupParticipants = groupMetadata?.participants;
+
+            let groupParticipants = group.groupMetadata?.participants.serialize();
 
             if (!groupParticipants) {
                 return errorCodes.isGroupEmpty;
@@ -109,6 +109,10 @@ class GroupChat extends Chat {
             if (!group.iAmAdmin()) {
                 return errorCodes.iAmNotAdmin;
             }
+
+            groupParticipants.map(({ id }) => {
+                return id.server === 'lid' ? window.Store.LidUtils.getPhoneNumber(id) : id;
+            });
 
             const _getSleepTime = (sleep) => {
                 if (!Array.isArray(sleep) || sleep.length === 2 && sleep[0] === sleep[1]) {
@@ -130,7 +134,7 @@ class GroupChat extends Chat {
                     isInviteV4Sent: false
                 };
 
-                if (groupParticipants.some(p => p.id._serialized === pId)) {
+                if (groupParticipants.some(p => p._serialized === pId)) {
                     participantData[pId].code = 409;
                     participantData[pId].message = errorCodes[409];
                     continue;
@@ -143,7 +147,7 @@ class GroupChat extends Chat {
                 }
 
                 const rpcResult =
-                    await window.WWebJS.getAddParticipantsRpcResult(groupMetadata, groupWid, pWid);
+                    await window.WWebJS.getAddParticipantsRpcResult(groupWid, pWid);
                 const { code: rpcResultCode } = rpcResult;
 
                 participantData[pId].code = rpcResultCode;
@@ -155,7 +159,7 @@ class GroupChat extends Chat {
                     window.Store.Contact.gadd(pWid, { silent: true });
 
                     if (rpcResult.name === 'ParticipantRequestCodeCanBeSent' &&
-                        (userChat = await window.Store.Chat.find(pWid))) {
+                        (userChat = window.Store.Chat.get(pWid) || (await window.Store.Chat.find(pWid)))) {
                         const groupName = group.formattedTitle || group.name;
                         const res = await window.Store.GroupInviteV4.sendGroupInviteMessage(
                             userChat,
@@ -166,9 +170,7 @@ class GroupChat extends Chat {
                             comment,
                             await window.WWebJS.getProfilePicThumbToBase64(groupWid)
                         );
-                        isInviteV4Sent = window.compareWwebVersions(window.Debug.VERSION, '<', '2.2335.6')
-                            ? res === 'OK'
-                            : res.messageSendResult === 'OK';
+                        isInviteV4Sent = res.messageSendResult === 'OK';
                     }
 
                     participantData[pId].isInviteV4Sent = isInviteV4Sent;
