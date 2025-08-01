@@ -871,8 +871,8 @@ exports.LoadUtils = () => {
             return dataUrl;
 
         return Object.assign(media, {
-            mimetype: options.mimeType,
-            data: dataUrl.replace(`data:${options.mimeType};base64,`, '')
+            mimetype: options.mimetype,
+            data: dataUrl.replace(`data:${options.mimetype};base64,`, '')
         });
     };
 

@@ -1553,7 +1553,7 @@ class Client extends EventEmitter {
                 comment = '',
             } = options;
             const participantData = {}, participantWids = [], failedParticipants = [];
-            let createGroupResult, parentGroupWid, thumb, fullPic;
+            let createGroupResult, parentGroupWid;
 
             const addParticipantResultCodes = {
                 default: 'An unknown error occupied while adding a participant',
@@ -1592,7 +1592,7 @@ class Client extends EventEmitter {
 
             for (const participant of createGroupResult.participants) {
                 let isInviteV4Sent = false;
-                participant.wid.server == 'lid' && (participant.wid = window.Store.LidUtils.getPhoneNumber(participant.wid))
+                participant.wid.server == 'lid' && (participant.wid = window.Store.LidUtils.getPhoneNumber(participant.wid));
                 const participantId = participant.wid._serialized;
                 const statusCode = participant.error || 200;
 
