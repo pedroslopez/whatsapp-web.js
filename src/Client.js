@@ -839,6 +839,7 @@ class Client extends EventEmitter {
      * @property {boolean} [sendAudioAsVoice=false] - Send audio as voice message with a generated waveform
      * @property {boolean} [sendVideoAsGif=false] - Send video as gif
      * @property {boolean} [sendMediaAsSticker=false] - Send media as a sticker
+     * @property {boolean} [sendMediaAsStickerPack=false] - Send media as a sticker pack
      * @property {boolean} [sendMediaAsDocument=false] - Send media as a document
      * @property {boolean} [sendMediaAsHd=false] - Send image as quality HD
      * @property {boolean} [isViewOnce=false] - Send photo/video as a view once message
@@ -852,6 +853,9 @@ class Client extends EventEmitter {
      * @property {string} [stickerAuthor=undefined] - Sets the author of the sticker, (if sendMediaAsSticker is true).
      * @property {string} [stickerName=undefined] - Sets the name of the sticker, (if sendMediaAsSticker is true).
      * @property {string[]} [stickerCategories=undefined] - Sets the categories of the sticker, (if sendMediaAsSticker is true). Provide emoji char array, can be null.
+     * @property {string} [stickerPackId=undefined] - Sets the ID of the sticker pack, (if sendMediaAsStickerPack is true).
+     * @property {string} [stickerPackName=undefined] - Sets the name of the sticker pack, (if sendMediaAsStickerPack is true).
+     * @property {string} [stickerPackPublisher=undefined] - Sets the publisher of the sticker pack, (if sendMediaAsStickerPack is true).
      * @property {boolean} [ignoreQuoteErrors = true] - Should the bot send a quoted message without the quoted message if it fails to get the quote?
      * @property {MessageMedia} [media] - Media to be sent
      * @property {any} [extra] - Extra options
@@ -894,6 +898,7 @@ class Client extends EventEmitter {
             sendAudioAsVoice: options.sendAudioAsVoice,
             sendVideoAsGif: options.sendVideoAsGif,
             sendMediaAsSticker: options.sendMediaAsSticker,
+            sendMediaAsStickerPack: options.sendMediaAsStickerPack,
             sendMediaAsDocument: options.sendMediaAsDocument,
             sendMediaAsHd: options.sendMediaAsHd,
             caption: options.caption,
@@ -908,7 +913,10 @@ class Client extends EventEmitter {
 
         const sendSeen = options.sendSeen !== false;
 
-        if (content instanceof MessageMedia) {
+        if (
+            content instanceof MessageMedia ||
+            (Array.isArray(content) && content.length > 0 && content[0] instanceof MessageMedia && options.sendMediaAsStickerPack)
+        ) {
             internalOptions.media = content;
             internalOptions.isViewOnce = options.isViewOnce,
             content = '';
@@ -948,6 +956,75 @@ class Client extends EventEmitter {
                     categories: options.stickerCategories
                 }, this.pupPage
             );
+        }
+
+        if (internalOptions.sendMediaAsStickerPack && internalOptions.media) {
+            if (!Array.isArray(internalOptions.media)) {
+                throw new Error('sendMediaAsStickerPack requires an array of MessageMedia.');
+            }
+
+            const stickersMedias = await Promise.all(internalOptions.media.map(media =>
+                Util.formatToWebpSticker(
+                    media,
+                    {
+                        name: options.stickerName,
+                        author: options.stickerAuthor,
+                        categories: options.stickerCategories
+                    },
+                    this.pupPage
+                )
+            ));
+
+            const stickers = stickersMedias.map((stickerMedia, i) => ({
+                fileName: `sticker_${i + 1}.webp`,
+                emojis: [],
+                isLottie: false,
+                mimetype: 'image/webp',
+                isAnimated: false,
+                accessibilityLabel: '',
+                buffer: Buffer.from(stickerMedia.data, 'base64')
+            }));
+
+            let thumbnailBuffer;
+            if (options.stickerPackThumbnail) {
+                const thumbMedia = options.stickerPackThumbnail;
+                if (!(thumbMedia && typeof thumbMedia === 'object' && thumbMedia.data && thumbMedia.mimetype && thumbMedia.mimetype.startsWith('image/'))) {
+                    throw new Error('stickerPackThumbnail must be a MessageMedia instance with image data');
+                }
+                const dataUrl = await this.pupPage.evaluate(async (media) => {
+                    return await window.WWebJS.cropAndResizeImage(media, { asDataUrl: true, mimetype: 'image/png', size: 64 });
+                }, thumbMedia);
+                thumbnailBuffer = Buffer.from(dataUrl.split(',')[1], 'base64');
+            } else {
+                const stickerMedia = internalOptions.media[0];
+                const media = {
+                    mimetype: 'image/webp',
+                    data: stickerMedia.data || stickers[0].buffer.toString('base64')
+                };
+                const dataUrl = await this.pupPage.evaluate(async (media) => {
+                    return await window.WWebJS.cropAndResizeImage(media, { asDataUrl: true, mimetype: 'image/png', size: 64 });
+                }, media);
+                thumbnailBuffer = Buffer.from(dataUrl.split(',')[1], 'base64');
+            }
+
+            const archiver = require('archiver');
+            const zip = archiver('zip');
+            const zipBuffers = [];
+            zip.on('data', data => zipBuffers.push(data));
+            stickers.forEach(sticker => zip.append(sticker.buffer, { name: sticker.fileName }));
+            zip.append(thumbnailBuffer, { name: 'thumbnail.png' });
+            await zip.finalize();
+            stickers.forEach(sticker => { delete sticker.buffer; });
+
+            const zipBuffer = Buffer.concat(zipBuffers);
+            internalOptions.media = new MessageMedia('application/zip', zipBuffer.toString('base64'), 'sticker-pack.zip');
+            internalOptions.extraOptions = {
+                ...internalOptions.extraOptions,
+                stickers,
+                stickerPackId: options.stickerPackId,
+                stickerPackName: options.stickerPackName,
+                stickerPackPublisher: options.stickerPackPublisher
+            };
         }
 
         const sentMsg = await this.pupPage.evaluate(async (chatId, content, options, sendSeen) => {
