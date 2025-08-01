@@ -684,6 +684,22 @@ declare namespace WAWebJS {
          * @default ''
          */
         comment?: string
+        /** If true, only admins can add members to the group (false by default)
+         * @default false
+         */
+        memberAddMode?: boolean,
+        /** If true, group admins will be required to approve anyone who wishes to join the group (false by default)
+         * @default false
+         */
+        membershipApprovalMode?: boolean,
+        /** If true, only admins can change group group info (true by default)
+         * @default true
+         */
+        isRestrict?: boolean,
+        /** If true, only admins can send messages (false by default)
+         * @default false
+         */
+        isAnnounce?: boolean,
     }
 
     /** An object that handles the result for createGroup method */
