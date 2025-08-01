@@ -941,34 +941,14 @@ exports.LoadUtils = () => {
         return undefined;
     };
 
-    window.WWebJS.getAddParticipantsRpcResult = async (groupMetadata, groupWid, participantWid) => {
-        const participantLidArgs = groupMetadata?.isLidAddressingMode && participantWid.server == 'lid'
-            ? {
-                phoneNumber: window.Store.LidUtils.getPhoneNumber(participantWid),
-                lid: participantWid
-            }
-            : { 
-                phoneNumber: participantWid.server == 'lid' 
-                    ? window.Store.LidUtils.getPhoneNumber(participantWid)
-                    : participantWid 
-            };
-
+    window.WWebJS.getAddParticipantsRpcResult = async (groupWid, participantWid) => {
         const iqTo = window.Store.WidToJid.widToGroupJid(groupWid);
 
-        const participantArgs =
-            participantLidArgs.lid
-                ? [{
-                    participantJid: window.Store.WidToJid.widToUserJid(participantLidArgs.lid),
-                    phoneNumberMixinArgs: {
-                        anyPhoneNumber: window.Store.WidToJid.widToUserJid(participantLidArgs.phoneNumber)
-                    }
-                }]
-                : [{
-                    participantJid: window.Store.WidToJid.widToUserJid(participantLidArgs.phoneNumber)
-                }];
+        const participantArgs = [{
+            participantJid: window.Store.WidToJid.widToUserJid(participantWid)
+        }];
 
         let rpcResult, resultArgs;
-        const isOldImpl = window.compareWwebVersions(window.Debug.VERSION, '<=', '2.2335.9');
         const data = {
             name: undefined,
             code: undefined,
@@ -978,12 +958,10 @@ exports.LoadUtils = () => {
 
         try {
             rpcResult = await window.Store.GroupParticipants.sendAddParticipantsRPC({ participantArgs, iqTo });
-            resultArgs = isOldImpl
-                ? rpcResult.value.addParticipant[0].addParticipantsParticipantMixins
-                : rpcResult.value.addParticipant[0]
-                    .addParticipantsParticipantAddedOrNonRegisteredWaUserParticipantErrorLidResponseMixinGroup
-                    .value
-                    .addParticipantsParticipantMixins;
+            resultArgs = rpcResult.value.addParticipant[0]
+                            .addParticipantsParticipantAddedOrNonRegisteredWaUserParticipantErrorLidResponseMixinGroup
+                            .value
+                            .addParticipantsParticipantMixins;
         } catch (err) {
             data.code = 400;
             return data;
