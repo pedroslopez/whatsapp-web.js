@@ -959,9 +959,9 @@ exports.LoadUtils = () => {
         try {
             rpcResult = await window.Store.GroupParticipants.sendAddParticipantsRPC({ participantArgs, iqTo });
             resultArgs = rpcResult.value.addParticipant[0]
-                            .addParticipantsParticipantAddedOrNonRegisteredWaUserParticipantErrorLidResponseMixinGroup
-                            .value
-                            .addParticipantsParticipantMixins;
+                .addParticipantsParticipantAddedOrNonRegisteredWaUserParticipantErrorLidResponseMixinGroup
+                .value
+                .addParticipantsParticipantMixins;
         } catch (err) {
             data.code = 400;
             return data;
