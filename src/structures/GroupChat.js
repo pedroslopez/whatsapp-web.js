@@ -125,9 +125,10 @@ class GroupChat extends Chat {
                 return Math.floor(Math.random() * (sleep[1] - sleep[0] + 1)) + sleep[0];
             };
 
-            for (const pWid of participantWids) {
+            for (let pWid of participantWids) {
                 const pId = pWid._serialized;
-
+                pWid = pWid.server === 'lid' ? window.Store.LidUtils.getPhoneNumber(pWid) : pWid;
+                
                 participantData[pId] = {
                     code: undefined,
                     message: undefined,
