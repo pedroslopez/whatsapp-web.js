@@ -163,7 +163,7 @@ declare namespace WAWebJS {
          * @param showNotification - Show notification to pair on phone number
          * @returns {Promise<string>} - Returns a pairing code in format "ABCDEFGH"
          */
-        requestPairingCode(phoneNumber: string, showNotification = true): Promise<string>
+        requestPairingCode(phoneNumber: string, showNotification?: boolean): Promise<string>
 
         /** Force reset of connection state for the client */
         resetState(): Promise<void>
@@ -245,6 +245,9 @@ declare namespace WAWebJS {
 
         /** Deletes the contact from user's addressbook */
         deleteAddressbookContact(honeNumber: string): Promise<void>
+
+        /** Get Contact lid and phone */
+        getContactLidAndPhone(userIds: string[]): Promise<{ lid: string; pn: string }[]>
         
         /** Changes and returns the archive state of the Chat */
         unarchiveChat(chatId: string): Promise<boolean>
@@ -684,6 +687,22 @@ declare namespace WAWebJS {
          * @default ''
          */
         comment?: string
+        /** If true, only admins can add members to the group (false by default)
+         * @default false
+         */
+        memberAddMode?: boolean,
+        /** If true, group admins will be required to approve anyone who wishes to join the group (false by default)
+         * @default false
+         */
+        membershipApprovalMode?: boolean,
+        /** If true, only admins can change group group info (true by default)
+         * @default true
+         */
+        isRestrict?: boolean,
+        /** If true, only admins can send messages (false by default)
+         * @default false
+         */
+        isAnnounce?: boolean,
     }
 
     /** An object that handles the result for createGroup method */
