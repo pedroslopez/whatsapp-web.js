@@ -1056,7 +1056,7 @@ class Client extends EventEmitter {
     async getChatById(chatId) {
         const chat = await this.pupPage.evaluate(async chatId => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            const res = await window.Store.FindOrCreateChat.findOrCreateLatestChat(chatWid);
+            const res = await window.Store.FindOrCreateChat(chatWid);
             return res?.chat;
         }, chatId);
         return chat
