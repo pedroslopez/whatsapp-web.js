@@ -3,9 +3,17 @@ const { Client, Location, Poll, List, Buttons, LocalAuth } = require('./index');
 const client = new Client({
     authStrategy: new LocalAuth(),
     // proxyAuthentication: { username: 'username', password: 'password' },
-    /** Check https://github.com/pedroslopez/whatsapp-web.js/pull/3325 for full explanation. */
-    // deviceName: 'TEST',
-    // browserName: 'Firefox', // valid value are: 'Chrome' | 'Firefox' | 'IE' | 'Opera' | 'Safari' | 'Edge'
+    /**
+     * This option changes the browser name from defined in user agent to custom.
+     */
+    // deviceName: 'Your custom name',
+    /**
+     * This option changes browser type from defined in user agent to yours. It affects the browser icon
+     * that is displayed in 'linked devices' section.
+     * Valid value are: 'Chrome' | 'Firefox' | 'IE' | 'Opera' | 'Safari' | 'Edge'.
+     * If another value is provided, the browser icon in 'linked devices' section will be gray.
+     */
+    // browserName: 'Firefox',
     puppeteer: { 
         // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
         headless: false,
