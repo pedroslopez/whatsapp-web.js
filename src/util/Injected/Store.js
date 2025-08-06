@@ -111,7 +111,7 @@ exports.ExposeStore = () => {
         ...window.require('WAPhoneFindCC')
     };
     window.Store.ForwardUtils = {
-        ...window.require('WAWebForwardMessagesToChat')
+        ...window.require('WAWebChatForwardMessage')
     };
     window.Store.VCard = {
         ...window.require('WAWebFrontendVcardUtils'),
