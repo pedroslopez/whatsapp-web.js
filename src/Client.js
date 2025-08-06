@@ -141,7 +141,7 @@ class Client extends EventEmitter {
             }
 
             // Register qr/code events
-            if(pairWithPhoneNumber.phoneNumber){
+            if (pairWithPhoneNumber.phoneNumber) {
                 await exposeFunctionIfAbsent(this.pupPage, 'onCodeReceivedEvent', async (code) => {
                     /**
                     * Emitted when a pairing code is received
@@ -152,7 +152,7 @@ class Client extends EventEmitter {
                     this.emit(Events.CODE_RECEIVED, code);
                     return code;
                 });
-                this.requestPairingCode(pairWithPhoneNumber.phoneNumber,pairWithPhoneNumber.showNotification,pairWithPhoneNumber.intervalMs);
+                this.requestPairingCode(pairWithPhoneNumber.phoneNumber, pairWithPhoneNumber.showNotification, pairWithPhoneNumber.intervalMs);
             } else {
                 let qrRetries = 0;
                 await exposeFunctionIfAbsent(this.pupPage, 'onQRChangedEvent', async (qr) => {
@@ -178,9 +178,9 @@ class Client extends EventEmitter {
                     const staticKeyB64 = window.AuthStore.Base64Tools.encodeB64(noiseKeyPair.staticKeyPair.pubKey);
                     const identityKeyB64 = window.AuthStore.Base64Tools.encodeB64(registrationInfo.identityKeyPair.pubKey);
                     const advSecretKey = await window.AuthStore.RegistrationUtils.getADVSecretKey();
-                    const platform =  window.AuthStore.RegistrationUtils.DEVICE_PLATFORM;
+                    const platform = window.AuthStore.RegistrationUtils.DEVICE_PLATFORM;
                     const getQR = (ref) => ref + ',' + staticKeyB64 + ',' + identityKeyB64 + ',' + advSecretKey + ',' + platform;
-                    
+
                     window.onQRChangedEvent(getQR(window.AuthStore.Conn.ref)); // initial qr
                     window.AuthStore.Conn.on('change:ref', (_, ref) => { window.onQRChangedEvent(getQR(ref)); }); // future QR changes
                 });
