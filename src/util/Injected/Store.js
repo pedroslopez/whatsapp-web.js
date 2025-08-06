@@ -114,7 +114,7 @@ exports.ExposeStore = () => {
         ...window.require('WAWebForwardMessagesToChat')
     };
     window.Store.ScheduledEventMsgUtils = {
-        ...window.require('WAWebEventsCreateCallLinkJob'),
+        ...window.require('WAWebGenerateEventCallLink'),
         ...window.require('WAWebSendEventEditMsgAction'),
         ...window.require('WAWebSendEventResponseMsgAction')
     };
