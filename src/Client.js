@@ -1054,11 +1054,12 @@ class Client extends EventEmitter {
      * @returns {Promise<Chat|Channel>}
      */
     async getChatById(chatId) {
-        const r = await this.pupPage.evaluate(async chatId => {
+        const chat = await this.pupPage.evaluate(async chatId => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            return await window.Store.FindOrCreateChat(chatWid);
+            const res =  await window.Store.FindOrCreateChat(chatWid);
+            return r?.chat ? await window.WWebJS.getChat(res.chat.id._serialized) : undefined;
         }, chatId);
-        return r?.chat
+        return chat
             ? ChatFactory.create(this, chat)
             : undefined;
     }
