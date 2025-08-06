@@ -1057,7 +1057,7 @@ class Client extends EventEmitter {
         const chat = await this.pupPage.evaluate(async chatId => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             const res =  await window.Store.FindOrCreateChat(chatWid);
-            return r?.chat ? await window.WWebJS.getChat(res.chat.id._serialized) : undefined;
+            return res?.chat ? await window.WWebJS.getChat(res.chat.id._serialized) : undefined;
         }, chatId);
         return chat
             ? ChatFactory.create(this, chat)
