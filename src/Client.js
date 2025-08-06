@@ -36,6 +36,8 @@ const {exposeFunctionIfAbsent} = require('./util/Puppeteer');
  * @param {string} options.userAgent - User agent to use in puppeteer
  * @param {string} options.ffmpegPath - Ffmpeg path to use when formatting videos to webp while sending stickers 
  * @param {boolean} options.bypassCSP - Sets bypassing of page's Content-Security-Policy.
+ * @param {string} options.deviceName - Sets the device name of a current linked device., i.e.: 'TEST'.
+ * @param {string} options.browserName - Sets the browser name of a current linked device, i.e.: 'Firefox'.
  * @param {object} options.proxyAuthentication - Proxy Authentication object.
  * 
  * @fires Client#qr
@@ -95,6 +97,7 @@ class Client extends EventEmitter {
     async inject() {
         await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', {timeout: this.options.authTimeoutMs});
 
+        await this.setDeviceName(this.options.deviceName, this.options.browserName);
         const version = await this.getWWebVersion();
         const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
 
@@ -811,6 +814,19 @@ class Client extends EventEmitter {
         return await this.pupPage.evaluate(() => {
             return window.Debug.VERSION;
         });
+    }
+
+    async setDeviceName(deviceName, browserName) {
+        (deviceName || browserName) && await this.pupPage.evaluate((deviceName, browserName) => {
+            const func = window.require('WAWebMiscBrowserUtils').info;
+            window.require('WAWebMiscBrowserUtils').info = () => {
+                return {
+                    ...func(),
+                    ...(deviceName ? { os: deviceName } : {}),
+                    ...(browserName ? { name: browserName } : {})
+                };
+            };
+        }, deviceName, browserName);
     }
 
     /**
@@ -1530,6 +1546,10 @@ class Client extends EventEmitter {
      * @property {string|undefined} parentGroupId The ID of a parent community group to link the newly created group with (won't take an effect if the group is been creating with myself only)
      * @property {boolean} [autoSendInviteV4 = true] If true, the inviteV4 will be sent to those participants who have restricted others from being automatically added to groups, otherwise the inviteV4 won't be sent (true by default)
      * @property {string} [comment = ''] The comment to be added to an inviteV4 (empty string by default)
+     * @property {boolean} [memberAddMode = false] If true, only admins can add members to the group (false by default)
+     * @property {boolean} [membershipApprovalMode = false] If true, group admins will be required to approve anyone who wishes to join the group (false by default)
+     * @property {boolean} [isRestrict = true] If true, only admins can change group group info (true by default)
+     * @property {boolean} [isAnnounce = false] If true, only admins can send messages (false by default)
      */
 
     /**
@@ -1544,7 +1564,12 @@ class Client extends EventEmitter {
         participants.map(p => (p instanceof Contact) ? p.id._serialized : p);
 
         return await this.pupPage.evaluate(async (title, participants, options) => {
-            const { messageTimer = 0, parentGroupId, autoSendInviteV4 = true, comment = '' } = options;
+            const {
+                messageTimer = 0,
+                parentGroupId,
+                autoSendInviteV4 = true,
+                comment = '',
+            } = options;
             const participantData = {}, participantWids = [], failedParticipants = [];
             let createGroupResult, parentGroupWid;
 
@@ -1557,7 +1582,9 @@ class Client extends EventEmitter {
 
             for (const participant of participants) {
                 const pWid = window.Store.WidFactory.createWid(participant);
-                if ((await window.Store.QueryExist(pWid))?.wid) participantWids.push(pWid);
+                if ((await window.Store.QueryExist(pWid))?.wid) {
+                    participantWids.push({ phoneNumber: pWid });
+                }
                 else failedParticipants.push(participant);
             }
 
@@ -1566,14 +1593,13 @@ class Client extends EventEmitter {
             try {
                 createGroupResult = await window.Store.GroupUtils.createGroup(
                     {
-                        'memberAddMode': options.memberAddMode === undefined ? true : options.memberAddMode,
-                        'membershipApprovalMode': options.membershipApprovalMode === undefined ? false : options.membershipApprovalMode,
-                        'announce': options.announce === undefined ? true : options.announce,
+                        'addressingModeOverride': 'lid',
+                        'memberAddMode': options.memberAddMode ?? false,
+                        'membershipApprovalMode': options.membershipApprovalMode ?? false,
+                        'announce': options.announce ?? false,
+                        'restrict': options.isRestrict !== undefined ? !options.isRestrict : false,
                         'ephemeralDuration': messageTimer,
-                        'full': undefined,
                         'parentGroupId': parentGroupWid,
-                        'restrict': options.restrict === undefined ? true : options.restrict,
-                        'thumb': undefined,
                         'title': title,
                     },
                     participantWids
@@ -1584,13 +1610,14 @@ class Client extends EventEmitter {
 
             for (const participant of createGroupResult.participants) {
                 let isInviteV4Sent = false;
+                participant.wid.server == 'lid' && (participant.wid = window.Store.LidUtils.getPhoneNumber(participant.wid));
                 const participantId = participant.wid._serialized;
                 const statusCode = participant.error || 200;
 
                 if (autoSendInviteV4 && statusCode === 403) {
                     window.Store.Contact.gadd(participant.wid, { silent: true });
                     const addParticipantResult = await window.Store.GroupInviteV4.sendGroupInviteMessage(
-                        await window.Store.Chat.find(participant.wid),
+                        window.Store.Chat.get(participant.wid) || await window.Store.Chat.find(participant.wid),
                         createGroupResult.wid._serialized,
                         createGroupResult.subject,
                         participant.invite_code,
@@ -1598,9 +1625,7 @@ class Client extends EventEmitter {
                         comment,
                         await window.WWebJS.getProfilePicThumbToBase64(createGroupResult.wid)
                     );
-                    isInviteV4Sent = window.compareWwebVersions(window.Debug.VERSION, '<', '2.2335.6')
-                        ? addParticipantResult === 'OK'
-                        : addParticipantResult.messageSendResult === 'OK';
+                    isInviteV4Sent = addParticipantResult.messageSendResult === 'OK';
                 }
 
                 participantData[participantId] = {
