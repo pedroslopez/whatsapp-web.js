@@ -1296,8 +1296,8 @@ declare namespace WAWebJS {
     export interface MessageEditOptions {
         /** Show links preview. Has no effect on multi-device accounts. */
         linkPreview?: boolean
-        /** Contacts that are being mentioned in the message */
-        mentions?: Contact[]
+        /** User IDs of users that being mentioned in the message */
+        mentions?: string[]
         /** Extra options */
         extra?: any
     }
