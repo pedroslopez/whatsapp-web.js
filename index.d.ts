@@ -544,6 +544,16 @@ declare namespace WAWebJS {
         /** Ffmpeg path to use when formatting videos to webp while sending stickers 
          * @default 'ffmpeg' */
         ffmpegPath?: string,
+        /** Sets bypassing of page's Content-Security-Policy 
+         * @default false */
+        bypassCSP?: boolean,
+        /** Sets the device name of a current linked device., i.e.: 'TEST' */
+        deviceName?: string,
+        /**
+         * Sets the browser name of a current linked device, i.e.: 'Firefox'.
+         * Valid value are: 'Chrome' | 'Firefox' | 'IE' | 'Opera' | 'Safari' | 'Edge'
+         */
+        browserName?: string,
         /** Object with proxy autentication requirements @default: undefined */
         proxyAuthentication?: {username: string, password: string} | undefined
     }
@@ -1286,8 +1296,8 @@ declare namespace WAWebJS {
     export interface MessageEditOptions {
         /** Show links preview. Has no effect on multi-device accounts. */
         linkPreview?: boolean
-        /** Contacts that are being mentioned in the message */
-        mentions?: Contact[]
+        /** User IDs of users that being mentioned in the message */
+        mentions?: string[]
         /** Extra options */
         extra?: any
     }
