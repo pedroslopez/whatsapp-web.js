@@ -297,9 +297,9 @@ exports.LoadUtils = () => {
             return msg;
         }
 
-        const [msg] = await Promise.all(window.Store.SendMessage.addAndSendMsgToChat(chat, message));
+        await Promise.all(window.Store.SendMessage.addAndSendMsgToChat(chat, message));
 
-        return window.Store.Msg.get(msg.id._serialized);
+        return window.Store.Msg.get(newMsgKey._serialized);
     };
 	
     window.WWebJS.editMessage = async (msg, content, options = {}) => {
