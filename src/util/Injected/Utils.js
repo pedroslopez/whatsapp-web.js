@@ -302,11 +302,9 @@ exports.LoadUtils = () => {
             return msg;
         }
 
-        await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
-        await window.Store.HistorySync.sendPeerDataOperationRequest(3, {
-            chatId: chat.id
-        });
-        return window.Store.Msg.get(newMsgKey._serialized);
+        const [msg] = await Promise.all(window.Store.SendMessage.addAndSendMsgToChat(chat, message));
+
+        return window.Store.Msg.get(msg.id._serialized);
     };
 	
     window.WWebJS.editMessage = async (msg, content, options = {}) => {
