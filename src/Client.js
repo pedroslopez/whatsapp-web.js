@@ -1144,6 +1144,29 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Gets instances of all pinned messages in a chat
+     * @param {string} chatId The chat ID
+     * @returns {Promise<[Message]|[]>}
+     */
+    async getPinnedMessages(chatId) {
+        const pinnedMsgs = await this.pupPage.evaluate(async (chatId) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = window.Store.Chat.get(chatWid) ?? await window.Store.Chat.find(chatWid);
+            if (!chat) return [];
+            
+            const msgs = await window.Store.PinnedMsgUtils.getTable().equals(['chatId'], chatWid.toString());
+
+            const pinnedMsgs = msgs.map((msg) => window.Store.Msg.get(msg.parentMsgKey));
+
+            return !pinnedMsgs.length
+                ? []
+                : pinnedMsgs.map((msg) => window.WWebJS.getMessageModel(msg));
+        }, chatId);
+
+        return pinnedMsgs.map((msg) => new Message(this, msg));
+    }
+
+    /**
      * Returns an object with information about the invite code's group
      * @param {string} inviteCode 
      * @returns {Promise<object>} Invite information
