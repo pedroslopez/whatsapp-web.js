@@ -125,9 +125,10 @@ class GroupChat extends Chat {
                 return Math.floor(Math.random() * (sleep[1] - sleep[0] + 1)) + sleep[0];
             };
 
-            for (const pWid of participantWids) {
+            for (let pWid of participantWids) {
                 const pId = pWid._serialized;
-
+                pWid = pWid.server === 'lid' ? window.Store.LidUtils.getPhoneNumber(pWid) : pWid;
+                
                 participantData[pId] = {
                     code: undefined,
                     message: undefined,
@@ -195,7 +196,10 @@ class GroupChat extends Chat {
         return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
             const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             const participants = participantIds.map(p => {
-                return chat.groupMetadata.participants.get(p);
+                const wid = window.Store.WidFactory.createWid(p);
+                const lid = wid.server!=='lid' ? window.Store.LidUtils.getCurrentLid(wid) : wid;
+                const phone = wid.server=='lid' ? window.Store.LidUtils.getPhoneNumber(wid) : wid;
+                return chat.groupMetadata.participants.get(lid?._serialized) || chat.groupMetadata.participants.get(phone?._serialized);
             }).filter(p => Boolean(p));
             await window.Store.GroupParticipants.removeParticipants(chat, participants);
             return { status: 200 };
@@ -211,7 +215,10 @@ class GroupChat extends Chat {
         return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
             const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             const participants = participantIds.map(p => {
-                return chat.groupMetadata.participants.get(p);
+                const wid = window.Store.WidFactory.createWid(p);
+                const lid = wid.server!=='lid' ? window.Store.LidUtils.getCurrentLid(wid) : wid;
+                const phone = wid.server=='lid' ? window.Store.LidUtils.getPhoneNumber(wid) : wid;
+                return chat.groupMetadata.participants.get(lid?._serialized) || chat.groupMetadata.participants.get(phone?._serialized);
             }).filter(p => Boolean(p));
             await window.Store.GroupParticipants.promoteParticipants(chat, participants);
             return { status: 200 };
@@ -227,7 +234,10 @@ class GroupChat extends Chat {
         return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
             const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             const participants = participantIds.map(p => {
-                return chat.groupMetadata.participants.get(p);
+                const wid = window.Store.WidFactory.createWid(p);
+                const lid = wid.server!=='lid' ? window.Store.LidUtils.getCurrentLid(wid) : wid;
+                const phone = wid.server=='lid' ? window.Store.LidUtils.getPhoneNumber(wid) : wid;
+                return chat.groupMetadata.participants.get(lid?._serialized) || chat.groupMetadata.participants.get(phone?._serialized);
             }).filter(p => Boolean(p));
             await window.Store.GroupParticipants.demoteParticipants(chat, participants);
             return { status: 200 };

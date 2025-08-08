@@ -6,12 +6,7 @@ exports.LoadUtils = () => {
     window.WWebJS.forwardMessage = async (chatId, msgId) => {
         const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
         const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
-
-        if (window.compareWwebVersions(window.Debug.VERSION, '>', '2.3000.0')) {
-            return window.Store.ForwardUtils.forwardMessagesToChats([msg], [chat], true);
-        } else {
-            return chat.forwardMessages([msg]);
-        }
+        return window.Store.ForwardUtils.forwardMessages(chat, [msg], true, true);
     };
 
     window.WWebJS.sendSeen = async (chatId) => {
@@ -119,6 +114,34 @@ exports.LoadUtils = () => {
                         : window.crypto.getRandomValues(new Uint8Array(32))
             };
             delete options.poll;
+        }
+
+        let eventOptions = {};
+        if (options.event) {
+            const { name, startTimeTs, eventSendOptions } = options.event;
+            const { messageSecret } = eventSendOptions;
+            eventOptions = {
+                type: 'event_creation',
+                eventName: name,
+                eventDescription: eventSendOptions.description,
+                eventStartTime: startTimeTs,
+                eventEndTime: eventSendOptions.endTimeTs,
+                eventLocation: eventSendOptions.location && {
+                    degreesLatitude: 0,
+                    degreesLongitude: 0,
+                    name: eventSendOptions.location
+                },
+                eventJoinLink: await window.Store.ScheduledEventMsgUtils.createEventCallLink(
+                    startTimeTs,
+                    eventSendOptions.callType
+                ),
+                isEventCanceled: eventSendOptions.isEventCanceled,
+                messageSecret:
+                    Array.isArray(messageSecret) && messageSecret.length === 32
+                        ? new Uint8Array(messageSecret)
+                        : window.crypto.getRandomValues(new Uint8Array(32)),
+            };
+            delete options.event;
         }
 
         let vcardOptions = {};
@@ -260,6 +283,7 @@ exports.LoadUtils = () => {
             ...quotedMsgOptions,
             ...locationOptions,
             ..._pollOptions,
+            ...eventOptions,
             ...vcardOptions,
             ...buttonOptions,
             ...listOptions,
@@ -1105,7 +1129,16 @@ exports.LoadUtils = () => {
     window.WWebJS.pinUnpinMsgAction = async (msgId, action, duration) => {
         const message = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
         if (!message) return false;
-        const response = await window.Store.pinUnpinMsg(message, action, duration);
+
+        if (typeof duration !== 'number') return false;
+        
+        const originalFunction = window.require('WAWebPinMsgConstants').getPinExpiryDuration;
+        window.require('WAWebPinMsgConstants').getPinExpiryDuration = () => duration;
+        
+        const response = await window.Store.PinnedMsgUtils.sendPinInChatMsg(message, action, duration);
+
+        window.require('WAWebPinMsgConstants').getPinExpiryDuration = originalFunction;
+
         return response.messageSendResult === 'OK';
     };
     
