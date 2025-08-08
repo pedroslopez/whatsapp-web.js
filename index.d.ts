@@ -99,6 +99,9 @@ declare namespace WAWebJS {
         /** Get message by ID */
         getMessageById(messageId: string): Promise<Message>
 
+        /** Gets instances of all pinned messages in a chat */
+        getPinnedMessages(chatId: string): Promise<[Message]|[]>
+
         /** Get all current contact instances */
         getContacts(): Promise<Contact[]>
         
@@ -259,6 +262,16 @@ declare namespace WAWebJS {
         /** Deletes the current user's profile picture */
         deleteProfilePicture(): Promise<boolean>
 
+        /** Generates a WhatsApp call link (video call or voice call) */
+        createCallLink(startTime: Date, callType: string): Promise<string>
+
+        /**
+         * Sends a response to the scheduled event message, indicating whether a user is going to attend the event or not
+         * @param response The response code to the event message. Valid values are: `0` for NONE response (removes a previous response) | `1` for GOING | `2` for NOT GOING | `3` for MAYBE going
+         * @param eventMessageId The event message ID
+         */
+        sendResponseToScheduledEvent(response: number, eventMessageId: string): Promise<boolean>
+
         /** Gets an array of membership requests */
         getGroupMembershipRequests(groupId: string): Promise<Array<GroupMembershipRequest>>
 
@@ -371,7 +384,7 @@ declare namespace WAWebJS {
             ack: MessageAck
         ) => void): this
         
-        /** Emitted when an ack event occurrs on message type */
+        /** Emitted when an edit event occurrs on message type */
         on(event: 'message_edit', listener: (
             /** The message that was affected */
             message: Message,
@@ -916,6 +929,7 @@ declare namespace WAWebJS {
         REACTION = 'reaction',
         TEMPLATE_BUTTON_REPLY = 'template_button_reply',
         POLL_CREATION = 'poll_creation',
+        SCHEDULED_EVENT_CREATION = 'scheduled_event_creation',
     }
 
     /** Client status */
@@ -1085,6 +1099,24 @@ declare namespace WAWebJS {
         pollOptions: string[],
         /** False for a single choice poll, true for a multiple choice poll */
         allowMultipleAnswers: boolean,
+        /** The start time of the event in timestamp (10 digits) */
+        eventStartTime: number,
+        /** The end time of the event in timestamp (10 digits) */
+        eventEndTime?: number,
+        /** The event description */
+        eventDescription?: string,
+        /** The location of the event */
+        eventLocation?: {
+            degreesLatitude: number;
+            degreesLongitude: number;
+            name: string;
+        },
+        /** WhatsApp call link (video call or voice call) */
+        eventJoinLink?: string,
+        /** Indicates if an event should be sent as an already canceled */
+        isEventCaneled: boolean,
+        /** The custom message secret, can be used as an event ID */
+        messageSecret?: Array<number>,
         /* 
         * Reloads this Message object's data in-place with the latest values from WhatsApp Web. 
         * Note that the Message must still be in the web app cache for this to work, otherwise will return null.
@@ -1142,6 +1174,11 @@ declare namespace WAWebJS {
         getReactions: () => Promise<ReactionList[]>,
         /** Edits the current message */
         edit: (content: MessageContent, options?: MessageEditOptions) => Promise<Message | null>,
+        /**
+         * Edits the current ScheduledEvent message.
+         * Once the event is canceled, it can not be edited.
+         */
+        editScheduledEvent: (editedEventObject: Event) => Promise<Message | null>,
     }
 
     /** ID that represents a message */
@@ -1195,6 +1232,44 @@ declare namespace WAWebJS {
         options: PollSendOptions
 
         constructor(pollName: string, pollOptions: Array<string>, options?: PollSendOptions)
+    }
+
+    /** ScheduledEvent send options */
+    export interface ScheduledEventSendOptions {
+        /** The scheduled event description */
+        description?: string,
+        /** The end time of the event */
+        endTime?: Date,
+        /** The location of the event */
+        location?: string,
+        /** The type of a WhatsApp call link to generate, valid values are: `video` | `voice` */
+        callType?: string,
+        /**
+         * Indicates if a scheduled event should be sent as an already canceled
+         * @default false
+         */
+        isEventCanceled?: boolean
+        /**
+         * The custom message secret, can be used as an event ID
+         * @note It has to be a unique vector with a length of 32
+         */
+        messageSecret: Array<number>|undefined
+    }
+
+    /** Represents a ScheduledEvent on WhatsApp */
+    export class ScheduledEvent {
+        name: string
+        startTimeTs: number
+        eventSendOptions: {
+            description?: string;
+            endTimeTs?: number;
+            location?: string;
+            callType?: string;
+            isEventCanceled?: boolean;
+            messageSecret?: string;
+        };
+
+        constructor(name: string, startTime: Date, options?: EventSendOptions)
     }
 
     /** Represents a Poll Vote on WhatsApp */
@@ -1352,7 +1427,7 @@ declare namespace WAWebJS {
         static fromUrl: (url: string, options?: MediaFromURLOptions) => Promise<MessageMedia>
     }
 
-    export type MessageContent = string | MessageMedia | Location | Poll | Contact | Contact[] | List | Buttons
+    export type MessageContent = string | MessageMedia | Location | Poll | Contact | Contact[] | List | Buttons | ScheduledEvent
 
     /**
      * Represents a Contact on WhatsApp
@@ -1618,6 +1693,8 @@ declare namespace WAWebJS {
         getLabels: () => Promise<Label[]>,
         /** Add or remove labels to this Chat */
         changeLabels: (labelIds: Array<string | number>) => Promise<void>
+        /** Gets instances of all pinned messages in a chat */
+        getPinnedMessages: () => Promise<[Message]|[]>
         /** Sync history conversation of the Chat */
         syncHistory: () => Promise<boolean>
     }
