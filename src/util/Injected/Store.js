@@ -114,6 +114,11 @@ exports.ExposeStore = () => {
     window.Store.ForwardUtils = {
         ...window.require('WAWebChatForwardMessage')
     };
+    window.Store.ScheduledEventMsgUtils = {
+        ...window.require('WAWebGenerateEventCallLink'),
+        ...window.require('WAWebSendEventEditMsgAction'),
+        ...window.require('WAWebSendEventResponseMsgAction')
+    };
     window.Store.VCard = {
         ...window.require('WAWebFrontendVcardUtils'),
         ...window.require('WAWebVcardParsingUtils'),

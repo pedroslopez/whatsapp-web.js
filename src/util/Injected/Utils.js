@@ -116,6 +116,34 @@ exports.LoadUtils = () => {
             delete options.poll;
         }
 
+        let eventOptions = {};
+        if (options.event) {
+            const { name, startTimeTs, eventSendOptions } = options.event;
+            const { messageSecret } = eventSendOptions;
+            eventOptions = {
+                type: 'event_creation',
+                eventName: name,
+                eventDescription: eventSendOptions.description,
+                eventStartTime: startTimeTs,
+                eventEndTime: eventSendOptions.endTimeTs,
+                eventLocation: eventSendOptions.location && {
+                    degreesLatitude: 0,
+                    degreesLongitude: 0,
+                    name: eventSendOptions.location
+                },
+                eventJoinLink: await window.Store.ScheduledEventMsgUtils.createEventCallLink(
+                    startTimeTs,
+                    eventSendOptions.callType
+                ),
+                isEventCanceled: eventSendOptions.isEventCanceled,
+                messageSecret:
+                    Array.isArray(messageSecret) && messageSecret.length === 32
+                        ? new Uint8Array(messageSecret)
+                        : window.crypto.getRandomValues(new Uint8Array(32)),
+            };
+            delete options.event;
+        }
+
         let vcardOptions = {};
         if (options.contactCard) {
             let contact = window.Store.Contact.get(options.contactCard);
@@ -255,6 +283,7 @@ exports.LoadUtils = () => {
             ...quotedMsgOptions,
             ...locationOptions,
             ..._pollOptions,
+            ...eventOptions,
             ...vcardOptions,
             ...buttonOptions,
             ...listOptions,
