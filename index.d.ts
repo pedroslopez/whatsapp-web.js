@@ -373,7 +373,7 @@ declare namespace WAWebJS {
             ack: MessageAck
         ) => void): this
         
-        /** Emitted when an ack event occurrs on message type */
+        /** Emitted when an edit event occurrs on message type */
         on(event: 'message_edit', listener: (
             /** The message that was affected */
             message: Message,
