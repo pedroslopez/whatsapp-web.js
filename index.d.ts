@@ -160,10 +160,11 @@ declare namespace WAWebJS {
         /**
          * Request authentication via pairing code instead of QR code
          * @param phoneNumber - Phone number in international, symbol-free format (e.g. 12025550108 for US, 551155501234 for Brazil)
-         * @param showNotification - Show notification to pair on phone number
+         * @param showNotification - Show notification to pair on phone number. Defaults to `true`
+         * @param intervalMs - The interval in milliseconds on how frequent to generate pairing code (WhatsApp default to 3 minutes). Defaults to `180000`
          * @returns {Promise<string>} - Returns a pairing code in format "ABCDEFGH"
          */
-        requestPairingCode(phoneNumber: string, showNotification?: boolean): Promise<string>
+        requestPairingCode(phoneNumber: string, showNotification?: boolean, intervalMs?: number): Promise<string>
 
         /** Force reset of connection state for the client */
         resetState(): Promise<void>
@@ -460,6 +461,13 @@ declare namespace WAWebJS {
             qr: string
         ) => void): this
 
+        /** Emitted when the phone number pairing code is received */
+        on(event: 'code', listener: (
+            /** pairing code string
+             *  @example `8W2WZ3TS` */
+            code: string
+        ) => void): this
+
         /** Emitted when a call is received */
         on(event: 'call', listener: (
             /** The call that started */
@@ -569,6 +577,15 @@ declare namespace WAWebJS {
         browserName?: string,
         /** Object with proxy autentication requirements @default: undefined */
         proxyAuthentication?: {username: string, password: string} | undefined
+        /** Phone number pairing configuration. Refer the requestPairingCode function of Client. 
+         * @default
+         * {
+         *   phoneNumber: "",
+         *   showNotification: true,
+         *   intervalMs: 180000,
+         * }
+        */
+        pairWithPhoneNumber?: {phoneNumber: string, showNotification?: boolean, intervalMs?: number}
     }
 
     export interface LocalWebCacheOptions {
