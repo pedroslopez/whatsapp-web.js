@@ -740,10 +740,10 @@ class Client extends EventEmitter {
                 }
             });
             window.Store.Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
-            window.Store.PollVote.on('add', async (vote) => {
+            /* window.Store.PollVote.on('add', async (vote) => {
                 const pollVoteModel = await window.WWebJS.getPollVoteModel(vote);
                 pollVoteModel && window.onPollVoteEvent(pollVoteModel);
-            });
+            }); */
 
             if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.1014111620')) {
                 const module = window.Store.AddonReactionTable;
@@ -761,6 +761,22 @@ class Client extends EventEmitter {
 
                     return ogMethod(...args);
                 }).bind(module);
+
+                const pollVoteModule = window.Store.AddonPollVoteTable;
+                const ogPollVoteMethod = pollVoteModule.bulkUpsert;
+                pollVoteModule.bulkUpsert = ((...args) => {
+                    window.onPollVoteEvent(args[0].map(vote => {
+                        const msgKey = vote.id;
+                        const parentMsgKey = vote.reactionParentKey;
+                        const timestamp = vote.reactionTimestamp / 1000;
+                        const sender = vote.author ?? vote.from;
+                        const senderUserJid = sender._serialized;
+
+                        return {...vote, msgKey, parentMsgKey, senderUserJid, timestamp };
+                    }));
+
+                    return ogPollVoteMethod(...args);
+                }).bind(pollVoteModule);
             } else {
                 const module = window.Store.createOrUpdateReactionsModule;
                 const ogMethod = module.createOrUpdateReactions;
