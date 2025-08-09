@@ -763,7 +763,7 @@ class Client extends EventEmitter {
                     return ogMethod(...args);
                 }).bind(module);
 
-                const pollVoteModule = window.Store.AddonPollVoteTable;
+                /* const pollVoteModule = window.Store.AddonPollVoteTable;
                 const ogPollVoteMethod = pollVoteModule.bulkUpsert;
                 pollVoteModule.bulkUpsert = ((...args) => {
                     window.onPollVoteEvent(args[0].map(vote => {
@@ -773,12 +773,44 @@ class Client extends EventEmitter {
                         const timestamp = vote.t / 1000;
                         const sender = vote.author ?? vote.from;
                         const senderUserJid = sender._serialized;
-                        const parentMessage = window.Store.Msg.get(parentMsgKey._serialized);
+                        const parentMessage = window.Store.Msg.get(parentMsgKey._serialized) || (await window.Store.Msg.getMessagesById([parentMsgKey._serialized]))?.messages?.[0];
 
                         return {...vote, msgKey, parentMsgKey, senderUserJid, timestamp,parentMessage };
                     }));
 
                     return ogPollVoteMethod(...args);
+                }).bind(pollVoteModule); */
+
+                const pollVoteModule = window.Store.AddonPollVoteTable;
+                const ogPollVoteMethod = pollVoteModule.bulkUpsert;
+
+                pollVoteModule.bulkUpsert = (async (...args) => {
+                    const votes = await Promise.all(args[0].map(async vote => {
+                        const msgKey = vote.id;
+                        const parentMsgKey = vote.pollUpdateParentKey;
+                        const timestamp = vote.t / 1000;
+                        const sender = vote.author ?? vote.from;
+                        const senderUserJid = sender._serialized;
+
+                        let parentMessage = window.Store.Msg.get(parentMsgKey._serialized);
+                        if (!parentMessage) {
+                            const fetched = await window.Store.Msg.getMessagesById([parentMsgKey._serialized]);
+                            parentMessage = fetched?.messages?.[0] || null;
+                        }
+
+                        return {
+                            ...vote,
+                            msgKey,
+                            parentMsgKey,
+                            senderUserJid,
+                            timestamp,
+                            parentMessage
+                        };
+                    }));
+
+                    window.onPollVoteEvent(votes);
+
+                    return ogPollVoteMethod.apply(pollVoteModule, args);
                 }).bind(pollVoteModule);
             } else {
                 const module = window.Store.createOrUpdateReactionsModule;
