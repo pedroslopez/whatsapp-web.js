@@ -294,6 +294,24 @@ class Chat extends Base {
     async syncHistory() {
         return this.client.syncHistory(this.id._serialized);
     }
+
+    async getStaredMessages() {
+        const messages = await this.fetchMessages({fromMe: true});
+
+        if (messages.length == 0) {
+            return [];
+        }
+
+        let staredMessages = new Array();
+
+        for (let message of messages) {
+            if (message.isStarred) {
+                staredMessages.push(message)
+            }
+        }
+
+        return staredMessages;
+    }
 }
 
 module.exports = Chat;

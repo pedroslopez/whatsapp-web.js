@@ -1695,6 +1695,8 @@ declare namespace WAWebJS {
         changeLabels: (labelIds: Array<string | number>) => Promise<void>
         /** Gets instances of all pinned messages in a chat */
         getPinnedMessages: () => Promise<[Message]|[]>
+        /** Gets instances of all stared messages in a chat*/
+        getStaredMessages: () => Promise<[Message]|[]>
         /** Sync history conversation of the Chat */
         syncHistory: () => Promise<boolean>
     }
