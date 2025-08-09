@@ -801,6 +801,7 @@ class Client extends EventEmitter {
                         return {
                             ...vote,
                             msgKey,
+                            sender,
                             parentMsgKey,
                             senderUserJid,
                             timestamp,
