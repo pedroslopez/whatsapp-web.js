@@ -34,25 +34,22 @@ class PollVote extends Base {
          * may occur when they deselected all poll options
          * @type {SelectedPollOption[]}
          */
-        if(data.selectedOptionLocalIds.length > 0){
-            
+        if (data.selectedOptionLocalIds.length > 0) {
             if(data.parentMessage) { // temporary failsafe
                 this.selectedOptions = data.selectedOptionLocalIds.map((e) => ({
                     name: data.parentMessage.pollOptions.find((x) => x.localId === e).name,
                     localId: e
                 }));
-            }else{
+            } else {
                 this.selectedOptions = data.selectedOptionLocalIds.map((e) => ({
                     name: undefined,
                     localId: e
                 }));
             }
-        }else{
+        } else {
             this.selectedOptions = [];
         }
         
-        
-
         /**
          * Timestamp the option was selected or deselected at
          * @type {number}
