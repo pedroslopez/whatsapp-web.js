@@ -713,7 +713,7 @@ class Client extends EventEmitter {
                  * shows a user's current selected option(s) on the poll
                  * @event Client#vote_update
                  */
-                this.emit(Events.VOTE_UPDATE, vote);
+                this.emit(Events.VOTE_UPDATE, new PollVote(this, vote));
             }
         });
 
