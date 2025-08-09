@@ -741,10 +741,6 @@ class Client extends EventEmitter {
                 }
             });
             window.Store.Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
-            /* window.Store.PollVote.on('add', async (vote) => {
-                const pollVoteModel = await window.WWebJS.getPollVoteModel(vote);
-                pollVoteModel && window.onPollVoteEvent(pollVoteModel);
-            }); */
 
             if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.1014111620')) {
                 const module = window.Store.AddonReactionTable;
@@ -762,24 +758,6 @@ class Client extends EventEmitter {
 
                     return ogMethod(...args);
                 }).bind(module);
-
-                /* const pollVoteModule = window.Store.AddonPollVoteTable;
-                const ogPollVoteMethod = pollVoteModule.bulkUpsert;
-                pollVoteModule.bulkUpsert = ((...args) => {
-                    window.onPollVoteEvent(args[0].map(vote => {
-                        
-                        const msgKey = vote.id;
-                        const parentMsgKey = vote.pollUpdateParentKey;
-                        const timestamp = vote.t / 1000;
-                        const sender = vote.author ?? vote.from;
-                        const senderUserJid = sender._serialized;
-                        const parentMessage = window.Store.Msg.get(parentMsgKey._serialized) || (await window.Store.Msg.getMessagesById([parentMsgKey._serialized]))?.messages?.[0];
-
-                        return {...vote, msgKey, parentMsgKey, senderUserJid, timestamp,parentMessage };
-                    }));
-
-                    return ogPollVoteMethod(...args);
-                }).bind(pollVoteModule); */
 
                 const pollVoteModule = window.Store.AddonPollVoteTable;
                 const ogPollVoteMethod = pollVoteModule.bulkUpsert;
