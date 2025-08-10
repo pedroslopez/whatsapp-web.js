@@ -380,7 +380,7 @@ class Channel extends Base {
     }
 
     /**
-     * Gets instances of all stared messages in a chat
+     * Gets instances of all stared messages in a channel
      * @param {Object} searchOptions Options for searching. Includes limit and fromMe.
      * @param {Number} [searchOptions.limit] The amount of messages to return. If no limit is specified, the available messages will be returned. Note that the actual number of returned messages may be smaller if there aren't enough messages in the conversation. Set this to Infinity to load all messages.
      * @param {Boolean} [searchOptions.fromMe] Return only messages from the bot number or vise versa. To get all messages, leave the option undefined.
@@ -411,7 +411,7 @@ class Channel extends Base {
     }
 
     /**
-     * Fetches messages by their type in a chat
+     * Fetches messages by their type in a channel
      * @param {Object} searchOptions Options for searching. Includes limit, fromMe and messageType. If the searchOptions is undefined then it returns empty array.
      * @param {Number} [searchOptions.limit] The amount of messages to return. If no limit is specified, the available messages will be returned. Note that the actual number of returned messages may be smaller if there aren't enough messages in the conversation. Set this to Infinity to load all messages.
      * @param {Boolean} [searchOptions.fromMe] Return only messages from the bot number or vise versa. To get all messages, leave the option undefined.
