@@ -1807,7 +1807,6 @@ declare namespace WAWebJS {
          * Set this to Infinity to load all messages.
          */
         limit?: number
-
         /**
         * Return only messages from the bot number or vise versa. To get all messages, leave the option undefined.
         */
