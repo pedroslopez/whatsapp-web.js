@@ -1697,6 +1697,8 @@ declare namespace WAWebJS {
         getPinnedMessages: () => Promise<[Message]|[]>
         /** Gets instances of all stared messages in a chat*/
         getStaredMessages: () => Promise<[Message]|[]>
+        /** Gets instances of all messages in a chat by it's type*/
+        getMessagesByType: (searchOptions: MessageSearchByTypeOptions) => Promise<[Message]|[]>
         /** Sync history conversation of the Chat */
         syncHistory: () => Promise<boolean>
     }
@@ -1771,6 +1773,10 @@ declare namespace WAWebJS {
         transferChannelOwnership(newOwnerId: string, options?: TransferChannelOwnershipOptions): Promise<boolean>;
         /** Deletes the channel you created */
         deleteChannel(): Promise<boolean>;
+        /** Gets instances of all stared messages in a channel*/
+        getStaredMessages: () => Promise<[Message]|[]>;
+        /** Gets instances of all messages in a channel by it's type*/
+        getMessagesByType: (searchOptions: MessageSearchByTypeOptions) => Promise<[Message]|[]>;
     }
 
     /** Options for transferring a channel ownership to another user */
@@ -1801,10 +1807,19 @@ declare namespace WAWebJS {
          * Set this to Infinity to load all messages.
          */
         limit?: number
+
         /**
         * Return only messages from the bot number or vise versa. To get all messages, leave the option undefined.
         */
         fromMe?: boolean
+    }
+
+    export interface MessageSearchByTypeOptions extends MessageSearchOptions {
+        /**
+         * The message type to return, if undefined then returns the all the messages. 
+         */
+        messageFormat?: MessageTypes
+        
     }
 
     /**

@@ -1,5 +1,6 @@
 'use strict';
 
+const { MessageTypes } = require('../util/Constants');
 const Base = require('./Base');
 const Message = require('./Message');
 
@@ -295,6 +296,10 @@ class Chat extends Base {
         return this.client.syncHistory(this.id._serialized);
     }
 
+    /**
+     * Gets instances of all stared messages in a chat
+     * @returns {Promise<[Message]|[]>} 
+     */
     async getStaredMessages() {
         const messages = await this.fetchMessages({fromMe: true});
 
@@ -306,11 +311,40 @@ class Chat extends Base {
 
         for (let message of messages) {
             if (message.isStarred) {
-                staredMessages.push(message)
+                staredMessages.push(message);
             }
         }
 
         return staredMessages;
+    }
+
+    /**
+     * Fetches messages by their type in a chat
+     * @param {Object} searchOptions Options for searching. Includes limit, fromMe and messageType.
+     * @param {Number} [searchOptions.limit] The amount of messages to return. If no limit is specified, the available messages will be returned. Note that the actual number of returned messages may be smaller if there aren't enough messages in the conversation. Set this to Infinity to load all messages.
+     * @param {Boolean} [searchOptions.fromMe] Return only messages from the bot number or vise versa. To get all messages, leave the option undefined.
+     * @param {MessageTypes} [searchOptions.messageType] Returns only the messages of a certain type. If undefined returns all messages fetched.
+     * @returns {Promise<[Message]|[]>}
+     */
+    async getMessagesByType(searchOptions) {
+        const messages = await this.fetchMessages({limit: searchOptions.limit , messageType: searchOptions.messageType});
+        
+        if (messages.length == 0 || searchOptions.messageType == undefined) {
+            return messages;
+        }
+
+        let subArray = new Array();
+
+        for (let message of messages) {
+            if (message.type == undefined) {
+                continue;
+            }
+            if (message.type == searchOptions.messageType) {
+                subArray.push(message);
+            }   
+        }
+
+        return subArray;
     }
 }
 
