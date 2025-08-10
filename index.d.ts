@@ -1818,7 +1818,7 @@ declare namespace WAWebJS {
         /**
          * The message type to return, if undefined then returns the all the messages. 
          */
-        messageFormat?: MessageTypes
+        messageType?: MessageTypes
         
     }
 
