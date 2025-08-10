@@ -24,6 +24,15 @@ declare namespace WAWebJS {
         /**Accepts an invitation to join a group */
         acceptInvite(inviteCode: string): Promise<string>
 
+        /** Accepts a channel admin invitation and promotes the current user to a channel admin */
+        acceptChannelAdminInvite(channelId: string): Promise<boolean>
+
+        /** Revokes a channel admin invitation sent to a user by a channel owner */
+        revokeChannelAdminInvite(channelId: string, userId: string): Promise<boolean>
+
+        /** Demotes a channel admin to a regular subscriber (can be used also for self-demotion) */
+        demoteChannelAdmin(channelId: string, userId: string): Promise<boolean>
+
         /** Accepts a private invitation to join a group (v4 invite) */
         acceptGroupV4Invite: (inviteV4: InviteV4Data) => Promise<{status: number}>
 
@@ -42,6 +51,27 @@ declare namespace WAWebJS {
         /** Creates a new group */
         createGroup(title: string, participants?: string | Contact | Contact[] | string[], options?: CreateGroupOptions): Promise<CreateGroupResult|string>
 
+        /** Creates a new channel */
+        createChannel(title: string, options?: CreateChannelOptions): Promise<CreateChannelResult | string>
+
+        /** Deletes the channel you created */
+        deleteChannel(channelId: string): Promise<boolean>;
+
+        /** Subscribe to channel */
+        subscribeToChannel(channelId: string): Promise<boolean>
+
+        /** Unsubscribe from channel */
+        unsubscribeFromChannel(channelId: string, options?: UnsubscribeOptions): Promise<boolean>
+
+        /**
+         * Searches for channels based on search criteria, there are some notes:
+         * 1. The method finds only channels you are not subscribed to currently
+         * 2. If you have never been subscribed to a found channel
+         * or you have unsubscribed from it with {@link UnsubscribeOptions.deleteLocalModels} set to 'true',
+         * the lastMessage property of a found channel will be 'null'
+         */
+        searchChannels(searchOptions: SearchChannelsOptions): Promise<Array<Channel> | []>
+
         /** Closes the client */
         destroy(): Promise<void>
 
@@ -51,17 +81,26 @@ declare namespace WAWebJS {
         /** Get all blocked contacts by host account */
         getBlockedContacts(): Promise<Contact[]>
 
-        /** Get chat instance by ID */
+        /** Gets chat or channel instance by ID */
         getChatById(chatId: string): Promise<Chat>
+
+        /** Gets a {@link Channel} instance by invite code */
+        getChannelByInviteCode(inviteCode: string): Promise<Channel>
 
         /** Get all current chat instances */
         getChats(): Promise<Chat[]>
+
+        /** Gets all cached {@link Channel} instances */
+        getChannels(): Promise<Channel[]>
 
         /** Get contact instance by ID */
         getContactById(contactId: string): Promise<Contact>
 
         /** Get message by ID */
         getMessageById(messageId: string): Promise<Message>
+
+        /** Gets instances of all pinned messages in a chat */
+        getPinnedMessages(chatId: string): Promise<[Message]|[]>
 
         /** Get all current contact instances */
         getContacts(): Promise<Contact[]>
@@ -116,21 +155,25 @@ declare namespace WAWebJS {
          * @param chatId ID of the chat that will be muted
          * @param unmuteDate Date when the chat will be unmuted, leave as is to mute forever
          */
-        muteChat(chatId: string, unmuteDate?: Date): Promise<void>
+        muteChat(chatId: string, unmuteDate?: Date): Promise<{ isMuted: boolean, muteExpiration: number }>
 
         /**
          * Request authentication via pairing code instead of QR code
          * @param phoneNumber - Phone number in international, symbol-free format (e.g. 12025550108 for US, 551155501234 for Brazil)
-         * @param showNotification - Show notification to pair on phone number
+         * @param showNotification - Show notification to pair on phone number. Defaults to `true`
+         * @param intervalMs - The interval in milliseconds on how frequent to generate pairing code (WhatsApp default to 3 minutes). Defaults to `180000`
          * @returns {Promise<string>} - Returns a pairing code in format "ABCDEFGH"
          */
-        requestPairingCode(phoneNumber: string, showNotification = true): Promise<string>
+        requestPairingCode(phoneNumber: string, showNotification?: boolean, intervalMs?: number): Promise<string>
 
         /** Force reset of connection state for the client */
         resetState(): Promise<void>
 
         /** Send a message to a specific chatId */
         sendMessage(chatId: string, content: MessageContent, options?: MessageSendOptions): Promise<Message>
+
+        /** Sends a channel admin invitation to a user, allowing them to become an admin of the channel */
+        sendChannelAdminInvite(chatId: string, channelId: string, options?: { comment?: string }): Promise<boolean>
         
         /** Searches for messages */
         searchMessages(query: string, options?: { chatId?: string, page?: number, limit?: number }): Promise<Message[]>
@@ -181,6 +224,13 @@ declare namespace WAWebJS {
         setAutoDownloadVideos(flag: boolean): Promise<void>
 
         /**
+         * Changing the background synchronization setting.
+         * NOTE: this action will take effect after you restart the client.
+         * @param flag true/false on or off
+         */
+        setBackgroundSync(flag: boolean): Promise<void>
+
+        /**
          * Get user device count by ID
          * Each WaWeb Connection counts as one device, and the phone (if exists) counts as one
          * So for a non-enterprise user with one WaWeb connection it should return "2"
@@ -190,12 +240,21 @@ declare namespace WAWebJS {
         
         /** Sync history conversation of the Chat */
         syncHistory(chatId: string): Promise<boolean>
+
+        /** Save new contact to user's addressbook or edit the existing one */
+        saveOrEditAddressbookContact(phoneNumber: string, firstName: string, lastName: string, syncToAddressbook?: boolean): Promise<ChatId>
+
+        /** Deletes the contact from user's addressbook */
+        deleteAddressbookContact(honeNumber: string): Promise<void>
+
+        /** Get Contact lid and phone */
+        getContactLidAndPhone(userIds: string[]): Promise<{ lid: string; pn: string }[]>
         
         /** Changes and returns the archive state of the Chat */
         unarchiveChat(chatId: string): Promise<boolean>
 
         /** Unmutes the Chat */
-        unmuteChat(chatId: string): Promise<void>
+        unmuteChat(chatId: string): Promise<{ isMuted: boolean, muteExpiration: number }>
 
         /** Sets the current user's profile picture */
         setProfilePicture(media: MessageMedia): Promise<boolean>
@@ -203,14 +262,30 @@ declare namespace WAWebJS {
         /** Deletes the current user's profile picture */
         deleteProfilePicture(): Promise<boolean>
 
+        /** Generates a WhatsApp call link (video call or voice call) */
+        createCallLink(startTime: Date, callType: string): Promise<string>
+
+        /**
+         * Sends a response to the scheduled event message, indicating whether a user is going to attend the event or not
+         * @param response The response code to the event message. Valid values are: `0` for NONE response (removes a previous response) | `1` for GOING | `2` for NOT GOING | `3` for MAYBE going
+         * @param eventMessageId The event message ID
+         */
+        sendResponseToScheduledEvent(response: number, eventMessageId: string): Promise<boolean>
+
         /** Gets an array of membership requests */
-        getGroupMembershipRequests: (groupId: string) => Promise<Array<GroupMembershipRequest>>
+        getGroupMembershipRequests(groupId: string): Promise<Array<GroupMembershipRequest>>
 
         /** Approves membership requests if any */
-        approveGroupMembershipRequests: (groupId: string, options: MembershipRequestActionOptions) => Promise<Array<MembershipRequestActionResult>>;
+        approveGroupMembershipRequests(groupId: string, options: MembershipRequestActionOptions): Promise<Array<MembershipRequestActionResult>>;
 
         /** Rejects membership requests if any */
-        rejectGroupMembershipRequests: (groupId: string, options: MembershipRequestActionOptions) => Promise<Array<MembershipRequestActionResult>>;
+        rejectGroupMembershipRequests(groupId: string, options: MembershipRequestActionOptions): Promise<Array<MembershipRequestActionResult>>;
+        
+        /**
+         * Transfers a channel ownership to another user.
+         * Note: the user you are transferring the channel ownership to must be a channel admin.
+         */
+        transferChannelOwnership(channelId: string, newOwnerId: string, options?: TransferChannelOwnershipOptions): Promise<boolean>;
 
         /**
          * Post stories for everyone to see
@@ -317,7 +392,7 @@ declare namespace WAWebJS {
             ack: MessageAck
         ) => void): this
         
-        /** Emitted when an ack event occurrs on message type */
+        /** Emitted when an edit event occurrs on message type */
         on(event: 'message_edit', listener: (
             /** The message that was affected */
             message: Message,
@@ -392,6 +467,13 @@ declare namespace WAWebJS {
             /** qr code string
              *  @example ```1@9Q8tWf6bnezr8uVGwVCluyRuBOJ3tIglimzI5dHB0vQW2m4DQ0GMlCGf,f1/vGcW4Z3vBa1eDNl3tOjWqLL5DpYTI84DMVkYnQE8=,ZL7YnK2qdPN8vKo2ESxhOQ==``` */
             qr: string
+        ) => void): this
+
+        /** Emitted when the phone number pairing code is received */
+        on(event: 'code', listener: (
+            /** pairing code string
+             *  @example `8W2WZ3TS` */
+            code: string
         ) => void): this
 
         /** Emitted when a call is received */
@@ -491,8 +573,27 @@ declare namespace WAWebJS {
         /** Ffmpeg path to use when formatting videos to webp while sending stickers 
          * @default 'ffmpeg' */
         ffmpegPath?: string,
+        /** Sets bypassing of page's Content-Security-Policy 
+         * @default false */
+        bypassCSP?: boolean,
+        /** Sets the device name of a current linked device., i.e.: 'TEST' */
+        deviceName?: string,
+        /**
+         * Sets the browser name of a current linked device, i.e.: 'Firefox'.
+         * Valid value are: 'Chrome' | 'Firefox' | 'IE' | 'Opera' | 'Safari' | 'Edge'
+         */
+        browserName?: string,
         /** Object with proxy autentication requirements @default: undefined */
         proxyAuthentication?: {username: string, password: string} | undefined
+        /** Phone number pairing configuration. Refer the requestPairingCode function of Client. 
+         * @default
+         * {
+         *   phoneNumber: "",
+         *   showNotification: true,
+         *   intervalMs: 180000,
+         * }
+        */
+        pairWithPhoneNumber?: {phoneNumber: string, showNotification?: boolean, intervalMs?: number}
     }
 
     export interface LocalWebCacheOptions {
@@ -631,6 +732,22 @@ declare namespace WAWebJS {
          * @default ''
          */
         comment?: string
+        /** If true, only admins can add members to the group (false by default)
+         * @default false
+         */
+        memberAddMode?: boolean,
+        /** If true, group admins will be required to approve anyone who wishes to join the group (false by default)
+         * @default false
+         */
+        membershipApprovalMode?: boolean,
+        /** If true, only admins can change group group info (true by default)
+         * @default true
+         */
+        isRestrict?: boolean,
+        /** If true, only admins can send messages (false by default)
+         * @default false
+         */
+        isAnnounce?: boolean,
     }
 
     /** An object that handles the result for createGroup method */
@@ -648,6 +765,46 @@ declare namespace WAWebJS {
                 isInviteV4Sent: boolean
             };
         };
+    }
+
+    /** An object that handles options for channel creation */
+    export interface CreateChannelOptions {
+        /** The channel description */
+        description?: string,
+        /** The channel profile picture */
+        picture?: MessageMedia
+    }
+
+    /** An object that handles the result for createGroup method */
+    export interface CreateChannelResult {
+        /** A channel title */
+        title: string,
+        /** An object that handles the newly created channel ID */
+        nid: ChatId,
+        /** The channel invite link, starts with 'https://whatsapp.com/channel/' */
+        inviteLink: string,
+        /** The timestamp the channel was created at */
+        createdAtTs: number
+    }
+
+    /** Options for unsubscribe from a channel */
+    export interface UnsubscribeOptions {
+        /**
+         * If true, after an unsubscription, it will completely remove a channel from the channel collection
+         * making it seem like the current user have never interacted with it.
+         * Otherwise it will only remove a channel from the list of channels the current user is subscribed to
+         * and will set the membership type for that channel to GUEST
+         */
+        deleteLocalModels?: boolean
+    }
+
+    /** Options for searching for channels */
+    export interface SearchChannelsOptions {
+        searchText?: string;
+        countryCodes?: string[];
+        skipSubscribedNewsletters?: boolean;
+        view?: number;
+        limit?: number;
     }
 
     export interface GroupNotification {
@@ -780,6 +937,7 @@ declare namespace WAWebJS {
         REACTION = 'reaction',
         TEMPLATE_BUTTON_REPLY = 'template_button_reply',
         POLL_CREATION = 'poll_creation',
+        SCHEDULED_EVENT_CREATION = 'scheduled_event_creation',
     }
 
     /** Client status */
@@ -901,15 +1059,11 @@ declare namespace WAWebJS {
         /** MediaKey that represents the sticker 'ID' */
         mediaKey?: string,
         /** Indicates the mentions in the message body. */
-        mentionedIds: ChatId[],
+        mentionedIds: string[],
         /** Indicates whether there are group mentions in the message body */
         groupMentions: {
             groupSubject: string;
-            groupJid: {
-                server: string;
-                user: string;
-                _serialized: string;
-            };
+            groupJid: string;
         }[],
         /** Unix timestamp for when the message was created */
         timestamp: number,
@@ -953,6 +1107,24 @@ declare namespace WAWebJS {
         pollOptions: string[],
         /** False for a single choice poll, true for a multiple choice poll */
         allowMultipleAnswers: boolean,
+        /** The start time of the event in timestamp (10 digits) */
+        eventStartTime: number,
+        /** The end time of the event in timestamp (10 digits) */
+        eventEndTime?: number,
+        /** The event description */
+        eventDescription?: string,
+        /** The location of the event */
+        eventLocation?: {
+            degreesLatitude: number;
+            degreesLongitude: number;
+            name: string;
+        },
+        /** WhatsApp call link (video call or voice call) */
+        eventJoinLink?: string,
+        /** Indicates if an event should be sent as an already canceled */
+        isEventCaneled: boolean,
+        /** The custom message secret, can be used as an event ID */
+        messageSecret?: Array<number>,
         /* 
         * Reloads this Message object's data in-place with the latest values from WhatsApp Web. 
         * Note that the Message must still be in the web app cache for this to work, otherwise will return null.
@@ -961,7 +1133,7 @@ declare namespace WAWebJS {
         /** Accept the Group V4 Invite in message */
         acceptGroupV4Invite: () => Promise<{status: number}>,
         /** Deletes the message from the chat */
-        delete: (everyone?: boolean) => Promise<void>,
+        delete: (everyone?: boolean, clearMedia?: boolean) => Promise<void>,
         /** Downloads and returns the attached message media */
         downloadMedia: () => Promise<MessageMedia>,
         /** Returns the Chat this message was sent in */
@@ -1010,6 +1182,11 @@ declare namespace WAWebJS {
         getReactions: () => Promise<ReactionList[]>,
         /** Edits the current message */
         edit: (content: MessageContent, options?: MessageEditOptions) => Promise<Message | null>,
+        /**
+         * Edits the current ScheduledEvent message.
+         * Once the event is canceled, it can not be edited.
+         */
+        editScheduledEvent: (editedEventObject: Event) => Promise<Message | null>,
     }
 
     /** ID that represents a message */
@@ -1034,7 +1211,10 @@ declare namespace WAWebJS {
     export class Location {
         latitude: string;
         longitude: string;
-        options?: LocationSendOptions;
+        name?: string;
+        address?: string;
+        url?: string;
+        description?: string;
         
         constructor(latitude: number, longitude: number, options?: LocationSendOptions)
     }
@@ -1060,6 +1240,44 @@ declare namespace WAWebJS {
         options: PollSendOptions
 
         constructor(pollName: string, pollOptions: Array<string>, options?: PollSendOptions)
+    }
+
+    /** ScheduledEvent send options */
+    export interface ScheduledEventSendOptions {
+        /** The scheduled event description */
+        description?: string,
+        /** The end time of the event */
+        endTime?: Date,
+        /** The location of the event */
+        location?: string,
+        /** The type of a WhatsApp call link to generate, valid values are: `video` | `voice` */
+        callType?: string,
+        /**
+         * Indicates if a scheduled event should be sent as an already canceled
+         * @default false
+         */
+        isEventCanceled?: boolean
+        /**
+         * The custom message secret, can be used as an event ID
+         * @note It has to be a unique vector with a length of 32
+         */
+        messageSecret: Array<number>|undefined
+    }
+
+    /** Represents a ScheduledEvent on WhatsApp */
+    export class ScheduledEvent {
+        name: string
+        startTimeTs: number
+        eventSendOptions: {
+            description?: string;
+            endTimeTs?: number;
+            location?: string;
+            callType?: string;
+            isEventCanceled?: boolean;
+            messageSecret?: string;
+        };
+
+        constructor(name: string, startTime: Date, options?: EventSendOptions)
     }
 
     /** Represents a Poll Vote on WhatsApp */
@@ -1136,6 +1354,8 @@ declare namespace WAWebJS {
         sendMediaAsSticker?: boolean
         /** Send media as document */
         sendMediaAsDocument?: boolean
+        /** Send media as quality HD */
+        sendMediaAsHd?: boolean
         /** Send photo/video as a view once message */
         isViewOnce?: boolean
         /** Automatically parse vCards and send them as contacts */
@@ -1166,15 +1386,18 @@ declare namespace WAWebJS {
         /** Sticker author, if sendMediaAsSticker is true */
         stickerAuthor?: string
         /** Sticker categories, if sendMediaAsSticker is true */
-        stickerCategories?: string[]
+        stickerCategories?: string[],
+        /** Should the bot send a quoted message without the quoted message if it fails to get the quote?
+         * @default true (enabled) */
+        ignoreQuoteErrors?: boolean
     }
 
     /** Options for editing a message */
     export interface MessageEditOptions {
         /** Show links preview. Has no effect on multi-device accounts. */
         linkPreview?: boolean
-        /** Contacts that are being mentioned in the message */
-        mentions?: Contact[]
+        /** User IDs of users that being mentioned in the message */
+        mentions?: string[]
         /** Extra options */
         extra?: any
     }
@@ -1212,7 +1435,7 @@ declare namespace WAWebJS {
         static fromUrl: (url: string, options?: MediaFromURLOptions) => Promise<MessageMedia>
     }
 
-    export type MessageContent = string | MessageMedia | Location | Poll | Contact | Contact[] | List | Buttons
+    export type MessageContent = string | MessageMedia | Location | Poll | Contact | Contact[] | List | Buttons | ScheduledEvent
 
     /**
      * Represents a Contact on WhatsApp
@@ -1457,11 +1680,11 @@ declare namespace WAWebJS {
         /** Loads chat messages, sorted from earliest to latest. */
         fetchMessages: (searchOptions: MessageSearchOptions) => Promise<Message[]>,
         /** Mutes this chat forever, unless a date is specified */
-        mute: (unmuteDate?: Date) => Promise<void>,
+        mute: (unmuteDate?: Date) => Promise<{ isMuted: boolean, muteExpiration: number }>,
         /** Send a message to this chat */
         sendMessage: (content: MessageContent, options?: MessageSendOptions) => Promise<Message>,
-        /** Set the message as seen */
-        sendSeen: () => Promise<void>,
+        /** Sets the chat as seen */
+        sendSeen: () => Promise<boolean>,
         /** Simulate recording audio in chat. This will last for 25 seconds */
         sendStateRecording: () => Promise<void>,
         /** Simulate typing in chat. This will last for 25 seconds. */
@@ -1469,7 +1692,7 @@ declare namespace WAWebJS {
         /** un-archives this chat */
         unarchive: () => Promise<void>,
         /** Unmutes this chat */
-        unmute: () => Promise<void>,
+        unmute: () => Promise<{ isMuted: boolean, muteExpiration: number }>,
         /** Returns the Contact that corresponds to this Chat. */
         getContact: () => Promise<Contact>,
         /** Marks this Chat as unread */
@@ -1478,8 +1701,103 @@ declare namespace WAWebJS {
         getLabels: () => Promise<Label[]>,
         /** Add or remove labels to this Chat */
         changeLabels: (labelIds: Array<string | number>) => Promise<void>
+        /** Gets instances of all pinned messages in a chat */
+        getPinnedMessages: () => Promise<[Message]|[]>
         /** Sync history conversation of the Chat */
         syncHistory: () => Promise<boolean>
+    }
+
+    export interface Channel {
+        /** ID that represents the channel */
+        id: {
+            server: string;
+            user: string;
+            _serialized: string;
+        };
+        /** Title of the channel */
+        name: string;
+        /** The channel description */
+        description: string;
+        /** Indicates if it is a Channel */
+        isChannel: boolean;
+        /** Indicates if it is a Group */
+        isGroup: boolean;
+        /** Indicates if the channel is readonly */
+        isReadOnly: boolean;
+        /** Amount of messages unread */
+        unreadCount: number;
+        /** Unix timestamp for when the last activity occurred */
+        timestamp: number;
+        /** Indicates if the channel is muted or not */
+        isMuted: boolean;
+        /** Unix timestamp for when the mute expires */
+        muteExpiration: number;
+        /** Last message in the channel */
+        lastMessage: Message | undefined;
+
+        /** Gets the subscribers of the channel (only those who are in your contact list) */
+        getSubscribers(limit?: number): Promise<{contact: Contact, role: string}[]>;
+        /** Updates the channel subject */
+        setSubject(newSubject: string): Promise<boolean>;
+        /** Updates the channel description */
+        setDescription(newDescription: string): Promise<boolean>;
+        /** Updates the channel profile picture */
+        setProfilePicture(newProfilePicture: MessageMedia): Promise<boolean>;
+        /**
+         * Updates available reactions to use in the channel
+         * 
+         * Valid values for passing to the method are:
+         * 0 for NONE reactions to be avaliable
+         * 1 for BASIC reactions to be available: 👍, ❤️, 😂, 😮, 😢, 🙏
+         * 2 for ALL reactions to be available
+         */
+        setReactionSetting(reactionCode: number): Promise<boolean>;
+        /** Mutes the channel */
+        mute(): Promise<boolean>;
+        /** Unmutes the channel */
+        unmute(): Promise<boolean>;
+        /** Sends a message to this channel */
+        sendMessage(content: string|MessageMedia, options?: MessageSendChannelOptions): Promise<Message>;
+        /** Sets the channel as seen */
+        sendSeen(): Promise<boolean>;
+        /** Sends a channel admin invitation to a user, allowing them to become an admin of the channel */
+        sendChannelAdminInvite(chatId: string, options?: { comment?: string }): Promise<boolean>;
+        /** Accepts a channel admin invitation and promotes the current user to a channel admin */
+        acceptChannelAdminInvite(): Promise<boolean>;
+        /** Revokes a channel admin invitation sent to a user by a channel owner */
+        revokeChannelAdminInvite(userId: string): Promise<boolean>;
+        /** Demotes a channel admin to a regular subscriber (can be used also for self-demotion) */
+        demoteChannelAdmin(userId: string): Promise<boolean>;
+        /** Loads channel messages, sorted from earliest to latest */
+        fetchMessages: (searchOptions: MessageSearchOptions) => Promise<Message[]>;
+        /**
+         * Transfers a channel ownership to another user.
+         * Note: the user you are transferring the channel ownership to must be a channel admin.
+         */
+        transferChannelOwnership(newOwnerId: string, options?: TransferChannelOwnershipOptions): Promise<boolean>;
+        /** Deletes the channel you created */
+        deleteChannel(): Promise<boolean>;
+    }
+
+    /** Options for transferring a channel ownership to another user */
+    export interface TransferChannelOwnershipOptions {
+        /**
+         * If true, after the channel ownership is being transferred to another user,
+         * the current user will be dismissed as a channel admin and will become to a channel subscriber.
+         */
+        shouldDismissSelfAsAdmin?: boolean
+    }
+
+    /** Options for sending a message */
+    export interface MessageSendChannelOptions {
+        /** Image or videos caption */
+        caption?: string
+        /** User IDs of user that will be mentioned in the message */
+        mentions?: string[]
+        /** Image or video to be sent */
+        media?: MessageMedia
+        /** Extra options */
+        extra?: any
     }
 
     export interface MessageSearchOptions {

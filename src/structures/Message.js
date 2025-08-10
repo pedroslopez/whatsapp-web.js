@@ -7,6 +7,7 @@ const Order = require('./Order');
 const Payment = require('./Payment');
 const Reaction = require('./Reaction');
 const Contact = require('./Contact');
+const ScheduledEvent = require('./ScheduledEvent'); // eslint-disable-line no-unused-vars
 const { MessageTypes } = require('../util/Constants');
 
 /**
@@ -45,13 +46,13 @@ class Message extends Base {
          * Indicates if the message has media available for download
          * @type {boolean}
          */
-        this.hasMedia = Boolean(data.mediaKey && data.directPath);
+        this.hasMedia = Boolean(data.directPath);
 
         /**
          * Message content
          * @type {string}
          */
-        this.body = this.hasMedia ? data.caption || '' : data.body || data.pollName || '';
+        this.body = this.hasMedia ? data.caption || '' : data.body || data.pollName || data.eventName || '';
 
         /**
          * Message type
@@ -187,25 +188,15 @@ class Message extends Base {
         } : undefined;
 
         /**
-         * @typedef {Object} Mention
-         * @property {string} server
-         * @property {string} user
-         * @property {string} _serialized
-         */
-
-        /**
          * Indicates the mentions in the message body.
-         * @type {Mention[]}
+         * @type {string[]}
          */
         this.mentionedIds = data.mentionedJidList || [];
 
         /**
          * @typedef {Object} GroupMention
          * @property {string} groupSubject The name  of the group
-         * @property {Object} groupJid The group ID
-         * @property {string} groupJid.server
-         * @property {string} groupJid.user
-         * @property {string} groupJid._serialized
+         * @property {string} groupJid The group ID
          */
 
         /**
@@ -295,7 +286,7 @@ class Message extends Base {
             this.allowMultipleAnswers = Boolean(!data.pollSelectableOptionsCount);
             this.pollInvalidated = data.pollInvalidated;
             this.isSentCagPollCreation = data.isSentCagPollCreation;
-            this.messageSecret = Object.keys(data.messageSecret).map((key) =>  data.messageSecret[key]);
+            this.messageSecret = data.messageSecret ? Object.keys(data.messageSecret).map((key) => data.messageSecret[key]) : [];
         }
 
         return super._patch(data);
@@ -498,23 +489,26 @@ class Message extends Base {
     /**
      * Deletes a message from the chat
      * @param {?boolean} everyone If true and the message is sent by the current user or the user is an admin, will delete it for everyone in the chat.
+     * @param {?boolean} [clearMedia = true] If true, any associated media will also be deleted from a device.
      */
-    async delete(everyone) {
-        await this.client.pupPage.evaluate(async (msgId, everyone) => {
+    async delete(everyone, clearMedia = true) {
+        await this.client.pupPage.evaluate(async (msgId, everyone, clearMedia) => {
             const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
-            let chat = await window.Store.Chat.find(msg.id.remote);
+            const chat = window.Store.Chat.get(msg.id.remote) || (await window.Store.Chat.find(msg.id.remote));
             
-            const canRevoke = window.Store.MsgActionChecks.canSenderRevokeMsg(msg) || window.Store.MsgActionChecks.canAdminRevokeMsg(msg);
+            const canRevoke =
+                window.Store.MsgActionChecks.canSenderRevokeMsg(msg) || window.Store.MsgActionChecks.canAdminRevokeMsg(msg);
+
             if (everyone && canRevoke) {
-                if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.0')) {
-                    return window.Store.Cmd.sendRevokeMsgs(chat, { list: [msg], type: 'message' }, { clearMedia: true });
-                } else {
-                    return window.Store.Cmd.sendRevokeMsgs(chat, [msg], { clearMedia: true, type: msg.id.fromMe ? 'Sender' : 'Admin' });
-                }
+                return window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.0')
+                    ? window.Store.Cmd.sendRevokeMsgs(chat, { list: [msg], type: 'message' }, { clearMedia: clearMedia })
+                    : window.Store.Cmd.sendRevokeMsgs(chat, [msg], { clearMedia: true, type: msg.id.fromMe ? 'Sender' : 'Admin' });
             }
 
-            return window.Store.Cmd.sendDeleteMsgs(chat, [msg], true);
-        }, this.id._serialized, everyone);
+            return window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.0')
+                ? window.Store.Cmd.sendDeleteMsgs(chat, { list: [msg], type: 'message' }, clearMedia)
+                : window.Store.Cmd.sendDeleteMsgs(chat, [msg], clearMedia);
+        }, this.id._serialized, everyone, clearMedia);
     }
 
     /**
@@ -705,6 +699,40 @@ class Message extends Base {
             return new Message(this.client, messageEdit);
         }
         return null;
+    }
+
+    /**
+     * Edits the current ScheduledEvent message.
+     * Once the scheduled event is canceled, it can not be edited.
+     * @param {ScheduledEvent} editedEventObject
+     * @returns {Promise<?Message>}
+     */
+    async editScheduledEvent(editedEventObject) {
+        if (!this.fromMe) {
+            return null;
+        }
+
+        const edittedEventMsg = await this.client.pupPage.evaluate(async (msgId, editedEventObject) => {
+            const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
+            if (!msg) return null;
+
+            const { name, startTimeTs, eventSendOptions } = editedEventObject;
+            const eventOptions = {
+                name: name,
+                description: eventSendOptions.description,
+                startTime: startTimeTs,
+                endTime: eventSendOptions.endTimeTs,
+                location: eventSendOptions.location,
+                callType: eventSendOptions.callType,
+                isEventCanceled: eventSendOptions.isEventCanceled,
+            };
+
+            await window.Store.ScheduledEventMsgUtils.sendEventEditMessage(eventOptions, msg);
+            const editedMsg = window.Store.Msg.get(msg.id._serialized);
+            return editedMsg?.serialize();
+        }, this.id._serialized, editedEventObject);
+
+        return edittedEventMsg && new Message(this.client, edittedEventMsg);
     }
 }
 
