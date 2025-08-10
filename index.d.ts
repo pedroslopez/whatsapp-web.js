@@ -1815,7 +1815,7 @@ declare namespace WAWebJS {
 
     export interface MessageSearchByTypeOptions extends MessageSearchOptions {
         /**
-         * The message type to return, if undefined then returns the all the messages. 
+         * The message type to return, if undefined then returns an empty array. 
          */
         messageType?: MessageTypes
         
