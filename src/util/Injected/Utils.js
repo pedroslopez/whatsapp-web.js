@@ -326,7 +326,10 @@ exports.LoadUtils = () => {
             return msg;
         }
 
-        await Promise.all(window.Store.SendMessage.addAndSendMsgToChat(chat, message));
+        const [msgPromise, sendMsgResultPromise] = window.Store.SendMessage.addAndSendMsgToChat(chat, message);
+        await msgPromise;
+
+        if (options.waitUntilMsgSent) await sendMsgResultPromise;
 
         return window.Store.Msg.get(newMsgKey._serialized);
     };
