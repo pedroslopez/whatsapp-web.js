@@ -298,10 +298,19 @@ class Chat extends Base {
 
     /**
      * Gets instances of all stared messages in a chat
+     * @param {Object} searchOptions Options for searching. Includes limit and fromMe.
+     * @param {Number} [searchOptions.limit] The amount of messages to return. If no limit is specified, the available messages will be returned. Note that the actual number of returned messages may be smaller if there aren't enough messages in the conversation. Set this to Infinity to load all messages.
+     * @param {Boolean} [searchOptions.fromMe] Return only messages from the bot number or vise versa. To get all messages, leave the option undefined.
      * @returns {Promise<[Message]|[]>} 
      */
-    async getStaredMessages() {
-        const messages = await this.fetchMessages({fromMe: true});
+    async getStaredMessages(searchOptions) {
+        let messages
+
+        if (searchOptions == undefined) {
+            messages = await this.fetchMessages();
+        } else {
+            messages = await this.fetchMessages({limit: searchOptions.limit, fromMe: searchOptions.fromMe});
+        }
 
         if (messages.length == 0) {
             return [];
@@ -320,25 +329,25 @@ class Chat extends Base {
 
     /**
      * Fetches messages by their type in a chat
-     * @param {Object} searchOptions Options for searching. Includes limit, fromMe and messageType.
+     * @param {Object} searchOptions Options for searching. Includes limit, fromMe and messageType. If the searchOptions is undefined then it returns empty array.
      * @param {Number} [searchOptions.limit] The amount of messages to return. If no limit is specified, the available messages will be returned. Note that the actual number of returned messages may be smaller if there aren't enough messages in the conversation. Set this to Infinity to load all messages.
      * @param {Boolean} [searchOptions.fromMe] Return only messages from the bot number or vise versa. To get all messages, leave the option undefined.
-     * @param {MessageTypes} [searchOptions.messageType] Returns only the messages of a certain type. If undefined returns all messages fetched.
+     * @param {MessageTypes} [searchOptions.messageType] The type of the message to be returned. If undefined returns empty array.
      * @returns {Promise<[Message]|[]>}
      */
     async getMessagesByType(searchOptions) {
-        const messages = await this.fetchMessages({limit: searchOptions.limit , messageType: searchOptions.messageType});
-        
-        if (messages.length == 0 || searchOptions.messageType == undefined) {
+        if (searchOptions == undefined) return [];
+        if (searchOptions.messageType == undefined) return [];
+
+        let messages = await this.fetchMessages({limit: searchOptions.limit, fromMe: searchOptions.fromMe});
+
+        if (messages.length == 0) {
             return messages;
         }
 
         let subArray = new Array();
 
         for (let message of messages) {
-            if (message.type == undefined) {
-                continue;
-            }
             if (message.type == searchOptions.messageType) {
                 subArray.push(message);
             }   

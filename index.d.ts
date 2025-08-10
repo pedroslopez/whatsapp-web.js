@@ -1696,7 +1696,7 @@ declare namespace WAWebJS {
         /** Gets instances of all pinned messages in a chat */
         getPinnedMessages: () => Promise<[Message]|[]>
         /** Gets instances of all stared messages in a chat*/
-        getStaredMessages: () => Promise<[Message]|[]>
+        getStaredMessages: (searchOptions: MessageSearchOptions) => Promise<[Message]|[]>
         /** Gets instances of all messages in a chat by it's type*/
         getMessagesByType: (searchOptions: MessageSearchByTypeOptions) => Promise<[Message]|[]>
         /** Sync history conversation of the Chat */
@@ -1774,7 +1774,7 @@ declare namespace WAWebJS {
         /** Deletes the channel you created */
         deleteChannel(): Promise<boolean>;
         /** Gets instances of all stared messages in a channel*/
-        getStaredMessages: () => Promise<[Message]|[]>;
+        getStaredMessages: (searchOptions: MessageSearchOptions) => Promise<[Message]|[]>;
         /** Gets instances of all messages in a channel by it's type*/
         getMessagesByType: (searchOptions: MessageSearchByTypeOptions) => Promise<[Message]|[]>;
     }
