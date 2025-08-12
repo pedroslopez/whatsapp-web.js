@@ -326,10 +326,11 @@ exports.LoadUtils = () => {
             return msg;
         }
 
-        await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
-        await window.Store.HistorySync.sendPeerDataOperationRequest(3, {
-            chatId: chat.id
-        });
+        const [msgPromise, sendMsgResultPromise] = window.Store.SendMessage.addAndSendMsgToChat(chat, message);
+        await msgPromise;
+
+        if (options.waitUntilMsgSent) await sendMsgResultPromise;
+
         return window.Store.Msg.get(newMsgKey._serialized);
     };
 	
