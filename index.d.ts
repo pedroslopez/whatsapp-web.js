@@ -287,6 +287,14 @@ declare namespace WAWebJS {
          */
         transferChannelOwnership(channelId: string, newOwnerId: string, options?: TransferChannelOwnershipOptions): Promise<boolean>;
 
+        /**
+         * Post stories for everyone to see
+         * @param {string|MessageMedia} content
+         * @param {MessageSendOptions} [options] - Options used when sending the message
+         * @returns {Promise<object>} Message that was just sent
+         */
+        sendStatus: (content: string | MessageMedia, options?: MessageSendOptions) => Promise<Message>;
+
         /** Generic event */
         on(event: string, listener: (...args: any) => void): this
 
