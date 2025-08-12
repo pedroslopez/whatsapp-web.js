@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bot do WhatsApp</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3f3f3;
+      text-align: center;
+      padding: 40px;
+    }
+    h1 {
+      color: #075e54;
+    }
+    .btn {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 15px 25px;
+      background-color: #25D366;
+      color: white;
+      text-decoration: none;
+      font-size: 18px;
+      border-radius: 8px;
+    }
+    .comandos {
+      margin-top: 30px;
+      text-align: left;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <h1>🤖 Bot do WhatsApp</h1>
+  <p>Este bot responde comandos simples via WhatsApp.</p>
+
+  <a class="btn" href="https://wa.me/SEUNUMERO?text=Oi%20bot!" target="_blank">
+    Iniciar conversa no WhatsApp
+  </a>
+
+  <div class="comandos">
+    <h3>📋 Comandos disponíveis:</h3>
+    <ul>
+      <li><b>!ping</b> – responde "pong"</li>
+      <li><b>!hora</b> – mostra a hora atual</li>
+      <li><b>!oi</b> – saudação</li>
+      <li><b>!menu</b> – mostra todos os comandos</li>
+    </ul>
+  </div>
+</body>
+</html>
