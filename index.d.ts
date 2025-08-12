@@ -1382,6 +1382,11 @@ declare namespace WAWebJS {
         /** Should the bot send a quoted message without the quoted message if it fails to get the quote?
          * @default true (enabled) */
         ignoreQuoteErrors?: boolean
+        /**
+         * Should the bot wait for the message send result?
+         * @default false
+         */
+        waitUntilMsgSent?: boolean
     }
 
     /** Options for editing a message */
