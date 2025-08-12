@@ -777,7 +777,25 @@ class Client extends EventEmitter {
                 }).bind(module);
             }
         });
-    }    
+
+        /**
+         * Emitted when the client has initialized and is ready to receive messages.
+         * @event Client#ready
+         */
+        this.emit(Events.READY);
+        this.authStrategy.afterAuthReady();
+
+        // Disconnect when navigating away when in PAIRING state (detect logout)
+        this.pupPage.on('framenavigated', async () => {
+            const appState = await this.getState();
+            if(!appState || appState === WAState.PAIRING) {
+                await this.authStrategy.disconnect();
+                this.emit(Events.DISCONNECTED, 'NAVIGATION');
+                await this.destroy();
+                await this.authStrategy.logout();
+            }
+        });
+    }
 
     async initWebVersionCache() {
         const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
@@ -826,15 +844,11 @@ class Client extends EventEmitter {
                 return window.Store.AppState.logout();
             }
         });
-        await this.pupBrowser.close();
-        
-        let maxDelay = 0;
-        while (this.pupBrowser.isConnected() && (maxDelay < 10)) { // waits a maximum of 1 second before calling the AuthStrategy
-            await new Promise(resolve => setTimeout(resolve, 100));
-            maxDelay++; 
-        }
-        
-        await this.authStrategy.logout();
+
+        this.pupBrowser.on('disconnected', async () => {
+            await this.pupBrowser.close();
+            await this.authStrategy.logout();
+        });
     }
 
     /**
