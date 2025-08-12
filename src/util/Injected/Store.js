@@ -88,7 +88,6 @@ exports.ExposeStore = () => {
     window.Store.WidToJid = window.require('WAWebWidToJid');
     window.Store.JidToWid = window.require('WAWebJidToWid');
     window.Store.getMsgInfo = window.require('WAWebApiMessageInfoStore').queryMsgInfo;
-    window.Store.pinUnpinMsg = window.require('WAWebSendPinMessageAction').sendPinInChatMsg;
     window.Store.QueryExist = window.require('WAWebQueryExistsJob').queryWidExists;
     window.Store.ReplyUtils = window.require('WAWebMsgReply');
     window.Store.BotSecret = window.require('WAWebBotMessageSecret');
@@ -97,7 +96,11 @@ exports.ExposeStore = () => {
     window.Store.DeviceList = window.require('WAWebApiDeviceList');
     window.Store.HistorySync = window.require('WAWebSendNonMessageDataRequest');
     window.Store.AddonReactionTable = window.require('WAWebAddonReactionTableMode').reactionTableMode;
+    window.Store.PinnedMsgUtils = window.require('WAWebPinInChatSchema');
     window.Store.ChatGetters = window.require('WAWebChatGetters');
+    window.Store.PinnedMsgUtils = window.require('WAWebSendPinMessageAction');
+    window.Store.UploadUtils = window.require('WAWebUploadManager');
+    window.Store.WAWebStreamModel = window.require('WAWebStreamModel');
     
     window.Store.Settings = {
         ...window.require('WAWebUserPrefsGeneral'),
@@ -109,7 +112,12 @@ exports.ExposeStore = () => {
         ...window.require('WAPhoneFindCC')
     };
     window.Store.ForwardUtils = {
-        ...window.require('WAWebForwardMessagesToChat')
+        ...window.require('WAWebChatForwardMessage')
+    };
+    window.Store.ScheduledEventMsgUtils = {
+        ...window.require('WAWebGenerateEventCallLink'),
+        ...window.require('WAWebSendEventEditMsgAction'),
+        ...window.require('WAWebSendEventResponseMsgAction')
     };
     window.Store.VCard = {
         ...window.require('WAWebFrontendVcardUtils'),

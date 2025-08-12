@@ -6,17 +6,13 @@ exports.LoadUtils = () => {
     window.WWebJS.forwardMessage = async (chatId, msgId) => {
         const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
         const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
-
-        if (window.compareWwebVersions(window.Debug.VERSION, '>', '2.3000.0')) {
-            return window.Store.ForwardUtils.forwardMessagesToChats([msg], [chat], true);
-        } else {
-            return chat.forwardMessages([msg]);
-        }
+        return window.Store.ForwardUtils.forwardMessages(chat, [msg], true, true);
     };
 
     window.WWebJS.sendSeen = async (chatId) => {
         const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
         if (chat) {
+            window.Store.WAWebStreamModel.Stream.markAvailable();
             await window.Store.SendSeen.sendSeen(chat);
             return true;
         }
@@ -28,8 +24,9 @@ exports.LoadUtils = () => {
 
         let mediaOptions = {};
         if (options.media) {
-            mediaOptions = await window.WWebJS.processMediaData(
-                options.media, {
+            mediaOptions =  options.sendMediaAsSticker && !isChannel
+                ? await window.WWebJS.processStickerData(options.media)
+                : await window.WWebJS.processMediaData(options.media, {
                     forceSticker: options.sendMediaAsSticker,
                     forceGif: options.sendVideoAsGif,
                     forceVoice: options.sendAudioAsVoice,
@@ -117,6 +114,34 @@ exports.LoadUtils = () => {
                         : window.crypto.getRandomValues(new Uint8Array(32))
             };
             delete options.poll;
+        }
+
+        let eventOptions = {};
+        if (options.event) {
+            const { name, startTimeTs, eventSendOptions } = options.event;
+            const { messageSecret } = eventSendOptions;
+            eventOptions = {
+                type: 'event_creation',
+                eventName: name,
+                eventDescription: eventSendOptions.description,
+                eventStartTime: startTimeTs,
+                eventEndTime: eventSendOptions.endTimeTs,
+                eventLocation: eventSendOptions.location && {
+                    degreesLatitude: 0,
+                    degreesLongitude: 0,
+                    name: eventSendOptions.location
+                },
+                eventJoinLink: await window.Store.ScheduledEventMsgUtils.createEventCallLink(
+                    startTimeTs,
+                    eventSendOptions.callType
+                ),
+                isEventCanceled: eventSendOptions.isEventCanceled,
+                messageSecret:
+                    Array.isArray(messageSecret) && messageSecret.length === 32
+                        ? new Uint8Array(messageSecret)
+                        : window.crypto.getRandomValues(new Uint8Array(32)),
+            };
+            delete options.event;
         }
 
         let vcardOptions = {};
@@ -222,7 +247,7 @@ exports.LoadUtils = () => {
         let from = chat.id.isLid() ? lidUser : meUser;
         let participant;
 
-        if (chat.isGroup) {
+        if (typeof chat.id?.isGroup === 'function' && chat.id.isGroup()) {
             from = chat.groupMetadata && chat.groupMetadata.isLidAddressingMode ? lidUser : meUser;
             participant = window.Store.WidFactory.toUserWid(from);
         }
@@ -258,6 +283,7 @@ exports.LoadUtils = () => {
             ...quotedMsgOptions,
             ...locationOptions,
             ..._pollOptions,
+            ...eventOptions,
             ...vcardOptions,
             ...buttonOptions,
             ...listOptions,
@@ -300,7 +326,11 @@ exports.LoadUtils = () => {
             return msg;
         }
 
-        await window.Store.SendMessage.addAndSendMsgToChat(chat, message);
+        const [msgPromise, sendMsgResultPromise] = window.Store.SendMessage.addAndSendMsgToChat(chat, message);
+        await msgPromise;
+
+        if (options.waitUntilMsgSent) await sendMsgResultPromise;
+
         return window.Store.Msg.get(newMsgKey._serialized);
     };
 	
@@ -360,6 +390,34 @@ exports.LoadUtils = () => {
             mimetype: 'image/webp',
             data
         };
+    };
+
+    window.WWebJS.processStickerData = async (mediaInfo) => {
+        if (mediaInfo.mimetype !== 'image/webp') throw new Error('Invalid media type');
+
+        const file = window.WWebJS.mediaInfoToFile(mediaInfo);
+        let filehash = await window.WWebJS.getFileHash(file);
+        let mediaKey = await window.WWebJS.generateHash(32);
+
+        const controller = new AbortController();
+        const uploadedInfo = await window.Store.UploadUtils.encryptAndUpload({
+            blob: file,
+            type: 'sticker',
+            signal: controller.signal,
+            mediaKey
+        });
+
+        const stickerInfo = {
+            ...uploadedInfo,
+            clientUrl: uploadedInfo.url,
+            deprecatedMms3Url: uploadedInfo.url,
+            uploadhash: uploadedInfo.encFilehash,
+            size: file.size,
+            type: 'sticker',
+            filehash
+        };
+
+        return stickerInfo;
     };
 
     window.WWebJS.processMediaData = async (mediaInfo, { forceSticker, forceGif, forceVoice, forceDocument, forceMediaHd, sendToChannel }) => {
@@ -838,8 +896,8 @@ exports.LoadUtils = () => {
             return dataUrl;
 
         return Object.assign(media, {
-            mimetype: options.mimeType,
-            data: dataUrl.replace(`data:${options.mimeType};base64,`, '')
+            mimetype: options.mimetype,
+            data: dataUrl.replace(`data:${options.mimetype};base64,`, '')
         });
     };
 
@@ -908,30 +966,14 @@ exports.LoadUtils = () => {
         return undefined;
     };
 
-    window.WWebJS.getAddParticipantsRpcResult = async (groupMetadata, groupWid, participantWid) => {
-        const participantLidArgs = groupMetadata?.isLidAddressingMode
-            ? {
-                phoneNumber: participantWid,
-                lid: window.Store.LidUtils.getCurrentLid(participantWid)
-            }
-            : { phoneNumber: participantWid };
-
+    window.WWebJS.getAddParticipantsRpcResult = async (groupWid, participantWid) => {
         const iqTo = window.Store.WidToJid.widToGroupJid(groupWid);
 
-        const participantArgs =
-            participantLidArgs.lid
-                ? [{
-                    participantJid: window.Store.WidToJid.widToUserJid(participantLidArgs.lid),
-                    phoneNumberMixinArgs: {
-                        anyPhoneNumber: window.Store.WidToJid.widToUserJid(participantLidArgs.phoneNumber)
-                    }
-                }]
-                : [{
-                    participantJid: window.Store.WidToJid.widToUserJid(participantLidArgs.phoneNumber)
-                }];
+        const participantArgs = [{
+            participantJid: window.Store.WidToJid.widToUserJid(participantWid)
+        }];
 
         let rpcResult, resultArgs;
-        const isOldImpl = window.compareWwebVersions(window.Debug.VERSION, '<=', '2.2335.9');
         const data = {
             name: undefined,
             code: undefined,
@@ -941,12 +983,10 @@ exports.LoadUtils = () => {
 
         try {
             rpcResult = await window.Store.GroupParticipants.sendAddParticipantsRPC({ participantArgs, iqTo });
-            resultArgs = isOldImpl
-                ? rpcResult.value.addParticipant[0].addParticipantsParticipantMixins
-                : rpcResult.value.addParticipant[0]
-                    .addParticipantsParticipantAddedOrNonRegisteredWaUserParticipantErrorLidResponseMixinGroup
-                    .value
-                    .addParticipantsParticipantMixins;
+            resultArgs = rpcResult.value.addParticipant[0]
+                .addParticipantsParticipantAddedOrNonRegisteredWaUserParticipantErrorLidResponseMixinGroup
+                .value
+                .addParticipantsParticipantMixins;
         } catch (err) {
             data.code = 400;
             return data;
@@ -1090,7 +1130,16 @@ exports.LoadUtils = () => {
     window.WWebJS.pinUnpinMsgAction = async (msgId, action, duration) => {
         const message = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
         if (!message) return false;
-        const response = await window.Store.pinUnpinMsg(message, action, duration);
+
+        if (typeof duration !== 'number') return false;
+        
+        const originalFunction = window.require('WAWebPinMsgConstants').getPinExpiryDuration;
+        window.require('WAWebPinMsgConstants').getPinExpiryDuration = () => duration;
+        
+        const response = await window.Store.PinnedMsgUtils.sendPinInChatMsg(message, action, duration);
+
+        window.require('WAWebPinMsgConstants').getPinExpiryDuration = originalFunction;
+
         return response.messageSendResult === 'OK';
     };
     
