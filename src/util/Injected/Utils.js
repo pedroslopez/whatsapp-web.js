@@ -548,7 +548,7 @@ exports.LoadUtils = () => {
                 chat = null;
             }
         } else {
-            chat = window.Store.Chat.get(chatWid) || (await window.Store.Chat.find(chatWid));
+            chat = (await window.Store.FindOrCreateChat.findOrCreateLatestChat(chatWid))?.chat || window.Store.Chat.get(chatWid) || (await window.Store.Chat.find(chatWid));
         }
 
         return getAsModel && chat
