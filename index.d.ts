@@ -874,6 +874,8 @@ declare namespace WAWebJS {
         INVITE = 'invite',
         REMOVE = 'remove',
         LEAVE = 'leave',
+        PROMOTE = 'promote',
+        DEMOTE = 'demote',
         SUBJECT = 'subject',
         DESCRIPTION = 'description',
         PICTURE = 'picture',
