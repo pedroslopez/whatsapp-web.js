@@ -24,7 +24,7 @@ exports.LoadUtils = () => {
 
         let mediaOptions = {};
         if (options.media) {
-            mediaOptions =  options.sendMediaAsSticker && !isChannel
+            mediaOptions = options.sendMediaAsSticker && !isChannel
                 ? await window.WWebJS.processStickerData(options.media)
                 : await window.WWebJS.processMediaData(options.media, {
                     forceSticker: options.sendMediaAsSticker,
@@ -59,7 +59,7 @@ exports.LoadUtils = () => {
                     throw new Error('Could not get the quoted message.');
                 }
             }
-            
+
             delete options.ignoreQuoteErrors;
             delete options.quotedMessageId;
         }
@@ -116,6 +116,34 @@ exports.LoadUtils = () => {
             delete options.poll;
         }
 
+        let eventOptions = {};
+        if (options.event) {
+            const { name, startTimeTs, eventSendOptions } = options.event;
+            const { messageSecret } = eventSendOptions;
+            eventOptions = {
+                type: 'event_creation',
+                eventName: name,
+                eventDescription: eventSendOptions.description,
+                eventStartTime: startTimeTs,
+                eventEndTime: eventSendOptions.endTimeTs,
+                eventLocation: eventSendOptions.location && {
+                    degreesLatitude: 0,
+                    degreesLongitude: 0,
+                    name: eventSendOptions.location
+                },
+                eventJoinLink: await window.Store.ScheduledEventMsgUtils.createEventCallLink(
+                    startTimeTs,
+                    eventSendOptions.callType
+                ),
+                isEventCanceled: eventSendOptions.isEventCanceled,
+                messageSecret:
+                    Array.isArray(messageSecret) && messageSecret.length === 32
+                        ? new Uint8Array(messageSecret)
+                        : window.crypto.getRandomValues(new Uint8Array(32)),
+            };
+            delete options.event;
+        }
+
         let vcardOptions = {};
         if (options.contactCard) {
             let contact = window.Store.Contact.get(options.contactCard);
@@ -159,7 +187,7 @@ exports.LoadUtils = () => {
                     preview = preview.data;
                     preview.preview = true;
                     preview.subtype = 'url';
-                    options = {...options, ...preview};
+                    options = { ...options, ...preview };
                 }
             }
         }
@@ -219,7 +247,7 @@ exports.LoadUtils = () => {
         let from = chat.id.isLid() ? lidUser : meUser;
         let participant;
 
-        if (chat.isGroup) {
+        if (typeof chat.id?.isGroup === 'function' && chat.id.isGroup()) {
             from = chat.groupMetadata && chat.groupMetadata.isLidAddressingMode ? lidUser : meUser;
             participant = window.Store.WidFactory.toUserWid(from);
         }
@@ -255,13 +283,14 @@ exports.LoadUtils = () => {
             ...quotedMsgOptions,
             ...locationOptions,
             ..._pollOptions,
+            ...eventOptions,
             ...vcardOptions,
             ...buttonOptions,
             ...listOptions,
             ...botOptions,
             ...extraOptions
         };
-        
+
         // Bot's won't reply if canonicalUrl is set (linking)
         if (botOptions) {
             delete message.canonicalUrl;
@@ -297,14 +326,19 @@ exports.LoadUtils = () => {
             return msg;
         }
 
-        await Promise.all(window.Store.SendMessage.addAndSendMsgToChat(chat, message));
+        const [msgPromise, sendMsgResultPromise] = window.Store.SendMessage.addAndSendMsgToChat(chat, message);
+        await msgPromise;
+
+        if (options.waitUntilMsgSent)
+            await sendMsgResultPromise;
+
         return window.Store.Msg.get(newMsgKey._serialized);
     };
-	
+
     window.WWebJS.editMessage = async (msg, content, options = {}) => {
         const extraOptions = options.extraOptions || {};
         delete options.extraOptions;
-        
+
         if (options.mentionedJidList) {
             options.mentionedJidList = await Promise.all(
                 options.mentionedJidList.map(async (id) => {
@@ -396,11 +430,11 @@ exports.LoadUtils = () => {
             isPtt: forceVoice,
             asDocument: forceDocument
         };
-      
+
         if (forceMediaHd && file.type.indexOf('image/') === 0) {
             mediaParams.maxDimension = 2560;
         }
-      
+
         const mediaPrep = window.Store.MediaPrep.prepRawMedia(opaqueData, mediaParams);
         const mediaData = await mediaPrep.waitForPrep();
         const mediaObject = window.Store.MediaObject.getOrCreateMediaObject(mediaData.filehash);
@@ -579,7 +613,7 @@ exports.LoadUtils = () => {
         if (chat.groupMetadata) {
             model.isGroup = true;
             const chatWid = window.Store.WidFactory.createWid(chat.id._serialized);
-            await window.Store.GroupMetadata.update(chatWid);            
+            await window.Store.GroupMetadata.update(chatWid);
             model.groupMetadata = chat.groupMetadata.serialize();
 
             model.groupMetadata.participants = chat.groupMetadata.participants._models.map(item => {
@@ -641,7 +675,7 @@ exports.LoadUtils = () => {
 
     window.WWebJS.getContact = async contactId => {
         const wid = window.Store.WidFactory.createWid(contactId);
-        let contact = await window.Store.Contact.find(wid);       
+        let contact = await window.Store.Contact.find(wid);
         const bizProfile = await window.Store.BusinessProfile.fetchBizProfile(wid);
         bizProfile.profileOptions && (contact.businessProfile = bizProfile);
         const contactModel = window.WWebJS.getContactModel(contact);
@@ -766,17 +800,17 @@ exports.LoadUtils = () => {
         chatId = window.Store.WidFactory.createWid(chatId);
 
         switch (state) {
-        case 'typing':
-            await window.Store.ChatState.sendChatStateComposing(chatId);
-            break;
-        case 'recording':
-            await window.Store.ChatState.sendChatStateRecording(chatId);
-            break;
-        case 'stop':
-            await window.Store.ChatState.sendChatStatePaused(chatId);
-            break;
-        default:
-            throw 'Invalid chatstate';
+            case 'typing':
+                await window.Store.ChatState.sendChatStateComposing(chatId);
+                break;
+            case 'recording':
+                await window.Store.ChatState.sendChatStateRecording(chatId);
+                break;
+            case 'stop':
+                await window.Store.ChatState.sendChatStatePaused(chatId);
+                break;
+            default:
+                throw 'Invalid chatstate';
         }
 
         return true;
@@ -845,7 +879,7 @@ exports.LoadUtils = () => {
 
         options = Object.assign({ size: 640, mimetype: media.mimetype, quality: .75, asDataUrl: false }, options);
 
-        const img = await new Promise ((resolve, reject) => {
+        const img = await new Promise((resolve, reject) => {
             const img = new Image();
             img.onload = () => resolve(img);
             img.onerror = reject;
@@ -900,11 +934,11 @@ exports.LoadUtils = () => {
             const res = await window.Store.GroupUtils.requestDeletePicture(chatWid);
             return res ? res.status === 200 : false;
         } catch (err) {
-            if(err.name === 'ServerStatusCodeError') return false;
+            if (err.name === 'ServerStatusCodeError') return false;
             throw err;
         }
     };
-    
+
     window.WWebJS.getProfilePicThumbToBase64 = async (chatWid) => {
         const profilePicCollection = await window.Store.ProfilePicThumb.find(chatWid);
 
@@ -1014,7 +1048,7 @@ exports.LoadUtils = () => {
         }));
 
         const groupJid = window.Store.WidToJid.widToGroupJid(groupWid);
-        
+
         const _getSleepTime = (sleep) => {
             if (!Array.isArray(sleep) || (sleep.length === 2 && sleep[0] === sleep[1])) {
                 return sleep;
@@ -1103,10 +1137,19 @@ exports.LoadUtils = () => {
     window.WWebJS.pinUnpinMsgAction = async (msgId, action, duration) => {
         const message = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
         if (!message) return false;
-        const response = await window.Store.pinUnpinMsg(message, action, duration);
+
+        if (typeof duration !== 'number') return false;
+
+        const originalFunction = window.require('WAWebPinMsgConstants').getPinExpiryDuration;
+        window.require('WAWebPinMsgConstants').getPinExpiryDuration = () => duration;
+
+        const response = await window.Store.PinnedMsgUtils.sendPinInChatMsg(message, action, duration);
+
+        window.require('WAWebPinMsgConstants').getPinExpiryDuration = originalFunction;
+
         return response.messageSendResult === 'OK';
     };
-    
+
     window.WWebJS.getStatusModel = status => {
         const res = status.serialize();
         delete res._msgs;

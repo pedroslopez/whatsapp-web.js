@@ -15,7 +15,7 @@ const { LoadUtils } = require('./util/Injected/Utils');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
 const WebCacheFactory = require('./webCache/WebCacheFactory');
-const { Broadcast, Buttons, Call, ClientInfo, Contact, GroupNotification, Label, List, Location, Message, MessageMedia, Poll, PollVote, Reaction } = require('./structures');
+const { ClientInfo, Message, MessageMedia, Contact, Location, Poll, PollVote, GroupNotification, Label, Call, Buttons, List, Reaction, Broadcast, ScheduledEvent } = require('./structures');
 const NoAuth = require('./authStrategies/NoAuth');
 const {exposeFunctionIfAbsent} = require('./util/Puppeteer');
 
@@ -96,8 +96,8 @@ class Client extends EventEmitter {
      */
     async inject() {
         await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', {timeout: this.options.authTimeoutMs});
-
         await this.setDeviceName(this.options.deviceName, this.options.browserName);
+        const pairWithPhoneNumber = this.options.pairWithPhoneNumber;
         const version = await this.getWWebVersion();
         const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
 
@@ -143,41 +143,55 @@ class Client extends EventEmitter {
                 return;
             }
 
-            // Register qr events
-            let qrRetries = 0;
-            await exposeFunctionIfAbsent(this.pupPage, 'onQRChangedEvent', async (qr) => {
-                /**
-                * Emitted when a QR code is received
-                * @event Client#qr
-                * @param {string} qr QR Code
-                */
-                this.emit(Events.QR_RECEIVED, qr);
-                if (this.options.qrMaxRetries > 0) {
-                    qrRetries++;
-                    if (qrRetries > this.options.qrMaxRetries) {
-                        this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
-                        await this.destroy();
+            // Register qr/code events
+            if (pairWithPhoneNumber.phoneNumber) {
+                await exposeFunctionIfAbsent(this.pupPage, 'onCodeReceivedEvent', async (code) => {
+                    /**
+                    * Emitted when a pairing code is received
+                    * @event Client#code
+                    * @param {string} code Code
+                    * @returns {string} Code that was just received
+                    */
+                    this.emit(Events.CODE_RECEIVED, code);
+                    return code;
+                });
+                this.requestPairingCode(pairWithPhoneNumber.phoneNumber, pairWithPhoneNumber.showNotification, pairWithPhoneNumber.intervalMs);
+            } else {
+                let qrRetries = 0;
+                await exposeFunctionIfAbsent(this.pupPage, 'onQRChangedEvent', async (qr) => {
+                    /**
+                    * Emitted when a QR code is received
+                    * @event Client#qr
+                    * @param {string} qr QR Code
+                    */
+                    this.emit(Events.QR_RECEIVED, qr);
+                    if (this.options.qrMaxRetries > 0) {
+                        qrRetries++;
+                        if (qrRetries > this.options.qrMaxRetries) {
+                            this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
+                            await this.destroy();
+                        }
                     }
-                }
-            });
+                });
 
 
-            await this.pupPage.evaluate(async () => {
-                const registrationInfo = await window.AuthStore.RegistrationUtils.waSignalStore.getRegistrationInfo();
-                const noiseKeyPair = await window.AuthStore.RegistrationUtils.waNoiseInfo.get();
-                const staticKeyB64 = window.AuthStore.Base64Tools.encodeB64(noiseKeyPair.staticKeyPair.pubKey);
-                const identityKeyB64 = window.AuthStore.Base64Tools.encodeB64(registrationInfo.identityKeyPair.pubKey);
-                const advSecretKey = await window.AuthStore.RegistrationUtils.getADVSecretKey();
-                const platform =  window.AuthStore.RegistrationUtils.DEVICE_PLATFORM;
-                const getQR = (ref) => ref + ',' + staticKeyB64 + ',' + identityKeyB64 + ',' + advSecretKey + ',' + platform;
-                
-                window.onQRChangedEvent(getQR(window.AuthStore.Conn.ref)); // initial qr
-                window.AuthStore.Conn.on('change:ref', (_, ref) => { window.onQRChangedEvent(getQR(ref)); }); // future QR changes
-            });
+                await this.pupPage.evaluate(async () => {
+                    const registrationInfo = await window.AuthStore.RegistrationUtils.waSignalStore.getRegistrationInfo();
+                    const noiseKeyPair = await window.AuthStore.RegistrationUtils.waNoiseInfo.get();
+                    const staticKeyB64 = window.AuthStore.Base64Tools.encodeB64(noiseKeyPair.staticKeyPair.pubKey);
+                    const identityKeyB64 = window.AuthStore.Base64Tools.encodeB64(registrationInfo.identityKeyPair.pubKey);
+                    const advSecretKey = await window.AuthStore.RegistrationUtils.getADVSecretKey();
+                    const platform = window.AuthStore.RegistrationUtils.DEVICE_PLATFORM;
+                    const getQR = (ref) => ref + ',' + staticKeyB64 + ',' + identityKeyB64 + ',' + advSecretKey + ',' + platform;
+
+                    window.onQRChangedEvent(getQR(window.AuthStore.Conn.ref)); // initial qr
+                    window.AuthStore.Conn.on('change:ref', (_, ref) => { window.onQRChangedEvent(getQR(ref)); }); // future QR changes
+                });
+            }
         }
 
         await exposeFunctionIfAbsent(this.pupPage, 'onAuthAppStateChangedEvent', async (state) => {
-            if (state == 'UNPAIRED_IDLE') {
+            if (state == 'UNPAIRED_IDLE' && !pairWithPhoneNumber.phoneNumber) {
                 // refresh qr code
                 window.Store.Cmd.refreshQR();
             }
@@ -346,15 +360,32 @@ class Client extends EventEmitter {
     /**
      * Request authentication via pairing code instead of QR code
      * @param {string} phoneNumber - Phone number in international, symbol-free format (e.g. 12025550108 for US, 551155501234 for Brazil)
-     * @param {boolean} showNotification - Show notification to pair on phone number
+     * @param {boolean} [showNotification = true] - Show notification to pair on phone number
+     * @param {number} [intervalMs = 180000] - The interval in milliseconds on how frequent to generate pairing code (WhatsApp default to 3 minutes)
      * @returns {Promise<string>} - Returns a pairing code in format "ABCDEFGH"
      */
-    async requestPairingCode(phoneNumber, showNotification = true) {
-        return await this.pupPage.evaluate(async (phoneNumber, showNotification) => {
-            window.AuthStore.PairingCodeLinkUtils.setPairingType('ALT_DEVICE_LINKING');
-            await window.AuthStore.PairingCodeLinkUtils.initializeAltDeviceLinking();
-            return window.AuthStore.PairingCodeLinkUtils.startAltLinkingFlow(phoneNumber, showNotification);
-        }, phoneNumber, showNotification);
+    async requestPairingCode(phoneNumber, showNotification = true, intervalMs = 180000) {
+        return await this.pupPage.evaluate(async (phoneNumber, showNotification, intervalMs) => {
+            const getCode = async () => {
+                while (!window.AuthStore.PairingCodeLinkUtils) {
+                    await new Promise(resolve => setTimeout(resolve, 250));
+                }
+                window.AuthStore.PairingCodeLinkUtils.setPairingType('ALT_DEVICE_LINKING');
+                await window.AuthStore.PairingCodeLinkUtils.initializeAltDeviceLinking();
+                return window.AuthStore.PairingCodeLinkUtils.startAltLinkingFlow(phoneNumber, showNotification);
+            };
+            if (window.codeInterval) {
+                clearInterval(window.codeInterval); // remove existing interval
+            }
+            window.codeInterval = setInterval(async () => {
+                if (window.AuthStore.AppState.state != 'UNPAIRED' && window.AuthStore.AppState.state != 'UNPAIRED_IDLE') {
+                    clearInterval(window.codeInterval);
+                    return;
+                }
+                window.onCodeReceivedEvent(await getCode());
+            }, intervalMs);
+            return window.onCodeReceivedEvent(await getCode());
+        }, phoneNumber, showNotification, intervalMs);
     }
 
     /**
@@ -869,6 +900,7 @@ class Client extends EventEmitter {
      * @property {string} [stickerName=undefined] - Sets the name of the sticker, (if sendMediaAsSticker is true).
      * @property {string[]} [stickerCategories=undefined] - Sets the categories of the sticker, (if sendMediaAsSticker is true). Provide emoji char array, can be null.
      * @property {boolean} [ignoreQuoteErrors = true] - Should the bot send a quoted message without the quoted message if it fails to get the quote?
+     * @property {boolean} [waitUntilMsgSent = false] - Should the bot wait for the message send result?
      * @property {MessageMedia} [media] - Media to be sent
      * @property {any} [extra] - Extra options
      */
@@ -919,6 +951,7 @@ class Client extends EventEmitter {
             groupMentions: options.groupMentions,
             invokedBotWid: options.invokedBotWid,
             ignoreQuoteErrors: options.ignoreQuoteErrors !== false,
+            waitUntilMsgSent: options.waitUntilMsgSent || false,
             extraOptions: options.extra
         };
 
@@ -938,6 +971,9 @@ class Client extends EventEmitter {
             content = '';
         } else if (content instanceof Poll) {
             internalOptions.poll = content;
+            content = '';
+        } else if (content instanceof ScheduledEvent) {
+            internalOptions.event = content;
             content = '';
         } else if (content instanceof Contact) {
             internalOptions.contactCard = content.id._serialized;
@@ -1143,6 +1179,29 @@ class Client extends EventEmitter {
 
         if(msg) return new Message(this, msg);
         return null;
+    }
+
+    /**
+     * Gets instances of all pinned messages in a chat
+     * @param {string} chatId The chat ID
+     * @returns {Promise<[Message]|[]>}
+     */
+    async getPinnedMessages(chatId) {
+        const pinnedMsgs = await this.pupPage.evaluate(async (chatId) => {
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = window.Store.Chat.get(chatWid) ?? await window.Store.Chat.find(chatWid);
+            if (!chat) return [];
+            
+            const msgs = await window.Store.PinnedMsgUtils.getTable().equals(['chatId'], chatWid.toString());
+
+            const pinnedMsgs = msgs.map((msg) => window.Store.Msg.get(msg.parentMsgKey));
+
+            return !pinnedMsgs.length
+                ? []
+                : pinnedMsgs.map((msg) => window.WWebJS.getMessageModel(msg));
+        }, chatId);
+
+        return pinnedMsgs.map((msg) => new Message(this, msg));
     }
 
     /**
@@ -2173,6 +2232,45 @@ class Client extends EventEmitter {
             }
             return false;
         }, chatId);
+    }
+  
+    /**
+     * Generates a WhatsApp call link (video call or voice call)
+     * @param {Date} startTime The start time of the call
+     * @param {string} callType The type of a WhatsApp call link to generate, valid values are: `video` | `voice`
+     * @returns {Promise<string>} The WhatsApp call link (https://call.whatsapp.com/video/XxXxXxXxXxXxXx) or an empty string if a generation failed.
+     */
+    async createCallLink(startTime, callType) {
+        if (!['video', 'voice'].includes(callType)) {
+            throw new class CreateCallLinkError extends Error {
+                constructor(m) { super(m); }
+            }('Invalid \'callType\' parameter value is provided. Valid values are: \'voice\' | \'video\'.');
+        }
+
+        startTime = Math.floor(startTime.getTime() / 1000);
+        
+        return await this.pupPage.evaluate(async (startTimeTs, callType) => {
+            const response = await window.Store.ScheduledEventMsgUtils.createEventCallLink(startTimeTs, callType);
+            return response ?? '';
+        }, startTime, callType);
+    }
+
+    /**
+     * Sends a response to the scheduled event message, indicating whether a user is going to attend the event or not
+     * @param {number} response The response code to the scheduled event message. Valid values are: `0` for NONE response (removes a previous response) | `1` for GOING | `2` for NOT GOING | `3` for MAYBE going
+     * @param {string} eventMessageId The scheduled event message ID
+     * @returns {Promise<boolean>}
+     */
+    async sendResponseToScheduledEvent(response, eventMessageId) {
+        if (![0, 1, 2, 3].includes(response)) return false;
+
+        return await this.pupPage.evaluate(async (response, msgId) => {
+            const eventMsg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
+            if (!eventMsg) return false;
+
+            await window.Store.ScheduledEventMsgUtils.sendEventResponseMsg(response, eventMsg);
+            return true;
+        }, response, eventMessageId);
     }
   
     /**
