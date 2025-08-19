@@ -579,11 +579,16 @@ exports.LoadUtils = () => {
         if (chat.groupMetadata) {
             model.isGroup = true;
             const chatWid = window.Store.WidFactory.createWid(chat.id._serialized);
-            await window.Store.GroupMetadata.update(chatWid);
-            chat.groupMetadata.participants._models
-                .filter(x => x.id?._serialized?.endsWith('@lid'))
-                .forEach(x => x.contact?.phoneNumber && (x.id = x.contact.phoneNumber));
+            await window.Store.GroupMetadata.update(chatWid);            
             model.groupMetadata = chat.groupMetadata.serialize();
+
+            model.groupMetadata.participants = chat.groupMetadata.participants._models.map(item => {
+                const result = item.serialize();
+                result.lid = result.id;
+                result.id = item.contact?.phoneNumber || result.lid;
+                return result;
+            });
+
             model.isReadOnly = chat.groupMetadata.announce;
         }
 
@@ -636,13 +641,14 @@ exports.LoadUtils = () => {
 
     window.WWebJS.getContact = async contactId => {
         const wid = window.Store.WidFactory.createWid(contactId);
-        let contact = await window.Store.Contact.find(wid);
-        if (contact.id._serialized.endsWith('@lid')) {
-            contact.id = contact.phoneNumber;
-        }
+        let contact = await window.Store.Contact.find(wid);       
         const bizProfile = await window.Store.BusinessProfile.fetchBizProfile(wid);
         bizProfile.profileOptions && (contact.businessProfile = bizProfile);
-        return window.WWebJS.getContactModel(contact);
+        const contactModel = window.WWebJS.getContactModel(contact);
+        if (contactModel.id._serialized.endsWith('@lid')) {
+            contactModel.id = contactModel.phoneNumber;
+        }
+        return contactModel;
     };
 
     window.WWebJS.getContacts = () => {
