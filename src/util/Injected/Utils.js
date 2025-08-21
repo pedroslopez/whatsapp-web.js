@@ -549,7 +549,7 @@ exports.LoadUtils = () => {
                 chat = null;
             }
         } else {
-            chat = window.Store.Chat.get(chatWid) || (await window.Store.Chat.find(chatWid));
+            chat = window.Store.Chat.get(chatWid) || (await window.Store.FindOrCreateChat.findOrCreateLatestChat(chatWid))?.chat;
         }
 
         return getAsModel && chat
@@ -618,8 +618,10 @@ exports.LoadUtils = () => {
 
             model.groupMetadata.participants = chat.groupMetadata.participants._models.map(item => {
                 const result = item.serialize();
-                result.lid = result.id;
-                result.id = item.contact?.phoneNumber || result.lid;
+                if (result.id.server === 'lid') {
+                    result.lid = result.id;
+                    result.id = item.contact?.phoneNumber || result.lid;
+                }
                 return result;
             });
 

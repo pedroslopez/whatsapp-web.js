@@ -28,7 +28,7 @@ class GroupChat extends Chat {
     get owner() {
         return this.groupMetadata.owner;
     }
-    
+
     /**
      * Gets the date at which the group was created
      * @type {date}
@@ -128,7 +128,7 @@ class GroupChat extends Chat {
             for (let pWid of participantWids) {
                 const pId = pWid._serialized;
                 pWid = pWid.server === 'lid' ? window.Store.LidUtils.getPhoneNumber(pWid) : pWid;
-                
+
                 participantData[pId] = {
                     code: undefined,
                     message: undefined,
@@ -195,12 +195,28 @@ class GroupChat extends Chat {
     async removeParticipants(participantIds) {
         return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
             const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
-            const participants = participantIds.map(p => {
+            const participants = (await Promise.all(participantIds.map(async p => {
                 const wid = window.Store.WidFactory.createWid(p);
-                const lid = wid.server!=='lid' ? window.Store.LidUtils.getCurrentLid(wid) : wid;
-                const phone = wid.server=='lid' ? window.Store.LidUtils.getPhoneNumber(wid) : wid;
-                return chat.groupMetadata.participants.get(lid?._serialized) || chat.groupMetadata.participants.get(phone?._serialized);
-            }).filter(p => Boolean(p));
+                const isLid = wid.server === 'lid';
+
+                let lid = !isLid ? window.Store.LidUtils.getCurrentLid(wid) : wid;
+                let phone = isLid ? window.Store.LidUtils.getPhoneNumber(wid) : wid;
+
+                if (!isLid && !lid) {
+                    const queryResult = await window.Store.QueryExist(wid);
+                    if (!queryResult?.wid) return undefined;
+                    lid = window.Store.LidUtils.getCurrentLid(wid);
+                }
+
+                if (isLid && !phone) {
+                    const queryResult = await window.Store.QueryExist(wid);
+                    if (!queryResult?.wid) return undefined;
+                    phone = window.Store.LidUtils.getPhoneNumber(wid);
+                }
+
+                return chat.groupMetadata.participants.get(lid?._serialized) ||
+                    chat.groupMetadata.participants.get(phone?._serialized);
+            }))).filter(Boolean);
             await window.Store.GroupParticipants.removeParticipants(chat, participants);
             return { status: 200 };
         }, this.id._serialized, participantIds);
@@ -211,15 +227,31 @@ class GroupChat extends Chat {
      * @param {Array<string>} participantIds 
      * @returns {Promise<{ status: number }>} Object with status code indicating if the operation was successful
      */
-    async promoteParticipants(participantIds) {
+     async promoteParticipants(participantIds) {
         return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
             const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
-            const participants = participantIds.map(p => {
+            const participants = (await Promise.all(participantIds.map(async p => {
                 const wid = window.Store.WidFactory.createWid(p);
-                const lid = wid.server!=='lid' ? window.Store.LidUtils.getCurrentLid(wid) : wid;
-                const phone = wid.server=='lid' ? window.Store.LidUtils.getPhoneNumber(wid) : wid;
-                return chat.groupMetadata.participants.get(lid?._serialized) || chat.groupMetadata.participants.get(phone?._serialized);
-            }).filter(p => Boolean(p));
+                const isLid = wid.server === 'lid';
+
+                let lid = !isLid ? window.Store.LidUtils.getCurrentLid(wid) : wid;
+                let phone = isLid ? window.Store.LidUtils.getPhoneNumber(wid) : wid;
+
+                if (!isLid && !lid) {
+                    const queryResult = await window.Store.QueryExist(wid);
+                    if (!queryResult?.wid) return undefined;
+                    lid = window.Store.LidUtils.getCurrentLid(wid);
+                }
+
+                if (isLid && !phone) {
+                    const queryResult = await window.Store.QueryExist(wid);
+                    if (!queryResult?.wid) return undefined;
+                    phone = window.Store.LidUtils.getPhoneNumber(wid);
+                }
+
+                return chat.groupMetadata.participants.get(lid?._serialized) ||
+                    chat.groupMetadata.participants.get(phone?._serialized);
+            }))).filter(Boolean);
             await window.Store.GroupParticipants.promoteParticipants(chat, participants);
             return { status: 200 };
         }, this.id._serialized, participantIds);
@@ -233,12 +265,28 @@ class GroupChat extends Chat {
     async demoteParticipants(participantIds) {
         return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
             const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
-            const participants = participantIds.map(p => {
+            const participants = (await Promise.all(participantIds.map(async p => {
                 const wid = window.Store.WidFactory.createWid(p);
-                const lid = wid.server!=='lid' ? window.Store.LidUtils.getCurrentLid(wid) : wid;
-                const phone = wid.server=='lid' ? window.Store.LidUtils.getPhoneNumber(wid) : wid;
-                return chat.groupMetadata.participants.get(lid?._serialized) || chat.groupMetadata.participants.get(phone?._serialized);
-            }).filter(p => Boolean(p));
+                const isLid = wid.server === 'lid';
+
+                let lid = !isLid ? window.Store.LidUtils.getCurrentLid(wid) : wid;
+                let phone = isLid ? window.Store.LidUtils.getPhoneNumber(wid) : wid;
+
+                if (!isLid && !lid) {
+                    const queryResult = await window.Store.QueryExist(wid);
+                    if (!queryResult?.wid) return undefined;
+                    lid = window.Store.LidUtils.getCurrentLid(wid);
+                }
+
+                if (isLid && !phone) {
+                    const queryResult = await window.Store.QueryExist(wid);
+                    if (!queryResult?.wid) return undefined;
+                    phone = window.Store.LidUtils.getPhoneNumber(wid);
+                }
+
+                return chat.groupMetadata.participants.get(lid?._serialized) ||
+                    chat.groupMetadata.participants.get(phone?._serialized);
+            }))).filter(Boolean);
             await window.Store.GroupParticipants.demoteParticipants(chat, participants);
             return { status: 200 };
         }, this.id._serialized, participantIds);
@@ -256,12 +304,12 @@ class GroupChat extends Chat {
                 await window.Store.GroupUtils.setGroupSubject(chatWid, subject);
                 return true;
             } catch (err) {
-                if(err.name === 'ServerStatusCodeError') return false;
+                if (err.name === 'ServerStatusCodeError') return false;
                 throw err;
             }
         }, this.id._serialized, subject);
 
-        if(!success) return false;
+        if (!success) return false;
         this.name = subject;
         return true;
     }
@@ -280,29 +328,29 @@ class GroupChat extends Chat {
                 await window.Store.GroupUtils.setGroupDescription(chatWid, description, newId, descId);
                 return true;
             } catch (err) {
-                if(err.name === 'ServerStatusCodeError') return false;
+                if (err.name === 'ServerStatusCodeError') return false;
                 throw err;
             }
         }, this.id._serialized, description);
 
-        if(!success) return false;
+        if (!success) return false;
         this.groupMetadata.desc = description;
         return true;
     }
-    
+
     /**
      * Updates the group setting to allow only admins to add members to the group.
      * @param {boolean} [adminsOnly=true] Enable or disable this option 
      * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
      */
-    async setAddMembersAdminsOnly(adminsOnly=true) {
+    async setAddMembersAdminsOnly(adminsOnly = true) {
         const success = await this.client.pupPage.evaluate(async (groupId, adminsOnly) => {
             const chatWid = window.Store.WidFactory.createWid(groupId);
             try {
                 const response = await window.Store.GroupUtils.setGroupMemberAddMode(chatWid, 'member_add_mode', adminsOnly ? 0 : 1);
                 return response.name === 'SetMemberAddModeResponseSuccess';
             } catch (err) {
-                if(err.name === 'SmaxParsingFailure') return false;
+                if (err.name === 'SmaxParsingFailure') return false;
                 throw err;
             }
         }, this.id._serialized, adminsOnly);
@@ -310,25 +358,25 @@ class GroupChat extends Chat {
         success && (this.groupMetadata.memberAddMode = adminsOnly ? 'admin_add' : 'all_member_add');
         return success;
     }
-    
+
     /**
      * Updates the group settings to only allow admins to send messages.
      * @param {boolean} [adminsOnly=true] Enable or disable this option 
      * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
      */
-    async setMessagesAdminsOnly(adminsOnly=true) {
+    async setMessagesAdminsOnly(adminsOnly = true) {
         const success = await this.client.pupPage.evaluate(async (chatId, adminsOnly) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             try {
                 await window.Store.GroupUtils.setGroupProperty(chatWid, 'announcement', adminsOnly ? 1 : 0);
                 return true;
             } catch (err) {
-                if(err.name === 'ServerStatusCodeError') return false;
+                if (err.name === 'ServerStatusCodeError') return false;
                 throw err;
             }
         }, this.id._serialized, adminsOnly);
 
-        if(!success) return false;
+        if (!success) return false;
 
         this.groupMetadata.announce = adminsOnly;
         return true;
@@ -339,20 +387,20 @@ class GroupChat extends Chat {
      * @param {boolean} [adminsOnly=true] Enable or disable this option 
      * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
      */
-    async setInfoAdminsOnly(adminsOnly=true) {
+    async setInfoAdminsOnly(adminsOnly = true) {
         const success = await this.client.pupPage.evaluate(async (chatId, adminsOnly) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
             try {
                 await window.Store.GroupUtils.setGroupProperty(chatWid, 'restrict', adminsOnly ? 1 : 0);
                 return true;
             } catch (err) {
-                if(err.name === 'ServerStatusCodeError') return false;
+                if (err.name === 'ServerStatusCodeError') return false;
                 throw err;
             }
         }, this.id._serialized, adminsOnly);
 
-        if(!success) return false;
-        
+        if (!success) return false;
+
         this.groupMetadata.restrict = adminsOnly;
         return true;
     }
@@ -395,7 +443,7 @@ class GroupChat extends Chat {
                     : await window.Store.GroupInvite.queryGroupInviteCode(chatWid, true);
             }
             catch (err) {
-                if(err.name === 'ServerStatusCodeError') return undefined;
+                if (err.name === 'ServerStatusCodeError') return undefined;
                 throw err;
             }
         }, this.id._serialized);
@@ -404,7 +452,7 @@ class GroupChat extends Chat {
             ? codeRes?.code
             : codeRes;
     }
-    
+
     /**
      * Invalidates the current group invite code and generates a new one
      * @returns {Promise<string>} New invite code
@@ -417,7 +465,7 @@ class GroupChat extends Chat {
 
         return codeRes.code;
     }
-    
+
     /**
      * An object that handles the information about the group membership request
      * @typedef {Object} GroupMembershipRequest
@@ -427,7 +475,7 @@ class GroupChat extends Chat {
      * @property {string} requestMethod The method used to create the request: NonAdminAdd/InviteLink/LinkedGroupJoin
      * @property {number} t The timestamp the request was created at
      */
-    
+
     /**
      * Gets an array of membership requests
      * @returns {Promise<Array<GroupMembershipRequest>>} An array of membership requests
