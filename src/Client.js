@@ -468,6 +468,9 @@ class Client extends EventEmitter {
                 let revoked_msg;
                 if (last_message && msg.id.id === last_message.id.id) {
                     revoked_msg = new Message(this, last_message);
+
+                    if (message.protocolMessageKey)
+                        revoked_msg.id = { ...message.protocolMessageKey };                    
                 }
 
                 /**

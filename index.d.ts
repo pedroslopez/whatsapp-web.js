@@ -1086,6 +1086,8 @@ declare namespace WAWebJS {
         latestEditSenderTimestampMs?: number,
         /** Last edit message author */
         latestEditMsgKey?: MessageId,
+        /** Protocol message key */
+        protocolMessageKey?: MessageId,
         /** Message buttons */
         dynamicReplyButtons?: object,
         /** Selected button ID */
