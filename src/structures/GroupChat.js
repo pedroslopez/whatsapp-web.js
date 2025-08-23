@@ -128,7 +128,6 @@ class GroupChat extends Chat {
             for (let pWid of participantWids) {
                 const pId = pWid._serialized;
                 pWid = pWid.server === 'lid' ? window.Store.LidUtils.getPhoneNumber(pWid) : pWid;
-
                 participantData[pId] = {
                     code: undefined,
                     message: undefined,
