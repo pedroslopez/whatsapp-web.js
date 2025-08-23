@@ -258,6 +258,11 @@ class Message extends Base {
             this.latestEditMsgKey = data.latestEditMsgKey;
         }
         
+        /** Protocol message key */
+        if (data.protocolMessageKey) {
+            this.protocolMessageKey = data.protocolMessageKey;
+        }
+
         /**
          * Links included in the message.
          * @type {Array<{link: string, isSuspicious: boolean}>}
