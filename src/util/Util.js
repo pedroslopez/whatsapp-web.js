@@ -6,6 +6,8 @@ const { tmpdir } = require('os');
 const ffmpeg = require('fluent-ffmpeg');
 const webp = require('node-webpmux');
 const fs = require('fs').promises;
+const os = require('os');
+
 const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
 
 /**
@@ -181,6 +183,29 @@ class Util {
     static setFfmpegPath(path) {
         ffmpeg.setFfmpegPath(path);
     }
+
+    /**
+     * Get a renderer based on current machineId as salt them it will always be the same renderer for the same machine
+     */
+    static getMyRandomRenderer() {
+        let list = require('rendererList.json');
+        let id,salt,sum;
+        try {
+            id = os.cpus();
+        }catch (_){
+            id='';
+        }
+        salt = 'stealthSalt_0001';
+        if(typeof id[0] == 'object' && typeof id[0]['model'] == 'string'  && typeof id[0]['speed'] != 'undefined' ){
+            salt += id[0]['model'] +id[0]['speed'];
+        }
+        sum =0;
+        salt.split('').forEach(e=>sum += e.charCodeAt(0));
+        let selected =list[sum % list.length].split('|');
+        return {vendor:selected[0],renderer:selected[1]};
+    }
+
+    
 }
 
 module.exports = Util;

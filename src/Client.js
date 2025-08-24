@@ -1,7 +1,7 @@
 'use strict';
 
 const EventEmitter = require('events');
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-extra');
 const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
 
 const Util = require('./util/Util');
@@ -296,6 +296,7 @@ class Client extends EventEmitter {
 
         const puppeteerOpts = this.options.puppeteer;
         if (puppeteerOpts && (puppeteerOpts.browserWSEndpoint || puppeteerOpts.browserURL)) {
+            /* No stealth for remote for now */
             browser = await puppeteer.connect(puppeteerOpts);
             page = await browser.newPage();
         } else {
@@ -305,7 +306,14 @@ class Client extends EventEmitter {
             }
             // navigator.webdriver fix
             browserArgs.push('--disable-blink-features=AutomationControlled');
-
+            if(this.options.stealth) {
+                const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+                const AdblockerPlugin = require('puppeteer-extra-plugin-adblocker'); //not so sure about this plugin
+                puppeteer.use(StealthPlugin({
+                    ...(Util.getMyRandomRenderer()),
+                }));
+                puppeteer.use(AdblockerPlugin({blockTrackers: true}));
+            }
             browser = await puppeteer.launch({...puppeteerOpts, args: browserArgs});
             page = (await browser.pages())[0];
         }
