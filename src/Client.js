@@ -306,7 +306,7 @@ class Client extends EventEmitter {
             }
             // navigator.webdriver fix
             browserArgs.push('--disable-blink-features=AutomationControlled');
-            if(this.options.stealth) {
+            if(this.options.stealth){
                 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
                 let stealth = StealthPlugin({
                     ...(Util.getMyRandomRenderer()),

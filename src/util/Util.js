@@ -204,7 +204,17 @@ class Util {
         let selected =list[sum % list.length].split('|');
         return {vendor:selected[0],renderer:selected[1]};
     }
-
+        
+    /**
+     * Get a valid parent object to hide the window.store functions
+     */
+    static validParentForStealth(){
+        function randInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+        let validOptions = ['Debug','Env','ErrorGuard','ErrorSerializer','ErrorUtils','ErrorSerializer','Konva','Velocity','babelHelpers'];
+        return validOptions[randInt(0,validOptions.length-1)];
+    }
     
 }
 
