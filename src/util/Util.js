@@ -205,10 +205,12 @@ class Util {
         return {vendor:selected[0],renderer:selected[1]};
     }
         
+  
+    
     /**
-     * Get a valid parent object to hide the window.store functions
+     * Get a valid function name to try stealth the library
      */
-    static validParentForStealth(){
+    static validFunctionNameForStealth(){
         function randInt(min, max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;
         }

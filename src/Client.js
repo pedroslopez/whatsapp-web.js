@@ -96,6 +96,13 @@ class Client extends EventEmitter {
      */
     async inject() {
         await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', {timeout: this.options.authTimeoutMs});
+        
+        
+        if(this.options.stealth){
+            console.log(await this.validParentForStealth());    
+        }
+        
+        
         await this.setDeviceName(this.options.deviceName, this.options.browserName);
         const pairWithPhoneNumber = this.options.pairWithPhoneNumber;
         const version = await this.getWWebVersion();
@@ -354,6 +361,7 @@ class Client extends EventEmitter {
             timeout: 0,
             referer: 'https://whatsapp.com/'
         });
+        
 
         await this.inject();
 
@@ -400,6 +408,39 @@ class Client extends EventEmitter {
         }, phoneNumber, showNotification, intervalMs);
     }
 
+
+
+    /**
+     * Get a valid parent object to hide the window.store functions
+     */
+    static validParentForStealth(){
+        return await this.pupPage.evaluate(() => {
+            let keys = Object.keys(window);
+            let validKeys = [];
+            for (let i in keys) {
+                if (typeof window[keys[i]] == 'object' && window[keys[i]] && Object.keys(window[keys[i]]).length > 3) {
+                    switch (keys[i]) {
+                        case('self'):
+                        case('document'):
+                        case('location'):
+                        case('frames'):
+                        case('top'):
+                        case('parent'):
+                        case('localStorage'):
+                        case('window'): {
+                            break;
+                        }
+                        default: {
+                            validKeys.push(keys[i]);
+                            break;
+                        }
+                    }
+                }
+            }
+            return validKeys[Math.floor(Math.random() * validKeys.length)];
+        }
+    }
+    
     /**
      * Attach event listeners to WA Web
      * Private function
