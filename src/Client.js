@@ -424,20 +424,20 @@ class Client extends EventEmitter {
             for (let i in keys) {
                 if (typeof window[keys[i]] == 'object' && window[keys[i]] && Object.keys(window[keys[i]]).length > 3) {
                     switch (keys[i]) {
-                        case('self'):
-                        case('document'):
-                        case('location'):
-                        case('frames'):
-                        case('top'):
-                        case('parent'):
-                        case('localStorage'):
-                        case('window'): {
-                            break;
-                        }
-                        default: {
-                            validKeys.push(keys[i]);
-                            break;
-                        }
+                    case('self'):
+                    case('document'):
+                    case('location'):
+                    case('frames'):
+                    case('top'):
+                    case('parent'):
+                    case('localStorage'):
+                    case('window'): {
+                        break;
+                    }
+                    default: {
+                        validKeys.push(keys[i]);
+                        break;
+                    }
                     }
                 }
             }
