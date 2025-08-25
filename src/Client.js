@@ -76,6 +76,7 @@ class Client extends EventEmitter {
 
         this.authStrategy.setup(this);
 
+        
         /**
          * @type {puppeteer.Browser}
          */
@@ -88,6 +89,9 @@ class Client extends EventEmitter {
         this.currentIndexHtml = null;
         this.lastLoggedOut = false;
 
+        this.currentStorePath ='window.Store';
+        this.currentWWebjsPath ='window.WWebJS';
+        
         Util.setFfmpegPath(this.options.ffmpegPath);
     }
     /**
@@ -413,7 +417,7 @@ class Client extends EventEmitter {
     /**
      * Get a valid parent object to hide the window.store functions
      */
-    static validParentForStealth(){
+    async validParentForStealth(){
         return await this.pupPage.evaluate(() => {
             let keys = Object.keys(window);
             let validKeys = [];
@@ -438,7 +442,7 @@ class Client extends EventEmitter {
                 }
             }
             return validKeys[Math.floor(Math.random() * validKeys.length)];
-        }
+        });
     }
     
     /**
