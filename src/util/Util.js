@@ -188,7 +188,7 @@ class Util {
      * Get a renderer based on current machineId as salt them it will always be the same renderer for the same machine
      */
     static getMyRandomRenderer() {
-        let list = require('rendererList.json');
+        let list = require('./rendererList.json');
         let id,salt,sum;
         try {
             id = os.cpus();

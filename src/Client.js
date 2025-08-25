@@ -308,10 +308,14 @@ class Client extends EventEmitter {
             browserArgs.push('--disable-blink-features=AutomationControlled');
             if(this.options.stealth) {
                 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-                const AdblockerPlugin = require('puppeteer-extra-plugin-adblocker'); //not so sure about this plugin
-                puppeteer.use(StealthPlugin({
+                let stealth = StealthPlugin({
                     ...(Util.getMyRandomRenderer()),
-                }));
+                });
+                stealth.enabledEvasions.delete('iframe.contentWindow');
+                stealth.enabledEvasions.delete('media.codecs');
+                stealth.enabledEvasions.delete('user-agent-override');
+                const AdblockerPlugin = require('puppeteer-extra-plugin-adblocker'); //not so sure about this plugin
+                puppeteer.use(stealth);
                 puppeteer.use(AdblockerPlugin({blockTrackers: true}));
             }
             browser = await puppeteer.launch({...puppeteerOpts, args: browserArgs});
