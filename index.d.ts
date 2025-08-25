@@ -538,6 +538,9 @@ declare namespace WAWebJS {
         puppeteer?: puppeteer.PuppeteerNodeLaunchOptions & puppeteer.ConnectOptions
 		/** Determines how to save and restore sessions. Will use LegacySessionAuth if options.session is set. Otherwise, NoAuth will be used. */
         authStrategy?: AuthStrategy,
+        /** Enable the stealth version of wwebjs, uses puppeteer-stealth and other code changing things (window.WWebJS will be renamed to the const WwebjsEvalName, so if you will debug something disable this)
+         * @default false */
+        stealth?: boolean,
         /** The version of WhatsApp Web to use. Use options.webVersionCache to configure how the version is retrieved. */
         webVersion?: string,
         /**  Determines how to retrieve the WhatsApp Web version specified in options.webVersion. */

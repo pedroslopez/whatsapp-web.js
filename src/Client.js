@@ -1,7 +1,7 @@
 'use strict';
 
 const EventEmitter = require('events');
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-extra');
 const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
 
 const Util = require('./util/Util');
@@ -76,6 +76,7 @@ class Client extends EventEmitter {
 
         this.authStrategy.setup(this);
 
+        
         /**
          * @type {puppeteer.Browser}
          */
@@ -88,6 +89,9 @@ class Client extends EventEmitter {
         this.currentIndexHtml = null;
         this.lastLoggedOut = false;
 
+        this.currentStorePath ='window.Store';
+        this.currentWWebjsPath ='window.WWebJS';
+        
         Util.setFfmpegPath(this.options.ffmpegPath);
     }
     /**
@@ -96,6 +100,13 @@ class Client extends EventEmitter {
      */
     async inject() {
         await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', {timeout: this.options.authTimeoutMs});
+        
+        
+        if(this.options.stealth){
+            console.log(await this.validParentForStealth());    
+        }
+        
+        
         await this.setDeviceName(this.options.deviceName, this.options.browserName);
         const pairWithPhoneNumber = this.options.pairWithPhoneNumber;
         const version = await this.getWWebVersion();
@@ -296,6 +307,7 @@ class Client extends EventEmitter {
 
         const puppeteerOpts = this.options.puppeteer;
         if (puppeteerOpts && (puppeteerOpts.browserWSEndpoint || puppeteerOpts.browserURL)) {
+            /* No stealth for remote for now */
             browser = await puppeteer.connect(puppeteerOpts);
             page = await browser.newPage();
         } else {
@@ -305,7 +317,18 @@ class Client extends EventEmitter {
             }
             // navigator.webdriver fix
             browserArgs.push('--disable-blink-features=AutomationControlled');
-
+            if(this.options.stealth){
+                const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+                let stealth = StealthPlugin({
+                    ...(Util.getMyRandomRenderer()),
+                });
+                stealth.enabledEvasions.delete('iframe.contentWindow');
+                stealth.enabledEvasions.delete('media.codecs');
+                stealth.enabledEvasions.delete('user-agent-override');
+                const AdblockerPlugin = require('puppeteer-extra-plugin-adblocker'); //not so sure about this plugin
+                puppeteer.use(stealth);
+                puppeteer.use(AdblockerPlugin({blockTrackers: true}));
+            }
             browser = await puppeteer.launch({...puppeteerOpts, args: browserArgs});
             page = (await browser.pages())[0];
         }
@@ -342,6 +365,7 @@ class Client extends EventEmitter {
             timeout: 0,
             referer: 'https://whatsapp.com/'
         });
+        
 
         await this.inject();
 
@@ -388,6 +412,39 @@ class Client extends EventEmitter {
         }, phoneNumber, showNotification, intervalMs);
     }
 
+
+
+    /**
+     * Get a valid parent object to hide the window.store functions
+     */
+    async validParentForStealth(){
+        return await this.pupPage.evaluate(() => {
+            let keys = Object.keys(window);
+            let validKeys = [];
+            for (let i in keys) {
+                if (typeof window[keys[i]] == 'object' && window[keys[i]] && Object.keys(window[keys[i]]).length > 3) {
+                    switch (keys[i]) {
+                    case('self'):
+                    case('document'):
+                    case('location'):
+                    case('frames'):
+                    case('top'):
+                    case('parent'):
+                    case('localStorage'):
+                    case('window'): {
+                        break;
+                    }
+                    default: {
+                        validKeys.push(keys[i]);
+                        break;
+                    }
+                    }
+                }
+            }
+            return validKeys[Math.floor(Math.random() * validKeys.length)];
+        });
+    }
+    
     /**
      * Attach event listeners to WA Web
      * Private function
