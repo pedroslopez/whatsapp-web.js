@@ -1606,7 +1606,7 @@ class Client extends EventEmitter {
      * @property {boolean} [memberAddMode = false] If true, only admins can add members to the group (false by default)
      * @property {boolean} [membershipApprovalMode = false] If true, group admins will be required to approve anyone who wishes to join the group (false by default)
      * @property {boolean} [isRestrict = true] If true, only admins can change group group info (true by default)
-     * @property {boolean} [isAnnounce = false] If true, only admins can send messages (false by default)
+     * @property {boolean} [isAnnounce = false] If false, only admins can send messages (false by default)
      */
 
     /**
@@ -1653,7 +1653,7 @@ class Client extends EventEmitter {
                         'addressingModeOverride': 'lid',
                         'memberAddMode': options.memberAddMode ?? false,
                         'membershipApprovalMode': options.membershipApprovalMode ?? false,
-                        'announce': options.announce ?? false,
+                        'announce': options.isAnnounce ?? true,
                         'restrict': options.isRestrict !== undefined ? !options.isRestrict : false,
                         'ephemeralDuration': messageTimer,
                         'parentGroupId': parentGroupWid,
