@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.26.1-alpha.2 &raquo; Globals</title>
+  <title>whatsapp-web.js 1.32.0 &raquo; Globals</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>26.<wbr>1-alpha.<wbr>2</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>32.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -93,7 +93,16 @@
                     <dt><a href="global.html#ButtonSpec">ButtonSpec</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="global.html#ChannelId">ChannelId</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="global.html#ContactId">ContactId</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="global.html#CreateChannelOptions">CreateChannelOptions</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="global.html#CreateChannelResult">CreateChannelResult</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="global.html#CreateGroupOptions">CreateGroupOptions</a></dt>
@@ -139,14 +148,10 @@
                     <dt><a href="global.html#MembershipRequestActionResult">MembershipRequestActionResult</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="global.html#Mention">Mention</a></dt>
+                    <dt><a href="global.html#MessageInfo">MessageInfo</a></dt>
                     <dd>
                     </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="global.html#MessageInfo">MessageInfo</a></dt>
+                    <dt><a href="global.html#MessageSendOptions">MessageSendOptions</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="global.html#MessageSendOptions">MessageSendOptions</a></dt>
@@ -155,13 +160,26 @@
                     <dt><a href="global.html#ParticipantResult">ParticipantResult</a></dt>
                     <dd>
                     </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
                     <dt><a href="global.html#PollSendOptions">PollSendOptions</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="global.html#ReactionList">ReactionList</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="global.html#ScheduledEventSendOptions">ScheduledEventSendOptions</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="global.html#SelectedPollOption">SelectedPollOption</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="global.html#SendChannelAdminInviteOptions">SendChannelAdminInviteOptions</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="global.html#SendChannelAdminInviteOptions">SendChannelAdminInviteOptions</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="global.html#StickerMetadata">StickerMetadata</a></dt>
@@ -171,6 +189,15 @@
                     <dd>
                     </dd>
                     <dt><a href="global.html#TargetOptions">TargetOptions</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="global.html#TransferChannelOwnershipOptions">TransferChannelOwnershipOptions</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="global.html#TransferChannelOwnershipOptions">TransferChannelOwnershipOptions</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="global.html#UnsubscribeOptions">UnsubscribeOptions</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -533,6 +560,19 @@
                     <tr>
                       <td>
                         <p>QR_RECEIVED</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>CODE_RECEIVED</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
@@ -1360,6 +1400,19 @@
                       <td>
                       </td>
                     </tr>
+                    <tr>
+                      <td>
+                        <p>SCHEDULED_EVENT_CREATION</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </section>
@@ -1846,6 +1899,65 @@
               </section>
               <dl class="dl-compact">
               </dl>
+              <h3 id="ChannelId"><span class="symbol-name">ChannelId</span><small class="property-type">
+                  &nbsp;Object</small></h3>
+              <p>Channel ID structure</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>server</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>user</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>_serialized</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="ContactId"><span class="symbol-name">ContactId</span><small class="property-type">
                   &nbsp;Object</small></h3>
               <p>ID that represents a contact</p>
@@ -1898,6 +2010,187 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="CreateChannelOptions"><span class="symbol-name">CreateChannelOptions</span><small class="property-type">
+                  &nbsp;Object</small></h3>
+              <p>Options for the channel creation</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>description</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The channel description</p>
+                        <p>Value can be null.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>picture</p>
+                      </td>
+                      <td>
+                        <p><a href="MessageMedia.html">MessageMedia</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The channel profile picture</p>
+                        <p>Value can be null.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="CreateChannelResult"><span class="symbol-name">CreateChannelResult</span><small class="property-type">
+                  &nbsp;Object</small></h3>
+              <p>An object that handles the result for <code>createChannel</code> method</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>title</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>A channel title</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>nid</p>
+                      </td>
+                      <td>
+                        <p>ChatId</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>An object that handels the newly created channel ID</p>
+                        <p>Values in <code>nid</code> have the following properties:</p>
+                        <table class="jsdoc-details-table">
+                          <thead>
+                            <tr>
+                              <th>Name</th>
+                              <th>Type</th>
+                              <th>Optional</th>
+                              <th>Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>
+                                <p>server</p>
+                              </td>
+                              <td>
+                                <p>string</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                                <p>'newsletter'</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>user</p>
+                              </td>
+                              <td>
+                                <p>string</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                                <p>'XXXXXXXXXX'</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>_serialized</p>
+                              </td>
+                              <td>
+                                <p>string</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                                <p>'XXXXXXXXXX@newsletter'</p>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>inviteLink</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The channel invite link, starts with 'https://whatsapp.com/channel/'</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>createdAtTs</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The timestamp the channel was created at</p>
                       </td>
                     </tr>
                   </tbody>
@@ -1977,6 +2270,66 @@
                       <td>
                         <p>The comment to be added to an inviteV4 (empty string by default)</p>
                         <p>Defaults to <code>''</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>memberAddMode</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>If true, only admins can add members to the group (false by default)</p>
+                        <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>membershipApprovalMode</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>If true, group admins will be required to approve anyone who wishes to join the group (false by default)</p>
+                        <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>isRestrict</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>If true, only admins can change group group info (true by default)</p>
+                        <p>Defaults to <code>true</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>isAnnounce</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>If true, only admins can send messages (false by default)</p>
+                        <p>Defaults to <code>false</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -2417,65 +2770,13 @@
                         <p>groupJid</p>
                       </td>
                       <td>
-                        <p>Object</p>
+                        <p>string</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
                         <p>The group ID</p>
-                        <p>Values in <code>groupJid</code> have the following properties:</p>
-                        <table class="jsdoc-details-table">
-                          <thead>
-                            <tr>
-                              <th>Name</th>
-                              <th>Type</th>
-                              <th>Optional</th>
-                              <th>Description</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <td>
-                                <p>server</p>
-                              </td>
-                              <td>
-                                <p>string</p>
-                              </td>
-                              <td>
-                                <p>&nbsp;</p>
-                              </td>
-                              <td>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <p>user</p>
-                              </td>
-                              <td>
-                                <p>string</p>
-                              </td>
-                              <td>
-                                <p>&nbsp;</p>
-                              </td>
-                              <td>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <p>_serialized</p>
-                              </td>
-                              <td>
-                                <p>string</p>
-                              </td>
-                              <td>
-                                <p>&nbsp;</p>
-                              </td>
-                              <td>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
                       </td>
                     </tr>
                   </tbody>
@@ -2597,6 +2898,20 @@
                       </td>
                       <td>
                         <p>URL address to be shown within a location message</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>description</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Location full description</p>
                       </td>
                     </tr>
                   </tbody>
@@ -2824,64 +3139,6 @@
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="Mention"><span class="symbol-name">Mention</span><small class="property-type">
-                  &nbsp;Object</small></h3>
-              <section>
-                <h4>Properties</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>server</p>
-                      </td>
-                      <td>
-                        <p>string</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>user</p>
-                      </td>
-                      <td>
-                        <p>string</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>_serialized</p>
-                      </td>
-                      <td>
-                        <p>string</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-              </dl>
               <h3 id="MessageInfo"><span class="symbol-name">MessageInfo</span><small class="property-type">
                   &nbsp;Object</small></h3>
               <p>Message Info</p>
@@ -3078,6 +3335,21 @@
                     </tr>
                     <tr>
                       <td>
+                        <p>sendMediaAsHd</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Send image as quality HD</p>
+                        <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
                         <p>isViewOnce</p>
                       </td>
                       <td>
@@ -3235,6 +3507,21 @@
                     </tr>
                     <tr>
                       <td>
+                        <p>ignoreQuoteErrors</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Should the bot send a quoted message without the quoted message if it fails to get the quote?</p>
+                        <p>Defaults to <code>true</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
                         <p>media</p>
                       </td>
                       <td>
@@ -3245,6 +3532,85 @@
                       </td>
                       <td>
                         <p>Media to be sent</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>extra</p>
+                      </td>
+                      <td>
+                        <p>any</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Extra options</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="MessageSendOptions"><span class="symbol-name">MessageSendOptions</span><small class="property-type">
+                  &nbsp;Object</small></h3>
+              <p>Message options</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>caption</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Image or video caption</p>
+                        <p>Value can be null.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>mentions</p>
+                      </td>
+                      <td>
+                        <p>Array of string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>User IDs of user that will be mentioned in the message</p>
+                        <p>Value can be null.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>media</p>
+                      </td>
+                      <td>
+                        <p><a href="MessageMedia.html">MessageMedia</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Image or video to be sent</p>
+                        <p>Value can be null.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -3454,6 +3820,116 @@
               </section>
               <dl class="dl-compact">
               </dl>
+              <h3 id="ScheduledEventSendOptions"><span class="symbol-name">ScheduledEventSendOptions</span><small class="property-type">
+                  &nbsp;Object</small></h3>
+              <p>ScheduledEvent send options</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>description</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The scheduled event description</p>
+                        <p>Value can be null.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>endTime</p>
+                      </td>
+                      <td>
+                        <p>Date</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The end time of the event</p>
+                        <p>Value can be null.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>location</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The location of the event</p>
+                        <p>Value can be null.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>callType</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of a WhatsApp call link to generate, valid values are: <code>video</code> | <code>voice</code></p>
+                        <p>Value can be null.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>isEventCanceled</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Indicates if a scheduled event should be sent as an already canceled</p>
+                        <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>messageSecret</p>
+                      </td>
+                      <td>
+                        <p>Array of number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The custom message secret, can be used as an event ID. NOTE: it has to be a unique vector with a length of 32</p>
+                        <p>Value can be null.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="SelectedPollOption"><span class="symbol-name">SelectedPollOption</span><small class="property-type">
                   &nbsp;Object</small></h3>
               <p>Selected poll option structure</p>
@@ -3495,6 +3971,74 @@
                       </td>
                       <td>
                         <p>The option name</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="SendChannelAdminInviteOptions"><span class="symbol-name">SendChannelAdminInviteOptions</span><small class="property-type">
+                  &nbsp;Object</small></h3>
+              <section>
+                <h4>Property</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>comment</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The comment to be added to an invitation</p>
+                        <p>Value can be null.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="SendChannelAdminInviteOptions"><span class="symbol-name">SendChannelAdminInviteOptions</span><small class="property-type">
+                  &nbsp;Object</small></h3>
+              <section>
+                <h4>Property</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>comment</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The comment to be added to an invitation</p>
+                        <p>Value can be null.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -3671,6 +4215,111 @@
               </section>
               <dl class="dl-compact">
               </dl>
+              <h3 id="TransferChannelOwnershipOptions"><span class="symbol-name">TransferChannelOwnershipOptions</span><small class="property-type">
+                  &nbsp;Object</small></h3>
+              <p>Options for transferring a channel ownership to another user</p>
+              <section>
+                <h4>Property</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>shouldDismissSelfAsAdmin</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>If true, after the channel ownership is being transferred to another user, the current user will be dismissed as a channel admin and will become to a channel subscriber.</p>
+                        <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="TransferChannelOwnershipOptions"><span class="symbol-name">TransferChannelOwnershipOptions</span><small class="property-type">
+                  &nbsp;Object</small></h3>
+              <p>Options for transferring a channel ownership to another user</p>
+              <section>
+                <h4>Property</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>shouldDismissSelfAsAdmin</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>If true, after the channel ownership is being transferred to another user, the current user will be dismissed as a channel admin and will become to a channel subscriber.</p>
+                        <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="UnsubscribeOptions"><span class="symbol-name">UnsubscribeOptions</span><small class="property-type">
+                  &nbsp;Object</small></h3>
+              <p>Options for unsubscribe from a channel</p>
+              <section>
+                <h4>Property</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>deleteLocalModels</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>If true, after an unsubscription, it will completely remove a channel from the channel collection making it seem like the current user have never interacted with it. Otherwise it will only remove a channel from the list of channels the current user is subscribed to and will set the membership type for that channel to GUEST</p>
+                        <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
             </section>
           </section>
         </div>
@@ -3681,7 +4330,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on October 4, 2024.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on August 8, 2025.
       </p>
     </div>
   </footer>
