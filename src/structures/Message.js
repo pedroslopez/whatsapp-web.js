@@ -258,7 +258,10 @@ class Message extends Base {
             this.latestEditMsgKey = data.latestEditMsgKey;
         }
         
-        /** Protocol message key */
+        /**
+         * Protocol message key.
+         * Can be used to retrieve the ID of an original message that was revoked.
+         */
         if (data.protocolMessageKey) {
             this.protocolMessageKey = data.protocolMessageKey;
         }
