@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.32.0 &raquo; Source: Client.js</title>
+  <title>whatsapp-web.js 1.33.0 &raquo; Source: Client.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>32.<wbr>0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>33.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -499,6 +499,9 @@ class Client extends EventEmitter {
                 let revoked_msg;
                 if (last_message &amp;amp;&amp;amp; msg.id.id &#x3D;&#x3D;&#x3D; last_message.id.id) {
                     revoked_msg &#x3D; new Message(this, last_message);
+
+                    if (message.protocolMessageKey)
+                        revoked_msg.id &#x3D; { ...message.protocolMessageKey };                    
                 }
 
                 /**
@@ -737,14 +740,15 @@ class Client extends EventEmitter {
             this.emit(Events.MESSAGE_CIPHERTEXT, new Message(this, msg));
         });
 
-        await exposeFunctionIfAbsent(this.pupPage, &#x27;onPollVoteEvent&#x27;, (vote) &#x3D;&gt; {
-            const _vote &#x3D; new PollVote(this, vote);
-            /**
-             * Emitted when some poll option is selected or deselected,
-             * shows a user&#x27;s current selected option(s) on the poll
-             * @event Client#vote_update
-             */
-            this.emit(Events.VOTE_UPDATE, _vote);
+        await exposeFunctionIfAbsent(this.pupPage, &#x27;onPollVoteEvent&#x27;, (votes) &#x3D;&gt; {
+            for (const vote of votes) {
+                /**
+                 * Emitted when some poll option is selected or deselected,
+                 * shows a user&#x27;s current selected option(s) on the poll
+                 * @event Client#vote_update
+                 */
+                this.emit(Events.VOTE_UPDATE, new PollVote(this, vote));
+            }
         });
 
         await this.pupPage.evaluate(() &#x3D;&gt; {
@@ -771,10 +775,6 @@ class Client extends EventEmitter {
                 }
             });
             window.Store.Chat.on(&#x27;change:unreadCount&#x27;, (chat) &#x3D;&gt; {window.onChatUnreadCountEvent(chat);});
-            window.Store.PollVote.on(&#x27;add&#x27;, async (vote) &#x3D;&gt; {
-                const pollVoteModel &#x3D; await window.WWebJS.getPollVoteModel(vote);
-                pollVoteModel &amp;amp;&amp;amp; window.onPollVoteEvent(pollVoteModel);
-            });
 
             if (window.compareWwebVersions(window.Debug.VERSION, &#x27;&gt;&#x3D;&#x27;, &#x27;2.3000.1014111620&#x27;)) {
                 const module &#x3D; window.Store.AddonReactionTable;
@@ -792,6 +792,39 @@ class Client extends EventEmitter {
 
                     return ogMethod(...args);
                 }).bind(module);
+
+                const pollVoteModule &#x3D; window.Store.AddonPollVoteTable;
+                const ogPollVoteMethod &#x3D; pollVoteModule.bulkUpsert;
+
+                pollVoteModule.bulkUpsert &#x3D; (async (...args) &#x3D;&gt; {
+                    const votes &#x3D; await Promise.all(args[0].map(async vote &#x3D;&gt; {
+                        const msgKey &#x3D; vote.id;
+                        const parentMsgKey &#x3D; vote.pollUpdateParentKey;
+                        const timestamp &#x3D; vote.t / 1000;
+                        const sender &#x3D; vote.author ?? vote.from;
+                        const senderUserJid &#x3D; sender._serialized;
+
+                        let parentMessage &#x3D; window.Store.Msg.get(parentMsgKey._serialized);
+                        if (!parentMessage) {
+                            const fetched &#x3D; await window.Store.Msg.getMessagesById([parentMsgKey._serialized]);
+                            parentMessage &#x3D; fetched?.messages?.[0] || null;
+                        }
+
+                        return {
+                            ...vote,
+                            msgKey,
+                            sender,
+                            parentMsgKey,
+                            senderUserJid,
+                            timestamp,
+                            parentMessage
+                        };
+                    }));
+
+                    window.onPollVoteEvent(votes);
+
+                    return ogPollVoteMethod.apply(pollVoteModule, args);
+                }).bind(pollVoteModule);
             } else {
                 const module &#x3D; window.Store.createOrUpdateReactionsModule;
                 const ogMethod &#x3D; module.createOrUpdateReactions;
@@ -931,6 +964,7 @@ class Client extends EventEmitter {
      * @property {string} [stickerName&#x3D;undefined] - Sets the name of the sticker, (if sendMediaAsSticker is true).
      * @property {string[]} [stickerCategories&#x3D;undefined] - Sets the categories of the sticker, (if sendMediaAsSticker is true). Provide emoji char array, can be null.
      * @property {boolean} [ignoreQuoteErrors &#x3D; true] - Should the bot send a quoted message without the quoted message if it fails to get the quote?
+     * @property {boolean} [waitUntilMsgSent &#x3D; false] - Should the bot wait for the message send result?
      * @property {MessageMedia} [media] - Media to be sent
      * @property {any} [extra] - Extra options
      */
@@ -981,6 +1015,7 @@ class Client extends EventEmitter {
             groupMentions: options.groupMentions,
             invokedBotWid: options.invokedBotWid,
             ignoreQuoteErrors: options.ignoreQuoteErrors !&#x3D;&#x3D; false,
+            waitUntilMsgSent: options.waitUntilMsgSent || false,
             extraOptions: options.extra
         };
 
@@ -2367,7 +2402,7 @@ module.exports &#x3D; Client;
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on August 8, 2025.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on August 28, 2025.
       </p>
     </div>
   </footer>
