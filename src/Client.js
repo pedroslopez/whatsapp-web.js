@@ -709,14 +709,15 @@ class Client extends EventEmitter {
             this.emit(Events.MESSAGE_CIPHERTEXT, new Message(this, msg));
         });
 
-        await exposeFunctionIfAbsent(this.pupPage, 'onPollVoteEvent', (vote) => {
-            const _vote = new PollVote(this, vote);
-            /**
-             * Emitted when some poll option is selected or deselected,
-             * shows a user's current selected option(s) on the poll
-             * @event Client#vote_update
-             */
-            this.emit(Events.VOTE_UPDATE, _vote);
+        await exposeFunctionIfAbsent(this.pupPage, 'onPollVoteEvent', (votes) => {
+            for (const vote of votes) {
+                /**
+                 * Emitted when some poll option is selected or deselected,
+                 * shows a user's current selected option(s) on the poll
+                 * @event Client#vote_update
+                 */
+                this.emit(Events.VOTE_UPDATE, new PollVote(this, vote));
+            }
         });
 
         await this.pupPage.evaluate(() => {
@@ -743,10 +744,6 @@ class Client extends EventEmitter {
                 }
             });
             window.Store.Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
-            window.Store.PollVote.on('add', async (vote) => {
-                const pollVoteModel = await window.WWebJS.getPollVoteModel(vote);
-                pollVoteModel && window.onPollVoteEvent(pollVoteModel);
-            });
 
             if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.1014111620')) {
                 const module = window.Store.AddonReactionTable;
@@ -764,6 +761,39 @@ class Client extends EventEmitter {
 
                     return ogMethod(...args);
                 }).bind(module);
+
+                const pollVoteModule = window.Store.AddonPollVoteTable;
+                const ogPollVoteMethod = pollVoteModule.bulkUpsert;
+
+                pollVoteModule.bulkUpsert = (async (...args) => {
+                    const votes = await Promise.all(args[0].map(async vote => {
+                        const msgKey = vote.id;
+                        const parentMsgKey = vote.pollUpdateParentKey;
+                        const timestamp = vote.t / 1000;
+                        const sender = vote.author ?? vote.from;
+                        const senderUserJid = sender._serialized;
+
+                        let parentMessage = window.Store.Msg.get(parentMsgKey._serialized);
+                        if (!parentMessage) {
+                            const fetched = await window.Store.Msg.getMessagesById([parentMsgKey._serialized]);
+                            parentMessage = fetched?.messages?.[0] || null;
+                        }
+
+                        return {
+                            ...vote,
+                            msgKey,
+                            sender,
+                            parentMsgKey,
+                            senderUserJid,
+                            timestamp,
+                            parentMessage
+                        };
+                    }));
+
+                    window.onPollVoteEvent(votes);
+
+                    return ogPollVoteMethod.apply(pollVoteModule, args);
+                }).bind(pollVoteModule);
             } else {
                 const module = window.Store.createOrUpdateReactionsModule;
                 const ogMethod = module.createOrUpdateReactions;
