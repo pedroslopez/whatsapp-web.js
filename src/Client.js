@@ -2264,7 +2264,39 @@ class Client extends EventEmitter {
             return false;
         }, chatId);
     }
-  
+
+    /**
+     * Post stories for everyone to see
+     * @param {string|MessageMedia} content
+     * @param {MessageSendOptions} [options] - Options used when sending the message
+     *
+     * @returns {Promise<object>} Message that was just sent
+    */
+    async sendStatus(content, options) {
+        let internalOptions = {
+            sendVideoAsGif: options.sendVideoAsGif,
+            sendMediaAsSticker: options.sendMediaAsSticker,
+            sendMediaAsDocument: options.sendMediaAsDocument,
+            caption: options.caption,
+            extraOptions: options.extra
+        };
+
+        if (content instanceof MessageMedia) {
+            internalOptions.attachment = content;
+            content = '';
+        } else if (options.media instanceof MessageMedia) {
+            internalOptions.attachment = options.media;
+            internalOptions.caption = content;
+            content = '';
+        }
+
+        const newStatus = await this.pupPage.evaluate(async (message, options) => {
+            return await window.WWebJS.sendStatus(message, options);
+        }, content, internalOptions);
+
+        return newStatus;
+    }
+
     /**
      * Generates a WhatsApp call link (video call or voice call)
      * @param {Date} startTime The start time of the call

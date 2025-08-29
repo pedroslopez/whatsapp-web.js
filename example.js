@@ -480,6 +480,9 @@ client.on('message', async msg => {
         console.log(statuses);
         const chat = await statuses[0]?.getChat(); // Get user chat of a first status
         console.log(chat);
+    } else if(msg.body === '!postStoryText') {
+        const statuses = await client.sendStatus('Hello World!');
+        console.log(statuses);
     } else if (msg.body === '!sendMediaHD' && msg.hasQuotedMsg) {
         const quotedMsg = await msg.getQuotedMessage();
         if (quotedMsg.hasMedia) {

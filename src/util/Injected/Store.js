@@ -95,6 +95,10 @@ exports.ExposeStore = () => {
     window.Store.ContactCollection = window.require('WAWebContactCollection').ContactCollection;
     window.Store.DeviceList = window.require('WAWebApiDeviceList');
     window.Store.HistorySync = window.require('WAWebSendNonMessageDataRequest');
+    window.Store.SendStatus = window.require('WAWebSendStatusMsgAction');
+    window.Store.Jids = window.require('WAJids');
+    if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.1014111620')) 
+        window.Store.AddonReactionTable = window.require('WAWebAddonReactionTableMode').reactionTableMode;
     window.Store.AddonReactionTable = window.require('WAWebAddonReactionTableMode').reactionTableMode;
     window.Store.AddonPollVoteTable = window.require('WAWebAddonPollVoteTableMode').pollVoteTableMode;
     window.Store.PinnedMsgUtils = window.require('WAWebPinInChatSchema');
