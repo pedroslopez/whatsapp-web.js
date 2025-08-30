@@ -864,6 +864,23 @@ class Client extends EventEmitter {
                 this.emit(Events.VOTE_UPDATE, new PollVote(this, vote));
             }
         });
+        
+        await this.pupPage.exposeFunction(
+            'onAddMessageRevokeEvent',
+            (msg, newId) => {
+                /**
+                 * Emitted when messages are revoked
+                 * @event Client#message_revoke
+                 * @param {Message} message
+                 * @param {string} newId
+                 */
+                this.emit(
+                    Events.MESSAGE_REVOKED,
+                    new Message(this, msg),
+                    newId
+                );
+            }
+        );
 
         await this.pupPage.evaluate(() => {
             window.Store.Msg.on('change', (msg) => {
