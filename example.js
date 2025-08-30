@@ -20,19 +20,9 @@ const client = new Client({
      * If another value is provided, the browser icon in 'linked devices' section will be gray.
      */
     // browserName: 'Firefox',
-    puppeteer: {
+    puppeteer: { 
+        // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
         headless: false,
-        args: [
-            "--no-sandbox",
-            "--disable-setuid-sandbox",
-            "--disable-dev-shm-usage",
-            "--disable-accelerated-2d-canvas",
-            "--no-first-run",
-            "--no-zygote",
-            "--single-process", // <- this one doesn't works in Windows
-            "--disable-gpu",
-            //'--proxy-server=proxy-server-that-requires-authentication.example.com'
-        ],
     },
     // pairWithPhoneNumber: {
     //     phoneNumber: '96170100100' // Pair with phone number (format: <COUNTRY_CODE><PHONE_NUMBER>)

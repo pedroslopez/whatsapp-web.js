@@ -274,15 +274,9 @@ class Client extends EventEmitter {
                      * Current connection information
                      * @type {ClientInfo}
                      */
-                    this.info = new ClientInfo(
-                        this,
-                        await this.pupPage.evaluate(() => {
-                            return {
-                                ...window.Store.Conn.serialize(),
-                                wid: window.Store.User.getMeUser(),
-                            };
-                        })
-                    );
+                this.info = new ClientInfo(this, await this.pupPage.evaluate(() => {
+                    return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMaybeMeUser() };
+                }));
 
                     this.interface = new InterfaceController(this);
 
@@ -546,32 +540,29 @@ class Client extends EventEmitter {
 
         let last_message;
 
-        await exposeFunctionIfAbsent(
-            this.pupPage,
-            'onChangeMessageTypeEvent',
-            (msg) => {
-                if (msg.type === 'revoked') {
-                    const message = new Message(this, msg);
-                    let revoked_msg;
-                    if (last_message && msg.id.id === last_message.id.id) {
-                        revoked_msg = new Message(this, last_message);
-                    }
+        await exposeFunctionIfAbsent(this.pupPage, 'onChangeMessageTypeEvent', (msg) => {
 
-                    /**
+            if (msg.type === 'revoked') {
+                const message = new Message(this, msg);
+                let revoked_msg;
+                if (last_message && msg.id.id === last_message.id.id) {
+                    revoked_msg = new Message(this, last_message);
+
+                    if (message.protocolMessageKey)
+                        revoked_msg.id = { ...message.protocolMessageKey };                    
+                }
+
+                /**
                      * Emitted when a message is deleted for everyone in the chat.
                      * @event Client#message_revoke_everyone
                      * @param {Message} message The message that was revoked, in its current state. It will not contain the original message's data.
-                     * @param {?Message} revoked_msg The message that was revoked, before it was revoked. It will contain the message's original data.
+                     * @param {?Message} revoked_msg The message that was revoked, before it was revoked. It will contain the message's original data. 
                      * Note that due to the way this data is captured, it may be possible that this param will be undefined.
                      */
-                    this.emit(
-                        Events.MESSAGE_REVOKED_EVERYONE,
-                        message,
-                        revoked_msg
-                    );
-                }
+                this.emit(Events.MESSAGE_REVOKED_EVERYONE, message, revoked_msg);
             }
-        );
+
+        });
 
         await exposeFunctionIfAbsent(
             this.pupPage,
@@ -863,36 +854,16 @@ class Client extends EventEmitter {
             }
         );
 
-        await exposeFunctionIfAbsent(
-            this.pupPage,
-            'onPollVoteEvent',
-            (vote) => {
-                const _vote = new PollVote(this, vote);
+        await exposeFunctionIfAbsent(this.pupPage, 'onPollVoteEvent', (votes) => {
+            for (const vote of votes) {
                 /**
                  * Emitted when some poll option is selected or deselected,
                  * shows a user's current selected option(s) on the poll
                  * @event Client#vote_update
                  */
-                this.emit(Events.VOTE_UPDATE, _vote);
+                this.emit(Events.VOTE_UPDATE, new PollVote(this, vote));
             }
-        );
-
-        await this.pupPage.exposeFunction(
-            'onAddMessageRevokeEvent',
-            (msg, newId) => {
-                /**
-                 * Emitted when messages are revoked
-                 * @event Client#message_revoke
-                 * @param {Message} message
-                 * @param {string} newId
-                 */
-                this.emit(
-                    Events.MESSAGE_REVOKED,
-                    new Message(this, msg),
-                    newId
-                );
-            }
-        );
+        });
 
         await this.pupPage.evaluate(() => {
             window.Store.Msg.on('change', (msg) => {
@@ -974,16 +945,8 @@ class Client extends EventEmitter {
                     }
                 }
             });
-            window.Store.Chat.on('change:unreadCount', (chat) => {
-                window.onChatUnreadCountEvent(chat);
-            });
-            window.Store.PollVote.on('add', async (vote) => {
-                const pollVoteModel = await window.WWebJS.getPollVoteModel(
-                    vote
-                );
-                pollVoteModel && window.onPollVoteEvent(pollVoteModel);
-            });
 
+            window.Store.Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
             if (
                 window.compareWwebVersions(
                     window.Debug.VERSION,
@@ -1014,6 +977,39 @@ class Client extends EventEmitter {
 
                     return ogMethod(...args);
                 }).bind(module);
+
+                const pollVoteModule = window.Store.AddonPollVoteTable;
+                const ogPollVoteMethod = pollVoteModule.bulkUpsert;
+
+                pollVoteModule.bulkUpsert = (async (...args) => {
+                    const votes = await Promise.all(args[0].map(async vote => {
+                        const msgKey = vote.id;
+                        const parentMsgKey = vote.pollUpdateParentKey;
+                        const timestamp = vote.t / 1000;
+                        const sender = vote.author ?? vote.from;
+                        const senderUserJid = sender._serialized;
+
+                        let parentMessage = window.Store.Msg.get(parentMsgKey._serialized);
+                        if (!parentMessage) {
+                            const fetched = await window.Store.Msg.getMessagesById([parentMsgKey._serialized]);
+                            parentMessage = fetched?.messages?.[0] || null;
+                        }
+
+                        return {
+                            ...vote,
+                            msgKey,
+                            sender,
+                            parentMsgKey,
+                            senderUserJid,
+                            timestamp,
+                            parentMessage
+                        };
+                    }));
+
+                    window.onPollVoteEvent(votes);
+
+                    return ogPollVoteMethod.apply(pollVoteModule, args);
+                }).bind(pollVoteModule);
             } else {
                 const module = window.Store.createOrUpdateReactionsModule;
                 const ogMethod = module.createOrUpdateReactions;
@@ -1323,6 +1319,42 @@ class Client extends EventEmitter {
         return sentMsg
             ? new Message(this, sentMsg)
             : undefined;
+    }
+
+    /**
+     * @typedef {Object} SendChannelAdminInviteOptions
+     * @property {?string} comment The comment to be added to an invitation
+     */
+
+    /**
+     * Sends a channel admin invitation to a user, allowing them to become an admin of the channel
+     * @param {string} chatId The ID of a user to send the channel admin invitation to
+     * @param {string} channelId The ID of a channel for which the invitation is being sent
+     * @param {SendChannelAdminInviteOptions} options 
+     * @returns {Promise<boolean>} Returns true if an invitation was sent successfully, false otherwise
+     */
+    async sendChannelAdminInvite(chatId, channelId, options = {}) {
+        const response = await this.pupPage.evaluate(async (chatId, channelId, options) => {
+            const channelWid = window.Store.WidFactory.createWid(channelId);
+            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = window.Store.Chat.get(chatWid) || (await window.Store.Chat.find(chatWid));
+
+            if (!chatWid.isUser()) {
+                return false;
+            }
+            
+            return await window.Store.SendChannelMessage.sendNewsletterAdminInviteMessage(
+                chat,
+                {
+                    newsletterWid: channelWid,
+                    invitee: chatWid,
+                    inviteMessage: options.comment,
+                    base64Thumb: await window.WWebJS.getProfilePicThumbToBase64(channelWid)
+                }
+            );
+        }, chatId, channelId, options);
+
+        return response.messageSendResult === 'OK';
     }
 
     /**
@@ -2121,6 +2153,219 @@ class Client extends EventEmitter {
             options
             }
         );
+    }
+
+    /**
+     * An object that handles the result for {@link createChannel} method
+     * @typedef {Object} CreateChannelResult
+     * @property {string} title A channel title
+     * @property {ChatId} nid An object that handels the newly created channel ID
+     * @property {string} nid.server 'newsletter'
+     * @property {string} nid.user 'XXXXXXXXXX'
+     * @property {string} nid._serialized 'XXXXXXXXXX@newsletter'
+     * @property {string} inviteLink The channel invite link, starts with 'https://whatsapp.com/channel/'
+     * @property {number} createdAtTs The timestamp the channel was created at
+     */
+
+    /**
+     * Options for the channel creation
+     * @typedef {Object} CreateChannelOptions
+     * @property {?string} description The channel description
+     * @property {?MessageMedia} picture The channel profile picture
+     */
+
+    /**
+     * Creates a new channel
+     * @param {string} title The channel name
+     * @param {CreateChannelOptions} options 
+     * @returns {Promise<CreateChannelResult|string>} Returns an object that handles the result for the channel creation or an error message as a string
+     */
+    async createChannel(title, options = {}) {
+        return await this.pupPage.evaluate(async (title, options) => {
+            let response, { description = null, picture = null } = options;
+
+            if (!window.Store.ChannelUtils.isNewsletterCreationEnabled()) {
+                return 'CreateChannelError: A channel creation is not enabled';
+            }
+
+            if (picture) {
+                picture = await window.WWebJS.cropAndResizeImage(picture, {
+                    asDataUrl: true,
+                    mimetype: 'image/jpeg',
+                    size: 640,
+                    quality: 1
+                });
+            }
+
+            try {
+                response = await window.Store.ChannelUtils.createNewsletterQuery({
+                    name: title,
+                    description: description,
+                    picture: picture,
+                });
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') {
+                    return 'CreateChannelError: An error occupied while creating a channel';
+                }
+                throw err;
+            }
+
+            return {
+                title: title,
+                nid: window.Store.JidToWid.newsletterJidToWid(response.idJid),
+                inviteLink: `https://whatsapp.com/channel/${response.newsletterInviteLinkMetadataMixin.inviteCode}`,
+                createdAtTs: response.newsletterCreationTimeMetadataMixin.creationTimeValue
+            };
+        }, title, options);
+    }
+
+    /**
+     * Subscribe to channel
+     * @param {string} channelId The channel ID
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async subscribeToChannel(channelId) {
+        return await this.pupPage.evaluate(async (channelId) => {
+            return await window.WWebJS.subscribeToUnsubscribeFromChannel(channelId, 'Subscribe');
+        }, channelId);
+    }
+
+    /**
+     * Options for unsubscribe from a channel
+     * @typedef {Object} UnsubscribeOptions
+     * @property {boolean} [deleteLocalModels = false] If true, after an unsubscription, it will completely remove a channel from the channel collection making it seem like the current user have never interacted with it. Otherwise it will only remove a channel from the list of channels the current user is subscribed to and will set the membership type for that channel to GUEST
+     */
+
+    /**
+     * Unsubscribe from channel
+     * @param {string} channelId The channel ID
+     * @param {UnsubscribeOptions} options
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async unsubscribeFromChannel(channelId, options) {
+        return await this.pupPage.evaluate(async (channelId, options) => {
+            return await window.WWebJS.subscribeToUnsubscribeFromChannel(channelId, 'Unsubscribe', options);
+        }, channelId, options);
+    }
+
+    /**
+     * Options for transferring a channel ownership to another user
+     * @typedef {Object} TransferChannelOwnershipOptions
+     * @property {boolean} [shouldDismissSelfAsAdmin = false] If true, after the channel ownership is being transferred to another user, the current user will be dismissed as a channel admin and will become to a channel subscriber.
+     */
+
+    /**
+     * Transfers a channel ownership to another user.
+     * Note: the user you are transferring the channel ownership to must be a channel admin.
+     * @param {string} channelId
+     * @param {string} newOwnerId
+     * @param {TransferChannelOwnershipOptions} options
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async transferChannelOwnership(channelId, newOwnerId, options = {}) {
+        return await this.pupPage.evaluate(async (channelId, newOwnerId, options) => {
+            const channel = await window.WWebJS.getChat(channelId, { getAsModel: false });
+            const newOwner = window.Store.Contact.get(newOwnerId) || (await window.Store.Contact.find(newOwnerId));
+            if (!channel.newsletterMetadata) {
+                await window.Store.NewsletterMetadataCollection.update(channel.id);
+            }
+
+            try {
+                await window.Store.ChannelUtils.changeNewsletterOwnerAction(channel, newOwner);
+
+                if (options.shouldDismissSelfAsAdmin) {
+                    const meContact = window.Store.ContactCollection.getMeContact();
+                    meContact && (await window.Store.ChannelUtils.demoteNewsletterAdminAction(channel, meContact));
+                }
+            } catch (error) {
+                return false;
+            }
+
+            return true;
+        }, channelId, newOwnerId, options);
+    }
+
+    /**
+     * Searches for channels based on search criteria, there are some notes:
+     * 1. The method finds only channels you are not subscribed to currently
+     * 2. If you have never been subscribed to a found channel
+     * or you have unsubscribed from it with {@link UnsubscribeOptions.deleteLocalModels} set to 'true',
+     * the lastMessage property of a found channel will be 'null'
+     *
+     * @param {Object} searchOptions Search options
+     * @param {string} [searchOptions.searchText = ''] Text to search
+     * @param {Array<string>} [searchOptions.countryCodes = [your local region]] Array of country codes in 'ISO 3166-1 alpha-2' standart (@see https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) to search for channels created in these countries
+     * @param {boolean} [searchOptions.skipSubscribedNewsletters = false] If true, channels that user is subscribed to won't appear in found channels
+     * @param {number} [searchOptions.view = 0] View type, makes sense only when the searchText is empty. Valid values to provide are:
+     * 0 for RECOMMENDED channels
+     * 1 for TRENDING channels
+     * 2 for POPULAR channels
+     * 3 for NEW channels
+     * @param {number} [searchOptions.limit = 50] The limit of found channels to be appear in the returnig result
+     * @returns {Promise<Array<Channel>|[]>} Returns an array of Channel objects or an empty array if no channels were found
+     */
+    async searchChannels(searchOptions = {}) {
+        return await this.pupPage.evaluate(async ({
+            searchText = '',
+            countryCodes = [window.Store.ChannelUtils.currentRegion],
+            skipSubscribedNewsletters = false,
+            view = 0,
+            limit = 50
+        }) => {
+            searchText = searchText.trim();
+            const currentRegion = window.Store.ChannelUtils.currentRegion;
+            if (![0, 1, 2, 3].includes(view)) view = 0;
+
+            countryCodes = countryCodes.length === 1 && countryCodes[0] === currentRegion
+                ? countryCodes
+                : countryCodes.filter((code) => Object.keys(window.Store.ChannelUtils.countryCodesIso).includes(code));
+
+            const viewTypeMapping = {
+                0: 'RECOMMENDED',
+                1: 'TRENDING',
+                2: 'POPULAR',
+                3: 'NEW'
+            };
+
+            searchOptions = {
+                searchText: searchText,
+                countryCodes: countryCodes,
+                skipSubscribedNewsletters: skipSubscribedNewsletters,
+                view: viewTypeMapping[view],
+                categories: [],
+                cursorToken: ''
+            };
+            
+            const originalFunction = window.Store.ChannelUtils.getNewsletterDirectoryPageSize;
+            limit !== 50 && (window.Store.ChannelUtils.getNewsletterDirectoryPageSize = () => limit);
+
+            const channels = (await window.Store.ChannelUtils.fetchNewsletterDirectories(searchOptions)).newsletters;
+
+            limit !== 50 && (window.Store.ChannelUtils.getNewsletterDirectoryPageSize = originalFunction);
+
+            return channels
+                ? await Promise.all(channels.map((channel) => window.WWebJS.getChatModel(channel, { isChannel: true })))
+                : [];
+        }, searchOptions);
+    }
+
+    /**
+     * Deletes the channel you created
+     * @param {string} channelId The ID of a channel to delete
+     * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
+     */
+    async deleteChannel(channelId) {
+        return await this.client.pupPage.evaluate(async (channelId) => {
+            const channel = await window.WWebJS.getChat(channelId, { getAsModel: false });
+            if (!channel) return false;
+            try {
+                await window.Store.ChannelUtils.deleteNewsletterAction(channel);
+                return true;
+            } catch (err) {
+                if (err.name === 'ServerStatusCodeError') return false;
+                throw err;
+            }
+        }, channelId);
     }
 
     /**

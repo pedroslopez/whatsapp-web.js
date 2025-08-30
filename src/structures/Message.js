@@ -199,23 +199,14 @@ class Message extends Base {
          * Group Invite Data
          * @type {object}
          */
-        this.inviteV4 =
-            data.type === MessageTypes.GROUP_INVITE
-                ? {
-                      inviteCode: data.inviteCode,
-                      inviteCodeExp: data.inviteCodeExp,
-                      groupId: data.inviteGrp,
-                      groupName: data.inviteGrpName,
-                      fromId:
-                          '_serialized' in data.from
-                              ? data.from._serialized
-                              : data.from,
-                      toId:
-                          '_serialized' in data.to
-                              ? data.to._serialized
-                              : data.to,
-                  }
-                : undefined;
+        this.inviteV4 = data.type === MessageTypes.GROUP_INVITE ? {
+            inviteCode: data.inviteCode,
+            inviteCodeExp: data.inviteCodeExp,
+            groupId: data.inviteGrp,
+            groupName: data.inviteGrpName,
+            fromId: typeof data.from === 'object' && '_serialized' in data.from ? data.from._serialized : data.from,
+            toId: typeof data.to === 'object' && '_serialized' in data.to ? data.to._serialized : data.to
+        } : undefined;
 
         /**
          * Indicates the mentions in the message body.
@@ -286,6 +277,14 @@ class Message extends Base {
         /** Last edit message author */
         if (data.latestEditMsgKey) {
             this.latestEditMsgKey = data.latestEditMsgKey;
+        }
+
+        /**
+         * Protocol message key.
+         * Can be used to retrieve the ID of an original message that was revoked.
+         */
+        if (data.protocolMessageKey) {
+            this.protocolMessageKey = data.protocolMessageKey;
         }
 
         /**
