@@ -20,6 +20,11 @@ exports.DefaultOptions = {
     ffmpegPath: 'ffmpeg',
     bypassCSP: false,
     proxyAuthentication: undefined,
+    pairWithPhoneNumber: {
+        phoneNumber: '',
+        showNotification: true,
+        intervalMs: 180000,
+    },
 };
 
 /**
@@ -61,6 +66,7 @@ exports.Events = {
     GROUP_MEMBERSHIP_REQUEST: 'group_membership_request',
     GROUP_UPDATE: 'group_update',
     QR_RECEIVED: 'qr',
+    CODE_RECEIVED: 'code',
     LOADING_SCREEN: 'loading_screen',
     DISCONNECTED: 'disconnected',
     STATE_CHANGED: 'change_state',
@@ -113,6 +119,7 @@ exports.MessageTypes = {
     REACTION: 'reaction',
     TEMPLATE_BUTTON_REPLY: 'template_button_reply',
     POLL_CREATION: 'poll_creation',
+    SCHEDULED_EVENT_CREATION: 'scheduled_event_creation',
 };
 
 /**

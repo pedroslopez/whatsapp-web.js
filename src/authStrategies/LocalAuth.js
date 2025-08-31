@@ -9,9 +9,10 @@ const BaseAuthStrategy = require('./BaseAuthStrategy');
  * @param {object} options - options
  * @param {string} options.clientId - Client id to distinguish instances if you are using multiple, otherwise keep null if you are using only one instance
  * @param {string} options.dataPath - Change the default path for saving session files, default is: "./.wwebjs_auth/" 
+ * @param {number} options.rmMaxRetries - Sets the maximum number of retries for removing the session directory
 */
 class LocalAuth extends BaseAuthStrategy {
-    constructor({ clientId, dataPath }={}) {
+    constructor({ clientId, dataPath, rmMaxRetries }={}) {
         super();
 
         const idRegex = /^[-_\w]+$/i;
@@ -21,6 +22,7 @@ class LocalAuth extends BaseAuthStrategy {
 
         this.dataPath = path.resolve(dataPath || './.wwebjs_auth/');
         this.clientId = clientId;
+        this.rmMaxRetries = rmMaxRetries ?? 4;
     }
 
     async beforeBrowserInitialized() {
@@ -44,7 +46,7 @@ class LocalAuth extends BaseAuthStrategy {
 
     async logout() {
         if (this.userDataDir) {
-            await fs.promises.rm(this.userDataDir, { recursive: true, force: true })
+            await fs.promises.rm(this.userDataDir, { recursive: true, force: true, maxRetries: this.rmMaxRetries })
                 .catch((e) => {
                     throw new Error(e);
                 });

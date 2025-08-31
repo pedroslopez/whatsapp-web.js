@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.33.1 &raquo; Class: Label</title>
+  <title>whatsapp-web.js 1.33.1 &raquo; Class: ScheduledEvent</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -25,10 +25,10 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
-            <h1><small></small><span class="symbol-name">Label</span></h1>
-            <p class="source-link">Source: <a href="structures_Label.js.html#source-line-10">structures/<wbr>Label.<wbr>js:10</a></p>
+            <h1><small></small><span class="symbol-name">ScheduledEvent</span></h1>
+            <p class="source-link">Source: <a href="structures_ScheduledEvent.js.html#source-line-15">structures/<wbr>ScheduledEvent.<wbr>js:15</a></p>
             <div class="symbol-classdesc">
-              <p>WhatsApp Business Label information</p>
+              <p>Represents a ScheduledEvent on WhatsApp</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -39,21 +39,21 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Label.html#hexColor">hexColor</a></dt>
+                    <dt><a href="ScheduledEvent.html#eventSendOptions">eventSendOptions</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Label.html#id">id</a></dt>
+                    <dt><a href="ScheduledEvent.html#name">name</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Label.html#name">name</a></dt>
+                    <dt><a href="ScheduledEvent.html#startTimeTs">startTimeTs</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -65,7 +65,7 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="Label.html#getChats">getChats()</a></dt>
+                    <dt><a href="ScheduledEvent.html#_validateInputs">_validateInputs(propName, propValue)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -78,7 +78,7 @@
             </div>
           </section>
           <section>
-            <h2 id="Label">new&nbsp;<span class="symbol-name">Label</span><span class="signature"><span class="signature-params">(client, labelData)</span></span></h2>
+            <h2 id="ScheduledEvent">new&nbsp;<span class="symbol-name">ScheduledEvent</span><span class="signature"><span class="signature-params">(name, startTime, options)</span></span></h2>
             <section>
               <h3>Parameters</h3>
               <table class="jsdoc-details-table">
@@ -93,7 +93,7 @@
                 <tbody>
                   <tr>
                     <td>
-                      <p>client</p>
+                      <p>name</p>
                     </td>
                     <td>
                       <p>&nbsp;</p>
@@ -106,7 +106,20 @@
                   </tr>
                   <tr>
                     <td>
-                      <p>labelData</p>
+                      <p>startTime</p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p>options</p>
                     </td>
                     <td>
                       <p>&nbsp;</p>
@@ -126,31 +139,75 @@
           <section>
             <h2>Properties</h2>
             <section>
-              <h3 id="hexColor"><span class="symbol-name">hexColor</span><small class="property-type">
-                  &nbsp;string</small></h3>
-              <p>Label hex color</p>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="id"><span class="symbol-name">id</span><small class="property-type">
-                  &nbsp;string</small></h3>
-              <p>Label ID</p>
+              <h3 id="eventSendOptions"><span class="symbol-name">eventSendOptions</span><small class="property-type">
+                  &nbsp;Object</small></h3>
+              <p>The send options for the event</p>
               <dl class="dl-compact">
               </dl>
               <h3 id="name"><span class="symbol-name">name</span><small class="property-type">
                   &nbsp;string</small></h3>
-              <p>Label name</p>
+              <p>The name of the event</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="startTimeTs"><span class="symbol-name">startTimeTs</span><small class="property-type">
+                  &nbsp;number</small></h3>
+              <p>The start time of the event</p>
               <dl class="dl-compact">
               </dl>
             </section>
             <h2>Method</h2>
             <section>
-              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
-              <h3 id="getChats"><span class="symbol-name">getChats</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of <a href="Chat.html">Chat</a></span></span></h3>
-              <p>Get all chats that have been assigned this Label</p>
+              <h3 id="_validateInputs"><span class="symbol-name">_validateInputs</span><span class="signature"><span class="signature-params">(propName, propValue)</span>&nbsp;&rarr; <span class="signature-returns"> (string or number)</span></span></h3>
+              <p>Inner function to validate input values</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>propName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The property name to validate the value of</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>propValue</p>
+                      </td>
+                      <td>
+                        <p>(string or number)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The property value to validate</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Promise containing Array of <a href="Chat.html">Chat</a></code> </p>
+                  <p><code>(string or number)</code> 
+                  <p>The property value if a validation succeeded</p>
+                  </p>
                 </dd>
               </dl>
             </section>
