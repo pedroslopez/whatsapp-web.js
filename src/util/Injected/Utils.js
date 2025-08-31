@@ -249,7 +249,7 @@ exports.LoadUtils = () => {
 
         if (typeof chat.id?.isGroup === 'function' && chat.id.isGroup()) {
             from = chat.groupMetadata && chat.groupMetadata.isLidAddressingMode ? lidUser : meUser;
-            participant = window.Store.WidFactory.toUserWid(from);
+            participant = window.Store.WidFactory.toUserWidOrThrow(from);
         }
 
         const newMsgKey = new window.Store.MsgKey({
@@ -521,15 +521,6 @@ exports.LoadUtils = () => {
         delete msg.pendingAckUpdate;
 
         return msg;
-    };
-
-    window.WWebJS.getPollVoteModel = async (vote) => {
-        const _vote = vote.serialize();
-        if (!vote.parentMsgKey) return null;
-        const msg =
-            window.Store.Msg.get(vote.parentMsgKey) || (await window.Store.Msg.getMessagesById([vote.parentMsgKey]))?.messages?.[0];
-        msg && (_vote.parentMessage = window.WWebJS.getMessageModel(msg));
-        return _vote;
     };
 
     window.WWebJS.getChat = async (chatId, { getAsModel = true } = {}) => {

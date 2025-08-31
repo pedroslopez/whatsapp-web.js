@@ -1088,6 +1088,11 @@ declare namespace WAWebJS {
         latestEditSenderTimestampMs?: number,
         /** Last edit message author */
         latestEditMsgKey?: MessageId,
+        /**
+         * Protocol message key.
+         * Can be used to retrieve the ID of an original message that was revoked.
+         */
+        protocolMessageKey?: MessageId,
         /** Message buttons */
         dynamicReplyButtons?: object,
         /** Selected button ID */
