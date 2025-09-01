@@ -865,7 +865,8 @@ declare namespace WAWebJS {
         STATE_CHANGED = 'change_state',
         BATTERY_CHANGED = 'change_battery',
         REMOTE_SESSION_SAVED = 'remote_session_saved',
-        CALL = 'call'
+        INCOMING_CALL = 'call',
+        VOTE_UPDATE = 'vote_update',
     }
 
     /** Group notification types */
