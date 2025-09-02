@@ -271,7 +271,7 @@ exports.LoadUtils = () => {
         }
 
         const lidUser = window.Store.User.getMaybeMeLidUser();
-        const meUser = window.Store.User.getMaybeMePnUser();
+        const meUser = window.Store.User.getMaybeMePnPnUser();
         const newId = await window.Store.MsgKey.newId();
         let from = chat.id.isLid() ? lidUser : meUser;
         let participant;
@@ -898,22 +898,18 @@ exports.LoadUtils = () => {
 
     window.WWebJS.rejectCall = async (peerJid, id) => {
         peerJid = peerJid.split('@')[0] + '@s.whatsapp.net';
-        let userId = window.Store.User.getMaybeMePnUser().user + '@s.whatsapp.net';
-        const stanza = window.Store.SocketWap.wap(
-            'call',
-            {
-                id: window.Store.SocketWap.generateId(),
-                from: window.Store.SocketWap.USER_JID(userId),
-                to: window.Store.SocketWap.USER_JID(peerJid),
-            },
-            [
-                window.Store.SocketWap.wap('reject', {
-                    'call-id': id,
-                    'call-creator': window.Store.SocketWap.USER_JID(peerJid),
-                    count: '0',
-                }),
-            ]
-        );
+        let userId = window.Store.User.getMaybeMeUser().user + '@s.whatsapp.net';
+        const stanza = window.Store.SocketWap.wap('call', {
+            id: window.Store.SocketWap.generateId(),
+            from: window.Store.SocketWap.USER_JID(userId),
+            to: window.Store.SocketWap.USER_JID(peerJid),
+        }, [
+            window.Store.SocketWap.wap('reject', {
+                'call-id': id,
+                'call-creator': window.Store.SocketWap.USER_JID(peerJid),
+                count: '0',
+            })
+        ]);
         await window.Store.Socket.deprecatedCastStanza(stanza);
     };
 
