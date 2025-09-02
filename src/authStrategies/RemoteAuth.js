@@ -191,7 +191,11 @@ class RemoteAuth extends BaseAuthStrategy {
             const src = path.join(from, d);
             if (await this.isValidPath(src)) {
                 const dest = path.join(to, path.basename(src));
-                await fs.promises.cp(src, dest, { force: true, errorOnExist: false });
+                await fs.promises.cp(src, dest, {
+                    recursive: true,
+                    force: true,
+                    errorOnExist: false
+                });
             }
         }
     }
