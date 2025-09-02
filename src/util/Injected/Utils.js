@@ -242,14 +242,14 @@ exports.LoadUtils = () => {
         }
 
         const lidUser = window.Store.User.getMaybeMeLidUser();
-        const meUser = window.Store.User.getMaybeMeUser();
+        const meUser = window.Store.User.getMaybeMePnUser();
         const newId = await window.Store.MsgKey.newId();
         let from = chat.id.isLid() ? lidUser : meUser;
         let participant;
 
         if (typeof chat.id?.isGroup === 'function' && chat.id.isGroup()) {
             from = chat.groupMetadata && chat.groupMetadata.isLidAddressingMode ? lidUser : meUser;
-            participant = window.Store.WidFactory.toUserWid(from);
+            participant = window.Store.WidFactory.toUserWidOrThrow(from);
         }
 
         const newMsgKey = new window.Store.MsgKey({
@@ -521,15 +521,6 @@ exports.LoadUtils = () => {
         delete msg.pendingAckUpdate;
 
         return msg;
-    };
-
-    window.WWebJS.getPollVoteModel = async (vote) => {
-        const _vote = vote.serialize();
-        if (!vote.parentMsgKey) return null;
-        const msg =
-            window.Store.Msg.get(vote.parentMsgKey) || (await window.Store.Msg.getMessagesById([vote.parentMsgKey]))?.messages?.[0];
-        msg && (_vote.parentMessage = window.WWebJS.getMessageModel(msg));
-        return _vote;
     };
 
     window.WWebJS.getChat = async (chatId, { getAsModel = true } = {}) => {
@@ -848,7 +839,7 @@ exports.LoadUtils = () => {
 
     window.WWebJS.rejectCall = async (peerJid, id) => {
         peerJid = peerJid.split('@')[0] + '@s.whatsapp.net';
-        let userId = window.Store.User.getMaybeMeUser().user + '@s.whatsapp.net';
+        let userId = window.Store.User.getMaybeMePnUser().user + '@s.whatsapp.net';
         const stanza = window.Store.SocketWap.wap('call', {
             id: window.Store.SocketWap.generateId(),
             from: window.Store.SocketWap.USER_JID(userId),
