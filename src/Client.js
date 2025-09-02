@@ -234,7 +234,7 @@ class Client extends EventEmitter {
                      * @type {ClientInfo}
                      */
                 this.info = new ClientInfo(this, await this.pupPage.evaluate(() => {
-                    return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMeUser() };
+                    return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMaybeMePnUser() || window.Store.User.getMaybeMeLidUser() };
                 }));
 
                 this.interface = new InterfaceController(this);
@@ -468,6 +468,9 @@ class Client extends EventEmitter {
                 let revoked_msg;
                 if (last_message && msg.id.id === last_message.id.id) {
                     revoked_msg = new Message(this, last_message);
+
+                    if (message.protocolMessageKey)
+                        revoked_msg.id = { ...message.protocolMessageKey };                    
                 }
 
                 /**
