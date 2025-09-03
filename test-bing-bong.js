@@ -1,9 +1,10 @@
 const { Client, LocalAuth } = require('./index');
+const qrcode = require('qrcode-terminal');
 
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: { 
-        headless: false,
+        headless: true,
     },
 });
 
@@ -16,7 +17,12 @@ client.on('loading_screen', (percent, message) => {
 
 client.on('qr', async (qr) => {
     console.log('QR RECEIVED - Scan this QR code with your WhatsApp app');
-    console.log('QR Code:', qr);
+    console.log('QR Code Data:', qr);
+    
+    // Generate and display visual QR code in terminal
+    console.log('\n📱 SCAN THIS QR CODE WITH YOUR WHATSAPP APP:');
+    qrcode.generate(qr, { small: true });
+    console.log('\n');
 });
 
 client.on('code', (code) => {
