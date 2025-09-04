@@ -1,32 +1,98 @@
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
 name: release
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          env:
+            EVENT_RELEASE_TAG_NAME : ${{ github.event.release.tag_name  }}
 
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
 on:
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
   workflow_dispatch:
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
     inputs:
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
       release_type:
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         description: "`alpha`, `alpha-minor`, `alpha-major`, `release-minor`, `release-patch` release?"
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         required: true
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         default: "alpha"
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
 
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
 jobs:
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
   release:
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
     runs-on: ubuntu-latest
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
     if: ${{ github.repository == 'pedroslopez/whatsapp-web.js' }}
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
     steps:
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
       - uses: actions/checkout@v2
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         with:
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
           token: ${{ secrets.RELEASE_GITHUB_TOKEN }}
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
       - run: git config --global user.email "hello@wwebjs.dev"
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
       - run: git config --global user.name "WWebJS Bot"
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
       - name: Bump version and publish to NPM
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         id: publish
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: ./tools/publish ${{ github.event.inputs.release_type }}
         env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        env:
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
           NPM_TOKEN: ${{ secrets.RELEASE_NPM_TOKEN }}
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
       - name: Create GitHub Release
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         id: create_release
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         uses: ncipollo/release-action@v1
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         with:
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
           prerelease: ${{ steps.publish.outputs.PRERELEASE }}
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
           generateReleaseNotes: true
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
           tag: v${{ steps.publish.outputs.NEW_VERSION }}
