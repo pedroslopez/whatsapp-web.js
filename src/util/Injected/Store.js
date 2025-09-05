@@ -107,7 +107,7 @@ exports.ExposeStore = () => {
     window.Store.Settings = {
         ...window.require('WAWebUserPrefsGeneral'),
         ...window.require('WAWebUserPrefsNotifications'),
-        setPushname: window.require('WAWebSetPushnameConnAction').setPushname
+        // setPushname: window.require('WAWebSetPushnameConnAction').setPushname
     };
     window.Store.NumberInfo = {
         ...window.require('WAPhoneUtils'),
