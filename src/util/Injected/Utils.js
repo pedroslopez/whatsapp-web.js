@@ -249,7 +249,9 @@ exports.LoadUtils = () => {
 
         if (typeof chat.id?.isGroup === 'function' && chat.id.isGroup()) {
             from = chat.groupMetadata && chat.groupMetadata.isLidAddressingMode ? lidUser : meUser;
-            participant = window.Store.WidFactory.toUserWidOrThrow(from);
+            // Note: The WhatsApp Web API has deprecated the `WidFactory.toUserWidOrThrow` method.
+            // The `from` object already contains the valid user ID, so we can use it directly.
+            participant = from;
         }
 
         const newMsgKey = new window.Store.MsgKey({
