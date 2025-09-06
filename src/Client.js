@@ -2347,23 +2347,7 @@ class Client extends EventEmitter {
             if (!Array.isArray(userIds)) userIds = [userIds];
 
             return await Promise.all(userIds.map(async (userId) => {
-                const wid = window.Store.WidFactory.createWid(userId);
-                const isLid = wid.server === 'lid';
-
-                let lid = isLid ? wid : window.Store.LidUtils.getCurrentLid(wid);
-                let phone = isLid ? window.Store.LidUtils.getPhoneNumber(wid) : wid;
-
-                if (!isLid && !lid) {
-                    const queryResult = await window.Store.QueryExist(wid);
-                    if (!queryResult?.wid) return {};
-                    lid = window.Store.LidUtils.getCurrentLid(wid);
-                }
-
-                if (isLid && !phone) {
-                    const queryResult = await window.Store.QueryExist(wid);
-                    if (!queryResult?.wid) return {};
-                    phone = window.Store.LidUtils.getPhoneNumber(wid);
-                }
+                const { lid, phone } = await window.WWebJS.enforceLidAndPnRetrieval(userId);
 
                 return {
                     lid: lid?._serialized,
