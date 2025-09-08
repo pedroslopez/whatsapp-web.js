@@ -11,7 +11,7 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
-    if: ${{ github.repository == 'pedroslopez/docker-supported-whatsapp-web.js' }}
+    if: ${{ github.repository == 'EddySaidin/whatsapp-web.js' }}
     steps:
       - uses: actions/checkout@v2
         with:

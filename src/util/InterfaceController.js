@@ -14,9 +14,8 @@ class InterfaceController {
      * @param {string} chatId ID of the chat window that will be opened
      */
     async openChatWindow(chatId) {
-        await this.pupPage.evaluate(async chatId => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
-            const chat = window.Store.Chat.get(chatWid) || await window.Store.Chat.find(chatWid);
+        await this.pupPage.evaluate(async (chatId) => {
+            const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             await window.Store.Cmd.openChatBottom(chat);
         }, chatId);
     }
@@ -27,7 +26,7 @@ class InterfaceController {
      */
     async openChatDrawer(chatId) {
         await this.pupPage.evaluate(async chatId => {
-            let chat = await window.Store.Chat.get(chatId);
+            let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             await window.Store.Cmd.openDrawerMid(chat);
         }, chatId);
     }
@@ -38,7 +37,7 @@ class InterfaceController {
      */
     async openChatSearch(chatId) {
         await this.pupPage.evaluate(async chatId => {
-            let chat = await window.Store.Chat.get(chatId);
+            let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             await window.Store.Cmd.chatSearch(chat);
         }, chatId);
     }
@@ -48,11 +47,11 @@ class InterfaceController {
      * @param {string} msgId ID of the message that will be scrolled to
      */
     async openChatWindowAt(msgId) {
-        await this.pupPage.evaluate(async msgId => {
+        await this.pupPage.evaluate(async (msgId) => {
             const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
-            let chat = await window.Store.Chat.find(msg.id.remote);
-            let searchContext = await window.Store.SearchContext(chat,msg);
-            await window.Store.Cmd.openChatAt(chat, searchContext);
+            const chat = window.Store.Chat.get(msg.id.remote) ?? await window.Store.Chat.find(msg.id.remote);
+            const searchContext = await window.Store.SearchContext.getSearchContext(chat, msg.id);
+            await window.Store.Cmd.openChatAt({ chat: chat, msgContext: searchContext });
         }, msgId);
     }
 

@@ -9,7 +9,7 @@ body:
         
         ### Here are some important points to consider before continuing:
         
-        - Please submit only feature requests that related to the `docker-supported-whatsapp-web.js` library.
+        - Please submit only feature requests that related to the `whatsapp-web.js` library.
         - Duplicate feature requests will be closed.
         - Any feature request opened as a question will be closed.
         
@@ -17,8 +17,8 @@ body:
         
         ### Please check the links below to see if you can find a solution there:
         
-         - [Open Pull Requests](https://github.com/pedroslopez/docker-supported-whatsapp-web.js/pulls?q=is%3Apr+is%3Aopen+-author%3Aapp%2Fdependabot)
-         - [Merged Pull Requests](https://github.com/pedroslopez/docker-supported-whatsapp-web.js/pulls?q=is%3Apr+is%3Amerged+-author%3Aapp%2Fdependabot)
+         - [Open Pull Requests](https://github.com/EddySaidin/whatsapp-web.js/pulls?q=is%3Apr+is%3Aopen+-author%3Aapp%2Fdependabot)
+         - [Merged Pull Requests](https://github.com/EddySaidin/whatsapp-web.js/pulls?q=is%3Apr+is%3Amerged+-author%3Aapp%2Fdependabot)
          - [Library Documentation](https://docs.wwebjs.dev/)
          - [Guide](https://wwebjs.dev/guide)
          - [JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
@@ -27,7 +27,7 @@ body:
   - type: checkboxes
     attributes:
       label: Is the feature you are looking for already implemented in the library?
-      description: Please check to see if an issue related to this feature request has [already been implemented](https://github.com/pedroslopez/docker-supported-whatsapp-web.js/pulls?q=is%3Apr+is%3Amerged+-author%3Aapp%2Fdependabot).
+      description: Please check to see if an issue related to this feature request has [already been implemented](https://github.com/EddySaidin/whatsapp-web.js/pulls?q=is%3Apr+is%3Amerged+-author%3Aapp%2Fdependabot).
       options:
         - label: I have reviewed the implemented features.
           required: true
@@ -35,7 +35,7 @@ body:
   - type: checkboxes
     attributes:
       label: Is your "solution" already implemented in an opened pull request?
-      description: Please check the [open pull requests](https://github.com/pedroslopez/docker-supported-whatsapp-web.js/pulls?q=is%3Apr+is%3Aopen+-author%3Aapp%2Fdependabot) to see if there is already an issue related to this feature request.
+      description: Please check the [open pull requests](https://github.com/EddySaidin/whatsapp-web.js/pulls?q=is%3Apr+is%3Aopen+-author%3Aapp%2Fdependabot) to see if there is already an issue related to this feature request.
       options:
         - label: I have reviewed the existing pull requests.
           required: true

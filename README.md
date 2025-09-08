@@ -1,21 +1,17 @@
 <div align="center">
     <br />
     <p>
-        <a href="https://wwebjs.dev"><img src="https://github.com/wwebjs/logos/blob/main/4_Full%20Logo%20Lockup_Small/small_banner_blue.png?raw=true" title="docker-supported-whatsapp-web.js" alt="WWebJS Website" width="500" /></a>
+        <a href="https://wwebjs.dev"><img src="https://github.com/wwebjs/logos/blob/main/4_Full%20Logo%20Lockup_Small/small_banner_blue.png?raw=true" title="whatsapp-web.js" alt="WWebJS Website" width="500" /></a>
     </p>
     <br />
     <p>
-		<a href="https://www.npmjs.com/package/docker-supported-whatsapp-web.js"><img src="https://img.shields.io/npm/v/docker-supported-whatsapp-web.js.svg" alt="npm" /></a>
-        <a href="https://depfu.com/github/pedroslopez/docker-supported-whatsapp-web.js?project_id=9765"><img src="https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg" alt="Depfu" /></a>
+		<a href="https://www.npmjs.com/package/whatsapp-web.js"><img src="https://img.shields.io/npm/v/whatsapp-web.js.svg" alt="npm" /></a>
+        <a href="https://depfu.com/github/EddySaidin/whatsapp-web.js?project_id=9765"><img src="https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg" alt="Depfu" /></a>
         <img src="https://img.shields.io/badge/WhatsApp_Web-2.3000.1017054665-brightgreen.svg" alt="WhatsApp_Web 2.2346.52" />
         <a href="https://discord.gg/H7DqQs4"><img src="https://img.shields.io/discord/698610475432411196.svg?logo=discord" alt="Discord server" /></a>
 	</p>
     <br />
 </div>
-
-## WhatsApp Web Dockerized
-
-This is a fork of [docker-supported-whatsapp-web.js](https://github.com/pedroslopez/docker-supported-whatsapp-web.js) by [pedroslopez](https://github.com/pedroslopez) as stated in the linked repository, with modifications to enable it to run in Docker. This package is mainly for my personal use to run it in a docker enviroment. 
 
 ## About
 **A WhatsApp API client that connects through the WhatsApp Web browser app**
@@ -36,7 +32,7 @@ The library works by launching the WhatsApp Web browser application and managing
 
 ## Installation
 
-The module is now available on npm! `npm i docker-supported-whatsapp-web.js`
+The module is now available on npm! `npm i whatsapp-web.js`
 
 > [!NOTE]
 > **Node ``v18+`` is required.**
@@ -73,7 +69,7 @@ sudo apt-get install -y nodejs
 ## Example usage
 
 ```js
-const { Client } = require('docker-supported-whatsapp-web.js');
+const { Client } = require('whatsapp-web.js');
 
 const client = new Client();
 
@@ -132,9 +128,9 @@ For further details on saving and restoring sessions, explore the provided [Auth
 | Set user status message | ✅ |
 | React to messages | ✅ |
 | Create polls | ✅ |
+| Channels | ✅ |
 | Vote in polls | 🔜 |
 | Communities | 🔜 |
-| Channels | 🔜 |
 
 Something missing? Make an issue and let us know!
 
@@ -173,17 +169,17 @@ limitations under the License.
 [guide]: https://guide.wwebjs.dev/guide
 [guide-source]: https://github.com/wwebjs/wwebjs.dev/tree/main
 [documentation]: https://docs.wwebjs.dev/
-[documentation-source]: https://github.com/pedroslopez/docker-supported-whatsapp-web.js/tree/main/docs
+[documentation-source]: https://github.com/EddySaidin/whatsapp-web.js/tree/main/docs
 [discord]: https://discord.gg/H7DqQs4
-[gitHub]: https://github.com/pedroslopez/docker-supported-whatsapp-web.js
-[npm]: https://npmjs.org/package/docker-supported-whatsapp-web.js
+[gitHub]: https://github.com/EddySaidin/whatsapp-web.js
+[npm]: https://npmjs.org/package/whatsapp-web.js
 [nodejs]: https://nodejs.org/en/download/
-[examples]: https://github.com/pedroslopez/docker-supported-whatsapp-web.js/blob/master/example.js
+[examples]: https://github.com/EddySaidin/whatsapp-web.js/blob/master/example.js
 [auth-strategies]: https://wwebjs.dev/guide/creating-your-bot/authentication.html
 [google-chrome]: https://wwebjs.dev/guide/creating-your-bot/handling-attachments.html#caveat-for-sending-videos-and-gifs
 [deprecated-video]: https://www.youtube.com/watch?v=hv1R1rLeVVE
-[gitHub-sponsors]: https://github.com/sponsors/pedroslopez
+[gitHub-sponsors]: https://github.com/sponsors/EddySaidin
 [support-payPal]: https://www.paypal.me/psla/
 [digitalocean]: https://m.do.co/c/73f906a36ed4
-[contributing]: https://github.com/pedroslopez/docker-supported-whatsapp-web.js/blob/main/CODE_OF_CONDUCT.md
+[contributing]: https://github.com/EddySaidin/whatsapp-web.js/blob/main/CODE_OF_CONDUCT.md
 [whatsapp]: https://whatsapp.com

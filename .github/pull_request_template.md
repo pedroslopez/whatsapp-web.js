@@ -29,7 +29,7 @@
 <!-- Include details of your testing environment: -->
 - Machine OS: <!-- The operation system of a machine you tested the PR on. (Mac | Windows | Linux | Docker + Ubuntu | other (provide the type)) -->
 - Phone OS: <!-- The operation system of a phone you used to check the the PR functionality on. -->
-- Library Version: <!-- The docker-supported-whatsapp-web.js version you used to test the PR. -->
+- Library Version: <!-- The whatsapp-web.js version you used to test the PR. -->
 - WhatsApp Web Version: <!-- Run `await client.getWWebVersion()` to see the WWeb version you used to test the PR. -->
 - Puppeteer Version:
 - Browser Type and Version: <!-- Chromium XX | Google Chrome XX | other (provide the type and version) -->

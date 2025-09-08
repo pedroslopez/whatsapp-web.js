@@ -3,10 +3,26 @@ const { Client, Location, Poll, List, Buttons, LocalAuth } = require('./index');
 const client = new Client({
     authStrategy: new LocalAuth(),
     // proxyAuthentication: { username: 'username', password: 'password' },
+    /**
+     * This option changes the browser name from defined in user agent to custom.
+     */
+    // deviceName: 'Your custom name',
+    /**
+     * This option changes browser type from defined in user agent to yours. It affects the browser icon
+     * that is displayed in 'linked devices' section.
+     * Valid value are: 'Chrome' | 'Firefox' | 'IE' | 'Opera' | 'Safari' | 'Edge'.
+     * If another value is provided, the browser icon in 'linked devices' section will be gray.
+     */
+    // browserName: 'Firefox',
     puppeteer: { 
         // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
         headless: false,
-    }
+    },
+    // pairWithPhoneNumber: {
+    //     phoneNumber: '96170100100' // Pair with phone number (format: <COUNTRY_CODE><PHONE_NUMBER>)
+    //     showNotification: true,
+    //     intervalMs: 180000 // Time to renew pairing code in milliseconds, defaults to 3 minutes
+    // }
 });
 
 // client initialize does not finish at ready now.
@@ -16,19 +32,13 @@ client.on('loading_screen', (percent, message) => {
     console.log('LOADING SCREEN', percent, message);
 });
 
-// Pairing code only needs to be requested once
-let pairingCodeRequested = false;
 client.on('qr', async (qr) => {
     // NOTE: This event will not be fired if a session is specified.
     console.log('QR RECEIVED', qr);
+});
 
-    // paiuting code example
-    const pairingCodeEnabled = false;
-    if (pairingCodeEnabled && !pairingCodeRequested) {
-        const pairingCode = await client.requestPairingCode('96170100100'); // enter the target phone number
-        console.log('Pairing code enabled, code: '+ pairingCode);
-        pairingCodeRequested = true;
-    }
+client.on('code', (code) => {
+    console.log('Pairing code:',code);
 });
 
 client.on('authenticated', () => {
@@ -140,7 +150,7 @@ client.on('message', async msg => {
          * }
          *
          * For more usage examples:
-         * @see https://github.com/pedroslopez/docker-supported-whatsapp-web.js/pull/2344#usage-example1
+         * @see https://github.com/EddySaidin/whatsapp-web.js/pull/2344#usage-example1
          */
         console.log(result);
     } else if (msg.body === '!creategroup') {
@@ -184,7 +194,7 @@ client.on('message', async msg => {
          * }
          *
          * For more usage examples:
-         * @see https://github.com/pedroslopez/docker-supported-whatsapp-web.js/pull/2344#usage-example2
+         * @see https://github.com/EddySaidin/whatsapp-web.js/pull/2344#usage-example2
          */
         console.log(result);
     } else if (msg.body === '!groupinfo') {
@@ -470,6 +480,40 @@ client.on('message', async msg => {
         console.log(statuses);
         const chat = await statuses[0]?.getChat(); // Get user chat of a first status
         console.log(chat);
+    } else if (msg.body === '!sendMediaHD' && msg.hasQuotedMsg) {
+        const quotedMsg = await msg.getQuotedMessage();
+        if (quotedMsg.hasMedia) {
+            const media = await quotedMsg.downloadMedia();
+            await client.sendMessage(msg.from, media, { sendMediaAsHd: true });
+        }
+    } else if (msg.body === '!parseVCard') {
+        const vCard =
+            'BEGIN:VCARD\n' +
+            'VERSION:3.0\n' +
+            'FN:John Doe\n' +
+            'ORG:Microsoft;\n' +
+            'EMAIL;type=INTERNET:john.doe@gmail.com\n' +
+            'URL:www.johndoe.com\n' +
+            'TEL;type=CELL;type=VOICE;waid=18006427676:+1 (800) 642 7676\n' +
+            'END:VCARD';
+        const vCardExtended =
+            'BEGIN:VCARD\n' +
+            'VERSION:3.0\n' +
+            'FN:John Doe\n' +
+            'ORG:Microsoft;\n' +
+            'item1.TEL:+1 (800) 642 7676\n' +
+            'item1.X-ABLabel:USA Customer Service\n' +
+            'item2.TEL:+55 11 4706 0900\n' +
+            'item2.X-ABLabel:Brazil Customer Service\n' +
+            'PHOTO;BASE64:here you can paste a binary data of a contact photo in Base64 encoding\n' +
+            'END:VCARD';
+        const userId = 'XXXXXXXXXX@c.us';
+        await client.sendMessage(userId, vCard);
+        await client.sendMessage(userId, vCardExtended);
+    } else if (msg.body === '!changeSync') {
+        // NOTE: this action will take effect after you restart the client.
+        const backgroundSync = await client.setBackgroundSync(true);
+        console.log(backgroundSync);
     }
 });
 

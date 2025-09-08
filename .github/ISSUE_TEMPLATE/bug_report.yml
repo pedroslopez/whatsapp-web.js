@@ -9,7 +9,7 @@ body:
 
         ### Here are some important points to consider before submitting a new bug or issue:
         
-        - Please report only issues related to the `docker-supported-whatsapp-web.js` library.
+        - Please report only issues related to the `whatsapp-web.js` library.
         - Duplicate issues will be closed.
         - Any issue opened as a question will be closed.
         
@@ -17,8 +17,8 @@ body:
         
         ### Please check the links below to see if you can find a solution there:
         
-         - [Open Issues](https://github.com/pedroslopez/docker-supported-whatsapp-web.js/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc)
-         - [Closed Issues](https://github.com/pedroslopez/docker-supported-whatsapp-web.js/issues?q=is%3Aissue+sort%3Aupdated-desc+is%3Aclosed)
+         - [Open Issues](https://github.com/EddySaidin/whatsapp-web.js/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc)
+         - [Closed Issues](https://github.com/EddySaidin/whatsapp-web.js/issues?q=is%3Aissue+sort%3Aupdated-desc+is%3Aclosed)
          - [Library Documentation](https://docs.wwebjs.dev/)
          - [Guide](https://wwebjs.dev/guide)
          - [JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)

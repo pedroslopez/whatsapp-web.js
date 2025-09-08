@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.34.0 &raquo; Class: List</title>
+  <title>whatsapp-web.js 1.34.0 &raquo; Class: ScheduledEvent</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -25,10 +25,10 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <div class="symbol-detail-labels"><span class="label label-kind">class</span></div>
-            <h1><small></small><span class="symbol-name">List</span></h1>
-            <p class="source-link">Source: <a href="structures_List.js.html#source-line-8">structures/<wbr>List.<wbr>js:8</a></p>
+            <h1><small></small><span class="symbol-name">ScheduledEvent</span></h1>
+            <p class="source-link">Source: <a href="structures_ScheduledEvent.js.html#source-line-15">structures/<wbr>ScheduledEvent.<wbr>js:15</a></p>
             <div class="symbol-classdesc">
-              <p>Message type List</p>
+              <p>Represents a ScheduledEvent on WhatsApp</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -39,27 +39,21 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="List.html#buttonText">buttonText</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="List.html#description">description</a></dt>
+                    <dt><a href="ScheduledEvent.html#eventSendOptions">eventSendOptions</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="List.html#footer">footer</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="List.html#sections">sections</a></dt>
+                    <dt><a href="ScheduledEvent.html#name">name</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="List.html#title">title</a></dt>
+                    <dt><a href="ScheduledEvent.html#startTimeTs">startTimeTs</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -71,7 +65,7 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="List.html#_format">_format(sections)</a></dt>
+                    <dt><a href="ScheduledEvent.html#_validateInputs">_validateInputs(propName, propValue)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -84,7 +78,7 @@
             </div>
           </section>
           <section>
-            <h2 id="List">new&nbsp;<span class="symbol-name">List</span><span class="signature"><span class="signature-params">(body, buttonText, sections, title, footer)</span></span></h2>
+            <h2 id="ScheduledEvent">new&nbsp;<span class="symbol-name">ScheduledEvent</span><span class="signature"><span class="signature-params">(name, startTime, options)</span></span></h2>
             <section>
               <h3>Parameters</h3>
               <table class="jsdoc-details-table">
@@ -99,7 +93,7 @@
                 <tbody>
                   <tr>
                     <td>
-                      <p>body</p>
+                      <p>name</p>
                     </td>
                     <td>
                       <p>&nbsp;</p>
@@ -112,7 +106,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <p>buttonText</p>
+                      <p>startTime</p>
                     </td>
                     <td>
                       <p>&nbsp;</p>
@@ -125,7 +119,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <p>sections</p>
+                      <p>options</p>
                     </td>
                     <td>
                       <p>&nbsp;</p>
@@ -134,34 +128,6 @@
                       <p>&nbsp;</p>
                     </td>
                     <td>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <p>title</p>
-                    </td>
-                    <td>
-                      <p>&nbsp;</p>
-                    </td>
-                    <td>
-                      <p>&nbsp;</p>
-                    </td>
-                    <td>
-                      <p>Value can be null.</p>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <p>footer</p>
-                    </td>
-                    <td>
-                      <p>&nbsp;</p>
-                    </td>
-                    <td>
-                      <p>&nbsp;</p>
-                    </td>
-                    <td>
-                      <p>Value can be null.</p>
                     </td>
                   </tr>
                 </tbody>
@@ -173,47 +139,28 @@
           <section>
             <h2>Properties</h2>
             <section>
-              <h3 id="buttonText"><span class="symbol-name">buttonText</span><small class="property-type">
-                  &nbsp;string</small></h3>
-              <p>List button text</p>
+              <h3 id="eventSendOptions"><span class="symbol-name">eventSendOptions</span><small class="property-type">
+                  &nbsp;Object</small></h3>
+              <p>The send options for the event</p>
               <dl class="dl-compact">
               </dl>
-              <h3 id="description"><span class="symbol-name">description</span><small class="property-type">
+              <h3 id="name"><span class="symbol-name">name</span><small class="property-type">
                   &nbsp;string</small></h3>
-              <p>Message body</p>
+              <p>The name of the event</p>
               <dl class="dl-compact">
               </dl>
-              <h3 id="footer"><span class="symbol-name">footer</span><small class="property-type">
-                  &nbsp;string</small></h3>
-              <p>footer of message</p>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="sections"><span class="symbol-name">sections</span><small class="property-type">
-                  &nbsp;Array of any</small></h3>
-              <p>sections of message</p>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="title"><span class="symbol-name">title</span><small class="property-type">
-                  &nbsp;string</small></h3>
-              <p>title of message</p>
+              <h3 id="startTimeTs"><span class="symbol-name">startTimeTs</span><small class="property-type">
+                  &nbsp;number</small></h3>
+              <p>The start time of the event</p>
               <dl class="dl-compact">
               </dl>
             </section>
             <h2>Method</h2>
             <section>
-              <h3 id="_format"><span class="symbol-name">_format</span><span class="signature"><span class="signature-params">(sections)</span>&nbsp;&rarr; <span class="signature-returns"> Array of any</span></span></h3>
-              <p>Creates section array from simple array</p>
+              <h3 id="_validateInputs"><span class="symbol-name">_validateInputs</span><span class="signature"><span class="signature-params">(propName, propValue)</span>&nbsp;&rarr; <span class="signature-returns"> (string or number)</span></span></h3>
+              <p>Inner function to validate input values</p>
               <section>
-                <h4>
-                  Example
-                </h4>
-                <div>
-                  <pre class="prettyprint"><code>Input: [{title:&#x27;sectionTitle&#x27;,rows:[{id:&#x27;customId&#x27;, title:&#x27;ListItem2&#x27;, description: &#x27;desc&#x27;},{title:&#x27;ListItem2&#x27;}]}}]
-Returns: [{&#x27;title&#x27;:&#x27;sectionTitle&#x27;,&#x27;rows&#x27;:[{&#x27;rowId&#x27;:&#x27;customId&#x27;,&#x27;title&#x27;:&#x27;ListItem1&#x27;,&#x27;description&#x27;:&#x27;desc&#x27;},{&#x27;rowId&#x27;:&#x27;oGSRoD&#x27;,&#x27;title&#x27;:&#x27;ListItem2&#x27;,&#x27;description&#x27;:&#x27;&#x27;}]}]</code></pre>
-                </div>
-              </section>
-              <section>
-                <h4>Parameter</h4>
+                <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
                   <thead>
                     <tr>
@@ -226,15 +173,30 @@ Returns: [{&#x27;title&#x27;:&#x27;sectionTitle&#x27;,&#x27;rows&#x27;:[{&#x27;r
                   <tbody>
                     <tr>
                       <td>
-                        <p>sections</p>
+                        <p>propName</p>
                       </td>
                       <td>
-                        <p>Array of any</p>
+                        <p>string</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
+                        <p>The property name to validate the value of</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>propValue</p>
+                      </td>
+                      <td>
+                        <p>(string or number)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The property value to validate</p>
                       </td>
                     </tr>
                   </tbody>
@@ -243,7 +205,9 @@ Returns: [{&#x27;title&#x27;:&#x27;sectionTitle&#x27;,&#x27;rows&#x27;:[{&#x27;r
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Array of any</code> </p>
+                  <p><code>(string or number)</code> 
+                  <p>The property value if a validation succeeded</p>
+                  </p>
                 </dd>
               </dl>
             </section>
