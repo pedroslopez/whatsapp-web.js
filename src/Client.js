@@ -2,7 +2,7 @@
 
 const EventEmitter = require('events');
 const puppeteer = require('puppeteer');
-const moduleRaid = require('@EddySaidin/moduleraid/moduleraid');
+const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
 
 const Util = require('./util/Util');
 const InterfaceController = require('./util/InterfaceController');
@@ -965,7 +965,7 @@ class Client extends EventEmitter {
         if (options.mentions) {
             !Array.isArray(options.mentions) && (options.mentions = [options.mentions]);
             if (options.mentions.some((possiblyContact) => possiblyContact instanceof Contact)) {
-                console.warn('Mentions with an array of Contact are now deprecated. See more at https://github.com/EddySaidin/whatsapp-web.js/pull/2166.');
+                console.warn('Mentions with an array of Contact are now deprecated. See more at https://github.com/pedroslopez/whatsapp-web.js/pull/2166.');
                 options.mentions = options.mentions.map((a) => a.id._serialized);
             }
         }

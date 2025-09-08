@@ -706,7 +706,7 @@ class Message extends Base {
         if (options.mentions) {
             !Array.isArray(options.mentions) &amp;amp;&amp;amp; (options.mentions &#x3D; [options.mentions]);
             if (options.mentions.some((possiblyContact) &#x3D;&gt; possiblyContact instanceof Contact)) {
-                console.warn(&#x27;Mentions with an array of Contact are now deprecated. See more at https://github.com/EddySaidin/whatsapp-web.js/pull/2166.&#x27;);
+                console.warn(&#x27;Mentions with an array of Contact are now deprecated. See more at https://github.com/pedroslopez/whatsapp-web.js/pull/2166.&#x27;);
                 options.mentions &#x3D; options.mentions.map((a) &#x3D;&gt; a.id._serialized);
             }
         }

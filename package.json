@@ -25,11 +25,11 @@
   "author": "Pedro Lopez",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/EddySaidin/whatsapp-web.js/issues"
+    "url": "https://github.com/pedroslopez/whatsapp-web.js/issues"
   },
   "homepage": "https://wwebjs.dev/",
   "dependencies": {
-    "@EddySaidin/moduleraid": "^5.0.2",
+    "@pedroslopez/moduleraid": "^5.0.2",
     "fluent-ffmpeg": "2.1.3",
     "mime": "^3.0.0",
     "node-fetch": "^2.6.9",
