@@ -234,7 +234,7 @@ class Client extends EventEmitter {
                      * @type {ClientInfo}
                      */
                 this.info = new ClientInfo(this, await this.pupPage.evaluate(() => {
-                    return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMaybeMeUser() };
+                    return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMaybeMePnUser() || window.Store.User.getMaybeMeLidUser() };
                 }));
 
                 this.interface = new InterfaceController(this);
@@ -2343,19 +2343,17 @@ class Client extends EventEmitter {
      * @returns {Promise<Array<{ lid: string, pn: string }>>}
      */
     async getContactLidAndPhone(userIds) {
-        return await this.pupPage.evaluate((userIds) => {
-            !Array.isArray(userIds) && (userIds = [userIds]);
-            return userIds.map(userId => {
-                const wid = window.Store.WidFactory.createWid(userId);
-                const isLid = wid.server === 'lid';
-                const lid = isLid ? wid : window.Store.LidUtils.getCurrentLid(wid);
-                const phone = isLid ? window.Store.LidUtils.getPhoneNumber(wid) : wid;
+        return await this.pupPage.evaluate(async (userIds) => {
+            if (!Array.isArray(userIds)) userIds = [userIds];
+
+            return await Promise.all(userIds.map(async (userId) => {
+                const { lid, phone } = await window.WWebJS.enforceLidAndPnRetrieval(userId);
 
                 return {
-                    lid: lid._serialized,
-                    pn: phone._serialized
+                    lid: lid?._serialized,
+                    pn: phone?._serialized
                 };
-            });
+            }));
         }, userIds);
     }
 }
