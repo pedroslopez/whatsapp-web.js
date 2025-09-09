@@ -195,23 +195,7 @@ class GroupChat extends Chat {
         return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
             const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             const participants = (await Promise.all(participantIds.map(async p => {
-                const wid = window.Store.WidFactory.createWid(p);
-                const isLid = wid.server === 'lid';
-
-                let lid = !isLid ? window.Store.LidUtils.getCurrentLid(wid) : wid;
-                let phone = isLid ? window.Store.LidUtils.getPhoneNumber(wid) : wid;
-
-                if (!isLid && !lid) {
-                    const queryResult = await window.Store.QueryExist(wid);
-                    if (!queryResult?.wid) return undefined;
-                    lid = window.Store.LidUtils.getCurrentLid(wid);
-                }
-
-                if (isLid && !phone) {
-                    const queryResult = await window.Store.QueryExist(wid);
-                    if (!queryResult?.wid) return undefined;
-                    phone = window.Store.LidUtils.getPhoneNumber(wid);
-                }
+                const { lid, phone } = await window.WWebJS.enforceLidAndPnRetrieval(p);
 
                 return chat.groupMetadata.participants.get(lid?._serialized) ||
                     chat.groupMetadata.participants.get(phone?._serialized);
@@ -230,23 +214,7 @@ class GroupChat extends Chat {
         return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
             const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             const participants = (await Promise.all(participantIds.map(async p => {
-                const wid = window.Store.WidFactory.createWid(p);
-                const isLid = wid.server === 'lid';
-
-                let lid = !isLid ? window.Store.LidUtils.getCurrentLid(wid) : wid;
-                let phone = isLid ? window.Store.LidUtils.getPhoneNumber(wid) : wid;
-
-                if (!isLid && !lid) {
-                    const queryResult = await window.Store.QueryExist(wid);
-                    if (!queryResult?.wid) return undefined;
-                    lid = window.Store.LidUtils.getCurrentLid(wid);
-                }
-
-                if (isLid && !phone) {
-                    const queryResult = await window.Store.QueryExist(wid);
-                    if (!queryResult?.wid) return undefined;
-                    phone = window.Store.LidUtils.getPhoneNumber(wid);
-                }
+                const { lid, phone } = await window.WWebJS.enforceLidAndPnRetrieval(p);
 
                 return chat.groupMetadata.participants.get(lid?._serialized) ||
                     chat.groupMetadata.participants.get(phone?._serialized);
@@ -265,23 +233,7 @@ class GroupChat extends Chat {
         return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
             const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             const participants = (await Promise.all(participantIds.map(async p => {
-                const wid = window.Store.WidFactory.createWid(p);
-                const isLid = wid.server === 'lid';
-
-                let lid = !isLid ? window.Store.LidUtils.getCurrentLid(wid) : wid;
-                let phone = isLid ? window.Store.LidUtils.getPhoneNumber(wid) : wid;
-
-                if (!isLid && !lid) {
-                    const queryResult = await window.Store.QueryExist(wid);
-                    if (!queryResult?.wid) return undefined;
-                    lid = window.Store.LidUtils.getCurrentLid(wid);
-                }
-
-                if (isLid && !phone) {
-                    const queryResult = await window.Store.QueryExist(wid);
-                    if (!queryResult?.wid) return undefined;
-                    phone = window.Store.LidUtils.getPhoneNumber(wid);
-                }
+                const { lid, phone } = await window.WWebJS.enforceLidAndPnRetrieval(p);
 
                 return chat.groupMetadata.participants.get(lid?._serialized) ||
                     chat.groupMetadata.participants.get(phone?._serialized);
