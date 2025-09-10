@@ -860,12 +860,14 @@ declare namespace WAWebJS {
         GROUP_MEMBERSHIP_REQUEST = 'group_membership_request',
         GROUP_UPDATE = 'group_update',
         QR_RECEIVED = 'qr',
+        CODE_RECEIVED = 'code',
         LOADING_SCREEN = 'loading_screen',
         DISCONNECTED = 'disconnected',
         STATE_CHANGED = 'change_state',
         BATTERY_CHANGED = 'change_battery',
         REMOTE_SESSION_SAVED = 'remote_session_saved',
-        CALL = 'call'
+        INCOMING_CALL = 'call',
+        VOTE_UPDATE = 'vote_update',
     }
 
     /** Group notification types */
@@ -874,6 +876,8 @@ declare namespace WAWebJS {
         INVITE = 'invite',
         REMOVE = 'remove',
         LEAVE = 'leave',
+        PROMOTE = 'promote',
+        DEMOTE = 'demote',
         SUBJECT = 'subject',
         DESCRIPTION = 'description',
         PICTURE = 'picture',
