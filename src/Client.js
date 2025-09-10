@@ -95,6 +95,11 @@ class Client extends EventEmitter {
      * Private function
      */
     async inject() {
+        let hasReloaded = false;
+        const reloadHandler = () => { hasReloaded = true; };
+        try{
+        this.pupPage.on('framenavigated', reloadHandler);
+
         await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', {timeout: this.options.authTimeoutMs});
         await this.setDeviceName(this.options.deviceName, this.options.browserName);
         const pairWithPhoneNumber = this.options.pairWithPhoneNumber;
@@ -272,6 +277,13 @@ class Client extends EventEmitter {
                 await window.onLogoutEvent();
             });
         });
+
+        }catch(err){
+            if(!hasReloaded)
+                throw err;
+        }finally{
+            this.pupPage.off('framenavigated', reloadHandler);
+        }
     }
 
     /**
