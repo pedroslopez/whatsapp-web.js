@@ -244,6 +244,12 @@ declare namespace WAWebJS {
         /** Save new contact to user's addressbook or edit the existing one */
         saveOrEditAddressbookContact(phoneNumber: string, firstName: string, lastName: string, syncToAddressbook?: boolean): Promise<ChatId>
 
+        /**
+         * Add or edit a customer note
+         * @see https://faq.whatsapp.com/1433099287594476
+         */
+        addOrEditCustomerNote(userId: string, note: string): Promise<void>
+
         /** Deletes the contact from user's addressbook */
         deleteAddressbookContact(honeNumber: string): Promise<void>
 
