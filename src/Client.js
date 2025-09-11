@@ -2366,6 +2366,8 @@ class Client extends EventEmitter {
      */
     async addOrEditCustomerNote(userId, note) {
         return await this.pupPage.evaluate(async (userId, note) => {
+            if (!window.Store.BusinessGatingUtils.smbNotesV1Enabled()) return;
+
             return window.Store.CustomerNoteUtils.noteAddAction(
                 'unstructured',
                 window.Store.WidToJid.widToUserJid(window.Store.WidFactory.createWid(userId)),
@@ -2389,11 +2391,15 @@ class Client extends EventEmitter {
      */
     async getCustomerNote(userId) {
         return await this.pupPage.evaluate(async (userId) => {
+            if (!window.Store.BusinessGatingUtils.smbNotesV1Enabled()) return null;
+
             const note = await window.Store.CustomerNoteUtils.retrieveOnlyNoteForChatJid(
                 window.Store.WidToJid.widToUserJid(window.Store.WidFactory.createWid(userId))
             );
 
-            let serialized = note.serialize();
+            let serialized = note?.serialize();
+
+            if (!serialized) return null;
 
             serialized.chatId = window.Store.JidToWid.userJidToUserWid(serialized.chatJid)._serialized;
             delete serialized.chatJid;

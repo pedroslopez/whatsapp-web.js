@@ -104,6 +104,7 @@ exports.ExposeStore = () => {
     window.Store.WAWebStreamModel = window.require('WAWebStreamModel');
     window.Store.FindOrCreateChat = window.require('WAWebFindChatAction');
     window.Store.CustomerNoteUtils = window.require('WAWebNoteAction');
+    window.Store.BusinessGatingUtils = window.require('WAWebBizGatingUtils');
     
     window.Store.Settings = {
         ...window.require('WAWebUserPrefsGeneral'),
