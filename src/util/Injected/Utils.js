@@ -67,10 +67,7 @@ exports.LoadUtils = () => {
         if (options.mentionedJidList) {
             options.mentionedJidList = await Promise.all(
                 options.mentionedJidList.map(async (id) => {
-                    const wid = window.Store.WidFactory.createWid(id);
-                    if (await window.Store.QueryExist(wid)) {
-                        return wid;
-                    }
+                    return window.Store.WidFactory.createWid(id);
                 })
             );
             options.mentionedJidList = options.mentionedJidList.filter(Boolean);
