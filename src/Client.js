@@ -1227,7 +1227,7 @@ class Client extends EventEmitter {
 
             const pinnedMsgs = (
                 await Promise.all(
-                    msgs.map(async (msg) => {
+                    msgs.filter(msg => msg.pinType == 1).map(async (msg) => {
                         const res = await window.Store.Msg.getMessagesById([msg.parentMsgKey]);
                         return res?.messages?.[0];
                     })
