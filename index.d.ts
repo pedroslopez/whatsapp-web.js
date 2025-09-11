@@ -250,6 +250,19 @@ declare namespace WAWebJS {
          */
         addOrEditCustomerNote(userId: string, note: string): Promise<void>
 
+        /**
+         * Get a customer note
+         * @see https://faq.whatsapp.com/1433099287594476
+         */
+        getCustomerNote(userId: string): Promise<{
+            chatId: string;
+            content: string;
+            createdAt: number;
+            id: string;
+            modifiedAt: number;
+            type: string;
+        }>
+
         /** Deletes the contact from user's addressbook */
         deleteAddressbookContact(honeNumber: string): Promise<void>
 
