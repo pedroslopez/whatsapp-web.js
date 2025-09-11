@@ -103,6 +103,7 @@ exports.ExposeStore = () => {
     window.Store.UploadUtils = window.require('WAWebUploadManager');
     window.Store.WAWebStreamModel = window.require('WAWebStreamModel');
     window.Store.FindOrCreateChat = window.require('WAWebFindChatAction');
+    window.Store.CustomerNoteUtils = window.require('WAWebNoteAction');
     
     window.Store.Settings = {
         ...window.require('WAWebUserPrefsGeneral'),
