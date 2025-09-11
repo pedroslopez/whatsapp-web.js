@@ -65,11 +65,7 @@ exports.LoadUtils = () => {
         }
 
         if (options.mentionedJidList) {
-            options.mentionedJidList = await Promise.all(
-                options.mentionedJidList.map(async (id) => {
-                    return window.Store.WidFactory.createWid(id);
-                })
-            );
+            options.mentionedJidList = options.mentionedJidList.map((id) => window.Store.WidFactory.createWid(id));
             options.mentionedJidList = options.mentionedJidList.filter(Boolean);
         }
 
