@@ -1728,6 +1728,15 @@ declare namespace WAWebJS {
         syncHistory: () => Promise<boolean>
         /** Add or edit a customer note */
         addOrEditCustomerNote: (note: string) => Promise<void>
+        /** Get a customer note */
+        getCustomerNote: () => Promise<{
+            chatId: string;
+            content: string;
+            createdAt: number;
+            id: string;
+            modifiedAt: number;
+            type: string;
+        }>
     }
 
     export interface Channel {
