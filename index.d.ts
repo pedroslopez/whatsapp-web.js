@@ -1726,6 +1726,8 @@ declare namespace WAWebJS {
         getPinnedMessages: () => Promise<[Message]|[]>
         /** Sync history conversation of the Chat */
         syncHistory: () => Promise<boolean>
+        /** Add or edit a customer note */
+        addOrEditCustomerNote: (note: string) => Promise<void>
     }
 
     export interface Channel {
