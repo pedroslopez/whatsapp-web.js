@@ -287,6 +287,9 @@ declare namespace WAWebJS {
          */
         transferChannelOwnership(channelId: string, newOwnerId: string, options?: TransferChannelOwnershipOptions): Promise<boolean>;
 
+        /** Get Poll Votes */
+        getPollVotes(messageId: string): Promise<PollVote[]>
+
         /** Generic event */
         on(event: string, listener: (...args: any) => void): this
 
