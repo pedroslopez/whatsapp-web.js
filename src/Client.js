@@ -2369,7 +2369,7 @@ class Client extends EventEmitter {
 
         const pollVotes = await this.pupPage.evaluate( async (msg) => {
             const msgKey = window.Store.MsgKey.fromString(msg.id._serialized);
-            let pollVotes = await window.Store.PollsVotesSchema.getTable().equals(["parentMsgKey"], msgKey.toString());
+            let pollVotes = await window.Store.PollsVotesSchema.getTable().equals(['parentMsgKey'], msgKey.toString());
             
             return pollVotes.map(item => {
                 const typedArray = new Uint8Array(item.selectedOptionLocalIds);
