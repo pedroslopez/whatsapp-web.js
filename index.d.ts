@@ -1177,6 +1177,10 @@ declare namespace WAWebJS {
          */
         getPayment: () => Promise<Payment>,
         /**
+         * Get Poll Votes associated with the given message
+         */
+        getPollVotes: () => Promise<PollVote[]>,
+        /**
          * Gets the reactions associated with the given message
          */
         getReactions: () => Promise<ReactionList[]>,
