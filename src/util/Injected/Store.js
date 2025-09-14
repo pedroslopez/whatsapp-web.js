@@ -211,18 +211,11 @@ exports.ExposeStore = () => {
      * @param {Function} callback Modified function
      */
     window.injectToFunction = (target, callback) => {
-        let module = window.require(target.module);
-
+        const module = window.require(target.module);
         if (!module) return;
-        
-        const path = target.function.split('.');
-        const funcName = path.pop();
-        for (const key of path) {
-            module = module[key];
-        }
-
-        const originalFunction = module[funcName];
-        module[funcName] = (...args) => callback(originalFunction, ...args);
+        const originalFunction = module[target.function];
+        const modifiedFunction = (...args) => callback(originalFunction, ...args);
+        module[target.function] = modifiedFunction;
     };
 
     window.injectToFunction({ module: 'WAWebBackendJobsCommon', function: 'mediaTypeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? null : func(...args); });
