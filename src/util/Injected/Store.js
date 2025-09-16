@@ -224,7 +224,7 @@ exports.ExposeStore = () => {
             }
 
             const originalFunction = module[funcName];
-            if (typeof originalFunction !== "function") return;
+            if (typeof originalFunction !== 'function') return;
 
             module[funcName] = (...args) => {
                 try {
