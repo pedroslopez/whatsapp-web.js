@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.33.2 &raquo; Source: structures/GroupChat.js</title>
+  <title>whatsapp-web.js 1.34.1 &raquo; Source: structures/GroupChat.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>33.<wbr>2</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>34.<wbr>1</a>
       </div>
     </div>
   </nav>
@@ -226,12 +226,12 @@ class GroupChat extends Chat {
     async removeParticipants(participantIds) {
         return await this.client.pupPage.evaluate(async (chatId, participantIds) &#x3D;&gt; {
             const chat &#x3D; await window.WWebJS.getChat(chatId, { getAsModel: false });
-            const participants &#x3D; participantIds.map(p &#x3D;&gt; {
-                const wid &#x3D; window.Store.WidFactory.createWid(p);
-                const lid &#x3D; wid.server!&#x3D;&#x3D;&#x27;lid&#x27; ? window.Store.LidUtils.getCurrentLid(wid) : wid;
-                const phone &#x3D; wid.server&#x3D;&#x3D;&#x27;lid&#x27; ? window.Store.LidUtils.getPhoneNumber(wid) : wid;
-                return chat.groupMetadata.participants.get(lid?._serialized) || chat.groupMetadata.participants.get(phone?._serialized);
-            }).filter(p &#x3D;&gt; Boolean(p));
+            const participants &#x3D; (await Promise.all(participantIds.map(async p &#x3D;&gt; {
+                const { lid, phone } &#x3D; await window.WWebJS.enforceLidAndPnRetrieval(p);
+
+                return chat.groupMetadata.participants.get(lid?._serialized) ||
+                    chat.groupMetadata.participants.get(phone?._serialized);
+            }))).filter(Boolean);
             await window.Store.GroupParticipants.removeParticipants(chat, participants);
             return { status: 200 };
         }, this.id._serialized, participantIds);
@@ -245,12 +245,12 @@ class GroupChat extends Chat {
     async promoteParticipants(participantIds) {
         return await this.client.pupPage.evaluate(async (chatId, participantIds) &#x3D;&gt; {
             const chat &#x3D; await window.WWebJS.getChat(chatId, { getAsModel: false });
-            const participants &#x3D; participantIds.map(p &#x3D;&gt; {
-                const wid &#x3D; window.Store.WidFactory.createWid(p);
-                const lid &#x3D; wid.server!&#x3D;&#x3D;&#x27;lid&#x27; ? window.Store.LidUtils.getCurrentLid(wid) : wid;
-                const phone &#x3D; wid.server&#x3D;&#x3D;&#x27;lid&#x27; ? window.Store.LidUtils.getPhoneNumber(wid) : wid;
-                return chat.groupMetadata.participants.get(lid?._serialized) || chat.groupMetadata.participants.get(phone?._serialized);
-            }).filter(p &#x3D;&gt; Boolean(p));
+            const participants &#x3D; (await Promise.all(participantIds.map(async p &#x3D;&gt; {
+                const { lid, phone } &#x3D; await window.WWebJS.enforceLidAndPnRetrieval(p);
+
+                return chat.groupMetadata.participants.get(lid?._serialized) ||
+                    chat.groupMetadata.participants.get(phone?._serialized);
+            }))).filter(Boolean);
             await window.Store.GroupParticipants.promoteParticipants(chat, participants);
             return { status: 200 };
         }, this.id._serialized, participantIds);
@@ -264,12 +264,12 @@ class GroupChat extends Chat {
     async demoteParticipants(participantIds) {
         return await this.client.pupPage.evaluate(async (chatId, participantIds) &#x3D;&gt; {
             const chat &#x3D; await window.WWebJS.getChat(chatId, { getAsModel: false });
-            const participants &#x3D; participantIds.map(p &#x3D;&gt; {
-                const wid &#x3D; window.Store.WidFactory.createWid(p);
-                const lid &#x3D; wid.server!&#x3D;&#x3D;&#x27;lid&#x27; ? window.Store.LidUtils.getCurrentLid(wid) : wid;
-                const phone &#x3D; wid.server&#x3D;&#x3D;&#x27;lid&#x27; ? window.Store.LidUtils.getPhoneNumber(wid) : wid;
-                return chat.groupMetadata.participants.get(lid?._serialized) || chat.groupMetadata.participants.get(phone?._serialized);
-            }).filter(p &#x3D;&gt; Boolean(p));
+            const participants &#x3D; (await Promise.all(participantIds.map(async p &#x3D;&gt; {
+                const { lid, phone } &#x3D; await window.WWebJS.enforceLidAndPnRetrieval(p);
+
+                return chat.groupMetadata.participants.get(lid?._serialized) ||
+                    chat.groupMetadata.participants.get(phone?._serialized);
+            }))).filter(Boolean);
             await window.Store.GroupParticipants.demoteParticipants(chat, participants);
             return { status: 200 };
         }, this.id._serialized, participantIds);
@@ -524,7 +524,7 @@ module.exports &#x3D; GroupChat;
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on September 2, 2025.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on September 10, 2025.
       </p>
     </div>
   </footer>
