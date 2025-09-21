@@ -1,0 +1,30 @@
+const { Client, MessageMedia } = require('whatsapp-web.js');
+
+const client = new Client();
+
+client.on('ready', () => {
+  console.log('BOT BUG WA MILIK PREZ siap!');
+});
+
+client.on('message', (message) => {
+  const chatId = message.from;
+  const pesan = message.body.toLowerCase();
+
+  if (pesan === 'menu') {
+    const menu = 'BOT BUG WA MILIK PREZ\n' +
+      'Pilih menu:\n' +
+      'BUG ALL HP:\n' +
+      '- INVIS\n' +
+      '- SUPER DELAY\n' +
+      '- INVIS SUPER\n' +
+      '- BLANK SCREEN\n' +
+      '- CLOSE CRASH\n' +
+      '- DELAY MAKER\n' +
+      '- INVISIBLE IOS\n' +
+      '- CLICK CRASH';
+
+    client.sendMessage(chatId, menu);
+  }
+});
+
+client.initialize(0895622062349) 
