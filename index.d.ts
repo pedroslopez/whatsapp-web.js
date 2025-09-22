@@ -879,6 +879,8 @@ declare namespace WAWebJS {
         PICTURE = 'picture',
         ANNOUNCE = 'announce',
         RESTRICT = 'restrict',
+        DEMOTE = 'demote',
+        PROMOTE = 'promote',
     }
 
     /** Message ACK */
@@ -896,6 +898,7 @@ declare namespace WAWebJS {
         TEXT = 'chat',
         AUDIO = 'audio',
         VOICE = 'ptt',
+        ALBUM = 'album',
         IMAGE = 'image',
         VIDEO = 'video',
         DOCUMENT = 'document',
