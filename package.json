@@ -8,9 +8,16 @@
     "test": "mocha tests --recursive --timeout 5000",
     "test-single": "mocha",
     "shell": "node --experimental-repl-await ./shell.js",
-    "generate-docs": "npx jsdoc --configure .jsdoc.json --verbose"
+      "generate-docs": "npx jsdoc --configure .jsdoc.json --verbose",
+      "start": "node --experimental-repl-await shell.js",
+      "prod": "pm2 start shell.js --name whatsapp-web -- --experimental-repl-await",
+      "prod:stop": "pm2 stop whatsapp-web",
+      "prod:restart": "pm2 restart whatsapp-web",
+      "prod:logs": "pm2 logs whatsapp-web",
+      "prod:status": "pm2 status"
   },
-  "repository": {
+
+    "repository": {
     "type": "git",
     "url": "git+https://github.com/pedroslopez/whatsapp-web.js.git"
   },
