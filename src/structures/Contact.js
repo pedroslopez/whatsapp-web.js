@@ -186,7 +186,7 @@ class Contact extends Base {
     async getAbout() {
         const about = await this.client.pupPage.evaluate(async (contactId) => {
             const wid = window.Store.WidFactory.createWid(contactId);
-            return window.Store.StatusUtils.getStatus(wid);
+            return window.Store.StatusUtils.getStatus({'token':'', 'wid': wid});
         }, this.id._serialized);
 
         if (typeof about.status !== 'string')
