@@ -1225,11 +1225,18 @@ class Client extends EventEmitter {
             
             const msgs = await window.Store.PinnedMsgUtils.getTable().equals(['chatId'], chatWid.toString());
 
-            const pinnedMsgs = msgs.map((msg) => window.Store.Msg.get(msg.parentMsgKey));
+            const pinnedMsgs = (
+                await Promise.all(
+                    msgs.filter(msg => msg.pinType == 1).map(async (msg) => {
+                        const res = await window.Store.Msg.getMessagesById([msg.parentMsgKey]);
+                        return res?.messages?.[0];
+                    })
+                )
+            ).filter(Boolean);
 
             return !pinnedMsgs.length
                 ? []
-                : pinnedMsgs.map((msg) => window.WWebJS.getMessageModel(msg));
+                : await Promise.all(pinnedMsgs.map((msg) => window.WWebJS.getMessageModel(msg)));
         }, chatId);
 
         return pinnedMsgs.map((msg) => new Message(this, msg));
