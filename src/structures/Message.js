@@ -562,7 +562,7 @@ class Message extends Base {
      */
     async unpin() {
         return await this.client.pupPage.evaluate(async (msgId) => {
-            return await window.WWebJS.pinUnpinMsgAction(msgId, 2);
+            return await window.WWebJS.pinUnpinMsgAction(msgId, 2, 0);
         }, this.id._serialized);
     }
 
