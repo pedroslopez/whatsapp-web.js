@@ -131,7 +131,7 @@ exports.LoadUtils = () => {
                     degreesLongitude: 0,
                     name: eventSendOptions.location
                 },
-                eventJoinLink: await window.Store.ScheduledEventMsgUtils.createEventCallLink(
+                eventJoinLink: eventSendOptions.callType === 'none' ? null : await window.Store.ScheduledEventMsgUtils.createEventCallLink(
                     startTimeTs,
                     eventSendOptions.callType
                 ),
