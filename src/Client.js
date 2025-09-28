@@ -1048,7 +1048,7 @@ class Client extends EventEmitter {
             return msg
                 ? window.WWebJS.getMessageModel(msg)
                 : undefined;
-        }, chatId, content, internalOptions, sendSeen);
+        }, chatId, content, internalOptions, sendSeen).catch(() => {});
 
         return sentMsg
             ? new Message(this, sentMsg)
