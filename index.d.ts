@@ -920,6 +920,7 @@ declare namespace WAWebJS {
         AUDIO = 'audio',
         VOICE = 'ptt',
         IMAGE = 'image',
+        ALBUM = 'album',
         VIDEO = 'video',
         DOCUMENT = 'document',
         STICKER = 'sticker',
