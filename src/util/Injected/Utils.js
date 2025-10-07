@@ -66,14 +66,7 @@ exports.LoadUtils = () => {
         }
 
         if (options.mentionedJidList) {
-            options.mentionedJidList = await Promise.all(
-                options.mentionedJidList.map(async (id) => {
-                    const wid = window.Store.WidFactory.createWid(id);
-                    if (await window.Store.QueryExist(wid)) {
-                        return wid;
-                    }
-                })
-            );
+            options.mentionedJidList = options.mentionedJidList.map((id) => window.Store.WidFactory.createWid(id));
             options.mentionedJidList = options.mentionedJidList.filter(Boolean);
         }
 
@@ -340,14 +333,7 @@ exports.LoadUtils = () => {
         delete options.extraOptions;
         
         if (options.mentionedJidList) {
-            options.mentionedJidList = await Promise.all(
-                options.mentionedJidList.map(async (id) => {
-                    const wid = window.Store.WidFactory.createWid(id);
-                    if (await window.Store.QueryExist(wid)) {
-                        return wid;
-                    }
-                })
-            );
+            options.mentionedJidList = options.mentionedJidList.map((id) => window.Store.WidFactory.createWid(id));
             options.mentionedJidList = options.mentionedJidList.filter(Boolean);
         }
 
