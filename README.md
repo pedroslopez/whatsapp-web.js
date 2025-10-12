@@ -14,7 +14,7 @@
 </div>
 
 ## About
-**A WhatsApp API client that connects through the WhatsApp Web browser app**
+**A WhatsApp API client that operates via the WhatsApp Web browser.**
 
 The library launches the WhatsApp Web browser app via Puppeteer, accessing its internal functions and creating a managed instance to reduce the risk of being blocked. This gives the API client nearly all WhatsApp Web features for dynamic use in a Node.js application.
 
