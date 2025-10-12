@@ -32,39 +32,11 @@ The library launches the WhatsApp Web browser app via Puppeteer, accessing its i
 
 ## Installation
 
-The module is now available on npm! `npm i whatsapp-web.js`
+The module is available on [npm][npm] via `npm i whatsapp-web.js`!
 
 > [!NOTE]
-> **Node ``v18+`` is required.**
-
-## QUICK STEPS TO UPGRADE NODE
-
-### Windows
-
-#### Manual
-Just get the latest LTS from the [official node website][nodejs].
-
-#### npm
-```powershell
-sudo npm install -g n
-sudo n stable
-```
-
-#### Choco
-```powershell
-choco install nodejs-lts
-```
-
-#### Winget
-```powershell
-winget install OpenJS.NodeJS.LTS
-```
-
-### Ubuntu / Debian
-```bash
-curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - &&\
-sudo apt-get install -y nodejs
-```
+> **Node ``v18`` or higher, is required.**  
+> See the [Guide][guide] for quick upgrade instructions.
 
 ## Example usage
 
