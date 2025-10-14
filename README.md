@@ -23,11 +23,10 @@ The library launches the WhatsApp Web browser app via Puppeteer, accessing its i
 
 ## Links
 
-* [Website][website]
+* [GitHub][gitHub]
 * [Guide][guide] ([source][guide-source])
 * [Documentation][documentation] ([source][documentation-source])
 * [Discord Server][discord]
-* [GitHub][gitHub]
 * [npm][npm]
 
 ## Installation
@@ -137,7 +136,6 @@ See the License for the specific language governing permissions and
 limitations under the License.  
 
 
-[website]: https://wwebjs.dev
 [guide]: https://guide.wwebjs.dev/guide
 [guide-source]: https://github.com/wwebjs/wwebjs.dev/tree/main
 [documentation]: https://docs.wwebjs.dev/
