@@ -439,59 +439,92 @@ class Message extends Base {
     }
 
     /**
-     * Downloads and returns the attatched message media
+     * Downloads and returns the attached message media
+     * @param {number} [timeoutMs] - Optional timeout in milliseconds
      * @returns {Promise<MessageMedia>}
      */
-    async downloadMedia() {
+    async downloadMedia(timeoutMs) {
         if (!this.hasMedia) {
             return undefined;
         }
 
-        const result = await this.client.pupPage.evaluate(async (msgId) => {
-            const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
-            if (!msg || !msg.mediaData) {
-                return null;
+        // Create a timeout promise if timeout is specified
+        let timeoutPromise;
+        let timeoutId;
+        
+        if (timeoutMs) {
+            timeoutPromise = new Promise((_, reject) => {
+                timeoutId = setTimeout(() => {
+                    reject(new Error(`Media download timed out after ${timeoutMs}ms`));
+                }, timeoutMs);
+            });
+        }
+
+        try {
+            // Create the main download promise
+            const downloadPromise = this.client.pupPage.evaluate(async (msgId) => {
+                const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
+                if (!msg || !msg.mediaData) {
+                    return null;
+                }
+                if (msg.mediaData.mediaStage != 'RESOLVED') {
+                    // try to resolve media
+                    await msg.downloadMedia({
+                        downloadEvenIfExpensive: true,
+                        rmrReason: 1
+                    });
+                }
+
+                if (msg.mediaData.mediaStage.includes('ERROR') || msg.mediaData.mediaStage === 'FETCHING') {
+                    // media could not be downloaded
+                    return undefined;
+                }
+
+                try {
+                    const decryptedMedia = await window.Store.DownloadManager.downloadAndMaybeDecrypt({
+                        directPath: msg.directPath,
+                        encFilehash: msg.encFilehash,
+                        filehash: msg.filehash,
+                        mediaKey: msg.mediaKey,
+                        mediaKeyTimestamp: msg.mediaKeyTimestamp,
+                        type: msg.type,
+                        signal: (new AbortController).signal
+                    });
+
+                    const data = await window.WWebJS.arrayBufferToBase64Async(decryptedMedia);
+
+                    return {
+                        data,
+                        mimetype: msg.mimetype,
+                        filename: msg.filename,
+                        filesize: msg.size
+                    };
+                } catch (e) {
+                    if(e.status && e.status === 404) return undefined;
+                    throw e;
+                }
+            }, this.id._serialized);
+
+            // Use Promise.race if timeout is specified, otherwise just await the download
+            const result = timeoutMs 
+                ? await Promise.race([downloadPromise, timeoutPromise])
+                : await downloadPromise;
+
+            if (!result) return undefined;
+            return new MessageMedia(result.mimetype, result.data, result.filename, result.filesize);
+        } catch (error) {
+            // Handle timeout errors specifically
+            if (error.message && error.message.includes('timed out')) {
+                throw error;
             }
-            if (msg.mediaData.mediaStage != 'RESOLVED') {
-                // try to resolve media
-                await msg.downloadMedia({
-                    downloadEvenIfExpensive: true,
-                    rmrReason: 1
-                });
+            // Re-throw other errors
+            throw error;
+        } finally {
+            // Clear the timeout if it was set
+            if (timeoutId) {
+                clearTimeout(timeoutId);
             }
-
-            if (msg.mediaData.mediaStage.includes('ERROR') || msg.mediaData.mediaStage === 'FETCHING') {
-                // media could not be downloaded
-                return undefined;
-            }
-
-            try {
-                const decryptedMedia = await window.Store.DownloadManager.downloadAndMaybeDecrypt({
-                    directPath: msg.directPath,
-                    encFilehash: msg.encFilehash,
-                    filehash: msg.filehash,
-                    mediaKey: msg.mediaKey,
-                    mediaKeyTimestamp: msg.mediaKeyTimestamp,
-                    type: msg.type,
-                    signal: (new AbortController).signal
-                });
-
-                const data = await window.WWebJS.arrayBufferToBase64Async(decryptedMedia);
-
-                return {
-                    data,
-                    mimetype: msg.mimetype,
-                    filename: msg.filename,
-                    filesize: msg.size
-                };
-            } catch (e) {
-                if(e.status && e.status === 404) return undefined;
-                throw e;
-            }
-        }, this.id._serialized);
-
-        if (!result) return undefined;
-        return new MessageMedia(result.mimetype, result.data, result.filename, result.filesize);
+        }
     }
 
     /**
