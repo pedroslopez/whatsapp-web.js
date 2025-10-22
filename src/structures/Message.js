@@ -774,6 +774,7 @@ class Message extends Base {
 
             await window.Store.PollsSendVote.sendVote(msg, localIdSet);
         }, this.id._serialized, selectedOptions);
+    }
 }
 
 module.exports = Message;
