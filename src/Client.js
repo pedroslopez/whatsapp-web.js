@@ -1225,11 +1225,18 @@ class Client extends EventEmitter {
             
             const msgs = await window.Store.PinnedMsgUtils.getTable().equals(['chatId'], chatWid.toString());
 
-            const pinnedMsgs = msgs.map((msg) => window.Store.Msg.get(msg.parentMsgKey));
+            const pinnedMsgs = (
+                await Promise.all(
+                    msgs.filter(msg => msg.pinType == 1).map(async (msg) => {
+                        const res = await window.Store.Msg.getMessagesById([msg.parentMsgKey]);
+                        return res?.messages?.[0];
+                    })
+                )
+            ).filter(Boolean);
 
             return !pinnedMsgs.length
                 ? []
-                : pinnedMsgs.map((msg) => window.WWebJS.getMessageModel(msg));
+                : await Promise.all(pinnedMsgs.map((msg) => window.WWebJS.getMessageModel(msg)));
         }, chatId);
 
         return pinnedMsgs.map((msg) => new Message(this, msg));
@@ -2404,6 +2411,32 @@ class Client extends EventEmitter {
 
             return serialized;
         }, userId);
+    }
+    
+    /**
+     * Get Poll Votes
+     * @param {string} messageId
+     * @return {Promise<Array<PollVote>>} 
+     */
+    async getPollVotes(messageId) {
+        const msg = await this.getMessageById(messageId);
+        if (!msg) return [];
+        if (msg.type != 'poll_creation') throw 'Invalid usage! Can only be used with a pollCreation message';
+
+        const pollVotes = await this.pupPage.evaluate( async (msg) => {
+            const msgKey = window.Store.MsgKey.fromString(msg.id._serialized);
+            let pollVotes = await window.Store.PollsVotesSchema.getTable().equals(['parentMsgKey'], msgKey.toString());
+            
+            return pollVotes.map(item => {
+                const typedArray = new Uint8Array(item.selectedOptionLocalIds);
+                return {
+                    ...item,
+                    selectedOptionLocalIds: Array.from(typedArray)
+                };
+            });
+        }, msg);
+
+        return pollVotes.map((pollVote) => new PollVote(this.client, {...pollVote, parentMessage: msg}));
     }
 }
 
