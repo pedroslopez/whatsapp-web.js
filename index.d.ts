@@ -1305,7 +1305,7 @@ declare namespace WAWebJS {
             messageSecret?: string;
         };
 
-        constructor(name: string, startTime: Date, options?: EventSendOptions)
+        constructor(name: string, startTime: Date, options?: ScheduledEventSendOptions)
     }
 
     /** Represents a Poll Vote on WhatsApp */
