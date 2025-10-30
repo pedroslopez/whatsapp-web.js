@@ -2324,6 +2324,8 @@ class Client extends EventEmitter {
         return await this.pupPage.evaluate(async (phoneNumber, firstName, lastName, syncToAddressbook) => {
             return await window.Store.AddressbookContactUtils.saveContactAction(
                 phoneNumber,
+                phoneNumber,
+                null,
                 null,
                 firstName,
                 lastName,
