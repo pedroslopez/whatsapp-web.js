@@ -1531,7 +1531,7 @@ class Client extends EventEmitter {
         const commonGroups = await this.pupPage.evaluate(async (contactId) => {
             let contact = window.Store.Contact.get(contactId);
             if (!contact) {
-                const wid = window.Store.WidFactory.createUserWid(contactId);
+                const wid = window.Store.WidFactory.createWid(contactId);
                 const chatConstructor = window.Store.Contact.getModelsArray().find(c=>!c.isGroup).constructor;
                 contact = new chatConstructor({id: wid});
             }
