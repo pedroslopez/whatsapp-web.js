@@ -825,22 +825,22 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.rejectCall = async (peerJid, id) => {
-        peerJid = peerJid.split('@')[0] + '@s.whatsapp.net';
-        let userId = window.Store.User.getMaybeMePnUser().user + '@s.whatsapp.net';
+        let userId = window.Store.User.getMaybeMePnUser()._serialized;
+
         const stanza = window.Store.SocketWap.wap('call', {
             id: window.Store.SocketWap.generateId(),
-            from: window.Store.SocketWap.USER_JID(userId),
-            to: window.Store.SocketWap.USER_JID(peerJid),
+            from: userId,
+            to: peerJid,
         }, [
             window.Store.SocketWap.wap('reject', {
                 'call-id': id,
-                'call-creator': window.Store.SocketWap.USER_JID(peerJid),
+                'call-creator': peerJid,
                 count: '0',
             })
         ]);
         await window.Store.Socket.deprecatedCastStanza(stanza);
     };
-
+    
     window.WWebJS.cropAndResizeImage = async (media, options = {}) => {
         if (!media.mimetype.includes('image'))
             throw new Error('Media is not an image');
