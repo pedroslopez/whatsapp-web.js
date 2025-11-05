@@ -97,12 +97,13 @@ exports.ExposeStore = () => {
     window.Store.HistorySync = window.require('WAWebSendNonMessageDataRequest');
     window.Store.AddonReactionTable = window.require('WAWebAddonReactionTableMode').reactionTableMode;
     window.Store.AddonPollVoteTable = window.require('WAWebAddonPollVoteTableMode').pollVoteTableMode;
-    window.Store.PinnedMsgUtils = window.require('WAWebPinInChatSchema');
     window.Store.ChatGetters = window.require('WAWebChatGetters');
-    window.Store.PinnedMsgUtils = window.require('WAWebSendPinMessageAction');
     window.Store.UploadUtils = window.require('WAWebUploadManager');
     window.Store.WAWebStreamModel = window.require('WAWebStreamModel');
     window.Store.FindOrCreateChat = window.require('WAWebFindChatAction');
+    window.Store.CustomerNoteUtils = window.require('WAWebNoteAction');
+    window.Store.BusinessGatingUtils = window.require('WAWebBizGatingUtils');
+    window.Store.PollsVotesSchema = require('WAWebPollsVotesSchema');
     
     window.Store.Settings = {
         ...window.require('WAWebUserPrefsGeneral'),
@@ -115,6 +116,10 @@ exports.ExposeStore = () => {
     };
     window.Store.ForwardUtils = {
         ...window.require('WAWebChatForwardMessage')
+    };
+    window.Store.PinnedMsgUtils = {
+        ...window.require('WAWebPinInChatSchema'),
+        ...window.require('WAWebSendPinMessageAction')
     };
     window.Store.ScheduledEventMsgUtils = {
         ...window.require('WAWebGenerateEventCallLink'),

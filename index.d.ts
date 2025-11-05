@@ -242,7 +242,26 @@ declare namespace WAWebJS {
         syncHistory(chatId: string): Promise<boolean>
 
         /** Save new contact to user's addressbook or edit the existing one */
-        saveOrEditAddressbookContact(phoneNumber: string, firstName: string, lastName: string, syncToAddressbook?: boolean): Promise<ChatId>
+        saveOrEditAddressbookContact(phoneNumber: string, firstName: string, lastName: string, syncToAddressbook?: boolean): Promise<void>
+
+        /**
+         * Add or edit a customer note
+         * @see https://faq.whatsapp.com/1433099287594476
+         */
+        addOrEditCustomerNote(userId: string, note: string): Promise<void>
+
+        /**
+         * Get a customer note
+         * @see https://faq.whatsapp.com/1433099287594476
+         */
+        getCustomerNote(userId: string): Promise<{
+            chatId: string;
+            content: string;
+            createdAt: number;
+            id: string;
+            modifiedAt: number;
+            type: string;
+        }>
 
         /** Deletes the contact from user's addressbook */
         deleteAddressbookContact(honeNumber: string): Promise<void>
@@ -286,6 +305,9 @@ declare namespace WAWebJS {
          * Note: the user you are transferring the channel ownership to must be a channel admin.
          */
         transferChannelOwnership(channelId: string, newOwnerId: string, options?: TransferChannelOwnershipOptions): Promise<boolean>;
+
+        /** Get Poll Votes */
+        getPollVotes(messageId: string): Promise<PollVote[]>
 
         /** Generic event */
         on(event: string, listener: (...args: any) => void): this
@@ -1174,6 +1196,10 @@ declare namespace WAWebJS {
          */
         getPayment: () => Promise<Payment>,
         /**
+         * Get Poll Votes associated with the given message
+         */
+        getPollVotes: () => Promise<PollVote[]>,
+        /**
          * Gets the reactions associated with the given message
          */
         getReactions: () => Promise<ReactionList[]>,
@@ -1713,6 +1739,17 @@ declare namespace WAWebJS {
         getPinnedMessages: () => Promise<[Message]|[]>
         /** Sync history conversation of the Chat */
         syncHistory: () => Promise<boolean>
+        /** Add or edit a customer note */
+        addOrEditCustomerNote: (note: string) => Promise<void>
+        /** Get a customer note */
+        getCustomerNote: () => Promise<{
+            chatId: string;
+            content: string;
+            createdAt: number;
+            id: string;
+            modifiedAt: number;
+            type: string;
+        }>
     }
 
     export interface Channel {
