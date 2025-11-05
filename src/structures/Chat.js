@@ -294,6 +294,36 @@ class Chat extends Base {
     async syncHistory() {
         return this.client.syncHistory(this.id._serialized);
     }
+
+    /**
+     * Add or edit a customer note
+     * @see https://faq.whatsapp.com/1433099287594476
+     * @param {string} note The note to add
+     * @returns {Promise<void>}
+     */
+    async addOrEditCustomerNote(note) {
+        if (this.isGroup || this.isChannel) return;
+
+        return this.client.addOrEditCustomerNote(this.id._serialized, note);
+    }
+
+    /**
+     * Get a customer note
+     * @see https://faq.whatsapp.com/1433099287594476
+     * @returns {Promise<{
+     *    chatId: string,
+     *    content: string,
+     *    createdAt: number,
+     *    id: string,
+     *    modifiedAt: number,
+     *    type: string
+     * }>}
+     */
+    async getCustomerNote() {
+        if (this.isGroup || this.isChannel) return null;
+        
+        return this.client.getCustomerNote(this.id._serialized);
+    }
 }
 
 module.exports = Chat;
