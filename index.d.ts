@@ -242,7 +242,7 @@ declare namespace WAWebJS {
         syncHistory(chatId: string): Promise<boolean>
 
         /** Save new contact to user's addressbook or edit the existing one */
-        saveOrEditAddressbookContact(phoneNumber: string, firstName: string, lastName: string, syncToAddressbook?: boolean): Promise<ChatId>
+        saveOrEditAddressbookContact(phoneNumber: string, firstName: string, lastName: string, syncToAddressbook?: boolean): Promise<void>
 
         /**
          * Add or edit a customer note
