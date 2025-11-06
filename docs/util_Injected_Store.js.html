@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.34.1 &raquo; Source: util/Injected/Store.js</title>
+  <title>whatsapp-web.js 1.34.2 &raquo; Source: util/Injected/Store.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>34.<wbr>1</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>34.<wbr>2</a>
       </div>
     </div>
   </nav>
@@ -128,12 +128,13 @@ exports.ExposeStore &#x3D; () &#x3D;&gt; {
     window.Store.HistorySync &#x3D; window.require(&#x27;WAWebSendNonMessageDataRequest&#x27;);
     window.Store.AddonReactionTable &#x3D; window.require(&#x27;WAWebAddonReactionTableMode&#x27;).reactionTableMode;
     window.Store.AddonPollVoteTable &#x3D; window.require(&#x27;WAWebAddonPollVoteTableMode&#x27;).pollVoteTableMode;
-    window.Store.PinnedMsgUtils &#x3D; window.require(&#x27;WAWebPinInChatSchema&#x27;);
     window.Store.ChatGetters &#x3D; window.require(&#x27;WAWebChatGetters&#x27;);
-    window.Store.PinnedMsgUtils &#x3D; window.require(&#x27;WAWebSendPinMessageAction&#x27;);
     window.Store.UploadUtils &#x3D; window.require(&#x27;WAWebUploadManager&#x27;);
     window.Store.WAWebStreamModel &#x3D; window.require(&#x27;WAWebStreamModel&#x27;);
     window.Store.FindOrCreateChat &#x3D; window.require(&#x27;WAWebFindChatAction&#x27;);
+    window.Store.CustomerNoteUtils &#x3D; window.require(&#x27;WAWebNoteAction&#x27;);
+    window.Store.BusinessGatingUtils &#x3D; window.require(&#x27;WAWebBizGatingUtils&#x27;);
+    window.Store.PollsVotesSchema &#x3D; require(&#x27;WAWebPollsVotesSchema&#x27;);
     
     window.Store.Settings &#x3D; {
         ...window.require(&#x27;WAWebUserPrefsGeneral&#x27;),
@@ -146,6 +147,10 @@ exports.ExposeStore &#x3D; () &#x3D;&gt; {
     };
     window.Store.ForwardUtils &#x3D; {
         ...window.require(&#x27;WAWebChatForwardMessage&#x27;)
+    };
+    window.Store.PinnedMsgUtils &#x3D; {
+        ...window.require(&#x27;WAWebPinInChatSchema&#x27;),
+        ...window.require(&#x27;WAWebSendPinMessageAction&#x27;)
     };
     window.Store.ScheduledEventMsgUtils &#x3D; {
         ...window.require(&#x27;WAWebGenerateEventCallLink&#x27;),
@@ -242,25 +247,37 @@ exports.ExposeStore &#x3D; () &#x3D;&gt; {
      * @param {Function} callback Modified function
      */
     window.injectToFunction &#x3D; (target, callback) &#x3D;&gt; {
-        let module &#x3D; window.require(target.module);
+        try {
+            let module &#x3D; window.require(target.module);
+            if (!module) return; 
 
-        if (!module) return;
-        
-        const path &#x3D; target.function.split(&#x27;.&#x27;);
-        const funcName &#x3D; path.pop();
-        for (const key of path) {
-            module &#x3D; module[key];
+            const path &#x3D; target.function.split(&#x27;.&#x27;);
+            const funcName &#x3D; path.pop();
+
+            for (const key of path) {
+                if (!module[key]) return;
+                module &#x3D; module[key];
+            }
+
+            const originalFunction &#x3D; module[funcName];
+            if (typeof originalFunction !&#x3D;&#x3D; &#x27;function&#x27;) return;
+
+            module[funcName] &#x3D; (...args) &#x3D;&gt; {
+                try {
+                    return callback(originalFunction, ...args);
+                } catch {
+                    return originalFunction(...args);
+                }
+            };
+
+        } catch {
+            return;
         }
-
-        const originalFunction &#x3D; module[funcName];
-        module[funcName] &#x3D; (...args) &#x3D;&gt; callback(originalFunction, ...args);
     };
 
     window.injectToFunction({ module: &#x27;WAWebBackendJobsCommon&#x27;, function: &#x27;mediaTypeFromProtobuf&#x27; }, (func, ...args) &#x3D;&gt; { const [proto] &#x3D; args; return proto.locationMessage ? null : func(...args); });
 
     window.injectToFunction({ module: &#x27;WAWebE2EProtoUtils&#x27;, function: &#x27;typeAttributeFromProtobuf&#x27; }, (func, ...args) &#x3D;&gt; { const [proto] &#x3D; args; return proto.locationMessage || proto.groupInviteMessage ? &#x27;text&#x27; : func(...args); });
-
-    window.injectToFunction({ module: &#x27;WAWebLid1X1MigrationGating&#x27;, function: &#x27;Lid1X1MigrationUtils.isLidMigrated&#x27; }, () &#x3D;&gt; false);
 };
 </code></pre>
           </article>
@@ -272,7 +289,7 @@ exports.ExposeStore &#x3D; () &#x3D;&gt; {
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on September 10, 2025.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on November 6, 2025.
       </p>
     </div>
   </footer>
