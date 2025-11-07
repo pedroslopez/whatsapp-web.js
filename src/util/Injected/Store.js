@@ -139,7 +139,8 @@ exports.ExposeStore = () => {
         ...window.require('WAWebGroupCreateJob'),
         ...window.require('WAWebGroupModifyInfoJob'),
         ...window.require('WAWebExitGroupAction'),
-        ...window.require('WAWebContactProfilePicThumbBridge')
+        ...window.require('WAWebContactProfilePicThumbBridge'),
+        ...window.require('WAWebSetPropertyGroupAction')
     };
     window.Store.GroupParticipants = {
         ...window.require('WAWebModifyParticipantsGroupAction'),
