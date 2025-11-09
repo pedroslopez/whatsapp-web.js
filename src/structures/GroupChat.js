@@ -297,12 +297,12 @@ class GroupChat extends Chat {
      */
     async setAddMembersAdminsOnly(adminsOnly=true) {
         const success = await this.client.pupPage.evaluate(async (groupId, adminsOnly) => {
-            const chatWid = window.Store.WidFactory.createWid(groupId);
+            const chat = await window.WWebJS.getChat(groupId, { getAsModel: false });
             try {
-                const response = await window.Store.GroupUtils.setGroupMemberAddMode(chatWid, 'member_add_mode', adminsOnly ? 0 : 1);
-                return response.name === 'SetMemberAddModeResponseSuccess';
+                await window.Store.GroupUtils.setGroupProperty(chat, 'member_add_mode', adminsOnly ? 0 : 1);
+                return true;
             } catch (err) {
-                if(err.name === 'SmaxParsingFailure') return false;
+                if(err.name === 'ServerStatusCodeError') return false;
                 throw err;
             }
         }, this.id._serialized, adminsOnly);
@@ -318,9 +318,9 @@ class GroupChat extends Chat {
      */
     async setMessagesAdminsOnly(adminsOnly=true) {
         const success = await this.client.pupPage.evaluate(async (chatId, adminsOnly) => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             try {
-                await window.Store.GroupUtils.setGroupProperty(chatWid, 'announcement', adminsOnly ? 1 : 0);
+                await window.Store.GroupUtils.setGroupProperty(chat, 'announcement', adminsOnly ? 1 : 0);
                 return true;
             } catch (err) {
                 if(err.name === 'ServerStatusCodeError') return false;
@@ -341,9 +341,9 @@ class GroupChat extends Chat {
      */
     async setInfoAdminsOnly(adminsOnly=true) {
         const success = await this.client.pupPage.evaluate(async (chatId, adminsOnly) => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
+            const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
             try {
-                await window.Store.GroupUtils.setGroupProperty(chatWid, 'restrict', adminsOnly ? 1 : 0);
+                await window.Store.GroupUtils.setGroupProperty(chat, 'restrict', adminsOnly ? 1 : 0);
                 return true;
             } catch (err) {
                 if(err.name === 'ServerStatusCodeError') return false;
@@ -356,7 +356,7 @@ class GroupChat extends Chat {
         this.groupMetadata.restrict = adminsOnly;
         return true;
     }
-
+    
     /**
      * Deletes the group's picture.
      * @returns {Promise<boolean>} Returns true if the picture was properly deleted. This can return false if the user does not have the necessary permissions.

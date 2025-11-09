@@ -105,7 +105,8 @@ exports.ExposeStore = () => {
     window.Store.FindOrCreateChat = window.require('WAWebFindChatAction');
     window.Store.CustomerNoteUtils = window.require('WAWebNoteAction');
     window.Store.BusinessGatingUtils = window.require('WAWebBizGatingUtils');
-    window.Store.PollsVotesSchema = require('WAWebPollsVotesSchema');
+    window.Store.PollsVotesSchema = window.require('WAWebPollsVotesSchema');
+    window.Store.PollsSendVote = window.require('WAWebPollsSendVoteMsgAction');
     
     window.Store.Settings = {
         ...window.require('WAWebUserPrefsGeneral'),
@@ -141,7 +142,8 @@ exports.ExposeStore = () => {
         ...window.require('WAWebGroupCreateJob'),
         ...window.require('WAWebGroupModifyInfoJob'),
         ...window.require('WAWebExitGroupAction'),
-        ...window.require('WAWebContactProfilePicThumbBridge')
+        ...window.require('WAWebContactProfilePicThumbBridge'),
+        ...window.require('WAWebSetPropertyGroupAction')
     };
     window.Store.GroupParticipants = {
         ...window.require('WAWebModifyParticipantsGroupAction'),
