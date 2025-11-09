@@ -1277,7 +1277,7 @@ declare namespace WAWebJS {
         endTime?: Date,
         /** The location of the event */
         location?: string,
-        /** The type of a WhatsApp call link to generate, valid values are: `video` | `voice` */
+        /** The type of a WhatsApp call link to generate, valid values are: `video` | `voice` | `none` */
         callType?: string,
         /**
          * Indicates if a scheduled event should be sent as an already canceled
