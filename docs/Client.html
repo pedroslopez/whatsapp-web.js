@@ -3,7 +3,7 @@
         <head>
                 <meta name="generator" content="JSDoc 3.6.11">
                 <meta charset="utf-8">
-                <title>whatsapp-web.js 1.30.1-alpha.3 &raquo; Class: Client</title>
+                <title>whatsapp-web.js 1.34.2 &raquo; Class: Client</title>
                 <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
                 <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
                 <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -13,7 +13,7 @@
                 <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
         <div id="jsdoc-navbar-content">
-            <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>30.<wbr>1-alpha.<wbr>3</a>
+            <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>34.<wbr>2</a>
         </div>
     </div>
 </nav>
@@ -23,7 +23,7 @@
                                 <div id="jsdoc-content-container">
                                         <div id="jsdoc-main" role="main">
                     <header class="page-header">
-<div class="symbol-detail-labels"><span class="label label-kind">class</span></div><h1><small></small><span class="symbol-name">Client</span></h1>        <p class="source-link">Source: <a href="Client.js.html#source-line-63">Client.<wbr>js:63</a></p>
+<div class="symbol-detail-labels"><span class="label label-kind">class</span></div><h1><small></small><span class="symbol-name">Client</span></h1>        <p class="source-link">Source: <a href="Client.js.html#source-line-65">Client.<wbr>js:65</a></p>
             <div class="symbol-classdesc">
                 <p>Starting point for interacting with the WhatsApp Web API</p>
             </div>
@@ -92,6 +92,9 @@
                 <dt><a href="Client.html#acceptInvite">acceptInvite(inviteCode)</a></dt>
                 <dd>
                 </dd>
+                <dt><a href="Client.html#addOrEditCustomerNote">addOrEditCustomerNote(userId, note)</a></dt>
+                <dd>
+                </dd>
                 <dt><a href="Client.html#addOrRemoveLabels">addOrRemoveLabels(labelIds, chatIds)</a></dt>
                 <dd>
                 </dd>
@@ -102,6 +105,9 @@
                 <dd>
                 </dd>
                 <dt><a href="Client.html#attachEventListeners">attachEventListeners()</a></dt>
+                <dd>
+                </dd>
+                <dt><a href="Client.html#createCallLink">createCallLink(startTime, callType)</a></dt>
                 <dd>
                 </dd>
                 <dt><a href="Client.html#createChannel">createChannel(title, options)</a></dt>
@@ -163,10 +169,16 @@
                 <dt><a href="Client.html#getContactDeviceCount">getContactDeviceCount(userId)</a></dt>
                 <dd>
                 </dd>
+                <dt><a href="Client.html#getContactLidAndPhone">getContactLidAndPhone(userIds)</a></dt>
+                <dd>
+                </dd>
                 <dt><a href="Client.html#getContacts">getContacts()</a></dt>
                 <dd>
                 </dd>
                 <dt><a href="Client.html#getCountryCode">getCountryCode(number)</a></dt>
+                <dd>
+                </dd>
+                <dt><a href="Client.html#getCustomerNote">getCustomerNote(userId)</a></dt>
                 <dd>
                 </dd>
                 <dt><a href="Client.html#getFormattedNumber">getFormattedNumber(number)</a></dt>
@@ -185,6 +197,12 @@
                 <dd>
                 </dd>
                 <dt><a href="Client.html#getNumberId">getNumberId(number)</a></dt>
+                <dd>
+                </dd>
+                <dt><a href="Client.html#getPinnedMessages">getPinnedMessages(chatId)</a></dt>
+                <dd>
+                </dd>
+                <dt><a href="Client.html#getPollVotes">getPollVotes(messageId)</a></dt>
                 <dd>
                 </dd>
                 <dt><a href="Client.html#getProfilePicUrl">getProfilePicUrl(contactId)</a></dt>
@@ -220,13 +238,7 @@
                 <dt><a href="Client.html#rejectGroupMembershipRequests">rejectGroupMembershipRequests(groupId, options)</a></dt>
                 <dd>
                 </dd>
-                <dt><a href="Client.html#requestPairingCode">requestPairingCode(phoneNumber, showNotification)</a></dt>
-                <dd>
-                </dd>
-                <dt><a href="Client.html#resetState">resetState()</a></dt>
-                <dd>
-                </dd>
-                <dt><a href="Client.html#revokeChannelAdminInvite">revokeChannelAdminInvite(channelId, userId)</a></dt>
+                <dt><a href="Client.html#requestPairingCode">requestPairingCode(phoneNumber[, showNotification][, intervalMs])</a></dt>
                 <dd>
                 </dd>
         </dl>
@@ -234,6 +246,12 @@
 
                     <div class="summary-column">
         <dl class="dl-summary-callout">
+                <dt><a href="Client.html#resetState">resetState()</a></dt>
+                <dd>
+                </dd>
+                <dt><a href="Client.html#revokeChannelAdminInvite">revokeChannelAdminInvite(channelId, userId)</a></dt>
+                <dd>
+                </dd>
                 <dt><a href="Client.html#saveOrEditAddressbookContact">saveOrEditAddressbookContact(phoneNumber, firstName, lastName[, syncToAddressbook])</a></dt>
                 <dd>
                 </dd>
@@ -253,6 +271,9 @@
                 <dd>
                 </dd>
                 <dt><a href="Client.html#sendPresenceUnavailable">sendPresenceUnavailable()</a></dt>
+                <dd>
+                </dd>
+                <dt><a href="Client.html#sendResponseToScheduledEvent">sendResponseToScheduledEvent(response, eventMessageId)</a></dt>
                 <dd>
                 </dd>
                 <dt><a href="Client.html#sendSeen">sendSeen(chatId)</a></dt>
@@ -335,13 +356,13 @@
                 <dt><a href="Client.html#event:chat_removed">chat_removed</a></dt>
                 <dd>
                 </dd>
+                <dt><a href="Client.html#event:code">code</a></dt>
+                <dd>
+                </dd>
                 <dt><a href="Client.html#event:contact_changed">contact_changed</a></dt>
                 <dd>
                 </dd>
                 <dt><a href="Client.html#event:disconnected">disconnected</a></dt>
-                <dd>
-                </dd>
-                <dt><a href="Client.html#event:group_admin_changed">group_admin_changed</a></dt>
                 <dd>
                 </dd>
         </dl>
@@ -349,6 +370,9 @@
 
                     <div class="summary-column">
         <dl class="dl-summary-callout">
+                <dt><a href="Client.html#event:group_admin_changed">group_admin_changed</a></dt>
+                <dd>
+                </dd>
                 <dt><a href="Client.html#event:group_join">group_join</a></dt>
                 <dd>
                 </dd>
@@ -373,14 +397,14 @@
                 <dt><a href="Client.html#event:message_ack">message_ack</a></dt>
                 <dd>
                 </dd>
-                <dt><a href="Client.html#event:message_ciphertext">message_ciphertext</a></dt>
-                <dd>
-                </dd>
         </dl>
 </div>
 
                     <div class="summary-column">
         <dl class="dl-summary-callout">
+                <dt><a href="Client.html#event:message_ciphertext">message_ciphertext</a></dt>
+                <dd>
+                </dd>
                 <dt><a href="Client.html#event:message_create">message_create</a></dt>
                 <dd>
                 </dd>
@@ -645,6 +669,36 @@
         </td>
         <td>
                 <p>Sets bypassing of page's Content-Security-Policy.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>deviceName</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>Sets the device name of a current linked device., i.e.: 'TEST'.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>browserName</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>Sets the browser name of a current linked device, i.e.: 'Firefox'.</p>
         </td>
 </tr>
 
@@ -1130,6 +1184,88 @@
 
         </dl>
 
+                <div class="symbol-detail-labels"><span class="label label-async">async</span></div><h3 id="addOrEditCustomerNote"><span class="symbol-name">addOrEditCustomerNote</span><span class="signature"><span class="signature-params">(userId, note)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing void</span></span></h3>            <p>Add or edit a customer note</p>
+
+        
+            <section>
+        <h4>Parameters</h4>
+            <table class="jsdoc-details-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Optional</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+        <td>
+            <p>userId</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The ID of a customer to add a note to</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>note</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The note to add</p>
+        </td>
+</tr>
+
+        </tbody>
+</table>
+
+    </section>
+
+        
+
+        <dl class="dl-compact">
+            
+
+
+
+
+
+
+
+
+
+
+
+
+    <dt>See also</dt>
+        <dd><a href="https://faq.whatsapp.com/1433099287594476">https://faq.whatsapp.com/1433099287594476</a></dd>
+
+
+
+
+
+
+
+    <dt>Returns</dt>
+        <dd><p><code>Promise containing void</code> </p></dd>
+
+
+
+        </dl>
+
                 <div class="symbol-detail-labels"><span class="label label-async">async</span></div><h3 id="addOrRemoveLabels"><span class="symbol-name">addOrRemoveLabels</span><span class="signature"><span class="signature-params">(labelIds, chatIds)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing void</span></span></h3>            <p>Change labels in chats</p>
 
         
@@ -1381,6 +1517,86 @@ Private function</p>
 
 
 
+
+
+
+        </dl>
+
+                <div class="symbol-detail-labels"><span class="label label-async">async</span></div><h3 id="createCallLink"><span class="symbol-name">createCallLink</span><span class="signature"><span class="signature-params">(startTime, callType)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing string</span></span></h3>            <p>Generates a WhatsApp call link (video call or voice call)</p>
+
+        
+            <section>
+        <h4>Parameters</h4>
+            <table class="jsdoc-details-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Optional</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+        <td>
+            <p>startTime</p>
+        </td>
+        <td>
+                <p>Date</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The start time of the call</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>callType</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The type of a WhatsApp call link to generate, valid values are: <code>video</code> | <code>voice</code></p>
+        </td>
+</tr>
+
+        </tbody>
+</table>
+
+    </section>
+
+        
+
+        <dl class="dl-compact">
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <dt>Returns</dt>
+        <dd><p><code>Promise containing string</code> <p>The WhatsApp call link (https://call.whatsapp.com/video/XxXxXxXxXxXxXx) or an empty string if a generation failed.</p></p></dd>
 
 
 
@@ -2424,6 +2640,71 @@ So for a non-enterprise user with one WaWeb connection it should return &quot;2&
 
         </dl>
 
+                <div class="symbol-detail-labels"><span class="label label-async">async</span></div><h3 id="getContactLidAndPhone"><span class="symbol-name">getContactLidAndPhone</span><span class="signature"><span class="signature-params">(userIds)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of {lid: string, pn: string}</span></span></h3>            <p>Get lid and phone number for multiple users</p>
+
+        
+            <section>
+        <h4>Parameter</h4>
+            <table class="jsdoc-details-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Optional</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+        <td>
+            <p>userIds</p>
+        </td>
+        <td>
+                <p>Array of string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>Array of user IDs</p>
+        </td>
+</tr>
+
+        </tbody>
+</table>
+
+    </section>
+
+        
+
+        <dl class="dl-compact">
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <dt>Returns</dt>
+        <dd><p><code>Promise containing Array of {lid: string, pn: string}</code> </p></dd>
+
+
+
+        </dl>
+
                 <div class="symbol-detail-labels"><span class="label label-async">async</span></div><h3 id="getContacts"><span class="symbol-name">getContacts</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of <a href="Contact.html">Contact</a></span></span></h3>            <p>Get all current contact instances</p>
 
         
@@ -2518,6 +2799,73 @@ So for a non-enterprise user with one WaWeb connection it should return &quot;2&
 
     <dt>Returns</dt>
         <dd><p><code>Promise containing string</code> </p></dd>
+
+
+
+        </dl>
+
+                <div class="symbol-detail-labels"><span class="label label-async">async</span></div><h3 id="getCustomerNote"><span class="symbol-name">getCustomerNote</span><span class="signature"><span class="signature-params">(userId)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing {chatId: string, content: string, createdAt: number, id: string, modifiedAt: number, type: string}</span></span></h3>            <p>Get a customer note</p>
+
+        
+            <section>
+        <h4>Parameter</h4>
+            <table class="jsdoc-details-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Optional</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+        <td>
+            <p>userId</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The ID of a customer to get a note from</p>
+        </td>
+</tr>
+
+        </tbody>
+</table>
+
+    </section>
+
+        
+
+        <dl class="dl-compact">
+            
+
+
+
+
+
+
+
+
+
+
+
+
+    <dt>See also</dt>
+        <dd><a href="https://faq.whatsapp.com/1433099287594476">https://faq.whatsapp.com/1433099287594476</a></dd>
+
+
+
+
+
+
+
+    <dt>Returns</dt>
+        <dd><p><code>Promise containing {chatId: string, content: string, createdAt: number, id: string, modifiedAt: number, type: string}</code> </p></dd>
 
 
 
@@ -2876,6 +3224,135 @@ Will return null if the number is not registered on WhatsApp.</p>
 
     <dt>Returns</dt>
         <dd><p><code>Promise containing (Object or null)</code> </p></dd>
+
+
+
+        </dl>
+
+                <div class="symbol-detail-labels"><span class="label label-async">async</span></div><h3 id="getPinnedMessages"><span class="symbol-name">getPinnedMessages</span><span class="signature"><span class="signature-params">(chatId)</span></span></h3>            <p>Gets instances of all pinned messages in a chat</p>
+
+        
+            <section>
+        <h4>Parameter</h4>
+            <table class="jsdoc-details-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Optional</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+        <td>
+            <p>chatId</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The chat ID</p>
+        </td>
+</tr>
+
+        </tbody>
+</table>
+
+    </section>
+
+        
+
+        <dl class="dl-compact">
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <dt>Returns</dt>
+        <dd></dd>
+
+
+
+        </dl>
+
+                <div class="symbol-detail-labels"><span class="label label-async">async</span></div><h3 id="getPollVotes"><span class="symbol-name">getPollVotes</span><span class="signature"><span class="signature-params">(messageId)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing Array of <a href="PollVote.html">PollVote</a></span></span></h3>            <p>Get Poll Votes</p>
+
+        
+            <section>
+        <h4>Parameter</h4>
+            <table class="jsdoc-details-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Optional</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+        <td>
+            <p>messageId</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+        </td>
+</tr>
+
+        </tbody>
+</table>
+
+    </section>
+
+        
+
+        <dl class="dl-compact">
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <dt>Returns</dt>
+        <dd><p><code>Promise containing Array of <a href="PollVote.html">PollVote</a></code> </p></dd>
 
 
 
@@ -3434,7 +3911,7 @@ Private function</p>
 
         </dl>
 
-                <div class="symbol-detail-labels"><span class="label label-async">async</span></div><h3 id="requestPairingCode"><span class="symbol-name">requestPairingCode</span><span class="signature"><span class="signature-params">(phoneNumber, showNotification)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing string</span></span></h3>            <p>Request authentication via pairing code instead of QR code</p>
+                <div class="symbol-detail-labels"><span class="label label-async">async</span></div><h3 id="requestPairingCode"><span class="symbol-name">requestPairingCode</span><span class="signature"><span class="signature-params">(phoneNumber[, showNotification][, intervalMs])</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing string</span></span></h3>            <p>Request authentication via pairing code instead of QR code</p>
 
         
             <section>
@@ -3472,11 +3949,27 @@ Private function</p>
                 <p>boolean</p>
         </td>
         <td>
-                <p>&nbsp;</p>
+                <p>Yes</p>
         </td>
         <td>
                 <p>Show notification to pair on phone number</p>
                 <p>Defaults to <code>true</code>.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>intervalMs</p>
+        </td>
+        <td>
+                <p>number</p>
+        </td>
+        <td>
+                <p>Yes</p>
+        </td>
+        <td>
+                <p>The interval in milliseconds on how frequent to generate pairing code (WhatsApp default to 3 minutes)</p>
+                <p>Defaults to <code>180000</code>.</p>
         </td>
 </tr>
 
@@ -3629,7 +4122,7 @@ Private function</p>
 
         </dl>
 
-                <div class="symbol-detail-labels"><span class="label label-async">async</span></div><h3 id="saveOrEditAddressbookContact"><span class="symbol-name">saveOrEditAddressbookContact</span><span class="signature"><span class="signature-params">(phoneNumber, firstName, lastName[, syncToAddressbook])</span></span></h3>            <p>Save new contact to user's addressbook or edit the existing one</p>
+                <div class="symbol-detail-labels"><span class="label label-async">async</span></div><h3 id="saveOrEditAddressbookContact"><span class="symbol-name">saveOrEditAddressbookContact</span><span class="signature"><span class="signature-params">(phoneNumber, firstName, lastName[, syncToAddressbook])</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing void</span></span></h3>            <p>Save new contact to user's addressbook or edit the existing one</p>
 
         
             <section>
@@ -3732,7 +4225,7 @@ Private function</p>
 
 
     <dt>Returns</dt>
-        <dd></dd>
+        <dd><p><code>Promise containing void</code> </p></dd>
 
 
 
@@ -4287,6 +4780,86 @@ the lastMessage property of a found channel will be 'null'</li>
 
 
 
+
+
+
+        </dl>
+
+                <div class="symbol-detail-labels"><span class="label label-async">async</span></div><h3 id="sendResponseToScheduledEvent"><span class="symbol-name">sendResponseToScheduledEvent</span><span class="signature"><span class="signature-params">(response, eventMessageId)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>            <p>Sends a response to the scheduled event message, indicating whether a user is going to attend the event or not</p>
+
+        
+            <section>
+        <h4>Parameters</h4>
+            <table class="jsdoc-details-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Optional</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+        <td>
+            <p>response</p>
+        </td>
+        <td>
+                <p>number</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The response code to the scheduled event message. Valid values are: <code>0</code> for NONE response (removes a previous response) | <code>1</code> for GOING | <code>2</code> for NOT GOING | <code>3</code> for MAYBE going</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>eventMessageId</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The scheduled event message ID</p>
+        </td>
+</tr>
+
+        </tbody>
+</table>
+
+    </section>
+
+        
+
+        <dl class="dl-compact">
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <dt>Returns</dt>
+        <dd><p><code>Promise containing boolean</code> </p></dd>
 
 
 
@@ -5720,6 +6293,71 @@ Note: the user you are transferring the channel ownership to must be a channel a
 
 
 
+
+
+
+        </dl>
+
+                <h3 id="event:code"><span class="symbol-name">code</span></h3>            <p>Emitted when a pairing code is received</p>
+
+        
+            <section>
+        <h4>Parameter</h4>
+            <table class="jsdoc-details-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Optional</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+        <td>
+            <p>code</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>Code</p>
+        </td>
+</tr>
+
+        </tbody>
+</table>
+
+    </section>
+
+        
+
+        <dl class="dl-compact">
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <dt>Returns</dt>
+        <dd><p><code>string</code> <p>Code that was just received</p></p></dd>
 
 
 
@@ -7383,7 +8021,7 @@ shows a user's current selected option(s) on the poll</p>
                     <footer id="jsdoc-footer" class="jsdoc-footer">
                             <div id="jsdoc-footer-container">
                                     <p>
-                                      Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on June 11, 2025.
+                                      Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on November 6, 2025.
                                     </p>
                             </div>
                     </footer>
