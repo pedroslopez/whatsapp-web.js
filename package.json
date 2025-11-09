@@ -1,6 +1,6 @@
 {
   "name": "whatsapp-web.js",
-  "version": "1.26.0",
+  "version": "1.34.2",
   "description": "Library for interacting with the WhatsApp Web API ",
   "main": "./index.js",
   "typings": "./index.d.ts",
@@ -8,7 +8,7 @@
     "test": "mocha tests --recursive --timeout 5000",
     "test-single": "mocha",
     "shell": "node --experimental-repl-await ./shell.js",
-    "generate-docs": "node_modules/.bin/jsdoc --configure .jsdoc.json --verbose"
+    "generate-docs": "npx jsdoc --configure .jsdoc.json --verbose"
   },
   "repository": {
     "type": "git",
@@ -30,7 +30,7 @@
   "homepage": "https://wwebjs.dev/",
   "dependencies": {
     "@pedroslopez/moduleraid": "^5.0.2",
-    "fluent-ffmpeg": "2.1.2",
+    "fluent-ffmpeg": "2.1.3",
     "mime": "^3.0.0",
     "node-fetch": "^2.6.9",
     "node-webpmux": "3.1.7",

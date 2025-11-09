@@ -5,6 +5,7 @@ module.exports = {
     ClientInfo: require('./ClientInfo'),
     Contact: require('./Contact'),
     GroupChat: require('./GroupChat'),
+    Channel: require('./Channel'),
     Location: require('./Location'),
     Message: require('./Message'),
     MessageMedia: require('./MessageMedia'),
@@ -20,5 +21,7 @@ module.exports = {
     Payment: require('./Payment'),
     Reaction: require('./Reaction'),
     Poll: require('./Poll'),
-    PollVote: require('./PollVote')
+    PollVote: require('./PollVote'),
+    Broadcast: require('./Broadcast'),
+    ScheduledEvent: require('./ScheduledEvent'),
 };
