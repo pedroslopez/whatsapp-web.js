@@ -43,7 +43,7 @@ class Broadcast extends Base {
          * Messages statuses
          * @type {Message[]}
          */
-        this.msgs = data.msgs.map(msg => new Message(this.client, msg));
+        this.msgs = data.msgs?.map(msg => new Message(this.client, msg));
 
         return super._patch(data);
     }
