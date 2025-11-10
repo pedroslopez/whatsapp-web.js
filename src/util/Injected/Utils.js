@@ -430,6 +430,10 @@ exports.LoadUtils = () => {
             isNewsletter: sendToChannel,
         });
 
+        if (!mediaData.filehash) {
+            throw new Error('media-fault: sendToChat filehash undefined');
+        }
+
         if (forceVoice && mediaData.type === 'ptt') {
             const waveform = mediaObject.contentInfo.waveform;
             mediaData.waveform =
@@ -445,7 +449,15 @@ exports.LoadUtils = () => {
 
         mediaData.renderableUrl = mediaData.mediaBlob.url();
         mediaObject.consolidate(mediaData.toJSON());
+        
         mediaData.mediaBlob.autorelease();
+        const shouldUseMediaCache = window.Store.MediaDataUtils.shouldUseMediaCache(
+            window.Store.MediaTypes.castToV4(mediaObject.type)
+        );
+        if (shouldUseMediaCache && mediaData.mediaBlob instanceof window.Store.OpaqueData) {
+            const formData = mediaData.mediaBlob.formData();
+            window.Store.BlobCache.InMemoryMediaBlobCache.put(mediaObject.filehash, formData);
+        }
 
         const dataToUpload = {
             mimetype: mediaData.mimetype,
