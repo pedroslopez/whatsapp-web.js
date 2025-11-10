@@ -1215,6 +1215,10 @@ declare namespace WAWebJS {
          * Once the event is canceled, it can not be edited.
          */
         editScheduledEvent: (editedEventObject: Event) => Promise<Message | null>,
+        /**
+         * Send votes to the poll message
+         */
+        vote: (selectedOptions: Array<string>) => Promise<void>,
     }
 
     /** ID that represents a message */
