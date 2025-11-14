@@ -92,15 +92,15 @@ exports.LoadUtils = () => {
             delete options.location;
         }
 
-        let _pollOptions = {};
+        let pollOptions = {};
         if (options.poll) {
-            const { pollName, pollOptions } = options.poll;
+            const { pollName, pollOptions: _pollOptions } = options.poll;
             const { allowMultipleAnswers, messageSecret } = options.poll.options;
-            _pollOptions = {
+            pollOptions = {
                 kind: 'pollCreation',
                 type: 'poll_creation',
                 pollName: pollName,
-                pollOptions: pollOptions,
+                pollOptions: _pollOptions,
                 pollSelectableOptionsCount: allowMultipleAnswers ? 0 : 1,
                 messageSecret:
                     Array.isArray(messageSecret) && messageSecret.length === 32
@@ -264,7 +264,7 @@ exports.LoadUtils = () => {
             id: newMsgKey,
             ack: 0,
             body: content,
-            from: meUser,
+            from: from,
             to: chat.id,
             local: true,
             self: 'out',
@@ -276,7 +276,7 @@ exports.LoadUtils = () => {
             ...(mediaOptions.toJSON ? mediaOptions.toJSON() : {}),
             ...quotedMsgOptions,
             ...locationOptions,
-            ..._pollOptions,
+            ...pollOptions,
             ...eventOptions,
             ...vcardOptions,
             ...buttonOptions,
@@ -430,6 +430,10 @@ exports.LoadUtils = () => {
             isNewsletter: sendToChannel,
         });
 
+        if (!mediaData.filehash) {
+            throw new Error('media-fault: sendToChat filehash undefined');
+        }
+
         if (forceVoice && mediaData.type === 'ptt') {
             const waveform = mediaObject.contentInfo.waveform;
             mediaData.waveform =
@@ -445,7 +449,15 @@ exports.LoadUtils = () => {
 
         mediaData.renderableUrl = mediaData.mediaBlob.url();
         mediaObject.consolidate(mediaData.toJSON());
+        
         mediaData.mediaBlob.autorelease();
+        const shouldUseMediaCache = window.Store.MediaDataUtils.shouldUseMediaCache(
+            window.Store.MediaTypes.castToV4(mediaObject.type)
+        );
+        if (shouldUseMediaCache && mediaData.mediaBlob instanceof window.Store.OpaqueData) {
+            const formData = mediaData.mediaBlob.formData();
+            window.Store.BlobCache.InMemoryMediaBlobCache.put(mediaObject.filehash, formData);
+        }
 
         const dataToUpload = {
             mimetype: mediaData.mimetype,

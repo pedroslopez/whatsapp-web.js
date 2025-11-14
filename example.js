@@ -365,7 +365,7 @@ client.on('message', async msg => {
         let list = new List('List body', 'btnText', sections, 'Title', 'footer');
         client.sendMessage(msg.from, list);
     } else if (msg.body === '!reaction') {
-        msg.react('👍');
+        await msg.react('👍');
     } else if (msg.body === '!sendpoll') {
         /** By default the poll is created as a single choice poll: */
         await msg.reply(new Poll('Winter or Summer?', ['Winter', 'Summer']));
@@ -382,11 +382,20 @@ client.on('message', async msg => {
                 ]
             })
         );
+    } else if (msg.body === '!vote') {
+        if (msg.hasQuotedMsg) {
+            const quotedMsg = await msg.getQuotedMessage();
+            if (quotedMsg.type === 'poll_creation') {
+                await quotedMsg.vote(msg.body.replace('!vote', ''));
+            } else {
+                msg.reply('Can only be used on poll messages');
+            }
+        }
     } else if (msg.body === '!edit') {
         if (msg.hasQuotedMsg) {
             const quotedMsg = await msg.getQuotedMessage();
             if (quotedMsg.fromMe) {
-                quotedMsg.edit(msg.body.replace('!edit', ''));
+                await quotedMsg.edit(msg.body.replace('!edit', ''));
             } else {
                 msg.reply('I can only edit my own messages');
             }
