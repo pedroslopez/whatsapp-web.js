@@ -1973,9 +1973,14 @@ declare namespace WAWebJS {
         /** Group participants */
         participants: Array<GroupParticipant>;
         /** Adds a list of participants by ID to the group */
-        addParticipants: (participantIds: string | string[], options?: AddParticipantsOptions) => Promise<{ [key: string]: AddParticipantsResult } | string>;
+        addParticipants: (
+            participantIds: string | string[],
+            options?: AddParticipantsOptions
+        ) => Promise<{ [key: string]: AddParticipantsResult } | string>;
         /** Removes a list of participants by ID to the group */
-        removeParticipants: (participantIds: string[]) => Promise<{ status: number }>;
+        removeParticipants: (
+            participantIds: string[]
+        ) => Promise<{ status: number }>;
         /** Promotes participants by IDs to admins */
         promoteParticipants: ChangeParticipantsPermissions;
         /** Demotes participants by IDs to regular users */
@@ -1986,11 +1991,17 @@ declare namespace WAWebJS {
         setDescription: (description: string) => Promise<boolean>;
         /**
          * Updates the group setting to allow only admins to add members to the group.
-         * @param {boolean} [adminsOnly=true] Enable or disable this option 
+         * @param {boolean} [adminsOnly=true] Enable or disable this option
          * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
          */
         setAddMembersAdminsOnly: (adminsOnly?: boolean) => Promise<boolean>;
         /** Updates the group settings to only allow admins to send messages
+         * @param {boolean} [adminsOnly=true] Enable or disable this option
+         * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
+         */
+        setJoinRequestsEnabled: (enabled?: boolean) => Promise<boolean>;
+        /**
+         * Updates the group settings to only allow admins to edit group info (title, description, photo).
          * @param {boolean} [adminsOnly=true] Enable or disable this option
          * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
          */
@@ -2005,19 +2016,25 @@ declare namespace WAWebJS {
          * Gets an array of membership requests
          * @returns {Promise<Array<GroupMembershipRequest>>} An array of membership requests
          */
-        getGroupMembershipRequests: () => Promise<Array<GroupMembershipRequest>>;
+        getGroupMembershipRequests: () => Promise<
+            Array<GroupMembershipRequest>
+        >;
         /**
          * Approves membership requests if any
          * @param {MembershipRequestActionOptions} options Options for performing a membership request action
          * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were approved and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned
          */
-        approveGroupMembershipRequests: (options: MembershipRequestActionOptions) => Promise<Array<MembershipRequestActionResult>>;
+        approveGroupMembershipRequests: (
+            options: MembershipRequestActionOptions
+        ) => Promise<Array<MembershipRequestActionResult>>;
         /**
          * Rejects membership requests if any
          * @param {MembershipRequestActionOptions} options Options for performing a membership request action
          * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were rejected and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned
          */
-        rejectGroupMembershipRequests: (options: MembershipRequestActionOptions) => Promise<Array<MembershipRequestActionResult>>;
+        rejectGroupMembershipRequests: (
+            options: MembershipRequestActionOptions
+        ) => Promise<Array<MembershipRequestActionResult>>;
         /** Gets the invite code for a specific group */
         getInviteCode: () => Promise<string>;
         /** Invalidates the current group invite code and generates a new one */
