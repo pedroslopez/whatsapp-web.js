@@ -335,6 +335,59 @@ class GroupChat extends Chat {
     }
 
     /**
+     * Sets join requests (membership approval) for a group.
+     * @param {string} chatId - The group ID (example: "1234567890-123456789@g.us")
+     * @param {boolean} [enabled=true] - If true, join requests require admin approval.
+     * @returns {Promise<boolean>} - True if the setting was updated successfully.
+     */
+    async setJoinRequestsEnabled(chatId, enabled = true) {
+        if (!this.client.pupPage) throw new Error("Puppeteer page not available");
+        // console.log(`🛠️ Attempting to set join requests for ${chatId}: ${enabled ? "ON" : "OFF"}`);
+        try {
+            const success = await this.client.pupPage.evaluate(
+                async (id, enable) => {
+                    const chatWid = window.Store.WidFactory.createWid(id);
+                    try {
+                        await window.Store.GroupUtils.setGroupProperty(
+                            chatWid,
+                            "membership_approval_mode",   // property key
+                            enable ? 1 : 0                // 1 = ON, 0 = OFF
+                        );
+                        return true;
+                    } catch (e) {
+                        console.error("❌ Error in browser context setGroupProperty:", e);
+                        return false;
+                    }
+                },
+                chatId,
+                enabled
+            );
+
+            if (!success) {
+                console.warn("⚠️ Failed to update join requests in WhatsApp.");
+                return false;
+            }
+
+            // Update local metadata (if it exists on your structure)
+            if (this.groupMetadata) {
+                this.groupMetadata.__x_membershipApprovalMode = enabled ? 1 : 0;
+                console.log("🔹 Local metadata updated:", this.groupMetadata.__x_membershipApprovalMode);
+            }
+
+            return true;
+        } catch (err) {
+            console.error("❌ Node-side error in setJoinRequestsEnabled:", err);
+            return false;
+        }
+    }
+    // Example usage:
+    // Enable join request approval
+    // setJoinRequestsEnabled("1234567890-123456789@g.us", true);
+
+    // Disable join request approval
+    // setJoinRequestsEnabled("1234567890-123456789@g.us", false);
+
+    /**
      * Updates the group settings to only allow admins to edit group info (title, description, photo).
      * @param {boolean} [adminsOnly=true] Enable or disable this option 
      * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.

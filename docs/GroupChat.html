@@ -203,6 +203,9 @@
                     <dd>
                     </dd>
                     <dt><a href="GroupChat.html#setInfoAdminsOnly">setInfoAdminsOnly([adminsOnly])</a></dt>
+                    <dd>   
+                    </dd>
+                    <dt><a href="GroupChat.html#setJoinRequestsEnabled">setJoinRequestsEnabled([enabled])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="GroupChat.html#setMessagesAdminsOnly">setMessagesAdminsOnly([adminsOnly])</a></dt>
@@ -1166,6 +1169,46 @@
                   <p><code>Promise containing boolean</code> 
                   <p>Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.</p>
                   </p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="setJoinRequestsEnabled"><span class="symbol-name">setJoinRequestsEnabled</span><span class="signature"><span class="signature-params">([enabled])</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing boolean</span></span></h3>
+              <p>Sets the group's join request approval mode. When enabled, new members must be approved by an admin before joining.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>enabled</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Enable or disable join request approval.</p>
+                        <p>Defaults to <code>true</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing boolean</code></p>
+                  <p>Returns true if the setting was successfully updated. Returns false if the update failed (e.g., due to insufficient permissions or an internal error).</p>
                 </dd>
               </dl>
               <div class="symbol-detail-labels"><span class="label label-async">async</span></div>

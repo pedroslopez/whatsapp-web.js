@@ -23,6 +23,24 @@ const client = new Client({
     //     showNotification: true,
     //     intervalMs: 180000 // Time to renew pairing code in milliseconds, defaults to 3 minutes
     // }
+    
+    // ✅ ANTI-BAN: Stealth configuration to prevent detection
+    useAutomationFlags: true,           // Enable browser automation flags
+    stealthLevel: 'high',               // 'low', 'medium', 'high' - level of stealth
+    usePageStealth: true,               // Apply page-level stealth scripts
+    removeWebdriver: true,              // Remove navigator.webdriver property
+    
+    // ✅ ANTI-BAN: Human behavior simulation
+    humanBehavior: true,                // Enable human-like delays and actions
+    minDelay: 2000,                     // Minimum delay between actions (ms)
+    maxDelay: 8000,                     // Maximum delay between actions (ms)
+    maxMessagesPerHour: 30,             // Rate limiting: max messages per hour
+    
+    // ✅ ANTI-BAN: Activity simulation
+    simulateTyping: true,               // Simulate typing indicators
+    randomMouseMovements: true,         // Add random mouse movements
+    simulateReading: true,              // Simulate message reading behavior
+    periodicActivities: true            // Enable random periodic human activities
 });
 
 // client initialize does not finish at ready now.
@@ -117,7 +135,23 @@ client.on('message', async msg => {
         } else {
             msg.reply('This command can only be used in a group!');
         }
-    } else if (msg.body.startsWith('!join ')) {
+    } else if (msg.body.startsWith('!joinrequests')) {
+        const chat = await msg.getChat();
+        if (!chat.isGroup) return msg.reply('This command can only be used in a group!');
+
+        const arg = msg.body.split(' ')[1]?.toLowerCase();
+        if (!arg || !['on', 'off'].includes(arg)) {
+            return msg.reply('Usage: !joinrequests <on|off>');
+        }
+
+        const enabled = arg === 'on';
+        const result = await chat.setJoinRequestsEnabled(enabled);
+
+        msg.reply(result
+            ? `✅ Join request approval has been ${enabled ? 'enabled' : 'disabled'} for this group.`
+            : '❌ Failed to update join request setting.'
+        );
+    }else if (msg.body.startsWith('!join ')) {
         const inviteCode = msg.body.split(' ')[1];
         try {
             await client.acceptInvite(inviteCode);

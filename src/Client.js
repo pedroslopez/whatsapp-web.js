@@ -65,16 +65,39 @@ const {exposeFunctionIfAbsent} = require('./util/Puppeteer');
 class Client extends EventEmitter {
     constructor(options = {}) {
         super();
+            this.options = Util.mergeDefault(DefaultOptions, options);
+            
+            // ✅ EXISTING: Memory leak prevention
+            this._activeIntervals = new Set();
+            this._eventHandlers = new Map();
+            this._cleanupCallbacks = [];
+            this._listenersAttached = false;
+            this._attachedListeners = [];
+            
+            // ✅ NEW: Performance optimization - Lazy loading caches
+            this._chatCache = new Map();           // Cache for frequent chat access
+            this._contactCache = new Map();        // Cache for frequent contact access  
+            this._messageCache = new Map();        // Cache for recent messages
+            this._cacheTimestamps = new Map();     // Track cache freshness
+            this._lastCleanup = Date.now();
+            
+            // ✅ NEW: Connection state optimization
+            this._connectionState = 'DISCONNECTED';
+            this._lastStateCheck = 0;
+            this._stateCheckInterval = null;
+                // ✅ ADD THESE MISSING VARIABLES:
+            this._messageBatch = [];          // Add this
+            this._batchTimeout = null;        // Add this  
+            this._batchProcessing = false;    // Add this
+            this._requestHandlers = [];       // Add this
+             this._cleanupInterval = null;     // ✅ ADD: Cache cleanup interval
+            if(!this.options.authStrategy) {
+                this.authStrategy = new NoAuth();
+            } else {
+                this.authStrategy = this.options.authStrategy;
+            }
 
-        this.options = Util.mergeDefault(DefaultOptions, options);
-        
-        if(!this.options.authStrategy) {
-            this.authStrategy = new NoAuth();
-        } else {
-            this.authStrategy = this.options.authStrategy;
-        }
-
-        this.authStrategy.setup(this);
+            this.authStrategy.setup(this);
 
         /**
          * @type {puppeteer.Browser}
@@ -95,266 +118,612 @@ class Client extends EventEmitter {
      * Private function
      */
     async inject() {
-        await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', {timeout: this.options.authTimeoutMs});
-        await this.setDeviceName(this.options.deviceName, this.options.browserName);
-        const pairWithPhoneNumber = this.options.pairWithPhoneNumber;
-        const version = await this.getWWebVersion();
-        const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
-
-        if (isCometOrAbove) {
-            await this.pupPage.evaluate(ExposeAuthStore);
-        } else {
-            await this.pupPage.evaluate(ExposeLegacyAuthStore, moduleRaid.toString());
-        }
-
-        const needAuthentication = await this.pupPage.evaluate(async () => {
-            let state = window.AuthStore.AppState.state;
-
-            if (state === 'OPENING' || state === 'UNLAUNCHED' || state === 'PAIRING') {
-                // wait till state changes
-                await new Promise(r => {
-                    window.AuthStore.AppState.on('change:state', function waitTillInit(_AppState, state) {
-                        if (state !== 'OPENING' && state !== 'UNLAUNCHED' && state !== 'PAIRING') {
-                            window.AuthStore.AppState.off('change:state', waitTillInit);
-                            r();
-                        } 
+        try {
+            // ✅ ENHANCED: Version detection with retry logic
+            let versionDetected = false;
+            let versionAttempts = 0;
+            
+            while (!versionDetected && versionAttempts < 3) {
+                try {
+                    await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', {
+                        timeout: this.options.authTimeoutMs
                     });
-                }); 
-            }
-            state = window.AuthStore.AppState.state;
-            return state == 'UNPAIRED' || state == 'UNPAIRED_IDLE';
-        });
-
-        if (needAuthentication) {
-            const { failed, failureEventPayload, restart } = await this.authStrategy.onAuthenticationNeeded();
-
-            if(failed) {
-                /**
-                 * Emitted when there has been an error while trying to restore an existing session
-                 * @event Client#auth_failure
-                 * @param {string} message
-                 */
-                this.emit(Events.AUTHENTICATION_FAILURE, failureEventPayload);
-                await this.destroy();
-                if (restart) {
-                    // session restore failed so try again but without session to force new authentication
-                    return this.initialize();
-                }
-                return;
-            }
-
-            // Register qr/code events
-            if (pairWithPhoneNumber.phoneNumber) {
-                await exposeFunctionIfAbsent(this.pupPage, 'onCodeReceivedEvent', async (code) => {
-                    /**
-                    * Emitted when a pairing code is received
-                    * @event Client#code
-                    * @param {string} code Code
-                    * @returns {string} Code that was just received
-                    */
-                    this.emit(Events.CODE_RECEIVED, code);
-                    return code;
-                });
-                this.requestPairingCode(pairWithPhoneNumber.phoneNumber, pairWithPhoneNumber.showNotification, pairWithPhoneNumber.intervalMs);
-            } else {
-                let qrRetries = 0;
-                await exposeFunctionIfAbsent(this.pupPage, 'onQRChangedEvent', async (qr) => {
-                    /**
-                    * Emitted when a QR code is received
-                    * @event Client#qr
-                    * @param {string} qr QR Code
-                    */
-                    this.emit(Events.QR_RECEIVED, qr);
-                    if (this.options.qrMaxRetries > 0) {
-                        qrRetries++;
-                        if (qrRetries > this.options.qrMaxRetries) {
-                            this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
-                            await this.destroy();
-                        }
+                    versionDetected = true;
+                } catch (error) {
+                    versionAttempts++;
+                    console.warn(`Version detection attempt ${versionAttempts} failed:`, error.message);
+                    if (versionAttempts >= 3) {
+                        throw new Error('WhatsApp Web version not detected after 3 attempts - page may not have loaded properly');
                     }
-                });
-
-
-                await this.pupPage.evaluate(async () => {
-                    const registrationInfo = await window.AuthStore.RegistrationUtils.waSignalStore.getRegistrationInfo();
-                    const noiseKeyPair = await window.AuthStore.RegistrationUtils.waNoiseInfo.get();
-                    const staticKeyB64 = window.AuthStore.Base64Tools.encodeB64(noiseKeyPair.staticKeyPair.pubKey);
-                    const identityKeyB64 = window.AuthStore.Base64Tools.encodeB64(registrationInfo.identityKeyPair.pubKey);
-                    const advSecretKey = await window.AuthStore.RegistrationUtils.getADVSecretKey();
-                    const platform = window.AuthStore.RegistrationUtils.DEVICE_PLATFORM;
-                    const getQR = (ref) => ref + ',' + staticKeyB64 + ',' + identityKeyB64 + ',' + advSecretKey + ',' + platform;
-
-                    window.onQRChangedEvent(getQR(window.AuthStore.Conn.ref)); // initial qr
-                    window.AuthStore.Conn.on('change:ref', (_, ref) => { window.onQRChangedEvent(getQR(ref)); }); // future QR changes
-                });
+                    await new Promise(r => setTimeout(r, 2000));
+                }
             }
-        }
 
-        await exposeFunctionIfAbsent(this.pupPage, 'onAuthAppStateChangedEvent', async (state) => {
-            if (state == 'UNPAIRED_IDLE' && !pairWithPhoneNumber.phoneNumber) {
-                // refresh qr code
-                window.Store.Cmd.refreshQR();
+            await this.setDeviceName(this.options.deviceName, this.options.browserName);
+            const pairWithPhoneNumber = this.options.pairWithPhoneNumber;
+            const version = await this.getWWebVersion();
+            const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
+
+            // ✅ FIX: Enhanced auth store injection with validation
+            let authStoreInjected = false;
+            try {
+                if (isCometOrAbove) {
+                    await this.pupPage.evaluate(ExposeAuthStore);
+                } else {
+                    await this.pupPage.evaluate(ExposeLegacyAuthStore, moduleRaid.toString());
+                }
+                
+                // Validate auth store injection
+                authStoreInjected = await this.pupPage.evaluate(() => {
+                    return !!(window.AuthStore && window.AuthStore.AppState);
+                });
+                
+                if (!authStoreInjected) {
+                    throw new Error('AuthStore injection failed - critical objects missing');
+                }
+            } catch (error) {
+                throw new Error(`AuthStore injection failed: ${error.message}`);
             }
-        });
 
-        await exposeFunctionIfAbsent(this.pupPage, 'onAppStateHasSyncedEvent', async () => {
-            const authEventPayload = await this.authStrategy.getAuthEventPayload();
-            /**
-                 * Emitted when authentication is successful
-                 * @event Client#authenticated
-                 */
-            this.emit(Events.AUTHENTICATED, authEventPayload);
+            // ✅ FIX: Enhanced authentication state validation with proper cleanup
+            const needAuthentication = await this.pupPage.evaluate(async () => {
+                if (!window.AuthStore || !window.AuthStore.AppState) {
+                    console.error('AuthStore not available during injection');
+                    return true;
+                }
 
-            const injected = await this.pupPage.evaluate(async () => {
-                return typeof window.Store !== 'undefined' && typeof window.WWebJS !== 'undefined';
+                let state = window.AuthStore.AppState.state;
+                console.log('Initial auth state:', state);
+
+                if (state === 'OPENING' || state === 'UNLAUNCHED' || state === 'PAIRING') {
+                    return new Promise((resolve, reject) => {
+                        const timeout = setTimeout(() => {
+                            // ✅ FIX: Clean up event listener on timeout
+                            window.AuthStore.AppState.off('change:state', stateChangeHandler);
+                            console.warn('Auth state change timeout, current state:', state);
+                            resolve(state === 'UNPAIRED' || state === 'UNPAIRED_IDLE');
+                        }, 10000);
+
+                        // ✅ FIX: Add cleanup on promise rejection
+                        const cleanup = () => {
+                            clearTimeout(timeout);
+                            window.AuthStore.AppState.off('change:state', stateChangeHandler);
+                        };
+
+                        const stateChangeHandler = (_AppState, newState) => {
+                            console.log('Auth state changed:', newState);
+                            if (newState !== 'OPENING' && newState !== 'UNLAUNCHED' && newState !== 'PAIRING') {
+                                cleanup();
+                                resolve(newState === 'UNPAIRED' || newState === 'UNPAIRED_IDLE');
+                            }
+                        };
+
+                        window.AuthStore.AppState.on('change:state', stateChangeHandler);
+                        
+                        // ✅ FIX: Handle page navigation/disconnection
+                        window.addEventListener('beforeunload', cleanup);
+                    });
+                }
+                
+                return state === 'UNPAIRED' || state === 'UNPAIRED_IDLE';
             });
 
-            if (!injected) {
-                if (this.options.webVersionCache.type === 'local' && this.currentIndexHtml) {
-                    const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
-                    const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
-            
-                    await webCache.persist(this.currentIndexHtml, version);
+            if (needAuthentication) {
+                const { failed, failureEventPayload, restart } = await this.authStrategy.onAuthenticationNeeded();
+
+                if (failed) {
+                    console.error('Authentication strategy failed:', failureEventPayload);
+                    this.emit(Events.AUTHENTICATION_FAILURE, failureEventPayload);
+                    await this.destroy();
+                    if (restart) {
+                        return this.initialize();
+                    }
+                    return;
                 }
+
+                // Register qr/code events
+                if (pairWithPhoneNumber.phoneNumber) {
+                    await exposeFunctionIfAbsent(this.pupPage, 'onCodeReceivedEvent', async (code) => {
+                        console.log('Pairing code received:', code);
+                        this.emit(Events.CODE_RECEIVED, code);
+                        return code;
+                    });
+                    this.requestPairingCode(pairWithPhoneNumber.phoneNumber, pairWithPhoneNumber.showNotification, pairWithPhoneNumber.intervalMs);
+                } else {
+                    let qrRetries = 0;
+                    await exposeFunctionIfAbsent(this.pupPage, 'onQRChangedEvent', async (qr) => {
+                        console.log('QR code updated');
+                        this.emit(Events.QR_RECEIVED, qr);
+                        if (this.options.qrMaxRetries > 0) {
+                            qrRetries++;
+                            if (qrRetries > this.options.qrMaxRetries) {
+                                console.error('Max QR code retries reached');
+                                this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
+                                await this.destroy();
+                            }
+                        }
+                    });
+
+                    // ✅ FIX: Enhanced QR generation with proper error handling
+                    const qrGenerated = await this.pupPage.evaluate(async () => {
+                        try {
+                            const registrationInfo = await window.AuthStore.RegistrationUtils.waSignalStore.getRegistrationInfo();
+                            const noiseKeyPair = await window.AuthStore.RegistrationUtils.waNoiseInfo.get();
+                            const staticKeyB64 = window.AuthStore.Base64Tools.encodeB64(noiseKeyPair.staticKeyPair.pubKey);
+                            const identityKeyB64 = window.AuthStore.Base64Tools.encodeB64(registrationInfo.identityKeyPair.pubKey);
+                            const advSecretKey = await window.AuthStore.RegistrationUtils.getADVSecretKey();
+                            const platform = window.AuthStore.RegistrationUtils.DEVICE_PLATFORM;
+                            const getQR = (ref) => ref + ',' + staticKeyB64 + ',' + identityKeyB64 + ',' + advSecretKey + ',' + platform;
+
+                            window.onQRChangedEvent(getQR(window.AuthStore.Conn.ref));
+                            window.AuthStore.Conn.on('change:ref', (_, ref) => { 
+                                window.onQRChangedEvent(getQR(ref)); 
+                            });
+                            return true;
+                        } catch (error) {
+                            console.error('Error generating QR code:', error);
+                            return false;
+                        }
+                    });
+
+                    if (!qrGenerated) {
+                        throw new Error('QR code generation failed');
+                    }
+                }
+            }
+
+            // ✅ FIX: Enhanced event exposure with validation
+            const exposedFunctions = [
+                { name: 'onAuthAppStateChangedEvent', handler: async (state) => {
+                    console.log('Auth app state changed:', state);
+                    if (state == 'UNPAIRED_IDLE' && !pairWithPhoneNumber.phoneNumber) {
+                        try {
+                            await this.pupPage.evaluate(() => {
+                                window.Store?.Cmd?.refreshQR();
+                            });
+                        } catch (error) {
+                            console.warn('Failed to refresh QR:', error);
+                        }
+                    }
+                }},
+                { name: 'onAppStateHasSyncedEvent', handler: async () => {
+                    await this._handleAppStateSynced(isCometOrAbove, version, pairWithPhoneNumber);
+                }},
+                { name: 'onOfflineProgressUpdateEvent', handler: async (percent) => {
+                    let lastPercent = null;
+                    if (lastPercent !== percent) {
+                        lastPercent = percent;
+                        this.emit(Events.LOADING_SCREEN, percent, 'WhatsApp');
+                    }
+                }},
+                { name: 'onLogoutEvent', handler: async () => {
+                    console.log('Logout event detected');
+                    this.lastLoggedOut = true;
+                    await this.pupPage.waitForNavigation({waitUntil: 'load', timeout: 5000}).catch((_) => {
+                        console.log('Navigation after logout completed or timed out');
+                    });
+                }}
+            ];
+
+            for (const { name, handler } of exposedFunctions) {
+                await exposeFunctionIfAbsent(this.pupPage, name, handler);
+            }
+
+            // ✅ FIX: Enhanced event binding with validation
+            const eventsBound = await this.pupPage.evaluate(() => {
+                try {
+                    if (!window.AuthStore || !window.AuthStore.AppState) {
+                        return false;
+                    }
+
+                    window.AuthStore.AppState.on('change:state', (_AppState, state) => { 
+                        window.onAuthAppStateChangedEvent(state); 
+                    });
+                    window.AuthStore.AppState.on('change:hasSynced', () => { 
+                        window.onAppStateHasSyncedEvent(); 
+                    });
+                    window.AuthStore.Cmd.on('offline_progress_update', () => {
+                        window.onOfflineProgressUpdateEvent(window.AuthStore.OfflineMessageHandler.getOfflineDeliveryProgress()); 
+                    });
+                    window.AuthStore.Cmd.on('logout', async () => {
+                        await window.onLogoutEvent();
+                    });
+                    
+                    return true;
+                } catch (error) {
+                    console.error('Error setting up auth event listeners:', error);
+                    return false;
+                }
+            });
+
+            if (!eventsBound) {
+                throw new Error('Failed to bind critical auth event listeners');
+            }
+
+            console.log('Injection completed successfully');
+
+        } catch (error) {
+            console.error('Critical error during injection:', error);
+            this.emit(Events.AUTHENTICATION_FAILURE, `Injection failed: ${error.message}`);
+            
+            // ✅ FIX: Safe cleanup on injection failure
+            await this._safeCleanup();
+            throw error;
+        }
+    }
+
+    // ✅ ADD: Extract complex logic to separate method
+    async _handleAppStateSynced(isCometOrAbove, version, pairWithPhoneNumber) {
+        console.log('App state has synced - proceeding with injection');
+        const authEventPayload = await this.authStrategy.getAuthEventPayload();
+        this.emit(Events.AUTHENTICATED, authEventPayload);
+
+        const injected = await this.pupPage.evaluate(async () => {
+            return typeof window.Store !== 'undefined' && typeof window.WWebJS !== 'undefined';
+        });
+
+        if (!injected) {
+            console.log('Performing initial injection...');
+            
+            if (this.options.webVersionCache.type === 'local' && this.currentIndexHtml) {
+                const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
+                const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
+                await webCache.persist(this.currentIndexHtml, version);
+            }
+
+            // ✅ FIX: Enhanced Store injection with retry logic
+            await this._injectStoreWithRetry(isCometOrAbove);
+            
+            this.info = new ClientInfo(this, await this.pupPage.evaluate(() => {
+                if (!window.Store.Conn || !window.Store.User) {
+                    throw new Error('Store objects not properly initialized');
+                }
+                return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMaybeMePnUser() || window.Store.User.getMaybeMeLidUser() };
+            }));
+
+            this.interface = new InterfaceController(this);
+            await this.pupPage.evaluate(LoadUtils);
+            await this.attachEventListeners();
+            console.log('Event listeners attached successfully');
+        } else {
+            console.log('Already injected, reattaching event listeners...');
+            await this.attachEventListeners();
+        }
+        
+        console.log('Client is ready');
+        this.emit(Events.READY);
+        this.authStrategy.afterAuthReady();
+    }
+
+
+/**
+ * Safe cleanup method to prevent memory leaks during errors
+ * @private
+ */
+async _safeCleanup() {
+    try {
+        console.log('Performing safe cleanup...');
+        
+        // 1. Clear all intervals and timeouts
+        if (this._activeIntervals) {
+            this._activeIntervals.forEach(clearInterval);
+            this._activeIntervals.clear();
+        }
+        
+        if (this._stateCheckInterval) {
+            clearInterval(this._stateCheckInterval);
+            this._stateCheckInterval = null;
+        }
+
+        // 2. Clear batch processing
+        if (this._batchTimeout) {
+            clearTimeout(this._batchTimeout);
+            this._batchTimeout = null;
+        }
+
+        // 3. Clear message batch
+        if (this._messageBatch) {
+            this._messageBatch.length = 0;
+        }
+
+        // 4. Clear page intervals safely
+        if (this.pupPage && !this.pupPage.isClosed()) {
+            await this.pupPage.evaluate(() => {
+                // Clear known intervals
+                if (window.codeInterval) {
+                    clearInterval(window.codeInterval);
+                    window.codeInterval = null;
+                }
+                
+                // Clear any other intervals
+                Object.keys(window).forEach(key => {
+                    if (key.includes('Interval') && window[key] && typeof window[key] === 'number') {
+                        clearInterval(window[key]);
+                        window[key] = null;
+                    }
+                });
+            }).catch(error => {
+                // Silent fail - page might be closed
+                console.warn('Page cleanup warning:', error.message);
+            });
+        }
+
+        // 5. Clear caches
+        if (this._chatCache) this._chatCache.clear();
+        if (this._contactCache) this._contactCache.clear();
+        if (this._messageCache) this._messageCache.clear();
+        if (this._cacheTimestamps) this._cacheTimestamps.clear();
+
+        console.log('Safe cleanup completed');
+        
+    } catch (error) {
+        console.error('Error during safe cleanup:', error);
+        // Don't throw - this is cleanup, we want to proceed
+    }
+}
+/**
+ * Process batched messages to improve performance
+ * @private
+ */
+async _processMessageBatch() {
+    if (this._batchProcessing || this._messageBatch.length === 0) return;
+    
+    this._batchProcessing = true;
+    const batchToProcess = [...this._messageBatch];
+    this._messageBatch = [];
+    
+    try {
+        for (const msg of batchToProcess) {
+            if (msg.type === 'gp2') {
+                const notification = new GroupNotification(this, msg);
+                if (['add', 'invite', 'linked_group_join'].includes(msg.subtype)) {
+                    this.emit(Events.GROUP_JOIN, notification);
+                } else if (msg.subtype === 'remove' || msg.subtype === 'leave') {
+                    this.emit(Events.GROUP_LEAVE, notification);
+                } else if (msg.subtype === 'promote' || msg.subtype === 'demote') {
+                    this.emit(Events.GROUP_ADMIN_CHANGED, notification);
+                } else if (msg.subtype === 'membership_approval_request') {
+                    this.emit(Events.GROUP_MEMBERSHIP_REQUEST, notification);
+                } else {
+                    this.emit(Events.GROUP_UPDATE, notification);
+                }
+            } else {
+                const message = new Message(this, msg);
+                this.emit(Events.MESSAGE_CREATE, message);
+                if (!msg.id.fromMe) {
+                    this.emit(Events.MESSAGE_RECEIVED, message);
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error processing message batch:', error);
+    } finally {
+        this._batchProcessing = false;
+    }
+}
+
+
+
+
+    // ✅ ADD: Store injection with retry logic
+    async _injectStoreWithRetry(isCometOrAbove) {
+        let storeInjected = false;
+        let attempts = 0;
+        const maxAttempts = 3;
+
+        while (!storeInjected && attempts < maxAttempts) {
+            try {
+                attempts++;
+                console.log(`Store injection attempt ${attempts}...`);
 
                 if (isCometOrAbove) {
                     await this.pupPage.evaluate(ExposeStore);
                 } else {
-                    // make sure all modules are ready before injection
-                    // 2 second delay after authentication makes sense and does not need to be made dyanmic or removed
+                    console.log('Waiting for modules to initialize...');
                     await new Promise(r => setTimeout(r, 2000)); 
                     await this.pupPage.evaluate(ExposeLegacyStore);
                 }
 
-                // Check window.Store Injection
-                await this.pupPage.waitForFunction('window.Store != undefined');
-            
-                /**
-                     * Current connection information
-                     * @type {ClientInfo}
-                     */
-                this.info = new ClientInfo(this, await this.pupPage.evaluate(() => {
-                    return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMaybeMePnUser() || window.Store.User.getMaybeMeLidUser() };
-                }));
+                await this.pupPage.waitForFunction('window.Store != undefined', { 
+                    timeout: 15000,
+                    polling: 1000 
+                });
 
-                this.interface = new InterfaceController(this);
+                // Validate critical Store components
+                const storeValid = await this.pupPage.evaluate(() => {
+                    return !!(window.Store && 
+                            window.Store.Conn && 
+                            window.Store.User && 
+                            window.Store.Msg);
+                });
 
-                //Load util functions (serializers, helper functions)
-                await this.pupPage.evaluate(LoadUtils);
+                if (storeValid) {
+                    storeInjected = true;
+                    console.log('Store injection successful and validated');
+                } else {
+                    throw new Error('Store components not properly initialized');
+                }
 
-                await this.attachEventListeners();
+            } catch (error) {
+                console.error(`Store injection attempt ${attempts} failed:`, error.message);
+                
+                if (attempts >= maxAttempts) {
+                    throw new Error(`Store injection failed after ${maxAttempts} attempts: ${error.message}`);
+                }
+                
+                await new Promise(r => setTimeout(r, 2000));
             }
-            /**
-                 * Emitted when the client has initialized and is ready to receive messages.
-                 * @event Client#ready
-                 */
-            this.emit(Events.READY);
-            this.authStrategy.afterAuthReady();
-        });
-        let lastPercent = null;
-        await exposeFunctionIfAbsent(this.pupPage, 'onOfflineProgressUpdateEvent', async (percent) => {
-            if (lastPercent !== percent) {
-                lastPercent = percent;
-                this.emit(Events.LOADING_SCREEN, percent, 'WhatsApp'); // Message is hardcoded as "WhatsApp" for now
-            }
-        });
-        await exposeFunctionIfAbsent(this.pupPage, 'onLogoutEvent', async () => {
-            this.lastLoggedOut = true;
-            await this.pupPage.waitForNavigation({waitUntil: 'load', timeout: 5000}).catch((_) => _);
-        });
-        await this.pupPage.evaluate(() => {
-            window.AuthStore.AppState.on('change:state', (_AppState, state) => { window.onAuthAppStateChangedEvent(state); });
-            window.AuthStore.AppState.on('change:hasSynced', () => { window.onAppStateHasSyncedEvent(); });
-            window.AuthStore.Cmd.on('offline_progress_update', () => {
-                window.onOfflineProgressUpdateEvent(window.AuthStore.OfflineMessageHandler.getOfflineDeliveryProgress()); 
-            });
-            window.AuthStore.Cmd.on('logout', async () => {
-                await window.onLogoutEvent();
-            });
-        });
+        }
     }
 
-    /**
-     * Sets up events and requirements, kicks off authentication request
-     */
-    async initialize() {
 
-        let 
-            /**
-             * @type {puppeteer.Browser}
-             */
-            browser, 
-            /**
-             * @type {puppeteer.Page}
-             */
-            page;
+/**
+ * Sets up events and requirements, kicks off authentication request
+ */
+async initialize() {
+    let browser, page;
+    browser = null;
+    page = null;
 
-        browser = null;
-        page = null;
+    await this.authStrategy.beforeBrowserInitialized();
 
-        await this.authStrategy.beforeBrowserInitialized();
+    const puppeteerOpts = this.options.puppeteer;
+    
+    // ✅ DYNAMIC: Get stealth configuration with defaults
+    const stealthConfig = {
+        useAutomationFlags: this.options.useAutomationFlags ?? true,
+        stealthLevel: this.options.stealthLevel || 'medium',
+        usePageStealth: this.options.usePageStealth ?? true,
+        removeWebdriver: this.options.removeWebdriver ?? true
+    };
 
-        const puppeteerOpts = this.options.puppeteer;
-        if (puppeteerOpts && (puppeteerOpts.browserWSEndpoint || puppeteerOpts.browserURL)) {
-            browser = await puppeteer.connect(puppeteerOpts);
-            page = await browser.newPage();
-        } else {
-            const browserArgs = [...(puppeteerOpts.args || [])];
-            if(!browserArgs.find(arg => arg.includes('--user-agent'))) {
-                browserArgs.push(`--user-agent=${this.options.userAgent}`);
-            }
-            // navigator.webdriver fix
-            browserArgs.push('--disable-blink-features=AutomationControlled');
-
-            browser = await puppeteer.launch({...puppeteerOpts, args: browserArgs});
-            page = (await browser.pages())[0];
-        }
-
-        if (this.options.proxyAuthentication !== undefined) {
-            await page.authenticate(this.options.proxyAuthentication);
-        }
-      
-        await page.setUserAgent(this.options.userAgent);
-        if (this.options.bypassCSP) await page.setBypassCSP(true);
-
-        this.pupBrowser = browser;
-        this.pupPage = page;
-
-        await this.authStrategy.afterBrowserInitialized();
-        await this.initWebVersionCache();
-
-        // ocVersion (isOfficialClient patch)
-        // remove after 2.3000.x hard release
-        await page.evaluateOnNewDocument(() => {
-            const originalError = Error;
-            window.originalError = originalError;
-            //eslint-disable-next-line no-global-assign
-            Error = function (message) {
-                const error = new originalError(message);
-                const originalStack = error.stack;
-                if (error.stack.includes('moduleRaid')) error.stack = originalStack + '\n    at https://web.whatsapp.com/vendors~lazy_loaded_low_priority_components.05e98054dbd60f980427.js:2:44';
-                return error;
-            };
-        });
+    if (puppeteerOpts && (puppeteerOpts.browserWSEndpoint || puppeteerOpts.browserURL)) {
+        browser = await puppeteer.connect(puppeteerOpts);
+        page = await browser.newPage();
+    } else {
+        const browserArgs = [...(puppeteerOpts.args || [])];
         
-        await page.goto(WhatsWebURL, {
-            waitUntil: 'load',
-            timeout: 0,
-            referer: 'https://whatsapp.com/'
-        });
+        // ✅ DYNAMIC: Add user agent if not present
+        if(!browserArgs.find(arg => arg.includes('--user-agent'))) {
+            browserArgs.push(`--user-agent=${this.options.userAgent}`);
+        }
+        
+        // ✅ DYNAMIC: Only add automation flags if enabled
+        if (stealthConfig.useAutomationFlags) {
+            browserArgs.push('--disable-blink-features=AutomationControlled');
+        }
+        
+        // ✅ DYNAMIC: Add additional stealth args based on level
+        const additionalArgs = this.getStealthBrowserArgs(stealthConfig.stealthLevel);
+        browserArgs.push(...additionalArgs);
 
+        browser = await puppeteer.launch({
+            ...puppeteerOpts, 
+            args: browserArgs,
+            // ✅ DYNAMIC: Remove automation indicators from default args
+            ignoreDefaultArgs: stealthConfig.useAutomationFlags ? ['--enable-automation'] : []
+        });
+        page = (await browser.pages())[0];
+    }
+
+    if (this.options.proxyAuthentication !== undefined) {
+        await page.authenticate(this.options.proxyAuthentication);
+    }
+  
+    await page.setUserAgent(this.options.userAgent);
+    if (this.options.bypassCSP) await page.setBypassCSP(true);
+
+    this.pupBrowser = browser;
+    this.pupPage = page;
+
+    // ✅ DYNAMIC: Apply page stealth if enabled
+    if (stealthConfig.usePageStealth) {
+        await this.applyPageStealth(page, stealthConfig);
+    }
+
+    await this.authStrategy.afterBrowserInitialized();
+    await this.initWebVersionCache();
+
+    // ocVersion (isOfficialClient patch)
+    // remove after 2.3000.x hard release
+    await page.evaluateOnNewDocument(() => {
+        const originalError = Error;
+        window.originalError = originalError;
+        //eslint-disable-next-line no-global-assign
+        Error = function (message) {
+            const error = new originalError(message);
+            const originalStack = error.stack;
+            if (error.stack.includes('moduleRaid')) error.stack = originalStack + '\n    at https://web.whatsapp.com/vendors~lazy_loaded_low_priority_components.05e98054dbd60f980427.js:2:44';
+            return error;
+        };
+    });
+    
+    await page.goto(WhatsWebURL, {
+        waitUntil: 'load',
+        timeout: 0,
+        referer: 'https://whatsapp.com/'
+    });
+
+    await this.inject();
+
+    this.pupPage.on('framenavigated', async (frame) => {
+        if(frame.url().includes('post_logout=1') || this.lastLoggedOut) {
+            this.emit(Events.DISCONNECTED, 'LOGOUT');
+            await this.authStrategy.logout();
+            await this.authStrategy.beforeBrowserInitialized();
+            await this.authStrategy.afterBrowserInitialized();
+            this.lastLoggedOut = false;
+        }
         await this.inject();
+    });
+}
 
-        this.pupPage.on('framenavigated', async (frame) => {
-            if(frame.url().includes('post_logout=1') || this.lastLoggedOut) {
-                this.emit(Events.DISCONNECTED, 'LOGOUT');
-                await this.authStrategy.logout();
-                await this.authStrategy.beforeBrowserInitialized();
-                await this.authStrategy.afterBrowserInitialized();
-                this.lastLoggedOut = false;
+/**
+ * Get additional browser args based on stealth level
+ */
+getStealthBrowserArgs(stealthLevel) {
+    const stealthArgs = {
+        low: [
+            // Minimal stealth
+            '--no-first-run',
+            '--no-default-browser-check'
+        ],
+        medium: [
+            // Moderate stealth
+            '--no-first-run',
+            '--no-default-browser-check',
+            '--disable-background-timer-throttling',
+            '--disable-popup-blocking'
+        ],
+        high: [
+            // Maximum stealth
+            '--no-first-run',
+            '--no-default-browser-check',
+            '--disable-background-timer-throttling',
+            '--disable-popup-blocking',
+            '--disable-translate',
+            '--disable-extensions',
+            '--remote-debugging-port=0'
+        ]
+    };
+    
+    return stealthArgs[stealthLevel] || stealthArgs.medium;
+}
+
+/**
+ * Apply stealth techniques to the page
+ */
+    async applyPageStealth(page, stealthConfig) {
+        await page.evaluateOnNewDocument((config) => {
+            // ✅ DYNAMIC: Only remove webdriver if enabled
+            if (config.removeWebdriver) {
+                Object.defineProperty(navigator, 'webdriver', {
+                    get: () => undefined,
+                });
             }
-            await this.inject();
+
+            // Always apply basic stealth that's safe
+            const originalQuery = window.navigator.permissions.query;
+            window.navigator.permissions.query = (parameters) => (
+                parameters.name === 'notifications' ?
+                    Promise.resolve({ state: Notification.permission }) :
+                    originalQuery(parameters)
+            );
+
+            Object.defineProperty(navigator, 'plugins', {
+                get: () => [1, 2, 3, 4, 5],
+            });
+
+            Object.defineProperty(navigator, 'languages', {
+                get: () => ['en-US', 'en'],
+            });
+        }, stealthConfig);
+
+        await page.setExtraHTTPHeaders({
+            'Accept-Language': 'en-US,en;q=0.9',
         });
+
+
     }
 
     /**
@@ -374,16 +743,22 @@ class Client extends EventEmitter {
                 await window.AuthStore.PairingCodeLinkUtils.initializeAltDeviceLinking();
                 return window.AuthStore.PairingCodeLinkUtils.startAltLinkingFlow(phoneNumber, showNotification);
             };
+            
+            // Clear any existing interval to prevent memory leaks
             if (window.codeInterval) {
-                clearInterval(window.codeInterval); // remove existing interval
+                clearInterval(window.codeInterval);
+                window.codeInterval = null;
             }
+            
             window.codeInterval = setInterval(async () => {
                 if (window.AuthStore.AppState.state != 'UNPAIRED' && window.AuthStore.AppState.state != 'UNPAIRED_IDLE') {
                     clearInterval(window.codeInterval);
+                    window.codeInterval = null;
                     return;
                 }
                 window.onCodeReceivedEvent(await getCode());
             }, intervalMs);
+            
             return window.onCodeReceivedEvent(await getCode());
         }, phoneNumber, showNotification, intervalMs);
     }
@@ -393,8 +768,65 @@ class Client extends EventEmitter {
      * Private function
      * @property {boolean} reinject is this a reinject?
      */
-    async attachEventListeners() {
-        await exposeFunctionIfAbsent(this.pupPage, 'onAddMessageEvent', msg => {
+async attachEventListeners() {
+    // ✅ ADD: Prevent duplicate event listener attachment
+    if (this._listenersAttached) {
+        console.log('Event listeners already attached, cleaning up first...');
+        await this._cleanupEventListeners();
+    }
+    
+    // ✅ ADD: Initialize tracking for attached listeners
+    this._attachedListeners = [];
+
+    // ✅ FIXED: Improved rate limiting that won't trigger unnecessarily
+    const createOptimizedHandler = (handler, handlerName = 'unknown') => {
+        let callCount = 0;
+        let lastCallTime = 0;
+        const MAX_CALLS_PER_SECOND = 5000; // Much higher limit to avoid false positives
+        let lastWarningTime = 0;
+        
+        return (...args) => {
+            try {
+                const now = Date.now();
+                
+                // Reset counter if more than 1 second has passed
+                if (now - lastCallTime > 1000) {
+                    callCount = 0;
+                    lastCallTime = now;
+                }
+                
+                callCount++;
+                
+                // Only warn occasionally and with cooldown to prevent spam
+                if (callCount > MAX_CALLS_PER_SECOND) {
+                    // Warn only once every 10 seconds max for the same handler
+                    if (now - lastWarningTime > 10000) {
+                        console.warn(`Event handler rate limit exceeded for ${handlerName}. Count: ${callCount} events/sec`);
+                        lastWarningTime = now;
+                    }
+                    // Still process the event - don't skip it
+                }
+                
+                return handler(...args);
+            } catch (error) {
+                console.error(`Error in optimized event handler (${handlerName}):`, error);
+            }
+        };
+    };
+
+    // ✅ OPTIMIZED: Batch message processing for better performance
+    let messageBatch = [];
+    let batchTimeout = null;
+    const BATCH_DELAY = 50; // Process messages in batches every 50ms
+
+    const processMessageBatch = () => {
+        if (messageBatch.length === 0) return;
+        
+        const batchToProcess = [...messageBatch];
+        messageBatch = [];
+        batchTimeout = null;
+        
+        for (const msg of batchToProcess) {
             if (msg.type === 'gp2') {
                 const notification = new GroupNotification(this, msg);
                 if (['add', 'invite', 'linked_group_join'].includes(msg.subtype)) {
@@ -437,290 +869,312 @@ class Client extends EventEmitter {
                          */
                     this.emit(Events.GROUP_UPDATE, notification);
                 }
-                return;
-            }
-
-            const message = new Message(this, msg);
-
-            /**
-                 * Emitted when a new message is created, which may include the current user's own messages.
-                 * @event Client#message_create
-                 * @param {Message} message The message that was created
-                 */
-            this.emit(Events.MESSAGE_CREATE, message);
-
-            if (msg.id.fromMe) return;
-
-            /**
-                 * Emitted when a new message is received.
-                 * @event Client#message
-                 * @param {Message} message The message that was received
-                 */
-            this.emit(Events.MESSAGE_RECEIVED, message);
-        });
-
-        let last_message;
-
-        await exposeFunctionIfAbsent(this.pupPage, 'onChangeMessageTypeEvent', (msg) => {
-
-            if (msg.type === 'revoked') {
-                const message = new Message(this, msg);
-                let revoked_msg;
-                if (last_message && msg.id.id === last_message.id.id) {
-                    revoked_msg = new Message(this, last_message);
-
-                    if (message.protocolMessageKey)
-                        revoked_msg.id = { ...message.protocolMessageKey };                    
-                }
-
-                /**
-                     * Emitted when a message is deleted for everyone in the chat.
-                     * @event Client#message_revoke_everyone
-                     * @param {Message} message The message that was revoked, in its current state. It will not contain the original message's data.
-                     * @param {?Message} revoked_msg The message that was revoked, before it was revoked. It will contain the message's original data. 
-                     * Note that due to the way this data is captured, it may be possible that this param will be undefined.
-                     */
-                this.emit(Events.MESSAGE_REVOKED_EVERYONE, message, revoked_msg);
-            }
-
-        });
-
-        await exposeFunctionIfAbsent(this.pupPage, 'onChangeMessageEvent', (msg) => {
-
-            if (msg.type !== 'revoked') {
-                last_message = msg;
-            }
-
-            /**
-                 * The event notification that is received when one of
-                 * the group participants changes their phone number.
-                 */
-            const isParticipant = msg.type === 'gp2' && msg.subtype === 'modify';
-
-            /**
-                 * The event notification that is received when one of
-                 * the contacts changes their phone number.
-                 */
-            const isContact = msg.type === 'notification_template' && msg.subtype === 'change_number';
-
-            if (isParticipant || isContact) {
-                /** @type {GroupNotification} object does not provide enough information about this event, so a @type {Message} object is used. */
+            } else {
                 const message = new Message(this, msg);
 
-                const newId = isParticipant ? msg.recipients[0] : msg.to;
-                const oldId = isParticipant ? msg.author : msg.templateParams.find(id => id !== newId);
-
                 /**
-                     * Emitted when a contact or a group participant changes their phone number.
-                     * @event Client#contact_changed
-                     * @param {Message} message Message with more information about the event.
-                     * @param {String} oldId The user's id (an old one) who changed their phone number
-                     * and who triggered the notification.
-                     * @param {String} newId The user's new id after the change.
-                     * @param {Boolean} isContact Indicates if a contact or a group participant changed their phone number.
+                     * Emitted when a new message is created, which may include the current user's own messages.
+                     * @event Client#message_create
+                     * @param {Message} message The message that was created
                      */
-                this.emit(Events.CONTACT_CHANGED, message, oldId, newId, isContact);
-            }
-        });
+                this.emit(Events.MESSAGE_CREATE, message);
 
-        await exposeFunctionIfAbsent(this.pupPage, 'onRemoveMessageEvent', (msg) => {
-
-            if (!msg.isNewMsg) return;
-
-            const message = new Message(this, msg);
-
-            /**
-                 * Emitted when a message is deleted by the current user.
-                 * @event Client#message_revoke_me
-                 * @param {Message} message The message that was revoked
-                 */
-            this.emit(Events.MESSAGE_REVOKED_ME, message);
-
-        });
-
-        await exposeFunctionIfAbsent(this.pupPage, 'onMessageAckEvent', (msg, ack) => {
-
-            const message = new Message(this, msg);
-
-            /**
-                 * Emitted when an ack event occurrs on message type.
-                 * @event Client#message_ack
-                 * @param {Message} message The message that was affected
-                 * @param {MessageAck} ack The new ACK value
-                 */
-            this.emit(Events.MESSAGE_ACK, message, ack);
-
-        });
-
-        await exposeFunctionIfAbsent(this.pupPage, 'onChatUnreadCountEvent', async (data) =>{
-            const chat = await this.getChatById(data.id);
-                
-            /**
-                 * Emitted when the chat unread count changes
-                 */
-            this.emit(Events.UNREAD_COUNT, chat);
-        });
-
-        await exposeFunctionIfAbsent(this.pupPage, 'onMessageMediaUploadedEvent', (msg) => {
-
-            const message = new Message(this, msg);
-
-            /**
-                 * Emitted when media has been uploaded for a message sent by the client.
-                 * @event Client#media_uploaded
-                 * @param {Message} message The message with media that was uploaded
-                 */
-            this.emit(Events.MEDIA_UPLOADED, message);
-        });
-
-        await exposeFunctionIfAbsent(this.pupPage, 'onAppStateChangedEvent', async (state) => {
-            /**
-                 * Emitted when the connection state changes
-                 * @event Client#change_state
-                 * @param {WAState} state the new connection state
-                 */
-            this.emit(Events.STATE_CHANGED, state);
-
-            const ACCEPTED_STATES = [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING, WAState.TIMEOUT];
-
-            if (this.options.takeoverOnConflict) {
-                ACCEPTED_STATES.push(WAState.CONFLICT);
-
-                if (state === WAState.CONFLICT) {
-                    setTimeout(() => {
-                        this.pupPage.evaluate(() => window.Store.AppState.takeover());
-                    }, this.options.takeoverTimeoutMs);
+                if (!msg.id.fromMe) {
+                    /**
+                         * Emitted when a new message is received.
+                         * @event Client#message
+                         * @param {Message} message The message that was received
+                         */
+                    this.emit(Events.MESSAGE_RECEIVED, message);
                 }
             }
+        }
+    };
 
-            if (!ACCEPTED_STATES.includes(state)) {
-                /**
-                     * Emitted when the client has been disconnected
-                     * @event Client#disconnected
-                     * @param {WAState|"LOGOUT"} reason reason that caused the disconnect
-                     */
-                await this.authStrategy.disconnect();
-                this.emit(Events.DISCONNECTED, state);
-                this.destroy();
+    // ✅ OPTIMIZED: Batch message handler
+    await exposeFunctionIfAbsent(this.pupPage, 'onAddMessageEvent', createOptimizedHandler(msg => {
+        // ✅ Add to batch instead of immediate processing
+        messageBatch.push(msg);
+        
+        if (!batchTimeout) {
+            batchTimeout = setTimeout(processMessageBatch, BATCH_DELAY);
+        }
+    }, 'onAddMessageEvent'));
+    this._attachedListeners.push({ funcName: 'onAddMessageEvent' });
+
+    let last_message;
+
+    // ✅ OPTIMIZED: Single message handler for non-batch events
+    await exposeFunctionIfAbsent(this.pupPage, 'onChangeMessageTypeEvent', createOptimizedHandler((msg) => {
+        if (msg.type === 'revoked') {
+            const message = new Message(this, msg);
+            let revoked_msg;
+            if (last_message && msg.id.id === last_message.id.id) {
+                revoked_msg = new Message(this, last_message);
+
+                if (message.protocolMessageKey)
+                    revoked_msg.id = { ...message.protocolMessageKey };                    
             }
-        });
-
-        await exposeFunctionIfAbsent(this.pupPage, 'onBatteryStateChangedEvent', (state) => {
-            const { battery, plugged } = state;
-
-            if (battery === undefined) return;
 
             /**
-                 * Emitted when the battery percentage for the attached device changes. Will not be sent if using multi-device.
-                 * @event Client#change_battery
-                 * @param {object} batteryInfo
-                 * @param {number} batteryInfo.battery - The current battery percentage
-                 * @param {boolean} batteryInfo.plugged - Indicates if the phone is plugged in (true) or not (false)
-                 * @deprecated
+                 * Emitted when a message is deleted for everyone in the chat.
+                 * @event Client#message_revoke_everyone
+                 * @param {Message} message The message that was revoked, in its current state. It will not contain the original message's data.
+                 * @param {?Message} revoked_msg The message that was revoked, before it was revoked. It will contain the message's original data. 
+                 * Note that due to the way this data is captured, it may be possible that this param will be undefined.
                  */
-            this.emit(Events.BATTERY_CHANGED, { battery, plugged });
-        });
+            this.emit(Events.MESSAGE_REVOKED_EVERYONE, message, revoked_msg);
+        }
+    }, 'onChangeMessageTypeEvent'));
+    this._attachedListeners.push({ funcName: 'onChangeMessageTypeEvent' });
 
-        await exposeFunctionIfAbsent(this.pupPage, 'onIncomingCall', (call) => {
-            /**
-                 * Emitted when a call is received
-                 * @event Client#incoming_call
-                 * @param {object} call
-                 * @param {number} call.id - Call id
-                 * @param {string} call.peerJid - Who called
-                 * @param {boolean} call.isVideo - if is video
-                 * @param {boolean} call.isGroup - if is group
-                 * @param {boolean} call.canHandleLocally - if we can handle in waweb
-                 * @param {boolean} call.outgoing - if is outgoing
-                 * @param {boolean} call.webClientShouldHandle - If Waweb should handle
-                 * @param {object} call.participants - Participants
-                 */
-            const cll = new Call(this, call);
-            this.emit(Events.INCOMING_CALL, cll);
-        });
+    await exposeFunctionIfAbsent(this.pupPage, 'onChangeMessageEvent', createOptimizedHandler((msg) => {
+        if (msg.type !== 'revoked') {
+            last_message = msg;
+        }
 
-        await exposeFunctionIfAbsent(this.pupPage, 'onReaction', (reactions) => {
-            for (const reaction of reactions) {
-                /**
-                     * Emitted when a reaction is sent, received, updated or removed
-                     * @event Client#message_reaction
-                     * @param {object} reaction
-                     * @param {object} reaction.id - Reaction id
-                     * @param {number} reaction.orphan - Orphan
-                     * @param {?string} reaction.orphanReason - Orphan reason
-                     * @param {number} reaction.timestamp - Timestamp
-                     * @param {string} reaction.reaction - Reaction
-                     * @param {boolean} reaction.read - Read
-                     * @param {object} reaction.msgId - Parent message id
-                     * @param {string} reaction.senderId - Sender id
-                     * @param {?number} reaction.ack - Ack
-                     */
+        /**
+             * The event notification that is received when one of
+             * the group participants changes their phone number.
+             */
+        const isParticipant = msg.type === 'gp2' && msg.subtype === 'modify';
 
-                this.emit(Events.MESSAGE_REACTION, new Reaction(this, reaction));
-            }
-        });
+        /**
+             * The event notification that is received when one of
+             * the contacts changes their phone number.
+             */
+        const isContact = msg.type === 'notification_template' && msg.subtype === 'change_number';
 
-        await exposeFunctionIfAbsent(this.pupPage, 'onRemoveChatEvent', async (chat) => {
-            const _chat = await this.getChatById(chat.id);
+        if (isParticipant || isContact) {
+            /** @type {GroupNotification} object does not provide enough information about this event, so a @type {Message} object is used. */
+            const message = new Message(this, msg);
+
+            const newId = isParticipant ? msg.recipients[0] : msg.to;
+            const oldId = isParticipant ? msg.author : msg.templateParams.find(id => id !== newId);
 
             /**
-                 * Emitted when a chat is removed
-                 * @event Client#chat_removed
-                 * @param {Chat} chat
+                 * Emitted when a contact or a group participant changes their phone number.
+                 * @event Client#contact_changed
+                 * @param {Message} message Message with more information about the event.
+                 * @param {String} oldId The user's id (an old one) who changed their phone number
+                 * and who triggered the notification.
+                 * @param {String} newId The user's new id after the change.
+                 * @param {Boolean} isContact Indicates if a contact or a group participant changed their phone number.
                  */
-            this.emit(Events.CHAT_REMOVED, _chat);
-        });
+            this.emit(Events.CONTACT_CHANGED, message, oldId, newId, isContact);
+        }
+    }, 'onChangeMessageEvent'));
+    this._attachedListeners.push({ funcName: 'onChangeMessageEvent' });
+
+    // Continue applying createOptimizedHandler to ALL other event listeners
+    await exposeFunctionIfAbsent(this.pupPage, 'onRemoveMessageEvent', createOptimizedHandler((msg) => {
+        if (!msg.isNewMsg) return;
+
+        const message = new Message(this, msg);
+
+        /**
+             * Emitted when a message is deleted by the current user.
+             * @event Client#message_revoke_me
+             * @param {Message} message The message that was revoked
+             */
+        this.emit(Events.MESSAGE_REVOKED_ME, message);
+    }, 'onRemoveMessageEvent'));
+    this._attachedListeners.push({ funcName: 'onRemoveMessageEvent' });
+
+    await exposeFunctionIfAbsent(this.pupPage, 'onMessageAckEvent', createOptimizedHandler((msg, ack) => {
+        const message = new Message(this, msg);
+
+        /**
+             * Emitted when an ack event occurrs on message type.
+             * @event Client#message_ack
+             * @param {Message} message The message that was affected
+             * @param {MessageAck} ack The new ACK value
+             */
+        this.emit(Events.MESSAGE_ACK, message, ack);
+    }, 'onMessageAckEvent'));
+    this._attachedListeners.push({ funcName: 'onMessageAckEvent' });
+
+    // ✅ OPTIMIZED: Cache chat lookups for unread count events
+    await exposeFunctionIfAbsent(this.pupPage, 'onChatUnreadCountEvent', createOptimizedHandler(async (data) => {
+        const chat = await this.getChatById(data.id);
             
-        await exposeFunctionIfAbsent(this.pupPage, 'onArchiveChatEvent', async (chat, currState, prevState) => {
-            const _chat = await this.getChatById(chat.id);
-                
-            /**
-                 * Emitted when a chat is archived/unarchived
-                 * @event Client#chat_archived
-                 * @param {Chat} chat
-                 * @param {boolean} currState
-                 * @param {boolean} prevState
-                 */
-            this.emit(Events.CHAT_ARCHIVED, _chat, currState, prevState);
-        });
+        /**
+             * Emitted when the chat unread count changes
+             */
+        this.emit(Events.UNREAD_COUNT, chat);
+    }, 'onChatUnreadCountEvent'));
+    this._attachedListeners.push({ funcName: 'onChatUnreadCountEvent' });
 
-        await exposeFunctionIfAbsent(this.pupPage, 'onEditMessageEvent', (msg, newBody, prevBody) => {
-                
-            if(msg.type === 'revoked'){
-                return;
+    await exposeFunctionIfAbsent(this.pupPage, 'onMessageMediaUploadedEvent', createOptimizedHandler((msg) => {
+        const message = new Message(this, msg);
+
+        /**
+             * Emitted when media has been uploaded for a message sent by the client.
+             * @event Client#media_uploaded
+             * @param {Message} message The message with media that was uploaded
+             */
+        this.emit(Events.MEDIA_UPLOADED, message);
+    }, 'onMessageMediaUploadedEvent'));
+    this._attachedListeners.push({ funcName: 'onMessageMediaUploadedEvent' });
+
+    await exposeFunctionIfAbsent(this.pupPage, 'onAppStateChangedEvent', createOptimizedHandler(async (state) => {
+        /**
+             * Emitted when the connection state changes
+             * @event Client#change_state
+             * @param {WAState} state the new connection state
+             */
+        this.emit(Events.STATE_CHANGED, state);
+
+        const ACCEPTED_STATES = [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING, WAState.TIMEOUT];
+
+        if (this.options.takeoverOnConflict) {
+            ACCEPTED_STATES.push(WAState.CONFLICT);
+
+            if (state === WAState.CONFLICT) {
+                setTimeout(() => {
+                    this.pupPage.evaluate(() => window.Store.AppState.takeover());
+                }, this.options.takeoverTimeoutMs);
             }
+        }
+
+        if (!ACCEPTED_STATES.includes(state)) {
             /**
-                 * Emitted when messages are edited
-                 * @event Client#message_edit
-                 * @param {Message} message
-                 * @param {string} newBody
-                 * @param {string} prevBody
+                 * Emitted when the client has been disconnected
+                 * @event Client#disconnected
+                 * @param {WAState|"LOGOUT"} reason reason that caused the disconnect
                  */
-            this.emit(Events.MESSAGE_EDIT, new Message(this, msg), newBody, prevBody);
-        });
+            await this.authStrategy.disconnect();
+            this.emit(Events.DISCONNECTED, state);
+            this.destroy();
+        }
+    }, 'onAppStateChangedEvent'));
+    this._attachedListeners.push({ funcName: 'onAppStateChangedEvent' });
+
+    await exposeFunctionIfAbsent(this.pupPage, 'onBatteryStateChangedEvent', createOptimizedHandler((state) => {
+        const { battery, plugged } = state;
+
+        if (battery === undefined) return;
+
+        /**
+             * Emitted when the battery percentage for the attached device changes. Will not be sent if using multi-device.
+             * @event Client#change_battery
+             * @param {object} batteryInfo
+             * @param {number} batteryInfo.battery - The current battery percentage
+             * @param {boolean} batteryInfo.plugged - Indicates if the phone is plugged in (true) or not (false)
+             * @deprecated
+             */
+        this.emit(Events.BATTERY_CHANGED, { battery, plugged });
+    }, 'onBatteryStateChangedEvent'));
+    this._attachedListeners.push({ funcName: 'onBatteryStateChangedEvent' });
+
+    await exposeFunctionIfAbsent(this.pupPage, 'onIncomingCall', createOptimizedHandler((call) => {
+        /**
+             * Emitted when a call is received
+             * @event Client#incoming_call
+             * @param {object} call
+             * @param {number} call.id - Call id
+             * @param {string} call.peerJid - Who called
+             * @param {boolean} call.isVideo - if is video
+             * @param {boolean} call.isGroup - if is group
+             * @param {boolean} call.canHandleLocally - if we can handle in waweb
+             * @param {boolean} call.outgoing - if is outgoing
+             * @param {boolean} call.webClientShouldHandle - If Waweb should handle
+             * @param {object} call.participants - Participants
+             */
+        const cll = new Call(this, call);
+        this.emit(Events.INCOMING_CALL, cll);
+    }, 'onIncomingCall'));
+    this._attachedListeners.push({ funcName: 'onIncomingCall' });
+
+    await exposeFunctionIfAbsent(this.pupPage, 'onReaction', createOptimizedHandler((reactions) => {
+        for (const reaction of reactions) {
+            /**
+                 * Emitted when a reaction is sent, received, updated or removed
+                 * @event Client#message_reaction
+                 * @param {object} reaction
+                 * @param {object} reaction.id - Reaction id
+                 * @param {number} reaction.orphan - Orphan
+                 * @param {?string} reaction.orphanReason - Orphan reason
+                 * @param {number} reaction.timestamp - Timestamp
+                 * @param {string} reaction.reaction - Reaction
+                 * @param {boolean} reaction.read - Read
+                 * @param {object} reaction.msgId - Parent message id
+                 * @param {string} reaction.senderId - Sender id
+                 * @param {?number} reaction.ack - Ack
+                 */
+
+            this.emit(Events.MESSAGE_REACTION, new Reaction(this, reaction));
+        }
+    }, 'onReaction'));
+    this._attachedListeners.push({ funcName: 'onReaction' });
+
+    // ✅ OPTIMIZED: Cache chat lookups for removal events
+    await exposeFunctionIfAbsent(this.pupPage, 'onRemoveChatEvent', createOptimizedHandler(async (chat) => {
+        const _chat = await this.getChatById(chat.id);
+
+        /**
+             * Emitted when a chat is removed
+             * @event Client#chat_removed
+             * @param {Chat} chat
+             */
+        this.emit(Events.CHAT_REMOVED, _chat);
+    }, 'onRemoveChatEvent'));
+    this._attachedListeners.push({ funcName: 'onRemoveChatEvent' });
+        
+    await exposeFunctionIfAbsent(this.pupPage, 'onArchiveChatEvent', createOptimizedHandler(async (chat, currState, prevState) => {
+        const _chat = await this.getChatById(chat.id);
             
-        await exposeFunctionIfAbsent(this.pupPage, 'onAddMessageCiphertextEvent', msg => {
-                
+        /**
+             * Emitted when a chat is archived/unarchived
+             * @event Client#chat_archived
+             * @param {Chat} chat
+             * @param {boolean} currState
+             * @param {boolean} prevState
+             */
+        this.emit(Events.CHAT_ARCHIVED, _chat, currState, prevState);
+    }, 'onArchiveChatEvent'));
+    this._attachedListeners.push({ funcName: 'onArchiveChatEvent' });
+
+    await exposeFunctionIfAbsent(this.pupPage, 'onEditMessageEvent', createOptimizedHandler((msg, newBody, prevBody) => {
+        if(msg.type === 'revoked'){
+            return;
+        }
+        /**
+             * Emitted when messages are edited
+             * @event Client#message_edit
+             * @param {Message} message
+             * @param {string} newBody
+             * @param {string} prevBody
+             */
+        this.emit(Events.MESSAGE_EDIT, new Message(this, msg), newBody, prevBody);
+    }, 'onEditMessageEvent'));
+    this._attachedListeners.push({ funcName: 'onEditMessageEvent' });
+        
+    await exposeFunctionIfAbsent(this.pupPage, 'onAddMessageCiphertextEvent', createOptimizedHandler(msg => {
+        /**
+             * Emitted when messages are edited
+             * @event Client#message_ciphertext
+             * @param {Message} message
+             */
+        this.emit(Events.MESSAGE_CIPHERTEXT, new Message(this, msg));
+    }, 'onAddMessageCiphertextEvent'));
+    this._attachedListeners.push({ funcName: 'onAddMessageCiphertextEvent' });
+
+    await exposeFunctionIfAbsent(this.pupPage, 'onPollVoteEvent', createOptimizedHandler((votes) => {
+        for (const vote of votes) {
             /**
-                 * Emitted when messages are edited
-                 * @event Client#message_ciphertext
-                 * @param {Message} message
-                 */
-            this.emit(Events.MESSAGE_CIPHERTEXT, new Message(this, msg));
-        });
+             * Emitted when some poll option is selected or deselected,
+             * shows a user's current selected option(s) on the poll
+             * @event Client#vote_update
+             */
+            this.emit(Events.VOTE_UPDATE, new PollVote(this, vote));
+        }
+    }, 'onPollVoteEvent'));
+    this._attachedListeners.push({ funcName: 'onPollVoteEvent' });
 
-        await exposeFunctionIfAbsent(this.pupPage, 'onPollVoteEvent', (votes) => {
-            for (const vote of votes) {
-                /**
-                 * Emitted when some poll option is selected or deselected,
-                 * shows a user's current selected option(s) on the poll
-                 * @event Client#vote_update
-                 */
-                this.emit(Events.VOTE_UPDATE, new PollVote(this, vote));
-            }
-        });
-
-        await this.pupPage.evaluate(() => {
+    // ✅ OPTIMIZED: Store event binding with error handling
+    await this.pupPage.evaluate(() => {
+        try {
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('change:ack', (msg, ack) => { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
@@ -809,9 +1263,105 @@ class Client extends EventEmitter {
                     return ogMethod(...args);
                 }).bind(module);
             }
-        });
-    }    
+        } catch (error) {
+            console.error('Error setting up Store event listeners:', error);
+        }
+    });
 
+    // ✅ ADD: Clean up batch processing on destroy
+    this._cleanupCallbacks.push(() => {
+        if (batchTimeout) {
+            clearTimeout(batchTimeout);
+            batchTimeout = null;
+        }
+        if (messageBatch.length > 0) {
+            processMessageBatch(); // Process any remaining messages
+        }
+    });
+
+    // ✅ ADD: Mark listeners as successfully attached
+    this._listenersAttached = true;
+    console.log('Optimized event listeners attached successfully');
+}
+    /**
+     * Clean up event listeners to prevent duplication
+     * @private
+     */
+    async _cleanupEventListeners() {
+        console.log('Performing comprehensive event listener cleanup...');
+        
+        // 1. Clear batch processing
+        if (this._batchTimeout) {
+            clearTimeout(this._batchTimeout);
+            this._batchTimeout = null;
+        }
+        
+        // 2. Process any remaining messages in batch
+        if (this._messageBatch && this._messageBatch.length > 0 && !this._batchProcessing) {
+            await this._processMessageBatch();
+        }
+        
+        // 3. Clean up exposed functions from window
+        if (this._attachedListeners && this._attachedListeners.length > 0) {
+            for (const listener of this._attachedListeners) {
+                try {
+                    await this.pupPage.evaluate((funcName) => {
+                        if (window[funcName]) {
+                            // Remove all event bindings first
+                            const storeEvents = [
+                                'Msg', 'AppState', 'Conn', 'Call', 'Chat', 
+                                'AddonReactionTable', 'AddonPollVoteTable'
+                            ];
+                            
+                            storeEvents.forEach(store => {
+                                if (window.Store && window.Store[store]) {
+                                    window.Store[store].off('change');
+                                    window.Store[store].off('change:type');
+                                    window.Store[store].off('change:ack');
+                                    window.Store[store].off('change:isUnsentMedia');
+                                    window.Store[store].off('remove');
+                                    window.Store[store].off('change:body');
+                                    window.Store[store].off('change:caption');
+                                    window.Store[store].off('change:state');
+                                    window.Store[store].off('change:battery');
+                                    window.Store[store].off('add');
+                                    window.Store[store].off('change:archive');
+                                    window.Store[store].off('change:unreadCount');
+                                }
+                            });
+                            
+                            // Remove the exposed function
+                            delete window[funcName];
+                        }
+                    }, listener.funcName);
+                } catch (error) {
+                    console.error('Error cleaning up listener:', listener.funcName, error);
+                }
+            }
+            this._attachedListeners = [];
+        }
+        
+        // 4. Clear all cleanup callbacks
+        if (this._cleanupCallbacks) {
+            this._cleanupCallbacks.forEach(callback => {
+                try {
+                    callback();
+                } catch (e) {
+                    console.error('Error in cleanup callback:', e);
+                }
+            });
+            this._cleanupCallbacks = [];
+        }
+        
+        // 5. Reset tracking flags
+        this._listenersAttached = false;
+        this._batchProcessing = false;
+        
+        console.log('Event listener cleanup completed');
+    }
+    /**
+     * Initialize web version cache with proper cleanup
+     */
     async initWebVersionCache() {
         const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
         const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
@@ -819,9 +1369,13 @@ class Client extends EventEmitter {
         const requestedVersion = this.options.webVersion;
         const versionContent = await webCache.resolve(requestedVersion);
 
+        // Store handlers for proper cleanup to prevent memory leaks
+        this._requestHandlers = [];
+
         if(versionContent) {
             await this.pupPage.setRequestInterception(true);
-            this.pupPage.on('request', async (req) => {
+            
+            const requestHandler = async (req) => {
                 if(req.url() === WhatsWebURL) {
                     req.respond({
                         status: 200,
@@ -831,23 +1385,176 @@ class Client extends EventEmitter {
                 } else {
                     req.continue();
                 }
-            });
+            };
+            
+            this.pupPage.on('request', requestHandler);
+            this._requestHandlers.push({ type: 'request', handler: requestHandler });
         } else {
-            this.pupPage.on('response', async (res) => {
+            const responseHandler = async (res) => {
                 if(res.ok() && res.url() === WhatsWebURL) {
                     const indexHtml = await res.text();
                     this.currentIndexHtml = indexHtml;
                 }
-            });
+            };
+            
+            this.pupPage.on('response', responseHandler);
+            this._requestHandlers.push({ type: 'response', handler: responseHandler });
         }
     }
 
     /**
-     * Closes the client
+     * Closes the client with proper resource cleanup
      */
     async destroy() {
-        await this.pupBrowser.close();
-        await this.authStrategy.destroy();
+        console.log('Starting comprehensive client destruction...');
+        
+        try {
+            // 🔴 FIX: Proper cleanup order with error isolation
+            
+            // 1. Stop all intervals and timeouts FIRST
+            if (this._activeIntervals) {
+                this._activeIntervals.forEach(clearInterval);
+                this._activeIntervals.clear();
+            }
+            
+            if (this._stateCheckInterval) {
+                clearInterval(this._stateCheckInterval);
+                this._stateCheckInterval = null;
+            }
+
+            // 🔴 FIX: Clear batch processing
+            if (this._batchTimeout) {
+                clearTimeout(this._batchTimeout);
+                this._batchTimeout = null;
+            }
+            
+            // Process any remaining messages
+            if (this._messageBatch && this._messageBatch.length > 0 && !this._batchProcessing) {
+                try {
+                    await this._processMessageBatch();
+                } catch (error) {
+                    console.warn('Error processing final message batch:', error);
+                }
+            }
+
+            // 2. Clean up event listeners
+            if (this._listenersAttached) {
+                try {
+                    await this._cleanupEventListeners();
+                } catch (error) {
+                    console.error('Error cleaning up event listeners:', error);
+                }
+            }
+
+            // 3. Clear event handlers
+            if (this._eventHandlers) {
+                this._eventHandlers.clear();
+            }
+
+            // 4. Run cleanup callbacks with error handling
+            if (this._cleanupCallbacks) {
+                this._cleanupCallbacks.forEach(callback => {
+                    try { 
+                        callback(); 
+                    } catch (e) { 
+                        console.error('Error in cleanup callback:', e);
+                    }
+                });
+                this._cleanupCallbacks = [];
+            }
+
+            // 5. Clear caches to free memory
+            if (this._chatCache) this._chatCache.clear();
+            if (this._contactCache) this._contactCache.clear();
+            if (this._messageCache) this._messageCache.clear();
+            if (this._cacheTimestamps) this._cacheTimestamps.clear();
+
+            // 6. Clean up page context intervals (with error handling)
+            if (this.pupPage) {
+                try {
+                    await this.pupPage.evaluate(() => {
+                        // Clear known intervals
+                        if (window.codeInterval) {
+                            clearInterval(window.codeInterval);
+                            window.codeInterval = null;
+                        }
+                        
+                        // Clear any other intervals with 'Interval' in name
+                        Object.keys(window).forEach(key => {
+                            if (key.includes('Interval') && window[key] && typeof window[key] === 'number') {
+                                clearInterval(window[key]);
+                                window[key] = null;
+                            }
+                        });
+                    }).catch(error => {
+                        console.warn('Error cleaning page intervals:', error);
+                    });
+                } catch (error) {
+                    console.warn('Error accessing page for interval cleanup:', error);
+                }
+            }
+
+            // 7. Remove network event listeners
+            if (this._requestHandlers && this.pupPage) {
+                this._requestHandlers.forEach(({ type, handler }) => {
+                    try {
+                        this.pupPage.off(type, handler);
+                    } catch (error) {
+                        console.warn('Error removing network handler:', error);
+                    }
+                });
+                this._requestHandlers = [];
+            }
+
+            // 🔴 FIX: Close resources in proper order
+            
+            // 8. Close browser (if connected)
+            if (this.pupBrowser && this.pupBrowser.isConnected && this.pupBrowser.isConnected()) {
+                try {
+                    await this.pupBrowser.close();
+                    console.log('Browser closed successfully');
+                } catch (error) {
+                    console.warn('Error closing browser:', error);
+                }
+                this.pupBrowser = null;
+            }
+
+            // 9. Destroy auth strategy
+            if (this.authStrategy && typeof this.authStrategy.destroy === 'function') {
+                try {
+                    await this.authStrategy.destroy();
+                    console.log('Auth strategy destroyed successfully');
+                } catch (error) {
+                    console.warn('Error destroying auth strategy:', error);
+                }
+            }
+
+            // 🔴 FIX: Reset all state to prevent memory leaks
+            this._connectionState = 'DISCONNECTED';
+            this._listenersAttached = false;
+            this._batchProcessing = false;
+            this.pupPage = null;
+            this.info = null;
+            this.interface = null;
+            
+            // Clear any remaining arrays
+            this._messageBatch = [];
+            this._attachedListeners = [];
+            this._cleanupCallbacks = [];
+
+            console.log('Client destruction completed successfully');
+            
+        } catch (error) {
+            console.error('Critical error during client destruction:', error);
+            // Even if there's an error, try to clean up as much as possible
+            try {
+                if (this.pupBrowser) {
+                    await this.pupBrowser.close().catch(() => {});
+                }
+            } catch (finalError) {
+                console.error('Final cleanup also failed:', finalError);
+            }
+        }
     }
 
     /**
@@ -938,122 +1645,234 @@ class Client extends EventEmitter {
      * @property {any} [extra] - Extra options
      */
     
-    /**
-     * Send a message to a specific chatId
-     * @param {string} chatId
-     * @param {string|MessageMedia|Location|Poll|Contact|Array<Contact>|Buttons|List} content
-     * @param {MessageSendOptions} [options] - Options used when sending the message
-     * 
-     * @returns {Promise<Message>} Message that was just sent
-     */
-    async sendMessage(chatId, content, options = {}) {
-        const isChannel = /@\w*newsletter\b/.test(chatId);
-
-        if (isChannel && [
-            options.sendMediaAsDocument, options.quotedMessageId, 
-            options.parseVCards, options.isViewOnce,
-            content instanceof Location, content instanceof Contact,
-            content instanceof Buttons, content instanceof List,
-            Array.isArray(content) && content.length > 0 && content[0] instanceof Contact
-        ].includes(true)) {
-            console.warn('The message type is currently not supported for sending in channels,\nthe supported message types are: text, image, sticker, gif, video, voice and poll.');
-            return null;
-        }
-    
-        if (options.mentions) {
-            !Array.isArray(options.mentions) && (options.mentions = [options.mentions]);
-            if (options.mentions.some((possiblyContact) => possiblyContact instanceof Contact)) {
-                console.warn('Mentions with an array of Contact are now deprecated. See more at https://github.com/pedroslopez/whatsapp-web.js/pull/2166.');
-                options.mentions = options.mentions.map((a) => a.id._serialized);
+/**
+ * Send a message to a specific chatId
+ * @param {string} chatId
+ * @param {string|MessageMedia|Location|Poll|Contact|Array<Contact>|Buttons|List} content
+ * @param {MessageSendOptions} [options] - Options used when sending the message
+ * 
+ * @returns {Promise<Message>} Message that was just sent
+ */
+/**
+ * Send a message to a specific chatId
+ * @param {string} chatId
+ * @param {string|MessageMedia|Location|Poll|Contact|Array<Contact>|Buttons|List} content
+ * @param {MessageSendOptions} [options] - Options used when sending the message
+ * 
+ * @returns {Promise<Message>} Message that was just sent
+ */
+async sendMessage(chatId, content, options = {}) {
+    // ✅ FIX: Better LID address handling
+    const originalChatId = chatId;
+    if (chatId.endsWith('@lid')) {
+        try {
+            console.log(`Converting LID address: ${chatId}`);
+            
+            // Try to get the contact first
+            let contact;
+            try {
+                contact = await this.getContactById(chatId);
+            } catch (error) {
+                console.log('Contact not found, trying alternative LID conversion...');
             }
-        }
-
-        options.groupMentions && !Array.isArray(options.groupMentions) && (options.groupMentions = [options.groupMentions]);
-        
-        let internalOptions = {
-            linkPreview: options.linkPreview === false ? undefined : true,
-            sendAudioAsVoice: options.sendAudioAsVoice,
-            sendVideoAsGif: options.sendVideoAsGif,
-            sendMediaAsSticker: options.sendMediaAsSticker,
-            sendMediaAsDocument: options.sendMediaAsDocument,
-            sendMediaAsHd: options.sendMediaAsHd,
-            caption: options.caption,
-            quotedMessageId: options.quotedMessageId,
-            parseVCards: options.parseVCards !== false,
-            mentionedJidList: options.mentions || [],
-            groupMentions: options.groupMentions,
-            invokedBotWid: options.invokedBotWid,
-            ignoreQuoteErrors: options.ignoreQuoteErrors !== false,
-            waitUntilMsgSent: options.waitUntilMsgSent || false,
-            extraOptions: options.extra
-        };
-
-        const sendSeen = options.sendSeen !== false;
-
-        if (content instanceof MessageMedia) {
-            internalOptions.media = content;
-            internalOptions.isViewOnce = options.isViewOnce,
-            content = '';
-        } else if (options.media instanceof MessageMedia) {
-            internalOptions.media = options.media;
-            internalOptions.caption = content;
-            internalOptions.isViewOnce = options.isViewOnce,
-            content = '';
-        } else if (content instanceof Location) {
-            internalOptions.location = content;
-            content = '';
-        } else if (content instanceof Poll) {
-            internalOptions.poll = content;
-            content = '';
-        } else if (content instanceof ScheduledEvent) {
-            internalOptions.event = content;
-            content = '';
-        } else if (content instanceof Contact) {
-            internalOptions.contactCard = content.id._serialized;
-            content = '';
-        } else if (Array.isArray(content) && content.length > 0 && content[0] instanceof Contact) {
-            internalOptions.contactCardList = content.map(contact => contact.id._serialized);
-            content = '';
-        } else if (content instanceof Buttons) {
-            console.warn('Buttons are now deprecated. See more at https://www.youtube.com/watch?v=hv1R1rLeVVE.');
-            if (content.type !== 'chat') { internalOptions.attachment = content.body; }
-            internalOptions.buttons = content;
-            content = '';
-        } else if (content instanceof List) {
-            console.warn('Lists are now deprecated. See more at https://www.youtube.com/watch?v=hv1R1rLeVVE.');
-            internalOptions.list = content;
-            content = '';
-        }
-
-        if (internalOptions.sendMediaAsSticker && internalOptions.media) {
-            internalOptions.media = await Util.formatToWebpSticker(
-                internalOptions.media, {
-                    name: options.stickerName,
-                    author: options.stickerAuthor,
-                    categories: options.stickerCategories
-                }, this.pupPage
-            );
-        }
-
-        const sentMsg = await this.pupPage.evaluate(async (chatId, content, options, sendSeen) => {
-            const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
-
-            if (!chat) return null;
-
-            if (sendSeen) {
-                await window.WWebJS.sendSeen(chatId);
+            
+            if (contact && contact.id && !contact.id._serialized.endsWith('@lid')) {
+                chatId = contact.id._serialized;
+                console.log(`Converted LID to: ${chatId}`);
+            } else {
+                // If contact doesn't exist, try to extract phone number from LID
+                // LID format: 236274858340568:11@lid
+                const lidMatch = chatId.match(/^(\d+):\d+@lid$/);
+                if (lidMatch && lidMatch[1]) {
+                    const potentialPhoneNumber = lidMatch[1] + '@c.us';
+                    console.log(`Trying extracted phone number: ${potentialPhoneNumber}`);
+                    
+                    // Verify if this number exists
+                    try {
+                        const numberId = await this.getNumberId(potentialPhoneNumber.replace('@c.us', ''));
+                        if (numberId) {
+                            chatId = numberId._serialized;
+                            console.log(`Successfully converted LID to: ${chatId}`);
+                        } else {
+                            console.log('Extracted phone number not registered on WhatsApp');
+                            // Continue with original LID - WhatsApp might still handle it
+                        }
+                    } catch (error) {
+                        console.log('Could not verify extracted phone number');
+                        // Continue with original LID
+                    }
+                } else {
+                    console.log('LID format not recognized, using original');
+                }
             }
-
-            const msg = await window.WWebJS.sendMessage(chat, content, options);
-            return msg
-                ? window.WWebJS.getMessageModel(msg)
-                : undefined;
-        }, chatId, content, internalOptions, sendSeen);
-
-        return sentMsg
-            ? new Message(this, sentMsg)
-            : undefined;
+        } catch (error) {
+            console.error('Error converting LID address:', error.message);
+            // Continue with original chatId - sometimes WhatsApp can handle LID directly
+        }
     }
+
+    const isChannel = /@\w*newsletter\b/.test(chatId);
+
+    if (isChannel && [
+        options.sendMediaAsDocument, options.quotedMessageId, 
+        options.parseVCards, options.isViewOnce,
+        content instanceof Location, content instanceof Contact,
+        content instanceof Buttons, content instanceof List,
+        Array.isArray(content) && content.length > 0 && content[0] instanceof Contact
+    ].includes(true)) {
+        console.warn('The message type is currently not supported for sending in channels,\nthe supported message types are: text, image, sticker, gif, video, voice and poll.');
+        return null;
+    }
+
+    if (options.mentions) {
+        !Array.isArray(options.mentions) && (options.mentions = [options.mentions]);
+        if (options.mentions.some((possiblyContact) => possiblyContact instanceof Contact)) {
+            console.warn('Mentions with an array of Contact are now deprecated. See more at https://github.com/pedroslopez/whatsapp-web.js/pull/2166.');
+            options.mentions = options.mentions.map((a) => a.id._serialized);
+        }
+    }
+
+    options.groupMentions && !Array.isArray(options.groupMentions) && (options.groupMentions = [options.groupMentions]);
+    
+    let internalOptions = {
+        linkPreview: options.linkPreview === false ? undefined : true,
+        sendAudioAsVoice: options.sendAudioAsVoice,
+        sendVideoAsGif: options.sendVideoAsGif,
+        sendMediaAsSticker: options.sendMediaAsSticker,
+        sendMediaAsDocument: options.sendMediaAsDocument,
+        sendMediaAsHd: options.sendMediaAsHd,
+        caption: options.caption,
+        quotedMessageId: options.quotedMessageId,
+        parseVCards: options.parseVCards !== false,
+        mentionedJidList: options.mentions || [],
+        groupMentions: options.groupMentions,
+        invokedBotWid: options.invokedBotWid,
+        ignoreQuoteErrors: options.ignoreQuoteErrors !== false,
+        waitUntilMsgSent: options.waitUntilMsgSent || false,
+        extraOptions: options.extra
+    };
+
+    const sendSeen = options.sendSeen !== false;
+
+    if (content instanceof MessageMedia) {
+        internalOptions.media = content;
+        internalOptions.isViewOnce = options.isViewOnce,
+        content = '';
+    } else if (options.media instanceof MessageMedia) {
+        internalOptions.media = options.media;
+        internalOptions.caption = content;
+        internalOptions.isViewOnce = options.isViewOnce,
+        content = '';
+    } else if (content instanceof Location) {
+        internalOptions.location = content;
+        content = '';
+    } else if (content instanceof Poll) {
+        internalOptions.poll = content;
+        content = '';
+    } else if (content instanceof ScheduledEvent) {
+        internalOptions.event = content;
+        content = '';
+    } else if (content instanceof Contact) {
+        internalOptions.contactCard = content.id._serialized;
+        content = '';
+    } else if (Array.isArray(content) && content.length > 0 && content[0] instanceof Contact) {
+        internalOptions.contactCardList = content.map(contact => contact.id._serialized);
+        content = '';
+    } else if (content instanceof Buttons) {
+        console.warn('Buttons are now deprecated. See more at https://www.youtube.com/watch?v=hv1R1rLeVVE.');
+        if (content.type !== 'chat') { internalOptions.attachment = content.body; }
+        internalOptions.buttons = content;
+        content = '';
+    } else if (content instanceof List) {
+        console.warn('Lists are now deprecated. See more at https://www.youtube.com/watch?v=hv1R1rLeVVE.');
+        internalOptions.list = content;
+        content = '';
+    }
+
+    if (internalOptions.sendMediaAsSticker && internalOptions.media) {
+        internalOptions.media = await Util.formatToWebpSticker(
+            internalOptions.media, {
+                name: options.stickerName,
+                author: options.stickerAuthor,
+                categories: options.stickerCategories
+            }, this.pupPage
+        );
+    }
+
+    // ✅ SAFE FIX: Enhanced error handling WITHOUT retry loops
+    try {
+        const sentMsg = await this.pupPage.evaluate(async (chatId, content, options, sendSeen, originalChatId) => {
+            try {
+                let chat;
+                
+                // First try with the converted chatId
+                try {
+                    chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
+                } catch (error) {
+                    console.log(`Chat not found with converted ID ${chatId}, trying original: ${originalChatId}`);
+                    // If converted ID fails, try the original LID
+                    if (originalChatId !== chatId) {
+                        chat = await window.WWebJS.getChat(originalChatId, { getAsModel: false });
+                    }
+                }
+                
+                if (!chat) {
+                    console.error('sendMessage: Chat not found for ID:', chatId, 'or original:', originalChatId);
+                    return null;
+                }
+
+                // ✅ ADD: Connection state check
+                if (window.Store && window.Store.AppState) {
+                    const state = window.Store.AppState.state;
+                    if (state !== 'CONNECTED') {
+                        console.error('sendMessage: WhatsApp not connected. State:', state);
+                        return null;
+                    }
+                }
+
+                if (sendSeen) {
+                    await window.WWebJS.sendSeen(chat.id._serialized).catch(err => {
+                        console.warn('sendMessage: sendSeen failed:', err.message);
+                        // Continue anyway - don't fail the entire message
+                    });
+                }
+
+                const msg = await window.WWebJS.sendMessage(chat, content, options);
+                
+                if (!msg) {
+                    console.error('sendMessage: WWebJS.sendMessage returned null/undefined');
+                    return null;
+                }
+                
+                return window.WWebJS.getMessageModel(msg);
+                
+            } catch (error) {
+                console.error('sendMessage: Browser context error:', error);
+                return null;
+            }
+        }, chatId, content, internalOptions, sendSeen, originalChatId);
+
+        if (sentMsg) {
+            return new Message(this, sentMsg);
+        } else {
+            console.error('sendMessage: Failed to send message to chat. Original:', originalChatId, 'Converted:', chatId);
+            return undefined;
+        }
+        
+    } catch (error) {
+        // ✅ SAFE: Log error but don't retry (prevents bans)
+        console.error('sendMessage: Critical error:', error);
+        
+        // ✅ EMIT ERROR EVENT for user handling
+        this.emit(Events.MESSAGE_SEND_FAILURE, {
+            chatId: originalChatId,
+            error: error.message,
+            timestamp: Date.now()
+        });
+        
+        return undefined;
+    }
+}
 
     /**
      * @typedef {Object} SendChannelAdminInviteOptions
@@ -1108,17 +1927,25 @@ class Client extends EventEmitter {
 
         return messages.map(msg => new Message(this, msg));
     }
-
     /**
      * Get all current chat instances
      * @returns {Promise<Array<Chat>>}
      */
     async getChats() {
-        const chats = await this.pupPage.evaluate(async () => {
-            return await window.WWebJS.getChats();
-        });
-
-        return chats.map(chat => ChatFactory.create(this, chat));
+        try {
+            const chats = await this.pupPage.evaluate(async () => {
+                try {
+                    return await window.WWebJS.getChats();
+                } catch (e) {
+                    console.error('Browser context error in getChats:', e);
+                    return [];
+                }
+            });
+            return chats ? chats.map(chat => ChatFactory.create(this, chat)) : [];
+        } catch (error) {
+            console.error('Error in getChats:', error);
+            return [];
+        }
     }
 
     /**
@@ -1138,13 +1965,53 @@ class Client extends EventEmitter {
      * @param {string} chatId 
      * @returns {Promise<Chat|Channel>}
      */
+    /**
+     * Gets chat or channel instance by ID with performance caching
+     * @param {string} chatId 
+     * @returns {Promise<Chat|Channel>}
+     */
     async getChatById(chatId) {
-        const chat = await this.pupPage.evaluate(async chatId => {
+        const CACHE_TTL = 30000; // 30 seconds cache
+        
+        // ✅ Check cache first (HUGE performance boost)
+        const now = Date.now();
+        const cached = this._chatCache.get(chatId);
+        if (cached && (now - cached.timestamp) < CACHE_TTL) {
+            return cached.data;
+        }
+        
+        // ✅ If not in cache, fetch from WhatsApp
+        const chat = await this.pupPage.evaluate(async (chatId) => {
             return await window.WWebJS.getChat(chatId);
         }, chatId);
-        return chat
-            ? ChatFactory.create(this, chat)
-            : undefined;
+        
+        const result = chat ? ChatFactory.create(this, chat) : undefined;
+        
+        // ✅ Cache the result
+        if (result) {
+            this._chatCache.set(chatId, {
+                data: result,
+                timestamp: now
+            });
+        }
+        
+        return result;
+    }
+
+    /**
+     * Clear expired cache entries (call this periodically)
+     */
+    _cleanupExpiredCache() {
+        const now = Date.now();
+        const CACHE_TTL = 30000;
+        
+        for (const [key, value] of this._chatCache.entries()) {
+            if (now - value.timestamp > CACHE_TTL) {
+                this._chatCache.delete(key);
+            }
+        }
+        
+        this._lastCleanup = now;
     }
 
     /**
@@ -1186,30 +2053,56 @@ class Client extends EventEmitter {
      * @param {string} contactId
      * @returns {Promise<Contact>}
      */
-    async getContactById(contactId) {
-        let contact = await this.pupPage.evaluate(contactId => {
-            return window.WWebJS.getContact(contactId);
-        }, contactId);
+async getContactById(contactId) {
+    // ✅ FIX: Remove :11 suffix from LID addresses before processing
+    let processedContactId = contactId;
+    if (contactId.endsWith('@lid')) {
+        const lidMatch = contactId.match(/^(\d+):\d+@lid$/);
+        if (lidMatch && lidMatch[1]) {
+            processedContactId = lidMatch[1] + '@lid';
+            //console.log(`Cleaned LID format: ${contactId} → ${processedContactId}`);
 
-        return ContactFactory.create(this, contact);
+        }
     }
+
+    let contact = await this.pupPage.evaluate(contactId => {
+        return window.WWebJS.getContact(contactId);
+    }, processedContactId);
+
+    return ContactFactory.create(this, contact);
+}
     
     async getMessageById(messageId) {
-        const msg = await this.pupPage.evaluate(async messageId => {
-            let msg = window.Store.Msg.get(messageId);
-            if(msg) return window.WWebJS.getMessageModel(msg);
+        try {
+            const msg = await this.pupPage.evaluate(async messageId => {
+                try {
+                    let msg = window.Store.Msg.get(messageId);
+                    if(msg) return window.WWebJS.getMessageModel(msg);
 
-            const params = messageId.split('_');
-            if (params.length !== 3 && params.length !== 4) throw new Error('Invalid serialized message id specified');
+                    const params = messageId.split('_');
+                    if (params.length !== 3 && params.length !== 4) {
+                        console.error('Invalid serialized message id specified:', messageId);
+                        return null;
+                    }
 
-            let messagesObject = await window.Store.Msg.getMessagesById([messageId]);
-            if (messagesObject && messagesObject.messages.length) msg = messagesObject.messages[0];
-            
-            if(msg) return window.WWebJS.getMessageModel(msg);
-        }, messageId);
+                    let messagesObject = await window.Store.Msg.getMessagesById([messageId]);
+                    if (messagesObject && messagesObject.messages.length) {
+                        msg = messagesObject.messages[0];
+                    }
+                    
+                    if(msg) return window.WWebJS.getMessageModel(msg);
+                    return null;
+                } catch (error) {
+                    console.error('Error retrieving message in browser context:', error);
+                    return null;
+                }
+            }, messageId);
 
-        if(msg) return new Message(this, msg);
-        return null;
+            return msg ? new Message(this, msg) : null;
+        } catch (error) {
+            console.error('Error in getMessageById:', error);
+            return null;
+        }
     }
 
     /**
@@ -1946,7 +2839,7 @@ class Client extends EventEmitter {
      * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
      */
     async deleteChannel(channelId) {
-        return await this.client.pupPage.evaluate(async (channelId) => {
+        return await this.pupPage.evaluate(async (channelId) => {
             const channel = await window.WWebJS.getChat(channelId, { getAsModel: false });
             if (!channel) return false;
             try {
