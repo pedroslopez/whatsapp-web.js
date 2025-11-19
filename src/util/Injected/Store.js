@@ -58,6 +58,7 @@ exports.ExposeStore = () => {
     window.Store.OpaqueData = window.require('WAWebMediaOpaqueData');
     window.Store.QueryProduct = window.require('WAWebBizProductCatalogBridge');
     window.Store.QueryOrder = window.require('WAWebBizOrderBridge');
+    window.Store.QueryBusinessProfile = window.require('WAWebQueryBusinessProfile');
     window.Store.SendClear = window.require('WAWebChatClearBridge');
     window.Store.SendDelete = window.require('WAWebDeleteChatAction');
     window.Store.SendMessage = window.require('WAWebSendMsgChatAction');
