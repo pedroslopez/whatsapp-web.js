@@ -651,8 +651,14 @@ exports.LoadUtils = () => {
         if (contact.id._serialized.endsWith('@lid')) {
             contact.id = contact.phoneNumber;
         }
-        const bizProfile = await window.Store.BusinessProfile.fetchBizProfile(wid);
-        bizProfile.profileOptions && (contact.businessProfile = bizProfile);
+        try {
+            const bizProfile = await window.Store.QueryBusinessProfile.queryBusinessProfile(wid);
+            if (bizProfile && bizProfile.profileOptions) {
+                contact.businessProfile = bizProfile;
+            }
+        } catch (e) {
+            // Business profile not available or contact is not a business
+        }
         return window.WWebJS.getContactModel(contact);
     };
 
