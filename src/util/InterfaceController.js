@@ -16,7 +16,7 @@ class InterfaceController {
     async openChatWindow(chatId) {
         await this.pupPage.evaluate(async (chatId) => {
             const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
-            await window.Store.Cmd.openChatBottom(chat);
+            await window.Store.Cmd.openChatBottom({chat: chat});
         }, chatId);
     }
 
