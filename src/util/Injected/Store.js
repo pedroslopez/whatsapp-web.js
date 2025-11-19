@@ -104,12 +104,20 @@ exports.ExposeStore = () => {
     window.Store.FindOrCreateChat = window.require('WAWebFindChatAction');
     window.Store.CustomerNoteUtils = window.require('WAWebNoteAction');
     window.Store.BusinessGatingUtils = window.require('WAWebBizGatingUtils');
-    window.Store.PollsVotesSchema = require('WAWebPollsVotesSchema');
+    // window.Store.PollsVotesSchema = window.require('WAWebPollsVotesSchema'); // Removed - module no longer exists
     
     window.Store.Settings = {
         ...window.require('WAWebUserPrefsGeneral'),
         ...window.require('WAWebUserPrefsNotifications'),
-        setPushname: window.require('WAWebSetPushnameConnAction').setPushname
+        // setPushname module no longer exists in newer WhatsApp Web versions - make it optional
+        ...((() => {
+            try {
+                return { setPushname: window.require('WAWebSetPushnameConnAction').setPushname };
+            } catch (e) {
+                console.warn('WAWebSetPushnameConnAction module not found - setPushname will not be available');
+                return {};
+            }
+        })())
     };
     window.Store.NumberInfo = {
         ...window.require('WAPhoneUtils'),
