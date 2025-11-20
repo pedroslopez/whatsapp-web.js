@@ -6,7 +6,7 @@ const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
 
 const Util = require('./util/Util');
 const InterfaceController = require('./util/InterfaceController');
-const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constants');
+const { WhatsWebURL, DefaultOptions, Events, WAState, MessageTypes } = require('./util/Constants');
 const { ExposeAuthStore } = require('./util/Injected/AuthStore/AuthStore');
 const { ExposeStore } = require('./util/Injected/Store');
 const { ExposeLegacyAuthStore } = require('./util/Injected/AuthStore/LegacyAuthStore');
@@ -1531,7 +1531,7 @@ class Client extends EventEmitter {
         const commonGroups = await this.pupPage.evaluate(async (contactId) => {
             let contact = window.Store.Contact.get(contactId);
             if (!contact) {
-                const wid = window.Store.WidFactory.createUserWid(contactId);
+                const wid = window.Store.WidFactory.createWid(contactId);
                 const chatConstructor = window.Store.Contact.getModelsArray().find(c=>!c.isGroup).constructor;
                 contact = new chatConstructor({id: wid});
             }
@@ -2317,13 +2317,15 @@ class Client extends EventEmitter {
      * @param {string} firstName 
      * @param {string} lastName 
      * @param {boolean} [syncToAddressbook = false] If set to true, the contact will also be saved to the user's address book on their phone. False by default
-     * @returns {Promise<import('..').ChatId>} Object in a wid format
+     * @returns {Promise<void>}
      */
     async saveOrEditAddressbookContact(phoneNumber, firstName, lastName, syncToAddressbook = false)
     {
         return await this.pupPage.evaluate(async (phoneNumber, firstName, lastName, syncToAddressbook) => {
             return await window.Store.AddressbookContactUtils.saveContactAction(
                 phoneNumber,
+                phoneNumber,
+                null,
                 null,
                 firstName,
                 lastName,
@@ -2423,7 +2425,7 @@ class Client extends EventEmitter {
     async getPollVotes(messageId) {
         const msg = await this.getMessageById(messageId);
         if (!msg) return [];
-        if (msg.type != 'poll_creation') throw 'Invalid usage! Can only be used with a pollCreation message';
+        if (msg.type != MessageTypes.POLL_CREATION) throw 'Invalid usage! Can only be used with a pollCreation message';
 
         const pollVotes = await this.pupPage.evaluate( async (msg) => {
             const msgKey = window.Store.MsgKey.fromString(msg.id._serialized);
