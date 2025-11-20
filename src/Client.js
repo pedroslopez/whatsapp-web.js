@@ -6,7 +6,7 @@ const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
 
 const Util = require('./util/Util');
 const InterfaceController = require('./util/InterfaceController');
-const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constants');
+const { WhatsWebURL, DefaultOptions, Events, WAState, MessageTypes } = require('./util/Constants');
 const { ExposeAuthStore } = require('./util/Injected/AuthStore/AuthStore');
 const { ExposeStore } = require('./util/Injected/Store');
 const { ExposeLegacyAuthStore } = require('./util/Injected/AuthStore/LegacyAuthStore');
@@ -234,7 +234,7 @@ class Client extends EventEmitter {
                      * @type {ClientInfo}
                      */
                 this.info = new ClientInfo(this, await this.pupPage.evaluate(() => {
-                    return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMaybeMeUser() };
+                    return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMaybeMePnUser() || window.Store.User.getMaybeMeLidUser() };
                 }));
 
                 this.interface = new InterfaceController(this);
@@ -1225,11 +1225,18 @@ class Client extends EventEmitter {
             
             const msgs = await window.Store.PinnedMsgUtils.getTable().equals(['chatId'], chatWid.toString());
 
-            const pinnedMsgs = msgs.map((msg) => window.Store.Msg.get(msg.parentMsgKey));
+            const pinnedMsgs = (
+                await Promise.all(
+                    msgs.filter(msg => msg.pinType == 1).map(async (msg) => {
+                        const res = await window.Store.Msg.getMessagesById([msg.parentMsgKey]);
+                        return res?.messages?.[0];
+                    })
+                )
+            ).filter(Boolean);
 
             return !pinnedMsgs.length
                 ? []
-                : pinnedMsgs.map((msg) => window.WWebJS.getMessageModel(msg));
+                : await Promise.all(pinnedMsgs.map((msg) => window.WWebJS.getMessageModel(msg)));
         }, chatId);
 
         return pinnedMsgs.map((msg) => new Message(this, msg));
@@ -1524,7 +1531,7 @@ class Client extends EventEmitter {
         const commonGroups = await this.pupPage.evaluate(async (contactId) => {
             let contact = window.Store.Contact.get(contactId);
             if (!contact) {
-                const wid = window.Store.WidFactory.createUserWid(contactId);
+                const wid = window.Store.WidFactory.createWid(contactId);
                 const chatConstructor = window.Store.Contact.getModelsArray().find(c=>!c.isGroup).constructor;
                 contact = new chatConstructor({id: wid});
             }
@@ -2310,13 +2317,15 @@ class Client extends EventEmitter {
      * @param {string} firstName 
      * @param {string} lastName 
      * @param {boolean} [syncToAddressbook = false] If set to true, the contact will also be saved to the user's address book on their phone. False by default
-     * @returns {Promise<import('..').ChatId>} Object in a wid format
+     * @returns {Promise<void>}
      */
     async saveOrEditAddressbookContact(phoneNumber, firstName, lastName, syncToAddressbook = false)
     {
         return await this.pupPage.evaluate(async (phoneNumber, firstName, lastName, syncToAddressbook) => {
             return await window.Store.AddressbookContactUtils.saveContactAction(
                 phoneNumber,
+                phoneNumber,
+                null,
                 null,
                 firstName,
                 lastName,
@@ -2343,20 +2352,95 @@ class Client extends EventEmitter {
      * @returns {Promise<Array<{ lid: string, pn: string }>>}
      */
     async getContactLidAndPhone(userIds) {
-        return await this.pupPage.evaluate((userIds) => {
-            !Array.isArray(userIds) && (userIds = [userIds]);
-            return userIds.map(userId => {
-                const wid = window.Store.WidFactory.createWid(userId);
-                const isLid = wid.server === 'lid';
-                const lid = isLid ? wid : window.Store.LidUtils.getCurrentLid(wid);
-                const phone = isLid ? window.Store.LidUtils.getPhoneNumber(wid) : wid;
+        return await this.pupPage.evaluate(async (userIds) => {
+            if (!Array.isArray(userIds)) userIds = [userIds];
+
+            return await Promise.all(userIds.map(async (userId) => {
+                const { lid, phone } = await window.WWebJS.enforceLidAndPnRetrieval(userId);
 
                 return {
-                    lid: lid._serialized,
-                    pn: phone._serialized
+                    lid: lid?._serialized,
+                    pn: phone?._serialized
+                };
+            }));
+        }, userIds);
+    }
+
+    /**
+     * Add or edit a customer note
+     * @see https://faq.whatsapp.com/1433099287594476
+     * @param {string} userId The ID of a customer to add a note to
+     * @param {string} note The note to add
+     * @returns {Promise<void>}
+     */
+    async addOrEditCustomerNote(userId, note) {
+        return await this.pupPage.evaluate(async (userId, note) => {
+            if (!window.Store.BusinessGatingUtils.smbNotesV1Enabled()) return;
+
+            return window.Store.CustomerNoteUtils.noteAddAction(
+                'unstructured',
+                window.Store.WidToJid.widToUserJid(window.Store.WidFactory.createWid(userId)),
+                note
+            );
+        }, userId, note);
+    }
+
+    /**
+     * Get a customer note
+     * @see https://faq.whatsapp.com/1433099287594476
+     * @param {string} userId The ID of a customer to get a note from
+     * @returns {Promise<{
+     *    chatId: string,
+     *    content: string,
+     *    createdAt: number,
+     *    id: string,
+     *    modifiedAt: number,
+     *    type: string
+     * }>}
+     */
+    async getCustomerNote(userId) {
+        return await this.pupPage.evaluate(async (userId) => {
+            if (!window.Store.BusinessGatingUtils.smbNotesV1Enabled()) return null;
+
+            const note = await window.Store.CustomerNoteUtils.retrieveOnlyNoteForChatJid(
+                window.Store.WidToJid.widToUserJid(window.Store.WidFactory.createWid(userId))
+            );
+
+            let serialized = note?.serialize();
+
+            if (!serialized) return null;
+
+            serialized.chatId = window.Store.JidToWid.userJidToUserWid(serialized.chatJid)._serialized;
+            delete serialized.chatJid;
+
+            return serialized;
+        }, userId);
+    }
+    
+    /**
+     * Get Poll Votes
+     * @param {string} messageId
+     * @return {Promise<Array<PollVote>>} 
+     */
+    async getPollVotes(messageId) {
+        const msg = await this.getMessageById(messageId);
+        if (!msg) return [];
+        if (msg.type != MessageTypes.POLL_CREATION) throw 'Invalid usage! Can only be used with a pollCreation message';
+
+        const pollVotes = await this.pupPage.evaluate( async (msg) => {
+            const msgKey = window.Store.MsgKey.fromString(msg.id._serialized);
+            let pollVotes = await window.Store.PollsVotesSchema.getTable().equals(['parentMsgKey'], msgKey.toString());
+            
+            return pollVotes.map(item => {
+                const typedArray = new Uint8Array(item.selectedOptionLocalIds);
+                return {
+                    ...item,
+                    selectedOptionLocalIds: Array.from(typedArray)
                 };
             });
-        }, userIds);
+        }, msg);
+
+        return pollVotes.map((pollVote) => new PollVote(this.client, {...pollVote, parentMessage: msg}));
     }
 }
 

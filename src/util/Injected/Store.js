@@ -62,6 +62,8 @@ exports.ExposeStore = () => {
     window.Store.SendDelete = window.require('WAWebDeleteChatAction');
     window.Store.SendMessage = window.require('WAWebSendMsgChatAction');
     window.Store.EditMessage = window.require('WAWebSendMessageEditAction');
+    window.Store.MediaDataUtils = window.require('WAWebMediaDataUtils');
+    window.Store.BlobCache = window.require('WAWebMediaInMemoryBlobCache');
     window.Store.SendSeen = window.require('WAWebUpdateUnreadChatAction');
     window.Store.User = window.require('WAWebUserPrefsMeUser');
     window.Store.ContactMethods = window.require('WAWebContactGetters');
@@ -97,11 +99,14 @@ exports.ExposeStore = () => {
     window.Store.HistorySync = window.require('WAWebSendNonMessageDataRequest');
     window.Store.AddonReactionTable = window.require('WAWebAddonReactionTableMode').reactionTableMode;
     window.Store.AddonPollVoteTable = window.require('WAWebAddonPollVoteTableMode').pollVoteTableMode;
-    window.Store.PinnedMsgUtils = window.require('WAWebPinInChatSchema');
     window.Store.ChatGetters = window.require('WAWebChatGetters');
-    window.Store.PinnedMsgUtils = window.require('WAWebSendPinMessageAction');
     window.Store.UploadUtils = window.require('WAWebUploadManager');
     window.Store.WAWebStreamModel = window.require('WAWebStreamModel');
+    window.Store.FindOrCreateChat = window.require('WAWebFindChatAction');
+    window.Store.CustomerNoteUtils = window.require('WAWebNoteAction');
+    window.Store.BusinessGatingUtils = window.require('WAWebBizGatingUtils');
+    window.Store.PollsVotesSchema = window.require('WAWebPollsVotesSchema');
+    window.Store.PollsSendVote = window.require('WAWebPollsSendVoteMsgAction');
     
     window.Store.Settings = {
         ...window.require('WAWebUserPrefsGeneral'),
@@ -114,6 +119,10 @@ exports.ExposeStore = () => {
     };
     window.Store.ForwardUtils = {
         ...window.require('WAWebChatForwardMessage')
+    };
+    window.Store.PinnedMsgUtils = {
+        ...window.require('WAWebPinInChatSchema'),
+        ...window.require('WAWebSendPinMessageAction')
     };
     window.Store.ScheduledEventMsgUtils = {
         ...window.require('WAWebGenerateEventCallLink'),
@@ -133,7 +142,8 @@ exports.ExposeStore = () => {
         ...window.require('WAWebGroupCreateJob'),
         ...window.require('WAWebGroupModifyInfoJob'),
         ...window.require('WAWebExitGroupAction'),
-        ...window.require('WAWebContactProfilePicThumbBridge')
+        ...window.require('WAWebContactProfilePicThumbBridge'),
+        ...window.require('WAWebSetPropertyGroupAction')
     };
     window.Store.GroupParticipants = {
         ...window.require('WAWebModifyParticipantsGroupAction'),
@@ -210,14 +220,35 @@ exports.ExposeStore = () => {
      * @param {Function} callback Modified function
      */
     window.injectToFunction = (target, callback) => {
-        const module = window.require(target.module);
-        const originalFunction = module[target.function];
-        const modifiedFunction = (...args) => callback(originalFunction, ...args);
-        module[target.function] = modifiedFunction;
+        try {
+            let module = window.require(target.module);
+            if (!module) return; 
+
+            const path = target.function.split('.');
+            const funcName = path.pop();
+
+            for (const key of path) {
+                if (!module[key]) return;
+                module = module[key];
+            }
+
+            const originalFunction = module[funcName];
+            if (typeof originalFunction !== 'function') return;
+
+            module[funcName] = (...args) => {
+                try {
+                    return callback(originalFunction, ...args);
+                } catch {
+                    return originalFunction(...args);
+                }
+            };
+
+        } catch {
+            return;
+        }
     };
 
     window.injectToFunction({ module: 'WAWebBackendJobsCommon', function: 'mediaTypeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? null : func(...args); });
 
     window.injectToFunction({ module: 'WAWebE2EProtoUtils', function: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage || proto.groupInviteMessage ? 'text' : func(...args); });
-
 };
