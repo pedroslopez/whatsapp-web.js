@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Web.js Manager</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fab fa-whatsapp"></i>
+                    <h1>WhatsApp Manager</h1>
+                </div>
+                <div class="status-bar">
+                    <span class="status-indicator" id="statusIndicator">
+                        <i class="fas fa-circle"></i>
+                        <span id="statusText">Connecting...</span>
+                    </span>
+                    <div class="action-buttons">
+                        <button class="btn btn-secondary" id="logoutBtn" style="display: none;">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                        <button class="btn btn-secondary" id="restartBtn">
+                            <i class="fas fa-sync"></i> Restart
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- QR Code Section -->
+            <div class="qr-section" id="qrSection" style="display: none;">
+                <div class="qr-container">
+                    <h2>Scan QR Code</h2>
+                    <p>Open WhatsApp on your phone and scan this QR code</p>
+                    <div class="qr-code">
+                        <img id="qrImage" src="" alt="QR Code">
+                    </div>
+                    <div class="qr-instructions">
+                        <ol>
+                            <li>Open WhatsApp on your phone</li>
+                            <li>Tap Menu or Settings and select "Linked Devices"</li>
+                            <li>Tap "Link a Device"</li>
+                            <li>Point your phone at this screen to scan the QR code</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Section -->
+            <div class="loading-section" id="loadingSection" style="display: none;">
+                <div class="loading-container">
+                    <div class="spinner"></div>
+                    <h2>Loading WhatsApp</h2>
+                    <p id="loadingMessage">Initializing...</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <span id="loadingPercent">0%</span>
+                </div>
+            </div>
+
+            <!-- Dashboard -->
+            <div class="dashboard" id="dashboard" style="display: none;">
+                <!-- Sidebar -->
+                <aside class="sidebar">
+                    <div class="sidebar-header">
+                        <div class="user-info" id="userInfo">
+                            <div class="avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="user-details">
+                                <h3 id="userName">Loading...</h3>
+                                <p id="userNumber">+00 000 0000000</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-tabs">
+                        <button class="tab-btn active" data-tab="chats">
+                            <i class="fas fa-comments"></i> Chats
+                        </button>
+                        <button class="tab-btn" data-tab="contacts">
+                            <i class="fas fa-address-book"></i> Contacts
+                        </button>
+                    </div>
+
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Search...">
+                    </div>
+
+                    <div class="chat-list" id="chatList">
+                        <div class="empty-state">
+                            <i class="fas fa-comments"></i>
+                            <p>No chats available</p>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Chat Area -->
+                <section class="chat-area">
+                    <div class="empty-chat-state" id="emptyChatState">
+                        <div class="empty-chat-content">
+                            <i class="fab fa-whatsapp"></i>
+                            <h2>WhatsApp Web Manager</h2>
+                            <p>Select a chat to start messaging</p>
+                        </div>
+                    </div>
+
+                    <div class="active-chat" id="activeChat" style="display: none;">
+                        <div class="chat-header">
+                            <div class="chat-header-info">
+                                <div class="chat-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="chat-details">
+                                    <h3 id="activeChatName">Chat Name</h3>
+                                    <p id="activeChatStatus">Online</p>
+                                </div>
+                            </div>
+                            <div class="chat-actions">
+                                <button class="icon-btn" id="markReadBtn" title="Mark as read">
+                                    <i class="fas fa-check-double"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="messages-container" id="messagesContainer">
+                            <div class="messages" id="messages">
+                                <!-- Messages will be loaded here -->
+                            </div>
+                        </div>
+
+                        <div class="message-input">
+                            <div class="input-wrapper">
+                                <button class="icon-btn" title="Attach">
+                                    <i class="fas fa-paperclip"></i>
+                                </button>
+                                <input type="text" id="messageInput" placeholder="Type a message">
+                                <button class="icon-btn send-btn" id="sendBtn" title="Send">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Info Panel -->
+                <aside class="info-panel" id="infoPanel">
+                    <div class="info-header">
+                        <h3>Statistics</h3>
+                    </div>
+                    <div class="info-content">
+                        <div class="stat-card">
+                            <i class="fas fa-comments"></i>
+                            <div class="stat-details">
+                                <h4 id="totalChats">0</h4>
+                                <p>Total Chats</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-envelope"></i>
+                            <div class="stat-details">
+                                <h4 id="unreadMessages">0</h4>
+                                <p>Unread Messages</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-users"></i>
+                            <div class="stat-details">
+                                <h4 id="totalContacts">0</h4>
+                                <p>Contacts</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-battery-three-quarters"></i>
+                            <div class="stat-details">
+                                <h4 id="batteryLevel">--</h4>
+                                <p>Phone Battery</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-header">
+                        <h3>Recent Activity</h3>
+                    </div>
+                    <div class="activity-list" id="activityList">
+                        <div class="empty-state">
+                            <i class="fas fa-bell"></i>
+                            <p>No recent activity</p>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
