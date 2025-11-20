@@ -242,7 +242,7 @@ declare namespace WAWebJS {
         syncHistory(chatId: string): Promise<boolean>
 
         /** Save new contact to user's addressbook or edit the existing one */
-        saveOrEditAddressbookContact(phoneNumber: string, firstName: string, lastName: string, syncToAddressbook?: boolean): Promise<ChatId>
+        saveOrEditAddressbookContact(phoneNumber: string, firstName: string, lastName: string, syncToAddressbook?: boolean): Promise<void>
 
         /**
          * Add or edit a customer note
@@ -305,6 +305,9 @@ declare namespace WAWebJS {
          * Note: the user you are transferring the channel ownership to must be a channel admin.
          */
         transferChannelOwnership(channelId: string, newOwnerId: string, options?: TransferChannelOwnershipOptions): Promise<boolean>;
+
+        /** Get Poll Votes */
+        getPollVotes(messageId: string): Promise<PollVote[]>
 
         /** Generic event */
         on(event: string, listener: (...args: any) => void): this
@@ -1193,6 +1196,10 @@ declare namespace WAWebJS {
          */
         getPayment: () => Promise<Payment>,
         /**
+         * Get Poll Votes associated with the given message
+         */
+        getPollVotes: () => Promise<PollVote[]>,
+        /**
          * Gets the reactions associated with the given message
          */
         getReactions: () => Promise<ReactionList[]>,
@@ -1203,6 +1210,10 @@ declare namespace WAWebJS {
          * Once the event is canceled, it can not be edited.
          */
         editScheduledEvent: (editedEventObject: Event) => Promise<Message | null>,
+        /**
+         * Send votes to the poll message
+         */
+        vote: (selectedOptions: Array<string>) => Promise<void>,
     }
 
     /** ID that represents a message */

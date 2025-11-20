@@ -6,7 +6,7 @@ exports.LoadUtils = () => {
     window.WWebJS.forwardMessage = async (chatId, msgId) => {
         const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
         const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
-        return window.Store.ForwardUtils.forwardMessages(chat, [msg], true, true);
+        return await window.Store.ForwardUtils.forwardMessages({'chat': chat, 'msgs' : [msg], 'multicast': true, 'includeCaption': true, 'appendedText' : undefined});
     };
 
     window.WWebJS.sendSeen = async (chatId) => {
@@ -14,6 +14,7 @@ exports.LoadUtils = () => {
         if (chat) {
             window.Store.WAWebStreamModel.Stream.markAvailable();
             await window.Store.SendSeen.sendSeen(chat);
+            window.Store.WAWebStreamModel.Stream.markUnavailable();
             return true;
         }
         return false;
@@ -65,14 +66,7 @@ exports.LoadUtils = () => {
         }
 
         if (options.mentionedJidList) {
-            options.mentionedJidList = await Promise.all(
-                options.mentionedJidList.map(async (id) => {
-                    const wid = window.Store.WidFactory.createWid(id);
-                    if (await window.Store.QueryExist(wid)) {
-                        return wid;
-                    }
-                })
-            );
+            options.mentionedJidList = options.mentionedJidList.map((id) => window.Store.WidFactory.createWid(id));
             options.mentionedJidList = options.mentionedJidList.filter(Boolean);
         }
 
@@ -98,15 +92,15 @@ exports.LoadUtils = () => {
             delete options.location;
         }
 
-        let _pollOptions = {};
+        let pollOptions = {};
         if (options.poll) {
-            const { pollName, pollOptions } = options.poll;
+            const { pollName, pollOptions: _pollOptions } = options.poll;
             const { allowMultipleAnswers, messageSecret } = options.poll.options;
-            _pollOptions = {
+            pollOptions = {
                 kind: 'pollCreation',
                 type: 'poll_creation',
                 pollName: pollName,
-                pollOptions: pollOptions,
+                pollOptions: _pollOptions,
                 pollSelectableOptionsCount: allowMultipleAnswers ? 0 : 1,
                 messageSecret:
                     Array.isArray(messageSecret) && messageSecret.length === 32
@@ -270,7 +264,7 @@ exports.LoadUtils = () => {
             id: newMsgKey,
             ack: 0,
             body: content,
-            from: meUser,
+            from: from,
             to: chat.id,
             local: true,
             self: 'out',
@@ -282,7 +276,7 @@ exports.LoadUtils = () => {
             ...(mediaOptions.toJSON ? mediaOptions.toJSON() : {}),
             ...quotedMsgOptions,
             ...locationOptions,
-            ..._pollOptions,
+            ...pollOptions,
             ...eventOptions,
             ...vcardOptions,
             ...buttonOptions,
@@ -339,14 +333,7 @@ exports.LoadUtils = () => {
         delete options.extraOptions;
         
         if (options.mentionedJidList) {
-            options.mentionedJidList = await Promise.all(
-                options.mentionedJidList.map(async (id) => {
-                    const wid = window.Store.WidFactory.createWid(id);
-                    if (await window.Store.QueryExist(wid)) {
-                        return wid;
-                    }
-                })
-            );
+            options.mentionedJidList = options.mentionedJidList.map((id) => window.Store.WidFactory.createWid(id));
             options.mentionedJidList = options.mentionedJidList.filter(Boolean);
         }
 
@@ -443,6 +430,10 @@ exports.LoadUtils = () => {
             isNewsletter: sendToChannel,
         });
 
+        if (!mediaData.filehash) {
+            throw new Error('media-fault: sendToChat filehash undefined');
+        }
+
         if (forceVoice && mediaData.type === 'ptt') {
             const waveform = mediaObject.contentInfo.waveform;
             mediaData.waveform =
@@ -458,7 +449,15 @@ exports.LoadUtils = () => {
 
         mediaData.renderableUrl = mediaData.mediaBlob.url();
         mediaObject.consolidate(mediaData.toJSON());
+        
         mediaData.mediaBlob.autorelease();
+        const shouldUseMediaCache = window.Store.MediaDataUtils.shouldUseMediaCache(
+            window.Store.MediaTypes.castToV4(mediaObject.type)
+        );
+        if (shouldUseMediaCache && mediaData.mediaBlob instanceof window.Store.OpaqueData) {
+            const formData = mediaData.mediaBlob.formData();
+            window.Store.BlobCache.InMemoryMediaBlobCache.put(mediaObject.filehash, formData);
+        }
 
         const dataToUpload = {
             mimetype: mediaData.mimetype,
@@ -838,22 +837,22 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.rejectCall = async (peerJid, id) => {
-        peerJid = peerJid.split('@')[0] + '@s.whatsapp.net';
-        let userId = window.Store.User.getMaybeMePnUser().user + '@s.whatsapp.net';
+        let userId = window.Store.User.getMaybeMePnUser()._serialized;
+
         const stanza = window.Store.SocketWap.wap('call', {
             id: window.Store.SocketWap.generateId(),
-            from: window.Store.SocketWap.USER_JID(userId),
-            to: window.Store.SocketWap.USER_JID(peerJid),
+            from: userId,
+            to: peerJid,
         }, [
             window.Store.SocketWap.wap('reject', {
                 'call-id': id,
-                'call-creator': window.Store.SocketWap.USER_JID(peerJid),
+                'call-creator': peerJid,
                 count: '0',
             })
         ]);
         await window.Store.Socket.deprecatedCastStanza(stanza);
     };
-
+    
     window.WWebJS.cropAndResizeImage = async (media, options = {}) => {
         if (!media.mimetype.includes('image'))
             throw new Error('Media is not an image');

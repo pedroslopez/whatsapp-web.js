@@ -562,7 +562,7 @@ class Message extends Base {
      */
     async unpin() {
         return await this.client.pupPage.evaluate(async (msgId) => {
-            return await window.WWebJS.pinUnpinMsgAction(msgId, 2);
+            return await window.WWebJS.pinUnpinMsgAction(msgId, 2, 0);
         }, this.id._serialized);
     }
 
@@ -741,6 +741,39 @@ class Message extends Base {
         }, this.id._serialized, editedEventObject);
 
         return edittedEventMsg && new Message(this.client, edittedEventMsg);
+    }
+    /**
+     * Returns the PollVote this poll message
+     * @returns {Promise<PollVote[]>}
+     */
+    async getPollVotes() {
+        return await this.client.getPollVotes(this.id._serialized);
+    }
+
+    /**
+     * Send votes to the poll message
+     * @param {Array<string>} selectedOptions Array of options selected.
+     * @returns {Promise}
+     */
+    async vote(selectedOptions) {
+        if (this.type != MessageTypes.POLL_CREATION) throw 'Invalid usage! Can only be used with a pollCreation message';
+
+        await this.client.pupPage.evaluate(async (messageId, votes) => {
+            if (!messageId) return null;
+            if (!Array.isArray(votes)) votes = [votes];
+            let localIdSet = new Set();
+            const msg =
+                window.Store.Msg.get(messageId) || (await window.Store.Msg.getMessagesById([messageId]))?.messages?.[0];
+            if (!msg) return null;
+
+            msg.pollOptions.forEach(a => {
+                for (const option of votes) {
+                    if (a.name === option) localIdSet.add(a.localId);
+                }
+            });
+
+            await window.Store.PollsSendVote.sendVote(msg, localIdSet);
+        }, this.id._serialized, selectedOptions);
     }
 }
 
