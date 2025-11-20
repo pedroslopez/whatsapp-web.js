@@ -7,6 +7,7 @@ const Order = require('./Order');
 const Payment = require('./Payment');
 const Reaction = require('./Reaction');
 const Contact = require('./Contact');
+const ScheduledEvent = require('./ScheduledEvent'); // eslint-disable-line no-unused-vars
 const { MessageTypes } = require('../util/Constants');
 
 /**
@@ -51,7 +52,7 @@ class Message extends Base {
          * Message content
          * @type {string}
          */
-        this.body = this.hasMedia ? data.caption || '' : data.body || data.pollName || '';
+        this.body = this.hasMedia ? data.caption || '' : data.body || data.pollName || data.eventName || '';
 
         /**
          * Message type
@@ -257,6 +258,14 @@ class Message extends Base {
             this.latestEditMsgKey = data.latestEditMsgKey;
         }
         
+        /**
+         * Protocol message key.
+         * Can be used to retrieve the ID of an original message that was revoked.
+         */
+        if (data.protocolMessageKey) {
+            this.protocolMessageKey = data.protocolMessageKey;
+        }
+
         /**
          * Links included in the message.
          * @type {Array<{link: string, isSuspicious: boolean}>}
@@ -553,7 +562,7 @@ class Message extends Base {
      */
     async unpin() {
         return await this.client.pupPage.evaluate(async (msgId) => {
-            return await window.WWebJS.pinUnpinMsgAction(msgId, 2);
+            return await window.WWebJS.pinUnpinMsgAction(msgId, 2, 0);
         }, this.id._serialized);
     }
 
@@ -698,6 +707,73 @@ class Message extends Base {
             return new Message(this.client, messageEdit);
         }
         return null;
+    }
+
+    /**
+     * Edits the current ScheduledEvent message.
+     * Once the scheduled event is canceled, it can not be edited.
+     * @param {ScheduledEvent} editedEventObject
+     * @returns {Promise<?Message>}
+     */
+    async editScheduledEvent(editedEventObject) {
+        if (!this.fromMe) {
+            return null;
+        }
+
+        const edittedEventMsg = await this.client.pupPage.evaluate(async (msgId, editedEventObject) => {
+            const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
+            if (!msg) return null;
+
+            const { name, startTimeTs, eventSendOptions } = editedEventObject;
+            const eventOptions = {
+                name: name,
+                description: eventSendOptions.description,
+                startTime: startTimeTs,
+                endTime: eventSendOptions.endTimeTs,
+                location: eventSendOptions.location,
+                callType: eventSendOptions.callType,
+                isEventCanceled: eventSendOptions.isEventCanceled,
+            };
+
+            await window.Store.ScheduledEventMsgUtils.sendEventEditMessage(eventOptions, msg);
+            const editedMsg = window.Store.Msg.get(msg.id._serialized);
+            return editedMsg?.serialize();
+        }, this.id._serialized, editedEventObject);
+
+        return edittedEventMsg && new Message(this.client, edittedEventMsg);
+    }
+    /**
+     * Returns the PollVote this poll message
+     * @returns {Promise<PollVote[]>}
+     */
+    async getPollVotes() {
+        return await this.client.getPollVotes(this.id._serialized);
+    }
+
+    /**
+     * Send votes to the poll message
+     * @param {Array<string>} selectedOptions Array of options selected.
+     * @returns {Promise}
+     */
+    async vote(selectedOptions) {
+        if (this.type != MessageTypes.POLL_CREATION) throw 'Invalid usage! Can only be used with a pollCreation message';
+
+        await this.client.pupPage.evaluate(async (messageId, votes) => {
+            if (!messageId) return null;
+            if (!Array.isArray(votes)) votes = [votes];
+            let localIdSet = new Set();
+            const msg =
+                window.Store.Msg.get(messageId) || (await window.Store.Msg.getMessagesById([messageId]))?.messages?.[0];
+            if (!msg) return null;
+
+            msg.pollOptions.forEach(a => {
+                for (const option of votes) {
+                    if (a.name === option) localIdSet.add(a.localId);
+                }
+            });
+
+            await window.Store.PollsSendVote.sendVote(msg, localIdSet);
+        }, this.id._serialized, selectedOptions);
     }
 }
 

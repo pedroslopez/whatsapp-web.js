@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.31.1-alpha.0 &raquo; Globals</title>
+  <title>whatsapp-web.js 1.34.2 &raquo; Globals</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>31.<wbr>1-alpha.<wbr>0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>34.<wbr>2</a>
       </div>
     </div>
   </nav>
@@ -168,6 +168,9 @@
                     <dd>
                     </dd>
                     <dt><a href="global.html#ReactionList">ReactionList</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="global.html#ScheduledEventSendOptions">ScheduledEventSendOptions</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="global.html#SelectedPollOption">SelectedPollOption</a></dt>
@@ -557,6 +560,19 @@
                     <tr>
                       <td>
                         <p>QR_RECEIVED</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>CODE_RECEIVED</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
@@ -1374,6 +1390,19 @@
                     <tr>
                       <td>
                         <p>POLL_CREATION</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>SCHEDULED_EVENT_CREATION</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
@@ -2241,6 +2270,66 @@
                       <td>
                         <p>The comment to be added to an inviteV4 (empty string by default)</p>
                         <p>Defaults to <code>''</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>memberAddMode</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>If true, only admins can add members to the group (false by default)</p>
+                        <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>membershipApprovalMode</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>If true, group admins will be required to approve anyone who wishes to join the group (false by default)</p>
+                        <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>isRestrict</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>If true, only admins can change group group info (true by default)</p>
+                        <p>Defaults to <code>true</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>isAnnounce</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>If true, only admins can send messages (false by default)</p>
+                        <p>Defaults to <code>false</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -3433,6 +3522,21 @@
                     </tr>
                     <tr>
                       <td>
+                        <p>waitUntilMsgSent</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Should the bot wait for the message send result?</p>
+                        <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
                         <p>media</p>
                       </td>
                       <td>
@@ -3724,6 +3828,116 @@
                       </td>
                       <td>
                         <p>Reaction senders, to this message</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="ScheduledEventSendOptions"><span class="symbol-name">ScheduledEventSendOptions</span><small class="property-type">
+                  &nbsp;Object</small></h3>
+              <p>ScheduledEvent send options</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>description</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The scheduled event description</p>
+                        <p>Value can be null.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>endTime</p>
+                      </td>
+                      <td>
+                        <p>Date</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The end time of the event</p>
+                        <p>Value can be null.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>location</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The location of the event</p>
+                        <p>Value can be null.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>callType</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of a WhatsApp call link to generate, valid values are: <code>video</code> | <code>voice</code></p>
+                        <p>Value can be null.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>isEventCanceled</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Indicates if a scheduled event should be sent as an already canceled</p>
+                        <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>messageSecret</p>
+                      </td>
+                      <td>
+                        <p>Array of number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The custom message secret, can be used as an event ID. NOTE: it has to be a unique vector with a length of 32</p>
+                        <p>Value can be null.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -4131,7 +4345,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on June 30, 2025.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on November 6, 2025.
       </p>
     </div>
   </footer>
