@@ -1,0 +1,19 @@
+{
+  "name": "@repo/utils",
+  "version": "1.0.0",
+  "description": "Shared utilities for WhatsApp Command Center",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "date-fns": "^3.0.6"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.3"
+  }
+}

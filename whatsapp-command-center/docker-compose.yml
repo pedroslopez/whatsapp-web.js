@@ -1,0 +1,104 @@
+# WhatsApp Command Center - Development Environment
+# Docker Compose configuration for local development
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: wac-postgres
+    environment:
+      POSTGRES_DB: whatsapp_cc
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - wac-network
+
+  # Redis Cache & Queue
+  redis:
+    image: redis:7-alpine
+    container_name: wac-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - wac-network
+
+  # Redis Commander (GUI for Redis)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: wac-redis-commander
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - wac-network
+
+  # pgAdmin (GUI for PostgreSQL)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: wac-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@whatsapp-cc.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_LISTEN_PORT: 80
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - wac-network
+
+  # MinIO (S3-compatible object storage for media)
+  minio:
+    image: minio/minio:latest
+    container_name: wac-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - wac-network
+
+networks:
+  wac-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  minio_data:
+    driver: local

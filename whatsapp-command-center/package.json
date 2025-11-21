@@ -1,0 +1,48 @@
+{
+  "name": "whatsapp-command-center",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Enterprise WhatsApp Command Center - Self-hosted WhatsApp automation platform",
+  "keywords": [
+    "whatsapp",
+    "automation",
+    "ai",
+    "crm",
+    "chatbot",
+    "team-inbox"
+  ],
+  "author": "WhatsApp Command Center Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "db:migrate": "cd packages/database && pnpm prisma migrate dev",
+    "db:generate": "cd packages/database && pnpm prisma generate",
+    "db:studio": "cd packages/database && pnpm prisma studio",
+    "db:seed": "cd packages/database && pnpm prisma db seed",
+    "docker:dev": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:build": "docker-compose build",
+    "setup": "pnpm install && pnpm db:generate && pnpm db:migrate"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "eslint": "^8.55.0",
+    "prettier": "^3.1.1",
+    "turbo": "^1.11.0",
+    "typescript": "^5.3.3"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}
