@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Search, Plus, Mail, Phone, Tag, Download, Upload } from 'lucide-react'
 import { contactsService } from '@/services/api.service'
 import { toast } from 'sonner'
+import { AddContactModal } from '@/components/AddContactModal'
 
 export default function ContactsPage() {
   const [contacts, setContacts] = useState<any[]>([])
@@ -14,6 +15,7 @@ export default function ContactsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedContact, setSelectedContact] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [showAddModal, setShowAddModal] = useState(false)
 
   useEffect(() => {
     loadContacts()
@@ -43,6 +45,12 @@ export default function ContactsPage() {
     } catch (error) {
       console.error('Failed to load stats:', error)
     }
+  }
+
+  const handleContactAdded = async () => {
+    // Reload contacts and stats after adding a new contact
+    await loadContacts()
+    await loadStats()
   }
 
   const filteredContacts = contacts.filter(contact =>
@@ -79,7 +87,9 @@ export default function ContactsPage() {
         <div className="flex gap-2">
           <Button variant="outline"><Upload className="h-4 w-4 mr-2" />Import</Button>
           <Button variant="outline"><Download className="h-4 w-4 mr-2" />Export</Button>
-          <Button><Plus className="h-4 w-4 mr-2" />Add Contact</Button>
+          <Button onClick={() => setShowAddModal(true)}>
+            <Plus className="h-4 w-4 mr-2" />Add Contact
+          </Button>
         </div>
       </div>
 
@@ -177,6 +187,13 @@ export default function ContactsPage() {
           </Card>
         )}
       </div>
+
+      {/* Add Contact Modal */}
+      <AddContactModal
+        open={showAddModal}
+        onOpenChange={setShowAddModal}
+        onSuccess={handleContactAdded}
+      />
     </div>
   )
 }

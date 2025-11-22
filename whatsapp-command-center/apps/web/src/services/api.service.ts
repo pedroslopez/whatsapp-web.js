@@ -113,6 +113,21 @@ export const whatsappService = {
     const response = await apiClient.post(`/whatsapp/sessions/${sessionId}/send`, data);
     return response.data;
   },
+
+  async initSession(data: { name: string }) {
+    const response = await apiClient.post('/whatsapp/sessions', data);
+    return response.data;
+  },
+
+  async getSession(id: string) {
+    const response = await apiClient.get(`/whatsapp/sessions/${id}`);
+    return response.data;
+  },
+
+  async deleteSession(id: string) {
+    const response = await apiClient.delete(`/whatsapp/sessions/${id}`);
+    return response.data;
+  },
 };
 
 export const automationsService = {

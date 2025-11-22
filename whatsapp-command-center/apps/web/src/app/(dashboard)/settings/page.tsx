@@ -8,10 +8,14 @@ import { Label } from '@/components/ui/label'
 import { Building2, Users, Smartphone, Zap, Webhook, Key, Save } from 'lucide-react'
 import { whatsappService, aiService, usersService, webhooksService, organizationService } from '@/services/api.service'
 import { toast } from 'sonner'
+import { WhatsAppQRModal } from '@/components/WhatsAppQRModal'
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('organization')
   const [loading, setLoading] = useState(false)
+
+  // Modal states
+  const [showQRModal, setShowQRModal] = useState(false)
 
   // Data states
   const [organization, setOrganization] = useState<any>({})
@@ -57,6 +61,30 @@ export default function SettingsPage() {
       console.error('Failed to load settings:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleWhatsAppSessionSuccess = async () => {
+    // Reload WhatsApp sessions after successful connection
+    const sessionsData = await whatsappService.getAllSessions().catch(() => [])
+    setSessions(sessionsData)
+    toast.success('WhatsApp session connected successfully!')
+  }
+
+  const handleDisconnectSession = async (sessionId: string) => {
+    if (!confirm('Are you sure you want to disconnect this WhatsApp session?')) {
+      return
+    }
+
+    try {
+      await whatsappService.deleteSession(sessionId)
+      toast.success('Session disconnected successfully')
+      // Reload sessions
+      const sessionsData = await whatsappService.getAllSessions().catch(() => [])
+      setSessions(sessionsData)
+    } catch (error: any) {
+      console.error('Failed to disconnect session:', error)
+      toast.error('Failed to disconnect session')
     }
   }
 
@@ -191,7 +219,7 @@ export default function SettingsPage() {
                     <CardTitle>WhatsApp Sessions</CardTitle>
                     <CardDescription>Manage your connected WhatsApp accounts</CardDescription>
                   </div>
-                  <Button>Add Session</Button>
+                  <Button onClick={() => setShowQRModal(true)}>Add Session</Button>
                 </div>
               </CardHeader>
               <CardContent>
@@ -201,7 +229,7 @@ export default function SettingsPage() {
                   <div className="text-center py-8 text-gray-500">
                     <Smartphone className="h-8 w-8 mx-auto mb-2 text-gray-400" />
                     <p className="mb-4">No WhatsApp sessions connected</p>
-                    <Button>Add Session</Button>
+                    <Button onClick={() => setShowQRModal(true)}>Add Session</Button>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -219,7 +247,13 @@ export default function SettingsPage() {
                           }`}>
                             {session.currentStatus || 'Unknown'}
                           </span>
-                          <Button variant="outline" size="sm">Disconnect</Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDisconnectSession(session.id)}
+                          >
+                            Disconnect
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -351,6 +385,13 @@ export default function SettingsPage() {
           )}
         </div>
       </div>
+
+      {/* WhatsApp QR Code Modal */}
+      <WhatsAppQRModal
+        open={showQRModal}
+        onOpenChange={setShowQRModal}
+        onSuccess={handleWhatsAppSessionSuccess}
+      />
     </div>
   )
 }
