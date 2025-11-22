@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { MessageSquare } from 'lucide-react'
 import { toast } from 'sonner'
+import { authService } from '@/services/auth.service'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -23,19 +24,12 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      // TODO: Connect to backend API
-      // const response = await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   body: JSON.stringify(formData),
-      // })
-
-      // Mock login for now
-      await new Promise(resolve => setTimeout(resolve, 1000))
-
+      await authService.login(formData)
       toast.success('Login successful!')
       router.push('/dashboard')
-    } catch (error) {
-      toast.error('Login failed. Please check your credentials.')
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Login failed. Please check your credentials.'
+      toast.error(message)
     } finally {
       setLoading(false)
     }

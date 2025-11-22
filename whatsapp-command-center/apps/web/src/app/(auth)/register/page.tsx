@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { MessageSquare } from 'lucide-react'
 import { toast } from 'sonner'
+import { authService } from '@/services/auth.service'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -32,19 +33,25 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
-      // TODO: Connect to backend API
-      // const response = await fetch('/api/auth/register', {
-      //   method: 'POST',
-      //   body: JSON.stringify(formData),
-      // })
+      // Generate slug from organization name
+      const organizationSlug = formData.organizationName
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
 
-      // Mock registration for now
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await authService.register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        organizationName: formData.organizationName,
+        organizationSlug,
+      })
 
       toast.success('Account created successfully!')
       router.push('/dashboard')
-    } catch (error) {
-      toast.error('Registration failed. Please try again.')
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Registration failed. Please try again.'
+      toast.error(message)
     } finally {
       setLoading(false)
     }
