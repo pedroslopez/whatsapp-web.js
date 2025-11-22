@@ -1,9 +1,81 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingUp, TrendingDown, MessageSquare, Users, Zap, Clock } from 'lucide-react'
+import { analyticsService } from '@/services/api.service'
+import { toast } from 'sonner'
 
 export default function AnalyticsPage() {
+  const [overview, setOverview] = useState<any>({})
+  const [topAutomations, setTopAutomations] = useState<any[]>([])
+  const [teamPerformance, setTeamPerformance] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadAnalytics()
+  }, [])
+
+  const loadAnalytics = async () => {
+    try {
+      setLoading(true)
+
+      const [overviewData, automationsData, teamData] = await Promise.all([
+        analyticsService.getOverview().catch(() => ({})),
+        analyticsService.getTopAutomations().catch(() => []),
+        analyticsService.getTeamPerformance().catch(() => []),
+      ])
+
+      setOverview(overviewData)
+      setTopAutomations(automationsData)
+      setTeamPerformance(teamData)
+    } catch (error: any) {
+      console.error('Failed to load analytics:', error)
+      toast.error('Failed to load analytics')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-gray-500">Loading analytics...</p>
+      </div>
+    )
+  }
+
+  const metrics = [
+    {
+      label: 'Total Messages',
+      value: (overview.totalMessages || 0).toLocaleString(),
+      change: overview.messagesChange || '+0%',
+      trend: overview.messagesChange?.startsWith('+') ? 'up' : 'down',
+      icon: MessageSquare
+    },
+    {
+      label: 'Active Users',
+      value: (overview.activeUsers || 0).toLocaleString(),
+      change: overview.usersChange || '+0%',
+      trend: overview.usersChange?.startsWith('+') ? 'up' : 'down',
+      icon: Users
+    },
+    {
+      label: 'Automations Run',
+      value: (overview.automationsRun || 0).toLocaleString(),
+      change: overview.automationsChange || '+0%',
+      trend: overview.automationsChange?.startsWith('+') ? 'up' : 'down',
+      icon: Zap
+    },
+    {
+      label: 'Avg Response Time',
+      value: overview.avgResponseTime || '0m',
+      change: overview.responseTimeChange || '-0%',
+      trend: overview.responseTimeChange?.startsWith('-') ? 'up' : 'down',
+      icon: Clock
+    },
+  ]
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -16,12 +88,7 @@ export default function AnalyticsPage() {
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'Total Messages', value: '12,453', change: '+12.5%', trend: 'up', icon: MessageSquare },
-          { label: 'Active Users', value: '2,345', change: '+5.2%', trend: 'up', icon: Users },
-          { label: 'Automations Run', value: '1,567', change: '+8.1%', trend: 'up', icon: Zap },
-          { label: 'Avg Response Time', value: '2.5m', change: '-15.3%', trend: 'down', icon: Clock },
-        ].map((metric) => (
+        {metrics.map((metric) => (
           <Card key={metric.label}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -96,30 +163,32 @@ export default function AnalyticsPage() {
             <CardDescription>Most executed automations</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {[
-                { name: 'Welcome Message', executions: 1234, success: 98 },
-                { name: 'Order Confirmation', executions: 890, success: 100 },
-                { name: 'Follow-up Reminder', executions: 567, success: 95 },
-                { name: 'Birthday Wishes', executions: 234, success: 99 },
-              ].map((auto, i) => (
-                <div key={auto.name} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium text-primary">
-                      {i + 1}
+            {topAutomations.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <Zap className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                <p>No automation data available</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {topAutomations.slice(0, 4).map((auto, i) => (
+                  <div key={auto.id || i} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium text-primary">
+                        {i + 1}
+                      </div>
+                      <div>
+                        <p className="font-medium">{auto.name}</p>
+                        <p className="text-xs text-gray-500">{(auto.executionCount || 0).toLocaleString()} executions</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium">{auto.name}</p>
-                      <p className="text-xs text-gray-500">{auto.executions} executions</p>
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-green-600">{auto.successRate || 0}%</p>
+                      <p className="text-xs text-gray-500">Success</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-green-600">{auto.success}%</p>
-                    <p className="text-xs text-gray-500">Success</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -130,30 +199,32 @@ export default function AnalyticsPage() {
             <CardDescription>Agent response metrics</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {[
-                { name: 'Sarah Johnson', messages: 234, avgTime: '1.2m', satisfaction: 4.8 },
-                { name: 'John Smith', messages: 189, avgTime: '2.1m', satisfaction: 4.6 },
-                { name: 'Alice Cooper', messages: 156, avgTime: '1.8m', satisfaction: 4.9 },
-                { name: 'Bob Wilson', messages: 123, avgTime: '2.5m', satisfaction: 4.5 },
-              ].map((agent, i) => (
-                <div key={agent.name} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium text-primary">
-                      {agent.name.charAt(0)}
+            {teamPerformance.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <Users className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                <p>No team performance data available</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {teamPerformance.slice(0, 4).map((agent, i) => (
+                  <div key={agent.id || i} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium text-primary">
+                        {agent.name?.charAt(0) || '?'}
+                      </div>
+                      <div>
+                        <p className="font-medium">{agent.name || 'Unknown'}</p>
+                        <p className="text-xs text-gray-500">{(agent.messageCount || 0).toLocaleString()} messages</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium">{agent.name}</p>
-                      <p className="text-xs text-gray-500">{agent.messages} messages</p>
+                    <div className="text-right">
+                      <p className="text-sm font-medium">{agent.avgResponseTime || '0m'}</p>
+                      <p className="text-xs text-gray-500">Avg time</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium">{agent.avgTime}</p>
-                    <p className="text-xs text-gray-500">Avg time</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

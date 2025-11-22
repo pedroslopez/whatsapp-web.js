@@ -1,14 +1,64 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Building2, Users, Smartphone, Zap, Webhook, Key, Save } from 'lucide-react'
+import { whatsappService, aiService, usersService, webhooksService, organizationService } from '@/services/api.service'
+import { toast } from 'sonner'
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('organization')
+  const [loading, setLoading] = useState(false)
+
+  // Data states
+  const [organization, setOrganization] = useState<any>({})
+  const [teamMembers, setTeamMembers] = useState<any[]>([])
+  const [sessions, setSessions] = useState<any[]>([])
+  const [aiProviders, setAiProviders] = useState<any[]>([])
+  const [webhooks, setWebhooks] = useState<any[]>([])
+
+  useEffect(() => {
+    loadTabData(activeTab)
+  }, [activeTab])
+
+  const loadTabData = async (tab: string) => {
+    try {
+      setLoading(true)
+
+      switch (tab) {
+        case 'organization':
+          const orgData = await organizationService.getStats().catch(() => ({}))
+          setOrganization(orgData)
+          break
+        case 'team':
+          const users = await usersService.getAll().catch(() => [])
+          setTeamMembers(users)
+          break
+        case 'whatsapp':
+          const sessionsData = await whatsappService.getAllSessions().catch(() => [])
+          setSessions(sessionsData)
+          break
+        case 'ai':
+          const providers = await aiService.getAllProviders().catch(() => [])
+          setAiProviders(providers)
+          break
+        case 'integrations':
+          const webhooksData = await webhooksService.getAll().catch(() => [])
+          setWebhooks(webhooksData)
+          break
+        case 'api':
+          // API keys would be loaded here
+          break
+      }
+    } catch (error) {
+      console.error('Failed to load settings:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const tabs = [
     { id: 'organization', label: 'Organization', icon: Building2 },
@@ -99,31 +149,36 @@ export default function SettingsPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {[
-                    { name: 'John Doe', email: 'john@acme.com', role: 'Owner' },
-                    { name: 'Sarah Johnson', email: 'sarah@acme.com', role: 'Admin' },
-                    { name: 'Bob Wilson', email: 'bob@acme.com', role: 'Agent' },
-                  ].map((member) => (
-                    <div key={member.email} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-medium text-primary">
-                          {member.name.charAt(0)}
+                {loading ? (
+                  <div className="text-center py-8 text-gray-500">Loading team members...</div>
+                ) : teamMembers.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Users className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                    <p>No team members yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {teamMembers.map((member) => (
+                      <div key={member.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-medium text-primary">
+                            {member.name?.charAt(0) || member.email?.charAt(0) || '?'}
+                          </div>
+                          <div>
+                            <p className="font-medium">{member.name || 'Unnamed User'}</p>
+                            <p className="text-sm text-gray-500">{member.email}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium">{member.name}</p>
-                          <p className="text-sm text-gray-500">{member.email}</p>
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-800 rounded">
+                            {member.role || 'Member'}
+                          </span>
+                          <Button variant="ghost" size="sm">Edit</Button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-800 rounded">
-                          {member.role}
-                        </span>
-                        <Button variant="ghost" size="sm">Edit</Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
@@ -140,25 +195,36 @@ export default function SettingsPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {[
-                    { name: 'Main Account', phone: '+1 (234) 567-8900', status: 'Connected' },
-                    { name: 'Support Line', phone: '+1 (234) 567-8901', status: 'Connected' },
-                  ].map((session) => (
-                    <div key={session.phone} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <p className="font-medium">{session.name}</p>
-                        <p className="text-sm text-gray-500">{session.phone}</p>
+                {loading ? (
+                  <div className="text-center py-8 text-gray-500">Loading WhatsApp sessions...</div>
+                ) : sessions.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Smartphone className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                    <p className="mb-4">No WhatsApp sessions connected</p>
+                    <Button>Add Session</Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {sessions.map((session) => (
+                      <div key={session.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <p className="font-medium">{session.name || 'WhatsApp Session'}</p>
+                          <p className="text-sm text-gray-500">{session.phoneNumber || 'N/A'}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-1 text-xs rounded ${
+                            session.currentStatus === 'CONNECTED'
+                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                              : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
+                          }`}>
+                            {session.currentStatus || 'Unknown'}
+                          </span>
+                          <Button variant="outline" size="sm">Disconnect</Button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="px-2 py-1 text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded">
-                          {session.status}
-                        </span>
-                        <Button variant="outline" size="sm">Disconnect</Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
@@ -170,29 +236,34 @@ export default function SettingsPage() {
                 <CardDescription>Configure your AI providers</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {[
-                  { name: 'OpenAI', model: 'GPT-4', enabled: true },
-                  { name: 'Anthropic', model: 'Claude 3 Sonnet', enabled: true },
-                  { name: 'Google', model: 'Gemini 1.5 Pro', enabled: false },
-                  { name: 'Custom', model: 'Your API', enabled: false },
-                ].map((provider) => (
-                  <div key={provider.name} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <p className="font-medium">{provider.name}</p>
-                      <p className="text-sm text-gray-500">{provider.model}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2 py-1 text-xs rounded ${
-                        provider.enabled
-                          ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                          : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
-                      }`}>
-                        {provider.enabled ? 'Enabled' : 'Disabled'}
-                      </span>
-                      <Button variant="outline" size="sm">Configure</Button>
-                    </div>
+                {loading ? (
+                  <div className="text-center py-8 text-gray-500">Loading AI providers...</div>
+                ) : aiProviders.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Zap className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                    <p className="mb-4">No AI providers configured</p>
+                    <Button>Add Provider</Button>
                   </div>
-                ))}
+                ) : (
+                  aiProviders.map((provider) => (
+                    <div key={provider.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div>
+                        <p className="font-medium">{provider.name || provider.providerType}</p>
+                        <p className="text-sm text-gray-500">{provider.model || 'Default Model'}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-1 text-xs rounded ${
+                          provider.enabled || provider.isDefault
+                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                            : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
+                        }`}>
+                          {provider.enabled || provider.isDefault ? 'Enabled' : 'Disabled'}
+                        </span>
+                        <Button variant="outline" size="sm">Configure</Button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </CardContent>
             </Card>
           )}
@@ -200,26 +271,48 @@ export default function SettingsPage() {
           {activeTab === 'integrations' && (
             <Card>
               <CardHeader>
-                <CardTitle>Integrations</CardTitle>
-                <CardDescription>Connect external services</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Webhooks</CardTitle>
+                    <CardDescription>Manage webhook integrations</CardDescription>
+                  </div>
+                  <Button>Add Webhook</Button>
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[
-                    { name: 'Shopify', desc: 'E-commerce platform', status: 'Connected' },
-                    { name: 'Google Sheets', desc: 'Spreadsheet integration', status: 'Not connected' },
-                    { name: 'Zapier', desc: 'Workflow automation', status: 'Not connected' },
-                    { name: 'Webhooks', desc: 'Custom webhooks', status: 'Connected' },
-                  ].map((integration) => (
-                    <div key={integration.name} className="p-4 border rounded-lg">
-                      <h4 className="font-medium mb-1">{integration.name}</h4>
-                      <p className="text-sm text-gray-500 mb-3">{integration.desc}</p>
-                      <Button variant="outline" size="sm" className="w-full">
-                        {integration.status === 'Connected' ? 'Manage' : 'Connect'}
-                      </Button>
-                    </div>
-                  ))}
-                </div>
+                {loading ? (
+                  <div className="text-center py-8 text-gray-500">Loading webhooks...</div>
+                ) : webhooks.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Webhook className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                    <p className="mb-4">No webhooks configured</p>
+                    <Button>Add Webhook</Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {webhooks.map((webhook) => (
+                      <div key={webhook.id} className="p-4 border rounded-lg">
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <h4 className="font-medium">{webhook.name || 'Unnamed Webhook'}</h4>
+                            <p className="text-sm text-gray-500 break-all">{webhook.url}</p>
+                          </div>
+                          <span className={`px-2 py-1 text-xs rounded ${
+                            webhook.enabled
+                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                              : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
+                          }`}>
+                            {webhook.enabled ? 'Enabled' : 'Disabled'}
+                          </span>
+                        </div>
+                        <div className="flex gap-2 mt-3">
+                          <Button variant="outline" size="sm">Edit</Button>
+                          <Button variant="outline" size="sm" className="text-red-600">Delete</Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
