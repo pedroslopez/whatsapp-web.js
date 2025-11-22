@@ -1,13 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Search, Send, Paperclip, MoreVertical, Phone, Video, User, Check, CheckCheck } from 'lucide-react'
+import { Search, Send, Paperclip, MoreVertical, Phone, Video, User, Check, CheckCheck, UserPlus, Image as ImageIcon, FileText } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { conversationsService, messagesService, whatsappService } from '@/services/api.service'
+import { conversationsService, messagesService, whatsappService, usersService } from '@/services/api.service'
 import { toast } from 'sonner'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 export default function InboxPage() {
   const [conversations, setConversations] = useState<any[]>([])
@@ -18,10 +26,14 @@ export default function InboxPage() {
   const [loading, setLoading] = useState(true)
   const [sendingMessage, setSendingMessage] = useState(false)
   const [sessions, setSessions] = useState<any[]>([])
+  const [teamMembers, setTeamMembers] = useState<any[]>([])
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     loadConversations()
     loadSessions()
+    loadTeamMembers()
   }, [])
 
   useEffect(() => {
@@ -53,6 +65,15 @@ export default function InboxPage() {
       setSessions(data.filter((s: any) => s.currentStatus === 'CONNECTED'))
     } catch (error) {
       console.error('Failed to load sessions:', error)
+    }
+  }
+
+  const loadTeamMembers = async () => {
+    try {
+      const data = await usersService.getAll()
+      setTeamMembers(data)
+    } catch (error) {
+      console.error('Failed to load team members:', error)
     }
   }
 
@@ -106,6 +127,85 @@ export default function InboxPage() {
     } finally {
       setSendingMessage(false)
     }
+  }
+
+  const handleAttachmentClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!selectedConversation) {
+      toast.error('Please select a conversation first')
+      return
+    }
+
+    if (sessions.length === 0) {
+      toast.error('No active WhatsApp session. Please connect WhatsApp in Settings.')
+      return
+    }
+
+    // Check file size (max 16MB for WhatsApp)
+    if (file.size > 16 * 1024 * 1024) {
+      toast.error('File size must be less than 16MB')
+      return
+    }
+
+    try {
+      setSendingMessage(true)
+      const session = sessions[0]
+
+      // Create FormData for file upload
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('to', selectedConversation.contact.whatsappId)
+
+      await whatsappService.sendMedia(session.id, formData)
+
+      toast.success('File sent successfully!')
+      setSelectedFile(null)
+
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+
+      // Reload messages
+      await loadMessages(selectedConversation.id)
+    } catch (error: any) {
+      console.error('Failed to send file:', error)
+      toast.error(error.response?.data?.message || 'Failed to send file')
+    } finally {
+      setSendingMessage(false)
+    }
+  }
+
+  const handleAssignConversation = async (userId: string) => {
+    if (!selectedConversation) return
+
+    try {
+      await conversationsService.assign(selectedConversation.id, userId)
+      toast.success('Conversation assigned successfully')
+
+      // Update local state
+      setConversations(prevConvs =>
+        prevConvs.map(c =>
+          c.id === selectedConversation.id
+            ? { ...c, assignedToId: userId }
+            : c
+        )
+      )
+      setSelectedConversation({ ...selectedConversation, assignedToId: userId })
+    } catch (error: any) {
+      console.error('Failed to assign conversation:', error)
+      toast.error('Failed to assign conversation')
+    }
+  }
+
+  const handleCallAction = (type: 'voice' | 'video') => {
+    toast.info(`${type === 'voice' ? 'Voice' : 'Video'} calling requires WhatsApp Business API with calling capabilities`)
   }
 
   const filteredConversations = conversations.filter(conv =>
@@ -238,15 +338,42 @@ export default function InboxPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" onClick={() => handleCallAction('voice')}>
                 <Phone className="h-5 w-5" />
               </Button>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" onClick={() => handleCallAction('video')}>
                 <Video className="h-5 w-5" />
               </Button>
-              <Button variant="ghost" size="icon">
-                <MoreVertical className="h-5 w-5" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <MoreVertical className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Conversation Actions</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel className="text-xs font-normal text-gray-500">Assign to</DropdownMenuLabel>
+                  {teamMembers.length === 0 ? (
+                    <DropdownMenuItem disabled>
+                      No team members available
+                    </DropdownMenuItem>
+                  ) : (
+                    teamMembers.map((member) => (
+                      <DropdownMenuItem
+                        key={member.id}
+                        onClick={() => handleAssignConversation(member.id)}
+                      >
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        {member.name || member.email}
+                        {selectedConversation.assignedToId === member.id && (
+                          <Check className="h-4 w-4 ml-auto" />
+                        )}
+                      </DropdownMenuItem>
+                    ))
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
@@ -291,7 +418,14 @@ export default function InboxPage() {
           {/* Message Input */}
           <div className="p-4 border-t">
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon">
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                accept="image/*,video/*,audio/*,.pdf,.doc,.docx"
+                onChange={handleFileSelect}
+              />
+              <Button variant="ghost" size="icon" onClick={handleAttachmentClick} disabled={sendingMessage}>
                 <Paperclip className="h-5 w-5" />
               </Button>
               <Input

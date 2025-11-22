@@ -6,12 +6,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Building2, Users, Smartphone, Zap, Webhook, Key, Save } from 'lucide-react'
-import { whatsappService, aiService, usersService, webhooksService, organizationService } from '@/services/api.service'
+import { whatsappService, aiService, usersService, webhooksService, organizationService, apiKeysService } from '@/services/api.service'
 import { toast } from 'sonner'
 import { WhatsAppQRModal } from '@/components/WhatsAppQRModal'
 import { AddWebhookModal } from '@/components/AddWebhookModal'
 import { EditWebhookModal } from '@/components/EditWebhookModal'
 import { ConfigureAIModal } from '@/components/ConfigureAIModal'
+import { InviteTeamMemberModal } from '@/components/InviteTeamMemberModal'
+import { CreateAPIKeyModal } from '@/components/CreateAPIKeyModal'
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('organization')
@@ -24,13 +26,17 @@ export default function SettingsPage() {
   const [selectedWebhook, setSelectedWebhook] = useState<any>(null)
   const [showConfigureAIModal, setShowConfigureAIModal] = useState(false)
   const [selectedAIProvider, setSelectedAIProvider] = useState<any>(null)
+  const [showInviteModal, setShowInviteModal] = useState(false)
+  const [showCreateAPIKeyModal, setShowCreateAPIKeyModal] = useState(false)
 
   // Data states
   const [organization, setOrganization] = useState<any>({})
+  const [orgFormData, setOrgFormData] = useState({ name: '', email: '' })
   const [teamMembers, setTeamMembers] = useState<any[]>([])
   const [sessions, setSessions] = useState<any[]>([])
   const [aiProviders, setAiProviders] = useState<any[]>([])
   const [webhooks, setWebhooks] = useState<any[]>([])
+  const [apiKeys, setApiKeys] = useState<any[]>([])
 
   useEffect(() => {
     loadTabData(activeTab)
@@ -62,7 +68,8 @@ export default function SettingsPage() {
           setWebhooks(webhooksData)
           break
         case 'api':
-          // API keys would be loaded here
+          const keysData = await apiKeysService.getAll().catch(() => [])
+          setApiKeys(keysData)
           break
       }
     } catch (error) {
@@ -135,6 +142,89 @@ export default function SettingsPage() {
     setShowConfigureAIModal(true)
   }
 
+  const handleTeamMemberSuccess = async () => {
+    const users = await usersService.getAll().catch(() => [])
+    setTeamMembers(users)
+  }
+
+  const handleRemoveTeamMember = async (userId: string, userName: string) => {
+    if (!confirm(`Remove ${userName} from your organization?`)) {
+      return
+    }
+
+    try {
+      await usersService.delete(userId)
+      toast.success('Team member removed successfully')
+      const users = await usersService.getAll().catch(() => [])
+      setTeamMembers(users)
+    } catch (error: any) {
+      console.error('Failed to remove team member:', error)
+      toast.error('Failed to remove team member')
+    }
+  }
+
+  const handleUpdateRole = async (userId: string, newRole: string) => {
+    try {
+      await usersService.update(userId, { role: newRole })
+      toast.success('Role updated successfully')
+      const users = await usersService.getAll().catch(() => [])
+      setTeamMembers(users)
+    } catch (error: any) {
+      console.error('Failed to update role:', error)
+      toast.error('Failed to update role')
+    }
+  }
+
+  const handleAPIKeySuccess = async () => {
+    const keysData = await apiKeysService.getAll().catch(() => [])
+    setApiKeys(keysData)
+  }
+
+  const handleRevokeAPIKey = async (keyId: string, keyName: string) => {
+    if (!confirm(`Are you sure you want to revoke "${keyName}"? This action cannot be undone and will immediately invalidate the key.`)) {
+      return
+    }
+
+    try {
+      await apiKeysService.revoke(keyId)
+      toast.success('API key revoked successfully')
+      const keysData = await apiKeysService.getAll().catch(() => [])
+      setApiKeys(keysData)
+    } catch (error: any) {
+      console.error('Failed to revoke API key:', error)
+      toast.error('Failed to revoke API key')
+    }
+  }
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffDays === 0) return 'Today'
+    if (diffDays === 1) return 'Yesterday'
+    if (diffDays < 7) return `${diffDays} days ago`
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
+    if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`
+    return `${Math.floor(diffDays / 365)} years ago`
+  }
+
+  const handleSaveOrganization = async (data: any) => {
+    try {
+      setLoading(true)
+      await organizationService.update(data)
+      toast.success('Organization settings saved successfully')
+      const orgData = await organizationService.getStats().catch(() => ({}))
+      setOrganization(orgData)
+    } catch (error: any) {
+      console.error('Failed to save organization:', error)
+      toast.error('Failed to save organization settings')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const tabs = [
     { id: 'organization', label: 'Organization', icon: Building2 },
     { id: 'team', label: 'Team', icon: Users },
@@ -188,25 +278,36 @@ export default function SettingsPage() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="orgName">Organization Name</Label>
-                  <Input id="orgName" defaultValue="Acme Corporation" />
+                  <Input
+                    id="orgName"
+                    value={orgFormData.name}
+                    onChange={(e) => setOrgFormData({ ...orgFormData, name: e.target.value })}
+                    placeholder="Acme Corporation"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="orgEmail">Billing Email</Label>
-                  <Input id="orgEmail" type="email" defaultValue="billing@acme.com" />
+                  <Input
+                    id="orgEmail"
+                    type="email"
+                    value={orgFormData.email}
+                    onChange={(e) => setOrgFormData({ ...orgFormData, email: e.target.value })}
+                    placeholder="billing@acme.com"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="orgPlan">Current Plan</Label>
                   <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                     <div>
-                      <p className="font-medium">Professional</p>
-                      <p className="text-sm text-gray-500">$99/month</p>
+                      <p className="font-medium">{organization.plan || 'Professional'}</p>
+                      <p className="text-sm text-gray-500">{organization.planPrice || '$99/month'}</p>
                     </div>
-                    <Button variant="outline">Upgrade</Button>
+                    <Button variant="outline" disabled>Upgrade</Button>
                   </div>
                 </div>
-                <Button>
+                <Button onClick={() => handleSaveOrganization(orgFormData)} disabled={loading}>
                   <Save className="h-4 w-4 mr-2" />
-                  Save Changes
+                  {loading ? 'Saving...' : 'Save Changes'}
                 </Button>
               </CardContent>
             </Card>
@@ -220,7 +321,7 @@ export default function SettingsPage() {
                     <CardTitle>Team Members</CardTitle>
                     <CardDescription>Manage who has access to your workspace</CardDescription>
                   </div>
-                  <Button>Invite Member</Button>
+                  <Button onClick={() => setShowInviteModal(true)}>Invite Member</Button>
                 </div>
               </CardHeader>
               <CardContent>
@@ -229,7 +330,8 @@ export default function SettingsPage() {
                 ) : teamMembers.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     <Users className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                    <p>No team members yet</p>
+                    <p className="mb-4">No team members yet</p>
+                    <Button onClick={() => setShowInviteModal(true)}>Invite Your First Member</Button>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -245,10 +347,23 @@ export default function SettingsPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-800 rounded">
-                            {member.role || 'Member'}
-                          </span>
-                          <Button variant="ghost" size="sm">Edit</Button>
+                          <select
+                            className="px-2 py-1 text-xs border rounded bg-white dark:bg-gray-800"
+                            value={member.role || 'MEMBER'}
+                            onChange={(e) => handleUpdateRole(member.id, e.target.value)}
+                          >
+                            <option value="ADMIN">Admin</option>
+                            <option value="MEMBER">Member</option>
+                            <option value="VIEWER">Viewer</option>
+                          </select>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600"
+                            onClick={() => handleRemoveTeamMember(member.id, member.name || member.email)}
+                          >
+                            Remove
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -411,27 +526,55 @@ export default function SettingsPage() {
                     <CardTitle>API Keys</CardTitle>
                     <CardDescription>Manage API keys for external access</CardDescription>
                   </div>
-                  <Button>Create New Key</Button>
+                  <Button onClick={() => setShowCreateAPIKeyModal(true)}>Create New Key</Button>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {[
-                    { name: 'Production API', key: 'wac_prod_***************', created: '2 months ago' },
-                    { name: 'Development API', key: 'wac_dev_***************', created: '1 week ago' },
-                  ].map((apiKey) => (
-                    <div key={apiKey.name} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <p className="font-medium">{apiKey.name}</p>
-                        <p className="text-sm text-gray-500 font-mono">{apiKey.key}</p>
-                        <p className="text-xs text-gray-400 mt-1">Created {apiKey.created}</p>
+                {apiKeys.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Key className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No API keys yet</h3>
+                    <p className="text-gray-500 mb-4">Create your first API key to access the API programmatically</p>
+                    <Button onClick={() => setShowCreateAPIKeyModal(true)}>
+                      <Key className="h-4 w-4 mr-2" />
+                      Create New Key
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {apiKeys.map((apiKey) => (
+                      <div key={apiKey.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="font-medium">{apiKey.name}</p>
+                            {apiKey.expiresAt && new Date(apiKey.expiresAt) < new Date() && (
+                              <Badge variant="destructive" className="text-xs">Expired</Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-500 font-mono">
+                            {apiKey.key ? apiKey.key.substring(0, 20) + '***************' : 'wac_***************'}
+                          </p>
+                          <div className="flex gap-4 mt-2 text-xs text-gray-400">
+                            <span>Created {formatDate(apiKey.createdAt)}</span>
+                            {apiKey.expiresAt && (
+                              <span>
+                                Expires {new Date(apiKey.expiresAt) < new Date() ? formatDate(apiKey.expiresAt) : new Date(apiKey.expiresAt).toLocaleDateString()}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700"
+                          onClick={() => handleRevokeAPIKey(apiKey.id, apiKey.name)}
+                        >
+                          Revoke
+                        </Button>
                       </div>
-                      <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
-                        Revoke
-                      </Button>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
@@ -465,6 +608,20 @@ export default function SettingsPage() {
         onOpenChange={setShowConfigureAIModal}
         onSuccess={handleAIProviderSuccess}
         provider={selectedAIProvider}
+      />
+
+      {/* Team Member Invite Modal */}
+      <InviteTeamMemberModal
+        open={showInviteModal}
+        onOpenChange={setShowInviteModal}
+        onSuccess={handleTeamMemberSuccess}
+      />
+
+      {/* Create API Key Modal */}
+      <CreateAPIKeyModal
+        open={showCreateAPIKeyModal}
+        onOpenChange={setShowCreateAPIKeyModal}
+        onSuccess={handleAPIKeySuccess}
       />
     </div>
   )

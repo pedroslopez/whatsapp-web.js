@@ -70,6 +70,11 @@ export const conversationsService = {
     return response.data;
   },
 
+  async assign(id: string, userId: string) {
+    const response = await apiClient.post(`/conversations/${id}/assign`, { userId });
+    return response.data;
+  },
+
   async getStats() {
     const response = await apiClient.get('/conversations/stats');
     return response.data;
@@ -111,6 +116,13 @@ export const whatsappService = {
 
   async sendMessage(sessionId: string, data: { to: string; message: string }) {
     const response = await apiClient.post(`/whatsapp/sessions/${sessionId}/send`, data);
+    return response.data;
+  },
+
+  async sendMedia(sessionId: string, formData: FormData) {
+    const response = await apiClient.post(`/whatsapp/sessions/${sessionId}/send-media`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return response.data;
   },
 
@@ -264,6 +276,11 @@ export const usersService = {
     return response.data;
   },
 
+  async create(data: any) {
+    const response = await apiClient.post('/users', data);
+    return response.data;
+  },
+
   async update(id: string, data: any) {
     const response = await apiClient.patch(`/users/${id}`, data);
     return response.data;
@@ -271,6 +288,23 @@ export const usersService = {
 
   async delete(id: string) {
     const response = await apiClient.delete(`/users/${id}`);
+    return response.data;
+  },
+};
+
+export const apiKeysService = {
+  async getAll() {
+    const response = await apiClient.get('/api-keys');
+    return response.data;
+  },
+
+  async create(data: { name: string; expiresIn?: number }) {
+    const response = await apiClient.post('/api-keys', data);
+    return response.data;
+  },
+
+  async revoke(id: string) {
+    const response = await apiClient.delete(`/api-keys/${id}`);
     return response.data;
   },
 };
