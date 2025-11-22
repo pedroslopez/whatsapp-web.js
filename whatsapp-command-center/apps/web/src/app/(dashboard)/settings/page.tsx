@@ -9,6 +9,9 @@ import { Building2, Users, Smartphone, Zap, Webhook, Key, Save } from 'lucide-re
 import { whatsappService, aiService, usersService, webhooksService, organizationService } from '@/services/api.service'
 import { toast } from 'sonner'
 import { WhatsAppQRModal } from '@/components/WhatsAppQRModal'
+import { AddWebhookModal } from '@/components/AddWebhookModal'
+import { EditWebhookModal } from '@/components/EditWebhookModal'
+import { ConfigureAIModal } from '@/components/ConfigureAIModal'
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('organization')
@@ -16,6 +19,11 @@ export default function SettingsPage() {
 
   // Modal states
   const [showQRModal, setShowQRModal] = useState(false)
+  const [showAddWebhookModal, setShowAddWebhookModal] = useState(false)
+  const [showEditWebhookModal, setShowEditWebhookModal] = useState(false)
+  const [selectedWebhook, setSelectedWebhook] = useState<any>(null)
+  const [showConfigureAIModal, setShowConfigureAIModal] = useState(false)
+  const [selectedAIProvider, setSelectedAIProvider] = useState<any>(null)
 
   // Data states
   const [organization, setOrganization] = useState<any>({})
@@ -86,6 +94,45 @@ export default function SettingsPage() {
       console.error('Failed to disconnect session:', error)
       toast.error('Failed to disconnect session')
     }
+  }
+
+  const handleWebhookSuccess = async () => {
+    // Reload webhooks after add/edit
+    const webhooksData = await webhooksService.getAll().catch(() => [])
+    setWebhooks(webhooksData)
+  }
+
+  const handleEditWebhook = (webhook: any) => {
+    setSelectedWebhook(webhook)
+    setShowEditWebhookModal(true)
+  }
+
+  const handleDeleteWebhook = async (webhookId: string) => {
+    if (!confirm('Are you sure you want to delete this webhook?')) {
+      return
+    }
+
+    try {
+      await webhooksService.delete(webhookId)
+      toast.success('Webhook deleted successfully')
+      // Reload webhooks
+      const webhooksData = await webhooksService.getAll().catch(() => [])
+      setWebhooks(webhooksData)
+    } catch (error: any) {
+      console.error('Failed to delete webhook:', error)
+      toast.error('Failed to delete webhook')
+    }
+  }
+
+  const handleAIProviderSuccess = async () => {
+    // Reload AI providers after add/edit
+    const providers = await aiService.getAllProviders().catch(() => [])
+    setAiProviders(providers)
+  }
+
+  const handleConfigureAIProvider = (provider?: any) => {
+    setSelectedAIProvider(provider || null)
+    setShowConfigureAIModal(true)
   }
 
   const tabs = [
@@ -266,8 +313,13 @@ export default function SettingsPage() {
           {activeTab === 'ai' && (
             <Card>
               <CardHeader>
-                <CardTitle>AI Providers</CardTitle>
-                <CardDescription>Configure your AI providers</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>AI Providers</CardTitle>
+                    <CardDescription>Configure your AI providers</CardDescription>
+                  </div>
+                  <Button onClick={() => handleConfigureAIProvider()}>Add Provider</Button>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 {loading ? (
@@ -276,7 +328,7 @@ export default function SettingsPage() {
                   <div className="text-center py-8 text-gray-500">
                     <Zap className="h-8 w-8 mx-auto mb-2 text-gray-400" />
                     <p className="mb-4">No AI providers configured</p>
-                    <Button>Add Provider</Button>
+                    <Button onClick={() => handleConfigureAIProvider()}>Add Provider</Button>
                   </div>
                 ) : (
                   aiProviders.map((provider) => (
@@ -293,7 +345,7 @@ export default function SettingsPage() {
                         }`}>
                           {provider.enabled || provider.isDefault ? 'Enabled' : 'Disabled'}
                         </span>
-                        <Button variant="outline" size="sm">Configure</Button>
+                        <Button variant="outline" size="sm" onClick={() => handleConfigureAIProvider(provider)}>Configure</Button>
                       </div>
                     </div>
                   ))
@@ -310,7 +362,7 @@ export default function SettingsPage() {
                     <CardTitle>Webhooks</CardTitle>
                     <CardDescription>Manage webhook integrations</CardDescription>
                   </div>
-                  <Button>Add Webhook</Button>
+                  <Button onClick={() => setShowAddWebhookModal(true)}>Add Webhook</Button>
                 </div>
               </CardHeader>
               <CardContent>
@@ -320,7 +372,7 @@ export default function SettingsPage() {
                   <div className="text-center py-8 text-gray-500">
                     <Webhook className="h-8 w-8 mx-auto mb-2 text-gray-400" />
                     <p className="mb-4">No webhooks configured</p>
-                    <Button>Add Webhook</Button>
+                    <Button onClick={() => setShowAddWebhookModal(true)}>Add Webhook</Button>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -340,8 +392,8 @@ export default function SettingsPage() {
                           </span>
                         </div>
                         <div className="flex gap-2 mt-3">
-                          <Button variant="outline" size="sm">Edit</Button>
-                          <Button variant="outline" size="sm" className="text-red-600">Delete</Button>
+                          <Button variant="outline" size="sm" onClick={() => handleEditWebhook(webhook)}>Edit</Button>
+                          <Button variant="outline" size="sm" className="text-red-600" onClick={() => handleDeleteWebhook(webhook.id)}>Delete</Button>
                         </div>
                       </div>
                     ))}
@@ -391,6 +443,28 @@ export default function SettingsPage() {
         open={showQRModal}
         onOpenChange={setShowQRModal}
         onSuccess={handleWhatsAppSessionSuccess}
+      />
+
+      {/* Webhook Modals */}
+      <AddWebhookModal
+        open={showAddWebhookModal}
+        onOpenChange={setShowAddWebhookModal}
+        onSuccess={handleWebhookSuccess}
+      />
+
+      <EditWebhookModal
+        open={showEditWebhookModal}
+        onOpenChange={setShowEditWebhookModal}
+        onSuccess={handleWebhookSuccess}
+        webhook={selectedWebhook}
+      />
+
+      {/* AI Provider Configuration Modal */}
+      <ConfigureAIModal
+        open={showConfigureAIModal}
+        onOpenChange={setShowConfigureAIModal}
+        onSuccess={handleAIProviderSuccess}
+        provider={selectedAIProvider}
       />
     </div>
   )

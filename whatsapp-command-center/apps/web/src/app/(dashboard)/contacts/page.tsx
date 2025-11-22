@@ -8,6 +8,7 @@ import { Search, Plus, Mail, Phone, Tag, Download, Upload } from 'lucide-react'
 import { contactsService } from '@/services/api.service'
 import { toast } from 'sonner'
 import { AddContactModal } from '@/components/AddContactModal'
+import { EditContactModal } from '@/components/EditContactModal'
 
 export default function ContactsPage() {
   const [contacts, setContacts] = useState<any[]>([])
@@ -16,6 +17,7 @@ export default function ContactsPage() {
   const [selectedContact, setSelectedContact] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
 
   useEffect(() => {
     loadContacts()
@@ -51,6 +53,27 @@ export default function ContactsPage() {
     // Reload contacts and stats after adding a new contact
     await loadContacts()
     await loadStats()
+  }
+
+  const handleDeleteContact = async () => {
+    if (!selectedContact) return
+
+    if (!confirm(`Are you sure you want to delete ${selectedContact.name || selectedContact.phoneNumber}?`)) {
+      return
+    }
+
+    try {
+      await contactsService.delete(selectedContact.id)
+      toast.success('Contact deleted successfully!')
+
+      // Clear selected contact and reload data
+      setSelectedContact(null)
+      await loadContacts()
+      await loadStats()
+    } catch (error: any) {
+      console.error('Failed to delete contact:', error)
+      toast.error(error.response?.data?.message || 'Failed to delete contact')
+    }
   }
 
   const filteredContacts = contacts.filter(contact =>
@@ -180,8 +203,8 @@ export default function ContactsPage() {
                 {selectedContact.lastContactedAt && (<div><Label className="text-xs text-gray-500">Last Contact</Label><p className="text-sm">{formatDate(selectedContact.lastContactedAt)}</p></div>)}
               </div>
               <div className="flex gap-2 pt-4">
-                <Button variant="outline" className="flex-1">Edit</Button>
-                <Button variant="outline" className="flex-1">Delete</Button>
+                <Button variant="outline" className="flex-1" onClick={() => setShowEditModal(true)}>Edit</Button>
+                <Button variant="outline" className="flex-1" onClick={handleDeleteContact}>Delete</Button>
               </div>
             </CardContent>
           </Card>
@@ -193,6 +216,14 @@ export default function ContactsPage() {
         open={showAddModal}
         onOpenChange={setShowAddModal}
         onSuccess={handleContactAdded}
+      />
+
+      {/* Edit Contact Modal */}
+      <EditContactModal
+        open={showEditModal}
+        onOpenChange={setShowEditModal}
+        onSuccess={handleContactAdded}
+        contact={selectedContact}
       />
     </div>
   )

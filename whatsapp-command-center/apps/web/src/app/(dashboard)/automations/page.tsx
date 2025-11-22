@@ -56,6 +56,22 @@ export default function AutomationsPage() {
     }
   }
 
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
+      return
+    }
+
+    try {
+      await automationsService.delete(id)
+      toast.success('Automation deleted successfully')
+      await loadAutomations()
+      await loadStats()
+    } catch (error: any) {
+      console.error('Failed to delete automation:', error)
+      toast.error('Failed to delete automation')
+    }
+  }
+
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Never'
     const date = new Date(dateString)
@@ -184,7 +200,12 @@ export default function AutomationsPage() {
                     <Button variant="outline" size="icon">
                       <Copy className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="icon" className="text-red-600 hover:text-red-700">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="text-red-600 hover:text-red-700"
+                      onClick={() => handleDelete(automation.id, automation.name)}
+                    >
                       <Trash className="h-4 w-4" />
                     </Button>
                   </div>
