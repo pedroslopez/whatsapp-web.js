@@ -218,6 +218,9 @@ class Client extends EventEmitter {
                 }
 
                 if (isCometOrAbove) {
+                    await this.pupPage.evaluate(async () => {
+                      await window.require("WAWebProfileDrawerLoadableRequireBundle").requireBundle()
+                    });
                     await this.pupPage.evaluate(ExposeStore);
                 } else {
                     // make sure all modules are ready before injection
