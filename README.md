@@ -1,7 +1,7 @@
 <div align="center">
     <br />
     <p>
-        <a href="https://wwebjs.dev"><img src="https://github.com/wwebjs/logos/blob/main/4_Full%20Logo%20Lockup_Small/small_banner_blue.png?raw=true" title="whatsapp-web.js" alt="WWebJS Website" width="500" /></a>
+        <a href="https://wwebjs.dev"><img src="https://github.com/wwebjs/assets/blob/main/Collection/GitHub/wwebjs.png?raw=true" title="whatsapp-web.js" alt="WWebJS Website" width="500" /></a>
     </p>
     <br />
     <p>
@@ -14,57 +14,28 @@
 </div>
 
 ## About
-**A WhatsApp API client that connects through the WhatsApp Web browser app**
+**A WhatsApp API client that operates via the WhatsApp Web browser.**
 
-The library works by launching the WhatsApp Web browser application and managing it using Puppeteer to create an instance of WhatsApp Web, thereby mitigating the risk of being blocked. The WhatsApp API client connects through the WhatsApp Web browser app, accessing its internal functions. This grants you access to nearly all the features available on WhatsApp Web, enabling dynamic handling similar to any other Node.js application.
+The library launches the WhatsApp Web browser app via Puppeteer, accessing its internal functions and creating a managed instance to reduce the risk of being blocked. This gives the API client nearly all WhatsApp Web features for dynamic use in a Node.js application.
 
 > [!IMPORTANT]
 > **It is not guaranteed you will not be blocked by using this method. WhatsApp does not allow bots or unofficial clients on their platform, so this shouldn't be considered totally safe.**
 
 ## Links
 
-* [Website][website]
-* [Guide][guide] ([source][guide-source]) _(work in progress)_
-* [Documentation][documentation] ([source][documentation-source])
-* [WWebJS Discord][discord]
 * [GitHub][gitHub]
+* [Guide][guide] ([source][guide-source])
+* [Documentation][documentation] ([source][documentation-source])
+* [Discord Server][discord]
 * [npm][npm]
 
 ## Installation
 
-The module is now available on npm! `npm i whatsapp-web.js`
+The module is available on [npm][npm] via `npm i whatsapp-web.js`!
 
 > [!NOTE]
-> **Node ``v18+`` is required.**
-
-## QUICK STEPS TO UPGRADE NODE
-
-### Windows
-
-#### Manual
-Just get the latest LTS from the [official node website][nodejs].
-
-#### npm
-```powershell
-sudo npm install -g n
-sudo n stable
-```
-
-#### Choco
-```powershell
-choco install nodejs-lts
-```
-
-#### Winget
-```powershell
-winget install OpenJS.NodeJS.LTS
-```
-
-### Ubuntu / Debian
-```bash
-curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - &&\
-sudo apt-get install -y nodejs
-```
+> **Node ``v18`` or higher, is required.**  
+> See the [Guide][guide] for quick upgrade instructions.
 
 ## Example usage
 
@@ -165,7 +136,6 @@ See the License for the specific language governing permissions and
 limitations under the License.  
 
 
-[website]: https://wwebjs.dev
 [guide]: https://guide.wwebjs.dev/guide
 [guide-source]: https://github.com/wwebjs/wwebjs.dev/tree/main
 [documentation]: https://docs.wwebjs.dev/
