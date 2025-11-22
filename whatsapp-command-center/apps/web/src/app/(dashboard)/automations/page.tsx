@@ -6,11 +6,16 @@ import { Button } from '@/components/ui/button'
 import { Plus, Play, Pause, Edit, Trash, Copy, Zap, Clock, MessageSquare } from 'lucide-react'
 import { automationsService } from '@/services/api.service'
 import { toast } from 'sonner'
+import { CreateAutomationModal } from '@/components/CreateAutomationModal'
+import { EditAutomationModal } from '@/components/EditAutomationModal'
 
 export default function AutomationsPage() {
   const [automations, setAutomations] = useState<any[]>([])
   const [stats, setStats] = useState({ total: 0, active: 0, totalExecutions: 0, scheduled: 0 })
   const [loading, setLoading] = useState(true)
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [selectedAutomation, setSelectedAutomation] = useState<any>(null)
 
   useEffect(() => {
     loadAutomations()
@@ -72,6 +77,32 @@ export default function AutomationsPage() {
     }
   }
 
+  const handleAutomationSuccess = async () => {
+    await loadAutomations()
+    await loadStats()
+  }
+
+  const handleEditAutomation = (automation: any) => {
+    setSelectedAutomation(automation)
+    setShowEditModal(true)
+  }
+
+  const handleCopyAutomation = async (automation: any) => {
+    try {
+      await automationsService.create({
+        ...automation,
+        name: `${automation.name} (Copy)`,
+        id: undefined,
+      })
+      toast.success('Automation copied successfully')
+      await loadAutomations()
+      await loadStats()
+    } catch (error: any) {
+      console.error('Failed to copy automation:', error)
+      toast.error('Failed to copy automation')
+    }
+  }
+
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Never'
     const date = new Date(dateString)
@@ -105,7 +136,7 @@ export default function AutomationsPage() {
             Automate your WhatsApp workflows
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setShowCreateModal(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Create Automation
         </Button>
@@ -139,7 +170,7 @@ export default function AutomationsPage() {
               <Zap className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No automations yet</h3>
               <p className="text-gray-500 mb-4">Create your first automation to get started</p>
-              <Button>
+              <Button onClick={() => setShowCreateModal(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Create Automation
               </Button>
@@ -194,10 +225,10 @@ export default function AutomationsPage() {
                         <Play className="h-4 w-4" />
                       )}
                     </Button>
-                    <Button variant="outline" size="icon">
+                    <Button variant="outline" size="icon" onClick={() => handleEditAutomation(automation)}>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="icon">
+                    <Button variant="outline" size="icon" onClick={() => handleCopyAutomation(automation)}>
                       <Copy className="h-4 w-4" />
                     </Button>
                     <Button
@@ -239,6 +270,21 @@ export default function AutomationsPage() {
           ))}
         </CardContent>
       </Card>
+
+      {/* Create Automation Modal */}
+      <CreateAutomationModal
+        open={showCreateModal}
+        onOpenChange={setShowCreateModal}
+        onSuccess={handleAutomationSuccess}
+      />
+
+      {/* Edit Automation Modal */}
+      <EditAutomationModal
+        open={showEditModal}
+        onOpenChange={setShowEditModal}
+        onSuccess={handleAutomationSuccess}
+        automation={selectedAutomation}
+      />
     </div>
   )
 }

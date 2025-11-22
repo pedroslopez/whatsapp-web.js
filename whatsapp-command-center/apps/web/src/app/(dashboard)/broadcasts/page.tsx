@@ -3,14 +3,19 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus, Send, Calendar, Users, TrendingUp, Eye } from 'lucide-react'
+import { Plus, Send, Calendar, Users, TrendingUp, Eye, Edit, Trash } from 'lucide-react'
 import { broadcastsService } from '@/services/api.service'
 import { toast } from 'sonner'
+import { CreateBroadcastModal } from '@/components/CreateBroadcastModal'
+import { EditBroadcastModal } from '@/components/EditBroadcastModal'
 
 export default function BroadcastsPage() {
   const [broadcasts, setBroadcasts] = useState<any[]>([])
   const [stats, setStats] = useState({ totalSent: 0, delivered: 0, readRate: 0, scheduled: 0 })
   const [loading, setLoading] = useState(true)
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [selectedBroadcast, setSelectedBroadcast] = useState<any>(null)
 
   useEffect(() => {
     loadBroadcasts()
@@ -41,6 +46,48 @@ export default function BroadcastsPage() {
       })
     } catch (error) {
       console.error('Failed to load stats:', error)
+    }
+  }
+
+  const handleBroadcastSuccess = async () => {
+    await loadBroadcasts()
+    await loadStats()
+  }
+
+  const handleEditBroadcast = (broadcast: any) => {
+    setSelectedBroadcast(broadcast)
+    setShowEditModal(true)
+  }
+
+  const handleDeleteBroadcast = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
+      return
+    }
+
+    try {
+      await broadcastsService.delete(id)
+      toast.success('Broadcast deleted successfully')
+      await loadBroadcasts()
+      await loadStats()
+    } catch (error: any) {
+      console.error('Failed to delete broadcast:', error)
+      toast.error('Failed to delete broadcast')
+    }
+  }
+
+  const handleSendBroadcast = async (id: string, name: string) => {
+    if (!confirm(`Send broadcast "${name}" now? This will send messages to all recipients.`)) {
+      return
+    }
+
+    try {
+      await broadcastsService.send(id)
+      toast.success('Broadcast sent successfully!')
+      await loadBroadcasts()
+      await loadStats()
+    } catch (error: any) {
+      console.error('Failed to send broadcast:', error)
+      toast.error('Failed to send broadcast')
     }
   }
 
@@ -79,7 +126,7 @@ export default function BroadcastsPage() {
             Send messages to multiple contacts at once
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setShowCreateModal(true)}>
           <Plus className="h-4 w-4 mr-2" />
           New Broadcast
         </Button>
@@ -113,7 +160,7 @@ export default function BroadcastsPage() {
               <Send className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No broadcasts yet</h3>
               <p className="text-gray-500 mb-4">Create your first broadcast campaign to reach multiple contacts</p>
-              <Button>
+              <Button onClick={() => setShowCreateModal(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 New Broadcast
               </Button>
@@ -137,7 +184,22 @@ export default function BroadcastsPage() {
                       </p>
                     )}
                   </div>
-                  <Button variant="outline">View Details</Button>
+                  <div className="flex gap-2">
+                    {(broadcast.status === 'DRAFT' || broadcast.status === 'PENDING') && (
+                      <Button variant="default" size="sm" onClick={() => handleSendBroadcast(broadcast.id, broadcast.name)}>
+                        <Send className="h-4 w-4 mr-2" />
+                        Send Now
+                      </Button>
+                    )}
+                    <Button variant="outline" size="sm" onClick={() => handleEditBroadcast(broadcast)}>
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit
+                    </Button>
+                    <Button variant="outline" size="sm" className="text-red-600" onClick={() => handleDeleteBroadcast(broadcast.id, broadcast.name)}>
+                      <Trash className="h-4 w-4 mr-2" />
+                      Delete
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Stats Grid */}
@@ -191,6 +253,21 @@ export default function BroadcastsPage() {
           ))
         )}
       </div>
+
+      {/* Create Broadcast Modal */}
+      <CreateBroadcastModal
+        open={showCreateModal}
+        onOpenChange={setShowCreateModal}
+        onSuccess={handleBroadcastSuccess}
+      />
+
+      {/* Edit Broadcast Modal */}
+      <EditBroadcastModal
+        open={showEditModal}
+        onOpenChange={setShowEditModal}
+        onSuccess={handleBroadcastSuccess}
+        broadcast={selectedBroadcast}
+      />
     </div>
   )
 }

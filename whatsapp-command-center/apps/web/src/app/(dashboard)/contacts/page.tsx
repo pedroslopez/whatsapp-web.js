@@ -76,6 +76,89 @@ export default function ContactsPage() {
     }
   }
 
+  const handleExportContacts = () => {
+    try {
+      const headers = ['Name', 'WhatsApp ID', 'Email', 'Phone Number', 'Created At']
+      const csvData = contacts.map(contact => [
+        contact.name || '',
+        contact.whatsappId || '',
+        contact.email || '',
+        contact.phoneNumber || '',
+        contact.createdAt ? new Date(contact.createdAt).toLocaleString() : '',
+      ])
+
+      const csvContent = [
+        headers.join(','),
+        ...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n')
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const link = document.createElement('a')
+      const url = URL.createObjectURL(blob)
+      link.setAttribute('href', url)
+      link.setAttribute('download', `contacts_${new Date().toISOString().split('T')[0]}.csv`)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+
+      toast.success(`Exported ${contacts.length} contacts`)
+    } catch (error: any) {
+      console.error('Failed to export contacts:', error)
+      toast.error('Failed to export contacts')
+    }
+  }
+
+  const handleImportContacts = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = async (event) => {
+      try {
+        const text = event.target?.result as string
+        const lines = text.split('\n')
+
+        let imported = 0
+        let failed = 0
+
+        for (let i = 1; i < lines.length; i++) {
+          if (!lines[i].trim()) continue
+
+          const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''))
+          const contact = {
+            name: values[0] || undefined,
+            whatsappId: values[1] || undefined,
+            email: values[2] || undefined,
+            phone: values[3] || undefined,
+          }
+
+          if (!contact.name || !contact.whatsappId) {
+            failed++
+            continue
+          }
+
+          try {
+            await contactsService.create(contact)
+            imported++
+          } catch (error) {
+            failed++
+          }
+        }
+
+        toast.success(`Imported ${imported} contacts${failed > 0 ? `, ${failed} failed` : ''}`)
+        await loadContacts()
+        await loadStats()
+      } catch (error: any) {
+        console.error('Failed to import contacts:', error)
+        toast.error('Failed to import contacts. Please check file format.')
+      }
+    }
+
+    reader.readAsText(file)
+    e.target.value = ''
+  }
+
   const filteredContacts = contacts.filter(contact =>
     contact.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     contact.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -108,8 +191,19 @@ export default function ContactsPage() {
           <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your customer relationships</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline"><Upload className="h-4 w-4 mr-2" />Import</Button>
-          <Button variant="outline"><Download className="h-4 w-4 mr-2" />Export</Button>
+          <Button variant="outline" onClick={() => document.getElementById('import-file-input')?.click()}>
+            <Upload className="h-4 w-4 mr-2" />Import
+          </Button>
+          <input
+            id="import-file-input"
+            type="file"
+            accept=".csv"
+            className="hidden"
+            onChange={handleImportContacts}
+          />
+          <Button variant="outline" onClick={handleExportContacts}>
+            <Download className="h-4 w-4 mr-2" />Export
+          </Button>
           <Button onClick={() => setShowAddModal(true)}>
             <Plus className="h-4 w-4 mr-2" />Add Contact
           </Button>
