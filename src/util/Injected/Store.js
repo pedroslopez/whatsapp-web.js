@@ -111,8 +111,17 @@ exports.ExposeStore = () => {
     window.Store.Settings = {
         ...window.require('WAWebUserPrefsGeneral'),
         ...window.require('WAWebUserPrefsNotifications'),
-        setPushname: window.require('WAWebSetPushnameConnAction').setPushname
+        setPushname: (() => {
+            try {
+                const module = window.require('WAWebSetPushnameConnAction');
+                return module && module.setPushname ? module.setPushname : async () => { return false; };
+            } catch (e) {
+                // Module not available, return a no-op function
+                return async () => { return false; };
+            }
+        })()
     };
+    
     window.Store.NumberInfo = {
         ...window.require('WAPhoneUtils'),
         ...window.require('WAPhoneFindCC')
