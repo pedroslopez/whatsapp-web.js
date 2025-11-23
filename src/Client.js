@@ -109,7 +109,7 @@ class Client extends EventEmitter {
             await new Promise(r => setTimeout(r, 200));
         }
         if(!res){ 
-            throw 'timeout';
+            throw 'auth timeout';
         }
        
         await this.setDeviceName(this.options.deviceName, this.options.browserName);
@@ -241,14 +241,17 @@ class Client extends EventEmitter {
                     await new Promise(r => setTimeout(r, 2000)); 
                     await this.pupPage.evaluate(ExposeLegacyStore);
                 }
-                
-                while(start > (Date.now() - timeout)){
+                let start = Date.now();
+                let res = false;
+                while(start > (Date.now() - 30000)){
                     // Check window.Store Injection
                     res = await this.pupPage.evaluate('window.Store != undefined');
                     if(res){break;}
                     await new Promise(r => setTimeout(r, 200));
                 }
-                
+                if(!res){
+                    throw 'ready timeout';
+                }
             
                 /**
                      * Current connection information
