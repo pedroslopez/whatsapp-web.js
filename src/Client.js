@@ -219,7 +219,17 @@ class Client extends EventEmitter {
 
                 if (isCometOrAbove) {
                     await this.pupPage.evaluate(async () => {
-                      await window.require("WAWebProfileDrawerLoadableRequireBundle").requireBundle()
+                        const targetABFlag = 'wa_web_disable_prefetch_loadables';
+
+                        const ABPrefetchLoadablesExists = !!(await window.require('WAWebABPropsConfigs').ABPropConfigs[targetABFlag]);
+                      
+                        if (ABPrefetchLoadablesExists) {
+                            const isUsingABPrefetchLoadables = await window.require('WAWebABProps').getABPropConfigValue(targetABFlag);
+
+                            if (isUsingABPrefetchLoadables) {
+                                await window.require('WAWebPrefetchLoadables')();
+                            }
+                        }
                     });
                     await this.pupPage.evaluate(ExposeStore);
                 } else {
