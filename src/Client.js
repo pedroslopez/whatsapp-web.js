@@ -2321,16 +2321,13 @@ class Client extends EventEmitter {
      */
     async saveOrEditAddressbookContact(phoneNumber, firstName, lastName, syncToAddressbook = false)
     {
-        return await this.pupPage.evaluate(async (phoneNumber, firstName, lastName, syncToAddressbook) => {
-            return await window.Store.AddressbookContactUtils.saveContactAction(
-                phoneNumber,
-                phoneNumber,
-                null,
-                null,
-                firstName,
-                lastName,
-                syncToAddressbook
-            );
+        return await window.Store.AddressbookContactUtils.saveContactAction({
+                firstName: firstName, 
+                lastName: lastName, 
+                phoneNumber: phoneNumber, 
+                prevPhoneNumber: phoneNumber, 
+                syncToAddressbook: syncToAddressbook
+            });
         }, phoneNumber, firstName, lastName, syncToAddressbook);
     }
 
