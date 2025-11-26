@@ -556,6 +556,9 @@ declare namespace WAWebJS {
         /** Timeout for authentication selector in puppeteer
          * @default 0 */
         authTimeoutMs?: number,
+        /** function to be evaluated On New Document
+         * @default undefined */
+        evalOnNewDoc?: Function,
         /** Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/ */
         puppeteer?: puppeteer.PuppeteerNodeLaunchOptions & puppeteer.ConnectOptions
 		/** Determines how to save and restore sessions. Will use LegacySessionAuth if options.session is set. Otherwise, NoAuth will be used. */
