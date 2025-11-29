@@ -102,6 +102,39 @@ describe('Group', function() {
             group = await client.getChatById(group.id._serialized);
             expect(group.groupMetadata.restrict).to.equal(false);
         });
+
+          // --- New tests for join requests ---
+        it('can enable join request approval', async function () {
+            const res = await group.setJoinRequestsEnabled(true);
+            expect(res).to.equal(true);
+            expect(group.groupMetadata.__x_membershipApprovalMode).to.equal(1);
+
+            await helper.sleep(1000);
+
+            // reload
+            group = await client.getChatById(group.id._serialized);
+            expect(group.groupMetadata.__x_membershipApprovalMode).to.equal(1);
+        });
+
+        it('can disable join request approval', async function () {
+            const res = await group.setJoinRequestsEnabled(false);
+            expect(res).to.equal(true);
+            expect(group.groupMetadata.__x_membershipApprovalMode).to.equal(0);
+
+            await helper.sleep(1000);
+
+            // reload
+            group = await client.getChatById(group.id._serialized);
+            expect(group.groupMetadata.__x_membershipApprovalMode).to.equal(0);
+        });
+
+
+
+
+
+
+
+
     });
 
     describe('Invites', function () {
