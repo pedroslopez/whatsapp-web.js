@@ -9,8 +9,11 @@
 async function exposeFunction(page, name, fn) {
     try {
         await page.removeExposedFunction(name);
-    } catch {
-        // Function doesn't exist yet, ignore
+    } catch (error) {
+        // Only ignore if function doesn't exist, rethrow other errors
+        if (!error?.message?.includes('No function with name')) {
+            throw error;
+        }
     }
     await page.exposeFunction(name, fn);
 }
