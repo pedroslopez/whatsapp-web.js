@@ -1,23 +1,18 @@
 /**
- * Expose a function to the page if it does not exist
+ * Expose a function to the page, replacing it if it already exists.
+ * Uses page.removeExposedFunction (available since Puppeteer 20.6) to upsert.
  *
- * NOTE:
- * Rewrite it to 'upsertFunction' after updating Puppeteer to 20.6 or higher
- * using page.removeExposedFunction
- * https://pptr.dev/api/puppeteer.page.removeExposedFunction
- *
- * @param {import(puppeteer).Page} page
+ * @param {import('puppeteer').Page} page
  * @param {string} name
  * @param {Function} fn
  */
-async function exposeFunctionIfAbsent(page, name, fn) {
-    const exist = await page.evaluate((name) => {
-        return !!window[name];
-    }, name);
-    if (exist) {
-        return;
+async function exposeFunction(page, name, fn) {
+    try {
+        await page.removeExposedFunction(name);
+    } catch {
+        // Function doesn't exist yet, ignore
     }
     await page.exposeFunction(name, fn);
 }
 
-module.exports = {exposeFunctionIfAbsent};
+module.exports = { exposeFunction };
