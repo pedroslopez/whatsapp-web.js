@@ -1193,4 +1193,20 @@ exports.LoadUtils = () => {
 
         return { lid, phone };
     };
+
+    window.WWebJS.assertColor = (hex) => {
+        let color;
+        if (typeof hex === 'number') {
+            color = hex > 0 ? hex : 0xffffffff + parseInt(hex) + 1;
+        } else if (typeof hex === 'string') {
+            let number = hex.trim().replace('#', '');
+            if (number.length <= 6) {
+                number = 'FF' + number.padStart(6, '0');
+            }
+            color = parseInt(number, 16);
+        } else {
+            throw 'Invalid hex color';
+        }
+        return color;
+    };
 };
