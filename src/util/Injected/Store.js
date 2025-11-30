@@ -54,6 +54,7 @@ exports.ExposeStore = () => {
     window.Store.MediaObject = window.require('WAWebMediaStorage');
     window.Store.MediaTypes = window.require('WAWebMmsMediaTypes');
     window.Store.MediaUpload = window.require('WAWebMediaMmsV4Upload');
+    window.Store.MediaUpdate = window.require('WAWebMediaUpdateMsg');
     window.Store.MsgKey = window.require('WAWebMsgKey');
     window.Store.OpaqueData = window.require('WAWebMediaOpaqueData');
     window.Store.QueryProduct = window.require('WAWebBizProductCatalogBridge');
@@ -110,7 +111,9 @@ exports.ExposeStore = () => {
     window.Store.BusinessGatingUtils = window.require('WAWebBizGatingUtils');
     window.Store.PollsVotesSchema = window.require('WAWebPollsVotesSchema');
     window.Store.PollsSendVote = window.require('WAWebPollsSendVoteMsgAction');
-    
+    window.Store.SendStatus = window.require('WAWebSendStatusMsgAction');
+    window.Store.SendRevokeStatus = window.require('WAWebRevokeStatusAction');
+
     window.Store.Settings = {
         ...window.require('WAWebUserPrefsGeneral'),
         ...window.require('WAWebUserPrefsNotifications'),
