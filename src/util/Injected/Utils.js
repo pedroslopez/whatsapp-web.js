@@ -22,10 +22,11 @@ exports.LoadUtils = () => {
 
     window.WWebJS.sendMessage = async (chat, content, options = {}) => {
         const isChannel = window.Store.ChatGetters.getIsNewsletter(chat);
+        const isStatus = window.Store.ChatGetters.getIsBroadcast(chat);
 
         let mediaOptions = {};
         if (options.media) {
-            mediaOptions =  options.sendMediaAsSticker && !isChannel
+            mediaOptions =  options.sendMediaAsSticker && !isChannel && !isStatus
                 ? await window.WWebJS.processStickerData(options.media)
                 : await window.WWebJS.processMediaData(options.media, {
                     forceSticker: options.sendMediaAsSticker,
@@ -246,6 +247,10 @@ exports.LoadUtils = () => {
             participant = window.Store.WidFactory.asUserWidOrThrow(from);
         }
 
+        if (typeof chat.id?.isStatus === 'function' && chat.id.isStatus()) {
+            participant = window.Store.WidFactory.asUserWidOrThrow(from);
+        }
+
         const newMsgKey = new window.Store.MsgKey({
             from: from,
             to: chat.id,
@@ -317,6 +322,29 @@ exports.LoadUtils = () => {
             }
             msg.updateAck(1, true);
             await window.Store.SendChannelMessage.updateNewsletterMsgRecord(msg);
+            return msg;
+        }
+
+        if (isStatus) {
+            const { backgroundColor, fontStyle } = extraOptions;
+            const msg = new window.Store.Msg.modelClass(message);
+            const isMedia = Object.keys(mediaOptions).length > 0;
+
+            if (isMedia) {
+                const mediaUpdate = data => window.Store.MediaUpdate(data, mediaOptions);
+                msg.author = window.Store.WidFactory.asUserWidOrThrow(from);
+                msg.messageSecret = window.crypto.getRandomValues(new Uint8Array(32));
+                msg.cannotBeRanked = false;
+                await window.Store.SendStatus.sendStatusMediaMsgAction(msg, mediaUpdate);
+            } else {
+                const statusOptions = {
+                    color: backgroundColor && window.WWebJS.assertColor(backgroundColor) || 0xff7acca5,
+                    font: fontStyle >= 0 && fontStyle <= 7 && fontStyle || 0,
+                    text: msg.body
+                };
+                await window.Store.SendStatus.sendStatusTextMsgAction(statusOptions);
+            }
+
             return msg;
         }
 
