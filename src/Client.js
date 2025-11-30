@@ -2014,13 +2014,14 @@ class Client extends EventEmitter {
             } catch {
                 status = null;
             }
+
             if (status) return window.WWebJS.getStatusModel(status);
         }, contactId);
         return new Broadcast(this, broadcast);
     }
 
     /**
-     * Revoke own current status messages
+     * Revoke current own status messages
      * @param {string} messageId
      * @returns {Promise<void>}
      */
