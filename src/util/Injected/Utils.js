@@ -34,7 +34,8 @@ exports.LoadUtils = () => {
                     forceVoice: options.sendAudioAsVoice,
                     forceDocument: options.sendMediaAsDocument,
                     forceMediaHd: options.sendMediaAsHd,
-                    sendToChannel: isChannel
+                    sendToChannel: isChannel,
+                    sendToStatus: isStatus
                 });
             mediaOptions.caption = options.caption;
             content = options.sendMediaAsSticker ? undefined : mediaOptions.preview;
@@ -329,21 +330,27 @@ exports.LoadUtils = () => {
             const { backgroundColor, fontStyle } = extraOptions;
             const msg = new window.Store.Msg.modelClass(message);
             const isMedia = Object.keys(mediaOptions).length > 0;
+            const mediaUpdate = data => window.Store.MediaUpdate(data, mediaOptions);
 
-            if (isMedia) {
-                const mediaUpdate = data => window.Store.MediaUpdate(data, mediaOptions);
-                msg.author = window.Store.WidFactory.asUserWidOrThrow(from);
-                msg.messageSecret = window.crypto.getRandomValues(new Uint8Array(32));
-                msg.cannotBeRanked = false;
-                await window.Store.SendStatus.sendStatusMediaMsgAction(msg, mediaUpdate);
-            } else {
-                const statusOptions = {
-                    color: backgroundColor && window.WWebJS.assertColor(backgroundColor) || 0xff7acca5,
-                    font: fontStyle >= 0 && fontStyle <= 7 && fontStyle || 0,
-                    text: msg.body
-                };
-                await window.Store.SendStatus.sendStatusTextMsgAction(statusOptions);
-            }
+            // for text only
+            const statusOptions = {
+                color: backgroundColor && window.WWebJS.assertColor(backgroundColor) || 0xff7acca5,
+                font: fontStyle >= 0 && fontStyle <= 7 && fontStyle || 0,
+                text: msg.body
+            };
+            msg.author = window.Store.WidFactory.asUserWidOrThrow(from);
+            msg.messageSecret = window.crypto.getRandomValues(new Uint8Array(32));
+            msg.cannotBeRanked = false;
+
+            await window.Store.SendStatus[
+                isMedia ?
+                    'sendStatusMediaMsgAction' : 'sendStatusTextMsgAction'
+                ](
+                    ...(
+                        isMedia ?
+                            [msg, mediaUpdate] : [statusOptions]
+                    )
+                );
 
             return msg;
         }
@@ -435,7 +442,7 @@ exports.LoadUtils = () => {
         return stickerInfo;
     };
 
-    window.WWebJS.processMediaData = async (mediaInfo, { forceSticker, forceGif, forceVoice, forceDocument, forceMediaHd, sendToChannel }) => {
+    window.WWebJS.processMediaData = async (mediaInfo, { forceSticker, forceGif, forceVoice, forceDocument, forceMediaHd, sendToChannel, sendToStatus }) => {
         const file = window.WWebJS.mediaInfoToFile(mediaInfo);
         const opaqueData = await window.Store.OpaqueData.createFromData(file, file.type);
         const mediaParams = {
@@ -462,7 +469,7 @@ exports.LoadUtils = () => {
             throw new Error('media-fault: sendToChat filehash undefined');
         }
 
-        if (forceVoice && mediaData.type === 'ptt') {
+        if ((forceVoice && mediaData.type === 'ptt') || (sendToStatus && mediaData.type === 'audio')) {
             const waveform = mediaObject.contentInfo.waveform;
             mediaData.waveform =
                 waveform || await window.WWebJS.generateWaveform(file);
@@ -491,7 +498,7 @@ exports.LoadUtils = () => {
             mimetype: mediaData.mimetype,
             mediaObject,
             mediaType,
-            ...(sendToChannel ? { calculateToken: window.Store.SendChannelMessage.getRandomFilehash } : {})
+            ...(sendToChannel ? { calculateToken: window.Store.SendChannelMessage.getRandomFilehash() } : {})
         };
 
         const uploadedMedia = !sendToChannel
