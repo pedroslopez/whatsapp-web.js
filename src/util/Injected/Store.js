@@ -78,7 +78,6 @@ exports.ExposeStore = () => {
     window.Store.PresenceUtils = window.require('WAWebPresenceChatAction');
     window.Store.ChatState = window.require('WAWebChatStateBridge');
     window.Store.findCommonGroups = window.require('WAWebFindCommonGroupsContactAction').findCommonGroups;
-    window.Store.StatusUtils = window.require('WAWebContactStatusBridge');
     window.Store.ConversationMsgs = window.require('WAWebChatLoadMessages');
     window.Store.sendReactionToMsg = window.require('WAWebSendReactionMsgAction').sendReactionToMsg;
     window.Store.createOrUpdateReactionsModule = window.require('WAWebDBCreateOrUpdateReactions');
@@ -111,8 +110,6 @@ exports.ExposeStore = () => {
     window.Store.BusinessGatingUtils = window.require('WAWebBizGatingUtils');
     window.Store.PollsVotesSchema = window.require('WAWebPollsVotesSchema');
     window.Store.PollsSendVote = window.require('WAWebPollsSendVoteMsgAction');
-    window.Store.SendStatus = window.require('WAWebSendStatusMsgAction');
-    window.Store.SendRevokeStatus = window.require('WAWebRevokeStatusAction');
 
     window.Store.Settings = {
         ...window.require('WAWebUserPrefsGeneral'),
@@ -202,6 +199,12 @@ exports.ExposeStore = () => {
     window.Store.AddressbookContactUtils = {
         ...window.require('WAWebSaveContactAction'),
         ...window.require('WAWebDeleteContactAction')
+    };
+    window.Store.StatusUtils = {
+        ...window.require('WAWebContactStatusBridge'),
+        ...window.require('WAWebSendStatusMsgAction'),
+        ...window.require('WAWebRevokeStatusAction'),
+        ...window.require('WAWebStatusGatingUtils')
     };
 
     if (!window.Store.Chat._find || !window.Store.Chat.findImpl) {
