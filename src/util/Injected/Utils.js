@@ -328,9 +328,14 @@ exports.LoadUtils = () => {
 
         if (isStatus) {
             const { backgroundColor, fontStyle } = extraOptions;
-            const msg = new window.Store.Msg.modelClass(message);
             const isMedia = Object.keys(mediaOptions).length > 0;
             const mediaUpdate = data => window.Store.MediaUpdate(data, mediaOptions);
+            const msg = new window.Store.Msg.modelClass({
+                ...message,
+                author: participant ? participant : null,
+                messageSecret: window.crypto.getRandomValues(new Uint8Array(32)),
+                cannotBeRanked: window.Store.StatusUtils.canCheckStatusRankingPosterGating()
+            });
 
             // for text only
             const statusOptions = {
@@ -338,11 +343,8 @@ exports.LoadUtils = () => {
                 font: fontStyle >= 0 && fontStyle <= 7 && fontStyle || 0,
                 text: msg.body
             };
-            msg.author = window.Store.WidFactory.asUserWidOrThrow(from);
-            msg.messageSecret = window.crypto.getRandomValues(new Uint8Array(32));
-            msg.cannotBeRanked = false;
 
-            await window.Store.SendStatus[
+            await window.Store.StatusUtils[
                 isMedia ?
                     'sendStatusMediaMsgAction' : 'sendStatusTextMsgAction'
             ](
