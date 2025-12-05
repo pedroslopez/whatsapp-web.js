@@ -202,7 +202,14 @@ class Contact extends Base {
     async getCommonGroups() {
         return await this.client.getCommonGroups(this.id._serialized);
     }
-    
+
+    /**
+     * Gets the Contact's current status broadcast.
+     * @returns {Promise<Broadcast>}
+    */
+    async getBroadcast() {
+        return await this.client.getBroadcastById(this.id._serialized);
+    }
 }
 
 module.exports = Contact;
