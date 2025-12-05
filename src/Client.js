@@ -2037,7 +2037,7 @@ class Client extends EventEmitter {
             if (!msg.id.fromMe || !msg.id.remote.isStatus())
                 throw 'Invalid usage! Can only revoke the message its from own status broadcast';
 
-            return await window.Store.SendRevokeStatus.sendStatusRevokeMsgAction(status, msg);
+            return await window.Store.StatusUtils.sendStatusRevokeMsgAction(status, msg);
         }, messageId);
     }
 
