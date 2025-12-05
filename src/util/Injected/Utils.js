@@ -345,12 +345,12 @@ exports.LoadUtils = () => {
             await window.Store.SendStatus[
                 isMedia ?
                     'sendStatusMediaMsgAction' : 'sendStatusTextMsgAction'
-                ](
-                    ...(
-                        isMedia ?
-                            [msg, mediaUpdate] : [statusOptions]
-                    )
-                );
+            ](
+                ...(
+                    isMedia ?
+                        [msg, mediaUpdate] : [statusOptions]
+                )
+            );
 
             return msg;
         }
