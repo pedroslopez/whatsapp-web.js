@@ -905,6 +905,25 @@ class Client extends EventEmitter {
         }, chatId);
     }
 
+
+    /**
+     * React to a message with an emoji
+     * @param {string} messageId - Id of the message to add the reaction.
+     * @param {string} reaction  - Emoji to react with. Send an empty string to remove the reaction.
+     * @return {Promise}
+     */
+    async sendReaction(messageId, reaction){
+        await this.pupPage.evaluate(async (messageId, reaction) => {
+            if (!messageId) return null;
+            const msg =
+                window.Store.Msg.get(messageId) || (await window.Store.Msg.getMessagesById([messageId]))?.messages?.[0];
+            if(!msg) return null;
+
+            await window.Store.sendReactionToMsg(msg, reaction);
+        }, messageId, reaction);
+    }
+
+
     /**
      * An object representing mentions of groups
      * @typedef {Object} GroupMention
