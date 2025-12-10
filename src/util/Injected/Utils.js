@@ -643,7 +643,8 @@ exports.LoadUtils = () => {
         res.isUser = window.Store.ContactMethods.getIsUser(contact);
         res.isGroup = window.Store.ContactMethods.getIsGroup(contact);
         res.isWAContact = window.Store.ContactMethods.getIsWAContact(contact);
-        res.isMyContact = window.Store.ContactMethods.getIsMyContact(contact);
+        //res.isMyContact = window.Store.ContactMethods.getIsMyContact(contact);
+        res.isMyContact = window.Store.ContactMethods.getIsWAContac(contact);
         res.isBlocked = contact.isContactBlocked;
         res.userid = window.Store.ContactMethods.getUserid(contact);
         res.isEnterprise = window.Store.ContactMethods.getIsEnterprise(contact);
