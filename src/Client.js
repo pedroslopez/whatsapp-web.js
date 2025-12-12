@@ -356,6 +356,7 @@ class Client extends EventEmitter {
                 }
                 await this.inject();
             } catch (err) {
+                console.error('Error during framenavigated handler:', err);
                 this.emit(Events.DISCONNECTED, 'NAVIGATION');
             }
         });
@@ -1332,7 +1333,7 @@ class Client extends EventEmitter {
      */
     async acceptGroupV4Invite(inviteInfo) {
         if (!inviteInfo.inviteCode) throw new Error('Invalid invite code, try passing the message.inviteV4 object');
-        if (inviteInfo.inviteCodeExp == 0) throw new Error('Expired invite code');
+        if (inviteInfo.inviteCodeExp === 0) throw new Error('Expired invite code');
         return this.pupPage.evaluate(async inviteInfo => {
             let { groupId, fromId, inviteCode, inviteCodeExp } = inviteInfo;
             let userWid = window.Store.WidFactory.createWid(fromId);
@@ -2429,7 +2430,7 @@ class Client extends EventEmitter {
     async getPollVotes(messageId) {
         const msg = await this.getMessageById(messageId);
         if (!msg) return [];
-        if (msg.type != MessageTypes.POLL_CREATION) throw new Error('Invalid usage! Can only be used with a pollCreation message');
+        if (msg.type !== MessageTypes.POLL_CREATION) throw new Error('Invalid usage! Can only be used with a pollCreation message');
 
         const pollVotes = await this.pupPage.evaluate( async (msg) => {
             const msgKey = window.Store.MsgKey.fromString(msg.id._serialized);
