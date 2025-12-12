@@ -7,7 +7,6 @@ const Order = require('./Order');
 const Payment = require('./Payment');
 const Reaction = require('./Reaction');
 const Contact = require('./Contact');
-const ScheduledEvent = require('./ScheduledEvent'); // eslint-disable-line no-unused-vars
 const { MessageTypes } = require('../util/Constants');
 
 /**
@@ -756,7 +755,7 @@ class Message extends Base {
      * @returns {Promise}
      */
     async vote(selectedOptions) {
-        if (this.type != MessageTypes.POLL_CREATION) throw 'Invalid usage! Can only be used with a pollCreation message';
+        if (this.type != MessageTypes.POLL_CREATION) throw new Error('Invalid usage! Can only be used with a pollCreation message');
 
         await this.client.pupPage.evaluate(async (messageId, votes) => {
             if (!messageId) return null;

@@ -3,8 +3,8 @@
 //TODO: To be removed by version 2.3000.x hard release
 
 exports.ExposeLegacyAuthStore = (moduleRaidStr) => {
-    eval('var moduleRaid = ' + moduleRaidStr);
-    // eslint-disable-next-line no-undef
+    // Use Function constructor instead of eval for safer code execution
+    const moduleRaid = new Function('return ' + moduleRaidStr)();
     window.mR = moduleRaid();
     window.AuthStore = {};
     window.AuthStore.AppState = window.mR.findModule('Socket')[0].Socket;

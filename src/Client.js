@@ -346,14 +346,18 @@ class Client extends EventEmitter {
         await this.inject();
 
         this.pupPage.on('framenavigated', async (frame) => {
-            if(frame.url().includes('post_logout=1') || this.lastLoggedOut) {
-                this.emit(Events.DISCONNECTED, 'LOGOUT');
-                await this.authStrategy.logout();
-                await this.authStrategy.beforeBrowserInitialized();
-                await this.authStrategy.afterBrowserInitialized();
-                this.lastLoggedOut = false;
+            try {
+                if(frame.url().includes('post_logout=1') || this.lastLoggedOut) {
+                    this.emit(Events.DISCONNECTED, 'LOGOUT');
+                    await this.authStrategy.logout();
+                    await this.authStrategy.beforeBrowserInitialized();
+                    await this.authStrategy.afterBrowserInitialized();
+                    this.lastLoggedOut = false;
+                }
+                await this.inject();
+            } catch (err) {
+                this.emit(Events.DISCONNECTED, 'NAVIGATION');
             }
-            await this.inject();
         });
     }
 
@@ -1327,8 +1331,8 @@ class Client extends EventEmitter {
      * @returns {Promise<Object>}
      */
     async acceptGroupV4Invite(inviteInfo) {
-        if (!inviteInfo.inviteCode) throw 'Invalid invite code, try passing the message.inviteV4 object';
-        if (inviteInfo.inviteCodeExp == 0) throw 'Expired invite code';
+        if (!inviteInfo.inviteCode) throw new Error('Invalid invite code, try passing the message.inviteV4 object');
+        if (inviteInfo.inviteCodeExp == 0) throw new Error('Expired invite code');
         return this.pupPage.evaluate(async inviteInfo => {
             let { groupId, fromId, inviteCode, inviteCodeExp } = inviteInfo;
             let userWid = window.Store.WidFactory.createWid(fromId);
@@ -1946,7 +1950,7 @@ class Client extends EventEmitter {
      * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
      */
     async deleteChannel(channelId) {
-        return await this.client.pupPage.evaluate(async (channelId) => {
+        return await this.pupPage.evaluate(async (channelId) => {
             const channel = await window.WWebJS.getChat(channelId, { getAsModel: false });
             if (!channel) return false;
             try {
@@ -2425,7 +2429,7 @@ class Client extends EventEmitter {
     async getPollVotes(messageId) {
         const msg = await this.getMessageById(messageId);
         if (!msg) return [];
-        if (msg.type != MessageTypes.POLL_CREATION) throw 'Invalid usage! Can only be used with a pollCreation message';
+        if (msg.type != MessageTypes.POLL_CREATION) throw new Error('Invalid usage! Can only be used with a pollCreation message');
 
         const pollVotes = await this.pupPage.evaluate( async (msg) => {
             const msgKey = window.Store.MsgKey.fromString(msg.id._serialized);

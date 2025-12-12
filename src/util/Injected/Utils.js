@@ -793,7 +793,7 @@ exports.LoadUtils = () => {
             await window.Store.ChatState.sendChatStatePaused(chatId);
             break;
         default:
-            throw 'Invalid chatstate';
+            throw new Error('Invalid chatstate');
         }
 
         return true;
