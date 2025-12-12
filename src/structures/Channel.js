@@ -310,7 +310,7 @@ class Channel extends Base {
                 
                 if (msgs.length > searchOptions.limit) {
                     msgs.sort((a, b) => (a.t > b.t) ? 1 : -1);
-                    msgs = msgs.splice(msgs.length - searchOptions.limit);
+                    msgs = msgs.slice(-searchOptions.limit);
                 }
             }
 

@@ -110,12 +110,12 @@ class GroupChat extends Chat {
                 return errorCodes.iAmNotAdmin;
             }
 
-            groupParticipants.map(({ id }) => {
+            groupParticipants = groupParticipants.map(({ id }) => {
                 return id.server === 'lid' ? window.Store.LidUtils.getPhoneNumber(id) : id;
             });
 
             const _getSleepTime = (sleep) => {
-                if (!Array.isArray(sleep) || sleep.length === 2 && sleep[0] === sleep[1]) {
+                if (!Array.isArray(sleep) || (sleep.length === 2 && sleep[0] === sleep[1])) {
                     return sleep;
                 }
                 if (sleep.length === 1) {
