@@ -3,7 +3,7 @@
 //TODO: To be removed by version 2.3000.x hard release
 
 exports.ExposeLegacyAuthStore = (moduleRaidStr) => {
-    // Use Function constructor instead of eval for safer code execution
+    // Use Function constructor instead of eval (isolated scope, passes linters)
     const moduleRaid = new Function('return ' + moduleRaidStr)();
     window.mR = moduleRaid();
     window.AuthStore = {};
