@@ -857,7 +857,10 @@ class Client extends EventEmitter {
             this.pupPage.removeAllListeners('request');
             this.pupPage.removeAllListeners('response');
         }
-        await this.pupBrowser.close();
+        // Only close browser if still connected to avoid hanging
+        if (this.pupBrowser?.isConnected()) {
+            await this.pupBrowser.close();
+        }
         await this.authStrategy.destroy();
     }
 
