@@ -846,13 +846,13 @@ class Client extends EventEmitter {
      * Closes the client
      */
     async destroy() {
-        // Remove all Puppeteer page event listeners to prevent memory leaks
+        // Remove all listeners from the Puppeteer page to prevent memory leaks
         if (this.pupPage) {
-            this.pupPage.removeAllListeners('framenavigated');
-            this.pupPage.removeAllListeners('request');
-            this.pupPage.removeAllListeners('response');
+            this.pupPage.removeAllListeners();
         }
-        await this.pupBrowser.close();
+        if (this.pupBrowser) {
+            await this.pupBrowser.close();
+        }
         await this.authStrategy.destroy();
     }
 
@@ -953,8 +953,8 @@ class Client extends EventEmitter {
      * @returns {Promise<Message>} Message that was just sent
      */
     async sendMessage(chatId, content, options = {}) {
-        if (!chatId || typeof chatId !== 'string') {
-            throw new Error('chatId is required and must be a string');
+        if (typeof chatId !== 'string' || chatId.trim().length === 0) {
+            throw new Error('chatId is required and must be a non-empty string');
         }
         if (content === undefined || content === null) {
             throw new Error('content is required');
@@ -1152,8 +1152,8 @@ class Client extends EventEmitter {
      * @returns {Promise<Chat|Channel>}
      */
     async getChatById(chatId) {
-        if (!chatId || typeof chatId !== 'string') {
-            throw new Error('chatId is required and must be a string');
+        if (typeof chatId !== 'string' || chatId.trim().length === 0) {
+            throw new Error('chatId is required and must be a non-empty string');
         }
         const chat = await this.pupPage.evaluate(async chatId => {
             return await window.WWebJS.getChat(chatId);
@@ -1203,8 +1203,8 @@ class Client extends EventEmitter {
      * @returns {Promise<Contact>}
      */
     async getContactById(contactId) {
-        if (!contactId || typeof contactId !== 'string') {
-            throw new Error('contactId is required and must be a string');
+        if (typeof contactId !== 'string' || contactId.trim().length === 0) {
+            throw new Error('contactId is required and must be a non-empty string');
         }
         let contact = await this.pupPage.evaluate(contactId => {
             return window.WWebJS.getContact(contactId);
@@ -1214,8 +1214,8 @@ class Client extends EventEmitter {
     }
     
     async getMessageById(messageId) {
-        if (!messageId || typeof messageId !== 'string') {
-            throw new Error('messageId is required and must be a string');
+        if (typeof messageId !== 'string' || messageId.trim().length === 0) {
+            throw new Error('messageId is required and must be a non-empty string');
         }
         const msg = await this.pupPage.evaluate(async messageId => {
             let msg = window.Store.Msg.get(messageId);
@@ -1679,8 +1679,8 @@ class Client extends EventEmitter {
      * @returns {Promise<CreateGroupResult|string>} Object with resulting data or an error message as a string
      */
     async createGroup(title, participants = [], options = {}) {
-        if (!title || typeof title !== 'string') {
-            throw new Error('title is required and must be a string');
+        if (typeof title !== 'string' || title.trim().length === 0) {
+            throw new Error('title is required and must be a non-empty string');
         }
         !Array.isArray(participants) && (participants = [participants]);
         participants = participants.map(p => (p instanceof Contact) ? p.id._serialized : p);
