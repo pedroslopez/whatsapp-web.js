@@ -4,6 +4,7 @@ const Util = require('../util/Util');
 
 /**
  * Message type List
+ * @deprecated Lists are no longer supported by WhatsApp. See https://faq.whatsapp.com/1026418498719742
  */
 class List {
     /**

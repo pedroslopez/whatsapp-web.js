@@ -19,6 +19,7 @@ const Util = require('../util/Util');
 
 /**
  * Message type buttons
+ * @deprecated Buttons are no longer supported by WhatsApp. See https://faq.whatsapp.com/1026418498719742
  */
 class Buttons {
     /**
