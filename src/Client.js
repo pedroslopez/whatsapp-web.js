@@ -2453,7 +2453,7 @@ class Client extends EventEmitter {
     async getPollVotes(messageId) {
         const msg = await this.getMessageById(messageId);
         if (!msg) return [];
-        if (msg.type != MessageTypes.POLL_CREATION) throw new Error('Invalid usage! Can only be used with a pollCreation message');
+        if (msg.type !== MessageTypes.POLL_CREATION) throw new Error('Invalid usage! Can only be used with a pollCreation message');
 
         const pollVotes = await this.pupPage.evaluate( async (msg) => {
             const msgKey = window.Store.MsgKey.fromString(msg.id._serialized);
