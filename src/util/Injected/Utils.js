@@ -1067,10 +1067,11 @@ exports.LoadUtils = () => {
                         ? response.value.membershipRequestsActionApprove
                         : response.value.membershipRequestsActionReject;
                     if (value?.participant) {
-                        const [_] = value.participant.map(p => {
-                            const error = toApprove
-                                ? value.participant[0].membershipRequestsActionAcceptParticipantMixins?.value.error
-                                : value.participant[0].membershipRequestsActionRejectParticipantMixins?.value.error;
+                        const participantResults = value.participant.map(p => {
+                            const mixins = toApprove
+                                ? p.membershipRequestsActionAcceptParticipantMixins
+                                : p.membershipRequestsActionRejectParticipantMixins;
+                            const error = mixins?.value?.error;
                             return {
                                 requesterId: window.Store.WidFactory.createWid(p.jid)._serialized,
                                 ...(error
@@ -1078,7 +1079,7 @@ exports.LoadUtils = () => {
                                     : { message: `${toApprove ? 'Approved' : 'Rejected'} successfully` })
                             };
                         });
-                        _ && result.push(_);
+                        result.push(...participantResults);
                     }
                 } else {
                     result.push({
