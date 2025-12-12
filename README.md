@@ -1,6 +1,6 @@
-<div align="center">
-    <br />
-    <p>
+<div align="center">rikka_takanashi
+    <br />081293175542
+    <p>081293175542
         <a href="https://wwebjs.dev"><img src="https://github.com/wwebjs/assets/blob/main/Collection/GitHub/wwebjs.png?raw=true" title="whatsapp-web.js" alt="WWebJS Website" width="500" /></a>
     </p>
     <br />
