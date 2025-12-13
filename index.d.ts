@@ -113,9 +113,15 @@ declare namespace WAWebJS {
 
         /** Get all current Labels  */
         getLabels(): Promise<Label[]>
-        
+
         /** Get all current Broadcasts  */
         getBroadcasts(): Promise<Broadcast[]>
+
+        /** Get broadcast instance by current user ID */
+        getBroadcastById(contactId: string): Promise<Broadcast>
+
+        /** Revoke current own status messages */
+        revokeStatusMessage(messageId: string): Promise<void>
         
         /** Change labels in chats  */
         addOrRemoveLabels(labelIds: Array<number|string>, chatIds: Array<string>): Promise<void>
@@ -1569,6 +1575,8 @@ declare namespace WAWebJS {
         /** Gets the Contact's common groups with you. Returns empty array if you don't have any common group. */
         getCommonGroups: () => Promise<ChatId[]>
 
+        /** Gets the Contact's current status broadcast. */
+        getBroadcast: () => Promise<Broadcast>
     }
 
     export interface ContactId {
