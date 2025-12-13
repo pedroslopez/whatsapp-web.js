@@ -658,9 +658,13 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getContact = async contactId => {
+        // Handle LID format with colon (e.g., "123456:21@lid" -> "123456@lid")
+        if (contactId.includes(':') && contactId.endsWith('@lid')) {
+            contactId = contactId.replace(/:\d+@lid$/, '@lid');
+        }
         const wid = window.Store.WidFactory.createWid(contactId);
         let contact = await window.Store.Contact.find(wid);
-        if (contact.id._serialized.endsWith('@lid')) {
+        if (contact.id?._serialized?.endsWith('@lid') && contact.phoneNumber) {
             contact.id = contact.phoneNumber;
         }
         const bizProfile = await window.Store.BusinessProfile.fetchBizProfile(wid);
