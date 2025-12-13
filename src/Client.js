@@ -27,6 +27,7 @@ const {exposeFunctionIfAbsent} = require('./util/Puppeteer');
  * @param {string} options.webVersion - The version of WhatsApp Web to use. Use options.webVersionCache to configure how the version is retrieved.
  * @param {object} options.webVersionCache - Determines how to retrieve the WhatsApp Web version. Defaults to a local cache (LocalWebCache) that falls back to latest if the requested version is not found.
  * @param {number} options.authTimeoutMs - Timeout for authentication selector in puppeteer
+ * @param {function} options.evalOnNewDoc - function to eval on new doc
  * @param {object} options.puppeteer - Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/
  * @param {number} options.qrMaxRetries - How many times should the qrcode be refreshed before giving up
  * @param {string} options.restartOnAuthFail  - @deprecated This option should be set directly on the LegacySessionAuth.
@@ -95,7 +96,22 @@ class Client extends EventEmitter {
      * Private function
      */
     async inject() {
-        await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', {timeout: this.options.authTimeoutMs});
+               
+        if(this.options.authTimeoutMs === undefined){
+            this.options.authTimeoutMs = 30000;
+        }
+        let start = Date.now();
+        let timeout = this.options.authTimeoutMs;
+        let res = false;
+        while(start > (Date.now() - timeout)){
+            res = await this.pupPage.evaluate('window.Debug?.VERSION != undefined');
+            if(res){break;}
+            await new Promise(r => setTimeout(r, 200));
+        }
+        if(!res){ 
+            throw 'auth timeout';
+        }
+       
         await this.setDeviceName(this.options.deviceName, this.options.browserName);
         const pairWithPhoneNumber = this.options.pairWithPhoneNumber;
         const version = await this.getWWebVersion();
@@ -225,9 +241,17 @@ class Client extends EventEmitter {
                     await new Promise(r => setTimeout(r, 2000)); 
                     await this.pupPage.evaluate(ExposeLegacyStore);
                 }
-
-                // Check window.Store Injection
-                await this.pupPage.waitForFunction('window.Store != undefined');
+                let start = Date.now();
+                let res = false;
+                while(start > (Date.now() - 30000)){
+                    // Check window.Store Injection
+                    res = await this.pupPage.evaluate('window.Store != undefined');
+                    if(res){break;}
+                    await new Promise(r => setTimeout(r, 200));
+                }
+                if(!res){
+                    throw 'ready timeout';
+                }
             
                 /**
                      * Current connection information
@@ -300,7 +324,7 @@ class Client extends EventEmitter {
             page = await browser.newPage();
         } else {
             const browserArgs = [...(puppeteerOpts.args || [])];
-            if(!browserArgs.find(arg => arg.includes('--user-agent'))) {
+            if(this.options.userAgent !== false && !browserArgs.find(arg => arg.includes('--user-agent'))) {
                 browserArgs.push(`--user-agent=${this.options.userAgent}`);
             }
             // navigator.webdriver fix
@@ -313,8 +337,9 @@ class Client extends EventEmitter {
         if (this.options.proxyAuthentication !== undefined) {
             await page.authenticate(this.options.proxyAuthentication);
         }
-      
-        await page.setUserAgent(this.options.userAgent);
+        if(this.options.userAgent !== false) {
+            await page.setUserAgent(this.options.userAgent);
+        }
         if (this.options.bypassCSP) await page.setBypassCSP(true);
 
         this.pupBrowser = browser;
@@ -322,7 +347,11 @@ class Client extends EventEmitter {
 
         await this.authStrategy.afterBrowserInitialized();
         await this.initWebVersionCache();
-
+        
+        if (this.options.evalOnNewDoc !== undefined) {
+            await page.evaluateOnNewDocument(this.options.evalOnNewDoc);
+        }
+        
         // ocVersion (isOfficialClient patch)
         // remove after 2.3000.x hard release
         await page.evaluateOnNewDocument(() => {
