@@ -468,6 +468,10 @@ class Message extends Base {
             }
 
             try {
+                const mockQpl = {
+                    addAnnotations: function() { return this; },
+                    addPoint: function() { return this; }
+                };
                 const decryptedMedia = await window.Store.DownloadManager.downloadAndMaybeDecrypt({
                     directPath: msg.directPath,
                     encFilehash: msg.encFilehash,
@@ -475,7 +479,8 @@ class Message extends Base {
                     mediaKey: msg.mediaKey,
                     mediaKeyTimestamp: msg.mediaKeyTimestamp,
                     type: msg.type,
-                    signal: (new AbortController).signal
+                    signal: (new AbortController).signal,
+                    downloadQpl: mockQpl
                 });
 
                 const data = await window.WWebJS.arrayBufferToBase64Async(decryptedMedia);
