@@ -658,7 +658,11 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getContact = async contactId => {
+        if (!contactId || typeof contactId !== 'string') {
+            throw new Error('contactId must be a non-empty string');
+        }
         // Handle LID format with colon (e.g., "123456:21@lid" -> "123456@lid")
+        // Pre-checks avoid regex execution on non-matching strings for performance
         if (contactId.includes(':') && contactId.endsWith('@lid')) {
             contactId = contactId.replace(/:\d+@lid$/, '@lid');
         }
