@@ -46,10 +46,23 @@ class LocalAuth extends BaseAuthStrategy {
 
     async logout() {
         if (this.userDataDir) {
-            await fs.promises.rm(this.userDataDir, { recursive: true, force: true, maxRetries: this.rmMaxRetries })
-                .catch((e) => {
+            let retries = 0;
+            while (retries < this.rmMaxRetries) {
+                try {
+                    await fs.promises.rm(this.userDataDir, { recursive: true, force: true });
+                    return;
+                } catch (e) {
+                    // Handle EBUSY (resource busy) and ENOTEMPTY (directory not empty) errors
+                    // These commonly occur on Windows when Chrome hasn't fully released file locks
+                    if ((e.code === 'EBUSY' || e.code === 'ENOTEMPTY') && retries < this.rmMaxRetries - 1) {
+                        retries++;
+                        // Wait before retrying, with exponential backoff
+                        await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, retries)));
+                        continue;
+                    }
                     throw new Error(e);
-                });
+                }
+            }
         }
     }
 
