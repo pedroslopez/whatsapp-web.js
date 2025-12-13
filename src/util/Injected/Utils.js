@@ -664,6 +664,9 @@ exports.LoadUtils = () => {
         }
         const wid = window.Store.WidFactory.createWid(contactId);
         let contact = await window.Store.Contact.find(wid);
+        if (!contact) {
+            throw new Error(`Contact not found for ID: ${contactId}`);
+        }
         if (contact.id?._serialized?.endsWith('@lid') && contact.phoneNumber) {
             contact.id = contact.phoneNumber;
         }
