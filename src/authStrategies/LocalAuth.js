@@ -55,12 +55,12 @@ class LocalAuth extends BaseAuthStrategy {
                     // Handle EBUSY (resource busy) and ENOTEMPTY (directory not empty) errors
                     // These commonly occur on Windows when Chrome hasn't fully released file locks
                     if ((e.code === 'EBUSY' || e.code === 'ENOTEMPTY') && retries < this.rmMaxRetries - 1) {
-                        retries++;
-                        // Wait before retrying, with exponential backoff
+                        // Wait before retrying, with exponential backoff (100ms, 200ms, 400ms, 800ms)
                         await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, retries)));
+                        retries++;
                         continue;
                     }
-                    throw new Error(e);
+                    throw e;
                 }
             }
         }
