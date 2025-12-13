@@ -96,7 +96,20 @@ class Client extends EventEmitter {
      * Private function
      */
     async inject() {
-        await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', {timeout: this.options.authTimeoutMs});       
+        if(this.options.authTimeoutMs === undefined || this.options.authTimeoutMs==0){
+            this.options.authTimeoutMs = 30000;
+        }
+        let start = Date.now();
+        let timeout = this.options.authTimeoutMs;
+        let res = false;
+        while(start > (Date.now() - timeout)){
+            res = await this.pupPage.evaluate('window.Debug?.VERSION != undefined');
+            if(res){break;}
+            await new Promise(r => setTimeout(r, 200));
+        }
+        if(!res){ 
+            throw 'auth timeout';
+        }       
         await this.setDeviceName(this.options.deviceName, this.options.browserName);
         const pairWithPhoneNumber = this.options.pairWithPhoneNumber;
         const version = await this.getWWebVersion();
