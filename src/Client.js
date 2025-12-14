@@ -518,14 +518,6 @@ class Client extends EventEmitter {
                      * @param {String} newId The user's new id after the change.
                      * @param {Boolean} isContact Indicates if a contact or a group participant changed their phone number.
                      */
-                if (newId.endsWith('@lid')) {
-                    let u = await this.getContactLidAndPhone(newId);
-                    newId = u[0].pn;
-                }
-                if (oldId.endsWith('@lid')) {
-                    let u = await this.getContactLidAndPhone(oldId);
-                    oldId = u[0].pn;
-                }
                 this.emit(Events.CONTACT_CHANGED, message, oldId, newId, isContact);
             }
         });
