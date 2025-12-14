@@ -506,8 +506,8 @@ class Client extends EventEmitter {
                 /** @type {GroupNotification} object does not provide enough information about this event, so a @type {Message} object is used. */
                 const message = new Message(this, msg);
 
-                const newId = isParticipant ? msg.recipients[0] : msg._data.templateParams[1];
-                const oldId = isParticipant ? msg.author : msg._data.templateParams[0];
+                let newId = isParticipant ? msg.recipients[0] : msg._data.templateParams[1];
+                let oldId = isParticipant ? msg.author : msg._data.templateParams[0];
 
                 /**
                      * Emitted when a contact or a group participant changes their phone number.
@@ -518,6 +518,14 @@ class Client extends EventEmitter {
                      * @param {String} newId The user's new id after the change.
                      * @param {Boolean} isContact Indicates if a contact or a group participant changed their phone number.
                      */
+                if (newId.endsWith('@lid')) {
+                    let u = await this.getContactLidAndPhone(newId);
+                    newId = u[0].pn;
+                }
+                if (oldId.endsWith('@lid')) {
+                    let u = await this.getContactLidAndPhone(oldId);
+                    oldId = u[0].pn;
+                }
                 this.emit(Events.CONTACT_CHANGED, message, oldId, newId, isContact);
             }
         });
