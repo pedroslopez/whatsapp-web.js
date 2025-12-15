@@ -2428,7 +2428,8 @@ class Client extends EventEmitter {
     async deleteAddressbookContact(phoneNumber)
     {
         return await this.pupPage.evaluate(async (phoneNumber) => {
-            return await window.Store.AddressbookContactUtils.deleteContactAction(phoneNumber);
+            const wid = window.Store.WidFactory.createWid(phoneNumber);
+            return await window.Store.AddressbookContactUtils.deleteContactAction({phoneNumber: wid});
         }, phoneNumber);
     }
 
