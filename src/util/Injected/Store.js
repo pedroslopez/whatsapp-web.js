@@ -54,6 +54,7 @@ exports.ExposeStore = () => {
     window.Store.MediaObject = window.require('WAWebMediaStorage');
     window.Store.MediaTypes = window.require('WAWebMmsMediaTypes');
     window.Store.MediaUpload = window.require('WAWebMediaMmsV4Upload');
+    window.Store.MediaUpdate = window.require('WAWebMediaUpdateMsg');
     window.Store.MsgKey = window.require('WAWebMsgKey');
     window.Store.OpaqueData = window.require('WAWebMediaOpaqueData');
     window.Store.QueryProduct = window.require('WAWebBizProductCatalogBridge');
@@ -66,7 +67,10 @@ exports.ExposeStore = () => {
     window.Store.BlobCache = window.require('WAWebMediaInMemoryBlobCache');
     window.Store.SendSeen = window.require('WAWebUpdateUnreadChatAction');
     window.Store.User = window.require('WAWebUserPrefsMeUser');
-    window.Store.ContactMethods = window.require('WAWebContactGetters');
+    window.Store.ContactMethods = {
+        ...window.require('WAWebContactGetters'),
+        ...window.require('WAWebFrontendContactGetters')
+    };
     window.Store.UserConstructor = window.require('WAWebWid');
     window.Store.Validators = window.require('WALinkify');
     window.Store.WidFactory = window.require('WAWebWidFactory');
@@ -74,7 +78,6 @@ exports.ExposeStore = () => {
     window.Store.PresenceUtils = window.require('WAWebPresenceChatAction');
     window.Store.ChatState = window.require('WAWebChatStateBridge');
     window.Store.findCommonGroups = window.require('WAWebFindCommonGroupsContactAction').findCommonGroups;
-    window.Store.StatusUtils = window.require('WAWebContactStatusBridge');
     window.Store.ConversationMsgs = window.require('WAWebChatLoadMessages');
     window.Store.sendReactionToMsg = window.require('WAWebSendReactionMsgAction').sendReactionToMsg;
     window.Store.createOrUpdateReactionsModule = window.require('WAWebDBCreateOrUpdateReactions');
@@ -107,7 +110,7 @@ exports.ExposeStore = () => {
     window.Store.BusinessGatingUtils = window.require('WAWebBizGatingUtils');
     window.Store.PollsVotesSchema = window.require('WAWebPollsVotesSchema');
     window.Store.PollsSendVote = window.require('WAWebPollsSendVoteMsgAction');
-    
+
     window.Store.Settings = {
         ...window.require('WAWebUserPrefsGeneral'),
         ...window.require('WAWebUserPrefsNotifications'),
@@ -196,6 +199,12 @@ exports.ExposeStore = () => {
     window.Store.AddressbookContactUtils = {
         ...window.require('WAWebSaveContactAction'),
         ...window.require('WAWebDeleteContactAction')
+    };
+    window.Store.StatusUtils = {
+        ...window.require('WAWebContactStatusBridge'),
+        ...window.require('WAWebSendStatusMsgAction'),
+        ...window.require('WAWebRevokeStatusAction'),
+        ...window.require('WAWebStatusGatingUtils')
     };
 
     if (!window.Store.Chat._find || !window.Store.Chat.findImpl) {
