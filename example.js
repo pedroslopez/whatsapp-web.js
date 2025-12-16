@@ -3,10 +3,26 @@ const { Client, Location, Poll, List, Buttons, LocalAuth } = require('./index');
 const client = new Client({
     authStrategy: new LocalAuth(),
     // proxyAuthentication: { username: 'username', password: 'password' },
+    /**
+     * This option changes the browser name from defined in user agent to custom.
+     */
+    // deviceName: 'Your custom name',
+    /**
+     * This option changes browser type from defined in user agent to yours. It affects the browser icon
+     * that is displayed in 'linked devices' section.
+     * Valid value are: 'Chrome' | 'Firefox' | 'IE' | 'Opera' | 'Safari' | 'Edge'.
+     * If another value is provided, the browser icon in 'linked devices' section will be gray.
+     */
+    // browserName: 'Firefox',
     puppeteer: { 
         // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
         headless: false,
-    }
+    },
+    // pairWithPhoneNumber: {
+    //     phoneNumber: '96170100100' // Pair with phone number (format: <COUNTRY_CODE><PHONE_NUMBER>)
+    //     showNotification: true,
+    //     intervalMs: 180000 // Time to renew pairing code in milliseconds, defaults to 3 minutes
+    // }
 });
 
 // client initialize does not finish at ready now.
@@ -16,19 +32,13 @@ client.on('loading_screen', (percent, message) => {
     console.log('LOADING SCREEN', percent, message);
 });
 
-// Pairing code only needs to be requested once
-let pairingCodeRequested = false;
 client.on('qr', async (qr) => {
     // NOTE: This event will not be fired if a session is specified.
     console.log('QR RECEIVED', qr);
+});
 
-    // paiuting code example
-    const pairingCodeEnabled = false;
-    if (pairingCodeEnabled && !pairingCodeRequested) {
-        const pairingCode = await client.requestPairingCode('96170100100'); // enter the target phone number
-        console.log('Pairing code enabled, code: '+ pairingCode);
-        pairingCodeRequested = true;
-    }
+client.on('code', (code) => {
+    console.log('Pairing code:',code);
 });
 
 client.on('authenticated', () => {
@@ -355,7 +365,7 @@ client.on('message', async msg => {
         let list = new List('List body', 'btnText', sections, 'Title', 'footer');
         client.sendMessage(msg.from, list);
     } else if (msg.body === '!reaction') {
-        msg.react('👍');
+        await msg.react('👍');
     } else if (msg.body === '!sendpoll') {
         /** By default the poll is created as a single choice poll: */
         await msg.reply(new Poll('Winter or Summer?', ['Winter', 'Summer']));
@@ -372,11 +382,20 @@ client.on('message', async msg => {
                 ]
             })
         );
+    } else if (msg.body === '!vote') {
+        if (msg.hasQuotedMsg) {
+            const quotedMsg = await msg.getQuotedMessage();
+            if (quotedMsg.type === 'poll_creation') {
+                await quotedMsg.vote(msg.body.replace('!vote', ''));
+            } else {
+                msg.reply('Can only be used on poll messages');
+            }
+        }
     } else if (msg.body === '!edit') {
         if (msg.hasQuotedMsg) {
             const quotedMsg = await msg.getQuotedMessage();
             if (quotedMsg.fromMe) {
-                quotedMsg.edit(msg.body.replace('!edit', ''));
+                await quotedMsg.edit(msg.body.replace('!edit', ''));
             } else {
                 msg.reply('I can only edit my own messages');
             }
@@ -504,6 +523,13 @@ client.on('message', async msg => {
         // NOTE: this action will take effect after you restart the client.
         const backgroundSync = await client.setBackgroundSync(true);
         console.log(backgroundSync);
+    } else if (msg.body === '!postStatus') {
+        await client.sendMessage('status@broadcast', 'Hello there!');
+        // send with a different style
+        await client.sendMessage('status@broadcast', 'Hello again! Looks different?', {
+            fontStyle: 1,
+            backgroundColor: '#0b3296'
+        });
     }
 });
 

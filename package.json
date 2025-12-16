@@ -1,6 +1,6 @@
 {
   "name": "whatsapp-web.js",
-  "version": "1.31.1-alpha.0",
+  "version": "1.34.3",
   "description": "Library for interacting with the WhatsApp Web API ",
   "main": "./index.js",
   "typings": "./index.d.ts",
@@ -34,7 +34,7 @@
     "mime": "^3.0.0",
     "node-fetch": "^2.6.9",
     "node-webpmux": "3.1.7",
-    "puppeteer": "^18.2.1"
+    "puppeteer": "^24.31.0"
   },
   "devDependencies": {
     "@types/node-fetch": "^2.5.12",
