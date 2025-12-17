@@ -102,29 +102,29 @@ class RemoteAuth extends BaseAuthStrategy {
     }
 
     async storeRemoteSession(options) {
-      const pathExists = await this.isValidPath(this.userDataDir);
-      if (!pathExists) return;
-    
-      let compressedSessionPath;
-      try {
-        compressedSessionPath = await this.compressSession();
-        await this.store.save({ session: this.sessionName });
-        if(options && options.emit) this.client.emit(Events.REMOTE_SESSION_SAVED);
-      } finally {
-        const paths = [
-            this.tempDir,
-            ...(compressedSessionPath ? [compressedSessionPath] : [])
-        ];
-        await Promise.allSettled(
-            paths.map((p) =>
-                fs.promises.rm(p, {
-                    recursive: true,
-                    force: true,
-                    maxRetries: this.rmMaxRetries,
-                })
-            )
-        );
-      }
+        const pathExists = await this.isValidPath(this.userDataDir);
+        if (!pathExists) return;
+
+        let compressedSessionPath;
+        try {
+            compressedSessionPath = await this.compressSession();
+            await this.store.save({ session: this.sessionName });
+            if(options && options.emit) this.client.emit(Events.REMOTE_SESSION_SAVED);
+        } finally {
+            const paths = [
+                this.tempDir,
+                ...(compressedSessionPath ? [compressedSessionPath] : [])
+            ];
+            await Promise.allSettled(
+                paths.map((p) =>
+                    fs.promises.rm(p, {
+                        recursive: true,
+                        force: true,
+                        maxRetries: this.rmMaxRetries,
+                    })
+                )
+            );
+        }
     }
 
     async extractRemoteSession() {
