@@ -449,7 +449,9 @@ class Message extends Base {
 
         const result = await this.client.pupPage.evaluate(async (msgId) => {
             const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
-            if (!msg || !msg.mediaData) {
+
+            // REUPLOADING mediaStage means the media is expired and the download button is spinning, cannot be downloaded now
+            if (!msg || !msg.mediaData || msg.mediaData.mediaStage === 'REUPLOADING') {
                 return null;
             }
             if (msg.mediaData.mediaStage != 'RESOLVED') {
@@ -466,6 +468,10 @@ class Message extends Base {
             }
 
             try {
+                const mockQpl = {
+                    addAnnotations: function() { return this; },
+                    addPoint: function() { return this; }
+                };
                 const decryptedMedia = await window.Store.DownloadManager.downloadAndMaybeDecrypt({
                     directPath: msg.directPath,
                     encFilehash: msg.encFilehash,
@@ -473,7 +479,8 @@ class Message extends Base {
                     mediaKey: msg.mediaKey,
                     mediaKeyTimestamp: msg.mediaKeyTimestamp,
                     type: msg.type,
-                    signal: (new AbortController).signal
+                    signal: (new AbortController).signal,
+                    downloadQpl: mockQpl
                 });
 
                 const data = await window.WWebJS.arrayBufferToBase64Async(decryptedMedia);
