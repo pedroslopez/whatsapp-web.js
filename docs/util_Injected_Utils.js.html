@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.6.11">
   <meta charset="utf-8">
-  <title>whatsapp-web.js 1.26.1-alpha.3 &raquo; Source: util/Injected/Utils.js</title>
+  <title>whatsapp-web.js 1.28.1-alpha.0 &raquo; Source: util/Injected/Utils.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>26.<wbr>1-alpha.<wbr>3</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-web.<wbr>js 1.<wbr>28.<wbr>1-alpha.<wbr>0</a>
       </div>
     </div>
   </nav>
@@ -39,7 +39,7 @@ exports.LoadUtils &#x3D; () &#x3D;&gt; {
         let chat &#x3D; window.Store.Chat.get(chatId);
 
         if (window.compareWwebVersions(window.Debug.VERSION, &#x27;&gt;&#x27;, &#x27;2.3000.0&#x27;)) {
-            return window.Store.ForwardUtils.forwardMessagesToChats([msg], [chat], false);
+            return window.Store.ForwardUtils.forwardMessagesToChats([msg], [chat], true);
         } else {
             return chat.forwardMessages([msg]);
         }
@@ -77,20 +77,24 @@ exports.LoadUtils &#x3D; () &#x3D;&gt; {
         if (options.quotedMessageId) {
             let quotedMessage &#x3D; await window.Store.Msg.getMessagesById([options.quotedMessageId]);
 
-            if (quotedMessage[&#x27;messages&#x27;].length !&#x3D; 1) {
-                throw new Error(&#x27;Could not get the quoted message.&#x27;);
+            if (quotedMessage[&#x27;messages&#x27;].length &#x3D;&#x3D; 1) {
+                quotedMessage &#x3D; quotedMessage[&#x27;messages&#x27;][0];
+
+                // TODO remove .canReply() once all clients are updated to &gt;&#x3D; v2.2241.6
+                const canReply &#x3D; window.Store.ReplyUtils ?
+                    window.Store.ReplyUtils.canReplyMsg(quotedMessage.unsafe()) :
+                    quotedMessage.canReply();
+
+                if (canReply) {
+                    quotedMsgOptions &#x3D; quotedMessage.msgContextInfo(chat);
+                }
+            }else{
+                if(!options.ignoreQuoteErrors) {
+                    throw new Error(&#x27;Could not get the quoted message.&#x27;);
+                }
             }
-
-            quotedMessage &#x3D; quotedMessage[&#x27;messages&#x27;][0];
-
-            // TODO remove .canReply() once all clients are updated to &gt;&#x3D; v2.2241.6
-            const canReply &#x3D; window.Store.ReplyUtils ? 
-                window.Store.ReplyUtils.canReplyMsg(quotedMessage.unsafe()) : 
-                quotedMessage.canReply();
-
-            if (canReply) {
-                quotedMsgOptions &#x3D; quotedMessage.msgContextInfo(chat);
-            }
+            
+            delete options.ignoreQuoteErrors;
             delete options.quotedMessageId;
         }
 
@@ -241,8 +245,12 @@ exports.LoadUtils &#x3D; () &#x3D;&gt; {
             delete options.invokedBotWid;
         }
 
-        const meUser &#x3D; window.Store.User.getMaybeMeUser();
+        let meUser &#x3D; window.Store.User.getMaybeMeUser();
         const newId &#x3D; await window.Store.MsgKey.newId();
+
+        if (chat.id.isGroup() &amp;amp;&amp;amp; chat.groupMetadata.isLidAddressingMode) {
+            meUser &#x3D; window.Store.User.getMaybeMeLidUser();
+        }
         
         const newMsgId &#x3D; new window.Store.MsgKey({
             from: meUser,
@@ -484,13 +492,14 @@ exports.LoadUtils &#x3D; () &#x3D;&gt; {
         let res &#x3D; chat.serialize();
         res.isGroup &#x3D; false;
         res.formattedTitle &#x3D; chat.formattedTitle;
-        res.isMuted &#x3D; chat.muteExpiration &#x3D;&#x3D; 0 ? false : true;
+        res.isMuted &#x3D; chat.mute?.expiration !&#x3D;&#x3D; 0;
 
         if (chat.groupMetadata) {
             res.isGroup &#x3D; true;
             const chatWid &#x3D; window.Store.WidFactory.createWid((chat.id._serialized));
             await window.Store.GroupMetadata.update(chatWid);
             res.groupMetadata &#x3D; chat.groupMetadata.serialize();
+            res.isReadOnly &#x3D; chat.groupMetadata.announce;
         }
         
         res.lastMessage &#x3D; null;
@@ -952,7 +961,7 @@ exports.LoadUtils &#x3D; () &#x3D;&gt; {
         let response;
         let result &#x3D; [];
 
-        await window.Store.GroupQueryAndUpdate(groupWid);
+        await window.Store.GroupQueryAndUpdate({ id: groupId });
 
         if (!requesterIds?.length) {
             membershipRequests &#x3D; group.groupMetadata.membershipApprovalRequests._models.map(({ id }) &#x3D;&gt; id);
@@ -1047,9 +1056,8 @@ exports.LoadUtils &#x3D; () &#x3D;&gt; {
     };
     
     window.WWebJS.getStatusModel &#x3D; status &#x3D;&gt; {
-        let res &#x3D; status.serialize();
+        const res &#x3D; status.serialize();
         delete res._msgs;
-        res.msgs &#x3D; status._msgs.map(msg &#x3D;&gt; window.WWebJS.getMessageModel(msg));
         return res;
     };
 
@@ -1068,7 +1076,7 @@ exports.LoadUtils &#x3D; () &#x3D;&gt; {
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on November 22, 2024.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on May 30, 2025.
       </p>
     </div>
   </footer>
