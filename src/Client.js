@@ -264,6 +264,32 @@ class Client extends EventEmitter {
                 //Load util functions (serializers, helper functions)
                 await this.pupPage.evaluate(LoadUtils);
 
+                // Wait for WAWebSetPushnameConnAction module to be available and assign to Store.Settings
+                // This module may not be loaded immediately when restoring an existing session
+                // See: https://github.com/pedroslopez/whatsapp-web.js/pull/3975
+                await this.pupPage.evaluate(async () => {
+                    const MAX_WAIT_MS = 10000;
+                    const POLL_INTERVAL_MS = 100;
+                    const startTime = Date.now();
+
+                    while (Date.now() - startTime < MAX_WAIT_MS) {
+                        try {
+                            const module = window.require('WAWebSetPushnameConnAction');
+                            if (module && typeof module.setPushname === 'function') {
+                                window.Store.Settings.setPushname = module.setPushname;
+                                return;
+                            }
+                        } catch (_) {
+                            // Module not yet available, continue polling
+                        }
+                        await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS));
+                    }
+
+                    // If module never loads, leave setPushname as null
+                    // setDisplayName will handle this gracefully
+                    console.warn('[wwebjs] WAWebSetPushnameConnAction module not available after timeout');
+                });
+
                 await this.attachEventListeners();
             }
             /**
@@ -1397,7 +1423,7 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Sets the current user's display name. 
+     * Sets the current user's display name.
      * This is the name shown to WhatsApp users that have not added you as a contact beside your number in groups and in your profile.
      * @param {string} displayName New display name
      * @returns {Promise<Boolean>}
@@ -1405,6 +1431,10 @@ class Client extends EventEmitter {
     async setDisplayName(displayName) {
         const couldSet = await this.pupPage.evaluate(async displayName => {
             if(!window.Store.Conn.canSetMyPushname()) return false;
+            if(typeof window.Store.Settings.setPushname !== 'function') {
+                console.warn('[wwebjs] setPushname not available - WAWebSetPushnameConnAction module may not have loaded');
+                return false;
+            }
             await window.Store.Settings.setPushname(displayName);
             return true;
         }, displayName);
