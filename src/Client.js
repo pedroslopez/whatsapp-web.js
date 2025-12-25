@@ -2323,11 +2323,12 @@ class Client extends EventEmitter {
     {
         return await this.pupPage.evaluate(async (phoneNumber, firstName, lastName, syncToAddressbook) => {
             return await window.Store.AddressbookContactUtils.saveContactAction({
-                firstName: firstName, 
-                lastName: lastName, 
-                phoneNumber: phoneNumber, 
-                prevPhoneNumber: phoneNumber, 
-                syncToAddressbook: syncToAddressbook
+                'firstName' : firstName,
+                'lastName' : lastName,
+                'phoneNumber' : phoneNumber,
+                'prevPhoneNumber' : phoneNumber,
+                'syncToAddressbook': syncToAddressbook,
+                'username' : undefined
             });
         }, phoneNumber, firstName, lastName, syncToAddressbook);
     }
