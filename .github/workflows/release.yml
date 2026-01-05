@@ -19,6 +19,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.RELEASE_GITHUB_TOKEN }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
       - run: git config --global user.email "hello@wwebjs.dev"
       - run: git config --global user.name "WWebJS Bot"
       - name: Bump version and publish to NPM
