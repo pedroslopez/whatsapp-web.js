@@ -232,6 +232,19 @@ class Client extends EventEmitter {
                 }
 
                 if (isCometOrAbove) {
+                    await this.pupPage.evaluate(async () => {
+                        const targetABFlag = 'wa_web_disable_prefetch_loadables';
+
+                        const ABPrefetchLoadablesExists = !!(await window.require('WAWebABPropsConfigs').ABPropConfigs[targetABFlag]);
+                      
+                        if (ABPrefetchLoadablesExists) {
+                            const isUsingABPrefetchLoadables = await window.require('WAWebABProps').getABPropConfigValue(targetABFlag);
+
+                            if (isUsingABPrefetchLoadables) {
+                                await window.require('WAWebPrefetchLoadables')();
+                            }
+                        }
+                    });
                     await this.pupPage.evaluate(ExposeStore);
                 } else {
                     // make sure all modules are ready before injection
