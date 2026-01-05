@@ -12,8 +12,11 @@ jobs:
   release:
     runs-on: ubuntu-latest
     if: ${{ github.repository == 'pedroslopez/whatsapp-web.js' }}
+    permissions:
+      contents: write
+      id-token: write
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           token: ${{ secrets.RELEASE_GITHUB_TOKEN }}
       - run: git config --global user.email "hello@wwebjs.dev"
@@ -21,8 +24,6 @@ jobs:
       - name: Bump version and publish to NPM
         id: publish
         run: ./tools/publish ${{ github.event.inputs.release_type }}
-        env:
-          NPM_TOKEN: ${{ secrets.RELEASE_NPM_TOKEN }}
       - name: Create GitHub Release
         id: create_release
         uses: ncipollo/release-action@v1
