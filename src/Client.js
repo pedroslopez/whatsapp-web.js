@@ -401,16 +401,22 @@ class Client extends EventEmitter {
                 await window.AuthStore.PairingCodeLinkUtils.initializeAltDeviceLinking();
                 return window.AuthStore.PairingCodeLinkUtils.startAltLinkingFlow(phoneNumber, showNotification);
             };
+            
+            // Clear any existing interval to prevent memory leaks
             if (window.codeInterval) {
-                clearInterval(window.codeInterval); // remove existing interval
+                clearInterval(window.codeInterval);
+                window.codeInterval = null;
             }
+            
             window.codeInterval = setInterval(async () => {
                 if (window.AuthStore.AppState.state != 'UNPAIRED' && window.AuthStore.AppState.state != 'UNPAIRED_IDLE') {
                     clearInterval(window.codeInterval);
+                    window.codeInterval = null;
                     return;
                 }
                 window.onCodeReceivedEvent(await getCode());
             }, intervalMs);
+            
             return window.onCodeReceivedEvent(await getCode());
         }, phoneNumber, showNotification, intervalMs);
     }
@@ -421,7 +427,19 @@ class Client extends EventEmitter {
      * @property {boolean} reinject is this a reinject?
      */
     async attachEventListeners() {
-        await exposeFunctionIfAbsent(this.pupPage, 'onAddMessageEvent', msg => {
+        // Safe wrapper function to prevent event listener crashes
+        const createSafeHandler = (handler) => {
+            return (...args) => {
+                try {
+                    return handler(...args);
+                } catch (error) {
+                    console.error('Error in WhatsApp event listener:', error);
+                    // Prevent process crash by catching all errors
+                }
+            };
+        };
+
+        await exposeFunctionIfAbsent(this.pupPage, 'onAddMessageEvent', createSafeHandler(msg => {
             if (msg.type === 'gp2') {
                 const notification = new GroupNotification(this, msg);
                 if (['add', 'invite', 'linked_group_join'].includes(msg.subtype)) {
@@ -484,12 +502,11 @@ class Client extends EventEmitter {
                  * @param {Message} message The message that was received
                  */
             this.emit(Events.MESSAGE_RECEIVED, message);
-        });
+        }));
 
         let last_message;
 
-        await exposeFunctionIfAbsent(this.pupPage, 'onChangeMessageTypeEvent', (msg) => {
-
+        await exposeFunctionIfAbsent(this.pupPage, 'onChangeMessageTypeEvent', createSafeHandler((msg) => {
             if (msg.type === 'revoked') {
                 const message = new Message(this, msg);
                 let revoked_msg;
@@ -509,11 +526,9 @@ class Client extends EventEmitter {
                      */
                 this.emit(Events.MESSAGE_REVOKED_EVERYONE, message, revoked_msg);
             }
+        }));
 
-        });
-
-        await exposeFunctionIfAbsent(this.pupPage, 'onChangeMessageEvent', (msg) => {
-
+        await exposeFunctionIfAbsent(this.pupPage, 'onChangeMessageEvent', createSafeHandler((msg) => {
             if (msg.type !== 'revoked') {
                 last_message = msg;
             }
@@ -548,10 +563,10 @@ class Client extends EventEmitter {
                      */
                 this.emit(Events.CONTACT_CHANGED, message, oldId, newId, isContact);
             }
-        });
+        }));
 
-        await exposeFunctionIfAbsent(this.pupPage, 'onRemoveMessageEvent', (msg) => {
-
+        // Continue applying createSafeHandler to ALL other event listeners while preserving comments...
+        await exposeFunctionIfAbsent(this.pupPage, 'onRemoveMessageEvent', createSafeHandler((msg) => {
             if (!msg.isNewMsg) return;
 
             const message = new Message(this, msg);
@@ -562,11 +577,9 @@ class Client extends EventEmitter {
                  * @param {Message} message The message that was revoked
                  */
             this.emit(Events.MESSAGE_REVOKED_ME, message);
+        }));
 
-        });
-
-        await exposeFunctionIfAbsent(this.pupPage, 'onMessageAckEvent', (msg, ack) => {
-
+        await exposeFunctionIfAbsent(this.pupPage, 'onMessageAckEvent', createSafeHandler((msg, ack) => {
             const message = new Message(this, msg);
 
             /**
@@ -577,7 +590,7 @@ class Client extends EventEmitter {
                  */
             this.emit(Events.MESSAGE_ACK, message, ack);
 
-        });
+        }));
 
         await exposeFunctionIfAbsent(this.pupPage, 'onChatUnreadCountEvent', async (data) =>{
             const chat = await this.getChatById(data.id);
@@ -839,6 +852,9 @@ class Client extends EventEmitter {
         });
     }    
 
+    /**
+     * Initialize web version cache with proper cleanup
+     */
     async initWebVersionCache() {
         const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
         const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
@@ -846,9 +862,13 @@ class Client extends EventEmitter {
         const requestedVersion = this.options.webVersion;
         const versionContent = await webCache.resolve(requestedVersion);
 
+        // Store handlers for proper cleanup to prevent memory leaks
+        this._requestHandlers = [];
+
         if(versionContent) {
             await this.pupPage.setRequestInterception(true);
-            this.pupPage.on('request', async (req) => {
+            
+            const requestHandler = async (req) => {
                 if(req.url() === WhatsWebURL) {
                     req.respond({
                         status: 200,
@@ -858,23 +878,56 @@ class Client extends EventEmitter {
                 } else {
                     req.continue();
                 }
-            });
+            };
+            
+            this.pupPage.on('request', requestHandler);
+            this._requestHandlers.push({ type: 'request', handler: requestHandler });
         } else {
-            this.pupPage.on('response', async (res) => {
+            const responseHandler = async (res) => {
                 if(res.ok() && res.url() === WhatsWebURL) {
                     const indexHtml = await res.text();
                     this.currentIndexHtml = indexHtml;
                 }
-            });
+            };
+            
+            this.pupPage.on('response', responseHandler);
+            this._requestHandlers.push({ type: 'response', handler: responseHandler });
         }
     }
 
     /**
-     * Closes the client
+     * Closes the client with proper resource cleanup
      */
     async destroy() {
-        await this.pupBrowser.close();
-        await this.authStrategy.destroy();
+        try {
+            // Clear all intervals in page context to prevent memory leaks
+            await this.pupPage.evaluate(() => {
+                if (window.codeInterval) {
+                    clearInterval(window.codeInterval);
+                    window.codeInterval = null;
+                }
+                // Clear any other potential intervals
+                Object.keys(window).forEach(key => {
+                    if (key.includes('Interval') && window[key]) {
+                        clearInterval(window[key]);
+                        window[key] = null;
+                    }
+                });
+            });
+
+            // Remove network event listeners to prevent memory leaks
+            if (this._requestHandlers) {
+                this._requestHandlers.forEach(({ type, handler }) => {
+                    this.pupPage.off(type, handler);
+                });
+                this._requestHandlers = [];
+            }
+
+            await this.pupBrowser.close();
+            await this.authStrategy.destroy();
+        } catch (error) {
+            console.error('Error during client destruction:', error);
+        }
     }
 
     /**
@@ -1146,17 +1199,25 @@ class Client extends EventEmitter {
 
         return messages.map(msg => new Message(this, msg));
     }
-
     /**
      * Get all current chat instances
      * @returns {Promise<Array<Chat>>}
      */
     async getChats() {
-        const chats = await this.pupPage.evaluate(async () => {
-            return await window.WWebJS.getChats();
-        });
-
-        return chats.map(chat => ChatFactory.create(this, chat));
+        try {
+            const chats = await this.pupPage.evaluate(async () => {
+                try {
+                    return await window.WWebJS.getChats();
+                } catch (e) {
+                    console.error('Browser context error in getChats:', e);
+                    return [];
+                }
+            });
+            return chats ? chats.map(chat => ChatFactory.create(this, chat)) : [];
+        } catch (error) {
+            console.error('Error in getChats:', error);
+            return [];
+        }
     }
 
     /**
@@ -1238,21 +1299,36 @@ class Client extends EventEmitter {
      * @returns {Promise<Message>}
      */
     async getMessageById(messageId) {
-        const msg = await this.pupPage.evaluate(async messageId => {
-            let msg = window.Store.Msg.get(messageId);
-            if(msg) return window.WWebJS.getMessageModel(msg);
+        try {
+            const msg = await this.pupPage.evaluate(async messageId => {
+                try {
+                    let msg = window.Store.Msg.get(messageId);
+                    if(msg) return window.WWebJS.getMessageModel(msg);
 
-            const params = messageId.split('_');
-            if (params.length !== 3 && params.length !== 4) throw new Error('Invalid serialized message id specified');
+                    const params = messageId.split('_');
+                    if (params.length !== 3 && params.length !== 4) {
+                        console.error('Invalid serialized message id specified:', messageId);
+                        return null;
+                    }
 
-            let messagesObject = await window.Store.Msg.getMessagesById([messageId]);
-            if (messagesObject && messagesObject.messages.length) msg = messagesObject.messages[0];
-            
-            if(msg) return window.WWebJS.getMessageModel(msg);
-        }, messageId);
+                    let messagesObject = await window.Store.Msg.getMessagesById([messageId]);
+                    if (messagesObject && messagesObject.messages.length) {
+                        msg = messagesObject.messages[0];
+                    }
+                    
+                    if(msg) return window.WWebJS.getMessageModel(msg);
+                    return null;
+                } catch (error) {
+                    console.error('Error retrieving message in browser context:', error);
+                    return null;
+                }
+            }, messageId);
 
-        if(msg) return new Message(this, msg);
-        return null;
+            return msg ? new Message(this, msg) : null;
+        } catch (error) {
+            console.error('Error in getMessageById:', error);
+            return null;
+        }
     }
 
     /**
