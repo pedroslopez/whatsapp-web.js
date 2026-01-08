@@ -575,7 +575,20 @@ exports.LoadUtils = () => {
                 chat = null;
             }
         } else {
-            chat = window.Store.Chat.get(chatWid) || (await window.Store.FindOrCreateChat.findOrCreateLatestChat(chatWid))?.chat;
+          chat = await window.Store.FindOrCreateChat.findOrCreateLatestChat(chatWid)
+              .then(chat => chat.chat)
+              .catch(async err => {
+                let query = window.require("WAWebContactSyncUtils").constructUsyncDeltaQuery([{
+                  type: "add",
+                  phoneNumber: chatWid.user
+                }]);
+                  
+                let result =  await query.execute();
+                if (result && Array.isArray(result.list) &&result.list.length > 0 &&result.list[0] &&result.list[0].lid) {
+                  chatLid = window.Store.WidFactory.createWid(result.list[0].lid)
+                  return await window.require('WAWebFindChatAction').findOrCreateLatestChat(chatLid).then(chat => chat.chat).catch(async err => {})
+                }
+              })
         }
 
         return getAsModel && chat
