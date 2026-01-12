@@ -361,7 +361,7 @@ class Message extends Base {
     
     /**
      * Returns groups mentioned in this message
-     * @returns {Promise<GroupChat[]|[]>}
+     * @returns {Promise<Array<GroupChat>>}
      */
     async getGroupMentions() {
         return await Promise.all(this.groupMentions.map(async (m) => await this.client.getChatById(m.groupJid._serialized)));

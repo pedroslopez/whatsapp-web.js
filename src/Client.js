@@ -96,9 +96,20 @@ class Client extends EventEmitter {
      * Private function
      */
     async inject() {
-               
-        await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', {timeout: this.options.authTimeoutMs});
-       
+        if(this.options.authTimeoutMs === undefined || this.options.authTimeoutMs==0){
+            this.options.authTimeoutMs = 30000;
+        }
+        let start = Date.now();
+        let timeout = this.options.authTimeoutMs;
+        let res = false;
+        while(start > (Date.now() - timeout)){
+            res = await this.pupPage.evaluate('window.Debug?.VERSION != undefined');
+            if(res){break;}
+            await new Promise(r => setTimeout(r, 200));
+        }
+        if(!res){ 
+            throw 'auth timeout';
+        }       
         await this.setDeviceName(this.options.deviceName, this.options.browserName);
         const pairWithPhoneNumber = this.options.pairWithPhoneNumber;
         const version = await this.getWWebVersion();
@@ -1247,7 +1258,7 @@ class Client extends EventEmitter {
     /**
      * Gets instances of all pinned messages in a chat
      * @param {string} chatId The chat ID
-     * @returns {Promise<[Message]|[]>}
+     * @returns {Promise<Array<Message>>}
      */
     async getPinnedMessages(chatId) {
         const pinnedMsgs = await this.pupPage.evaluate(async (chatId) => {
@@ -1925,7 +1936,7 @@ class Client extends EventEmitter {
      * 2 for POPULAR channels
      * 3 for NEW channels
      * @param {number} [searchOptions.limit = 50] The limit of found channels to be appear in the returnig result
-     * @returns {Promise<Array<Channel>|[]>} Returns an array of Channel objects or an empty array if no channels were found
+     * @returns {Promise<Array<Channel>>} Returns an array of Channel objects or an empty array if no channels were found
      */
     async searchChannels(searchOptions = {}) {
         return await this.pupPage.evaluate(async ({
