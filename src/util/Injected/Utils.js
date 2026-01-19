@@ -13,10 +13,7 @@ exports.LoadUtils = () => {
         const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
         if (chat) {
             window.Store.WAWebStreamModel.Stream.markAvailable();
-            await window.Store.SendSeen.sendSeen({
-                chat: chat,
-                threadId: undefined
-            });         
+            await window.Store.SendSeen.markSeen(chat);    
             window.Store.WAWebStreamModel.Stream.markUnavailable();
             return true;
         }
@@ -432,7 +429,7 @@ exports.LoadUtils = () => {
             type: 'sticker',
             signal: controller.signal,
             mediaKey,
-            uploadQpl: window.require("WAWebStartMediaUploadQpl").startMediaUploadQpl({
+            uploadQpl: window.Store.MediaUpload.startMediaUploadQpl({
                 entryPoint: "MediaUpload"
             }),
         });
