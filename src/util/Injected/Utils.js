@@ -431,7 +431,10 @@ exports.LoadUtils = () => {
             blob: file,
             type: 'sticker',
             signal: controller.signal,
-            mediaKey
+            mediaKey,
+            uploadQpl: window.require("WAWebStartMediaUploadQpl").startMediaUploadQpl({
+                entryPoint: "MediaUpload"
+            }),
         });
 
         const stickerInfo = {
