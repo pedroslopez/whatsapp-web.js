@@ -3,11 +3,11 @@
 /* Require Optional Dependencies */
 try {
     var fs = require('fs-extra');
-    var unzipper = require('unzipper');
+    var AdmZip = require('adm-zip');
     var archiver = require('archiver');
 } catch {
     fs = undefined;
-    unzipper = undefined;
+    AdmZip = undefined;
     archiver = undefined;
 }
 
@@ -26,7 +26,7 @@ const BaseAuthStrategy = require('./BaseAuthStrategy');
  */
 class RemoteAuth extends BaseAuthStrategy {
     constructor({ clientId, dataPath, store, backupSyncIntervalMs, rmMaxRetries } = {}) {
-        if (!fs && !unzipper && !archiver) throw new Error('Optional Dependencies [fs-extra, unzipper, archiver] are required to use RemoteAuth. Make sure to run npm install correctly and remove the --no-optional flag');
+        if (!fs && !AdmZip && !archiver) throw new Error('Optional Dependencies [fs-extra, adm-zip, archiver] are required to use RemoteAuth. Make sure to run npm install correctly and remove the --no-optional flag');
         super();
 
         const idRegex = /^[-_\w]+$/i;
@@ -159,13 +159,15 @@ class RemoteAuth extends BaseAuthStrategy {
     }
 
     async unCompressSession(compressedSessionPath) {
-        var stream = fs.createReadStream(compressedSessionPath);
         await new Promise((resolve, reject) => {
-            stream.pipe(unzipper.Extract({
-                path: this.userDataDir
-            }))
-                .on('error', err => reject(err))
-                .on('finish', () => resolve());
+            var zip = new AdmZip(compressedSessionPath);
+            zip.extractAllToAsync(this.userDataDir, false, false, (err) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve();
+                }
+            });
         });
         await fs.promises.unlink(compressedSessionPath);
     }
