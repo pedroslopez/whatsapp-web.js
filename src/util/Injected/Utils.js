@@ -22,7 +22,6 @@ exports.LoadUtils = () => {
                 return true;
             } catch (error) {
                 window.Store.WAWebStreamModel.Stream.markUnavailable();
-                // Ignore 'markedUnread' error as per issue #5736
                 if (error.name === 'TypeError' || error.message?.includes('markedUnread')) {
                     return true;
                 }
