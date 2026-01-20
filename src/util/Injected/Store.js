@@ -111,11 +111,26 @@ exports.ExposeStore = () => {
     window.Store.PollsVotesSchema = window.require('WAWebPollsVotesSchema');
     window.Store.PollsSendVote = window.require('WAWebPollsSendVoteMsgAction');
 
+    let setPushname;
+
+    /**
+     * Some WWeb builds (A/B tests) may not expose WAWebSetPushnameConnAction at bootstrap.
+     * Guard it so Store injection can proceed and to prevent Store injection from failing and blocking client initialization.
+     */
+    try {
+        const mod = window.require('WAWebSetPushnameConnAction');
+        setPushname = typeof mod?.setPushname === 'function' ? mod.setPushname : undefined;
+    } catch {
+        setPushname = undefined;
+    }
+
     window.Store.Settings = {
         ...window.require('WAWebUserPrefsGeneral'),
         ...window.require('WAWebUserPrefsNotifications'),
-        setPushname: window.require('WAWebSetPushnameConnAction').setPushname
+        ...(setPushname ? { setPushname } : {}),
     };
+
+
     window.Store.NumberInfo = {
         ...window.require('WAPhoneUtils'),
         ...window.require('WAPhoneFindCC')
@@ -231,7 +246,7 @@ exports.ExposeStore = () => {
     window.injectToFunction = (target, callback) => {
         try {
             let module = window.require(target.module);
-            if (!module) return; 
+            if (!module) return;
 
             const path = target.function.split('.');
             const funcName = path.pop();
