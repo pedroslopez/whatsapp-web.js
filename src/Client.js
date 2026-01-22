@@ -1271,7 +1271,7 @@ class Client extends EventEmitter {
     /**
      * Gets instances of all pinned messages in a chat
      * @param {string} chatId The chat ID
-     * @returns {Promise<[Message]|[]>}
+     * @returns {Promise<Array<Message>>}
      */
     async getPinnedMessages(chatId) {
         const pinnedMsgs = await this.pupPage.evaluate(async (chatId) => {
@@ -1949,7 +1949,7 @@ class Client extends EventEmitter {
      * 2 for POPULAR channels
      * 3 for NEW channels
      * @param {number} [searchOptions.limit = 50] The limit of found channels to be appear in the returnig result
-     * @returns {Promise<Array<Channel>|[]>} Returns an array of Channel objects or an empty array if no channels were found
+     * @returns {Promise<Array<Channel>>} Returns an array of Channel objects or an empty array if no channels were found
      */
     async searchChannels(searchOptions = {}) {
         return await this.pupPage.evaluate(async ({
