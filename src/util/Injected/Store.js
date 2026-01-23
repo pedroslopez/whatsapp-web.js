@@ -44,6 +44,44 @@ exports.ExposeStore = () => {
     };
 
     window.Store = Object.assign({}, window.require('WAWebCollections'));
+
+    const LazyLoadMap = {
+        'WAWebSetPushnameConnAction': 'WAWebProfileDrawerLoadableRequireBundle',
+        'WAWebChatForwardMessage': 'WAWebForwardMessageModalLoadable'
+    };
+
+    /**
+     * Helper function to load a module with lazy loading
+     * @param {string} moduleName The module name to load
+     * @returns {Promise<Object>} The module
+     * @throws {Error} If the module is not found
+     */
+    window.Store.resolveModule = async (moduleName) => {
+        let module = window.require(moduleName);
+        if (module) return module;
+
+        const bundleName = LazyLoadMap[moduleName];
+
+        if (bundleName) {
+            const bundle = window.require(bundleName);
+
+            if (bundle && bundle.requireBundle) {
+                console.warn(`Module '${moduleName}' not found, trying to require bundle: '${bundleName}'`);
+                await bundle.requireBundle(); 
+            }
+
+            if (bundle && bundle.loadBundle) {
+                console.warn(`Module '${moduleName}' not found, trying to load bundle: '${bundleName}'`);
+                await bundle.loadBundle(); 
+            }
+
+            module = window.require(moduleName);
+            if (module) return module;
+        }
+
+        throw new Error(`Module '${moduleName}' not found`);
+    };
+
     window.Store.AppState = window.require('WAWebSocketModel').Socket;
     window.Store.BlockContact = window.require('WAWebBlockContactAction');
     window.Store.Conn = window.require('WAWebConnModel').Conn;
@@ -114,14 +152,26 @@ exports.ExposeStore = () => {
     window.Store.Settings = {
         ...window.require('WAWebUserPrefsGeneral'),
         ...window.require('WAWebUserPrefsNotifications'),
-        setPushname: window.require('WAWebSetPushnameConnAction').setPushname
+    };
+    // safe injection with lazy loading
+    window.Store.Settings.setPushname = async (name) => {
+        try {
+            const module = await window.Store.resolveModule('WAWebSetPushnameConnAction');
+            return module.setPushname(name);
+        } catch (e) {
+            console.error('Failed to load \'WAWebSetPushnameConnAction\'. setPushname is not available', e);
+            return false;
+        }
     };
     window.Store.NumberInfo = {
         ...window.require('WAPhoneUtils'),
         ...window.require('WAPhoneFindCC')
     };
-    window.Store.ForwardUtils = {
-        ...window.require('WAWebChatForwardMessage')
+    // ForwardUtils also has problems with whatsapp web lazy loading, so need to load it manually
+    window.Store.ForwardUtils = {};
+    window.Store.ForwardUtils.forwardMessages = async (data) => {
+        const module = await window.Store.resolveModule('WAWebChatForwardMessage');
+        return await module.forwardMessages(data);
     };
     window.Store.PinnedMsgUtils = {
         ...window.require('WAWebPinInChatSchema'),
