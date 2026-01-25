@@ -58,7 +58,7 @@ class Buttons {
          * @type {FormattedButtonSpec[]}
          */
         this.buttons = this._format(buttons);
-        if(!this.buttons.length){ throw '[BT01] No buttons';}
+        if(!this.buttons.length){ throw new Error('[BT01] No buttons');}
                 
     }
 

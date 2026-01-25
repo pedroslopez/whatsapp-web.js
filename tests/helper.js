@@ -14,7 +14,7 @@ function isMD() {
     return Boolean(process.env.WWEBJS_TEST_MD);
 }
 
-if(isUsingLegacySession() && isMD()) throw 'Cannot use legacy sessions with WWEBJS_TEST_MD=true';
+if(isUsingLegacySession() && isMD()) throw new Error('Cannot use legacy sessions with WWEBJS_TEST_MD=true');
 
 function getSessionFromEnv() {
     if (!isUsingLegacySession()) return null;

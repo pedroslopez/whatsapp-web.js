@@ -763,7 +763,7 @@ class Message extends Base {
      * @returns {Promise}
      */
     async vote(selectedOptions) {
-        if (this.type != MessageTypes.POLL_CREATION) throw 'Invalid usage! Can only be used with a pollCreation message';
+        if (this.type != MessageTypes.POLL_CREATION) throw new Error('Invalid usage! Can only be used with a pollCreation message');
 
         await this.client.pupPage.evaluate(async (messageId, votes) => {
             if (!messageId) return null;

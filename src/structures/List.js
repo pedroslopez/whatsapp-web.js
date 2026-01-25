@@ -56,14 +56,14 @@ class List {
      * Returns: [{'title':'sectionTitle','rows':[{'rowId':'customId','title':'ListItem1','description':'desc'},{'rowId':'oGSRoD','title':'ListItem2','description':''}]}]
      */
     _format(sections){
-        if(!sections.length){throw '[LT02] List without sections';}
-        if(sections.length > 1 && sections.filter(s => typeof s.title == 'undefined').length > 1){throw '[LT05] You can\'t have more than one empty title.';}
+        if(!sections.length){throw new Error('[LT02] List without sections');}
+        if(sections.length > 1 && sections.filter(s => typeof s.title == 'undefined').length > 1){throw new Error('[LT05] You can\'t have more than one empty title.');}
         return sections.map( (section) =>{
-            if(!section.rows.length){throw '[LT03] Section without rows';}
+            if(!section.rows.length){throw new Error('[LT03] Section without rows');}
             return {
                 title: section.title ? section.title : undefined,
                 rows: section.rows.map( (row) => {
-                    if(!row.title){throw '[LT04] Row without title';}
+                    if(!row.title){throw new Error('[LT04] Row without title');}
                     return {
                         rowId: row.id ? row.id : Util.generateHash(6),
                         title: row.title,
