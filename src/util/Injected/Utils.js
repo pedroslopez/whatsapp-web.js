@@ -213,7 +213,7 @@ exports.LoadUtils = () => {
         let listOptions = {};
         if (options.list) {
             if (window.Store.Conn.platform === 'smba' || window.Store.Conn.platform === 'smbi') {
-                throw '[LT01] Whatsapp business can\'t send this yet';
+                throw new Error('[LT01] Whatsapp business can\'t send this yet');
             }
             listOptions = {
                 type: 'list',
@@ -830,7 +830,7 @@ exports.LoadUtils = () => {
             await window.Store.ChatState.sendChatStatePaused(chatId);
             break;
         default:
-            throw 'Invalid chatstate';
+            throw new Error('Invalid chatstate');
         }
 
         return true;
@@ -1214,7 +1214,7 @@ exports.LoadUtils = () => {
             }
             color = parseInt(number, 16);
         } else {
-            throw 'Invalid hex color';
+            throw new Error('Invalid hex color');
         }
         return color;
     };
