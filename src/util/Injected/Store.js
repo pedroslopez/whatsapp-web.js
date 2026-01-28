@@ -200,6 +200,10 @@ exports.ExposeStore = () => {
         ...window.require('WAWebDeleteContactAction')
     };
 
+    if (!window.Store.GroupMetadata) {
+        window.Store.GroupMetadata = window.require('WAWebGroupMetadataCollection');
+    }
+    
     if (!window.Store.Chat._find || !window.Store.Chat.findImpl) {
         window.Store.Chat._find = e => {
             const target = window.Store.Chat.get(e);
