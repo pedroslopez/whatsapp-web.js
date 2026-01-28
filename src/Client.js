@@ -88,6 +88,14 @@ class Client extends EventEmitter {
 
         this.currentIndexHtml = null;
         this.lastLoggedOut = false;
+        this._authenticatedEmitted = false;
+        this._readyEmitted = false;
+        this._ensureReadyInProgress = false;
+        this._readyRetryScheduled = false;
+        this._readyFallbackTimer = null;
+        this._readyForceTimer = null;
+        this._loadingScreenFinished = false;
+        this._lastOfflineProgress = null;
 
         Util.setFfmpegPath(this.options.ffmpegPath);
     }
@@ -212,72 +220,225 @@ class Client extends EventEmitter {
         });
 
         await exposeFunctionIfAbsent(this.pupPage, 'onAppStateHasSyncedEvent', async () => {
-            const authEventPayload = await this.authStrategy.getAuthEventPayload();
-            /**
-                 * Emitted when authentication is successful
-                 * @event Client#authenticated
-                 */
-            this.emit(Events.AUTHENTICATED, authEventPayload);
+            if (!this._authenticatedEmitted) {
+                const authEventPayload = await this.authStrategy.getAuthEventPayload();
+                /**
+                     * Emitted when authentication is successful
+                     * @event Client#authenticated
+                     */
+                this.emit(Events.AUTHENTICATED, authEventPayload);
+                this._authenticatedEmitted = true;
+            }
+            if (!this._readyEmitted && !this._readyForceTimer) {
+                this._readyForceTimer = setTimeout(() => {
+                    this._readyForceTimer = null;
+                    if (!this._readyEmitted) {
+                        this.emit(Events.READY);
+                        this.authStrategy.afterAuthReady();
+                        this._readyEmitted = true;
+                    }
+                }, 3000);
+            }
 
-            const injected = await this.pupPage.evaluate(async () => {
-                return typeof window.Store !== 'undefined' && typeof window.WWebJS !== 'undefined';
-            });
+            if (this._readyEmitted || this._ensureReadyInProgress) return;
 
-            if (!injected) {
+            this._ensureReadyInProgress = true;
+            try {
                 if (this.options.webVersionCache.type === 'local' && this.currentIndexHtml) {
                     const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
                     const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
-            
                     await webCache.persist(this.currentIndexHtml, version);
                 }
 
-                if (isCometOrAbove) {
-                    await this.pupPage.evaluate(ExposeStore);
-                } else {
-                    // make sure all modules are ready before injection
-                    // 2 second delay after authentication makes sense and does not need to be made dyanmic or removed
-                    await new Promise(r => setTimeout(r, 2000)); 
-                    await this.pupPage.evaluate(ExposeLegacyStore);
-                }
-                let start = Date.now();
-                let res = false;
-                while(start > (Date.now() - 30000)){
-                    // Check window.Store Injection
-                    res = await this.pupPage.evaluate('window.Store != undefined');
-                    if(res){break;}
-                    await new Promise(r => setTimeout(r, 200));
-                }
-                if(!res){
-                    throw 'ready timeout';
-                }
-            
-                /**
-                     * Current connection information
-                     * @type {ClientInfo}
-                     */
-                this.info = new ClientInfo(this, await this.pupPage.evaluate(() => {
-                    return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMaybeMePnUser() || window.Store.User.getMaybeMeLidUser() };
-                }));
+                const waitForStore = async (timeoutMs) => {
+                    try {
+                        await this.pupPage.waitForFunction('window.Store != undefined', { timeout: timeoutMs });
+                        return true;
+                    } catch (_) {
+                        return false;
+                    }
+                };
 
-                this.interface = new InterfaceController(this);
+                const waitForStoreAndUtils = async (timeoutMs) => {
+                    try {
+                        await this.pupPage.waitForFunction('window.Store != undefined && window.Store.Msg != undefined', { timeout: timeoutMs });
+                        return true;
+                    } catch (_) {
+                        return false;
+                    }
+                };
 
-                //Load util functions (serializers, helper functions)
-                await this.pupPage.evaluate(LoadUtils);
+                for (let attempt = 0; attempt < 5 && !this._readyEmitted; attempt++) {
+                    const injected = await this.pupPage.evaluate(async () => {
+                        return typeof window.Store !== 'undefined' && typeof window.WWebJS !== 'undefined';
+                    });
 
-                await this.attachEventListeners();
+                    if (!injected) {
+                        if (isCometOrAbove) {
+                            await this.pupPage.evaluate(ExposeStore);
+                        } else {
+                            // make sure all modules are ready before injection
+                            // 2 second delay after authentication makes sense and does not need to be made dyanmic or removed
+                            await new Promise(r => setTimeout(r, 2000)); 
+                            await this.pupPage.evaluate(ExposeLegacyStore);
+                        }
+
+                        if (!(await waitForStore(15000))) {
+                            await new Promise(r => setTimeout(r, 1500));
+                            continue;
+                        }
+
+                        try {
+                            //Load util functions (serializers, helper functions)
+                            await this.pupPage.evaluate(LoadUtils);
+                        } catch (_) {
+                            // ignore and retry
+                        }
+                    }
+
+                    if (!(await waitForStoreAndUtils(15000))) {
+                        await new Promise(r => setTimeout(r, 1500));
+                        continue;
+                    }
+                    try {
+                        await this.pupPage.evaluate(() => {
+                            if (!window.WWebJS) window.WWebJS = {};
+                            if (!window.WWebJS.getMessageModel) {
+                                window.WWebJS.getMessageModel = (msg) => (msg && msg.serialize) ? msg.serialize() : msg;
+                            }
+                            if (!window.WWebJS.getChatModel) {
+                                window.WWebJS.getChatModel = async (chat) => (chat && chat.serialize) ? chat.serialize() : chat;
+                            }
+                        });
+                    } catch (_) {
+                        // ignore and continue with minimal utils
+                    }
+
+                    if (!this.info) {
+                        /**
+                             * Current connection information
+                             * @type {ClientInfo}
+                             */
+                        this.info = new ClientInfo(this, await this.pupPage.evaluate(() => {
+                            return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMaybeMePnUser() || window.Store.User.getMaybeMeLidUser() };
+                        }));
+                    }
+
+                    if (!this.interface) {
+                        this.interface = new InterfaceController(this);
+                    }
+
+                    await this.attachEventListeners();
+
+                    if (!this._loadingScreenFinished) {
+                        this._lastOfflineProgress = 100;
+                        this._loadingScreenFinished = true;
+                        this.emit(Events.LOADING_SCREEN, 100, 'WhatsApp');
+                    }
+                    /**
+                         * Emitted when the client has initialized and is ready to receive messages.
+                         * @event Client#ready
+                         */
+                    this.emit(Events.READY);
+                    this.authStrategy.afterAuthReady();
+                    this._readyEmitted = true;
+                }
+                if (!this._readyEmitted && !this._readyRetryScheduled) {
+                    this._readyRetryScheduled = true;
+                    setTimeout(() => {
+                        this._readyRetryScheduled = false;
+                        if (!this._readyEmitted && !this._ensureReadyInProgress) {
+                            this.pupPage
+                                .evaluate(() => { window.onAppStateHasSyncedEvent && window.onAppStateHasSyncedEvent(); })
+                                .catch(() => {});
+                        }
+                    }, 2000);
+                }
+                if (!this._readyEmitted && !this._readyFallbackTimer) {
+                    this._readyFallbackTimer = setTimeout(async () => {
+                        this._readyFallbackTimer = null;
+                        if (this._readyEmitted || this._ensureReadyInProgress) return;
+                        this._ensureReadyInProgress = true;
+                        try {
+                            const hasStore = await this.pupPage.evaluate(() => typeof window.Store !== 'undefined');
+                            if (!hasStore) return;
+                            try {
+                                if (isCometOrAbove) {
+                                    await this.pupPage.evaluate(ExposeStore);
+                                } else {
+                                    await this.pupPage.evaluate(ExposeLegacyStore);
+                                }
+                            } catch (_) {
+                                // ignore
+                            }
+                            try {
+                                await this.pupPage.evaluate(LoadUtils);
+                            } catch (_) {
+                                // ignore
+                            }
+                            try {
+                                await this.pupPage.evaluate(() => {
+                                    if (!window.WWebJS) window.WWebJS = {};
+                                    if (!window.WWebJS.getMessageModel) {
+                                        window.WWebJS.getMessageModel = (msg) => (msg && msg.serialize) ? msg.serialize() : msg;
+                                    }
+                                    if (!window.WWebJS.getChatModel) {
+                                        window.WWebJS.getChatModel = async (chat) => (chat && chat.serialize) ? chat.serialize() : chat;
+                                    }
+                                });
+                            } catch (_) {
+                                // ignore
+                            }
+                            if (!this.info) {
+                                try {
+                                    this.info = new ClientInfo(this, await this.pupPage.evaluate(() => {
+                                        return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMaybeMePnUser() || window.Store.User.getMaybeMeLidUser() };
+                                    }));
+                                } catch (_) {
+                                    // ignore
+                                }
+                            }
+                            if (!this.interface) {
+                                this.interface = new InterfaceController(this);
+                            }
+                            await this.attachEventListeners();
+                            if (!this._loadingScreenFinished) {
+                                this._lastOfflineProgress = 100;
+                                this._loadingScreenFinished = true;
+                                this.emit(Events.LOADING_SCREEN, 100, 'WhatsApp');
+                            }
+                            this.emit(Events.READY);
+                            this.authStrategy.afterAuthReady();
+                            this._readyEmitted = true;
+                        } finally {
+                            this._ensureReadyInProgress = false;
+                        }
+                    }, 10000);
+                }
+            } finally {
+                this._ensureReadyInProgress = false;
             }
-            /**
-                 * Emitted when the client has initialized and is ready to receive messages.
-                 * @event Client#ready
-                 */
-            this.emit(Events.READY);
-            this.authStrategy.afterAuthReady();
         });
-        let lastPercent = null;
         await exposeFunctionIfAbsent(this.pupPage, 'onOfflineProgressUpdateEvent', async (percent) => {
-            if (lastPercent !== percent) {
-                lastPercent = percent;
+            if (this._loadingScreenFinished) return;
+            if (this._lastOfflineProgress !== percent) {
+                this._lastOfflineProgress = percent;
                 this.emit(Events.LOADING_SCREEN, percent, 'WhatsApp'); // Message is hardcoded as "WhatsApp" for now
+                if (percent >= 99 && !this._readyEmitted && !this._ensureReadyInProgress) {
+                    this.pupPage
+                        .evaluate(() => { window.onAppStateHasSyncedEvent && window.onAppStateHasSyncedEvent(); })
+                        .catch(() => {});
+                    setTimeout(() => {
+                        if (this._authenticatedEmitted && !this._readyEmitted) {
+                            this.emit(Events.READY);
+                            this.authStrategy.afterAuthReady();
+                            this._readyEmitted = true;
+                        }
+                    }, 1500);
+                }
+                if (percent >= 100) {
+                    this._loadingScreenFinished = true;
+                }
             }
         });
         await exposeFunctionIfAbsent(this.pupPage, 'onLogoutEvent', async () => {
@@ -285,8 +446,32 @@ class Client extends EventEmitter {
             await this.pupPage.waitForNavigation({waitUntil: 'load', timeout: 5000}).catch((_) => _);
         });
         await this.pupPage.evaluate(() => {
-            window.AuthStore.AppState.on('change:state', (_AppState, state) => { window.onAuthAppStateChangedEvent(state); });
-            window.AuthStore.AppState.on('change:hasSynced', () => { window.onAppStateHasSyncedEvent(); });
+            const appState = window.AuthStore.AppState;
+            let syncedFallbackTriggered = false;
+            const triggerSyncedFallback = () => {
+                if (syncedFallbackTriggered) return;
+                if (appState.state === 'CONNECTED') {
+                    syncedFallbackTriggered = true;
+                    window.onAppStateHasSyncedEvent();
+                }
+            };
+            if (appState.hasSynced) {
+                syncedFallbackTriggered = true;
+                window.onAppStateHasSyncedEvent();
+            }
+            appState.on('change:hasSynced', (_AppState, hasSynced) => {
+                if (hasSynced) {
+                    syncedFallbackTriggered = true;
+                    window.onAppStateHasSyncedEvent();
+                }
+            });
+            appState.on('change:state', (_AppState, state) => {
+                window.onAuthAppStateChangedEvent(state);
+                if (state === 'CONNECTED') {
+                    triggerSyncedFallback();
+                }
+            });
+            setTimeout(triggerSyncedFallback, 10000);
             window.AuthStore.Cmd.on('offline_progress_update', () => {
                 window.onOfflineProgressUpdateEvent(window.AuthStore.OfflineMessageHandler.getOfflineDeliveryProgress()); 
             });
@@ -300,6 +485,14 @@ class Client extends EventEmitter {
      * Sets up events and requirements, kicks off authentication request
      */
     async initialize() {
+        this._authenticatedEmitted = false;
+        this._readyEmitted = false;
+        this._ensureReadyInProgress = false;
+        this._readyRetryScheduled = false;
+        this._readyFallbackTimer = null;
+        this._readyForceTimer = null;
+        this._loadingScreenFinished = false;
+        this._lastOfflineProgress = null;
 
         let 
             /**
