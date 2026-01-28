@@ -1998,7 +1998,7 @@ class Client extends EventEmitter {
             const channel = await window.WWebJS.getChat(channelId, { getAsModel: false });
             const newOwner = window.Store.Contact.get(newOwnerId) || (await window.Store.Contact.find(newOwnerId));
             if (!channel.newsletterMetadata) {
-                await window.Store.NewsletterMetadataCollection.update(channel.id);
+                await window.Store.NewsletterMetadataCollection?.update(channel.id);
             }
 
             try {
