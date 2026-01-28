@@ -203,6 +203,9 @@ exports.ExposeStore = () => {
     if (!window.Store.GroupMetadata) {
         window.Store.GroupMetadata = window.require('WAWebGroupMetadataCollection');
     }
+    if (!window.Store.ProfilePic) {
+        window.Store.ProfilePic = window.require('WAWebContactProfilePicThumbBridge');
+    }
     
     if (!window.Store.Chat._find || !window.Store.Chat.findImpl) {
         window.Store.Chat._find = e => {
