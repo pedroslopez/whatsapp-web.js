@@ -856,6 +856,20 @@ class Client extends EventEmitter {
      * Closes the client
      */
     async destroy() {
+        if (this.pupPage && !this.pupPage.isClosed()) {
+            try {
+                await this.pupPage.evaluate(() => {
+                    // Request persistence to ensure IndexedDB data is flushed
+                    if (navigator.storage && navigator.storage.persist) {
+                        return navigator.storage.persist();
+                    }
+                });
+            } catch (_) {
+                // Page may already be closed or navigated away
+            }
+            // Give browser time to flush any pending IndexedDB writes
+            await new Promise(resolve => setTimeout(resolve, 3000));
+        }
         await this.pupBrowser.close();
         await this.authStrategy.destroy();
     }
