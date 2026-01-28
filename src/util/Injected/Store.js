@@ -111,11 +111,20 @@ exports.ExposeStore = () => {
     window.Store.PollsVotesSchema = window.require('WAWebPollsVotesSchema');
     window.Store.PollsSendVote = window.require('WAWebPollsSendVoteMsgAction');
 
+    let setPushname;
+    try {
+        setPushname = window.require('WAWebSetPushnameConnAction')?.setPushname;
+    } catch (e) {
+        setPushname = undefined;
+    }
+
     window.Store.Settings = {
         ...window.require('WAWebUserPrefsGeneral'),
         ...window.require('WAWebUserPrefsNotifications'),
-        setPushname: window.require('WAWebSetPushnameConnAction').setPushname
+        ...(typeof setPushname === 'function' ? { setPushname } : {})
     };
+
+
     window.Store.NumberInfo = {
         ...window.require('WAPhoneUtils'),
         ...window.require('WAPhoneFindCC')
@@ -207,6 +216,16 @@ exports.ExposeStore = () => {
         ...window.require('WAWebStatusGatingUtils')
     };
 
+    // GroupMetadata moved to WAWebGroupMetadataCollection in WWeb 2.3000.x
+    if (!window.Store.GroupMetadata) {
+        try {
+            const mod = window.require('WAWebGroupMetadataCollection');
+            window.Store.GroupMetadata = mod?.GroupMetadata ?? mod?.default;
+        } catch {
+            // Module doesn't exist in older versions
+        }
+    }
+
     if (!window.Store.Chat._find || !window.Store.Chat.findImpl) {
         window.Store.Chat._find = e => {
             const target = window.Store.Chat.get(e);
@@ -231,7 +250,7 @@ exports.ExposeStore = () => {
     window.injectToFunction = (target, callback) => {
         try {
             let module = window.require(target.module);
-            if (!module) return; 
+            if (!module) return;
 
             const path = target.function.split('.');
             const funcName = path.pop();
