@@ -285,8 +285,20 @@ class Client extends EventEmitter {
             await this.pupPage.waitForNavigation({waitUntil: 'load', timeout: 5000}).catch((_) => _);
         });
         await this.pupPage.evaluate(() => {
-            window.AuthStore.AppState.on('change:state', (_AppState, state) => { window.onAuthAppStateChangedEvent(state); });
-            window.AuthStore.AppState.on('change:hasSynced', () => { window.onAppStateHasSyncedEvent(); });
+          //  window.AuthStore.AppState.on('change:state', (_AppState, state) => { window.onAuthAppStateChangedEvent(state); });
+          //  window.AuthStore.AppState.on('change:hasSynced', () => { window.onAppStateHasSyncedEvent(); });
+            
+            const appState = window.AuthStore.AppState;
+            if (appState.hasSynced) {
+                window.onAppStateHasSyncedEvent();
+            }
+            appState.on('change:hasSynced', (_AppState, hasSynced) => {
+                if (hasSynced) {
+                    window.onAppStateHasSyncedEvent();
+                }
+            });
+            appState.on('change:state', (_AppState, state) => { window.onAuthAppStateChangedEvent(state); });
+            
             window.AuthStore.Cmd.on('offline_progress_update', () => {
                 window.onOfflineProgressUpdateEvent(window.AuthStore.OfflineMessageHandler.getOfflineDeliveryProgress()); 
             });
