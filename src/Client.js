@@ -1007,10 +1007,14 @@ class Client extends EventEmitter {
             const toModel = (msg) => {
                 try {
                     if (window.WWebJS?.getMessageModel) return window.WWebJS.getMessageModel(msg);
-                } catch (_) {}
+                } catch (_) {
+                    // Ignore and fall back to other serialization paths.
+                }
                 try {
                     if (msg?.serialize) return msg.serialize();
-                } catch (_) {}
+                } catch (_) {
+                    // Ignore serialization errors and fall back to raw message.
+                }
                 return msg;
             };
             const emitIfNew = (msg) => {
