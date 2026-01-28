@@ -13,7 +13,11 @@ exports.LoadUtils = () => {
         const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
         if (chat) {
             window.Store.WAWebStreamModel.Stream.markAvailable();
-            await window.Store.SendSeen.markSeen(chat);
+            // See https://github.com/pedroslopez/whatsapp-web.js/pull/5729
+            await window.Store.SendSeen.sendSeen({
+                chat: chat,
+                threadId: undefined
+            });
             window.Store.WAWebStreamModel.Stream.markUnavailable();
             return true;
         }
