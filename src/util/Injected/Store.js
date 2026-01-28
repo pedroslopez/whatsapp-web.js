@@ -217,6 +217,9 @@ exports.ExposeStore = () => {
         window.Store.Chat.findImpl = window.Store.Chat._find;
     }
 
+    if (!window.Store.ProfilePic) {
+        window.Store.ProfilePic = window.require('WAWebContactProfilePicThumbBridge');
+    }
     /**
      * Target options object description
      * @typedef {Object} TargetOptions
