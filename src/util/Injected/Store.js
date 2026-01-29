@@ -55,7 +55,7 @@ exports.ExposeStore = () => {
     window.Store.MediaTypes = window.require('WAWebMmsMediaTypes');
     window.Store.MediaUpload = {
         ...window.require('WAWebMediaMmsV4Upload'),
-        ...window.require("WAWebStartMediaUploadQpl")
+        ...window.require('WAWebStartMediaUploadQpl')
     }
     window.Store.MediaUpdate = window.require('WAWebMediaUpdateMsg');
     window.Store.MsgKey = window.require('WAWebMsgKey');
