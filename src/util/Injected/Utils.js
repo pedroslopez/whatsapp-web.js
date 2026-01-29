@@ -13,7 +13,13 @@ exports.LoadUtils = () => {
         const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
         if (chat) {
             window.Store.WAWebStreamModel.Stream.markAvailable();
-            await window.Store.SendSeen.markSeen(chat);
+            try {
+                // New signature for WWeb 2.3000+ (PR #5729)
+                await window.Store.SendSeen.sendSeen({ chat: chat, threadId: undefined });
+            } catch {
+                // Fallback to old signature for older versions
+                await window.Store.SendSeen.sendSeen(chat);
+            }
             window.Store.WAWebStreamModel.Stream.markUnavailable();
             return true;
         }
