@@ -88,6 +88,17 @@ class Client extends EventEmitter {
 
         this.currentIndexHtml = null;
         this.lastLoggedOut = false;
+        this._authenticatedEmitted = false;
+        this._readyEmitted = false;
+        this._ensureReadyInProgress = false;
+        this._readyRetryScheduled = false;
+        this._readyFallbackTimer = null;
+        this._readyForceTimer = null;
+        this._loadingScreenFinished = false;
+        this._lastOfflineProgress = null;
+        this._eventListenersAttached = false;
+        this._messageDedup = new Map();
+        this._messageDedupOrder = [];
 
         Util.setFfmpegPath(this.options.ffmpegPath);
     }
@@ -96,6 +107,7 @@ class Client extends EventEmitter {
      * Private function
      */
     async inject() {
+        this._eventListenersAttached = false;
         if(this.options.authTimeoutMs === undefined || this.options.authTimeoutMs==0){
             this.options.authTimeoutMs = 30000;
         }
@@ -212,72 +224,225 @@ class Client extends EventEmitter {
         });
 
         await exposeFunctionIfAbsent(this.pupPage, 'onAppStateHasSyncedEvent', async () => {
-            const authEventPayload = await this.authStrategy.getAuthEventPayload();
-            /**
-                 * Emitted when authentication is successful
-                 * @event Client#authenticated
-                 */
-            this.emit(Events.AUTHENTICATED, authEventPayload);
+            if (!this._authenticatedEmitted) {
+                const authEventPayload = await this.authStrategy.getAuthEventPayload();
+                /**
+                     * Emitted when authentication is successful
+                     * @event Client#authenticated
+                     */
+                this.emit(Events.AUTHENTICATED, authEventPayload);
+                this._authenticatedEmitted = true;
+            }
+            if (!this._readyEmitted && !this._readyForceTimer) {
+                this._readyForceTimer = setTimeout(() => {
+                    this._readyForceTimer = null;
+                    if (!this._readyEmitted) {
+                        this.emit(Events.READY);
+                        this.authStrategy.afterAuthReady();
+                        this._readyEmitted = true;
+                    }
+                }, 3000);
+            }
 
-            const injected = await this.pupPage.evaluate(async () => {
-                return typeof window.Store !== 'undefined' && typeof window.WWebJS !== 'undefined';
-            });
+            if (this._readyEmitted || this._ensureReadyInProgress) return;
 
-            if (!injected) {
+            this._ensureReadyInProgress = true;
+            try {
                 if (this.options.webVersionCache.type === 'local' && this.currentIndexHtml) {
                     const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
                     const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
-            
                     await webCache.persist(this.currentIndexHtml, version);
                 }
 
-                if (isCometOrAbove) {
-                    await this.pupPage.evaluate(ExposeStore);
-                } else {
-                    // make sure all modules are ready before injection
-                    // 2 second delay after authentication makes sense and does not need to be made dyanmic or removed
-                    await new Promise(r => setTimeout(r, 2000)); 
-                    await this.pupPage.evaluate(ExposeLegacyStore);
-                }
-                let start = Date.now();
-                let res = false;
-                while(start > (Date.now() - 30000)){
-                    // Check window.Store Injection
-                    res = await this.pupPage.evaluate('window.Store != undefined');
-                    if(res){break;}
-                    await new Promise(r => setTimeout(r, 200));
-                }
-                if(!res){
-                    throw 'ready timeout';
-                }
-            
-                /**
-                     * Current connection information
-                     * @type {ClientInfo}
-                     */
-                this.info = new ClientInfo(this, await this.pupPage.evaluate(() => {
-                    return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMaybeMePnUser() || window.Store.User.getMaybeMeLidUser() };
-                }));
+                const waitForStore = async (timeoutMs) => {
+                    try {
+                        await this.pupPage.waitForFunction('window.Store != undefined', { timeout: timeoutMs });
+                        return true;
+                    } catch (_) {
+                        return false;
+                    }
+                };
 
-                this.interface = new InterfaceController(this);
+                const waitForStoreAndUtils = async (timeoutMs) => {
+                    try {
+                        await this.pupPage.waitForFunction('window.Store != undefined && window.Store.Msg != undefined', { timeout: timeoutMs });
+                        return true;
+                    } catch (_) {
+                        return false;
+                    }
+                };
 
-                //Load util functions (serializers, helper functions)
-                await this.pupPage.evaluate(LoadUtils);
+                for (let attempt = 0; attempt < 5 && !this._readyEmitted; attempt++) {
+                    const injected = await this.pupPage.evaluate(async () => {
+                        return typeof window.Store !== 'undefined' && typeof window.WWebJS !== 'undefined';
+                    });
 
-                await this.attachEventListeners();
+                    if (!injected) {
+                        if (isCometOrAbove) {
+                            await this.pupPage.evaluate(ExposeStore);
+                        } else {
+                            // make sure all modules are ready before injection
+                            // 2 second delay after authentication makes sense and does not need to be made dyanmic or removed
+                            await new Promise(r => setTimeout(r, 2000)); 
+                            await this.pupPage.evaluate(ExposeLegacyStore);
+                        }
+
+                        if (!(await waitForStore(15000))) {
+                            await new Promise(r => setTimeout(r, 1500));
+                            continue;
+                        }
+
+                        try {
+                            //Load util functions (serializers, helper functions)
+                            await this.pupPage.evaluate(LoadUtils);
+                        } catch (_) {
+                            // ignore and retry
+                        }
+                    }
+
+                    if (!(await waitForStoreAndUtils(15000))) {
+                        await new Promise(r => setTimeout(r, 1500));
+                        continue;
+                    }
+                    try {
+                        await this.pupPage.evaluate(() => {
+                            if (!window.WWebJS) window.WWebJS = {};
+                            if (!window.WWebJS.getMessageModel) {
+                                window.WWebJS.getMessageModel = (msg) => (msg && msg.serialize) ? msg.serialize() : msg;
+                            }
+                            if (!window.WWebJS.getChatModel) {
+                                window.WWebJS.getChatModel = async (chat) => (chat && chat.serialize) ? chat.serialize() : chat;
+                            }
+                        });
+                    } catch (_) {
+                        // ignore and continue with minimal utils
+                    }
+
+                    if (!this.info) {
+                        /**
+                             * Current connection information
+                             * @type {ClientInfo}
+                             */
+                        this.info = new ClientInfo(this, await this.pupPage.evaluate(() => {
+                            return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMaybeMePnUser() || window.Store.User.getMaybeMeLidUser() };
+                        }));
+                    }
+
+                    if (!this.interface) {
+                        this.interface = new InterfaceController(this);
+                    }
+
+                    await this.attachEventListeners();
+
+                    if (!this._loadingScreenFinished) {
+                        this._lastOfflineProgress = 100;
+                        this._loadingScreenFinished = true;
+                        this.emit(Events.LOADING_SCREEN, 100, 'WhatsApp');
+                    }
+                    /**
+                         * Emitted when the client has initialized and is ready to receive messages.
+                         * @event Client#ready
+                         */
+                    this.emit(Events.READY);
+                    this.authStrategy.afterAuthReady();
+                    this._readyEmitted = true;
+                }
+                if (!this._readyEmitted && !this._readyRetryScheduled) {
+                    this._readyRetryScheduled = true;
+                    setTimeout(() => {
+                        this._readyRetryScheduled = false;
+                        if (!this._readyEmitted && !this._ensureReadyInProgress) {
+                            this.pupPage
+                                .evaluate(() => { window.onAppStateHasSyncedEvent && window.onAppStateHasSyncedEvent(); })
+                                .catch(() => {});
+                        }
+                    }, 2000);
+                }
+                if (!this._readyEmitted && !this._readyFallbackTimer) {
+                    this._readyFallbackTimer = setTimeout(async () => {
+                        this._readyFallbackTimer = null;
+                        if (this._readyEmitted || this._ensureReadyInProgress) return;
+                        this._ensureReadyInProgress = true;
+                        try {
+                            const hasStore = await this.pupPage.evaluate(() => typeof window.Store !== 'undefined');
+                            if (!hasStore) return;
+                            try {
+                                if (isCometOrAbove) {
+                                    await this.pupPage.evaluate(ExposeStore);
+                                } else {
+                                    await this.pupPage.evaluate(ExposeLegacyStore);
+                                }
+                            } catch (_) {
+                                // ignore
+                            }
+                            try {
+                                await this.pupPage.evaluate(LoadUtils);
+                            } catch (_) {
+                                // ignore
+                            }
+                            try {
+                                await this.pupPage.evaluate(() => {
+                                    if (!window.WWebJS) window.WWebJS = {};
+                                    if (!window.WWebJS.getMessageModel) {
+                                        window.WWebJS.getMessageModel = (msg) => (msg && msg.serialize) ? msg.serialize() : msg;
+                                    }
+                                    if (!window.WWebJS.getChatModel) {
+                                        window.WWebJS.getChatModel = async (chat) => (chat && chat.serialize) ? chat.serialize() : chat;
+                                    }
+                                });
+                            } catch (_) {
+                                // ignore
+                            }
+                            if (!this.info) {
+                                try {
+                                    this.info = new ClientInfo(this, await this.pupPage.evaluate(() => {
+                                        return { ...window.Store.Conn.serialize(), wid: window.Store.User.getMaybeMePnUser() || window.Store.User.getMaybeMeLidUser() };
+                                    }));
+                                } catch (_) {
+                                    // ignore
+                                }
+                            }
+                            if (!this.interface) {
+                                this.interface = new InterfaceController(this);
+                            }
+                            await this.attachEventListeners();
+                            if (!this._loadingScreenFinished) {
+                                this._lastOfflineProgress = 100;
+                                this._loadingScreenFinished = true;
+                                this.emit(Events.LOADING_SCREEN, 100, 'WhatsApp');
+                            }
+                            this.emit(Events.READY);
+                            this.authStrategy.afterAuthReady();
+                            this._readyEmitted = true;
+                        } finally {
+                            this._ensureReadyInProgress = false;
+                        }
+                    }, 10000);
+                }
+            } finally {
+                this._ensureReadyInProgress = false;
             }
-            /**
-                 * Emitted when the client has initialized and is ready to receive messages.
-                 * @event Client#ready
-                 */
-            this.emit(Events.READY);
-            this.authStrategy.afterAuthReady();
         });
-        let lastPercent = null;
         await exposeFunctionIfAbsent(this.pupPage, 'onOfflineProgressUpdateEvent', async (percent) => {
-            if (lastPercent !== percent) {
-                lastPercent = percent;
+            if (this._loadingScreenFinished) return;
+            if (this._lastOfflineProgress !== percent) {
+                this._lastOfflineProgress = percent;
                 this.emit(Events.LOADING_SCREEN, percent, 'WhatsApp'); // Message is hardcoded as "WhatsApp" for now
+                if (percent >= 99 && !this._readyEmitted && !this._ensureReadyInProgress) {
+                    this.pupPage
+                        .evaluate(() => { window.onAppStateHasSyncedEvent && window.onAppStateHasSyncedEvent(); })
+                        .catch(() => {});
+                    setTimeout(() => {
+                        if (this._authenticatedEmitted && !this._readyEmitted) {
+                            this.emit(Events.READY);
+                            this.authStrategy.afterAuthReady();
+                            this._readyEmitted = true;
+                        }
+                    }, 1500);
+                }
+                if (percent >= 100) {
+                    this._loadingScreenFinished = true;
+                }
             }
         });
         await exposeFunctionIfAbsent(this.pupPage, 'onLogoutEvent', async () => {
@@ -285,8 +450,32 @@ class Client extends EventEmitter {
             await this.pupPage.waitForNavigation({waitUntil: 'load', timeout: 5000}).catch((_) => _);
         });
         await this.pupPage.evaluate(() => {
-            window.AuthStore.AppState.on('change:state', (_AppState, state) => { window.onAuthAppStateChangedEvent(state); });
-            window.AuthStore.AppState.on('change:hasSynced', () => { window.onAppStateHasSyncedEvent(); });
+            const appState = window.AuthStore.AppState;
+            let syncedFallbackTriggered = false;
+            const triggerSyncedFallback = () => {
+                if (syncedFallbackTriggered) return;
+                if (appState.state === 'CONNECTED') {
+                    syncedFallbackTriggered = true;
+                    window.onAppStateHasSyncedEvent();
+                }
+            };
+            if (appState.hasSynced) {
+                syncedFallbackTriggered = true;
+                window.onAppStateHasSyncedEvent();
+            }
+            appState.on('change:hasSynced', (_AppState, hasSynced) => {
+                if (hasSynced) {
+                    syncedFallbackTriggered = true;
+                    window.onAppStateHasSyncedEvent();
+                }
+            });
+            appState.on('change:state', (_AppState, state) => {
+                window.onAuthAppStateChangedEvent(state);
+                if (state === 'CONNECTED') {
+                    triggerSyncedFallback();
+                }
+            });
+            setTimeout(triggerSyncedFallback, 10000);
             window.AuthStore.Cmd.on('offline_progress_update', () => {
                 window.onOfflineProgressUpdateEvent(window.AuthStore.OfflineMessageHandler.getOfflineDeliveryProgress()); 
             });
@@ -300,6 +489,14 @@ class Client extends EventEmitter {
      * Sets up events and requirements, kicks off authentication request
      */
     async initialize() {
+        this._authenticatedEmitted = false;
+        this._readyEmitted = false;
+        this._ensureReadyInProgress = false;
+        this._readyRetryScheduled = false;
+        this._readyFallbackTimer = null;
+        this._readyForceTimer = null;
+        this._loadingScreenFinished = false;
+        this._lastOfflineProgress = null;
 
         let 
             /**
@@ -421,7 +618,44 @@ class Client extends EventEmitter {
      * @property {boolean} reinject is this a reinject?
      */
     async attachEventListeners() {
+        if (this._eventListenersAttached) return;
+        const dedupeTtlMs = 10000;
+        const dedupeMax = 5000;
+        const getDedupeKey = (msg) => {
+            if (msg?.id?._serialized) return msg.id._serialized;
+            const id = msg?.id || {};
+            const idPart = id.id || id._serialized;
+            const remote = id.remote || msg?.from || msg?.to || msg?.author;
+            if (idPart || remote) {
+                return [idPart, remote, id.fromMe ? '1' : '0', msg?.t].filter(v => v !== undefined && v !== null && v !== '').join('_');
+            }
+            const body = typeof msg?.body === 'string' ? msg.body.slice(0, 80) : '';
+            const fallback = [msg?.from, msg?.author, msg?.to, msg?.t, msg?.type, body].filter(Boolean).join('|');
+            return fallback || null;
+        };
+        const shouldProcessMessage = (msg) => {
+            if (!msg) return true;
+            const key = getDedupeKey(msg);
+            if (!key) return true;
+            const now = Date.now();
+            const last = this._messageDedup.get(key);
+            if (last && (now - last) < dedupeTtlMs) {
+                return false;
+            }
+            this._messageDedup.set(key, now);
+            this._messageDedupOrder.push(key);
+            const cutoff = now - (dedupeTtlMs * 2);
+            while (this._messageDedupOrder.length) {
+                const oldestKey = this._messageDedupOrder[0];
+                const ts = this._messageDedup.get(oldestKey);
+                if (this._messageDedupOrder.length <= dedupeMax && ts && ts >= cutoff) break;
+                this._messageDedupOrder.shift();
+                if (oldestKey) this._messageDedup.delete(oldestKey);
+            }
+            return true;
+        };
         await exposeFunctionIfAbsent(this.pupPage, 'onAddMessageEvent', msg => {
+            if (!shouldProcessMessage(msg)) return;
             if (msg.type === 'gp2') {
                 const notification = new GroupNotification(this, msg);
                 if (['add', 'invite', 'linked_group_join'].includes(msg.subtype)) {
@@ -748,29 +982,169 @@ class Client extends EventEmitter {
         });
 
         await this.pupPage.evaluate(() => {
-            window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
-            window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
-            window.Store.Msg.on('change:ack', (msg, ack) => { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
-            window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => { if (msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(window.WWebJS.getMessageModel(msg)); });
-            window.Store.Msg.on('remove', (msg) => { if (msg.isNewMsg) window.onRemoveMessageEvent(window.WWebJS.getMessageModel(msg)); });
-            window.Store.Msg.on('change:body change:caption', (msg, newBody, prevBody) => { window.onEditMessageEvent(window.WWebJS.getMessageModel(msg), newBody, prevBody); });
+            if (window.__wwebjsEventListenersAttached) return;
+            const track = window.__wwebjsMsgTrack || { seen: new Set(), order: [] };
+            const getMsgKey = (msg) => {
+                try {
+                    if (msg?.id?._serialized) return msg.id._serialized;
+                    const id = msg?.id || {};
+                    return [id.id, id.remote, id.fromMe, msg?.t].filter(Boolean).join('_');
+                } catch (_) {
+                    return null;
+                }
+            };
+            const markSeen = (key) => {
+                if (!key) return false;
+                if (track.seen.has(key)) return false;
+                track.seen.add(key);
+                track.order.push(key);
+                if (track.order.length > 2000) {
+                    const old = track.order.shift();
+                    if (old) track.seen.delete(old);
+                }
+                return true;
+            };
+            const toModel = (msg) => {
+                try {
+                    if (window.WWebJS?.getMessageModel) return window.WWebJS.getMessageModel(msg);
+                } catch (_) {
+                    // Ignore and fall back to other serialization paths.
+                }
+                try {
+                    if (msg?.serialize) return msg.serialize();
+                } catch (_) {
+                    // Ignore serialization errors and fall back to raw message.
+                }
+                return msg;
+            };
+            const emitIfNew = (msg) => {
+                const key = getMsgKey(msg);
+                if (!markSeen(key)) return;
+                window.onAddMessageEvent(toModel(msg));
+            };
+            window.Store.Msg.on('change', (msg) => {
+                window.onChangeMessageEvent(toModel(msg));
+                const now = Math.floor(Date.now() / 1000);
+                const isRecent = typeof msg.t === 'number' && (now - msg.t) < 60;
+                const isNew = msg.isNewMsg || msg.isNew || msg.isUnread || isRecent;
+                if (isNew) {
+                    if (msg.type === 'ciphertext') {
+                        msg.once('change:type', (_msg) => emitIfNew(_msg));
+                        window.onAddMessageCiphertextEvent(toModel(msg));
+                    } else {
+                        emitIfNew(msg);
+                    }
+                }
+            });
+            window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(toModel(msg)); });
+            window.Store.Msg.on('change:ack', (msg, ack) => { window.onMessageAckEvent(toModel(msg), ack); });
+            window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => { if (msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(toModel(msg)); });
+            window.Store.Msg.on('remove', (msg) => { if (msg.isNewMsg) window.onRemoveMessageEvent(toModel(msg)); });
+            window.Store.Msg.on('change:body change:caption', (msg, newBody, prevBody) => { window.onEditMessageEvent(toModel(msg), newBody, prevBody); });
             window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
             window.Store.Conn.on('change:battery', (state) => { window.onBatteryStateChangedEvent(state); });
             window.Store.Call.on('add', (call) => { window.onIncomingCall(call); });
             window.Store.Chat.on('remove', async (chat) => { window.onRemoveChatEvent(await window.WWebJS.getChatModel(chat)); });
             window.Store.Chat.on('change:archive', async (chat, currState, prevState) => { window.onArchiveChatEvent(await window.WWebJS.getChatModel(chat), currState, prevState); });
             window.Store.Msg.on('add', (msg) => { 
-                if (msg.isNewMsg) {
+                const now = Math.floor(Date.now() / 1000);
+                const isRecent = typeof msg.t === 'number' && (now - msg.t) < 60;
+                const isNew = msg.isNewMsg || msg.isNew || msg.isUnread || isRecent;
+
+                if (isNew) {
                     if(msg.type === 'ciphertext') {
                         // defer message event until ciphertext is resolved (type changed)
-                        msg.once('change:type', (_msg) => window.onAddMessageEvent(window.WWebJS.getMessageModel(_msg)));
-                        window.onAddMessageCiphertextEvent(window.WWebJS.getMessageModel(msg));
+                        msg.once('change:type', (_msg) => emitIfNew(_msg));
+                        window.onAddMessageCiphertextEvent(toModel(msg));
                     } else {
-                        window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); 
+                        emitIfNew(msg); 
                     }
                 }
             });
-            window.Store.Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
+            // Fallback polling for cases where 'add' events are not fired
+            if (!window.__wwebjsMsgPoll) {
+                window.__wwebjsMsgPoll = setInterval(() => {
+                    try {
+                        const now = Math.floor(Date.now() / 1000);
+                        const models = window.Store?.Msg?.getModelsArray?.() || window.Store?.Msg?.models || [];
+                        const recent = models.slice(-50);
+                        for (const msg of recent) {
+                            const isRecent = typeof msg.t === 'number' && (now - msg.t) < 60;
+                            const isNew = msg.isNewMsg || msg.isNew || msg.isUnread || isRecent;
+                            if (!isNew) continue;
+                            if (msg.type === 'ciphertext') {
+                                msg.once('change:type', (_msg) => emitIfNew(_msg));
+                                window.onAddMessageCiphertextEvent(toModel(msg));
+                            } else {
+                                emitIfNew(msg);
+                            }
+                        }
+
+                        const chats = window.Store?.Chat?.getModelsArray?.() || window.Store?.Chat?.models || [];
+                        for (const chat of chats) {
+                            const unread = chat?.unreadCount > 0 || chat?.hasUnread;
+                            if (!unread && !chat?.lastReceivedKey) continue;
+
+                            const msgs = chat?.msgs?.getModelsArray?.() || chat?.msgs?.models || [];
+                            const slice = msgs.slice(-50);
+                            for (const msg of slice) {
+                                const isRecent = typeof msg.t === 'number' && (now - msg.t) < 60;
+                                const isNew = msg.isNewMsg || msg.isNew || msg.isUnread || isRecent || unread;
+                                if (!isNew) continue;
+                                if (msg.type === 'ciphertext') {
+                                    msg.once('change:type', (_msg) => emitIfNew(_msg));
+                                    window.onAddMessageCiphertextEvent(toModel(msg));
+                                } else {
+                                    emitIfNew(msg);
+                                }
+                            }
+
+                            if (chat?.lastReceivedKey?._serialized) {
+                                const last = window.Store.Msg.get(chat.lastReceivedKey._serialized) ||
+                                    (window.Store.Msg.getMessagesById && window.Store.Msg.getMessagesById([chat.lastReceivedKey._serialized])?.messages?.[0]);
+                                if (last) {
+                                    if (last.type === 'ciphertext') {
+                                        last.once('change:type', (_msg) => emitIfNew(_msg));
+                                        window.onAddMessageCiphertextEvent(toModel(last));
+                                    } else {
+                                        emitIfNew(last);
+                                    }
+                                }
+                            }
+                        }
+                    } catch (_) {
+                        // ignore polling errors
+                    }
+                }, 1500);
+            }
+
+            const unreadMap = window.__wwebjsUnreadMap || new Map();
+            window.Store.Chat.on('change:unreadCount', (chat) => {
+                window.onChatUnreadCountEvent(chat);
+                try {
+                    const chatId = chat?.id?._serialized || chat?.id;
+                    const prev = unreadMap.get(chatId) || 0;
+                    const curr = chat?.unreadCount || 0;
+                    unreadMap.set(chatId, curr);
+                    if (curr > prev && chat?.lastReceivedKey?._serialized) {
+                        const last = window.Store.Msg.get(chat.lastReceivedKey._serialized) ||
+                            (window.Store.Msg.getMessagesById && window.Store.Msg.getMessagesById([chat.lastReceivedKey._serialized])?.messages?.[0]);
+                        if (last) {
+                            if (last.type === 'ciphertext') {
+                                last.once('change:type', (_msg) => emitIfNew(_msg));
+                                window.onAddMessageCiphertextEvent(toModel(last));
+                            } else {
+                                emitIfNew(last);
+                            }
+                        }
+                    }
+                } catch (_) {
+                    // ignore
+                }
+            });
+            window.__wwebjsUnreadMap = unreadMap;
+            window.__wwebjsEventListenersAttached = true;
+            window.__wwebjsMsgTrack = track;
 
             if (window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.1014111620')) {
                 const module = window.Store.AddonReactionTable;
@@ -837,7 +1211,8 @@ class Client extends EventEmitter {
                 }).bind(module);
             }
         });
-    }    
+        this._eventListenersAttached = true;
+    }
 
     async initWebVersionCache() {
         const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
