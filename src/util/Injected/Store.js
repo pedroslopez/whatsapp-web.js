@@ -56,7 +56,7 @@ exports.ExposeStore = () => {
     window.Store.MediaUpload = {
         ...window.require('WAWebMediaMmsV4Upload'),
         ...window.require('WAWebStartMediaUploadQpl')
-    }
+    };
     window.Store.MediaUpdate = window.require('WAWebMediaUpdateMsg');
     window.Store.MsgKey = window.require('WAWebMsgKey');
     window.Store.OpaqueData = window.require('WAWebMediaOpaqueData');
