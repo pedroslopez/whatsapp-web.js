@@ -430,7 +430,7 @@ exports.LoadUtils = () => {
             signal: controller.signal,
             mediaKey,
             uploadQpl: window.Store.MediaUpload.startMediaUploadQpl({
-                entryPoint: "MediaUpload"
+                entryPoint: 'MediaUpload'
             }),
         });
 
