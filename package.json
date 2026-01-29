@@ -1,6 +1,6 @@
 {
   "name": "whatsapp-web.js",
-  "version": "1.34.5-alpha.3",
+  "version": "1.34.5-alpha.3-events-fix.1",
   "description": "Library for interacting with the WhatsApp Web API ",
   "main": "./index.js",
   "typings": "./index.d.ts",
