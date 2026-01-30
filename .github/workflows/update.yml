@@ -25,7 +25,7 @@ jobs:
       - name: Store WA Version
         run: echo WA_VERSION=`cat ./.version` >> $GITHUB_ENV
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v3
+        uses: peter-evans/create-pull-request@v8
         with:
           branch: auto-wa-web-update/patch
           delete-branch: true
