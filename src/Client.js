@@ -2411,15 +2411,14 @@ class Client extends EventEmitter {
     async saveOrEditAddressbookContact(phoneNumber, firstName, lastName, syncToAddressbook = false)
     {
         return await this.pupPage.evaluate(async (phoneNumber, firstName, lastName, syncToAddressbook) => {
-            return await window.Store.AddressbookContactUtils.saveContactAction(
-                phoneNumber,
-                phoneNumber,
-                null,
-                null,
-                firstName,
-                lastName,
-                syncToAddressbook
-            );
+            return await window.Store.AddressbookContactUtils.saveContactAction({
+                'firstName' : firstName,
+                'lastName' : lastName,
+                'phoneNumber' : phoneNumber,
+                'prevPhoneNumber' : phoneNumber,
+                'syncToAddressbook': syncToAddressbook,
+                'username' : undefined
+            });
         }, phoneNumber, firstName, lastName, syncToAddressbook);
     }
 
@@ -2431,7 +2430,8 @@ class Client extends EventEmitter {
     async deleteAddressbookContact(phoneNumber)
     {
         return await this.pupPage.evaluate(async (phoneNumber) => {
-            return await window.Store.AddressbookContactUtils.deleteContactAction(phoneNumber);
+            const wid = window.Store.WidFactory.createWid(phoneNumber);
+            return await window.Store.AddressbookContactUtils.deleteContactAction({phoneNumber: wid});
         }, phoneNumber);
     }
 
