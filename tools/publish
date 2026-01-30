@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 cd "$(dirname "$0")"
 cd '..'
@@ -40,17 +41,18 @@ else
   exit 1
 fi
 
-if [ -f ~/.npmrc ]; then
-  echo "Found existing .npmrc"
-else
-  if [[ -z "$NPM_TOKEN" ]];then
-    echo "No NPM_TOKEN or ~/.npmrc, exiting.."
-    exit 1;
-  else
-    echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-  fi
+# Note: When running in GitHub Actions with trusted publishing (OIDC),
+# npm whoami won't work as OIDC auth only applies during npm publish.
+# For local publishing, ensure you're logged in with 'npm login'.
+if [[ -z "$CI" ]] && ! npm whoami &> /dev/null; then
+  echo "Not authenticated with npm. Run 'npm login' to authenticate."
+  exit 1
 fi
-echo "Publishing as NPM user: `npm whoami`"
+if [[ -z "$CI" ]]; then
+  echo "Publishing as NPM user: $(npm whoami)"
+else
+  echo "Publishing via GitHub Actions OIDC trusted publishing"
+fi
 
 if [[ $BRANCH != 'main' ]]; then
   echo "Not on 'main' branch.  Exiting"
@@ -66,22 +68,18 @@ echo ""
 echo "-----> BUMP VERSION"
 echo ""
 
-npm version $VERSION_ARGS || exit 1
+npm version $VERSION_ARGS --no-git-tag-version
 
-git push && git push --tags || exit 1
+NEW_VERSION=$(cat package.json | jq -r .version)
+echo "New Version: $NEW_VERSION"
+
+echo ""
+echo "-----> GENERATE DOCS"
+echo ""
 
 npm install
 
 npm run generate-docs
-
-git add .
-
-git commit -am "chore(${NEW_VERSION}): generate docs"
-
-git push 
-
-NEW_VERSION=`cat package.json | jq -r .version`
-echo "New Version: $NEW_VERSION"
 
 echo ""
 echo "-----> PUSH TO NPM"
@@ -89,13 +87,22 @@ echo ""
 
 npm publish --tag $DIST_TAG
 
+echo ""
+echo "-----> PUSH TO GIT"
+echo ""
+
+git add .
+
+git commit -am "chore(v${NEW_VERSION}): bump version and generate docs"
+
+git tag "v${NEW_VERSION}"
+
+git push && git push --tags
 
 echo ""
 echo "-----> Done!"
 echo "Version $NEW_VERSION published to $DIST_TAG tag"
 echo ""
 
-echo "::set-output name=NEW_VERSION::$NEW_VERSION"
-echo "::set-output name=PRERELEASE::$PRERELEASE"
-
-exit 0
+echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
+echo "PRERELEASE=$PRERELEASE" >> $GITHUB_OUTPUT
