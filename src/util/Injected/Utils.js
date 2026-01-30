@@ -434,10 +434,7 @@ exports.LoadUtils = () => {
             blob: file,
             type: 'sticker',
             signal: controller.signal,
-            mediaKey,
-            uploadQpl: window.Store.MediaUpload.startMediaUploadQpl({
-                entryPoint: 'MediaUpload'
-            }),
+            mediaKey
         });
 
         const stickerInfo = {
@@ -509,6 +506,7 @@ exports.LoadUtils = () => {
             mimetype: mediaData.mimetype,
             mediaObject,
             mediaType,
+            uploadQpl: window.Store.MediaUpload.startMediaUploadQpl({ entryPoint: 'MediaUpload' }),
             ...(sendToChannel ? { calculateToken: window.Store.SendChannelMessage.getRandomFilehash } : {})
         };
 
@@ -575,10 +573,10 @@ exports.LoadUtils = () => {
 
         if (isChannel) {
             try {
-                chat = window.Store.WAWebNewsletterMetadataCollection.get(chatId);
+                chat = window.Store.NewsletterCollection.get(chatId);
                 if (!chat) {
                     await window.Store.ChannelUtils.loadNewsletterPreviewChat(chatId);
-                    chat = await window.Store.WAWebNewsletterMetadataCollection.find(chatWid);
+                    chat = await window.Store.NewsletterCollection.find(chatWid);
                 }
             } catch (err) {
                 chat = null;
@@ -628,7 +626,7 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getChannels = async () => {
-        const channels = window.Store.WAWebNewsletterMetadataCollection.getModelsArray();
+        const channels = window.Store.NewsletterCollection.getModelsArray();
         const channelPromises = channels?.map((channel) => window.WWebJS.getChatModel(channel, { isChannel: true }));
         return await Promise.all(channelPromises);
     };
@@ -648,7 +646,8 @@ exports.LoadUtils = () => {
         if (chat.groupMetadata) {
             model.isGroup = true;
             const chatWid = window.Store.WidFactory.createWid(chat.id._serialized);
-            await window.Store.GroupMetadata?.update(chatWid);
+            const groupMetadataStore = window.Store.GroupMetadata || window.Store.WAWebGroupMetadataCollection;
+            await groupMetadataStore?.update(chatWid);
             chat.groupMetadata.participants._models
                 .filter(x => x.id?._serialized?.endsWith('@lid'))
                 .forEach(x => x.contact?.phoneNumber && (x.id = x.contact.phoneNumber));
@@ -657,7 +656,8 @@ exports.LoadUtils = () => {
         }
 
         if (chat.newsletterMetadata) {
-            await window.Store.NewsletterMetadataCollection?.update(chat.id);
+            const newsletterStore = window.Store.NewsletterMetadataCollection || window.Store.WAWebNewsletterMetadataCollection;
+            await newsletterStore?.update(chat.id);
             model.channelMetadata = chat.newsletterMetadata.serialize();
             model.channelMetadata.createdAtTs = chat.newsletterMetadata.creationTime;
         }

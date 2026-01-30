@@ -69,10 +69,7 @@ exports.ExposeStore = () => {
     window.Store.MediaPrep = window.require('WAWebPrepRawMedia');
     window.Store.MediaObject = window.require('WAWebMediaStorage');
     window.Store.MediaTypes = window.require('WAWebMmsMediaTypes');
-    window.Store.MediaUpload = {
-        ...window.require('WAWebMediaMmsV4Upload'),
-        ...window.require('WAWebStartMediaUploadQpl')
-    };
+    window.Store.MediaUpload = {...window.require('WAWebMediaMmsV4Upload'), ...window.require('WAWebStartMediaUploadQpl')};
     window.Store.MediaUpdate = window.require('WAWebMediaUpdateMsg');
     window.Store.MsgKey = window.require('WAWebMsgKey');
     window.Store.OpaqueData = window.require('WAWebMediaOpaqueData');
@@ -195,6 +192,7 @@ exports.ExposeStore = () => {
         ...window.require('WAWebNewsletterSubscribeAction'),
         ...window.require('WAWebNewsletterUnsubscribeAction'),
         ...window.require('WAWebNewsletterDirectorySearchAction'),
+        ...window.require('WAWebNewsletterToggleMuteStateJob'),
         ...window.require('WAWebNewsletterGatingUtils'),
         ...window.require('WAWebNewsletterModelUtils'),
         ...window.require('WAWebMexAcceptNewsletterAdminInviteJob'),
