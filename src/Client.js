@@ -1397,6 +1397,16 @@ class Client extends EventEmitter {
     }
 
     /**
+     * Gets the current display name for the client
+     * @returns {Promise<string|null>} Current display name
+     */
+    async getDisplayName() {
+        return this.pupPage.evaluate(() => {
+            return window.Store.Conn.pushname;
+        });
+    }
+
+    /**
      * Sets the current user's display name. 
      * This is the name shown to WhatsApp users that have not added you as a contact beside your number in groups and in your profile.
      * @param {string} displayName New display name

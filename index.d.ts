@@ -202,6 +202,11 @@ declare namespace WAWebJS {
          */
         setStatus(status: string): Promise<void>
 
+        /**
+         * Gets the current user's display name
+         */
+        getDisplayName(): Promise<string>
+
         /** 
          * Sets the current user's display name
          * @param displayName New display name
