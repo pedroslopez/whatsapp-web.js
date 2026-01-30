@@ -1017,7 +1017,11 @@ class Client extends EventEmitter {
             // Give browser time to flush any pending IndexedDB writes
             await new Promise(resolve => setTimeout(resolve, 3000));
         }
-        await this.pupBrowser.close();
+        const browser = this.pupBrowser;
+        const isConnected = browser?.isConnected?.();
+        if (isConnected) {
+            await browser.close();
+        }
         await this.authStrategy.destroy();
     }
 
