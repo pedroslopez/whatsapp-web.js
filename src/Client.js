@@ -27,6 +27,7 @@ const {exposeFunctionIfAbsent} = require('./util/Puppeteer');
  * @param {string} options.webVersion - The version of WhatsApp Web to use. Use options.webVersionCache to configure how the version is retrieved.
  * @param {object} options.webVersionCache - Determines how to retrieve the WhatsApp Web version. Defaults to a local cache (LocalWebCache) that falls back to latest if the requested version is not found.
  * @param {number} options.authTimeoutMs - Timeout for authentication selector in puppeteer
+ * @param {function} options.evalOnNewDoc - function to eval on new doc
  * @param {object} options.puppeteer - Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/
  * @param {number} options.qrMaxRetries - How many times should the qrcode be refreshed before giving up
  * @param {string} options.restartOnAuthFail  - @deprecated This option should be set directly on the LegacySessionAuth.
@@ -95,7 +96,20 @@ class Client extends EventEmitter {
      * Private function
      */
     async inject() {
-        await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', {timeout: this.options.authTimeoutMs});
+        if(this.options.authTimeoutMs === undefined || this.options.authTimeoutMs==0){
+            this.options.authTimeoutMs = 30000;
+        }
+        let start = Date.now();
+        let timeout = this.options.authTimeoutMs;
+        let res = false;
+        while(start > (Date.now() - timeout)){
+            res = await this.pupPage.evaluate('window.Debug?.VERSION != undefined');
+            if(res){break;}
+            await new Promise(r => setTimeout(r, 200));
+        }
+        if(!res){ 
+            throw 'auth timeout';
+        }       
         await this.setDeviceName(this.options.deviceName, this.options.browserName);
         const pairWithPhoneNumber = this.options.pairWithPhoneNumber;
         const version = await this.getWWebVersion();
@@ -225,9 +239,17 @@ class Client extends EventEmitter {
                     await new Promise(r => setTimeout(r, 2000)); 
                     await this.pupPage.evaluate(ExposeLegacyStore);
                 }
-
-                // Check window.Store Injection
-                await this.pupPage.waitForFunction('window.Store != undefined');
+                let start = Date.now();
+                let res = false;
+                while(start > (Date.now() - 30000)){
+                    // Check window.Store Injection
+                    res = await this.pupPage.evaluate('window.Store != undefined');
+                    if(res){break;}
+                    await new Promise(r => setTimeout(r, 200));
+                }
+                if(!res){
+                    throw 'ready timeout';
+                }
             
                 /**
                      * Current connection information
@@ -300,7 +322,7 @@ class Client extends EventEmitter {
             page = await browser.newPage();
         } else {
             const browserArgs = [...(puppeteerOpts.args || [])];
-            if(!browserArgs.find(arg => arg.includes('--user-agent'))) {
+            if(this.options.userAgent !== false && !browserArgs.find(arg => arg.includes('--user-agent'))) {
                 browserArgs.push(`--user-agent=${this.options.userAgent}`);
             }
             // navigator.webdriver fix
@@ -313,8 +335,9 @@ class Client extends EventEmitter {
         if (this.options.proxyAuthentication !== undefined) {
             await page.authenticate(this.options.proxyAuthentication);
         }
-      
-        await page.setUserAgent(this.options.userAgent);
+        if(this.options.userAgent !== false) {
+            await page.setUserAgent(this.options.userAgent);
+        }
         if (this.options.bypassCSP) await page.setBypassCSP(true);
 
         this.pupBrowser = browser;
@@ -322,7 +345,11 @@ class Client extends EventEmitter {
 
         await this.authStrategy.afterBrowserInitialized();
         await this.initWebVersionCache();
-
+        
+        if (this.options.evalOnNewDoc !== undefined) {
+            await page.evaluateOnNewDocument(this.options.evalOnNewDoc);
+        }
+        
         // ocVersion (isOfficialClient patch)
         // remove after 2.3000.x hard release
         await page.evaluateOnNewDocument(() => {
@@ -729,7 +756,10 @@ class Client extends EventEmitter {
             window.Store.Msg.on('change:body change:caption', (msg, newBody, prevBody) => { window.onEditMessageEvent(window.WWebJS.getMessageModel(msg), newBody, prevBody); });
             window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
             window.Store.Conn.on('change:battery', (state) => { window.onBatteryStateChangedEvent(state); });
-            window.Store.Call.on('add', (call) => { window.onIncomingCall(call); });
+            const callCollection = (window.Store && window.Store.Call) || (window.Store && window.Store.WAWebCallCollection);
+            if (callCollection && typeof callCollection.on === 'function') {
+                callCollection.on('add', (call) => { window.onIncomingCall(call); });
+            }
             window.Store.Chat.on('remove', async (chat) => { window.onRemoveChatEvent(await window.WWebJS.getChatModel(chat)); });
             window.Store.Chat.on('change:archive', async (chat, currState, prevState) => { window.onArchiveChatEvent(await window.WWebJS.getChatModel(chat), currState, prevState); });
             window.Store.Msg.on('add', (msg) => { 
@@ -846,7 +876,11 @@ class Client extends EventEmitter {
      * Closes the client
      */
     async destroy() {
-        await this.pupBrowser.close();
+        const browser = this.pupBrowser;
+        const isConnected = browser?.isConnected?.();
+        if (isConnected) {
+            await browser.close();
+        }
         await this.authStrategy.destroy();
     }
 
@@ -948,15 +982,26 @@ class Client extends EventEmitter {
      */
     async sendMessage(chatId, content, options = {}) {
         const isChannel = /@\w*newsletter\b/.test(chatId);
+        const isStatus = /@\w*broadcast\b/.test(chatId);
 
         if (isChannel && [
-            options.sendMediaAsDocument, options.quotedMessageId, 
+            options.sendMediaAsDocument, options.quotedMessageId,
             options.parseVCards, options.isViewOnce,
             content instanceof Location, content instanceof Contact,
             content instanceof Buttons, content instanceof List,
             Array.isArray(content) && content.length > 0 && content[0] instanceof Contact
         ].includes(true)) {
             console.warn('The message type is currently not supported for sending in channels,\nthe supported message types are: text, image, sticker, gif, video, voice and poll.');
+            return null;
+
+        } else if (isStatus && [
+            options.sendMediaAsDocument, options.quotedMessageId,
+            options.parseVCards, options.isViewOnce, options.sendMediaAsSticker,
+            content instanceof Location, content instanceof Contact,
+            content instanceof Poll, content instanceof Buttons, content instanceof List,
+            Array.isArray(content) && content.length > 0 && content[0] instanceof Contact
+        ].includes(true)) {
+            console.warn('The message type is currently not supported for sending in status broadcast,\nthe supported message types are: text, image, gif, audio and video.');
             return null;
         }
     
@@ -1193,7 +1238,12 @@ class Client extends EventEmitter {
 
         return ContactFactory.create(this, contact);
     }
-    
+
+    /**
+     * Get message by ID
+     * @param {string} messageId
+     * @returns {Promise<Message>}
+     */
     async getMessageById(messageId) {
         const msg = await this.pupPage.evaluate(async messageId => {
             let msg = window.Store.Msg.get(messageId);
@@ -1215,7 +1265,7 @@ class Client extends EventEmitter {
     /**
      * Gets instances of all pinned messages in a chat
      * @param {string} chatId The chat ID
-     * @returns {Promise<[Message]|[]>}
+     * @returns {Promise<Array<Message>>}
      */
     async getPinnedMessages(chatId) {
         const pinnedMsgs = await this.pupPage.evaluate(async (chatId) => {
@@ -1893,7 +1943,7 @@ class Client extends EventEmitter {
      * 2 for POPULAR channels
      * 3 for NEW channels
      * @param {number} [searchOptions.limit = 50] The limit of found channels to be appear in the returnig result
-     * @returns {Promise<Array<Channel>|[]>} Returns an array of Channel objects or an empty array if no channels were found
+     * @returns {Promise<Array<Channel>>} Returns an array of Channel objects or an empty array if no channels were found
      */
     async searchChannels(searchOptions = {}) {
         return await this.pupPage.evaluate(async ({
@@ -1970,7 +2020,7 @@ class Client extends EventEmitter {
 
         return labels.map(data => new Label(this, data));
     }
-    
+
     /**
      * Get all current Broadcast
      * @returns {Promise<Array<Broadcast>>}
@@ -1980,6 +2030,49 @@ class Client extends EventEmitter {
             return window.WWebJS.getAllStatuses();
         });
         return broadcasts.map(data => new Broadcast(this, data));
+    }
+
+    /**
+     * Get broadcast instance by current user ID
+     * @param {string} contactId
+     * @returns {Promise<Broadcast>}
+     */
+    async getBroadcastById(contactId) {
+        const broadcast = await this.pupPage.evaluate(async (userId) => {
+            let status;
+            try {
+                status = window.Store.Status.get(userId);
+                if (!status) {
+                    status = await window.Store.Status.find(userId);
+                }
+            } catch {
+                status = null;
+            }
+
+            if (status) return window.WWebJS.getStatusModel(status);
+        }, contactId);
+        return new Broadcast(this, broadcast);
+    }
+
+    /**
+     * Revoke current own status messages
+     * @param {string} messageId
+     * @returns {Promise<void>}
+     */
+    async revokeStatusMessage(messageId) {
+        return await this.pupPage.evaluate(async (msgId) => {
+            const status = window.Store.Status.getMyStatus();
+            if (!status) return;
+
+            const msg =
+                window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
+            if (!msg) return;
+
+            if (!msg.id.fromMe || !msg.id.remote.isStatus())
+                throw 'Invalid usage! Can only revoke the message its from own status broadcast';
+
+            return await window.Store.StatusUtils.sendStatusRevokeMsgAction(status, msg);
+        }, messageId);
     }
 
     /**
@@ -2341,7 +2434,8 @@ class Client extends EventEmitter {
     async deleteAddressbookContact(phoneNumber)
     {
         return await this.pupPage.evaluate(async (phoneNumber) => {
-            return await window.Store.AddressbookContactUtils.deleteContactAction(phoneNumber);
+            const wid = window.Store.WidFactory.createWid(phoneNumber);
+            return await window.Store.AddressbookContactUtils.deleteContactAction({phoneNumber: wid});
         }, phoneNumber);
     }
 
