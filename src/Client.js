@@ -756,7 +756,6 @@ class Client extends EventEmitter {
             window.Store.Msg.on('change:body change:caption', (msg, newBody, prevBody) => { window.onEditMessageEvent(window.WWebJS.getMessageModel(msg), newBody, prevBody); });
             window.Store.AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
             window.Store.Conn.on('change:battery', (state) => { window.onBatteryStateChangedEvent(state); });
-            // WhatsApp Web renomeou Store.Call para WAWebCallCollection em versões recentes
             const callCollection = (window.Store && window.Store.Call) || (window.Store && window.Store.WAWebCallCollection);
             if (callCollection && typeof callCollection.on === 'function') {
                 callCollection.on('add', (call) => { window.onIncomingCall(call); });
