@@ -97,7 +97,7 @@ class Channel extends Base {
     /**
      * Gets the subscribers of the channel (only those who are in your contact list)
      * @param {?number} limit Optional parameter to specify the limit of subscribers to retrieve
-     * @returns {Promise<{contact: Contact, role: string}[]>} Returns an array of objects that handle the subscribed contacts and their roles in the channel
+     * @returns {Promise<Array<{contact: Contact, role: string}>>} Returns an array of objects that handle the subscribed contacts and their roles in the channel
      */
     async getSubscribers(limit) {
         return await this.client.pupPage.evaluate(async (channelId, limit) => {
