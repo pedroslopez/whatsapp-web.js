@@ -177,7 +177,6 @@ exports.ExposeStore = () => {
         ...window.require('WAWebNewsletterSubscribeAction'),
         ...window.require('WAWebNewsletterUnsubscribeAction'),
         ...window.require('WAWebNewsletterDirectorySearchAction'),
-        ...window.require('WAWebNewsletterToggleMuteStateJob'),
         ...window.require('WAWebNewsletterGatingUtils'),
         ...window.require('WAWebNewsletterModelUtils'),
         ...window.require('WAWebMexAcceptNewsletterAdminInviteJob'),
