@@ -981,7 +981,7 @@ class Client extends EventEmitter {
      * @returns {Promise<Message>} Message that was just sent
      */
     async sendMessage(chatId, content, options = {}) {
-        const isChannel = /@\w*newsletter\b/.test(chatId);
+        const isChannel = /@newsletter\b/.test(chatId);
         const isStatus = /@\w*broadcast\b/.test(chatId);
 
         if (isChannel && [
@@ -1033,7 +1033,7 @@ class Client extends EventEmitter {
             extraOptions: options.extra
         };
 
-        const sendSeen = options.sendSeen !== false;
+        const sendSeen = (options.sendSeen !== false) && !isChannel;
 
         if (content instanceof MessageMedia) {
             internalOptions.media = content;

@@ -12,6 +12,10 @@ exports.LoadUtils = () => {
     window.WWebJS.sendSeen = async (chatId) => {
         const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
         if (chat) {
+            const isChannel = window.Store.ChatGetters.getIsNewsletter(chat);
+            if (isChannel) {
+                return true; // Skip sendSeen for channels
+            }
             window.Store.WAWebStreamModel.Stream.markAvailable();
             await window.Store.SendSeen.sendSeen({
                 chat: chat,
