@@ -1996,7 +1996,7 @@ class Client extends EventEmitter {
      * @returns {Promise<boolean>} Returns true if the operation completed successfully, false otherwise
      */
     async deleteChannel(channelId) {
-        return await this.client.pupPage.evaluate(async (channelId) => {
+        return await this.pupPage.evaluate(async (channelId) => {
             const channel = await window.WWebJS.getChat(channelId, { getAsModel: false });
             if (!channel) return false;
             try {
