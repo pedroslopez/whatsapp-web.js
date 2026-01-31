@@ -356,7 +356,7 @@ class Message extends Base {
     
     /**
      * Returns groups mentioned in this message
-     * @returns {Promise<GroupChat[]|[]>}
+     * @returns {Promise<Array<GroupChat>>}
      */
     async getGroupMentions() {
         return await Promise.all(this.groupMentions.map(async (m) => await this.client.getChatById(m.groupJid._serialized)));
@@ -449,7 +449,9 @@ class Message extends Base {
 
         const result = await this.client.pupPage.evaluate(async (msgId) => {
             const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
-            if (!msg || !msg.mediaData) {
+
+            // REUPLOADING mediaStage means the media is expired and the download button is spinning, cannot be downloaded now
+            if (!msg || !msg.mediaData || msg.mediaData.mediaStage === 'REUPLOADING') {
                 return null;
             }
             if (msg.mediaData.mediaStage != 'RESOLVED') {
@@ -466,6 +468,10 @@ class Message extends Base {
             }
 
             try {
+                const mockQpl = {
+                    addAnnotations: function() { return this; },
+                    addPoint: function() { return this; }
+                };
                 const decryptedMedia = await window.Store.DownloadManager.downloadAndMaybeDecrypt({
                     directPath: msg.directPath,
                     encFilehash: msg.encFilehash,
@@ -473,7 +479,8 @@ class Message extends Base {
                     mediaKey: msg.mediaKey,
                     mediaKeyTimestamp: msg.mediaKeyTimestamp,
                     type: msg.type,
-                    signal: (new AbortController).signal
+                    signal: (new AbortController).signal,
+                    downloadQpl: mockQpl
                 });
 
                 const data = await window.WWebJS.arrayBufferToBase64Async(decryptedMedia);
@@ -562,7 +569,7 @@ class Message extends Base {
      */
     async unpin() {
         return await this.client.pupPage.evaluate(async (msgId) => {
-            return await window.WWebJS.pinUnpinMsgAction(msgId, 2);
+            return await window.WWebJS.pinUnpinMsgAction(msgId, 2, 0);
         }, this.id._serialized);
     }
 

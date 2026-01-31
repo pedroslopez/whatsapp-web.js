@@ -206,7 +206,7 @@ class Chat extends Base {
 
             if (searchOptions && searchOptions.limit > 0) {
                 while (msgs.length < searchOptions.limit) {
-                    const loadedMessages = await window.Store.ConversationMsgs.loadEarlierMsgs(chat);
+                    const loadedMessages = await window.Store.ConversationMsgs.loadEarlierMsgs(chat,chat.msgs);
                     if (!loadedMessages || !loadedMessages.length) break;
                     msgs = [...loadedMessages.filter(msgFilter), ...msgs];
                 }
@@ -281,7 +281,7 @@ class Chat extends Base {
 
     /**
      * Gets instances of all pinned messages in a chat
-     * @returns {Promise<[Message]|[]>}
+     * @returns {Promise<Array<Message>>}
      */
     async getPinnedMessages() {
         return this.client.getPinnedMessages(this.id._serialized);

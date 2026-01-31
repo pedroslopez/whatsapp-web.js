@@ -523,6 +523,13 @@ client.on('message', async msg => {
         // NOTE: this action will take effect after you restart the client.
         const backgroundSync = await client.setBackgroundSync(true);
         console.log(backgroundSync);
+    } else if (msg.body === '!postStatus') {
+        await client.sendMessage('status@broadcast', 'Hello there!');
+        // send with a different style
+        await client.sendMessage('status@broadcast', 'Hello again! Looks different?', {
+            fontStyle: 1,
+            backgroundColor: '#0b3296'
+        });
     }
 });
 

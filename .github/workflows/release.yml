@@ -12,17 +12,22 @@ jobs:
   release:
     runs-on: ubuntu-latest
     if: ${{ github.repository == 'pedroslopez/whatsapp-web.js' }}
+    permissions:
+      contents: write
+      id-token: write
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           token: ${{ secrets.RELEASE_GITHUB_TOKEN }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
       - run: git config --global user.email "hello@wwebjs.dev"
       - run: git config --global user.name "WWebJS Bot"
       - name: Bump version and publish to NPM
         id: publish
         run: ./tools/publish ${{ github.event.inputs.release_type }}
-        env:
-          NPM_TOKEN: ${{ secrets.RELEASE_NPM_TOKEN }}
       - name: Create GitHub Release
         id: create_release
         uses: ncipollo/release-action@v1

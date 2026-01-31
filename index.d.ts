@@ -113,9 +113,15 @@ declare namespace WAWebJS {
 
         /** Get all current Labels  */
         getLabels(): Promise<Label[]>
-        
+
         /** Get all current Broadcasts  */
         getBroadcasts(): Promise<Broadcast[]>
+
+        /** Get broadcast instance by current user ID */
+        getBroadcastById(contactId: string): Promise<Broadcast>
+
+        /** Revoke current own status messages */
+        revokeStatusMessage(messageId: string): Promise<void>
         
         /** Change labels in chats  */
         addOrRemoveLabels(labelIds: Array<number|string>, chatIds: Array<string>): Promise<void>
@@ -556,6 +562,9 @@ declare namespace WAWebJS {
         /** Timeout for authentication selector in puppeteer
          * @default 0 */
         authTimeoutMs?: number,
+        /** function to be evaluated On New Document
+         * @default undefined */
+        evalOnNewDoc?: Function,
         /** Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/ */
         puppeteer?: puppeteer.PuppeteerNodeLaunchOptions & puppeteer.ConnectOptions
 		/** Determines how to save and restore sessions. Will use LegacySessionAuth if options.session is set. Otherwise, NoAuth will be used. */
@@ -886,6 +895,7 @@ declare namespace WAWebJS {
         GROUP_MEMBERSHIP_REQUEST = 'group_membership_request',
         GROUP_UPDATE = 'group_update',
         QR_RECEIVED = 'qr',
+        CODE_RECEIVED = 'code',
         LOADING_SCREEN = 'loading_screen',
         CALL = 'call',
         DISCONNECTED = 'disconnected',
@@ -893,7 +903,8 @@ declare namespace WAWebJS {
         BATTERY_CHANGED = 'change_battery',
         INCOMING_CALL = 'call',
         REMOTE_SESSION_SAVED = 'remote_session_saved',
-        VOTE_UPDATE = 'vote_update'
+        INCOMING_CALL = 'call',
+        VOTE_UPDATE = 'vote_update',
     }
 
     /** Group notification types */
@@ -902,6 +913,8 @@ declare namespace WAWebJS {
         INVITE = 'invite',
         REMOVE = 'remove',
         LEAVE = 'leave',
+        PROMOTE = 'promote',
+        DEMOTE = 'demote',
         SUBJECT = 'subject',
         DESCRIPTION = 'description',
         PICTURE = 'picture',
@@ -925,6 +938,7 @@ declare namespace WAWebJS {
         AUDIO = 'audio',
         VOICE = 'ptt',
         IMAGE = 'image',
+        ALBUM = 'album',
         VIDEO = 'video',
         DOCUMENT = 'document',
         STICKER = 'sticker',
@@ -1283,7 +1297,7 @@ declare namespace WAWebJS {
         endTime?: Date,
         /** The location of the event */
         location?: string,
-        /** The type of a WhatsApp call link to generate, valid values are: `video` | `voice` */
+        /** The type of a WhatsApp call link to generate, valid values are: `video` | `voice` | `none` */
         callType?: string,
         /**
          * Indicates if a scheduled event should be sent as an already canceled
@@ -1310,7 +1324,7 @@ declare namespace WAWebJS {
             messageSecret?: string;
         };
 
-        constructor(name: string, startTime: Date, options?: EventSendOptions)
+        constructor(name: string, startTime: Date, options?: ScheduledEventSendOptions)
     }
 
     /** Represents a Poll Vote on WhatsApp */
@@ -1570,6 +1584,8 @@ declare namespace WAWebJS {
         /** Gets the Contact's common groups with you. Returns empty array if you don't have any common group. */
         getCommonGroups: () => Promise<ChatId[]>
 
+        /** Gets the Contact's current status broadcast. */
+        getBroadcast: () => Promise<Broadcast>
     }
 
     export interface ContactId {
