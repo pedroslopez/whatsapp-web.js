@@ -901,7 +901,6 @@ declare namespace WAWebJS {
         DISCONNECTED = 'disconnected',
         STATE_CHANGED = 'change_state',
         BATTERY_CHANGED = 'change_battery',
-        INCOMING_CALL = 'call',
         REMOTE_SESSION_SAVED = 'remote_session_saved',
         INCOMING_CALL = 'call',
         VOTE_UPDATE = 'vote_update',
