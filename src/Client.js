@@ -981,7 +981,7 @@ class Client extends EventEmitter {
      * @returns {Promise<Message>} Message that was just sent
      */
     async sendMessage(chatId, content, options = {}) {
-        const isChannel = /@newsletter\b/.test(chatId);
+        const isChannel = /@\w*newsletter\b/.test(chatId);
         const isStatus = /@\w*broadcast\b/.test(chatId);
 
         if (isChannel && [
