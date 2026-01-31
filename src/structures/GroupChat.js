@@ -274,7 +274,8 @@ class GroupChat extends Chat {
     async setDescription(description) {
         const success = await this.client.pupPage.evaluate(async (chatId, description) => {
             const chatWid = window.Store.WidFactory.createWid(chatId);
-            let descId = window.Store.GroupMetadata.get(chatWid).descId;
+            const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
+            let descId = chat.groupMetadata.descId;
             let newId = await window.Store.MsgKey.newId();
             try {
                 await window.Store.GroupUtils.setGroupDescription(chatWid, description, newId, descId);
