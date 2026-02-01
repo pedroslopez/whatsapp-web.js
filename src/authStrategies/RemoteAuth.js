@@ -108,7 +108,7 @@ class RemoteAuth extends BaseAuthStrategy {
         let compressedSessionPath;
         try {
             compressedSessionPath = await this.compressSession();
-            await this.store.save({session: path.join(this.dataPath, this.sessionName)});
+            await this.store.save({ session: path.join(this.dataPath, this.sessionName) });
             if(options && options.emit) this.client.emit(Events.REMOTE_SESSION_SAVED);
         } finally {
             const paths = [
