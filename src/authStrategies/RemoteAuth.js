@@ -108,7 +108,7 @@ class RemoteAuth extends BaseAuthStrategy {
         let compressedSessionPath;
         try {
             compressedSessionPath = await this.compressSession();
-            await this.store.save({ session: this.sessionName });
+            await this.store.save({session: path.join(this.dataPath, this.sessionName)});
             if(options && options.emit) this.client.emit(Events.REMOTE_SESSION_SAVED);
         } finally {
             const paths = [
@@ -129,7 +129,7 @@ class RemoteAuth extends BaseAuthStrategy {
 
     async extractRemoteSession() {
         const pathExists = await this.isValidPath(this.userDataDir);
-        const compressedSessionPath = `${this.sessionName}.zip`;
+        const compressedSessionPath = path.join(this.dataPath, `${this.sessionName}.zip`);
         const sessionExists = await this.store.sessionExists({session: this.sessionName});
         if (pathExists) {
             await fs.promises.rm(this.userDataDir, {
@@ -159,7 +159,7 @@ class RemoteAuth extends BaseAuthStrategy {
         await this.copyByRequiredDirs(userDataDefaultPath, stageDefaultPath);
 
         const archive = archiver('zip');
-        const outPath = `${this.sessionName}.zip`;
+        const outPath = path.join(this.dataPath, `${this.sessionName}.zip`);
         const out = fs.createWriteStream(outPath);
 
         await new Promise((resolve, reject) => {
@@ -178,7 +178,8 @@ class RemoteAuth extends BaseAuthStrategy {
         var stream = fs.createReadStream(compressedSessionPath);
         await new Promise((resolve, reject) => {
             stream.pipe(unzipper.Extract({
-                path: this.userDataDir
+                path: this.userDataDir,
+                concurrency: 10
             }))
                 .on('error', err => reject(err))
                 .on('finish', () => resolve());
