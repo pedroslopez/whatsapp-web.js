@@ -54,21 +54,34 @@ exports.ExposeStore = () => {
     };
 
     /* =======================
-       INITIALIZE STORE
+       SAFE STORE INITIALIZATION
        ======================= */
-    window.Store = Object.assign({}, __wreq('WAWebCollections'));
 
+    // ModuleRaid safe loader
+    const getStoreFromModuleRaid = () => {
+        if (!window.mR || !window.mR.findModule) return {};
+        const modules = window.mR.findModule(m => m.Call && m.Chat);
+        if (modules && modules.length > 0) return modules[0];
+        // fallback to default property
+        const fallback = window.mR.findModule(m => m.default && m.default.Chat);
+        return fallback && fallback.length > 0 ? fallback[0].default ?? fallback[0] : {};
+    };
+
+    // Initialize Store
+    window.Store = Object.assign({}, __wreq('WAWebCollections'), getStoreFromModuleRaid());
+
+    // Helper to safely assign modules
     const safeAssign = (key, moduleName, subKey) => {
         try {
             const mod = __wreq(moduleName);
             if (!mod) return;
             window.Store[key] = subKey ? mod[subKey] : mod;
-        } catch (err) {
-            // silently ignore missing module
-        }
+        } catch (err) { }
     };
 
-    // Basic modules
+    /* =======================
+       BASIC MODULES
+       ======================= */
     safeAssign('AppState', 'WAWebSocketModel', 'Socket');
     safeAssign('BlockContact', 'WAWebBlockContactAction');
     safeAssign('Conn', 'WAWebConnModel', 'Conn');
@@ -79,12 +92,17 @@ exports.ExposeStore = () => {
     safeAssign('MediaObject', 'WAWebMediaStorage');
     safeAssign('MediaTypes', 'WAWebMmsMediaTypes');
 
-    // Media Upload
+    /* =======================
+       MEDIA UPLOAD
+       ======================= */
     window.Store.MediaUpload = {
         ...(__wreq('WAWebMediaMmsV4Upload') ?? {}),
         ...(__wreq('WAWebStartMediaUploadQpl') ?? {})
     };
 
+    /* =======================
+       OTHER MAIN MODULES
+       ======================= */
     safeAssign('MediaUpdate', 'WAWebMediaUpdateMsg');
     safeAssign('MsgKey', 'WAWebMsgKey');
     safeAssign('OpaqueData', 'WAWebMediaOpaqueData');
@@ -98,14 +116,11 @@ exports.ExposeStore = () => {
     safeAssign('BlobCache', 'WAWebMediaInMemoryBlobCache');
     safeAssign('SendSeen', 'WAWebUpdateUnreadChatAction');
     safeAssign('User', 'WAWebUserPrefsMeUser');
-
-    // Contact methods
     window.Store.ContactMethods = {
         ...(__wreq('WAWebContactGetters') ?? {}),
         ...(__wreq('WAWebFrontendContactGetters') ?? {})
     };
 
-    // Other main modules
     safeAssign('UserConstructor', 'WAWebWid');
     safeAssign('Validators', 'WALinkify');
     safeAssign('WidFactory', 'WAWebWidFactory');
@@ -146,20 +161,23 @@ exports.ExposeStore = () => {
     safeAssign('PollsVotesSchema', 'WAWebPollsVotesSchema');
     safeAssign('PollsSendVote', 'WAWebPollsSendVoteMsgAction');
 
-    // Settings
+    /* =======================
+       SETTINGS
+       ======================= */
     window.Store.Settings = {
         ...(__wreq('WAWebUserPrefsGeneral') ?? {}),
         ...(__wreq('WAWebUserPrefsNotifications') ?? {}),
         setPushname: __wreq('WAWebSetPushnameConnAction')?.setPushname
     };
 
-    // Number info
     window.Store.NumberInfo = {
         ...(__wreq('WAPhoneUtils') ?? {}),
         ...(__wreq('WAPhoneFindCC') ?? {})
     };
 
-    // Forward, Pinned, Scheduled Events
+    /* =======================
+       FORWARD, PINNED, SCHEDULED
+       ======================= */
     window.Store.ForwardUtils = { ...(__wreq('WAWebChatForwardMessage') ?? {}) };
     window.Store.PinnedMsgUtils = { ...(__wreq('WAWebPinInChatSchema') ?? {}), ...(__wreq('WAWebSendPinMessageAction') ?? {}) };
     window.Store.ScheduledEventMsgUtils = {
@@ -168,19 +186,22 @@ exports.ExposeStore = () => {
         ...(__wreq('WAWebSendEventResponseMsgAction') ?? {})
     };
 
-    // VCard & Sticker Tools
+    /* =======================
+       VCARD & STICKERS
+       ======================= */
     window.Store.VCard = {
         ...(__wreq('WAWebFrontendVcardUtils') ?? {}),
         ...(__wreq('WAWebVcardParsingUtils') ?? {}),
         ...(__wreq('WAWebVcardGetNameFromParsed') ?? {})
     };
-
     window.Store.StickerTools = {
         ...(__wreq('WAWebImageUtils') ?? {}),
         ...(__wreq('WAWebAddWebpMetadata') ?? {})
     };
 
-    // Group Utilities
+    /* =======================
+       GROUP MODULES
+       ======================= */
     window.Store.GroupUtils = {
         ...(__wreq('WAWebGroupCreateJob') ?? {}),
         ...(__wreq('WAWebGroupModifyInfoJob') ?? {}),
@@ -188,28 +209,27 @@ exports.ExposeStore = () => {
         ...(__wreq('WAWebContactProfilePicThumbBridge') ?? {}),
         ...(__wreq('WAWebSetPropertyGroupAction') ?? {})
     };
-
     window.Store.GroupParticipants = {
         ...(__wreq('WAWebModifyParticipantsGroupAction') ?? {}),
         ...(__wreq('WASmaxGroupsAddParticipantsRPC') ?? {})
     };
-
     window.Store.GroupInvite = {
         ...(__wreq('WAWebGroupInviteJob') ?? {}),
         ...(__wreq('WAWebGroupQueryJob') ?? {}),
         ...(__wreq('WAWebMexFetchGroupInviteCodeJob') ?? {})
     };
-
     window.Store.GroupInviteV4 = {
         ...(__wreq('WAWebGroupInviteV4Job') ?? {}),
         ...(__wreq('WAWebChatSendMessages') ?? {})
     };
-
     window.Store.MembershipRequestUtils = {
         ...(__wreq('WAWebApiMembershipApprovalRequestStore') ?? {}),
         ...(__wreq('WASmaxGroupsMembershipRequestsActionRPC') ?? {})
     };
 
+    /* =======================
+       CHANNELS & NEWSLETTER
+       ======================= */
     window.Store.ChannelUtils = {
         ...(__wreq('WAWebLoadNewsletterPreviewChatAction') ?? {}),
         ...(__wreq('WAWebNewsletterMetadataQueryJob') ?? {}),
@@ -227,9 +247,8 @@ exports.ExposeStore = () => {
         ...(__wreq('WAWebDemoteNewsletterAdminAction') ?? {}),
         ...(__wreq('WAWebNewsletterDemoteAdminJob') ?? {}),
         countryCodesIso: __wreq('WAWebCountriesNativeCountryNames'),
-        currentRegion: __wreq('WAWebL10N')?.getRegion(),
+        currentRegion: __wreq('WAWebL10N')?.getRegion()
     };
-
     window.Store.SendChannelMessage = {
         ...(__wreq('WAWebNewsletterUpdateMsgsRecordsJob') ?? {}),
         ...(__wreq('WAWebMsgDataFromModel') ?? {}),
@@ -237,7 +256,6 @@ exports.ExposeStore = () => {
         ...(__wreq('WAWebNewsletterSendMsgAction') ?? {}),
         ...(__wreq('WAMediaCalculateFilehash') ?? {})
     };
-
     window.Store.ChannelSubscribers = {
         ...(__wreq('WAWebMexFetchNewsletterSubscribersJob') ?? {}),
         ...(__wreq('WAWebNewsletterSubscriberListAction') ?? {})
@@ -255,7 +273,9 @@ exports.ExposeStore = () => {
         ...(__wreq('WAWebStatusGatingUtils') ?? {})
     };
 
-    // Polyfill Chat.findImpl
+    /* =======================
+       CHAT POLYFILL
+       ======================= */
     if (window.Store.Chat && (!window.Store.Chat._find || !window.Store.Chat.findImpl)) {
         window.Store.Chat._find = e => {
             const target = window.Store.Chat.get(e);
@@ -263,5 +283,6 @@ exports.ExposeStore = () => {
         };
         window.Store.Chat.findImpl = window.Store.Chat._find;
     }
+
 };
 
