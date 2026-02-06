@@ -293,6 +293,9 @@ class Client extends EventEmitter {
             window.AuthStore.Cmd.on('logout', async () => {
                 await window.onLogoutEvent();
             });
+            window.AuthStore.Cmd.on('logout_from_bridge', async () => {
+                await window.onLogoutEvent();
+            });
         });
     }
 
