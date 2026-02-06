@@ -1,20 +1,30 @@
 'use strict';
 
 exports.ExposeStore = () => {
-    /**
-     * Helper function that compares between two WWeb versions. Its purpose is to help the developer to choose the correct code implementation depending on the comparison value and the WWeb version.
-     * @param {string} lOperand The left operand for the WWeb version string to compare with
-     * @param {string} operator The comparison operator
-     * @param {string} rOperand The right operand for the WWeb version string to compare with
-     * @returns {boolean} Boolean value that indicates the result of the comparison
-     */
+
+    /* =======================
+       SAFE REQUIRE (COMET FIX)
+       ======================= */
+    const __wreq = (name) => {
+        try {
+            const m = window.require(name);
+            if (!m) return undefined;
+            return m.default ?? m;
+        } catch (err) {
+            return undefined;
+        }
+    };
+
+    /* =======================
+       WWeb Version Compare
+       ======================= */
     window.compareWwebVersions = (lOperand, operator, rOperand) => {
         if (!['>', '>=', '<', '<=', '='].includes(operator)) {
             throw new class _ extends Error {
                 constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
             }('Invalid comparison operator is provided');
-
         }
+
         if (typeof lOperand !== 'string' || typeof rOperand !== 'string') {
             throw new class _ extends Error {
                 constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
@@ -35,231 +45,245 @@ exports.ExposeStore = () => {
 
         return (
             operator === '>' ? lOperand > rOperand :
-                operator === '>=' ? lOperand >= rOperand :
-                    operator === '<' ? lOperand < rOperand :
-                        operator === '<=' ? lOperand <= rOperand :
-                            operator === '=' ? lOperand === rOperand :
-                                false
+            operator === '>=' ? lOperand >= rOperand :
+            operator === '<' ? lOperand < rOperand :
+            operator === '<=' ? lOperand <= rOperand :
+            operator === '=' ? lOperand === rOperand :
+            false
         );
     };
 
-    window.Store = Object.assign({}, window.require('WAWebCollections'));
-    window.Store.AppState = window.require('WAWebSocketModel').Socket;
-    window.Store.BlockContact = window.require('WAWebBlockContactAction');
-    window.Store.Conn = window.require('WAWebConnModel').Conn;
-    window.Store.Cmd = window.require('WAWebCmd').Cmd;
-    window.Store.DownloadManager = window.require('WAWebDownloadManager').downloadManager;
-    window.Store.GroupQueryAndUpdate = window.require('WAWebGroupQueryJob').queryAndUpdateGroupMetadataById;
-    window.Store.MediaPrep = window.require('WAWebPrepRawMedia');
-    window.Store.MediaObject = window.require('WAWebMediaStorage');
-    window.Store.MediaTypes = window.require('WAWebMmsMediaTypes');
-    window.Store.MediaUpload = {
-        ...window.require('WAWebMediaMmsV4Upload'),
-        ...window.require('WAWebStartMediaUploadQpl')
-    };
-    window.Store.MediaUpdate = window.require('WAWebMediaUpdateMsg');
-    window.Store.MsgKey = window.require('WAWebMsgKey');
-    window.Store.OpaqueData = window.require('WAWebMediaOpaqueData');
-    window.Store.QueryProduct = window.require('WAWebBizProductCatalogBridge');
-    window.Store.QueryOrder = window.require('WAWebBizOrderBridge');
-    window.Store.SendClear = window.require('WAWebChatClearBridge');
-    window.Store.SendDelete = window.require('WAWebDeleteChatAction');
-    window.Store.SendMessage = window.require('WAWebSendMsgChatAction');
-    window.Store.EditMessage = window.require('WAWebSendMessageEditAction');
-    window.Store.MediaDataUtils = window.require('WAWebMediaDataUtils');
-    window.Store.BlobCache = window.require('WAWebMediaInMemoryBlobCache');
-    window.Store.SendSeen = window.require('WAWebUpdateUnreadChatAction');
-    window.Store.User = window.require('WAWebUserPrefsMeUser');
-    window.Store.ContactMethods = {
-        ...window.require('WAWebContactGetters'),
-        ...window.require('WAWebFrontendContactGetters')
-    };
-    window.Store.UserConstructor = window.require('WAWebWid');
-    window.Store.Validators = window.require('WALinkify');
-    window.Store.WidFactory = window.require('WAWebWidFactory');
-    window.Store.ProfilePic = window.require('WAWebContactProfilePicThumbBridge');
-    window.Store.PresenceUtils = window.require('WAWebPresenceChatAction');
-    window.Store.ChatState = window.require('WAWebChatStateBridge');
-    window.Store.findCommonGroups = window.require('WAWebFindCommonGroupsContactAction').findCommonGroups;
-    window.Store.ConversationMsgs = window.require('WAWebChatLoadMessages');
-    window.Store.sendReactionToMsg = window.require('WAWebSendReactionMsgAction').sendReactionToMsg;
-    window.Store.createOrUpdateReactionsModule = window.require('WAWebDBCreateOrUpdateReactions');
-    window.Store.EphemeralFields = window.require('WAWebGetEphemeralFieldsMsgActionsUtils');
-    window.Store.MsgActionChecks = window.require('WAWebMsgActionCapability');
-    window.Store.QuotedMsg = window.require('WAWebQuotedMsgModelUtils');
-    window.Store.LinkPreview = window.require('WAWebLinkPreviewChatAction');
-    window.Store.Socket = window.require('WADeprecatedSendIq');
-    window.Store.SocketWap = window.require('WAWap');
-    window.Store.SearchContext = window.require('WAWebChatMessageSearch');
-    window.Store.DrawerManager = window.require('WAWebDrawerManager').DrawerManager;
-    window.Store.LidUtils = window.require('WAWebApiContact');
-    window.Store.WidToJid = window.require('WAWebWidToJid');
-    window.Store.JidToWid = window.require('WAWebJidToWid');
-    window.Store.getMsgInfo = window.require('WAWebApiMessageInfoStore').queryMsgInfo;
-    window.Store.QueryExist = window.require('WAWebQueryExistsJob').queryWidExists;
-    window.Store.ReplyUtils = window.require('WAWebMsgReply');
-    window.Store.BotSecret = window.require('WAWebBotMessageSecret');
-    window.Store.BotProfiles = window.require('WAWebBotProfileCollection');
-    window.Store.ContactCollection = window.require('WAWebContactCollection').ContactCollection;
-    window.Store.DeviceList = window.require('WAWebApiDeviceList');
-    window.Store.HistorySync = window.require('WAWebSendNonMessageDataRequest');
-    window.Store.AddonReactionTable = window.require('WAWebAddonReactionTableMode').reactionTableMode;
-    window.Store.AddonPollVoteTable = window.require('WAWebAddonPollVoteTableMode').pollVoteTableMode;
-    window.Store.ChatGetters = window.require('WAWebChatGetters');
-    window.Store.UploadUtils = window.require('WAWebUploadManager');
-    window.Store.WAWebStreamModel = window.require('WAWebStreamModel');
-    window.Store.FindOrCreateChat = window.require('WAWebFindChatAction');
-    window.Store.CustomerNoteUtils = window.require('WAWebNoteAction');
-    window.Store.BusinessGatingUtils = window.require('WAWebBizGatingUtils');
-    window.Store.PollsVotesSchema = window.require('WAWebPollsVotesSchema');
-    window.Store.PollsSendVote = window.require('WAWebPollsSendVoteMsgAction');
+    /* =======================
+       SAFE STORE INITIALIZATION
+       ======================= */
 
+    // ModuleRaid safe loader
+    const getStoreFromModuleRaid = () => {
+        if (!window.mR || !window.mR.findModule) return {};
+        const modules = window.mR.findModule(m => m.Call && m.Chat);
+        if (modules && modules.length > 0) return modules[0];
+        // fallback to default property
+        const fallback = window.mR.findModule(m => m.default && m.default.Chat);
+        return fallback && fallback.length > 0 ? fallback[0].default ?? fallback[0] : {};
+    };
+
+    // Initialize Store
+    window.Store = Object.assign({}, __wreq('WAWebCollections'), getStoreFromModuleRaid());
+
+    // Helper to safely assign modules
+    const safeAssign = (key, moduleName, subKey) => {
+        try {
+            const mod = __wreq(moduleName);
+            if (!mod) return;
+            window.Store[key] = subKey ? mod[subKey] : mod;
+        } catch (err) { }
+    };
+
+    /* =======================
+       BASIC MODULES
+       ======================= */
+    safeAssign('AppState', 'WAWebSocketModel', 'Socket');
+    safeAssign('BlockContact', 'WAWebBlockContactAction');
+    safeAssign('Conn', 'WAWebConnModel', 'Conn');
+    safeAssign('Cmd', 'WAWebCmd', 'Cmd');
+    safeAssign('DownloadManager', 'WAWebDownloadManager', 'downloadManager');
+    safeAssign('GroupQueryAndUpdate', 'WAWebGroupQueryJob', 'queryAndUpdateGroupMetadataById');
+    safeAssign('MediaPrep', 'WAWebPrepRawMedia');
+    safeAssign('MediaObject', 'WAWebMediaStorage');
+    safeAssign('MediaTypes', 'WAWebMmsMediaTypes');
+
+    /* =======================
+       MEDIA UPLOAD
+       ======================= */
+    window.Store.MediaUpload = {
+        ...(__wreq('WAWebMediaMmsV4Upload') ?? {}),
+        ...(__wreq('WAWebStartMediaUploadQpl') ?? {})
+    };
+
+    /* =======================
+       OTHER MAIN MODULES
+       ======================= */
+    safeAssign('MediaUpdate', 'WAWebMediaUpdateMsg');
+    safeAssign('MsgKey', 'WAWebMsgKey');
+    safeAssign('OpaqueData', 'WAWebMediaOpaqueData');
+    safeAssign('QueryProduct', 'WAWebBizProductCatalogBridge');
+    safeAssign('QueryOrder', 'WAWebBizOrderBridge');
+    safeAssign('SendClear', 'WAWebChatClearBridge');
+    safeAssign('SendDelete', 'WAWebDeleteChatAction');
+    safeAssign('SendMessage', 'WAWebSendMsgChatAction');
+    safeAssign('EditMessage', 'WAWebSendMessageEditAction');
+    safeAssign('MediaDataUtils', 'WAWebMediaDataUtils');
+    safeAssign('BlobCache', 'WAWebMediaInMemoryBlobCache');
+    safeAssign('SendSeen', 'WAWebUpdateUnreadChatAction');
+    safeAssign('User', 'WAWebUserPrefsMeUser');
+    window.Store.ContactMethods = {
+        ...(__wreq('WAWebContactGetters') ?? {}),
+        ...(__wreq('WAWebFrontendContactGetters') ?? {})
+    };
+
+    safeAssign('UserConstructor', 'WAWebWid');
+    safeAssign('Validators', 'WALinkify');
+    safeAssign('WidFactory', 'WAWebWidFactory');
+    safeAssign('ProfilePic', 'WAWebContactProfilePicThumbBridge');
+    safeAssign('PresenceUtils', 'WAWebPresenceChatAction');
+    safeAssign('ChatState', 'WAWebChatStateBridge');
+    safeAssign('findCommonGroups', 'WAWebFindCommonGroupsContactAction', 'findCommonGroups');
+    safeAssign('ConversationMsgs', 'WAWebChatLoadMessages');
+    safeAssign('sendReactionToMsg', 'WAWebSendReactionMsgAction', 'sendReactionToMsg');
+    safeAssign('createOrUpdateReactionsModule', 'WAWebDBCreateOrUpdateReactions');
+    safeAssign('EphemeralFields', 'WAWebGetEphemeralFieldsMsgActionsUtils');
+    safeAssign('MsgActionChecks', 'WAWebMsgActionCapability');
+    safeAssign('QuotedMsg', 'WAWebQuotedMsgModelUtils');
+    safeAssign('LinkPreview', 'WAWebLinkPreviewChatAction');
+    safeAssign('Socket', 'WADeprecatedSendIq');
+    safeAssign('SocketWap', 'WAWap');
+    safeAssign('SearchContext', 'WAWebChatMessageSearch');
+    safeAssign('DrawerManager', 'WAWebDrawerManager', 'DrawerManager');
+    safeAssign('LidUtils', 'WAWebApiContact');
+    safeAssign('WidToJid', 'WAWebWidToJid');
+    safeAssign('JidToWid', 'WAWebJidToWid');
+    safeAssign('getMsgInfo', 'WAWebApiMessageInfoStore', 'queryMsgInfo');
+    safeAssign('QueryExist', 'WAWebQueryExistsJob', 'queryWidExists');
+    safeAssign('ReplyUtils', 'WAWebMsgReply');
+    safeAssign('BotSecret', 'WAWebBotMessageSecret');
+    safeAssign('BotProfiles', 'WAWebBotProfileCollection');
+    safeAssign('ContactCollection', 'WAWebContactCollection', 'ContactCollection');
+    safeAssign('DeviceList', 'WAWebApiDeviceList');
+    safeAssign('HistorySync', 'WAWebSendNonMessageDataRequest');
+    safeAssign('AddonReactionTable', 'WAWebAddonReactionTableMode', 'reactionTableMode');
+    safeAssign('AddonPollVoteTable', 'WAWebAddonPollVoteTableMode', 'pollVoteTableMode');
+    safeAssign('ChatGetters', 'WAWebChatGetters');
+    safeAssign('UploadUtils', 'WAWebUploadManager');
+    safeAssign('WAWebStreamModel', 'WAWebStreamModel');
+    safeAssign('FindOrCreateChat', 'WAWebFindChatAction');
+    safeAssign('CustomerNoteUtils', 'WAWebNoteAction');
+    safeAssign('BusinessGatingUtils', 'WAWebBizGatingUtils');
+    safeAssign('PollsVotesSchema', 'WAWebPollsVotesSchema');
+    safeAssign('PollsSendVote', 'WAWebPollsSendVoteMsgAction');
+
+    /* =======================
+       SETTINGS
+       ======================= */
     window.Store.Settings = {
-        ...window.require('WAWebUserPrefsGeneral'),
-        ...window.require('WAWebUserPrefsNotifications'),
-        setPushname: window.require('WAWebSetPushnameConnAction').setPushname
+        ...(__wreq('WAWebUserPrefsGeneral') ?? {}),
+        ...(__wreq('WAWebUserPrefsNotifications') ?? {}),
+        setPushname: __wreq('WAWebSetPushnameConnAction')?.setPushname
     };
+
     window.Store.NumberInfo = {
-        ...window.require('WAPhoneUtils'),
-        ...window.require('WAPhoneFindCC')
+        ...(__wreq('WAPhoneUtils') ?? {}),
+        ...(__wreq('WAPhoneFindCC') ?? {})
     };
-    window.Store.ForwardUtils = {
-        ...window.require('WAWebChatForwardMessage')
-    };
-    window.Store.PinnedMsgUtils = {
-        ...window.require('WAWebPinInChatSchema'),
-        ...window.require('WAWebSendPinMessageAction')
-    };
+
+    /* =======================
+       FORWARD, PINNED, SCHEDULED
+       ======================= */
+    window.Store.ForwardUtils = { ...(__wreq('WAWebChatForwardMessage') ?? {}) };
+    window.Store.PinnedMsgUtils = { ...(__wreq('WAWebPinInChatSchema') ?? {}), ...(__wreq('WAWebSendPinMessageAction') ?? {}) };
     window.Store.ScheduledEventMsgUtils = {
-        ...window.require('WAWebGenerateEventCallLink'),
-        ...window.require('WAWebSendEventEditMsgAction'),
-        ...window.require('WAWebSendEventResponseMsgAction')
+        ...(__wreq('WAWebGenerateEventCallLink') ?? {}),
+        ...(__wreq('WAWebSendEventEditMsgAction') ?? {}),
+        ...(__wreq('WAWebSendEventResponseMsgAction') ?? {})
     };
+
+    /* =======================
+       VCARD & STICKERS
+       ======================= */
     window.Store.VCard = {
-        ...window.require('WAWebFrontendVcardUtils'),
-        ...window.require('WAWebVcardParsingUtils'),
-        ...window.require('WAWebVcardGetNameFromParsed')
+        ...(__wreq('WAWebFrontendVcardUtils') ?? {}),
+        ...(__wreq('WAWebVcardParsingUtils') ?? {}),
+        ...(__wreq('WAWebVcardGetNameFromParsed') ?? {})
     };
     window.Store.StickerTools = {
-        ...window.require('WAWebImageUtils'),
-        ...window.require('WAWebAddWebpMetadata')
-    };
-    window.Store.GroupUtils = {
-        ...window.require('WAWebGroupCreateJob'),
-        ...window.require('WAWebGroupModifyInfoJob'),
-        ...window.require('WAWebExitGroupAction'),
-        ...window.require('WAWebContactProfilePicThumbBridge'),
-        ...window.require('WAWebSetPropertyGroupAction')
-    };
-    window.Store.GroupParticipants = {
-        ...window.require('WAWebModifyParticipantsGroupAction'),
-        ...window.require('WASmaxGroupsAddParticipantsRPC')
-    };
-    window.Store.GroupInvite = {
-        ...window.require('WAWebGroupInviteJob'),
-        ...window.require('WAWebGroupQueryJob'),
-        ...window.require('WAWebMexFetchGroupInviteCodeJob')
-    };
-    window.Store.GroupInviteV4 = {
-        ...window.require('WAWebGroupInviteV4Job'),
-        ...window.require('WAWebChatSendMessages')
-    };
-    window.Store.MembershipRequestUtils = {
-        ...window.require('WAWebApiMembershipApprovalRequestStore'),
-        ...window.require('WASmaxGroupsMembershipRequestsActionRPC')
-    };
-    window.Store.ChannelUtils = {
-        ...window.require('WAWebLoadNewsletterPreviewChatAction'),
-        ...window.require('WAWebNewsletterMetadataQueryJob'),
-        ...window.require('WAWebNewsletterCreateQueryJob'),
-        ...window.require('WAWebEditNewsletterMetadataAction'),
-        ...window.require('WAWebNewsletterDeleteAction'),
-        ...window.require('WAWebNewsletterSubscribeAction'),
-        ...window.require('WAWebNewsletterUnsubscribeAction'),
-        ...window.require('WAWebNewsletterDirectorySearchAction'),
-        ...window.require('WAWebNewsletterGatingUtils'),
-        ...window.require('WAWebNewsletterModelUtils'),
-        ...window.require('WAWebMexAcceptNewsletterAdminInviteJob'),
-        ...window.require('WAWebMexRevokeNewsletterAdminInviteJob'),
-        ...window.require('WAWebChangeNewsletterOwnerAction'),
-        ...window.require('WAWebDemoteNewsletterAdminAction'),
-        ...window.require('WAWebNewsletterDemoteAdminJob'),
-        countryCodesIso: window.require('WAWebCountriesNativeCountryNames'),
-        currentRegion: window.require('WAWebL10N').getRegion(),
-    };
-    window.Store.SendChannelMessage = {
-        ...window.require('WAWebNewsletterUpdateMsgsRecordsJob'),
-        ...window.require('WAWebMsgDataFromModel'),
-        ...window.require('WAWebNewsletterSendMessageJob'),
-        ...window.require('WAWebNewsletterSendMsgAction'),
-        ...window.require('WAMediaCalculateFilehash')
-    };
-    window.Store.ChannelSubscribers = {
-        ...window.require('WAWebMexFetchNewsletterSubscribersJob'),
-        ...window.require('WAWebNewsletterSubscriberListAction')
-    };
-    window.Store.AddressbookContactUtils = {
-        ...window.require('WAWebSaveContactAction'),
-        ...window.require('WAWebDeleteContactAction')
-    };
-    window.Store.StatusUtils = {
-        ...window.require('WAWebContactStatusBridge'),
-        ...window.require('WAWebSendStatusMsgAction'),
-        ...window.require('WAWebRevokeStatusAction'),
-        ...window.require('WAWebStatusGatingUtils')
+        ...(__wreq('WAWebImageUtils') ?? {}),
+        ...(__wreq('WAWebAddWebpMetadata') ?? {})
     };
 
-    if (!window.Store.Chat._find || !window.Store.Chat.findImpl) {
+    /* =======================
+       GROUP MODULES
+       ======================= */
+    window.Store.GroupUtils = {
+        ...(__wreq('WAWebGroupCreateJob') ?? {}),
+        ...(__wreq('WAWebGroupModifyInfoJob') ?? {}),
+        ...(__wreq('WAWebExitGroupAction') ?? {}),
+        ...(__wreq('WAWebContactProfilePicThumbBridge') ?? {}),
+        ...(__wreq('WAWebSetPropertyGroupAction') ?? {})
+    };
+    window.Store.GroupParticipants = {
+        ...(__wreq('WAWebModifyParticipantsGroupAction') ?? {}),
+        ...(__wreq('WASmaxGroupsAddParticipantsRPC') ?? {})
+    };
+    window.Store.GroupInvite = {
+        ...(__wreq('WAWebGroupInviteJob') ?? {}),
+        ...(__wreq('WAWebGroupQueryJob') ?? {}),
+        ...(__wreq('WAWebMexFetchGroupInviteCodeJob') ?? {})
+    };
+    window.Store.GroupInviteV4 = {
+        ...(__wreq('WAWebGroupInviteV4Job') ?? {}),
+        ...(__wreq('WAWebChatSendMessages') ?? {})
+    };
+    window.Store.MembershipRequestUtils = {
+        ...(__wreq('WAWebApiMembershipApprovalRequestStore') ?? {}),
+        ...(__wreq('WASmaxGroupsMembershipRequestsActionRPC') ?? {})
+    };
+
+    /* =======================
+       CHANNELS & NEWSLETTER
+       ======================= */
+    window.Store.ChannelUtils = {
+        ...(__wreq('WAWebLoadNewsletterPreviewChatAction') ?? {}),
+        ...(__wreq('WAWebNewsletterMetadataQueryJob') ?? {}),
+        ...(__wreq('WAWebNewsletterCreateQueryJob') ?? {}),
+        ...(__wreq('WAWebEditNewsletterMetadataAction') ?? {}),
+        ...(__wreq('WAWebNewsletterDeleteAction') ?? {}),
+        ...(__wreq('WAWebNewsletterSubscribeAction') ?? {}),
+        ...(__wreq('WAWebNewsletterUnsubscribeAction') ?? {}),
+        ...(__wreq('WAWebNewsletterDirectorySearchAction') ?? {}),
+        ...(__wreq('WAWebNewsletterGatingUtils') ?? {}),
+        ...(__wreq('WAWebNewsletterModelUtils') ?? {}),
+        ...(__wreq('WAWebMexAcceptNewsletterAdminInviteJob') ?? {}),
+        ...(__wreq('WAWebMexRevokeNewsletterAdminInviteJob') ?? {}),
+        ...(__wreq('WAWebChangeNewsletterOwnerAction') ?? {}),
+        ...(__wreq('WAWebDemoteNewsletterAdminAction') ?? {}),
+        ...(__wreq('WAWebNewsletterDemoteAdminJob') ?? {}),
+        countryCodesIso: __wreq('WAWebCountriesNativeCountryNames'),
+        currentRegion: __wreq('WAWebL10N')?.getRegion()
+    };
+    window.Store.SendChannelMessage = {
+        ...(__wreq('WAWebNewsletterUpdateMsgsRecordsJob') ?? {}),
+        ...(__wreq('WAWebMsgDataFromModel') ?? {}),
+        ...(__wreq('WAWebNewsletterSendMessageJob') ?? {}),
+        ...(__wreq('WAWebNewsletterSendMsgAction') ?? {}),
+        ...(__wreq('WAMediaCalculateFilehash') ?? {})
+    };
+    window.Store.ChannelSubscribers = {
+        ...(__wreq('WAWebMexFetchNewsletterSubscribersJob') ?? {}),
+        ...(__wreq('WAWebNewsletterSubscriberListAction') ?? {})
+    };
+
+    window.Store.AddressbookContactUtils = {
+        ...(__wreq('WAWebSaveContactAction') ?? {}),
+        ...(__wreq('WAWebDeleteContactAction') ?? {})
+    };
+
+    window.Store.StatusUtils = {
+        ...(__wreq('WAWebContactStatusBridge') ?? {}),
+        ...(__wreq('WAWebSendStatusMsgAction') ?? {}),
+        ...(__wreq('WAWebRevokeStatusAction') ?? {}),
+        ...(__wreq('WAWebStatusGatingUtils') ?? {})
+    };
+
+    /* =======================
+       CHAT POLYFILL
+       ======================= */
+    if (window.Store.Chat && (!window.Store.Chat._find || !window.Store.Chat.findImpl)) {
         window.Store.Chat._find = e => {
             const target = window.Store.Chat.get(e);
-            return target ? Promise.resolve(target) : Promise.resolve({
-                id: e
-            });
+            return target ? Promise.resolve(target) : Promise.resolve({ id: e });
         };
         window.Store.Chat.findImpl = window.Store.Chat._find;
     }
 
-    /**
-     * Target options object description
-     * @typedef {Object} TargetOptions
-     * @property {string|number} module The target module
-     * @property {string} function The function name to get from a module
-     */
-    /**
-     * Function to modify functions
-     * @param {TargetOptions} target Options specifying the target function to search for modifying
-     * @param {Function} callback Modified function
-     */
-    window.injectToFunction = (target, callback) => {
-        try {
-            let module = window.require(target.module);
-            if (!module) return; 
-
-            const path = target.function.split('.');
-            const funcName = path.pop();
-
-            for (const key of path) {
-                if (!module[key]) return;
-                module = module[key];
-            }
-
-            const originalFunction = module[funcName];
-            if (typeof originalFunction !== 'function') return;
-
-            module[funcName] = (...args) => {
-                try {
-                    return callback(originalFunction, ...args);
-                } catch {
-                    return originalFunction(...args);
-                }
-            };
-
-        } catch {
-            return;
-        }
-    };
-
-    window.injectToFunction({ module: 'WAWebBackendJobsCommon', function: 'mediaTypeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? null : func(...args); });
-
-    window.injectToFunction({ module: 'WAWebE2EProtoUtils', function: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage || proto.groupInviteMessage ? 'text' : func(...args); });
 };
+
+
