@@ -136,7 +136,8 @@ exports.ExposeStore = () => {
 
     window.Store.NumberInfo = {
         ...window.require('WAPhoneUtils'),
-        ...window.require('WAPhoneFindCC')
+        ...window.require('WAPhoneFindCC'),
+        ...window.require('WAWebPhoneUtils')
     };
     window.Store.ForwardUtils = {
         ...window.require('WAWebChatForwardMessage')
