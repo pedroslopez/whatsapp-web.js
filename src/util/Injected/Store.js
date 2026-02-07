@@ -1,13 +1,18 @@
 'use strict';
 
 exports.ExposeStore = () => {
-    // preserve original compare helper exactly
+    /**
+     * Helper function that compares between two WWeb versions. Its purpose is to help the developer to choose the correct code implementation depending on the comparison value and the WWeb version.
+     * @param {string} lOperand The left operand for the WWeb version string to compare with
+     * @param {string} operator The comparison operator
+     * @param {string} rOperand The right operand for the WWeb version string to compare with
+     * @returns {boolean} Boolean value that indicates the result of the comparison
+     */
     window.compareWwebVersions = (lOperand, operator, rOperand) => {
         if (!['>', '>=', '<', '<=', '='].includes(operator)) {
             throw new class _ extends Error {
                 constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
             }('Invalid comparison operator is provided');
-
         }
         if (typeof lOperand !== 'string' || typeof rOperand !== 'string') {
             throw new class _ extends Error {
@@ -37,36 +42,40 @@ exports.ExposeStore = () => {
         );
     };
 
-    /* ---------- helpers (minimal & explicit) ---------- */
-
-    // Safely require a WA module and prefer .default when present.
-    // Returns undefined when require fails or module is missing.
-    function req(name) {
+    /**
+     * Helper: Safely require a module and handle the ES6 default export pattern.
+     * @param {string} moduleName
+     * @returns {object|undefined}
+     */
+    const req = (moduleName) => {
         try {
-            const m = window.require && window.require(name);
-            return m && (m.default || m);
-        } catch (e) {
+            const m = window.require(moduleName);
+            return m && m.default ? m.default : m;
+        } catch {
             return undefined;
         }
-    }
+    };
 
-    // Assign only when the value exists and the target key is not already set.
-    function safeAssign(key, moduleName, subKey) {
+    /**
+     * Helper: Assigns a module to window.Store if it exists and isn't already set.
+     * @param {string} storeKey - The key to assign in window.Store
+     * @param {string} moduleName - The internal module name
+     * @param {string} [subKey] - Optional specific property to extract from the module
+     */
+    const safeAssign = (storeKey, moduleName, subKey) => {
         const mod = req(moduleName);
-        if (!mod) return false;
-        const value = subKey ? mod[subKey] : mod;
-        if (!value) return false;
-        if (!window.Store[key]) {
-            window.Store[key] = value;
-            return true;
+        if (!mod) return;
+
+        const target = subKey ? mod[subKey] : mod;
+        if (target && !window.Store[storeKey]) {
+            window.Store[storeKey] = target;
         }
-        return false;
-    }
+    };
 
-    /* ---------- initialize Store (explicit mapping) ---------- */
-
+    // Initialize Store
     window.Store = Object.assign({}, req('WAWebCollections'));
 
+    // Direct Assignments
     safeAssign('AppState', 'WAWebSocketModel', 'Socket');
     safeAssign('BlockContact', 'WAWebBlockContactAction');
     safeAssign('Conn', 'WAWebConnModel', 'Conn');
@@ -76,13 +85,6 @@ exports.ExposeStore = () => {
     safeAssign('MediaPrep', 'WAWebPrepRawMedia');
     safeAssign('MediaObject', 'WAWebMediaStorage');
     safeAssign('MediaTypes', 'WAWebMmsMediaTypes');
-
-    // media upload composed from two modules if available
-    window.Store.MediaUpload = {
-        ...(req('WAWebMediaMmsV4Upload') || {}),
-        ...(req('WAWebStartMediaUploadQpl') || {})
-    };
-
     safeAssign('MediaUpdate', 'WAWebMediaUpdateMsg');
     safeAssign('MsgKey', 'WAWebMsgKey');
     safeAssign('OpaqueData', 'WAWebMediaOpaqueData');
@@ -96,13 +98,6 @@ exports.ExposeStore = () => {
     safeAssign('BlobCache', 'WAWebMediaInMemoryBlobCache');
     safeAssign('SendSeen', 'WAWebUpdateUnreadChatAction');
     safeAssign('User', 'WAWebUserPrefsMeUser');
-
-    // composite getters
-    window.Store.ContactMethods = {
-        ...(req('WAWebContactGetters') || {}),
-        ...(req('WAWebFrontendContactGetters') || {})
-    };
-
     safeAssign('UserConstructor', 'WAWebWid');
     safeAssign('Validators', 'WALinkify');
     safeAssign('WidFactory', 'WAWebWidFactory');
@@ -143,7 +138,17 @@ exports.ExposeStore = () => {
     safeAssign('PollsVotesSchema', 'WAWebPollsVotesSchema');
     safeAssign('PollsSendVote', 'WAWebPollsSendVoteMsgAction');
 
-    // Settings & NumberInfo composites
+    // Composite Assignments (Merging multiple modules)
+    window.Store.MediaUpload = {
+        ...(req('WAWebMediaMmsV4Upload') || {}),
+        ...(req('WAWebStartMediaUploadQpl') || {})
+    };
+
+    window.Store.ContactMethods = {
+        ...(req('WAWebContactGetters') || {}),
+        ...(req('WAWebFrontendContactGetters') || {})
+    };
+
     window.Store.Settings = {
         ...(req('WAWebUserPrefsGeneral') || {}),
         ...(req('WAWebUserPrefsNotifications') || {}),
@@ -156,12 +161,13 @@ exports.ExposeStore = () => {
         ...(req('WAWebPhoneUtils') || {})
     };
 
-    // misc composites
     window.Store.ForwardUtils = { ...(req('WAWebChatForwardMessage') || {}) };
+
     window.Store.PinnedMsgUtils = {
         ...(req('WAWebPinInChatSchema') || {}),
         ...(req('WAWebSendPinMessageAction') || {})
     };
+
     window.Store.ScheduledEventMsgUtils = {
         ...(req('WAWebGenerateEventCallLink') || {}),
         ...(req('WAWebSendEventEditMsgAction') || {}),
@@ -186,19 +192,23 @@ exports.ExposeStore = () => {
         ...(req('WAWebContactProfilePicThumbBridge') || {}),
         ...(req('WAWebSetPropertyGroupAction') || {})
     };
+
     window.Store.GroupParticipants = {
         ...(req('WAWebModifyParticipantsGroupAction') || {}),
         ...(req('WASmaxGroupsAddParticipantsRPC') || {})
     };
+
     window.Store.GroupInvite = {
         ...(req('WAWebGroupInviteJob') || {}),
         ...(req('WAWebGroupQueryJob') || {}),
         ...(req('WAWebMexFetchGroupInviteCodeJob') || {})
     };
+
     window.Store.GroupInviteV4 = {
         ...(req('WAWebGroupInviteV4Job') || {}),
         ...(req('WAWebChatSendMessages') || {})
     };
+
     window.Store.MembershipRequestUtils = {
         ...(req('WAWebApiMembershipApprovalRequestStore') || {}),
         ...(req('WASmaxGroupsMembershipRequestsActionRPC') || {})
@@ -249,19 +259,29 @@ exports.ExposeStore = () => {
         ...(req('WAWebStatusGatingUtils') || {})
     };
 
-    /* ---------- compatibility polyfill for Chat.findImpl ---------- */
+    // Polyfill for Chat.findImpl
     if (window.Store.Chat && (!window.Store.Chat._find || !window.Store.Chat.findImpl)) {
         window.Store.Chat._find = e => {
-            const target = window.Store.Chat.get && window.Store.Chat.get(e);
+            const target = window.Store.Chat.get ? window.Store.Chat.get(e) : undefined;
             return target ? Promise.resolve(target) : Promise.resolve({ id: e });
         };
         window.Store.Chat.findImpl = window.Store.Chat._find;
     }
 
-    /* ---------- small injector helper (kept minimal) ---------- */
+    /**
+     * Target options object description
+     * @typedef {Object} TargetOptions
+     * @property {string|number} module The target module
+     * @property {string} function The function name to get from a module
+     */
+    /**
+     * Function to modify functions
+     * @param {TargetOptions} target Options specifying the target function to search for modifying
+     * @param {Function} callback Modified function
+     */
     window.injectToFunction = (target, callback) => {
         try {
-            let module = req(target.module);
+            let module = window.require(target.module);
             if (!module) return;
 
             const path = target.function.split('.');
@@ -287,13 +307,7 @@ exports.ExposeStore = () => {
         }
     };
 
-    window.injectToFunction({ module: 'WAWebBackendJobsCommon', function: 'mediaTypeFromProtobuf' }, (func, ...args) => {
-        const [proto] = args;
-        return proto && proto.locationMessage ? null : func(...args);
-    });
+    window.injectToFunction({ module: 'WAWebBackendJobsCommon', function: 'mediaTypeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? null : func(...args); });
 
-    window.injectToFunction({ module: 'WAWebE2EProtoUtils', function: 'typeAttributeFromProtobuf' }, (func, ...args) => {
-        const [proto] = args;
-        return proto && (proto.locationMessage || proto.groupInviteMessage) ? 'text' : func(...args);
-    });
+    window.injectToFunction({ module: 'WAWebE2EProtoUtils', function: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage || proto.groupInviteMessage ? 'text' : func(...args); });
 };
