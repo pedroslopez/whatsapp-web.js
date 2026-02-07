@@ -1,30 +1,14 @@
 'use strict';
 
 exports.ExposeStore = () => {
-
-    /* =======================
-       SAFE REQUIRE (COMET FIX)
-       ======================= */
-    const __wreq = (name) => {
-        try {
-            const m = window.require(name);
-            if (!m) return undefined;
-            return m.default ?? m;
-        } catch (err) {
-            return undefined;
-        }
-    };
-
-    /* =======================
-       WWeb Version Compare
-       ======================= */
+    // preserve original compare helper exactly
     window.compareWwebVersions = (lOperand, operator, rOperand) => {
         if (!['>', '>=', '<', '<=', '='].includes(operator)) {
             throw new class _ extends Error {
                 constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
             }('Invalid comparison operator is provided');
-        }
 
+        }
         if (typeof lOperand !== 'string' || typeof rOperand !== 'string') {
             throw new class _ extends Error {
                 constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
@@ -45,43 +29,44 @@ exports.ExposeStore = () => {
 
         return (
             operator === '>' ? lOperand > rOperand :
-            operator === '>=' ? lOperand >= rOperand :
-            operator === '<' ? lOperand < rOperand :
-            operator === '<=' ? lOperand <= rOperand :
-            operator === '=' ? lOperand === rOperand :
-            false
+                operator === '>=' ? lOperand >= rOperand :
+                    operator === '<' ? lOperand < rOperand :
+                        operator === '<=' ? lOperand <= rOperand :
+                            operator === '=' ? lOperand === rOperand :
+                                false
         );
     };
 
-    /* =======================
-       SAFE STORE INITIALIZATION
-       ======================= */
+    /* ---------- helpers (minimal & explicit) ---------- */
 
-    // ModuleRaid safe loader
-    const getStoreFromModuleRaid = () => {
-        if (!window.mR || !window.mR.findModule) return {};
-        const modules = window.mR.findModule(m => m.Call && m.Chat);
-        if (modules && modules.length > 0) return modules[0];
-        // fallback to default property
-        const fallback = window.mR.findModule(m => m.default && m.default.Chat);
-        return fallback && fallback.length > 0 ? fallback[0].default ?? fallback[0] : {};
-    };
-
-    // Initialize Store
-    window.Store = Object.assign({}, __wreq('WAWebCollections'), getStoreFromModuleRaid());
-
-    // Helper to safely assign modules
-    const safeAssign = (key, moduleName, subKey) => {
+    // Safely require a WA module and prefer .default when present.
+    // Returns undefined when require fails or module is missing.
+    function req(name) {
         try {
-            const mod = __wreq(moduleName);
-            if (!mod) return;
-            window.Store[key] = subKey ? mod[subKey] : mod;
-        } catch (err) { }
-    };
+            const m = window.require && window.require(name);
+            return m && (m.default || m);
+        } catch (e) {
+            return undefined;
+        }
+    }
 
-    /* =======================
-       BASIC MODULES
-       ======================= */
+    // Assign only when the value exists and the target key is not already set.
+    function safeAssign(key, moduleName, subKey) {
+        const mod = req(moduleName);
+        if (!mod) return false;
+        const value = subKey ? mod[subKey] : mod;
+        if (!value) return false;
+        if (!window.Store[key]) {
+            window.Store[key] = value;
+            return true;
+        }
+        return false;
+    }
+
+    /* ---------- initialize Store (explicit mapping) ---------- */
+
+    window.Store = Object.assign({}, req('WAWebCollections'));
+
     safeAssign('AppState', 'WAWebSocketModel', 'Socket');
     safeAssign('BlockContact', 'WAWebBlockContactAction');
     safeAssign('Conn', 'WAWebConnModel', 'Conn');
@@ -92,17 +77,12 @@ exports.ExposeStore = () => {
     safeAssign('MediaObject', 'WAWebMediaStorage');
     safeAssign('MediaTypes', 'WAWebMmsMediaTypes');
 
-    /* =======================
-       MEDIA UPLOAD
-       ======================= */
+    // media upload composed from two modules if available
     window.Store.MediaUpload = {
-        ...(__wreq('WAWebMediaMmsV4Upload') ?? {}),
-        ...(__wreq('WAWebStartMediaUploadQpl') ?? {})
+        ...(req('WAWebMediaMmsV4Upload') || {}),
+        ...(req('WAWebStartMediaUploadQpl') || {})
     };
 
-    /* =======================
-       OTHER MAIN MODULES
-       ======================= */
     safeAssign('MediaUpdate', 'WAWebMediaUpdateMsg');
     safeAssign('MsgKey', 'WAWebMsgKey');
     safeAssign('OpaqueData', 'WAWebMediaOpaqueData');
@@ -116,9 +96,11 @@ exports.ExposeStore = () => {
     safeAssign('BlobCache', 'WAWebMediaInMemoryBlobCache');
     safeAssign('SendSeen', 'WAWebUpdateUnreadChatAction');
     safeAssign('User', 'WAWebUserPrefsMeUser');
+
+    // composite getters
     window.Store.ContactMethods = {
-        ...(__wreq('WAWebContactGetters') ?? {}),
-        ...(__wreq('WAWebFrontendContactGetters') ?? {})
+        ...(req('WAWebContactGetters') || {}),
+        ...(req('WAWebFrontendContactGetters') || {})
     };
 
     safeAssign('UserConstructor', 'WAWebWid');
@@ -161,129 +143,157 @@ exports.ExposeStore = () => {
     safeAssign('PollsVotesSchema', 'WAWebPollsVotesSchema');
     safeAssign('PollsSendVote', 'WAWebPollsSendVoteMsgAction');
 
-    /* =======================
-       SETTINGS
-       ======================= */
+    // Settings & NumberInfo composites
     window.Store.Settings = {
-        ...(__wreq('WAWebUserPrefsGeneral') ?? {}),
-        ...(__wreq('WAWebUserPrefsNotifications') ?? {}),
-        setPushname: __wreq('WAWebSetPushnameConnAction')?.setPushname
+        ...(req('WAWebUserPrefsGeneral') || {}),
+        ...(req('WAWebUserPrefsNotifications') || {}),
+        setPushname: req('WAWebSetPushnameConnAction')?.setPushname
     };
 
     window.Store.NumberInfo = {
-        ...(__wreq('WAPhoneUtils') ?? {}),
-        ...(__wreq('WAPhoneFindCC') ?? {})
+        ...(req('WAPhoneUtils') || {}),
+        ...(req('WAPhoneFindCC') || {}),
+        ...(req('WAWebPhoneUtils') || {})
     };
 
-    /* =======================
-       FORWARD, PINNED, SCHEDULED
-       ======================= */
-    window.Store.ForwardUtils = { ...(__wreq('WAWebChatForwardMessage') ?? {}) };
-    window.Store.PinnedMsgUtils = { ...(__wreq('WAWebPinInChatSchema') ?? {}), ...(__wreq('WAWebSendPinMessageAction') ?? {}) };
+    // misc composites
+    window.Store.ForwardUtils = { ...(req('WAWebChatForwardMessage') || {}) };
+    window.Store.PinnedMsgUtils = {
+        ...(req('WAWebPinInChatSchema') || {}),
+        ...(req('WAWebSendPinMessageAction') || {})
+    };
     window.Store.ScheduledEventMsgUtils = {
-        ...(__wreq('WAWebGenerateEventCallLink') ?? {}),
-        ...(__wreq('WAWebSendEventEditMsgAction') ?? {}),
-        ...(__wreq('WAWebSendEventResponseMsgAction') ?? {})
+        ...(req('WAWebGenerateEventCallLink') || {}),
+        ...(req('WAWebSendEventEditMsgAction') || {}),
+        ...(req('WAWebSendEventResponseMsgAction') || {})
     };
 
-    /* =======================
-       VCARD & STICKERS
-       ======================= */
     window.Store.VCard = {
-        ...(__wreq('WAWebFrontendVcardUtils') ?? {}),
-        ...(__wreq('WAWebVcardParsingUtils') ?? {}),
-        ...(__wreq('WAWebVcardGetNameFromParsed') ?? {})
-    };
-    window.Store.StickerTools = {
-        ...(__wreq('WAWebImageUtils') ?? {}),
-        ...(__wreq('WAWebAddWebpMetadata') ?? {})
+        ...(req('WAWebFrontendVcardUtils') || {}),
+        ...(req('WAWebVcardParsingUtils') || {}),
+        ...(req('WAWebVcardGetNameFromParsed') || {})
     };
 
-    /* =======================
-       GROUP MODULES
-       ======================= */
+    window.Store.StickerTools = {
+        ...(req('WAWebImageUtils') || {}),
+        ...(req('WAWebAddWebpMetadata') || {})
+    };
+
     window.Store.GroupUtils = {
-        ...(__wreq('WAWebGroupCreateJob') ?? {}),
-        ...(__wreq('WAWebGroupModifyInfoJob') ?? {}),
-        ...(__wreq('WAWebExitGroupAction') ?? {}),
-        ...(__wreq('WAWebContactProfilePicThumbBridge') ?? {}),
-        ...(__wreq('WAWebSetPropertyGroupAction') ?? {})
+        ...(req('WAWebGroupCreateJob') || {}),
+        ...(req('WAWebGroupModifyInfoJob') || {}),
+        ...(req('WAWebExitGroupAction') || {}),
+        ...(req('WAWebContactProfilePicThumbBridge') || {}),
+        ...(req('WAWebSetPropertyGroupAction') || {})
     };
     window.Store.GroupParticipants = {
-        ...(__wreq('WAWebModifyParticipantsGroupAction') ?? {}),
-        ...(__wreq('WASmaxGroupsAddParticipantsRPC') ?? {})
+        ...(req('WAWebModifyParticipantsGroupAction') || {}),
+        ...(req('WASmaxGroupsAddParticipantsRPC') || {})
     };
     window.Store.GroupInvite = {
-        ...(__wreq('WAWebGroupInviteJob') ?? {}),
-        ...(__wreq('WAWebGroupQueryJob') ?? {}),
-        ...(__wreq('WAWebMexFetchGroupInviteCodeJob') ?? {})
+        ...(req('WAWebGroupInviteJob') || {}),
+        ...(req('WAWebGroupQueryJob') || {}),
+        ...(req('WAWebMexFetchGroupInviteCodeJob') || {})
     };
     window.Store.GroupInviteV4 = {
-        ...(__wreq('WAWebGroupInviteV4Job') ?? {}),
-        ...(__wreq('WAWebChatSendMessages') ?? {})
+        ...(req('WAWebGroupInviteV4Job') || {}),
+        ...(req('WAWebChatSendMessages') || {})
     };
     window.Store.MembershipRequestUtils = {
-        ...(__wreq('WAWebApiMembershipApprovalRequestStore') ?? {}),
-        ...(__wreq('WASmaxGroupsMembershipRequestsActionRPC') ?? {})
+        ...(req('WAWebApiMembershipApprovalRequestStore') || {}),
+        ...(req('WASmaxGroupsMembershipRequestsActionRPC') || {})
     };
 
-    /* =======================
-       CHANNELS & NEWSLETTER
-       ======================= */
     window.Store.ChannelUtils = {
-        ...(__wreq('WAWebLoadNewsletterPreviewChatAction') ?? {}),
-        ...(__wreq('WAWebNewsletterMetadataQueryJob') ?? {}),
-        ...(__wreq('WAWebNewsletterCreateQueryJob') ?? {}),
-        ...(__wreq('WAWebEditNewsletterMetadataAction') ?? {}),
-        ...(__wreq('WAWebNewsletterDeleteAction') ?? {}),
-        ...(__wreq('WAWebNewsletterSubscribeAction') ?? {}),
-        ...(__wreq('WAWebNewsletterUnsubscribeAction') ?? {}),
-        ...(__wreq('WAWebNewsletterDirectorySearchAction') ?? {}),
-        ...(__wreq('WAWebNewsletterGatingUtils') ?? {}),
-        ...(__wreq('WAWebNewsletterModelUtils') ?? {}),
-        ...(__wreq('WAWebMexAcceptNewsletterAdminInviteJob') ?? {}),
-        ...(__wreq('WAWebMexRevokeNewsletterAdminInviteJob') ?? {}),
-        ...(__wreq('WAWebChangeNewsletterOwnerAction') ?? {}),
-        ...(__wreq('WAWebDemoteNewsletterAdminAction') ?? {}),
-        ...(__wreq('WAWebNewsletterDemoteAdminJob') ?? {}),
-        countryCodesIso: __wreq('WAWebCountriesNativeCountryNames'),
-        currentRegion: __wreq('WAWebL10N')?.getRegion()
+        ...(req('WAWebLoadNewsletterPreviewChatAction') || {}),
+        ...(req('WAWebNewsletterMetadataQueryJob') || {}),
+        ...(req('WAWebNewsletterCreateQueryJob') || {}),
+        ...(req('WAWebEditNewsletterMetadataAction') || {}),
+        ...(req('WAWebNewsletterDeleteAction') || {}),
+        ...(req('WAWebNewsletterSubscribeAction') || {}),
+        ...(req('WAWebNewsletterUnsubscribeAction') || {}),
+        ...(req('WAWebNewsletterDirectorySearchAction') || {}),
+        ...(req('WAWebNewsletterGatingUtils') || {}),
+        ...(req('WAWebNewsletterModelUtils') || {}),
+        ...(req('WAWebMexAcceptNewsletterAdminInviteJob') || {}),
+        ...(req('WAWebMexRevokeNewsletterAdminInviteJob') || {}),
+        ...(req('WAWebChangeNewsletterOwnerAction') || {}),
+        ...(req('WAWebDemoteNewsletterAdminAction') || {}),
+        ...(req('WAWebNewsletterDemoteAdminJob') || {}),
+        countryCodesIso: req('WAWebCountriesNativeCountryNames'),
+        currentRegion: req('WAWebL10N')?.getRegion()
     };
+
     window.Store.SendChannelMessage = {
-        ...(__wreq('WAWebNewsletterUpdateMsgsRecordsJob') ?? {}),
-        ...(__wreq('WAWebMsgDataFromModel') ?? {}),
-        ...(__wreq('WAWebNewsletterSendMessageJob') ?? {}),
-        ...(__wreq('WAWebNewsletterSendMsgAction') ?? {}),
-        ...(__wreq('WAMediaCalculateFilehash') ?? {})
+        ...(req('WAWebNewsletterUpdateMsgsRecordsJob') || {}),
+        ...(req('WAWebMsgDataFromModel') || {}),
+        ...(req('WAWebNewsletterSendMessageJob') || {}),
+        ...(req('WAWebNewsletterSendMsgAction') || {}),
+        ...(req('WAMediaCalculateFilehash') || {})
     };
+
     window.Store.ChannelSubscribers = {
-        ...(__wreq('WAWebMexFetchNewsletterSubscribersJob') ?? {}),
-        ...(__wreq('WAWebNewsletterSubscriberListAction') ?? {})
+        ...(req('WAWebMexFetchNewsletterSubscribersJob') || {}),
+        ...(req('WAWebNewsletterSubscriberListAction') || {})
     };
 
     window.Store.AddressbookContactUtils = {
-        ...(__wreq('WAWebSaveContactAction') ?? {}),
-        ...(__wreq('WAWebDeleteContactAction') ?? {})
+        ...(req('WAWebSaveContactAction') || {}),
+        ...(req('WAWebDeleteContactAction') || {})
     };
 
     window.Store.StatusUtils = {
-        ...(__wreq('WAWebContactStatusBridge') ?? {}),
-        ...(__wreq('WAWebSendStatusMsgAction') ?? {}),
-        ...(__wreq('WAWebRevokeStatusAction') ?? {}),
-        ...(__wreq('WAWebStatusGatingUtils') ?? {})
+        ...(req('WAWebContactStatusBridge') || {}),
+        ...(req('WAWebSendStatusMsgAction') || {}),
+        ...(req('WAWebRevokeStatusAction') || {}),
+        ...(req('WAWebStatusGatingUtils') || {})
     };
 
-    /* =======================
-       CHAT POLYFILL
-       ======================= */
+    /* ---------- compatibility polyfill for Chat.findImpl ---------- */
     if (window.Store.Chat && (!window.Store.Chat._find || !window.Store.Chat.findImpl)) {
         window.Store.Chat._find = e => {
-            const target = window.Store.Chat.get(e);
+            const target = window.Store.Chat.get && window.Store.Chat.get(e);
             return target ? Promise.resolve(target) : Promise.resolve({ id: e });
         };
         window.Store.Chat.findImpl = window.Store.Chat._find;
     }
 
+    /* ---------- small injector helper (kept minimal) ---------- */
+    window.injectToFunction = (target, callback) => {
+        try {
+            let module = req(target.module);
+            if (!module) return;
+
+            const path = target.function.split('.');
+            const funcName = path.pop();
+
+            for (const key of path) {
+                if (!module[key]) return;
+                module = module[key];
+            }
+
+            const originalFunction = module[funcName];
+            if (typeof originalFunction !== 'function') return;
+
+            module[funcName] = (...args) => {
+                try {
+                    return callback(originalFunction, ...args);
+                } catch {
+                    return originalFunction(...args);
+                }
+            };
+        } catch {
+            return;
+        }
+    };
+
+    window.injectToFunction({ module: 'WAWebBackendJobsCommon', function: 'mediaTypeFromProtobuf' }, (func, ...args) => {
+        const [proto] = args;
+        return proto && proto.locationMessage ? null : func(...args);
+    });
+
+    window.injectToFunction({ module: 'WAWebE2EProtoUtils', function: 'typeAttributeFromProtobuf' }, (func, ...args) => {
+        const [proto] = args;
+        return proto && (proto.locationMessage || proto.groupInviteMessage) ? 'text' : func(...args);
+    });
 };
-
-
