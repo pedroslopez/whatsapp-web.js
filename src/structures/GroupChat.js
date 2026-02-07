@@ -389,11 +389,8 @@ class GroupChat extends Chat {
      */
     async getInviteCode() {
         const codeRes = await this.client.pupPage.evaluate(async chatId => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
             try {
-                return window.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.1020730154')
-                    ? await window.Store.GroupInvite.fetchMexGroupInviteCode(chatId)
-                    : await window.Store.GroupInvite.queryGroupInviteCode(chatWid, true);
+                return await window.Store.GroupInvite.fetchMexGroupInviteCode(chatId);
             }
             catch (err) {
                 if(err.name === 'ServerStatusCodeError') return undefined;
