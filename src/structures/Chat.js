@@ -64,6 +64,12 @@ class Chat extends Base {
         this.pinned = !!data.pin;
 
         /**
+         * Indicates if the Chat is locked
+         * @type {boolean}
+         */
+        this.isLocked = data.isLocked;
+
+        /**
          * Indicates if the chat is muted or not
          * @type {boolean}
          */
@@ -206,7 +212,7 @@ class Chat extends Base {
 
             if (searchOptions && searchOptions.limit > 0) {
                 while (msgs.length < searchOptions.limit) {
-                    const loadedMessages = await window.Store.ConversationMsgs.loadEarlierMsgs(chat);
+                    const loadedMessages = await window.Store.ConversationMsgs.loadEarlierMsgs(chat,chat.msgs);
                     if (!loadedMessages || !loadedMessages.length) break;
                     msgs = [...loadedMessages.filter(msgFilter), ...msgs];
                 }

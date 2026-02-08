@@ -91,7 +91,10 @@ exports.ExposeStore = () => {
     window.Store.MediaPrep = window.require('WAWebPrepRawMedia');
     window.Store.MediaObject = window.require('WAWebMediaStorage');
     window.Store.MediaTypes = window.require('WAWebMmsMediaTypes');
-    window.Store.MediaUpload = window.require('WAWebMediaMmsV4Upload');
+    window.Store.MediaUpload = {
+        ...window.require('WAWebMediaMmsV4Upload'),
+        ...window.require('WAWebStartMediaUploadQpl')
+    };
     window.Store.MediaUpdate = window.require('WAWebMediaUpdateMsg');
     window.Store.MsgKey = window.require('WAWebMsgKey');
     window.Store.OpaqueData = window.require('WAWebMediaOpaqueData');
@@ -165,7 +168,8 @@ exports.ExposeStore = () => {
     };
     window.Store.NumberInfo = {
         ...window.require('WAPhoneUtils'),
-        ...window.require('WAPhoneFindCC')
+        ...window.require('WAPhoneFindCC'),
+        ...window.require('WAWebPhoneUtils')
     };
     // ForwardUtils also has problems with whatsapp web lazy loading, so need to load it manually
     window.Store.ForwardUtils = {};
@@ -224,7 +228,6 @@ exports.ExposeStore = () => {
         ...window.require('WAWebNewsletterSubscribeAction'),
         ...window.require('WAWebNewsletterUnsubscribeAction'),
         ...window.require('WAWebNewsletterDirectorySearchAction'),
-        ...window.require('WAWebNewsletterToggleMuteStateJob'),
         ...window.require('WAWebNewsletterGatingUtils'),
         ...window.require('WAWebNewsletterModelUtils'),
         ...window.require('WAWebMexAcceptNewsletterAdminInviteJob'),
