@@ -581,7 +581,25 @@ exports.LoadUtils = () => {
                 chat = null;
             }
         } else {
-            chat = window.Store.Chat.get(chatWid) || (await window.Store.FindOrCreateChat.findOrCreateLatestChat(chatWid))?.chat;
+            chat = window.Store.Chat.get(chatWid);
+            if (!chat) {
+                chat = (await window.Store.FindOrCreateChat.findOrCreateLatestChat(chatWid).catch(() => null))?.chat;
+            }
+            if (!chat) {
+                try {
+                    const query = window.require('WAWebContactSyncUtils').constructUsyncDeltaQuery([{
+                        type: 'add',
+                        phoneNumber: chatWid.user
+                    }]);
+                    const result = await query.execute();
+                    if (result?.list?.[0]?.lid) {
+                        const chatLid = window.Store.WidFactory.createWid(result.list[0].lid);
+                        chat = (await window.Store.FindOrCreateChat.findOrCreateLatestChat(chatLid).catch(() => null))?.chat;
+                    }
+                } catch (e) {
+                    // LID resolution failed, chat remains undefined
+                }
+            }
         }
 
         return getAsModel && chat
