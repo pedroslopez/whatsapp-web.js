@@ -1,0 +1,91 @@
+name: Issue rate limit
+
+on:
+  issues:
+    types: [opened, reopened]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  limit:
+    runs-on: ubuntu-latest
+    env:
+      BLOCK_USER_ENV: ${{ secrets.BLOCK_USER_ENV }}
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const timeLimitMinutes = 30;
+            const blockThreshold = 10;
+            const skipMaintainers = true;
+            const skipBots = true;
+
+            const author = context.payload.issue.user.login;
+            const authorType = context.payload.issue.user.type;
+            const currentIssue = context.payload.issue.number;
+            const since = new Date(Date.now() - timeLimitMinutes * 60 * 1000).toISOString();
+            const blockToken = process.env.BLOCK_USER_ENV || "";
+
+            if (skipBots && (authorType === "Bot" || author === "github-bot")) {
+              core.info(`Skipping rate limit for bot account: ${author}`);
+              return;
+            }
+
+            const permission = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: author
+            });
+
+            if (skipMaintainers && ["admin", "maintain", "write"].includes(permission.data.permission)) {
+              core.info(`Skipping rate limit for maintainer: ${author}`);
+              return;
+            }
+
+            const searchQuery = `repo:${context.repo.owner}/${context.repo.repo} is:issue author:${author} created:>=${since}`;
+            const { search } = await github.graphql(
+              `query($searchQuery: String!) {
+                search(type: ISSUE, query: $searchQuery, first: 1) {
+                  issueCount
+                }
+              }`,
+              { searchQuery }
+            );
+
+            const count = search.issueCount;
+
+            core.info(`Issues in last ${timeLimitMinutes} min by ${author}: ${count}`);
+
+            if (count > 5) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: currentIssue,
+                body: `🚫 Rate limit reached: Please wait a while, before creating more issues.`
+              });
+
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: currentIssue,
+                state: "closed"
+              });
+            }
+
+            if (count > blockThreshold) {
+              if (!blockToken) {
+                core.warning(`Missing BLOCK_USER_ENV token. Skipping block for ${author}.`);
+                return;
+              }
+
+              const { getOctokit } = require("@actions/github");
+              const blockClient = getOctokit(blockToken);
+
+              await blockClient.rest.users.block({
+                username: author
+              });
+
+              core.info(`Blocked user ${author} after ${count} issues in ${timeLimitMinutes} min.`);
+            }
