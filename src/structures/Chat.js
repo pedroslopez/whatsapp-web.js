@@ -64,6 +64,12 @@ class Chat extends Base {
         this.pinned = !!data.pin;
 
         /**
+         * Indicates if the Chat is locked
+         * @type {boolean}
+         */
+        this.isLocked = data.isLocked;
+
+        /**
          * Indicates if the chat is muted or not
          * @type {boolean}
          */

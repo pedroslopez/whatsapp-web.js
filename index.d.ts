@@ -1694,6 +1694,8 @@ declare namespace WAWebJS {
         lastMessage: Message,
         /** Indicates if the Chat is pinned */
         pinned: boolean,
+        /** Indicates if the Chat is locked */
+        isLocked: boolean,
 
         /** Archives this chat */
         archive: () => Promise<void>,
