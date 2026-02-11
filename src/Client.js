@@ -337,17 +337,6 @@ class Client extends EventEmitter {
             await page.evaluateOnNewDocument(this.options.evalOnNewDoc);
         }
         
-        // ocVersion (isOfficialClient patch)
-        await page.evaluateOnNewDocument(() => {
-            window.originalError = Error;
-            //eslint-disable-next-line no-global-assign
-            Error = ((message) => {
-                const error = new window.originalError(message);
-                error.stack = error.stack + '\n    at https://web.whatsapp.com/vendors~lazy_loaded_low_priority_components.05e98054dbd60f980427.js:2:44';
-                return error;
-            }).bind(Error);
-        });
-        
         await page.goto(WhatsWebURL, {
             waitUntil: 'load',
             timeout: 0,
