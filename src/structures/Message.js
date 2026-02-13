@@ -48,6 +48,16 @@ class Message extends Base {
          */
         this.hasMedia = Boolean(data.directPath);
 
+        // [L11] Log when image/video/document has no directPath (hasMedia=false)
+        if (!this.hasMedia && ['image', 'video', 'document', 'ptt', 'audio', 'sticker'].includes(data.type)) {
+            console.warn('[wwjs-diag] Media type without directPath', JSON.stringify({
+                id: data.id?._serialized || data.id?.id,
+                type: data.type,
+                hasDirectPath: !!data.directPath,
+                hasMediaKey: !!data.mediaKey
+            }));
+        }
+
         /**
          * Message content
          * @type {string}
@@ -444,6 +454,11 @@ class Message extends Base {
      */
     async downloadMedia() {
         if (!this.hasMedia) {
+            // [L12] Log when downloadMedia called but hasMedia=false
+            console.warn('[wwjs-diag] downloadMedia: hasMedia=false', JSON.stringify({
+                id: this.id?._serialized,
+                type: this.type
+            }));
             return undefined;
         }
 
@@ -452,6 +467,13 @@ class Message extends Base {
 
             // REUPLOADING mediaStage means the media is expired and the download button is spinning, cannot be downloaded now
             if (!msg || !msg.mediaData || msg.mediaData.mediaStage === 'REUPLOADING') {
+                // [L12] Log silent null return
+                console.warn('[wwjs-diag] downloadMedia: returning null', JSON.stringify({
+                    id: msgId,
+                    hasMsg: !!msg,
+                    hasMediaData: !!msg?.mediaData,
+                    mediaStage: msg?.mediaData?.mediaStage
+                }));
                 return null;
             }
             if (msg.mediaData.mediaStage != 'RESOLVED') {
@@ -463,6 +485,11 @@ class Message extends Base {
             }
 
             if (msg.mediaData.mediaStage.includes('ERROR') || msg.mediaData.mediaStage === 'FETCHING') {
+                // [L12] Log silent undefined return (error/fetching)
+                console.warn('[wwjs-diag] downloadMedia: error/fetching stage', JSON.stringify({
+                    id: msgId,
+                    mediaStage: msg.mediaData.mediaStage
+                }));
                 // media could not be downloaded
                 return undefined;
             }
@@ -492,7 +519,14 @@ class Message extends Base {
                     filesize: msg.size
                 };
             } catch (e) {
-                if(e.status && e.status === 404) return undefined;
+                if(e.status && e.status === 404) {
+                    // [L12] Log silent undefined return (404)
+                    console.warn('[wwjs-diag] downloadMedia: 404 not found', JSON.stringify({
+                        id: msgId,
+                        status: e.status
+                    }));
+                    return undefined;
+                }
                 throw e;
             }
         }, this.id._serialized);

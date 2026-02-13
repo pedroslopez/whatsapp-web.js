@@ -383,6 +383,21 @@ class Client extends EventEmitter {
                 await this.authStrategy.afterBrowserInitialized();
                 this.lastLoggedOut = false;
             }
+
+            if (frame !== this.pupPage.mainFrame()) return;
+
+            // [C1] Log framenavigated events with store availability (after critical checks)
+            let storeAvailable = false;
+            try {
+                storeAvailable = await this.pupPage.evaluate(() => {
+                    return typeof window.Store !== 'undefined' && typeof window.Store?.Msg !== 'undefined';
+                });
+            } catch (e) { /* page may not be ready */ }
+            console.log('[wwjs-diag] framenavigated', JSON.stringify({
+                url: frame.url(),
+                storeAvailable
+            }));
+
             await this.inject();
         });
     }
@@ -425,6 +440,14 @@ class Client extends EventEmitter {
      */
     async attachEventListeners() {
         await exposeFunctionIfAbsent(this.pupPage, 'onAddMessageEvent', msg => {
+            // [L4] Log every onAddMessageEvent call before gp2 filter
+            console.log('[wwjs-diag] onAddMessageEvent', JSON.stringify({
+                id: msg.id?._serialized || msg.id?.id,
+                type: msg.type,
+                from: typeof msg.from === 'object' ? msg.from?._serialized : msg.from,
+                hasMedia: !!msg.directPath
+            }));
+
             if (msg.type === 'gp2') {
                 const notification = new GroupNotification(this, msg);
                 if (['add', 'invite', 'linked_group_join'].includes(msg.subtype)) {
@@ -479,6 +502,11 @@ class Client extends EventEmitter {
                  */
             this.emit(Events.MESSAGE_CREATE, message);
 
+            // [L5] Log fromMe gate decision
+            console.log('[wwjs-diag] fromMe gate', JSON.stringify({
+                id: msg.id?._serialized || msg.id?.id,
+                fromMe: msg.id.fromMe
+            }));
             if (msg.id.fromMe) return;
 
             /**
@@ -752,7 +780,15 @@ class Client extends EventEmitter {
 
         await this.pupPage.evaluate(() => {
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
-            window.Store.Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
+            // [L10] Log all change:type events on messages
+            window.Store.Msg.on('change:type', (msg) => {
+                console.log('[wwjs-diag] change:type', JSON.stringify({
+                    id: msg.id?._serialized,
+                    newType: msg.type,
+                    from: msg.from?._serialized
+                }));
+                window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg));
+            });
             window.Store.Msg.on('change:ack', (msg, ack) => { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
             window.Store.Msg.on('change:isUnsentMedia', (msg, unsent) => { if (msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(window.WWebJS.getMessageModel(msg)); });
             window.Store.Msg.on('remove', (msg) => { if (msg.isNewMsg) window.onRemoveMessageEvent(window.WWebJS.getMessageModel(msg)); });
@@ -765,11 +801,63 @@ class Client extends EventEmitter {
             }
             window.Store.Chat.on('remove', async (chat) => { window.onRemoveChatEvent(await window.WWebJS.getChatModel(chat)); });
             window.Store.Chat.on('change:archive', async (chat, currState, prevState) => { window.onArchiveChatEvent(await window.WWebJS.getChatModel(chat), currState, prevState); });
-            window.Store.Msg.on('add', (msg) => { 
+            // [L1] Log every Store.Msg 'add' event
+            window.Store.Msg.on('add', (msg) => {
+                console.log('[wwjs-diag] Store.Msg.add', JSON.stringify({
+                    id: msg.id?._serialized,
+                    isNewMsg: msg.isNewMsg,
+                    type: msg.type,
+                    from: msg.from?._serialized,
+                    t: msg.t
+                }));
                 if (msg.isNewMsg) {
                     if(msg.type === 'ciphertext') {
+                        // [L2] Log ciphertext message + add 30s timeout
+                        const ciphertextTime = Date.now();
+                        const msgIdStr = msg.id?._serialized;
+                        console.log('[wwjs-diag] CIPHERTEXT received', JSON.stringify({
+                            id: msgIdStr,
+                            from: msg.from?._serialized,
+                            t: msg.t
+                        }));
+                        let resolved = false;
+
+                        // [L9] Track when ciphertext message is removed before change:type fires
+                        const onRemove = (removedMsg) => {
+                            if (removedMsg.id?._serialized === msgIdStr && !resolved) {
+                                console.warn('[wwjs-diag] CIPHERTEXT_REMOVED_BEFORE_RESOLVE', JSON.stringify({
+                                    id: msgIdStr,
+                                    elapsed: Date.now() - ciphertextTime
+                                }));
+                            }
+                        };
+                        window.Store.Msg.on('remove', onRemove);
+
                         // defer message event until ciphertext is resolved (type changed)
-                        msg.once('change:type', (_msg) => window.onAddMessageEvent(window.WWebJS.getMessageModel(_msg)));
+                        msg.once('change:type', (_msg) => {
+                            resolved = true;
+                            window.Store.Msg.off('remove', onRemove);
+                            // [L3] Log ciphertext resolution type + elapsed time
+                            console.log('[wwjs-diag] CIPHERTEXT_RESOLVED', JSON.stringify({
+                                id: _msg.id?._serialized,
+                                resolvedType: _msg.type,
+                                elapsed: Date.now() - ciphertextTime
+                            }));
+                            window.onAddMessageEvent(window.WWebJS.getMessageModel(_msg));
+                        });
+
+                        // [L2] 30s timeout for unresolved ciphertext
+                        setTimeout(() => {
+                            if (!resolved) {
+                                console.error('[wwjs-diag] CIPHERTEXT_TIMEOUT', JSON.stringify({
+                                    id: msgIdStr,
+                                    from: msg.from?._serialized,
+                                    elapsed: 30000
+                                }));
+                                window.Store.Msg.off('remove', onRemove);
+                            }
+                        }, 30000);
+
                         window.onAddMessageCiphertextEvent(window.WWebJS.getMessageModel(msg));
                     } else {
                         window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); 
@@ -843,6 +931,14 @@ class Client extends EventEmitter {
                 }).bind(module);
             }
         });
+
+        // [L7] Verify Store.Msg listener registration succeeded
+        const listenerCount = await this.pupPage.evaluate(() => {
+            const addListeners = window.Store.Msg.listeners?.('add')?.length ?? -1;
+            const changeTypeListeners = window.Store.Msg.listeners?.('change:type')?.length ?? -1;
+            return { add: addListeners, changeType: changeTypeListeners };
+        });
+        console.log('[wwjs-diag] Store.Msg listener count after registration', JSON.stringify(listenerCount));
     }    
 
     async initWebVersionCache() {

@@ -537,7 +537,25 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getMessageModel = (message) => {
-        const msg = message.serialize();
+        let msg;
+        try {
+            msg = message.serialize();
+        } catch (e) {
+            // [L8] Log serialization failures
+            console.error('[wwjs-diag] getMessageModel serialize FAILED', JSON.stringify({
+                id: message.id?._serialized,
+                type: message.type,
+                error: e?.message || String(e)
+            }));
+            throw e;
+        }
+        if (!msg) {
+            // [L8] Log null/undefined serialization result
+            console.error('[wwjs-diag] getMessageModel serialize returned falsy', JSON.stringify({
+                id: message.id?._serialized,
+                type: message.type
+            }));
+        }
 
         msg.isEphemeral = message.isEphemeral;
         msg.isStatusV3 = message.isStatusV3;
