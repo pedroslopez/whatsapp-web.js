@@ -868,7 +868,20 @@ class Client extends EventEmitter {
                                     existsInStore: true,
                                     currentType: currentMsg.type,
                                     isNewMsg: currentMsg.isNewMsg,
-                                    body: (currentMsg.body || '').substring(0, 30)
+                                    body: (currentMsg.body || '').substring(0, 50),
+                                    hasMedia: !!currentMsg.mediaData,
+                                    mediaKeyTS: currentMsg.mediaKeyTimestamp,
+                                    directPath: (currentMsg.directPath || '').substring(0, 40),
+                                    deprecatedMms3Url: (currentMsg.deprecatedMms3Url || '').substring(0, 40),
+                                    mimetype: currentMsg.mimetype,
+                                    caption: (currentMsg.caption || '').substring(0, 50),
+                                    size: currentMsg.size,
+                                    filehash: currentMsg.filehash,
+                                    encFilehash: currentMsg.encFilehash,
+                                    allKeys: Object.keys(currentMsg.attributes || currentMsg).filter(k => {
+                                        const v = (currentMsg.attributes || currentMsg)[k];
+                                        return v !== undefined && v !== null && v !== '' && v !== false && v !== 0;
+                                    }).join(',')
                                 } : { existsInStore: false };
 
                                 if (currentMsg && currentMsg.type !== 'ciphertext') {
