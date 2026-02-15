@@ -454,7 +454,9 @@ class Client extends EventEmitter {
         await exposeFunctionIfAbsent(this.pupPage, 'onAddMessageEvent', msg => {
             // [L4] Log every onAddMessageEvent call before gp2 filter
             const _mTypes = new Set(['image', 'video', 'audio', 'ptt', 'document', 'sticker']);
-            const addMsgLevel = (!!msg.directPath || _mTypes.has(msg.type)) ? 'error' : 'debug';
+            const _from = typeof msg.from === 'object' ? msg.from?._serialized : msg.from;
+            const _isBcast = _from?.includes('broadcast');
+            const addMsgLevel = (!_isBcast && (!!msg.directPath || _mTypes.has(msg.type))) ? 'error' : 'debug';
             this.emit('diag', addMsgLevel, 'onAddMessageEvent', JSON.stringify({
                 id: msg.id?._serialized || msg.id?.id,
                 type: msg.type,
@@ -847,7 +849,8 @@ class Client extends EventEmitter {
             // [L1] Log every Store.Msg 'add' event
             window.Store.Msg.on('add', (msg) => {
                 const sender = window._diagSenderPhone(msg);
-                const addLevel = (msg.isNewMsg && window._isMediaType(msg.type)) ? 'error' : 'debug';
+                const isBroadcast = msg.from?._serialized?.includes('broadcast');
+                const addLevel = (!isBroadcast && msg.isNewMsg && window._isMediaType(msg.type)) ? 'error' : 'debug';
                 window.onDiagLog(addLevel, 'Store.Msg.add', JSON.stringify({
                     id: msg.id?._serialized,
                     isNewMsg: msg.isNewMsg,
@@ -887,7 +890,8 @@ class Client extends EventEmitter {
                             window.Store.Msg.off('remove', onRemove);
                             // [L3] Log ciphertext resolution type + elapsed time
                             // Media types (image/video/document/audio/ptt/sticker) → error, rest → debug
-                            const resolvedLevel = window._isMediaType(_msg.type) ? 'error' : 'debug';
+                            const isBroadcastMsg = msg.from?._serialized?.includes('broadcast');
+                            const resolvedLevel = (!isBroadcastMsg && window._isMediaType(_msg.type)) ? 'error' : 'debug';
                             window.onDiagLog(resolvedLevel, 'CIPHERTEXT_RESOLVED', JSON.stringify({
                                 id: _msg.id?._serialized,
                                 resolvedType: _msg.type,
