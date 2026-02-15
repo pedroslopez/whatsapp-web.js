@@ -791,13 +791,38 @@ class Client extends EventEmitter {
         });
 
         await this.pupPage.evaluate(() => {
+            // Helper: resolve @lid → phone number safely. Returns { lid, phone } or just { lid }.
+            window._diagResolvePhone = (wid) => {
+                const lid = wid?._serialized || String(wid || '');
+                try {
+                    if (!lid || !lid.endsWith('@lid')) return { lid };
+                    const contact = window.Store.Contact.get(wid);
+                    const phone = contact?.phoneNumber?._serialized;
+                    return phone ? { lid, phone } : { lid };
+                } catch (e) {
+                    return { lid };
+                }
+            };
+            // Helper: resolve sender from message (handles group participant via msg.author)
+            window._diagSenderPhone = (msg) => {
+                try {
+                    // For group messages, msg.author is the actual sender
+                    const senderWid = msg.author || msg.from;
+                    return window._diagResolvePhone(senderWid);
+                } catch (e) {
+                    return { lid: msg.from?._serialized || '' };
+                }
+            };
+
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             // [L10] Log all change:type events on messages
             window.Store.Msg.on('change:type', (msg) => {
+                const sender = window._diagSenderPhone(msg);
                 window.onDiagLog('info', 'change:type', JSON.stringify({
                     id: msg.id?._serialized,
                     newType: msg.type,
-                    from: msg.from?._serialized
+                    from: msg.from?._serialized,
+                    ...sender
                 }));
                 window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg));
             });
@@ -815,11 +840,13 @@ class Client extends EventEmitter {
             window.Store.Chat.on('change:archive', async (chat, currState, prevState) => { window.onArchiveChatEvent(await window.WWebJS.getChatModel(chat), currState, prevState); });
             // [L1] Log every Store.Msg 'add' event
             window.Store.Msg.on('add', (msg) => {
+                const sender = window._diagSenderPhone(msg);
                 window.onDiagLog('info', 'Store.Msg.add', JSON.stringify({
                     id: msg.id?._serialized,
                     isNewMsg: msg.isNewMsg,
                     type: msg.type,
                     from: msg.from?._serialized,
+                    ...sender,
                     t: msg.t
                 }));
                 if (msg.isNewMsg) {
@@ -827,9 +854,11 @@ class Client extends EventEmitter {
                         // [L2] Log ciphertext message + add 30s timeout
                         const ciphertextTime = Date.now();
                         const msgIdStr = msg.id?._serialized;
+                        const ciphSender = window._diagSenderPhone(msg);
                         window.onDiagLog('info', 'CIPHERTEXT received', JSON.stringify({
                             id: msgIdStr,
                             from: msg.from?._serialized,
+                            ...ciphSender,
                             t: msg.t
                         }));
                         let resolved = false;
@@ -853,7 +882,8 @@ class Client extends EventEmitter {
                             window.onDiagLog('info', 'CIPHERTEXT_RESOLVED', JSON.stringify({
                                 id: _msg.id?._serialized,
                                 resolvedType: _msg.type,
-                                elapsed: Date.now() - ciphertextTime
+                                elapsed: Date.now() - ciphertextTime,
+                                ...ciphSender
                             }));
                             window.onAddMessageEvent(window.WWebJS.getMessageModel(_msg));
                         });
@@ -930,6 +960,7 @@ class Client extends EventEmitter {
                                     window.onDiagLog('error', 'CIPHERTEXT_TIMEOUT_BUT_DECRYPTED', JSON.stringify({
                                         id: msgIdStr,
                                         from: msg.from?._serialized,
+                                        ...ciphSender,
                                         elapsed: 30000,
                                         ...storeState,
                                         privateFields,
@@ -942,6 +973,7 @@ class Client extends EventEmitter {
                                     window.onDiagLog('warn', 'CIPHERTEXT_RECOVERED_VIA_GETBYID', JSON.stringify({
                                         id: msgIdStr,
                                         from: msg.from?._serialized,
+                                        ...ciphSender,
                                         elapsed: 30000,
                                         getByIdResult,
                                         privateFields
@@ -956,6 +988,7 @@ class Client extends EventEmitter {
                                     window.onDiagLog('error', 'CIPHERTEXT_TIMEOUT', JSON.stringify({
                                         id: msgIdStr,
                                         from: msg.from?._serialized,
+                                        ...ciphSender,
                                         elapsed: 30000,
                                         ...storeState,
                                         privateFields,
@@ -984,6 +1017,7 @@ class Client extends EventEmitter {
                                     window.onDiagLog('warn', 'CIPHERTEXT_60S_RECHECK', JSON.stringify({
                                         id: msgIdStr,
                                         from: msg.from?._serialized,
+                                        ...ciphSender,
                                         elapsed: 60000,
                                         storeGet: laterState,
                                         getById: laterGetById
@@ -1011,6 +1045,7 @@ class Client extends EventEmitter {
                                             window.onDiagLog('warn', 'CIPHERTEXT_120S_FINAL', JSON.stringify({
                                                 id: msgIdStr,
                                                 from: msg.from?._serialized,
+                                                ...ciphSender,
                                                 elapsed: 120000,
                                                 storeGet: finalState
                                             }));
