@@ -439,6 +439,14 @@ class Client extends EventEmitter {
      * @property {boolean} reinject is this a reinject?
      */
     async attachEventListeners() {
+        // [diag] Expose a diagnostic logging function so browser-side logs reach Node.js/GCP
+        await exposeFunctionIfAbsent(this.pupPage, 'onDiagLog', (level, tag, data) => {
+            const prefix = `[wwjs-diag] ${tag}`;
+            if (level === 'error') console.error(prefix, data);
+            else if (level === 'warn') console.warn(prefix, data);
+            else console.log(prefix, data);
+        });
+
         await exposeFunctionIfAbsent(this.pupPage, 'onAddMessageEvent', msg => {
             // [L4] Log every onAddMessageEvent call before gp2 filter
             console.log('[wwjs-diag] onAddMessageEvent', JSON.stringify({
@@ -782,7 +790,7 @@ class Client extends EventEmitter {
             window.Store.Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
             // [L10] Log all change:type events on messages
             window.Store.Msg.on('change:type', (msg) => {
-                console.log('[wwjs-diag] change:type', JSON.stringify({
+                window.onDiagLog('info', 'change:type', JSON.stringify({
                     id: msg.id?._serialized,
                     newType: msg.type,
                     from: msg.from?._serialized
@@ -803,7 +811,7 @@ class Client extends EventEmitter {
             window.Store.Chat.on('change:archive', async (chat, currState, prevState) => { window.onArchiveChatEvent(await window.WWebJS.getChatModel(chat), currState, prevState); });
             // [L1] Log every Store.Msg 'add' event
             window.Store.Msg.on('add', (msg) => {
-                console.log('[wwjs-diag] Store.Msg.add', JSON.stringify({
+                window.onDiagLog('info', 'Store.Msg.add', JSON.stringify({
                     id: msg.id?._serialized,
                     isNewMsg: msg.isNewMsg,
                     type: msg.type,
@@ -815,7 +823,7 @@ class Client extends EventEmitter {
                         // [L2] Log ciphertext message + add 30s timeout
                         const ciphertextTime = Date.now();
                         const msgIdStr = msg.id?._serialized;
-                        console.log('[wwjs-diag] CIPHERTEXT received', JSON.stringify({
+                        window.onDiagLog('info', 'CIPHERTEXT received', JSON.stringify({
                             id: msgIdStr,
                             from: msg.from?._serialized,
                             t: msg.t
@@ -825,7 +833,7 @@ class Client extends EventEmitter {
                         // [L9] Track when ciphertext message is removed before change:type fires
                         const onRemove = (removedMsg) => {
                             if (removedMsg.id?._serialized === msgIdStr && !resolved) {
-                                console.warn('[wwjs-diag] CIPHERTEXT_REMOVED_BEFORE_RESOLVE', JSON.stringify({
+                                window.onDiagLog('warn', 'CIPHERTEXT_REMOVED_BEFORE_RESOLVE', JSON.stringify({
                                     id: msgIdStr,
                                     elapsed: Date.now() - ciphertextTime
                                 }));
@@ -838,7 +846,7 @@ class Client extends EventEmitter {
                             resolved = true;
                             window.Store.Msg.off('remove', onRemove);
                             // [L3] Log ciphertext resolution type + elapsed time
-                            console.log('[wwjs-diag] CIPHERTEXT_RESOLVED', JSON.stringify({
+                            window.onDiagLog('info', 'CIPHERTEXT_RESOLVED', JSON.stringify({
                                 id: _msg.id?._serialized,
                                 resolvedType: _msg.type,
                                 elapsed: Date.now() - ciphertextTime
@@ -849,7 +857,7 @@ class Client extends EventEmitter {
                         // [L2] 30s timeout for unresolved ciphertext
                         setTimeout(() => {
                             if (!resolved) {
-                                console.error('[wwjs-diag] CIPHERTEXT_TIMEOUT', JSON.stringify({
+                                window.onDiagLog('error', 'CIPHERTEXT_TIMEOUT', JSON.stringify({
                                     id: msgIdStr,
                                     from: msg.from?._serialized,
                                     elapsed: 30000

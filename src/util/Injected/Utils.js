@@ -542,7 +542,7 @@ exports.LoadUtils = () => {
             msg = message.serialize();
         } catch (e) {
             // [L8] Log serialization failures
-            console.error('[wwjs-diag] getMessageModel serialize FAILED', JSON.stringify({
+            if (window.onDiagLog) window.onDiagLog('error', 'getMessageModel serialize FAILED', JSON.stringify({
                 id: message.id?._serialized,
                 type: message.type,
                 error: e?.message || String(e)
@@ -551,7 +551,7 @@ exports.LoadUtils = () => {
         }
         if (!msg) {
             // [L8] Log null/undefined serialization result
-            console.error('[wwjs-diag] getMessageModel serialize returned falsy', JSON.stringify({
+            if (window.onDiagLog) window.onDiagLog('error', 'getMessageModel serialize returned falsy', JSON.stringify({
                 id: message.id?._serialized,
                 type: message.type
             }));

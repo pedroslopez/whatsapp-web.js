@@ -468,7 +468,7 @@ class Message extends Base {
             // REUPLOADING mediaStage means the media is expired and the download button is spinning, cannot be downloaded now
             if (!msg || !msg.mediaData || msg.mediaData.mediaStage === 'REUPLOADING') {
                 // [L12] Log silent null return
-                console.warn('[wwjs-diag] downloadMedia: returning null', JSON.stringify({
+                if (window.onDiagLog) window.onDiagLog('warn', 'downloadMedia: returning null', JSON.stringify({
                     id: msgId,
                     hasMsg: !!msg,
                     hasMediaData: !!msg?.mediaData,
@@ -486,7 +486,7 @@ class Message extends Base {
 
             if (msg.mediaData.mediaStage.includes('ERROR') || msg.mediaData.mediaStage === 'FETCHING') {
                 // [L12] Log silent undefined return (error/fetching)
-                console.warn('[wwjs-diag] downloadMedia: error/fetching stage', JSON.stringify({
+                if (window.onDiagLog) window.onDiagLog('warn', 'downloadMedia: error/fetching stage', JSON.stringify({
                     id: msgId,
                     mediaStage: msg.mediaData.mediaStage
                 }));
@@ -521,7 +521,7 @@ class Message extends Base {
             } catch (e) {
                 if(e.status && e.status === 404) {
                     // [L12] Log silent undefined return (404)
-                    console.warn('[wwjs-diag] downloadMedia: 404 not found', JSON.stringify({
+                    if (window.onDiagLog) window.onDiagLog('warn', 'downloadMedia: 404 not found', JSON.stringify({
                         id: msgId,
                         status: e.status
                     }));
