@@ -859,8 +859,8 @@ class Client extends EventEmitter {
                         });
 
                         // [L2] 30s timeout for unresolved ciphertext
-                        // 30s timeout — with Store diagnostic check
-                        setTimeout(() => {
+                        // 30s timeout — with Store diagnostic check + getMessagesById recovery + private field dump
+                        setTimeout(async () => {
                             if (!resolved) {
                                 window.Store.Msg.off('remove', onRemove);
                                 const currentMsg = window.Store.Msg.get(msgIdStr);
@@ -884,23 +884,143 @@ class Client extends EventEmitter {
                                     }).join(',')
                                 } : { existsInStore: false };
 
+                                // [DIAG-A] Dump $MsgImpl$p_* private field VALUES
+                                let privateFields = {};
+                                if (currentMsg) {
+                                    try {
+                                        const allProps = Object.getOwnPropertyNames(currentMsg);
+                                        for (const prop of allProps) {
+                                            if (prop.startsWith('$MsgImpl$p_') || prop.startsWith('__')) {
+                                                try {
+                                                    const val = currentMsg[prop];
+                                                    if (val !== undefined && val !== null) {
+                                                        privateFields[prop] = typeof val === 'object'
+                                                            ? JSON.stringify(val).substring(0, 100)
+                                                            : String(val).substring(0, 100);
+                                                    }
+                                                } catch (e) { privateFields[prop] = '<error>'; }
+                                            }
+                                        }
+                                    } catch (e) { privateFields = { error: e.message }; }
+                                }
+
+                                // [DIAG-B] Try getMessagesById recovery (loads from IDB/server)
+                                let getByIdResult = null;
+                                try {
+                                    const fetched = await window.Store.Msg.getMessagesById([msgIdStr]);
+                                    const fetchedMsg = fetched?.messages?.[0];
+                                    if (fetchedMsg) {
+                                        getByIdResult = {
+                                            type: fetchedMsg.type,
+                                            body: (fetchedMsg.body || '').substring(0, 80),
+                                            hasDirectPath: !!fetchedMsg.directPath,
+                                            mimetype: fetchedMsg.mimetype,
+                                            caption: (fetchedMsg.caption || '').substring(0, 50),
+                                            isSameInstance: fetchedMsg === currentMsg,
+                                            isDecrypted: fetchedMsg.type !== 'ciphertext'
+                                        };
+                                    } else {
+                                        getByIdResult = { found: false };
+                                    }
+                                } catch (e) {
+                                    getByIdResult = { error: e.message };
+                                }
+
                                 if (currentMsg && currentMsg.type !== 'ciphertext') {
                                     window.onDiagLog('error', 'CIPHERTEXT_TIMEOUT_BUT_DECRYPTED', JSON.stringify({
                                         id: msgIdStr,
                                         from: msg.from?._serialized,
                                         elapsed: 30000,
-                                        ...storeState
+                                        ...storeState,
+                                        privateFields,
+                                        getByIdResult
                                     }));
                                     resolved = true;
                                     window.onAddMessageEvent(window.WWebJS.getMessageModel(currentMsg));
+                                } else if (getByIdResult && getByIdResult.isDecrypted) {
+                                    // [RECOVERY] getMessagesById returned decrypted version!
+                                    window.onDiagLog('warn', 'CIPHERTEXT_RECOVERED_VIA_GETBYID', JSON.stringify({
+                                        id: msgIdStr,
+                                        from: msg.from?._serialized,
+                                        elapsed: 30000,
+                                        getByIdResult,
+                                        privateFields
+                                    }));
+                                    // Re-fetch the model which may now be updated
+                                    const recoveredMsg = window.Store.Msg.get(msgIdStr);
+                                    if (recoveredMsg && recoveredMsg.type !== 'ciphertext') {
+                                        resolved = true;
+                                        window.onAddMessageEvent(window.WWebJS.getMessageModel(recoveredMsg));
+                                    }
                                 } else {
                                     window.onDiagLog('error', 'CIPHERTEXT_TIMEOUT', JSON.stringify({
                                         id: msgIdStr,
                                         from: msg.from?._serialized,
                                         elapsed: 30000,
-                                        ...storeState
+                                        ...storeState,
+                                        privateFields,
+                                        getByIdResult
                                     }));
                                 }
+
+                                // [DIAG-C] Schedule 60s recheck — does the model update later?
+                                setTimeout(async () => {
+                                    if (resolved) return;
+                                    const laterMsg = window.Store.Msg.get(msgIdStr);
+                                    let laterGetById = null;
+                                    try {
+                                        const f = await window.Store.Msg.getMessagesById([msgIdStr]);
+                                        const fm = f?.messages?.[0];
+                                        laterGetById = fm ? { type: fm.type, body: (fm.body || '').substring(0, 50) } : { found: false };
+                                    } catch(e) { laterGetById = { error: e.message }; }
+
+                                    const laterState = laterMsg ? {
+                                        type: laterMsg.type,
+                                        body: (laterMsg.body || '').substring(0, 50),
+                                        isNewMsg: laterMsg.isNewMsg,
+                                        stillInStore: true
+                                    } : { stillInStore: false };
+
+                                    window.onDiagLog('warn', 'CIPHERTEXT_60S_RECHECK', JSON.stringify({
+                                        id: msgIdStr,
+                                        from: msg.from?._serialized,
+                                        elapsed: 60000,
+                                        storeGet: laterState,
+                                        getById: laterGetById
+                                    }));
+
+                                    // If decrypted by 60s, emit the event
+                                    if (laterMsg && laterMsg.type !== 'ciphertext') {
+                                        resolved = true;
+                                        window.onDiagLog('info', 'CIPHERTEXT_LATE_RESOLVE_60S', JSON.stringify({
+                                            id: msgIdStr,
+                                            resolvedType: laterMsg.type,
+                                            elapsed: 60000
+                                        }));
+                                        window.onAddMessageEvent(window.WWebJS.getMessageModel(laterMsg));
+                                    } else {
+                                        // [DIAG-D] Schedule 120s final recheck
+                                        setTimeout(() => {
+                                            if (resolved) return;
+                                            const finalMsg = window.Store.Msg.get(msgIdStr);
+                                            const finalState = finalMsg ? {
+                                                type: finalMsg.type,
+                                                body: (finalMsg.body || '').substring(0, 50),
+                                                stillInStore: true
+                                            } : { stillInStore: false };
+                                            window.onDiagLog('warn', 'CIPHERTEXT_120S_FINAL', JSON.stringify({
+                                                id: msgIdStr,
+                                                from: msg.from?._serialized,
+                                                elapsed: 120000,
+                                                storeGet: finalState
+                                            }));
+                                            if (finalMsg && finalMsg.type !== 'ciphertext') {
+                                                resolved = true;
+                                                window.onAddMessageEvent(window.WWebJS.getMessageModel(finalMsg));
+                                            }
+                                        }, 60000); // 60s after the 60s recheck = 120s total
+                                    }
+                                }, 30000); // 30s after the 30s timeout = 60s total
                             }
                         }, 30000);
 
