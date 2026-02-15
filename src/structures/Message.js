@@ -50,7 +50,7 @@ class Message extends Base {
 
         // [L11] Log when image/video/document has no directPath (hasMedia=false)
         if (!this.hasMedia && ['image', 'video', 'document', 'ptt', 'audio', 'sticker'].includes(data.type)) {
-            console.warn('[wwjs-diag] Media type without directPath', JSON.stringify({
+            this.client?.emit?.('diag', 'warn', 'Media type without directPath', JSON.stringify({
                 id: data.id?._serialized || data.id?.id,
                 type: data.type,
                 hasDirectPath: !!data.directPath,
@@ -455,7 +455,7 @@ class Message extends Base {
     async downloadMedia() {
         if (!this.hasMedia) {
             // [L12] Log when downloadMedia called but hasMedia=false
-            console.warn('[wwjs-diag] downloadMedia: hasMedia=false', JSON.stringify({
+            this.client?.emit?.('diag', 'warn', 'downloadMedia: hasMedia=false', JSON.stringify({
                 id: this.id?._serialized,
                 type: this.type
             }));

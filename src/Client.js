@@ -393,7 +393,7 @@ class Client extends EventEmitter {
                     return typeof window.Store !== 'undefined' && typeof window.Store?.Msg !== 'undefined';
                 });
             } catch (e) { /* page may not be ready */ }
-            console.log('[wwjs-diag] framenavigated', JSON.stringify({
+            this.emit('diag', 'info', 'framenavigated', JSON.stringify({
                 url: frame.url(),
                 storeAvailable
             }));
@@ -439,17 +439,21 @@ class Client extends EventEmitter {
      * @property {boolean} reinject is this a reinject?
      */
     async attachEventListeners() {
-        // [diag] Expose a diagnostic logging function so browser-side logs reach Node.js/GCP
+        // [diag] Expose a diagnostic logging function so browser-side logs reach Node.js
         await exposeFunctionIfAbsent(this.pupPage, 'onDiagLog', (level, tag, data) => {
-            const prefix = `[wwjs-diag] ${tag}`;
-            if (level === 'error') console.error(prefix, data);
-            else if (level === 'warn') console.warn(prefix, data);
-            else console.log(prefix, data);
+            /**
+             * Emitted when a diagnostic log is generated from browser-side code.
+             * @event Client#diag
+             * @param {string} level - 'info', 'warn', or 'error'
+             * @param {string} tag - Log tag (e.g., 'CIPHERTEXT_TIMEOUT')
+             * @param {string} data - JSON string with log data
+             */
+            this.emit('diag', level, tag, data);
         });
 
         await exposeFunctionIfAbsent(this.pupPage, 'onAddMessageEvent', msg => {
             // [L4] Log every onAddMessageEvent call before gp2 filter
-            console.log('[wwjs-diag] onAddMessageEvent', JSON.stringify({
+            this.emit('diag', 'info', 'onAddMessageEvent', JSON.stringify({
                 id: msg.id?._serialized || msg.id?.id,
                 type: msg.type,
                 from: typeof msg.from === 'object' ? msg.from?._serialized : msg.from,
@@ -511,7 +515,7 @@ class Client extends EventEmitter {
             this.emit(Events.MESSAGE_CREATE, message);
 
             // [L5] Log fromMe gate decision
-            console.log('[wwjs-diag] fromMe gate', JSON.stringify({
+            this.emit('diag', 'info', 'fromMe gate', JSON.stringify({
                 id: msg.id?._serialized || msg.id?.id,
                 fromMe: msg.id.fromMe
             }));
@@ -946,7 +950,7 @@ class Client extends EventEmitter {
             const changeTypeListeners = window.Store.Msg.listeners?.('change:type')?.length ?? -1;
             return { add: addListeners, changeType: changeTypeListeners };
         });
-        console.log('[wwjs-diag] Store.Msg listener count after registration', JSON.stringify(listenerCount));
+        this.emit('diag', 'info', 'Store.Msg listener count', JSON.stringify(listenerCount));
     }    
 
     async initWebVersionCache() {
