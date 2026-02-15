@@ -859,14 +859,35 @@ class Client extends EventEmitter {
                         });
 
                         // [L2] 30s timeout for unresolved ciphertext
+                        // 30s timeout — with Store diagnostic check
                         setTimeout(() => {
                             if (!resolved) {
-                                window.onDiagLog('error', 'CIPHERTEXT_TIMEOUT', JSON.stringify({
-                                    id: msgIdStr,
-                                    from: msg.from?._serialized,
-                                    elapsed: 30000
-                                }));
                                 window.Store.Msg.off('remove', onRemove);
+                                const currentMsg = window.Store.Msg.get(msgIdStr);
+                                const storeState = currentMsg ? {
+                                    existsInStore: true,
+                                    currentType: currentMsg.type,
+                                    isNewMsg: currentMsg.isNewMsg,
+                                    body: (currentMsg.body || '').substring(0, 30)
+                                } : { existsInStore: false };
+
+                                if (currentMsg && currentMsg.type !== 'ciphertext') {
+                                    window.onDiagLog('error', 'CIPHERTEXT_TIMEOUT_BUT_DECRYPTED', JSON.stringify({
+                                        id: msgIdStr,
+                                        from: msg.from?._serialized,
+                                        elapsed: 30000,
+                                        ...storeState
+                                    }));
+                                    resolved = true;
+                                    window.onAddMessageEvent(window.WWebJS.getMessageModel(currentMsg));
+                                } else {
+                                    window.onDiagLog('error', 'CIPHERTEXT_TIMEOUT', JSON.stringify({
+                                        id: msgIdStr,
+                                        from: msg.from?._serialized,
+                                        elapsed: 30000,
+                                        ...storeState
+                                    }));
+                                }
                             }
                         }, 30000);
 
