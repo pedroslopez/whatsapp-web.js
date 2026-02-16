@@ -451,6 +451,18 @@ class Client extends EventEmitter {
             this.emit('diag', level, tag, data);
         });
 
+        await exposeFunctionIfAbsent(this.pupPage, 'onCiphertextTimeout', (dataJson) => {
+            /**
+             * Emitted when a ciphertext message times out (never decrypted).
+             * Contains full diagnostic data from browser-side Store inspection.
+             * @event Client#ciphertext_timeout
+             * @param {object} data - Parsed diagnostic data
+             */
+            let data = {};
+            try { data = JSON.parse(dataJson); } catch { data = { raw: dataJson }; }
+            this.emit('ciphertext_timeout', data);
+        });
+
         await exposeFunctionIfAbsent(this.pupPage, 'onAddMessageEvent', msg => {
             // [L4] Log every onAddMessageEvent call before gp2 filter
             this.emit('diag', 'debug', 'onAddMessageEvent', JSON.stringify({
@@ -982,7 +994,7 @@ class Client extends EventEmitter {
                                         window.onAddMessageEvent(window.WWebJS.getMessageModel(recoveredMsg));
                                     }
                                 } else {
-                                    window.onDiagLog('error', 'CIPHERTEXT_TIMEOUT', JSON.stringify({
+                                    window.onCiphertextTimeout(JSON.stringify({
                                         ...ciphTrace,
                                         elapsed: 30000,
                                         ...storeState,
