@@ -989,7 +989,7 @@ class Client extends EventEmitter {
                                         window.onAddMessageEvent(window.WWebJS.getMessageModel(recoveredMsg));
                                     }
                                 } else {
-                                    window.onDiagLog('debug', 'CIPHERTEXT_TIMEOUT', JSON.stringify({
+                                    window.onDiagLog('error', 'CIPHERTEXT_TIMEOUT', JSON.stringify({
                                         id: msgIdStr,
                                         from: msg.from?._serialized,
                                         ...ciphSender,
