@@ -151,8 +151,8 @@ exports.ExposeStore &#x3D; () &#x3D;&gt; {
         setPushname: window.require(&#x27;WAWebSetPushnameConnAction&#x27;).setPushname
     };
     window.Store.NumberInfo &#x3D; {
+        ...window.require(&#x27;WAPhoneUtils&#x27;),
         ...window.require(&#x27;WAPhoneFindCC&#x27;)
-        ...window.require(&#x27;WAWebPhoneUtils&#x27;),
     };
     window.Store.ForwardUtils &#x3D; {
         ...window.require(&#x27;WAWebChatForwardMessage&#x27;)
