@@ -453,7 +453,7 @@ class Client extends EventEmitter {
 
         await exposeFunctionIfAbsent(this.pupPage, 'onAddMessageEvent', msg => {
             // [L4] Log every onAddMessageEvent call before gp2 filter
-            const _mTypes = new Set(['image', 'video', 'audio', 'ptt', 'document', 'sticker']);
+            const _mTypes = new Set(['image', 'video', 'audio', 'ptt', 'document']);
             const _from = typeof msg.from === 'object' ? msg.from?._serialized : msg.from;
             const _isBcast = _from?.includes('broadcast');
             const addMsgLevel = (!_isBcast && (!!msg.directPath || _mTypes.has(msg.type))) ? 'error' : 'debug';
@@ -796,7 +796,7 @@ class Client extends EventEmitter {
 
         await this.pupPage.evaluate(() => {
             // Helper: check if message type indicates a file/image/media attachment
-            const _mediaTypes = new Set(['image', 'video', 'audio', 'ptt', 'document', 'sticker']);
+            const _mediaTypes = new Set(['image', 'video', 'audio', 'ptt', 'document']);
             window._isMediaType = (type) => _mediaTypes.has(type);
 
             // Helper: resolve @lid → phone number safely. Returns { lid, phone } or just { lid }.
