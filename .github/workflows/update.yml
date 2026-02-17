@@ -2,7 +2,7 @@ name: Update
 
 on:
   schedule:
-    - cron: "0 12 * * 0"
+    - cron: '0 12 * * 0'
   workflow_dispatch:
 
 jobs:
@@ -33,7 +33,7 @@ jobs:
           title: Update WhatsApp Web Version (${{ env.WA_VERSION }})
           body: |
             A new version of WhatsApp Web has been detected! 
-            
+
             Tests should be run against this new version before merging.
           labels: WhatsApp Change
           reviewers: pedroslopez

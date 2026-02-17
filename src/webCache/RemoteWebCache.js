@@ -8,33 +8,39 @@ const { WebCache, VersionResolveError } = require('./WebCache');
  * @param {boolean} options.strict - If true, will throw an error if the requested version can't be fetched. If false, will resolve to the latest version. Defaults to false.
  */
 class RemoteWebCache extends WebCache {
-    constructor(options = {}) {
-        super();
+  constructor(options = {}) {
+    super();
 
-        if (!options.remotePath) throw new Error('webVersionCache.remotePath is required when using the remote cache');
-        this.remotePath = options.remotePath;
-        this.strict = options.strict || false;
+    if (!options.remotePath)
+      throw new Error(
+        'webVersionCache.remotePath is required when using the remote cache',
+      );
+    this.remotePath = options.remotePath;
+    this.strict = options.strict || false;
+  }
+
+  async resolve(version) {
+    const remotePath = this.remotePath.replace('{version}', version);
+
+    try {
+      const cachedRes = await fetch(remotePath);
+      if (cachedRes.ok) {
+        return cachedRes.text();
+      }
+    } catch (err) {
+      console.error(`Error fetching version ${version} from remote`, err);
     }
 
-    async resolve(version) {
-        const remotePath = this.remotePath.replace('{version}', version);
+    if (this.strict)
+      throw new VersionResolveError(
+        `Couldn't load version ${version} from the archive`,
+      );
+    return null;
+  }
 
-        try {
-            const cachedRes = await fetch(remotePath);
-            if (cachedRes.ok) {
-                return cachedRes.text();
-            }
-        } catch (err) {
-            console.error(`Error fetching version ${version} from remote`, err);
-        }
-
-        if (this.strict) throw new VersionResolveError(`Couldn't load version ${version} from the archive`);
-        return null;         
-    }
-
-    async persist() {
-        // Nothing to do here
-    }
+  async persist() {
+    // Nothing to do here
+  }
 }
 
 module.exports = RemoteWebCache;

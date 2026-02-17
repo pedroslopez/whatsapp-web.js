@@ -3,18 +3,18 @@ const LocalWebCache = require('./LocalWebCache');
 const { WebCache } = require('./WebCache');
 
 const createWebCache = (type, options) => {
-    switch (type) {
+  switch (type) {
     case 'remote':
-        return new RemoteWebCache(options);
+      return new RemoteWebCache(options);
     case 'local':
-        return new LocalWebCache(options);
+      return new LocalWebCache(options);
     case 'none':
-        return new WebCache();
+      return new WebCache();
     default:
-        throw new Error(`Invalid WebCache type ${type}`);
-    }
+      throw new Error(`Invalid WebCache type ${type}`);
+  }
 };
 
 module.exports = {
-    createWebCache,
+  createWebCache,
 };

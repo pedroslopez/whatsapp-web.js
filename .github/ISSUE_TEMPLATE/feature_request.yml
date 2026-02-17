@@ -6,17 +6,17 @@ body:
     attributes:
       value: |
         ### Thank you for suggesting a new idea for this project.
-        
+
         ### Here are some important points to consider before continuing:
-        
+
         - Please submit only feature requests that related to the `whatsapp-web.js` library.
         - Duplicate feature requests will be closed.
         - Any feature request opened as a question will be closed.
-        
+
         ### If you have any question about how to achieve something and are struggling, please post a question in our [Discord Server](https://discord.gg/wyKybbF) instead.
-        
+
         ### Please check the links below to see if you can find a solution there:
-        
+
          - [Open Pull Requests](https://github.com/pedroslopez/whatsapp-web.js/pulls?q=is%3Apr+is%3Aopen+-author%3Aapp%2Fdependabot)
          - [Merged Pull Requests](https://github.com/pedroslopez/whatsapp-web.js/pulls?q=is%3Apr+is%3Amerged+-author%3Aapp%2Fdependabot)
          - [Library Documentation](https://docs.wwebjs.dev/)

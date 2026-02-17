@@ -7,15 +7,14 @@ const Contact = require('./Contact');
  * @extends {Contact}
  */
 class BusinessContact extends Contact {
-    _patch(data) {
-        /**
-         * The contact's business profile
-         */
-        this.businessProfile = data.businessProfile;
+  _patch(data) {
+    /**
+     * The contact's business profile
+     */
+    this.businessProfile = data.businessProfile;
 
-        return super._patch(data);
-    }
-
+    return super._patch(data);
+  }
 }
 
 module.exports = BusinessContact;

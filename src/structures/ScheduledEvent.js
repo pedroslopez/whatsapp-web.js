@@ -13,59 +13,71 @@
 
 /** Represents a ScheduledEvent on WhatsApp */
 class ScheduledEvent {
+  /**
+   * @param {string} name
+   * @param {Date} startTime
+   * @param {ScheduledEventSendOptions} options
+   */
+  constructor(name, startTime, options = {}) {
     /**
-     * @param {string} name
-     * @param {Date} startTime
-     * @param {ScheduledEventSendOptions} options
+     * The name of the event
+     * @type {string}
      */
-    constructor(name, startTime, options = {}) {
-        /**
-         * The name of the event
-         * @type {string}
-         */
-        this.name = this._validateInputs('name', name).trim();
-
-        /**
-         * The start time of the event
-         * @type {number}
-         */
-        this.startTimeTs = Math.floor(startTime.getTime() / 1000);
-
-        /**
-         * The send options for the event
-         * @type {Object}
-         */
-        this.eventSendOptions = {
-            description: options.description?.trim(),
-            endTimeTs: options.endTime ? Math.floor(options.endTime.getTime() / 1000) : null,
-            location: options.location?.trim(),
-            callType: this._validateInputs('callType', options.callType),
-            isEventCanceled: options.isEventCanceled ?? false,
-            messageSecret: options.messageSecret
-        };
-    }
+    this.name = this._validateInputs('name', name).trim();
 
     /**
-     * Inner function to validate input values
-     * @param {string} propName The property name to validate the value of
-     * @param {string | number} propValue The property value to validate
-     * @returns {string | number} The property value if a validation succeeded
+     * The start time of the event
+     * @type {number}
      */
-    _validateInputs(propName, propValue) {
-        if (propName === 'name' && !propValue) {
-            throw new class CreateScheduledEventError extends Error {
-                constructor(m) { super(m); }
-            }(`Empty '${propName}' parameter value is provided.`);
-        }
+    this.startTimeTs = Math.floor(startTime.getTime() / 1000);
 
-        if (propName === 'callType' && propValue && !['video', 'voice', 'none'].includes(propValue)) {
-            throw new class CreateScheduledEventError extends Error {
-                constructor(m) { super(m); }
-            }(`Invalid '${propName}' parameter value is provided. Valid values are: 'voice' | 'video' | 'none'.`);
+    /**
+     * The send options for the event
+     * @type {Object}
+     */
+    this.eventSendOptions = {
+      description: options.description?.trim(),
+      endTimeTs: options.endTime
+        ? Math.floor(options.endTime.getTime() / 1000)
+        : null,
+      location: options.location?.trim(),
+      callType: this._validateInputs('callType', options.callType),
+      isEventCanceled: options.isEventCanceled ?? false,
+      messageSecret: options.messageSecret,
+    };
+  }
+
+  /**
+   * Inner function to validate input values
+   * @param {string} propName The property name to validate the value of
+   * @param {string | number} propValue The property value to validate
+   * @returns {string | number} The property value if a validation succeeded
+   */
+  _validateInputs(propName, propValue) {
+    if (propName === 'name' && !propValue) {
+      throw new (class CreateScheduledEventError extends Error {
+        constructor(m) {
+          super(m);
         }
-        
-        return propValue;
+      })(`Empty '${propName}' parameter value is provided.`);
     }
+
+    if (
+      propName === 'callType' &&
+      propValue &&
+      !['video', 'voice', 'none'].includes(propValue)
+    ) {
+      throw new (class CreateScheduledEventError extends Error {
+        constructor(m) {
+          super(m);
+        }
+      })(
+        `Invalid '${propName}' parameter value is provided. Valid values are: 'voice' | 'video' | 'none'.`,
+      );
+    }
+
+    return propValue;
+  }
 }
 
 module.exports = ScheduledEvent;

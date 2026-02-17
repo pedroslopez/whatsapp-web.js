@@ -15,469 +15,596 @@ const Chat = require('./Chat');
  * @extends {Chat}
  */
 class GroupChat extends Chat {
-    _patch(data) {
-        this.groupMetadata = data.groupMetadata;
+  _patch(data) {
+    this.groupMetadata = data.groupMetadata;
 
-        return super._patch(data);
-    }
+    return super._patch(data);
+  }
 
-    /**
-     * Gets the group owner
-     * @type {ContactId}
-     */
-    get owner() {
-        return this.groupMetadata.owner;
-    }
-    
-    /**
-     * Gets the date at which the group was created
-     * @type {date}
-     */
-    get createdAt() {
-        return new Date(this.groupMetadata.creation * 1000);
-    }
+  /**
+   * Gets the group owner
+   * @type {ContactId}
+   */
+  get owner() {
+    return this.groupMetadata.owner;
+  }
 
-    /** 
-     * Gets the group description
-     * @type {string}
-     */
-    get description() {
-        return this.groupMetadata.desc;
-    }
+  /**
+   * Gets the date at which the group was created
+   * @type {date}
+   */
+  get createdAt() {
+    return new Date(this.groupMetadata.creation * 1000);
+  }
 
-    /**
-     * Gets the group participants
-     * @type {Array<GroupParticipant>}
-     */
-    get participants() {
-        return this.groupMetadata.participants;
-    }
+  /**
+   * Gets the group description
+   * @type {string}
+   */
+  get description() {
+    return this.groupMetadata.desc;
+  }
 
-    /**
-     * An object that handles the result for {@link addParticipants} method
-     * @typedef {Object} AddParticipantsResult
-     * @property {number} code The code of the result
-     * @property {string} message The result message
-     * @property {boolean} isInviteV4Sent Indicates if the inviteV4 was sent to the partitipant
-     */
+  /**
+   * Gets the group participants
+   * @type {Array<GroupParticipant>}
+   */
+  get participants() {
+    return this.groupMetadata.participants;
+  }
 
-    /**
-     * An object that handles options for adding participants
-     * @typedef {Object} AddParticipnatsOptions
-     * @property {Array<number>|number} [sleep = [250, 500]] The number of milliseconds to wait before adding the next participant. If it is an array, a random sleep time between the sleep[0] and sleep[1] values will be added (the difference must be >=100 ms, otherwise, a random sleep time between sleep[1] and sleep[1] + 100 will be added). If sleep is a number, a sleep time equal to its value will be added. By default, sleep is an array with a value of [250, 500]
-     * @property {boolean} [autoSendInviteV4 = true] If true, the inviteV4 will be sent to those participants who have restricted others from being automatically added to groups, otherwise the inviteV4 won't be sent (true by default)
-     * @property {string} [comment = ''] The comment to be added to an inviteV4 (empty string by default)
-     */
+  /**
+   * An object that handles the result for {@link addParticipants} method
+   * @typedef {Object} AddParticipantsResult
+   * @property {number} code The code of the result
+   * @property {string} message The result message
+   * @property {boolean} isInviteV4Sent Indicates if the inviteV4 was sent to the partitipant
+   */
 
-    /**
-     * Adds a list of participants by ID to the group
-     * @param {string|Array<string>} participantIds 
-     * @param {AddParticipnatsOptions} options An object thay handles options for adding participants
-     * @returns {Promise<Object.<string, AddParticipantsResult>|string>} Returns an object with the resulting data or an error message as a string
-     */
-    async addParticipants(participantIds, options = {}) {
-        return await this.client.pupPage.evaluate(async (groupId, participantIds, options) => {
-            const { sleep = [250, 500], autoSendInviteV4 = true, comment = '' } = options;
-            const participantData = {};
+  /**
+   * An object that handles options for adding participants
+   * @typedef {Object} AddParticipnatsOptions
+   * @property {Array<number>|number} [sleep = [250, 500]] The number of milliseconds to wait before adding the next participant. If it is an array, a random sleep time between the sleep[0] and sleep[1] values will be added (the difference must be >=100 ms, otherwise, a random sleep time between sleep[1] and sleep[1] + 100 will be added). If sleep is a number, a sleep time equal to its value will be added. By default, sleep is an array with a value of [250, 500]
+   * @property {boolean} [autoSendInviteV4 = true] If true, the inviteV4 will be sent to those participants who have restricted others from being automatically added to groups, otherwise the inviteV4 won't be sent (true by default)
+   * @property {string} [comment = ''] The comment to be added to an inviteV4 (empty string by default)
+   */
 
-            !Array.isArray(participantIds) && (participantIds = [participantIds]);
-            const groupWid = window.Store.WidFactory.createWid(groupId);
-            const group = window.Store.Chat.get(groupWid) || (await window.Store.Chat.find(groupWid));
-            const participantWids = participantIds.map((p) => window.Store.WidFactory.createWid(p));
+  /**
+   * Adds a list of participants by ID to the group
+   * @param {string|Array<string>} participantIds
+   * @param {AddParticipnatsOptions} options An object thay handles options for adding participants
+   * @returns {Promise<Object.<string, AddParticipantsResult>|string>} Returns an object with the resulting data or an error message as a string
+   */
+  async addParticipants(participantIds, options = {}) {
+    return await this.client.pupPage.evaluate(
+      async (groupId, participantIds, options) => {
+        const {
+          sleep = [250, 500],
+          autoSendInviteV4 = true,
+          comment = '',
+        } = options;
+        const participantData = {};
 
-            const errorCodes = {
-                default: 'An unknown error occupied while adding a participant',
-                isGroupEmpty: 'AddParticipantsError: The participant can\'t be added to an empty group',
-                iAmNotAdmin: 'AddParticipantsError: You have no admin rights to add a participant to a group',
-                200: 'The participant was added successfully',
-                403: 'The participant can be added by sending private invitation only',
-                404: 'The phone number is not registered on WhatsApp',
-                408: 'You cannot add this participant because they recently left the group',
-                409: 'The participant is already a group member',
-                417: 'The participant can\'t be added to the community. You can invite them privately to join this group through its invite link',
-                419: 'The participant can\'t be added because the group is full'
-            };
+        !Array.isArray(participantIds) && (participantIds = [participantIds]);
+        const groupWid = window.Store.WidFactory.createWid(groupId);
+        const group =
+          window.Store.Chat.get(groupWid) ||
+          (await window.Store.Chat.find(groupWid));
+        const participantWids = participantIds.map((p) =>
+          window.Store.WidFactory.createWid(p),
+        );
 
-            await window.Store.GroupQueryAndUpdate({ id: groupId });
+        const errorCodes = {
+          default: 'An unknown error occupied while adding a participant',
+          isGroupEmpty:
+            "AddParticipantsError: The participant can't be added to an empty group",
+          iAmNotAdmin:
+            'AddParticipantsError: You have no admin rights to add a participant to a group',
+          200: 'The participant was added successfully',
+          403: 'The participant can be added by sending private invitation only',
+          404: 'The phone number is not registered on WhatsApp',
+          408: 'You cannot add this participant because they recently left the group',
+          409: 'The participant is already a group member',
+          417: "The participant can't be added to the community. You can invite them privately to join this group through its invite link",
+          419: "The participant can't be added because the group is full",
+        };
 
-            let groupParticipants = group.groupMetadata?.participants.serialize();
+        await window.Store.GroupQueryAndUpdate({ id: groupId });
 
-            if (!groupParticipants) {
-                return errorCodes.isGroupEmpty;
+        let groupParticipants = group.groupMetadata?.participants.serialize();
+
+        if (!groupParticipants) {
+          return errorCodes.isGroupEmpty;
+        }
+
+        if (!group.iAmAdmin()) {
+          return errorCodes.iAmNotAdmin;
+        }
+
+        groupParticipants.map(({ id }) => {
+          return id.server === 'lid'
+            ? window.Store.LidUtils.getPhoneNumber(id)
+            : id;
+        });
+
+        const _getSleepTime = (sleep) => {
+          if (
+            !Array.isArray(sleep) ||
+            (sleep.length === 2 && sleep[0] === sleep[1])
+          ) {
+            return sleep;
+          }
+          if (sleep.length === 1) {
+            return sleep[0];
+          }
+          sleep[1] - sleep[0] < 100 &&
+            (sleep[0] = sleep[1]) &&
+            (sleep[1] += 100);
+          return (
+            Math.floor(Math.random() * (sleep[1] - sleep[0] + 1)) + sleep[0]
+          );
+        };
+
+        for (let pWid of participantWids) {
+          const pId = pWid._serialized;
+          pWid =
+            pWid.server === 'lid'
+              ? window.Store.LidUtils.getPhoneNumber(pWid)
+              : pWid;
+
+          participantData[pId] = {
+            code: undefined,
+            message: undefined,
+            isInviteV4Sent: false,
+          };
+
+          if (groupParticipants.some((p) => p._serialized === pId)) {
+            participantData[pId].code = 409;
+            participantData[pId].message = errorCodes[409];
+            continue;
+          }
+
+          if (!(await window.Store.QueryExist(pWid))?.wid) {
+            participantData[pId].code = 404;
+            participantData[pId].message = errorCodes[404];
+            continue;
+          }
+
+          const rpcResult = await window.WWebJS.getAddParticipantsRpcResult(
+            groupWid,
+            pWid,
+          );
+          const { code: rpcResultCode } = rpcResult;
+
+          participantData[pId].code = rpcResultCode;
+          participantData[pId].message =
+            errorCodes[rpcResultCode] || errorCodes.default;
+
+          if (autoSendInviteV4 && rpcResultCode === 403) {
+            let userChat,
+              isInviteV4Sent = false;
+            window.Store.Contact.gadd(pWid, { silent: true });
+
+            if (
+              rpcResult.name === 'ParticipantRequestCodeCanBeSent' &&
+              (userChat =
+                window.Store.Chat.get(pWid) ||
+                (await window.Store.Chat.find(pWid)))
+            ) {
+              const groupName = group.formattedTitle || group.name;
+              const res =
+                await window.Store.GroupInviteV4.sendGroupInviteMessage(
+                  userChat,
+                  group.id._serialized,
+                  groupName,
+                  rpcResult.inviteV4Code,
+                  rpcResult.inviteV4CodeExp,
+                  comment,
+                  await window.WWebJS.getProfilePicThumbToBase64(groupWid),
+                );
+              isInviteV4Sent = res.messageSendResult === 'OK';
             }
 
-            if (!group.iAmAdmin()) {
-                return errorCodes.iAmNotAdmin;
-            }
+            participantData[pId].isInviteV4Sent = isInviteV4Sent;
+          }
 
-            groupParticipants.map(({ id }) => {
-                return id.server === 'lid' ? window.Store.LidUtils.getPhoneNumber(id) : id;
-            });
+          sleep &&
+            participantWids.length > 1 &&
+            participantWids.indexOf(pWid) !== participantWids.length - 1 &&
+            (await new Promise((resolve) =>
+              setTimeout(resolve, _getSleepTime(sleep)),
+            ));
+        }
 
-            const _getSleepTime = (sleep) => {
-                if (!Array.isArray(sleep) || sleep.length === 2 && sleep[0] === sleep[1]) {
-                    return sleep;
-                }
-                if (sleep.length === 1) {
-                    return sleep[0];
-                }
-                (sleep[1] - sleep[0]) < 100 && (sleep[0] = sleep[1]) && (sleep[1] += 100);
-                return Math.floor(Math.random() * (sleep[1] - sleep[0] + 1)) + sleep[0];
-            };
+        return participantData;
+      },
+      this.id._serialized,
+      participantIds,
+      options,
+    );
+  }
 
-            for (let pWid of participantWids) {
-                const pId = pWid._serialized;
-                pWid = pWid.server === 'lid' ? window.Store.LidUtils.getPhoneNumber(pWid) : pWid;
-                
-                participantData[pId] = {
-                    code: undefined,
-                    message: undefined,
-                    isInviteV4Sent: false
-                };
+  /**
+   * Removes a list of participants by ID to the group
+   * @param {Array<string>} participantIds
+   * @returns {Promise<{ status: number }>}
+   */
+  async removeParticipants(participantIds) {
+    return await this.client.pupPage.evaluate(
+      async (chatId, participantIds) => {
+        const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
+        const participants = (
+          await Promise.all(
+            participantIds.map(async (p) => {
+              const { lid, phone } =
+                await window.WWebJS.enforceLidAndPnRetrieval(p);
 
-                if (groupParticipants.some(p => p._serialized === pId)) {
-                    participantData[pId].code = 409;
-                    participantData[pId].message = errorCodes[409];
-                    continue;
-                }
+              return (
+                chat.groupMetadata.participants.get(lid?._serialized) ||
+                chat.groupMetadata.participants.get(phone?._serialized)
+              );
+            }),
+          )
+        ).filter(Boolean);
+        await window.Store.GroupParticipants.removeParticipants(
+          chat,
+          participants,
+        );
+        return { status: 200 };
+      },
+      this.id._serialized,
+      participantIds,
+    );
+  }
 
-                if (!(await window.Store.QueryExist(pWid))?.wid) {
-                    participantData[pId].code = 404;
-                    participantData[pId].message = errorCodes[404];
-                    continue;
-                }
+  /**
+   * Promotes participants by IDs to admins
+   * @param {Array<string>} participantIds
+   * @returns {Promise<{ status: number }>} Object with status code indicating if the operation was successful
+   */
+  async promoteParticipants(participantIds) {
+    return await this.client.pupPage.evaluate(
+      async (chatId, participantIds) => {
+        const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
+        const participants = (
+          await Promise.all(
+            participantIds.map(async (p) => {
+              const { lid, phone } =
+                await window.WWebJS.enforceLidAndPnRetrieval(p);
 
-                const rpcResult =
-                    await window.WWebJS.getAddParticipantsRpcResult(groupWid, pWid);
-                const { code: rpcResultCode } = rpcResult;
+              return (
+                chat.groupMetadata.participants.get(lid?._serialized) ||
+                chat.groupMetadata.participants.get(phone?._serialized)
+              );
+            }),
+          )
+        ).filter(Boolean);
+        await window.Store.GroupParticipants.promoteParticipants(
+          chat,
+          participants,
+        );
+        return { status: 200 };
+      },
+      this.id._serialized,
+      participantIds,
+    );
+  }
 
-                participantData[pId].code = rpcResultCode;
-                participantData[pId].message =
-                    errorCodes[rpcResultCode] || errorCodes.default;
+  /**
+   * Demotes participants by IDs to regular users
+   * @param {Array<string>} participantIds
+   * @returns {Promise<{ status: number }>} Object with status code indicating if the operation was successful
+   */
+  async demoteParticipants(participantIds) {
+    return await this.client.pupPage.evaluate(
+      async (chatId, participantIds) => {
+        const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
+        const participants = (
+          await Promise.all(
+            participantIds.map(async (p) => {
+              const { lid, phone } =
+                await window.WWebJS.enforceLidAndPnRetrieval(p);
 
-                if (autoSendInviteV4 && rpcResultCode === 403) {
-                    let userChat, isInviteV4Sent = false;
-                    window.Store.Contact.gadd(pWid, { silent: true });
+              return (
+                chat.groupMetadata.participants.get(lid?._serialized) ||
+                chat.groupMetadata.participants.get(phone?._serialized)
+              );
+            }),
+          )
+        ).filter(Boolean);
+        await window.Store.GroupParticipants.demoteParticipants(
+          chat,
+          participants,
+        );
+        return { status: 200 };
+      },
+      this.id._serialized,
+      participantIds,
+    );
+  }
 
-                    if (rpcResult.name === 'ParticipantRequestCodeCanBeSent' &&
-                        (userChat = window.Store.Chat.get(pWid) || (await window.Store.Chat.find(pWid)))) {
-                        const groupName = group.formattedTitle || group.name;
-                        const res = await window.Store.GroupInviteV4.sendGroupInviteMessage(
-                            userChat,
-                            group.id._serialized,
-                            groupName,
-                            rpcResult.inviteV4Code,
-                            rpcResult.inviteV4CodeExp,
-                            comment,
-                            await window.WWebJS.getProfilePicThumbToBase64(groupWid)
-                        );
-                        isInviteV4Sent = res.messageSendResult === 'OK';
-                    }
+  /**
+   * Updates the group subject
+   * @param {string} subject
+   * @returns {Promise<boolean>} Returns true if the subject was properly updated. This can return false if the user does not have the necessary permissions.
+   */
+  async setSubject(subject) {
+    const success = await this.client.pupPage.evaluate(
+      async (chatId, subject) => {
+        const chatWid = window.Store.WidFactory.createWid(chatId);
+        try {
+          await window.Store.GroupUtils.setGroupSubject(chatWid, subject);
+          return true;
+        } catch (err) {
+          if (err.name === 'ServerStatusCodeError') return false;
+          throw err;
+        }
+      },
+      this.id._serialized,
+      subject,
+    );
 
-                    participantData[pId].isInviteV4Sent = isInviteV4Sent;
-                }
+    if (!success) return false;
+    this.name = subject;
+    return true;
+  }
 
-                sleep &&
-                    participantWids.length > 1 &&
-                    participantWids.indexOf(pWid) !== participantWids.length - 1 &&
-                    (await new Promise((resolve) => setTimeout(resolve, _getSleepTime(sleep))));
-            }
+  /**
+   * Updates the group description
+   * @param {string} description
+   * @returns {Promise<boolean>} Returns true if the description was properly updated. This can return false if the user does not have the necessary permissions.
+   */
+  async setDescription(description) {
+    const success = await this.client.pupPage.evaluate(
+      async (chatId, description) => {
+        const chatWid = window.Store.WidFactory.createWid(chatId);
+        const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
+        let descId = chat.groupMetadata.descId;
+        let newId = await window.Store.MsgKey.newId();
+        try {
+          await window.Store.GroupUtils.setGroupDescription(
+            chatWid,
+            description,
+            newId,
+            descId,
+          );
+          return true;
+        } catch (err) {
+          if (err.name === 'ServerStatusCodeError') return false;
+          throw err;
+        }
+      },
+      this.id._serialized,
+      description,
+    );
 
-            return participantData;
-        }, this.id._serialized, participantIds, options);
-    }
+    if (!success) return false;
+    this.groupMetadata.desc = description;
+    return true;
+  }
 
-    /**
-     * Removes a list of participants by ID to the group
-     * @param {Array<string>} participantIds 
-     * @returns {Promise<{ status: number }>}
-     */
-    async removeParticipants(participantIds) {
-        return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
-            const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
-            const participants = (await Promise.all(participantIds.map(async p => {
-                const { lid, phone } = await window.WWebJS.enforceLidAndPnRetrieval(p);
+  /**
+   * Updates the group setting to allow only admins to add members to the group.
+   * @param {boolean} [adminsOnly=true] Enable or disable this option
+   * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
+   */
+  async setAddMembersAdminsOnly(adminsOnly = true) {
+    const success = await this.client.pupPage.evaluate(
+      async (groupId, adminsOnly) => {
+        const chat = await window.WWebJS.getChat(groupId, {
+          getAsModel: false,
+        });
+        try {
+          await window.Store.GroupUtils.setGroupProperty(
+            chat,
+            'member_add_mode',
+            adminsOnly ? 0 : 1,
+          );
+          return true;
+        } catch (err) {
+          if (err.name === 'ServerStatusCodeError') return false;
+          throw err;
+        }
+      },
+      this.id._serialized,
+      adminsOnly,
+    );
 
-                return chat.groupMetadata.participants.get(lid?._serialized) ||
-                    chat.groupMetadata.participants.get(phone?._serialized);
-            }))).filter(Boolean);
-            await window.Store.GroupParticipants.removeParticipants(chat, participants);
-            return { status: 200 };
-        }, this.id._serialized, participantIds);
-    }
+    success &&
+      (this.groupMetadata.memberAddMode = adminsOnly
+        ? 'admin_add'
+        : 'all_member_add');
+    return success;
+  }
 
-    /**
-     * Promotes participants by IDs to admins
-     * @param {Array<string>} participantIds 
-     * @returns {Promise<{ status: number }>} Object with status code indicating if the operation was successful
-     */
-    async promoteParticipants(participantIds) {
-        return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
-            const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
-            const participants = (await Promise.all(participantIds.map(async p => {
-                const { lid, phone } = await window.WWebJS.enforceLidAndPnRetrieval(p);
+  /**
+   * Updates the group settings to only allow admins to send messages.
+   * @param {boolean} [adminsOnly=true] Enable or disable this option
+   * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
+   */
+  async setMessagesAdminsOnly(adminsOnly = true) {
+    const success = await this.client.pupPage.evaluate(
+      async (chatId, adminsOnly) => {
+        const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
+        try {
+          await window.Store.GroupUtils.setGroupProperty(
+            chat,
+            'announcement',
+            adminsOnly ? 1 : 0,
+          );
+          return true;
+        } catch (err) {
+          if (err.name === 'ServerStatusCodeError') return false;
+          throw err;
+        }
+      },
+      this.id._serialized,
+      adminsOnly,
+    );
 
-                return chat.groupMetadata.participants.get(lid?._serialized) ||
-                    chat.groupMetadata.participants.get(phone?._serialized);
-            }))).filter(Boolean);
-            await window.Store.GroupParticipants.promoteParticipants(chat, participants);
-            return { status: 200 };
-        }, this.id._serialized, participantIds);
-    }
+    if (!success) return false;
 
-    /**
-     * Demotes participants by IDs to regular users
-     * @param {Array<string>} participantIds 
-     * @returns {Promise<{ status: number }>} Object with status code indicating if the operation was successful
-     */
-    async demoteParticipants(participantIds) {
-        return await this.client.pupPage.evaluate(async (chatId, participantIds) => {
-            const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
-            const participants = (await Promise.all(participantIds.map(async p => {
-                const { lid, phone } = await window.WWebJS.enforceLidAndPnRetrieval(p);
+    this.groupMetadata.announce = adminsOnly;
+    return true;
+  }
 
-                return chat.groupMetadata.participants.get(lid?._serialized) ||
-                    chat.groupMetadata.participants.get(phone?._serialized);
-            }))).filter(Boolean);
-            await window.Store.GroupParticipants.demoteParticipants(chat, participants);
-            return { status: 200 };
-        }, this.id._serialized, participantIds);
-    }
+  /**
+   * Updates the group settings to only allow admins to edit group info (title, description, photo).
+   * @param {boolean} [adminsOnly=true] Enable or disable this option
+   * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
+   */
+  async setInfoAdminsOnly(adminsOnly = true) {
+    const success = await this.client.pupPage.evaluate(
+      async (chatId, adminsOnly) => {
+        const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
+        try {
+          await window.Store.GroupUtils.setGroupProperty(
+            chat,
+            'restrict',
+            adminsOnly ? 1 : 0,
+          );
+          return true;
+        } catch (err) {
+          if (err.name === 'ServerStatusCodeError') return false;
+          throw err;
+        }
+      },
+      this.id._serialized,
+      adminsOnly,
+    );
 
-    /**
-     * Updates the group subject
-     * @param {string} subject 
-     * @returns {Promise<boolean>} Returns true if the subject was properly updated. This can return false if the user does not have the necessary permissions.
-     */
-    async setSubject(subject) {
-        const success = await this.client.pupPage.evaluate(async (chatId, subject) => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
-            try {
-                await window.Store.GroupUtils.setGroupSubject(chatWid, subject);
-                return true;
-            } catch (err) {
-                if(err.name === 'ServerStatusCodeError') return false;
-                throw err;
-            }
-        }, this.id._serialized, subject);
+    if (!success) return false;
 
-        if(!success) return false;
-        this.name = subject;
-        return true;
-    }
+    this.groupMetadata.restrict = adminsOnly;
+    return true;
+  }
 
-    /**
-     * Updates the group description
-     * @param {string} description 
-     * @returns {Promise<boolean>} Returns true if the description was properly updated. This can return false if the user does not have the necessary permissions.
-     */
-    async setDescription(description) {
-        const success = await this.client.pupPage.evaluate(async (chatId, description) => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
-            const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
-            let descId = chat.groupMetadata.descId;
-            let newId = await window.Store.MsgKey.newId();
-            try {
-                await window.Store.GroupUtils.setGroupDescription(chatWid, description, newId, descId);
-                return true;
-            } catch (err) {
-                if(err.name === 'ServerStatusCodeError') return false;
-                throw err;
-            }
-        }, this.id._serialized, description);
+  /**
+   * Deletes the group's picture.
+   * @returns {Promise<boolean>} Returns true if the picture was properly deleted. This can return false if the user does not have the necessary permissions.
+   */
+  async deletePicture() {
+    const success = await this.client.pupPage.evaluate((chatid) => {
+      return window.WWebJS.deletePicture(chatid);
+    }, this.id._serialized);
 
-        if(!success) return false;
-        this.groupMetadata.desc = description;
-        return true;
-    }
-    
-    /**
-     * Updates the group setting to allow only admins to add members to the group.
-     * @param {boolean} [adminsOnly=true] Enable or disable this option 
-     * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
-     */
-    async setAddMembersAdminsOnly(adminsOnly=true) {
-        const success = await this.client.pupPage.evaluate(async (groupId, adminsOnly) => {
-            const chat = await window.WWebJS.getChat(groupId, { getAsModel: false });
-            try {
-                await window.Store.GroupUtils.setGroupProperty(chat, 'member_add_mode', adminsOnly ? 0 : 1);
-                return true;
-            } catch (err) {
-                if(err.name === 'ServerStatusCodeError') return false;
-                throw err;
-            }
-        }, this.id._serialized, adminsOnly);
+    return success;
+  }
 
-        success && (this.groupMetadata.memberAddMode = adminsOnly ? 'admin_add' : 'all_member_add');
-        return success;
-    }
-    
-    /**
-     * Updates the group settings to only allow admins to send messages.
-     * @param {boolean} [adminsOnly=true] Enable or disable this option 
-     * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
-     */
-    async setMessagesAdminsOnly(adminsOnly=true) {
-        const success = await this.client.pupPage.evaluate(async (chatId, adminsOnly) => {
-            const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
-            try {
-                await window.Store.GroupUtils.setGroupProperty(chat, 'announcement', adminsOnly ? 1 : 0);
-                return true;
-            } catch (err) {
-                if(err.name === 'ServerStatusCodeError') return false;
-                throw err;
-            }
-        }, this.id._serialized, adminsOnly);
+  /**
+   * Sets the group's picture.
+   * @param {MessageMedia} media
+   * @returns {Promise<boolean>} Returns true if the picture was properly updated. This can return false if the user does not have the necessary permissions.
+   */
+  async setPicture(media) {
+    const success = await this.client.pupPage.evaluate(
+      (chatid, media) => {
+        return window.WWebJS.setPicture(chatid, media);
+      },
+      this.id._serialized,
+      media,
+    );
 
-        if(!success) return false;
+    return success;
+  }
 
-        this.groupMetadata.announce = adminsOnly;
-        return true;
-    }
+  /**
+   * Gets the invite code for a specific group
+   * @returns {Promise<string>} Group's invite code
+   */
+  async getInviteCode() {
+    const codeRes = await this.client.pupPage.evaluate(async (chatId) => {
+      try {
+        return await window.Store.GroupInvite.fetchMexGroupInviteCode(chatId);
+      } catch (err) {
+        if (err.name === 'ServerStatusCodeError') return undefined;
+        throw err;
+      }
+    }, this.id._serialized);
 
-    /**
-     * Updates the group settings to only allow admins to edit group info (title, description, photo).
-     * @param {boolean} [adminsOnly=true] Enable or disable this option 
-     * @returns {Promise<boolean>} Returns true if the setting was properly updated. This can return false if the user does not have the necessary permissions.
-     */
-    async setInfoAdminsOnly(adminsOnly=true) {
-        const success = await this.client.pupPage.evaluate(async (chatId, adminsOnly) => {
-            const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
-            try {
-                await window.Store.GroupUtils.setGroupProperty(chat, 'restrict', adminsOnly ? 1 : 0);
-                return true;
-            } catch (err) {
-                if(err.name === 'ServerStatusCodeError') return false;
-                throw err;
-            }
-        }, this.id._serialized, adminsOnly);
+    return codeRes?.code ? codeRes?.code : codeRes;
+  }
 
-        if(!success) return false;
-        
-        this.groupMetadata.restrict = adminsOnly;
-        return true;
-    }
-    
-    /**
-     * Deletes the group's picture.
-     * @returns {Promise<boolean>} Returns true if the picture was properly deleted. This can return false if the user does not have the necessary permissions.
-     */
-    async deletePicture() {
-        const success = await this.client.pupPage.evaluate((chatid) => {
-            return window.WWebJS.deletePicture(chatid);
-        }, this.id._serialized);
+  /**
+   * Invalidates the current group invite code and generates a new one
+   * @returns {Promise<string>} New invite code
+   */
+  async revokeInvite() {
+    const codeRes = await this.client.pupPage.evaluate((chatId) => {
+      const chatWid = window.Store.WidFactory.createWid(chatId);
+      return window.Store.GroupInvite.resetGroupInviteCode(chatWid);
+    }, this.id._serialized);
 
-        return success;
-    }
+    return codeRes.code;
+  }
 
-    /**
-     * Sets the group's picture.
-     * @param {MessageMedia} media
-     * @returns {Promise<boolean>} Returns true if the picture was properly updated. This can return false if the user does not have the necessary permissions.
-     */
-    async setPicture(media) {
-        const success = await this.client.pupPage.evaluate((chatid, media) => {
-            return window.WWebJS.setPicture(chatid, media);
-        }, this.id._serialized, media);
+  /**
+   * An object that handles the information about the group membership request
+   * @typedef {Object} GroupMembershipRequest
+   * @property {Object} id The wid of a user who requests to enter the group
+   * @property {Object} addedBy The wid of a user who created that request
+   * @property {Object|null} parentGroupId The wid of a community parent group to which the current group is linked
+   * @property {string} requestMethod The method used to create the request: NonAdminAdd/InviteLink/LinkedGroupJoin
+   * @property {number} t The timestamp the request was created at
+   */
 
-        return success;
-    }
+  /**
+   * Gets an array of membership requests
+   * @returns {Promise<Array<GroupMembershipRequest>>} An array of membership requests
+   */
+  async getGroupMembershipRequests() {
+    return await this.client.getGroupMembershipRequests(this.id._serialized);
+  }
 
-    /**
-     * Gets the invite code for a specific group
-     * @returns {Promise<string>} Group's invite code
-     */
-    async getInviteCode() {
-        const codeRes = await this.client.pupPage.evaluate(async chatId => {
-            try {
-                return await window.Store.GroupInvite.fetchMexGroupInviteCode(chatId);
-            }
-            catch (err) {
-                if(err.name === 'ServerStatusCodeError') return undefined;
-                throw err;
-            }
-        }, this.id._serialized);
+  /**
+   * An object that handles the result for membership request action
+   * @typedef {Object} MembershipRequestActionResult
+   * @property {string} requesterId User ID whos membership request was approved/rejected
+   * @property {number} error An error code that occurred during the operation for the participant
+   * @property {string} message A message with a result of membership request action
+   */
 
-        return codeRes?.code
-            ? codeRes?.code
-            : codeRes;
-    }
-    
-    /**
-     * Invalidates the current group invite code and generates a new one
-     * @returns {Promise<string>} New invite code
-     */
-    async revokeInvite() {
-        const codeRes = await this.client.pupPage.evaluate(chatId => {
-            const chatWid = window.Store.WidFactory.createWid(chatId);
-            return window.Store.GroupInvite.resetGroupInviteCode(chatWid);
-        }, this.id._serialized);
+  /**
+   * An object that handles options for {@link approveGroupMembershipRequests} and {@link rejectGroupMembershipRequests} methods
+   * @typedef {Object} MembershipRequestActionOptions
+   * @property {Array<string>|string|null} requesterIds User ID/s who requested to join the group, if no value is provided, the method will search for all membership requests for that group
+   * @property {Array<number>|number|null} sleep The number of milliseconds to wait before performing an operation for the next requester. If it is an array, a random sleep time between the sleep[0] and sleep[1] values will be added (the difference must be >=100 ms, otherwise, a random sleep time between sleep[1] and sleep[1] + 100 will be added). If sleep is a number, a sleep time equal to its value will be added. By default, sleep is an array with a value of [250, 500]
+   */
 
-        return codeRes.code;
-    }
-    
-    /**
-     * An object that handles the information about the group membership request
-     * @typedef {Object} GroupMembershipRequest
-     * @property {Object} id The wid of a user who requests to enter the group
-     * @property {Object} addedBy The wid of a user who created that request
-     * @property {Object|null} parentGroupId The wid of a community parent group to which the current group is linked
-     * @property {string} requestMethod The method used to create the request: NonAdminAdd/InviteLink/LinkedGroupJoin
-     * @property {number} t The timestamp the request was created at
-     */
-    
-    /**
-     * Gets an array of membership requests
-     * @returns {Promise<Array<GroupMembershipRequest>>} An array of membership requests
-     */
-    async getGroupMembershipRequests() {
-        return await this.client.getGroupMembershipRequests(this.id._serialized);
-    }
+  /**
+   * Approves membership requests if any
+   * @param {MembershipRequestActionOptions} options Options for performing a membership request action
+   * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were approved and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned
+   */
+  async approveGroupMembershipRequests(options = {}) {
+    return await this.client.approveGroupMembershipRequests(
+      this.id._serialized,
+      options,
+    );
+  }
 
-    /**
-     * An object that handles the result for membership request action
-     * @typedef {Object} MembershipRequestActionResult
-     * @property {string} requesterId User ID whos membership request was approved/rejected
-     * @property {number} error An error code that occurred during the operation for the participant
-     * @property {string} message A message with a result of membership request action
-     */
+  /**
+   * Rejects membership requests if any
+   * @param {MembershipRequestActionOptions} options Options for performing a membership request action
+   * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were rejected and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned
+   */
+  async rejectGroupMembershipRequests(options = {}) {
+    return await this.client.rejectGroupMembershipRequests(
+      this.id._serialized,
+      options,
+    );
+  }
 
-    /**
-     * An object that handles options for {@link approveGroupMembershipRequests} and {@link rejectGroupMembershipRequests} methods
-     * @typedef {Object} MembershipRequestActionOptions
-     * @property {Array<string>|string|null} requesterIds User ID/s who requested to join the group, if no value is provided, the method will search for all membership requests for that group
-     * @property {Array<number>|number|null} sleep The number of milliseconds to wait before performing an operation for the next requester. If it is an array, a random sleep time between the sleep[0] and sleep[1] values will be added (the difference must be >=100 ms, otherwise, a random sleep time between sleep[1] and sleep[1] + 100 will be added). If sleep is a number, a sleep time equal to its value will be added. By default, sleep is an array with a value of [250, 500]
-     */
-
-    /**
-     * Approves membership requests if any
-     * @param {MembershipRequestActionOptions} options Options for performing a membership request action
-     * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were approved and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned
-     */
-    async approveGroupMembershipRequests(options = {}) {
-        return await this.client.approveGroupMembershipRequests(this.id._serialized, options);
-    }
-
-    /**
-     * Rejects membership requests if any
-     * @param {MembershipRequestActionOptions} options Options for performing a membership request action
-     * @returns {Promise<Array<MembershipRequestActionResult>>} Returns an array of requester IDs whose membership requests were rejected and an error for each requester, if any occurred during the operation. If there are no requests, an empty array will be returned
-     */
-    async rejectGroupMembershipRequests(options = {}) {
-        return await this.client.rejectGroupMembershipRequests(this.id._serialized, options);
-    }
-
-    /**
-     * Makes the bot leave the group
-     * @returns {Promise}
-     */
-    async leave() {
-        await this.client.pupPage.evaluate(async chatId => {
-            const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
-            return window.Store.GroupUtils.sendExitGroup(chat);
-        }, this.id._serialized);
-    }
-
+  /**
+   * Makes the bot leave the group
+   * @returns {Promise}
+   */
+  async leave() {
+    await this.client.pupPage.evaluate(async (chatId) => {
+      const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
+      return window.Store.GroupUtils.sendExitGroup(chat);
+    }, this.id._serialized);
+  }
 }
 
 module.exports = GroupChat;

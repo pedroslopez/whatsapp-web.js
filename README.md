@@ -14,6 +14,7 @@
 </div>
 
 ## About
+
 **A WhatsApp API client that operates via the WhatsApp Web browser.**
 
 The library launches the WhatsApp Web browser app via Puppeteer, accessing its internal functions and creating a managed instance to reduce the risk of being blocked. This gives the API client nearly all WhatsApp Web features for dynamic use in a Node.js application.
@@ -23,18 +24,18 @@ The library launches the WhatsApp Web browser app via Puppeteer, accessing its i
 
 ## Links
 
-* [GitHub][gitHub]
-* [Guide][guide] ([source][guide-source])
-* [Documentation][documentation] ([source][documentation-source])
-* [Discord Server][discord]
-* [npm][npm]
+- [GitHub][gitHub]
+- [Guide][guide] ([source][guide-source])
+- [Documentation][documentation] ([source][documentation-source])
+- [Discord Server][discord]
+- [npm][npm]
 
 ## Installation
 
 The module is available on [npm][npm] via `npm i whatsapp-web.js`!
 
 > [!NOTE]
-> **Node ``v18`` or higher, is required.**  
+> **Node `v18` or higher, is required.**  
 > See the [Guide][guide] for quick upgrade instructions.
 
 ## Example usage
@@ -45,18 +46,18 @@ const { Client } = require('whatsapp-web.js');
 const client = new Client();
 
 client.on('qr', (qr) => {
-    // Generate and scan this code with your phone
-    console.log('QR RECEIVED', qr);
+  // Generate and scan this code with your phone
+  console.log('QR RECEIVED', qr);
 });
 
 client.on('ready', () => {
-    console.log('Client is ready!');
+  console.log('Client is ready!');
 });
 
-client.on('message', msg => {
-    if (msg.body == '!ping') {
-        msg.reply('pong');
-    }
+client.on('message', (msg) => {
+  if (msg.body == '!ping') {
+    msg.reply('pong');
+  }
 });
 
 client.initialize();
@@ -65,43 +66,42 @@ client.initialize();
 Take a look at [example.js][examples] for another examples with additional use cases.  
 For further details on saving and restoring sessions, explore the provided [Authentication Strategies][auth-strategies].
 
-
 ## Supported features
 
-| Feature  | Status |
-| ------------- | ------------- |
-| Multi Device  | ✅  |
-| Send messages  | ✅  |
-| Receive messages  | ✅  |
-| Send media (images/audio/documents)  | ✅  |
-| Send media (video)  | ✅ [(requires Google Chrome)][google-chrome]  |
-| Send stickers | ✅ |
-| Receive media (images/audio/video/documents)  | ✅  |
-| Send contact cards | ✅ |
-| Send location | ✅ |
-| Send buttons | ❌  [(DEPRECATED)][deprecated-video] |
-| Send lists | ❌  [(DEPRECATED)][deprecated-video] |
-| Receive location | ✅ | 
-| Message replies | ✅ |
-| Join groups by invite  | ✅ |
-| Get invite for group  | ✅ |
-| Modify group info (subject, description)  | ✅  |
-| Modify group settings (send messages, edit info)  | ✅  |
-| Add group participants  | ✅  |
-| Kick group participants  | ✅  |
-| Promote/demote group participants | ✅ |
-| Mention users | ✅ |
-| Mention groups | ✅ |
-| Mute/unmute chats | ✅ |
-| Block/unblock contacts | ✅ |
-| Get contact info | ✅ |
-| Get profile pictures | ✅ |
-| Set user status message | ✅ |
-| React to messages | ✅ |
-| Create polls | ✅ |
-| Channels | ✅ |
-| Vote in polls | 🔜 |
-| Communities | 🔜 |
+| Feature                                          | Status                                       |
+| ------------------------------------------------ | -------------------------------------------- |
+| Multi Device                                     | ✅                                           |
+| Send messages                                    | ✅                                           |
+| Receive messages                                 | ✅                                           |
+| Send media (images/audio/documents)              | ✅                                           |
+| Send media (video)                               | ✅ [(requires Google Chrome)][google-chrome] |
+| Send stickers                                    | ✅                                           |
+| Receive media (images/audio/video/documents)     | ✅                                           |
+| Send contact cards                               | ✅                                           |
+| Send location                                    | ✅                                           |
+| Send buttons                                     | ❌ [(DEPRECATED)][deprecated-video]          |
+| Send lists                                       | ❌ [(DEPRECATED)][deprecated-video]          |
+| Receive location                                 | ✅                                           |
+| Message replies                                  | ✅                                           |
+| Join groups by invite                            | ✅                                           |
+| Get invite for group                             | ✅                                           |
+| Modify group info (subject, description)         | ✅                                           |
+| Modify group settings (send messages, edit info) | ✅                                           |
+| Add group participants                           | ✅                                           |
+| Kick group participants                          | ✅                                           |
+| Promote/demote group participants                | ✅                                           |
+| Mention users                                    | ✅                                           |
+| Mention groups                                   | ✅                                           |
+| Mute/unmute chats                                | ✅                                           |
+| Block/unblock contacts                           | ✅                                           |
+| Get contact info                                 | ✅                                           |
+| Get profile pictures                             | ✅                                           |
+| Set user status message                          | ✅                                           |
+| React to messages                                | ✅                                           |
+| Create polls                                     | ✅                                           |
+| Channels                                         | ✅                                           |
+| Vote in polls                                    | 🔜                                           |
+| Communities                                      | 🔜                                           |
 
 Something missing? Make an issue and let us know!
 
@@ -123,18 +123,17 @@ This project is not affiliated, associated, authorized, endorsed by, or in any w
 
 ## License
 
-Copyright 2019 Pedro S Lopez  
+Copyright 2019 Pedro S Lopez
 
 Licensed under the Apache License, Version 2.0 (the "License");  
 you may not use this project except in compliance with the License.  
-You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.  
+You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
 
 Unless required by applicable law or agreed to in writing, software  
 distributed under the License is distributed on an "AS IS" BASIS,  
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  
 See the License for the specific language governing permissions and  
-limitations under the License.  
-
+limitations under the License.
 
 [guide]: https://guide.wwebjs.dev/guide
 [guide-source]: https://github.com/wwebjs/wwebjs.dev/tree/main
