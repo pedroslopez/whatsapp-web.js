@@ -8,7 +8,11 @@
     "test": "mocha tests --recursive --timeout 5000",
     "test-single": "mocha",
     "shell": "node --experimental-repl-await ./shell.js",
-    "generate-docs": "npx jsdoc --configure .jsdoc.json --verbose"
+    "generate-docs": "npx jsdoc --configure .jsdoc.json --verbose",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "repository": {
     "type": "git",
@@ -45,6 +49,7 @@
     "jsdoc": "^3.6.4",
     "jsdoc-baseline": "^0.1.5",
     "mocha": "^9.0.2",
+    "prettier": "^3.8.1",
     "sinon": "^13.0.1"
   },
   "engines": {
