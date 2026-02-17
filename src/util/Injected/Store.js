@@ -263,4 +263,44 @@ exports.ExposeStore = () => {
     window.injectToFunction({ module: 'WAWebBackendJobsCommon', function: 'mediaTypeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage ? null : func(...args); });
 
     window.injectToFunction({ module: 'WAWebE2EProtoUtils', function: 'typeAttributeFromProtobuf' }, (func, ...args) => { const [proto] = args; return proto.locationMessage || proto.groupInviteMessage ? 'text' : func(...args); });
+
+    // [HOOK-1] Monitor retry receipts sent by WhatsApp Web
+    window.injectToFunction({ module: 'WAWebSendRetryReceiptJob', function: 'sendRetryReceipt' }, (func, ...args) => {
+        const params = args[0] || {};
+        window.onDiagLog('debug', 'RETRY_RECEIPT_SENT', JSON.stringify({
+            externalId: params.externalId,
+            to: params.to?.toString?.() || String(params.to),
+            retryCount: params.retryCount,
+            retryReason: params.retryReason,
+            isPeer: params.isPeer,
+            stack: new Error().stack
+        }));
+        return func(...args);
+    });
+
+    // [HOOK-2] Monitor decryption results — see WHY decryption fails
+    window.injectToFunction({ module: 'WAWebHandleMsgSendReceipt', function: 'sendReceipt' }, (func, ...args) => {
+        const [stanza, meta, result] = args;
+        const msgId = stanza?.attrs?.id || meta?.externalId;
+        const from = stanza?.attrs?.from || meta?.from;
+        window.onDiagLog('debug', 'DECRYPT_RECEIPT_DECISION', JSON.stringify({
+            msgId,
+            from: from?.toString?.() || String(from || ''),
+            result: String(result),
+            retryReason: meta?.retryReason,
+            retryCount: meta?.retryCount
+        }));
+        return func(...args);
+    });
+
+    // [HOOK-3] Monitor identity changes — may skip ensureE2ESessions when offline
+    window.injectToFunction({ module: 'WAWebHandleIdentityChange', function: 'handleE2eIdentityChange' }, (func, ...args) => {
+        const stanza = args[0];
+        window.onDiagLog('debug', 'IDENTITY_CHANGE', JSON.stringify({
+            from: stanza?.attrs?.from?.toString?.() || String(stanza?.attrs?.from || ''),
+            participant: stanza?.attrs?.participant?.toString?.() || '',
+            stack: new Error().stack
+        }));
+        return func(...args);
+    });
 };
