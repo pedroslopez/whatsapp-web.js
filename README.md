@@ -64,7 +64,7 @@ client.on('message', (msg) => {
 client.initialize();
 ```
 
-Take a look at [example.js][examples] for additional examples and use cases.
+Take a look at [example.js][examples] for additional examples and use cases.  
 For more details on saving and restoring sessions, check out the [Authentication Strategies][auth-strategies].
 
 ## Supported features
@@ -106,16 +106,16 @@ For more details on saving and restoring sessions, check out the [Authentication
 
 Something missing? Make an issue and let us know!
 
-## Contributing
-
-Feel free to open pull requests; we welcome contributions! However, for significant changes, it's best to open an issue beforehand. Make sure to review our [contribution guidelines][contributing] before creating a pull request. Before creating your own issue or pull request, always check to see if one already exists!
-
 ## Supporting the project
 
-You can support the maintainer of this project through the links below
+You can support the maintainer of this project through the links below:
 
 - [Support via GitHub Sponsors][gitHub-sponsors]
 - [Support via PayPal][support-payPal]
+
+## Contributing
+
+Feel free to open pull requests; we welcome contributions! However, for significant changes, it's best to open an issue beforehand. Make sure to review our [contribution guidelines][contributing] before creating a pull request. Before creating your own issue or pull request, always check to see if one already exists!
 
 ## Disclaimer
 
