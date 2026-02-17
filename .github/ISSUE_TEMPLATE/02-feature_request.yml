@@ -1,0 +1,73 @@
+name: Feature request
+description: Request a new feature for our applications or packages
+labels: [feature request]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to suggest a feature! Please search the [issue tracker](https://github.com/wwebjs/wwebjs/issues) first to avoid duplicates.
+
+        - Please submit only feature requests that related to the `whatsapp-web.js` library.
+        - Any feature request opened as a question will be closed.
+        - Duplicate feature requests will be closed.
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Request priority
+      description: Be realistic. Elaborate below if needed.
+      options:
+        - Low (nice to have)
+        - Medium (valuable improvement)
+        - High (unblocks many users)
+      default: 1
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Feature summary
+      description: Briefly describe the problem/use case and desired capability.
+      placeholder: |
+        Problem: ...
+        Benefit: ...
+        Outcome: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Ideal solution or implementation
+      description: How should this feature work? Include examples like API shape, UX sketches.
+      placeholder: |
+        API: client.xyz(...)
+        Event: client.on('xyz', ...)
+        Example: const r = await client.xyz()
+        Compatibility: Breaking changes?
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: Alternatives or workarounds?
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional context
+      description: More notes/links/screenshots.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues and confirmed this is not a duplicate
+          required: true
+        - label: This request is within the scope of WhatsApp Web capabilities
+          required: false

@@ -1,0 +1,37 @@
+name: Mark Stale Issues and PRs
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: stale
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          days-before-stale: 60
+          days-before-close: 7
+          stale-issue-label: 'stale'
+          stale-pr-label: 'stale'
+          exempt-issue-labels: 'pinned, security, enhancement, bug, WhatsApp Change'
+          exempt-pr-labels: 'pinned, security, enhancement, bug, WhatsApp Change'
+          stale-issue-message: >
+            This issue has been automatically marked as stale because it has not had
+            recent activity. It will be closed soon unless there is new activity. Thank you
+            for your contributions.
+          stale-pr-message: >
+            This pull request has been automatically marked as stale because it has not had
+            recent activity. It will be closed soon unless there is new activity. Thank you
+            for your contributions.
+          close-issue-message: 'Closing this issue due to prolonged inactivity. Feel free to reopen if needed.'
+          close-pr-message: 'Closing this pull request due to inactivity. You’re welcome to reopen it anytime.'

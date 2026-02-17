@@ -6,6 +6,8 @@
     <br />
     <p>
 		<a href="https://www.npmjs.com/package/whatsapp-web.js"><img src="https://img.shields.io/npm/v/whatsapp-web.js.svg" alt="npm" /></a>
+        <img alt="NPM Downloads" src="https://img.shields.io/npm/d18m/whatsapp-web.js">
+        <img alt="GitHub contributors" src="https://img.shields.io/github/contributors-anon/pedroslopez/whatsapp-web.js">
         <a href="https://depfu.com/github/pedroslopez/whatsapp-web.js?project_id=9765"><img src="https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg" alt="Depfu" /></a>
         <img src="https://img.shields.io/badge/WhatsApp_Web-2.3000.1017054665-brightgreen.svg" alt="WhatsApp_Web 2.2346.52" />
         <a href="https://discord.gg/H7DqQs4"><img src="https://img.shields.io/discord/698610475432411196.svg?logo=discord" alt="Discord server" /></a>
@@ -14,108 +16,106 @@
 </div>
 
 ## About
-**A WhatsApp API client that operates via the WhatsApp Web browser.**
 
-The library launches the WhatsApp Web browser app via Puppeteer, accessing its internal functions and creating a managed instance to reduce the risk of being blocked. This gives the API client nearly all WhatsApp Web features for dynamic use in a Node.js application.
-
-> [!IMPORTANT]
-> **It is not guaranteed you will not be blocked by using this method. WhatsApp does not allow bots or unofficial clients on their platform, so this shouldn't be considered totally safe.**
+whatsapp‑web.js is a powerful [Node.js][nodejs] library that lets you interact with [WhatsApp Web][whatsapp-web], making it easy to build a dynamic WhatsApp API with nearly all features of the web client. It uses [Puppeteer][puppeteer] to access WhatsApp Web’s internal functions and runs them in a managed browser instance to reduce the risk of being blocked.
 
 ## Links
 
-* [GitHub][gitHub]
-* [Guide][guide] ([source][guide-source])
-* [Documentation][documentation] ([source][documentation-source])
-* [Discord Server][discord]
-* [npm][npm]
+- [GitHub][gitHub]
+- [Guide][guide] ([source][guide-source])
+- [Documentation][documentation] ([source][documentation-source])
+- [Discord Server][discord]
+- [npm][npm]
 
 ## Installation
 
-The module is available on [npm][npm] via `npm i whatsapp-web.js`!
+**Node.js `v18.0.0` or higher, is required.**
 
-> [!NOTE]
-> **Node ``v18`` or higher, is required.**  
-> See the [Guide][guide] for quick upgrade instructions.
+```sh
+npm install whatsapp-web.js
+yarn add whatsapp-web.js
+pnpm add whatsapp-web.js
+```
+
+Having trouble installing? Take a peak at the [Guide][guide] for more detailed instructions.
 
 ## Example usage
 
 ```js
 const { Client } = require('whatsapp-web.js');
+const qrcode = require('qrcode-terminal');
 
 const client = new Client();
 
 client.on('qr', (qr) => {
-    // Generate and scan this code with your phone
-    console.log('QR RECEIVED', qr);
+  qrcode.generate(qr, { small: true });
 });
 
 client.on('ready', () => {
-    console.log('Client is ready!');
+  console.log('Client is ready!');
 });
 
-client.on('message', msg => {
-    if (msg.body == '!ping') {
-        msg.reply('pong');
-    }
+client.on('message', (msg) => {
+  if (msg.body == '!ping') {
+    msg.reply('pong');
+  }
 });
 
 client.initialize();
 ```
 
-Take a look at [example.js][examples] for another examples with additional use cases.  
-For further details on saving and restoring sessions, explore the provided [Authentication Strategies][auth-strategies].
-
+Take a look at [example.js][examples] for additional examples and use cases.  
+For more details on saving and restoring sessions, check out the [Authentication Strategies][auth-strategies].
 
 ## Supported features
 
-| Feature  | Status |
-| ------------- | ------------- |
-| Multi Device  | ✅  |
-| Send messages  | ✅  |
-| Receive messages  | ✅  |
-| Send media (images/audio/documents)  | ✅  |
-| Send media (video)  | ✅ [(requires Google Chrome)][google-chrome]  |
-| Send stickers | ✅ |
-| Receive media (images/audio/video/documents)  | ✅  |
-| Send contact cards | ✅ |
-| Send location | ✅ |
-| Send buttons | ❌  [(DEPRECATED)][deprecated-video] |
-| Send lists | ❌  [(DEPRECATED)][deprecated-video] |
-| Receive location | ✅ | 
-| Message replies | ✅ |
-| Join groups by invite  | ✅ |
-| Get invite for group  | ✅ |
-| Modify group info (subject, description)  | ✅  |
-| Modify group settings (send messages, edit info)  | ✅  |
-| Add group participants  | ✅  |
-| Kick group participants  | ✅  |
-| Promote/demote group participants | ✅ |
-| Mention users | ✅ |
-| Mention groups | ✅ |
-| Mute/unmute chats | ✅ |
-| Block/unblock contacts | ✅ |
-| Get contact info | ✅ |
-| Get profile pictures | ✅ |
-| Set user status message | ✅ |
-| React to messages | ✅ |
-| Create polls | ✅ |
-| Channels | ✅ |
-| Vote in polls | 🔜 |
-| Communities | 🔜 |
+| Feature                                          | Status                                       |
+| ------------------------------------------------ | -------------------------------------------- |
+| Multi Device                                     | ✅                                           |
+| Send messages                                    | ✅                                           |
+| Receive messages                                 | ✅                                           |
+| Send media (images/audio/documents)              | ✅                                           |
+| Send media (video)                               | ✅ [(requires Google Chrome)][google-chrome] |
+| Send stickers                                    | ✅                                           |
+| Receive media (images/audio/video/documents)     | ✅                                           |
+| Send contact cards                               | ✅                                           |
+| Send location                                    | ✅                                           |
+| Send buttons                                     | ❌ [(DEPRECATED)][deprecated-video]          |
+| Send lists                                       | ❌ [(DEPRECATED)][deprecated-video]          |
+| Receive location                                 | ✅                                           |
+| Message replies                                  | ✅                                           |
+| Join groups by invite                            | ✅                                           |
+| Get invite for group                             | ✅                                           |
+| Modify group info (subject, description)         | ✅                                           |
+| Modify group settings (send messages, edit info) | ✅                                           |
+| Add group participants                           | ✅                                           |
+| Kick group participants                          | ✅                                           |
+| Promote/demote group participants                | ✅                                           |
+| Mention users                                    | ✅                                           |
+| Mention groups                                   | ✅                                           |
+| Mute/unmute chats                                | ✅                                           |
+| Block/unblock contacts                           | ✅                                           |
+| Get contact info                                 | ✅                                           |
+| Get profile pictures                             | ✅                                           |
+| Set user status message                          | ✅                                           |
+| React to messages                                | ✅                                           |
+| Create polls                                     | ✅                                           |
+| Channels                                         | ✅                                           |
+| Vote in polls                                    | ✅                                           |
+| Communities                                      | 🔜                                           |
 
 Something missing? Make an issue and let us know!
+
+## Supporting the project
+
+You can support the maintainer of this project through the links below:
+
+- [Support via GitHub Sponsors][gitHub-sponsors]
+- [Support via PayPal][support-payPal]
 
 ## Contributing
 
 Feel free to open pull requests; we welcome contributions! However, for significant changes, it's best to open an issue beforehand. Make sure to review our [contribution guidelines][contributing] before creating a pull request. Before creating your own issue or pull request, always check to see if one already exists!
-
-## Supporting the project
-
-You can support the maintainer of this project through the links below
-
-- [Support via GitHub Sponsors][gitHub-sponsors]
-- [Support via PayPal][support-payPal]
-- [Sign up for DigitalOcean][digitalocean] and get $200 in credit when you sign up (Referral)
 
 ## Disclaimer
 
@@ -123,24 +123,23 @@ This project is not affiliated, associated, authorized, endorsed by, or in any w
 
 ## License
 
-Copyright 2019 Pedro S Lopez  
+Copyright 2019 Pedro S Lopez
 
 Licensed under the Apache License, Version 2.0 (the "License");  
 you may not use this project except in compliance with the License.  
-You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.  
+You may obtain a copy of the License at <http://www.apache.org/licenses/LICENSE-2.0>.
 
 Unless required by applicable law or agreed to in writing, software  
 distributed under the License is distributed on an "AS IS" BASIS,  
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  
 See the License for the specific language governing permissions and  
-limitations under the License.  
-
+limitations under the License.
 
 [guide]: https://guide.wwebjs.dev/guide
 [guide-source]: https://github.com/wwebjs/wwebjs.dev/tree/main
 [documentation]: https://docs.wwebjs.dev/
 [documentation-source]: https://github.com/pedroslopez/whatsapp-web.js/tree/main/docs
-[discord]: https://discord.gg/H7DqQs4
+[discord]: https://discord.wwebjs.dev
 [gitHub]: https://github.com/pedroslopez/whatsapp-web.js
 [npm]: https://npmjs.org/package/whatsapp-web.js
 [nodejs]: https://nodejs.org/en/download/
@@ -150,6 +149,7 @@ limitations under the License.
 [deprecated-video]: https://www.youtube.com/watch?v=hv1R1rLeVVE
 [gitHub-sponsors]: https://github.com/sponsors/pedroslopez
 [support-payPal]: https://www.paypal.me/psla/
-[digitalocean]: https://m.do.co/c/73f906a36ed4
 [contributing]: https://github.com/pedroslopez/whatsapp-web.js/blob/main/CODE_OF_CONDUCT.md
 [whatsapp]: https://whatsapp.com
+[whatsapp-web]: https://web.whatsapp.com
+[puppeteer]: https://pptr.dev/

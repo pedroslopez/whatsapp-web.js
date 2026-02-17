@@ -9,36 +9,36 @@
 
 /** Represents a Poll on WhatsApp */
 class Poll {
+  /**
+   * @param {string} pollName
+   * @param {Array<string>} pollOptions
+   * @param {PollSendOptions} options
+   */
+  constructor(pollName, pollOptions, options = {}) {
     /**
-     * @param {string} pollName
-     * @param {Array<string>} pollOptions
-     * @param {PollSendOptions} options
+     * The name of the poll
+     * @type {string}
      */
-    constructor(pollName, pollOptions, options = {}) {
-        /**
-         * The name of the poll
-         * @type {string}
-         */
-        this.pollName = pollName.trim();
+    this.pollName = pollName.trim();
 
-        /**
-         * The array of poll options
-         * @type {Array.<{name: string, localId: number}>}
-         */
-        this.pollOptions = pollOptions.map((option, index) => ({
-            name: option.trim(),
-            localId: index
-        }));
+    /**
+     * The array of poll options
+     * @type {Array.<{name: string, localId: number}>}
+     */
+    this.pollOptions = pollOptions.map((option, index) => ({
+      name: option.trim(),
+      localId: index,
+    }));
 
-        /**
-         * The send options for the poll
-         * @type {PollSendOptions}
-         */
-        this.options = {
-            allowMultipleAnswers: options.allowMultipleAnswers === true,
-            messageSecret: options.messageSecret
-        };
-    }
+    /**
+     * The send options for the poll
+     * @type {PollSendOptions}
+     */
+    this.options = {
+      allowMultipleAnswers: options.allowMultipleAnswers === true,
+      messageSecret: options.messageSecret,
+    };
+  }
 }
 
 module.exports = Poll;

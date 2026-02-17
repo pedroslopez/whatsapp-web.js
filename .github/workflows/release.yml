@@ -1,12 +1,12 @@
-name: release
+name: Release a New Version
 
 on:
   workflow_dispatch:
     inputs:
       release_type:
-        description: "`alpha`, `alpha-minor`, `alpha-major`, `release-minor`, `release-patch` release?"
+        description: '`alpha`, `alpha-minor`, `alpha-major`, `release-minor`, `release-patch` release?'
         required: true
-        default: "alpha"
+        default: 'alpha'
 
 jobs:
   release:
