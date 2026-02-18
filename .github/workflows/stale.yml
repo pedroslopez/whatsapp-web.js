@@ -23,8 +23,8 @@ jobs:
           days-before-close: 7
           stale-issue-label: 'stale'
           stale-pr-label: 'stale'
-          exempt-issue-labels: 'pinned, security, enhancement, bug, WhatsApp Change'
-          exempt-pr-labels: 'pinned, security, enhancement, bug, WhatsApp Change'
+          exempt-issue-labels: 'pinned, security, feature request, bug, whatsApp change'
+          exempt-pr-labels: 'pinned, security, feature request, bug, whatsApp change'
           stale-issue-message: >
             This issue has been automatically marked as stale because it has not had
             recent activity. It will be closed soon unless there is new activity. Thank you

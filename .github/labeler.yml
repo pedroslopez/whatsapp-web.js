@@ -1,0 +1,84 @@
+# Labels for Pull Requests and Issues
+api changes:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/*
+          - src/**/*
+
+# Dependencies
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - package.json
+          - package-lock.json
+
+# Tests
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - tests/*
+          - tests/**/*
+
+# Documentation
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - docs/*
+          - docs/**/*
+          - '**/*.md'
+          - .jsdoc.json
+
+# GitHub Infrastructure
+infra:
+  - changed-files:
+      - any-glob-to-any-file:
+          - .github/*
+          - .github/**/*
+
+# CI/CD
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - .github/workflows/*
+          - .github/workflows/**/*
+
+# TypeScript Definitions
+typings:
+  - changed-files:
+      - any-glob-to-any-file:
+          - index.d.ts
+          - '**/*.d.ts'
+
+# Utilities
+utility:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/util/*
+          - src/util/**/*
+
+# Build & Tooling
+build:
+  - changed-files:
+      - any-glob-to-any-file:
+          - tools/*
+          - tools/**/*
+          - .eslintrc.json
+          - .eslintignore
+          - .prettierrc.json
+          - .prettierignore
+          - .editorconfig
+          - .gitignore
+          - .gitattributes
+          - .commitlint.config.js
+
+# Chore (configuration and misc files)
+chore:
+  - changed-files:
+      - any-glob-to-any-file:
+          - .env.example
+          - .npmignore
+          - LICENSE
+          - .github/FUNDING.yml
+          - .github/CODE_OF_CONDUCT.md
+          - .github/ISSUE_TEMPLATE/*
+          - .github/ISSUE_TEMPLATE/**/*

@@ -1,0 +1,104 @@
+name: Format Issue Body
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'bug')
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Parse issue form body
+        uses: stefanbuck/github-issue-parser@v3
+        id: parse
+        with:
+          template-path: .github/ISSUE_TEMPLATE/01-bug_report.yml
+
+      - name: Build formatted issue body
+        id: summary
+        env:
+          DESCRIPTION: ${{ steps.parse.outputs.issueparser_description }}
+          REPRODUCTION_STEPS: ${{ steps.parse.outputs.issueparser_reproduction_steps }}
+          CODE_SAMPLE: ${{ steps.parse.outputs.issueparser_code_sample }}
+          WHATSAPP_TYPE: ${{ steps.parse.outputs.issueparser_whatsapp_type }}
+          AUTH_TYPE: ${{ steps.parse.outputs.issueparser_auth_type }}
+          LIB_VERSION: ${{ steps.parse.outputs.issueparser_lib_version }}
+          WWEB_VERSION: ${{ steps.parse.outputs.issueparser_wweb_version }}
+          BROWSER_TYPE: ${{ steps.parse.outputs.issueparser_browser_type }}
+          BROWSER_VERSION: ${{ steps.parse.outputs.issueparser_browser_version }}
+          COMPUTER_OS: ${{ steps.parse.outputs.issueparser_computer_os }}
+          PHONE_OS: ${{ steps.parse.outputs.issueparser_phone_os }}
+          NODE_VERSION: ${{ steps.parse.outputs.issueparser_node_version }}
+          CHECKLIST: ${{ steps.parse.outputs.issueparser_checklist }}
+        run: |
+          {
+            echo 'body<<BODY_DELIMITER'
+            echo '## Issue Description'
+            echo "$DESCRIPTION"
+            echo ''
+            echo '## Reproduction Steps'
+            echo "$REPRODUCTION_STEPS"
+            echo ''
+            if [ -n "$CODE_SAMPLE" ]; then
+              echo '## Code Sample'
+              echo "$CODE_SAMPLE"
+              echo ''
+            fi
+            echo '## User Setup'
+            echo ''
+            echo '| WhatsApp | Type |'
+            echo '|---|---|'
+            [ -n "$WHATSAPP_TYPE" ]   && echo "| **Account Type** | $WHATSAPP_TYPE |"
+            [ -n "$AUTH_TYPE" ]       && echo "| **Authentication Strategy** | $AUTH_TYPE |"
+            [ -n "$WWEB_VERSION" ]    && echo "| **WhatsApp Web Version** | $WWEB_VERSION |"
+            [ -n "$LIB_VERSION" ]     && echo "| **whatsapp-web.js Version** | $LIB_VERSION |"
+            echo ''
+            echo '| Environment | Version |'
+            echo '|---|---|'
+            [ -n "$BROWSER_TYPE" ]    && echo "| **Browser Type** | $BROWSER_TYPE |"
+            [ -n "$BROWSER_VERSION" ] && echo "| **Browser Version** | $BROWSER_VERSION |"
+            [ -n "$PHONE_OS" ]        && echo "| **Phone OS Version** | $PHONE_OS |"
+            [ -n "$COMPUTER_OS" ]     && echo "| **Running OS Version** | $COMPUTER_OS |"
+            [ -n "$NODE_VERSION" ]    && echo "| **Node.js Version** | $NODE_VERSION |"
+            echo ''
+            if [ -n "$CHECKLIST" ]; then
+              echo '## Checklist'
+              echo '- [x] **I use the latest released version of whatsapp-web.js.**'
+              echo '- [x] I have searched existing issues and confirmed this is not a duplicate.'
+              echo '- [x] I have verified this is a library issue, not a problem with my code.'
+            fi
+            echo 'BODY_DELIMITER'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Update issue body
+        uses: julien-deramond/update-issue-body@v1
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body: ${{ steps.summary.outputs.body }}
+          edit-mode: replace
+
+      - name: Determine priority label
+        id: priority_label
+        env:
+          PRIORITY: ${{ steps.parse.outputs.issueparser_priority }}
+        run: |
+          if [[ "$PRIORITY" == "Low"* ]]; then
+            echo "label=issued low" >> "$GITHUB_OUTPUT"
+          elif [[ "$PRIORITY" == "Medium"* ]]; then
+            echo "label=issued medium" >> "$GITHUB_OUTPUT"
+          elif [[ "$PRIORITY" == "High"* ]]; then
+            echo "label=issued high" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Add priority label
+        if: steps.priority_label.outputs.label != ''
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: ${{ steps.priority_label.outputs.label }}
