@@ -14,7 +14,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "npm run lint && npm run format:check",
-    "prepare": "husky"
+    "prepare": "is-ci || husky"
   },
   "repository": {
     "type": "git",
@@ -42,6 +42,9 @@
     "puppeteer": "^24.31.0"
   },
   "devDependencies": {
+    "is-ci": "^4.1.0",
+    "@commitlint/cli": "^20.4.1",
+    "@commitlint/config-conventional": "^20.4.1",
     "@types/node-fetch": "^2.5.12",
     "chai": "^4.3.4",
     "chai-as-promised": "^7.1.1",

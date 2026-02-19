@@ -1,0 +1,44 @@
+name: PR Triage
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - reopened
+      - synchronize
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  label:
+    name: Label PR
+    if: github.event.action != 'edited'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Label pull request
+        uses: actions/labeler@v5
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: .github/pr-labeler.yml
+          dot: true
+          sync-labels: true
+
+  validate-title:
+    name: Validate title
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate pull request title
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          REGEX="^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|types|revert|infra)(\\(.+\\))?!?: .{1,92}$"
+
+          echo "Title: \"$TITLE\""
+
+          if [[ ! "$TITLE" =~ $REGEX ]]; then
+            echo "❌ PR title does not match the required format!"
+            exit 1
+          fi
