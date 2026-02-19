@@ -407,13 +407,7 @@ class Message extends Base {
      * @return {Promise}
      */
     async react(reaction){
-        await this.client.pupPage.evaluate(async (messageId, reaction) => {
-            if (!messageId) return null;
-            const msg =
-                window.Store.Msg.get(messageId) || (await window.Store.Msg.getMessagesById([messageId]))?.messages?.[0];
-            if(!msg) return null;
-            await window.Store.sendReactionToMsg(msg, reaction);
-        }, this.id._serialized, reaction);
+        return this.client.sendReaction(this.id._serialized, reaction)
     }
 
     /**
