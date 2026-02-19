@@ -1,23 +1,27 @@
 <div align="center">
-    <br />
-    <p>
-        <a href="https://wwebjs.dev"><img src="https://github.com/wwebjs/assets/blob/main/Collection/GitHub/wwebjs.png?raw=true" title="whatsapp-web.js" alt="WWebJS Website" width="500" /></a>
-    </p>
-    <br />
-    <p>
-		<a href="https://www.npmjs.com/package/whatsapp-web.js"><img src="https://img.shields.io/npm/v/whatsapp-web.js.svg" alt="npm" /></a>
-        <img alt="NPM Downloads" src="https://img.shields.io/npm/d18m/whatsapp-web.js">
-        <img alt="GitHub contributors" src="https://img.shields.io/github/contributors-anon/pedroslopez/whatsapp-web.js">
-        <a href="https://depfu.com/github/pedroslopez/whatsapp-web.js?project_id=9765"><img src="https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg" alt="Depfu" /></a>
-        <img src="https://img.shields.io/badge/WhatsApp_Web-2.3000.1017054665-brightgreen.svg" alt="WhatsApp_Web 2.2346.52" />
-        <a href="https://discord.gg/H7DqQs4"><img src="https://img.shields.io/discord/698610475432411196.svg?logo=discord" alt="Discord server" /></a>
-	</p>
-    <br />
+  <br />
+  <p>
+    <a href="https://wwebjs.dev"><img
+        src="https://github.com/wwebjs/assets/blob/main/Collection/GitHub/wwebjs.png?raw=true" title="whatsapp-web.js"
+        alt="WWebJS Website" width="500" /></a>
+  </p>
+  <br />
+  <p>
+    <a href="https://www.npmjs.com/package/whatsapp-web.js"><img src="https://img.shields.io/npm/v/whatsapp-web.js.svg"
+        alt="npm" /></a>
+    <img alt="NPM Downloads" src="https://img.shields.io/npm/d18m/whatsapp-web.js">
+    <img alt="GitHub contributors" src="https://img.shields.io/github/contributors-anon/pedroslopez/whatsapp-web.js">
+    <a href="https://depfu.com/github/pedroslopez/whatsapp-web.js?project_id=9765"><img
+        src="https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg" alt="Depfu" /></a>
+    <a href="https://discord.wwebjs.dev"><img src="https://img.shields.io/discord/698610475432411196.svg?logo=discord"
+        alt="Discord server" /></a>
+  </p>
+  <br />
 </div>
 
 ## About
 
-whatsapp‑web.js is a powerful [Node.js][nodejs] library that lets you interact with [WhatsApp Web][whatsapp-web], making it easy to build a dynamic WhatsApp API with nearly all features of the web client. It uses [Puppeteer][puppeteer] to access WhatsApp Web’s internal functions and runs them in a managed browser instance to reduce the risk of being blocked.
+whatsapp‑web.js is a powerful [Node.js][nodejs] library that lets you interact with WhatsApp Web, making it easy to build a dynamic WhatsApp API with nearly all features of the web client. It uses [Puppeteer][puppeteer] to access WhatsApp Web’s internal functions and runs them in a managed browser instance to reduce the risk of being blocked.
 
 ## Links
 
@@ -143,13 +147,12 @@ limitations under the License.
 [gitHub]: https://github.com/pedroslopez/whatsapp-web.js
 [npm]: https://npmjs.org/package/whatsapp-web.js
 [nodejs]: https://nodejs.org/en/download/
-[examples]: https://github.com/pedroslopez/whatsapp-web.js/blob/master/example.js
+[examples]: https://github.com/pedroslopez/whatsapp-web.js/blob/main/example.js
 [auth-strategies]: https://wwebjs.dev/guide/creating-your-bot/authentication.html
 [google-chrome]: https://wwebjs.dev/guide/creating-your-bot/handling-attachments.html#caveat-for-sending-videos-and-gifs
 [deprecated-video]: https://www.youtube.com/watch?v=hv1R1rLeVVE
 [gitHub-sponsors]: https://github.com/sponsors/pedroslopez
 [support-payPal]: https://www.paypal.me/psla/
-[contributing]: https://github.com/pedroslopez/whatsapp-web.js/blob/main/CODE_OF_CONDUCT.md
+[contributing]: https://github.com/pedroslopez/whatsapp-web.js/blob/main/.github/CODE_OF_CONDUCT.md
 [whatsapp]: https://whatsapp.com
-[whatsapp-web]: https://web.whatsapp.com
 [puppeteer]: https://pptr.dev/

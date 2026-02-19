@@ -11,20 +11,22 @@ permissions:
 
 concurrency:
   group: stale
+  cancel-in-progress: false
 
 jobs:
   stale:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@v9
+      - name: Mark stale issues and PRs
+        uses: actions/stale@v9
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           days-before-stale: 60
           days-before-close: 7
           stale-issue-label: 'stale'
           stale-pr-label: 'stale'
-          exempt-issue-labels: 'pinned, security, feature request, bug, whatsApp change'
-          exempt-pr-labels: 'pinned, security, feature request, bug, whatsApp change'
+          exempt-issue-labels: 'pinned,security,feature request,bug,whatsapp change'
+          exempt-pr-labels: 'pinned,security,feature request,bug,whatsapp change'
           stale-issue-message: >
             This issue has been automatically marked as stale because it has not had
             recent activity. It will be closed soon unless there is new activity. Thank you
@@ -34,4 +36,4 @@ jobs:
             recent activity. It will be closed soon unless there is new activity. Thank you
             for your contributions.
           close-issue-message: 'Closing this issue due to prolonged inactivity. Feel free to reopen if needed.'
-          close-pr-message: 'Closing this pull request due to inactivity. You’re welcome to reopen it anytime.'
+          close-pr-message: "Closing this pull request due to inactivity. You're welcome to reopen it anytime."

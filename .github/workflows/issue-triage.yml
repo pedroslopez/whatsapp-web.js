@@ -8,6 +8,10 @@ permissions:
   contents: read
   issues: write
 
+concurrency:
+  group: issue-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
 jobs:
   label:
     runs-on: ubuntu-latest
