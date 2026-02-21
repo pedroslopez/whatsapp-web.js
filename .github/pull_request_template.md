@@ -1,54 +1,79 @@
-# PR Details
-
-<!-- Provide here a general summary of your changes. -->
-
 ## Description
 
-<!-- Describe here your changes in detail. -->
+<!-- What does this PR change and why? -->
 
 ## Related Issue(s)
 
-<!-- Optional --->
-<!-- If there is an issue related to the PR, link it here using a 'closes' keyword, for example: -->
-<!-- closes #XXXX (where the XXXX is an issue number) -->
-<!-- If there are multiple issues, link them as follows: -->
-<!-- closes #XXXX closes #YYYY closes #ZZZZ -->
-<!-- See more here: https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword -->
+<!--
+If this pull request relates to one or more GitHub issues, link them using GitHub's closing keywords to automatically close the issues upon merging.
 
-## Motivation and Context
+Examples:
+  closes #123
+  fixes #456
+  resolves #789
 
-<!-- Optional --->
-<!-- Why is this change required? What problem does it solve? -->
+For more details, see:
+https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue
+-->
 
-## How Has This Been Tested
+## Testing Summary
 
-<!-- Please describe in detail how you tested your changes. -->
+### Test Details
+
+<!-- Describe in detail how you tested your changes. -->
 
 ### Environment
 
-<!-- Include details of your testing environment: -->
+<!-- Provide detailed information about the environment used to test this pull request. Simply fill out the blanks with your setup. -->
 
-- Machine OS: <!-- The operation system of a machine you tested the PR on. (Mac | Windows | Linux | Docker + Ubuntu | other (provide the type)) -->
-- Phone OS: <!-- The operation system of a phone you used to check the the PR functionality on. -->
-- Library Version: <!-- The whatsapp-web.js version you used to test the PR. -->
-- WhatsApp Web Version: <!-- Run `await client.getWWebVersion()` to see the WWeb version you used to test the PR. -->
-- Puppeteer Version:
-- Browser Type and Version: <!-- Chromium XX | Google Chrome XX | other (provide the type and version) -->
-- Node Version: <!-- Run `npm -v` in your terminal to see the version of Node.js being used. -->
+<!-- Operating system of the machine used for testing -->
+<!-- Example: (macOS 15 / Windows 11 / Ubuntu 24 / ...) -->
 
-## Types of changes
+- Machine OS:
 
-<!-- What types of changes does your code introduce? Put an `X` in all the boxes that apply: -->
+<!-- Operating system of the mobile device used to verify functionality -->
+<!-- Example: (Android 12 / iOS 16 / ...) -->
 
-- [ ] Dependency change
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to change)
+- Phone OS:
+
+<!-- Version of whatsapp-web.js used during testing -->
+<!-- Check your `package.json` file -->
+<!-- Example: (1.31.0) -->
+
+- Library Version:
+
+<!-- WhatsApp Web version used for testing -->
+<!-- Run `await client.getWWebVersion()` to retrieve it -->
+<!-- Example: (2.3000.1017054665) -->
+
+- WhatsApp Web Version:
+
+<!-- Browser and version used for testing -->
+<!-- Example: (Chromium 120 / Google Chrome 118 / ...) -->
+
+- Browser Type and Version:
+
+<!-- Node.js version used during testing -->
+<!-- Run `node -v` to check -->
+<!-- Example: (18.16.0) -->
+
+- Node Version:
+
+## Type of Change
+
+<!-- Select all that apply: -->
+
+- [ ] **Dependency change** _(package changes such as removals, upgrades, or additions)_
+- [ ] **Bug fix** _(non-breaking change that fixes an issue)_
+- [ ] **New feature** _(non-breaking change that adds functionality)_
+- [ ] **Breaking change** _(fix or feature that would cause existing functionality to change)_
+- [ ] **Non-code change** _(documentation, README, etc.)_
 
 ## Checklist
 
-<!-- Go over all the following points, and put an `X` in all the boxes that apply: -->
+<!-- Please confirm that all relevant items below have been completed. -->
 
-- [ ] My code follows the code style of this project.
-- [ ] I have updated the documentation accordingly (index.d.ts).
-- [ ] I have updated the usage example accordingly (example.js)
+- [ ] My code follows the style guidelines of this project.
+- [ ] All new and existing tests pass (`npm test`).
+- [ ] Typings (e.g. `index.d.ts`) have been updated if necessary.
+- [ ] Usage examples (e.g. `example.js`) / documentation have been updated if applicable.

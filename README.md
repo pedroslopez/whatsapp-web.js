@@ -153,6 +153,6 @@ limitations under the License.
 [deprecated-video]: https://www.youtube.com/watch?v=hv1R1rLeVVE
 [gitHub-sponsors]: https://github.com/sponsors/pedroslopez
 [support-payPal]: https://www.paypal.me/psla/
-[contributing]: https://github.com/pedroslopez/whatsapp-web.js/blob/main/.github/CODE_OF_CONDUCT.md
+[contributing]: .github/contributing
 [whatsapp]: https://whatsapp.com
 [puppeteer]: https://pptr.dev/
