@@ -38,7 +38,7 @@ jobs:
         env:
           TITLE: ${{ github.event.pull_request.title }}
         run: |
-          REGEX="^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|types|revert|infra)(\\(.+\\))?!?: .{1,92}$"
+          REGEX="^(revert: )?(feat|fix|docs|style|refactor|perf|test|build|ci|chore|types|infra)(\\(.+\\))?!?: .{1,72}$"
 
           echo "Title: \"$TITLE\""
 
