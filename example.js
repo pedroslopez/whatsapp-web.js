@@ -18,10 +18,25 @@ const client = new Client({
         // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
         headless: false,
     },
+    /**
+     * AUTHENTICATION VIA PAIRING CODE
+     * ================================
+     * To authenticate via pairing code instead of QR code,
+     * uncomment the pairWithPhoneNumber block below.
+     * 
+     * The 'code' event will fire with an 8-character code (e.g. "ABCDEFGH").
+     * Enter it on your phone:
+     *   Settings → Linked Devices → Link a Device → Link with phone number
+     * 
+     * ⚠️  WARNING: Do NOT call client.requestPairingCode() manually from the
+     *     'qr' event. The internal handler (onCodeReceivedEvent) is only
+     *     registered when pairWithPhoneNumber is set here in the constructor.
+     *     Calling requestPairingCode() without it will throw an error.
+     */
     // pairWithPhoneNumber: {
-    //     phoneNumber: '96170100100' // Pair with phone number (format: <COUNTRY_CODE><PHONE_NUMBER>)
-    //     showNotification: true,
-    //     intervalMs: 180000 // Time to renew pairing code in milliseconds, defaults to 3 minutes
+    //     phoneNumber: '5511999999999', // Format: <COUNTRY_CODE><PHONE_NUMBER>, no symbols
+    //     showNotification: true,       // Show notification on phone
+    //     intervalMs: 180000            // Time to renew pairing code (default: 3 minutes)
     // }
 });
 
@@ -37,8 +52,12 @@ client.on('qr', async (qr) => {
     console.log('QR RECEIVED', qr);
 });
 
+/**
+ * Emitted when a pairing code is received.
+ * Only fires when pairWithPhoneNumber is set in the Client constructor.
+ */
 client.on('code', (code) => {
-    console.log('Pairing code:',code);
+    console.log('Pairing code:', code);
 });
 
 client.on('authenticated', () => {
