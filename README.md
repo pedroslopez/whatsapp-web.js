@@ -65,6 +65,62 @@ client.initialize();
 Take a look at [example.js][examples] for another examples with additional use cases.  
 For further details on saving and restoring sessions, explore the provided [Authentication Strategies][auth-strategies].
 
+## Authentication
+
+The library supports two authentication methods: **QR Code** (default) and **Pairing Code**.
+
+### QR Code (default)
+
+The default authentication method. A QR code is generated that must be scanned with your phone:
+
+```js
+const { Client } = require('whatsapp-web.js');
+
+const client = new Client();
+
+client.on('qr', (qr) => {
+    // Use a library like qrcode-terminal to render in terminal
+    console.log('QR RECEIVED', qr);
+});
+
+client.initialize();
+```
+
+### Pairing Code
+
+Instead of scanning a QR code, you can authenticate by entering an 8-character code on your phone. This is ideal for terminal applications or environments without a display to scan QR codes.
+
+The phone number **must** be passed via `pairWithPhoneNumber` in the Client constructor:
+
+```js
+const { Client, LocalAuth } = require('whatsapp-web.js');
+
+const client = new Client({
+    authStrategy: new LocalAuth(),
+    pairWithPhoneNumber: {
+        phoneNumber: '5511999999999',  // Country code + number, no symbols
+        showNotification: true,        // Show notification on phone
+        intervalMs: 180000             // Renew code every 3 minutes
+    }
+});
+
+client.on('code', (code) => {
+    console.log('Pairing code:', code);
+    // On your phone: Settings → Linked Devices → Link a Device
+    //                → Link with phone number
+});
+
+client.on('ready', () => {
+    console.log('Client is ready!');
+});
+
+client.initialize();
+```
+
+> [!WARNING]
+> **Do NOT call `requestPairingCode()` manually** (e.g., from the `qr` event). The phone number must be set in the constructor via `pairWithPhoneNumber` so that the internal event handler is registered correctly. Calling `requestPairingCode()` without this will result in an error.
+
+
 
 ## Supported features
 
