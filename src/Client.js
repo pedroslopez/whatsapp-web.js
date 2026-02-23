@@ -35,8 +35,13 @@ const {exposeFunctionIfAbsent} = require('./util/Puppeteer');
  * @param {string} options.deviceName - Sets the device name of a current linked device., i.e.: 'TEST'.
  * @param {string} options.browserName - Sets the browser name of a current linked device, i.e.: 'Firefox'.
  * @param {object} options.proxyAuthentication - Proxy Authentication object.
+ * @param {object} options.pairWithPhoneNumber - Authenticate via pairing code instead of QR code. When set, the client will emit a 'code' event with an 8-character pairing code that the user must enter on their phone (Settings > Linked Devices > Link a Device > Link with phone number).
+ * @param {string} options.pairWithPhoneNumber.phoneNumber - Phone number in international, symbol-free format (e.g. '12025550108' for US, '5511999999999' for Brazil). Do not include '+' or any other symbols.
+ * @param {boolean} [options.pairWithPhoneNumber.showNotification=true] - Whether to show a notification on the phone when pairing.
+ * @param {number} [options.pairWithPhoneNumber.intervalMs=180000] - The interval in milliseconds on how frequently to regenerate the pairing code. Defaults to 3 minutes (180000ms), matching WhatsApp's default behavior.
  * 
  * @fires Client#qr
+ * @fires Client#code
  * @fires Client#authenticated
  * @fires Client#auth_failure
  * @fires Client#ready
@@ -151,10 +156,26 @@ class Client extends EventEmitter {
             if (pairWithPhoneNumber.phoneNumber) {
                 await exposeFunctionIfAbsent(this.pupPage, 'onCodeReceivedEvent', async (code) => {
                     /**
-                    * Emitted when a pairing code is received
+                    * Emitted when a pairing code is received.
+                    * This event only fires when {@link Client} is initialized with `pairWithPhoneNumber` set in the constructor options.
+                    * The code is an 8-character string (e.g. "ABCDEFGH") that the user must enter on their phone
+                    * at: Settings > Linked Devices > Link a Device > Link with phone number.
+                    * The code is automatically regenerated at the interval specified by `pairWithPhoneNumber.intervalMs`.
                     * @event Client#code
-                    * @param {string} code Code
-                    * @returns {string} Code that was just received
+                    * @param {string} code - The 8-character pairing code (e.g. "ABCDEFGH")
+                    * @see {@link Client} constructor option `pairWithPhoneNumber`
+                    * @example
+                    * const client = new Client({
+                    *     pairWithPhoneNumber: {
+                    *         phoneNumber: '5511999999999',
+                    *         showNotification: true,
+                    *         intervalMs: 180000
+                    *     }
+                    * });
+                    * client.on('code', (code) => {
+                    *     console.log('Enter this code on your phone:', code);
+                    * });
+                    * client.initialize();
                     */
                     this.emit(Events.CODE_RECEIVED, code);
                     return code;
@@ -358,13 +379,52 @@ class Client extends EventEmitter {
     }
 
     /**
-     * Request authentication via pairing code instead of QR code
+     * Request authentication via pairing code instead of QR code.
+     * 
+     * **Important:** This method should NOT be called manually (e.g., from the 'qr' event).
+     * Instead, set `pairWithPhoneNumber` in the {@link Client} constructor options and listen
+     * for the 'code' event. The internal event handler (`onCodeReceivedEvent`) is only registered
+     * when `pairWithPhoneNumber.phoneNumber` is provided in the constructor. Calling this method
+     * without that configuration will throw an error.
+     * 
      * @param {string} phoneNumber - Phone number in international, symbol-free format (e.g. 12025550108 for US, 551155501234 for Brazil)
-     * @param {boolean} [showNotification = true] - Show notification to pair on phone number
-     * @param {number} [intervalMs = 180000] - The interval in milliseconds on how frequent to generate pairing code (WhatsApp default to 3 minutes)
+     * @param {boolean} [showNotification=true] - Show notification to pair on phone number
+     * @param {number} [intervalMs=180000] - The interval in milliseconds on how frequent to generate pairing code (WhatsApp default to 3 minutes)
      * @returns {Promise<string>} - Returns a pairing code in format "ABCDEFGH"
+     * @throws {Error} If `pairWithPhoneNumber` was not configured in the Client constructor options
+     * @see {@link Client} constructor option `pairWithPhoneNumber`
+     * @see {@link Client#event:code} for the event emitted when a pairing code is received
+     * @example
+     * // Correct usage — set pairWithPhoneNumber in the constructor:
+     * const client = new Client({
+     *     pairWithPhoneNumber: {
+     *         phoneNumber: '5511999999999',
+     *         showNotification: true,
+     *         intervalMs: 180000
+     *     }
+     * });
+     * client.on('code', (code) => {
+     *     console.log('Pairing code:', code);
+     * });
+     * client.initialize();
+     * 
+     * // ❌ Incorrect usage — do NOT call from 'qr' event:
+     * // client.on('qr', async () => {
+     * //     await client.requestPairingCode('5511999999999'); // This will throw!
+     * // });
      */
     async requestPairingCode(phoneNumber, showNotification = true, intervalMs = 180000) {
+        const hasHandler = await this.pupPage.evaluate(
+            () => typeof window.onCodeReceivedEvent === 'function'
+        );
+        if (!hasHandler) {
+            throw new Error(
+                'requestPairingCode() requires "pairWithPhoneNumber" to be configured in the Client constructor options. ' +
+                'The internal event handler (onCodeReceivedEvent) is only registered when pairWithPhoneNumber.phoneNumber is set. ' +
+                'Do not call this method manually from the "qr" event.'
+            );
+        }
+
         return await this.pupPage.evaluate(async (phoneNumber, showNotification, intervalMs) => {
             const getCode = async () => {
                 while (!window.AuthStore.PairingCodeLinkUtils) {
