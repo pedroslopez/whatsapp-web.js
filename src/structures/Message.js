@@ -311,7 +311,7 @@ class Message extends Base {
      */
     async reload() {
         const newData = await this.client.pupPage.evaluate(async (msgId) => {
-            const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
+            const msg = (window.require('WAWebCollections')).Msg.get(msgId) || (await (window.require('WAWebCollections')).Msg.getMessagesById([msgId]))?.messages?.[0];
             if (!msg) return null;
             return window.WWebJS.getMessageModel(msg);
         }, this.id._serialized);
@@ -370,8 +370,8 @@ class Message extends Base {
         if (!this.hasQuotedMsg) return undefined;
 
         const quotedMsg = await this.client.pupPage.evaluate(async (msgId) => {
-            const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
-            const quotedMsg = window.Store.QuotedMsg.getQuotedMsgObj(msg);
+            const msg = (window.require('WAWebCollections')).Msg.get(msgId) || (await (window.require('WAWebCollections')).Msg.getMessagesById([msgId]))?.messages?.[0];
+            const quotedMsg = window.require('WAWebQuotedMsgModelUtils').getQuotedMsgObj(msg);
             return window.WWebJS.getMessageModel(quotedMsg);
         }, this.id._serialized);
 
@@ -410,9 +410,9 @@ class Message extends Base {
         await this.client.pupPage.evaluate(async (messageId, reaction) => {
             if (!messageId) return null;
             const msg =
-                window.Store.Msg.get(messageId) || (await window.Store.Msg.getMessagesById([messageId]))?.messages?.[0];
+                (window.require('WAWebCollections')).Msg.get(messageId) || (await (window.require('WAWebCollections')).Msg.getMessagesById([messageId]))?.messages?.[0];
             if(!msg) return null;
-            await window.Store.sendReactionToMsg(msg, reaction);
+            await (window.require('WAWebSendReactionMsgAction'))(msg, reaction);
         }, this.id._serialized, reaction);
     }
 
@@ -448,7 +448,7 @@ class Message extends Base {
         }
 
         const result = await this.client.pupPage.evaluate(async (msgId) => {
-            const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
+            const msg = (window.require('WAWebCollections')).Msg.get(msgId) || (await (window.require('WAWebCollections')).Msg.getMessagesById([msgId]))?.messages?.[0];
 
             // REUPLOADING mediaStage means the media is expired and the download button is spinning, cannot be downloaded now
             if (!msg || !msg.mediaData || msg.mediaData.mediaStage === 'REUPLOADING') {
@@ -472,7 +472,7 @@ class Message extends Base {
                     addAnnotations: function() { return this; },
                     addPoint: function() { return this; }
                 };
-                const decryptedMedia = await window.Store.DownloadManager.downloadAndMaybeDecrypt({
+                const decryptedMedia = await (window.require('WAWebDownloadManager').downloadManager).downloadAndMaybeDecrypt({
                     directPath: msg.directPath,
                     encFilehash: msg.encFilehash,
                     filehash: msg.filehash,
@@ -508,17 +508,23 @@ class Message extends Base {
      */
     async delete(everyone, clearMedia = true) {
         await this.client.pupPage.evaluate(async (msgId, everyone, clearMedia) => {
-            const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
-            const chat = window.Store.Chat.get(msg.id.remote) || (await window.Store.Chat.find(msg.id.remote));
+            const msg = (window.require('WAWebCollections')).Msg.get(msgId) || (await (window.require('WAWebCollections')).Msg.getMessagesById([msgId]))?.messages?.[0];
+            const chat = (window.require('WAWebCollections')).Chat.get(msg.id.remote) || (await (window.require('WAWebCollections')).Chat.find(msg.id.remote));
             
             const canRevoke =
-                window.Store.MsgActionChecks.canSenderRevokeMsg(msg) || window.Store.MsgActionChecks.canAdminRevokeMsg(msg);
+                window.require('WAWebMsgActionCapability').canSenderRevokeMsg(msg) || window.require('WAWebMsgActionCapability').canAdminRevokeMsg(msg);
 
+            const { Cmd } = window.require('WAWebCmd'); 
+            
             if (everyone && canRevoke) {
-                return window.Store.Cmd.sendRevokeMsgs(chat, { list: [msg], type: 'message' }, { clearMedia: clearMedia });
+                return window.WWebJS.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.0')
+                    ? Cmd.sendRevokeMsgs(chat, { list: [msg], type: 'message' }, { clearMedia: clearMedia })
+                    : Cmd.sendRevokeMsgs(chat, [msg], { clearMedia: true, type: msg.id.fromMe ? 'Sender' : 'Admin' });
             }
 
-            return window.Store.Cmd.sendDeleteMsgs(chat, { list: [msg], type: 'message' }, clearMedia);
+            return window.WWebJS.compareWwebVersions(window.Debug.VERSION, '>=', '2.3000.0')
+                ? Cmd.sendDeleteMsgs(chat, { list: [msg], type: 'message' }, clearMedia)
+                : Cmd.sendDeleteMsgs(chat, [msg], clearMedia);
         }, this.id._serialized, everyone, clearMedia);
     }
 
@@ -527,10 +533,10 @@ class Message extends Base {
      */
     async star() {
         await this.client.pupPage.evaluate(async (msgId) => {
-            const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
-            if (window.Store.MsgActionChecks.canStarMsg(msg)) {
-                let chat = await window.Store.Chat.find(msg.id.remote);
-                return window.Store.Cmd.sendStarMsgs(chat, [msg], false);
+            const msg = (window.require('WAWebCollections')).Msg.get(msgId) || (await (window.require('WAWebCollections')).Msg.getMessagesById([msgId]))?.messages?.[0];
+            if (window.require('WAWebMsgActionCapability').canStarMsg(msg)) {
+                let chat = await (window.require('WAWebCollections')).Chat.find(msg.id.remote);
+                return (window.require('WAWebCmd').Cmd).sendStarMsgs(chat, [msg], false);
             }
         }, this.id._serialized);
     }
@@ -540,10 +546,10 @@ class Message extends Base {
      */
     async unstar() {
         await this.client.pupPage.evaluate(async (msgId) => {
-            const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
-            if (window.Store.MsgActionChecks.canStarMsg(msg)) {
-                let chat = await window.Store.Chat.find(msg.id.remote);
-                return window.Store.Cmd.sendUnstarMsgs(chat, [msg], false);
+            const msg = (window.require('WAWebCollections')).Msg.get(msgId) || (await (window.require('WAWebCollections')).Msg.getMessagesById([msgId]))?.messages?.[0];
+            if (window.require('WAWebMsgActionCapability').canStarMsg(msg)) {
+                let chat = await (window.require('WAWebCollections')).Chat.find(msg.id.remote);
+                return (window.require('WAWebCmd').Cmd).sendUnstarMsgs(chat, [msg], false);
             }
         }, this.id._serialized);
     }
@@ -587,12 +593,12 @@ class Message extends Base {
      */
     async getInfo() {
         const info = await this.client.pupPage.evaluate(async (msgId) => {
-            const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
+            const msg = (window.require('WAWebCollections')).Msg.get(msgId) || (await (window.require('WAWebCollections')).Msg.getMessagesById([msgId]))?.messages?.[0];
             if (!msg || !msg.id.fromMe) return null;
 
             return new Promise((resolve) => {
                 setTimeout(async () => {
-                    resolve(await window.Store.getMsgInfo(msg.id));
+                    resolve(await (window.require('WAWebApiMessageInfoStore').queryMsgInfo)(msg.id));
                 }, (Date.now() - msg.t * 1000 < 1250) && Math.floor(Math.random() * (1200 - 1100 + 1)) + 1100 || 0);
             });
         }, this.id._serialized);
@@ -621,7 +627,7 @@ class Message extends Base {
     async getPayment() {
         if (this.type === MessageTypes.PAYMENT) {
             const msg = await this.client.pupPage.evaluate(async (msgId) => {
-                const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
+                const msg = (window.require('WAWebCollections')).Msg.get(msgId) || (await (window.require('WAWebCollections')).Msg.getMessagesById([msgId]))?.messages?.[0];
                 if(!msg) return null;
                 return msg.serialize();
             }, this.id._serialized);
@@ -650,7 +656,7 @@ class Message extends Base {
         }
 
         const reactions = await this.client.pupPage.evaluate(async (msgId) => {
-            const msgReactions = await window.Store.Reactions.find(msgId);
+            const msgReactions = await (window.require('WAWebCollections')).Reactions.find(msgId);
             if (!msgReactions || !msgReactions.reactions.length) return null;
             return msgReactions.reactions.serialize();
         }, this.id._serialized);
@@ -696,10 +702,10 @@ class Message extends Base {
             return null;
         }
         const messageEdit = await this.client.pupPage.evaluate(async (msgId, message, options) => {
-            const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
+            const msg = (window.require('WAWebCollections')).Msg.get(msgId) || (await (window.require('WAWebCollections')).Msg.getMessagesById([msgId]))?.messages?.[0];
             if (!msg) return null;
 
-            let canEdit = window.Store.MsgActionChecks.canEditText(msg) || window.Store.MsgActionChecks.canEditCaption(msg);
+            let canEdit = window.require('WAWebMsgActionCapability').canEditText(msg) || window.require('WAWebMsgActionCapability').canEditCaption(msg);
             if (canEdit) {
                 const msgEdit = await window.WWebJS.editMessage(msg, message, options);
                 return msgEdit.serialize();
@@ -724,7 +730,7 @@ class Message extends Base {
         }
 
         const edittedEventMsg = await this.client.pupPage.evaluate(async (msgId, editedEventObject) => {
-            const msg = window.Store.Msg.get(msgId) || (await window.Store.Msg.getMessagesById([msgId]))?.messages?.[0];
+            const msg = (window.require('WAWebCollections')).Msg.get(msgId) || (await (window.require('WAWebCollections')).Msg.getMessagesById([msgId]))?.messages?.[0];
             if (!msg) return null;
 
             const { name, startTimeTs, eventSendOptions } = editedEventObject;
@@ -738,8 +744,8 @@ class Message extends Base {
                 isEventCanceled: eventSendOptions.isEventCanceled,
             };
 
-            await window.Store.ScheduledEventMsgUtils.sendEventEditMessage(eventOptions, msg);
-            const editedMsg = window.Store.Msg.get(msg.id._serialized);
+            await (window.require('WAWebSendEventEditMsgAction')).sendEventEditMessage(eventOptions, msg);
+            const editedMsg = (window.require('WAWebCollections')).Msg.get(msg.id._serialized);
             return editedMsg?.serialize();
         }, this.id._serialized, editedEventObject);
 
@@ -766,7 +772,7 @@ class Message extends Base {
             if (!Array.isArray(votes)) votes = [votes];
             let localIdSet = new Set();
             const msg =
-                window.Store.Msg.get(messageId) || (await window.Store.Msg.getMessagesById([messageId]))?.messages?.[0];
+                (window.require('WAWebCollections')).Msg.get(messageId) || (await (window.require('WAWebCollections')).Msg.getMessagesById([messageId]))?.messages?.[0];
             if (!msg) return null;
 
             msg.pollOptions.forEach(a => {
@@ -775,7 +781,7 @@ class Message extends Base {
                 }
             });
 
-            await window.Store.PollsSendVote.sendVote(msg, localIdSet);
+            await (window.require('WAWebPollsSendVoteMsgAction')).sendVote(msg, localIdSet);
         }, this.id._serialized, selectedOptions);
     }
 }

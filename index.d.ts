@@ -322,8 +322,7 @@ declare namespace WAWebJS {
         on(event: 'auth_failure', listener: (message: string) => void): this
 
         /** Emitted when authentication is successful */
-        on(event: 'authenticated', listener: (
-        ) => void): this
+        on(event: 'authenticated', listener: () => void): this
 
         /** 
          * Emitted when the battery percentage for the attached device changes
@@ -563,7 +562,7 @@ declare namespace WAWebJS {
         evalOnNewDoc?: Function,
         /** Puppeteer launch options. View docs here: https://github.com/puppeteer/puppeteer/ */
         puppeteer?: puppeteer.PuppeteerNodeLaunchOptions & puppeteer.ConnectOptions
-		/** Determines how to save and restore sessions. Otherwise, NoAuth will be used. */
+		/** Determines how to save and restore sessions. Will use LegacySessionAuth if options.session is set. Otherwise, NoAuth will be used. */
         authStrategy?: AuthStrategy,
         /** The version of WhatsApp Web to use. Use options.webVersionCache to configure how the version is retrieved. */
         webVersion?: string,
@@ -686,16 +685,6 @@ declare namespace WAWebJS {
         delete: (options: { session: string }) => Promise<any> | any,
         save: (options: { session: string }) => Promise<any> | any,
         extract: (options: { session: string, path: string }) => Promise<any> | any,
-    }
-
-    /** 
-     * Represents a WhatsApp client session
-     */
-    export interface ClientSession {
-        WABrowserId: string,
-        WASecretBundle: string,
-        WAToken1: string,
-        WAToken2: string,
     }
 
     /** 
