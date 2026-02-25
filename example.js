@@ -554,8 +554,13 @@ client.on('message_ciphertext', (msg) => {
     // Receiving new incoming messages that have been encrypted
     // msg.type === 'ciphertext'
     msg.body = 'Waiting for this message. Check your phone.';
-    
+
     // do stuff here
+});
+
+client.on('message_ciphertext_failed', (msg) => {
+    // A message could not be decrypted even after retry
+    console.log('Message decryption failed permanently:', msg.id._serialized);
 });
 
 client.on('message_revoke_everyone', async (after, before) => {

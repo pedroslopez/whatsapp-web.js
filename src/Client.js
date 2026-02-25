@@ -34,7 +34,11 @@ const {exposeFunctionIfAbsent} = require('./util/Puppeteer');
  * @param {string} options.deviceName - Sets the device name of a current linked device., i.e.: 'TEST'.
  * @param {string} options.browserName - Sets the browser name of a current linked device, i.e.: 'Firefox'.
  * @param {object} options.proxyAuthentication - Proxy Authentication object.
- * 
+ * @param {object} options.ciphertextRetry - Configuration for ciphertext message retry/recovery mechanism
+ * @param {boolean} options.ciphertextRetry.enabled - Whether the retry mechanism is enabled (default: true)
+ * @param {number} options.ciphertextRetry.initialTimeoutMs - Time in ms to wait for natural decryption before attempting PDO retry (default: 30000)
+ * @param {number} options.ciphertextRetry.retryTimeoutMs - Time in ms to wait after PDO retry before declaring failure (default: 30000)
+ *
  * @fires Client#qr
  * @fires Client#authenticated
  * @fires Client#auth_failure
@@ -45,6 +49,7 @@ const {exposeFunctionIfAbsent} = require('./util/Puppeteer');
  * @fires Client#message_revoke_me
  * @fires Client#message_revoke_everyone
  * @fires Client#message_ciphertext
+ * @fires Client#message_ciphertext_failed
  * @fires Client#message_edit
  * @fires Client#media_uploaded
  * @fires Client#group_join
@@ -708,6 +713,16 @@ class Client extends EventEmitter {
             this.emit(Events.MESSAGE_CIPHERTEXT, new Message(this, msg));
         });
 
+        await exposeFunctionIfAbsent(this.pupPage, 'onCiphertextRetryFailedEvent', msg => {
+
+            /**
+                 * Emitted when a ciphertext message failed to decrypt after retry
+                 * @event Client#message_ciphertext_failed
+                 * @param {Message} message
+                 */
+            this.emit(Events.MESSAGE_CIPHERTEXT_FAILED, new Message(this, msg));
+        });
+
         await exposeFunctionIfAbsent(this.pupPage, 'onPollVoteEvent', (votes) => {
             for (const vote of votes) {
                 /**
@@ -719,7 +734,7 @@ class Client extends EventEmitter {
             }
         });
 
-        await this.pupPage.evaluate(() => {
+        await this.pupPage.evaluate((ciphertextRetryOptions) => {
             const { Msg, Chat, WAWebCallCollection } = window.require('WAWebCollections');
             const AppState = window.require('WAWebSocketModel').Socket;
             Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
@@ -735,14 +750,78 @@ class Client extends EventEmitter {
             }
             Chat.on('remove', async (chat) => { window.onRemoveChatEvent(await window.WWebJS.getChatModel(chat)); });
             Chat.on('change:archive', async (chat, currState, prevState) => { window.onArchiveChatEvent(await window.WWebJS.getChatModel(chat), currState, prevState); });
-            Msg.on('add', (msg) => { 
+
+            const _pendingCiphertexts = new Map();
+
+            window._clearAllCiphertextTimers = () => {
+                for (const [, entry] of _pendingCiphertexts) {
+                    if (entry.initialTimer) clearTimeout(entry.initialTimer);
+                    if (entry.retryTimer) clearTimeout(entry.retryTimer);
+                }
+                _pendingCiphertexts.clear();
+            };
+
+            Msg.on('add', (msg) => {
                 if (msg.isNewMsg) {
-                    if(msg.type === 'ciphertext') {
+                    if (msg.type === 'ciphertext') {
+                        const msgKey = msg.id._serialized;
+
                         // defer message event until ciphertext is resolved (type changed)
-                        msg.once('change:type', (_msg) => window.onAddMessageEvent(window.WWebJS.getMessageModel(_msg)));
+                        const onDecrypted = (_msg) => {
+                            const pending = _pendingCiphertexts.get(msgKey);
+                            if (pending) {
+                                if (pending.initialTimer) clearTimeout(pending.initialTimer);
+                                if (pending.retryTimer) clearTimeout(pending.retryTimer);
+                                _pendingCiphertexts.delete(msgKey);
+                            }
+                            window.onAddMessageEvent(window.WWebJS.getMessageModel(_msg));
+                        };
+
+                        msg.once('change:type', onDecrypted);
                         window.onAddMessageCiphertextEvent(window.WWebJS.getMessageModel(msg));
+
+                        if (ciphertextRetryOptions && ciphertextRetryOptions.enabled) {
+                            const initialTimeoutMs = ciphertextRetryOptions.initialTimeoutMs || 30000;
+                            const retryTimeoutMs = ciphertextRetryOptions.retryTimeoutMs || 30000;
+
+                            const initialTimer = setTimeout(async () => {
+                                if (msg.type !== 'ciphertext') {
+                                    _pendingCiphertexts.delete(msgKey);
+                                    return;
+                                }
+
+                                try {
+                                    const senderJid = msg.author || msg.from;
+                                    await window.Store.HistorySync.sendPeerDataOperationRequest(4, {
+                                        chatId: msg.id.remote,
+                                        msgId: msg.id,
+                                        senderJid: senderJid
+                                    });
+                                } catch (_) { /* empty */ }
+
+                                const retryTimer = setTimeout(() => {
+                                    if (msg.type !== 'ciphertext') {
+                                        _pendingCiphertexts.delete(msgKey);
+                                        return;
+                                    }
+
+                                    msg.off('change:type', onDecrypted);
+                                    _pendingCiphertexts.delete(msgKey);
+                                    window.onCiphertextRetryFailedEvent(
+                                        window.WWebJS.getMessageModel(msg)
+                                    );
+                                }, retryTimeoutMs);
+
+                                const pending = _pendingCiphertexts.get(msgKey);
+                                if (pending) {
+                                    pending.retryTimer = retryTimer;
+                                }
+                            }, initialTimeoutMs);
+
+                            _pendingCiphertexts.set(msgKey, { initialTimer: initialTimer, retryTimer: null });
+                        }
                     } else {
-                        window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); 
+                        window.onAddMessageEvent(window.WWebJS.getMessageModel(msg));
                     }
                 }
             });
@@ -791,7 +870,7 @@ class Client extends EventEmitter {
 
                 return origFunction.apply(module, args);
             });
-        });
+        }, this.options.ciphertextRetry);
     }    
 
     async initWebVersionCache() {
@@ -828,6 +907,16 @@ class Client extends EventEmitter {
      * Closes the client
      */
     async destroy() {
+        if (this.pupPage) {
+            try {
+                await this.pupPage.evaluate(() => {
+                    if (typeof window._clearAllCiphertextTimers === 'function') {
+                        window._clearAllCiphertextTimers();
+                    }
+                });
+            } catch (_) { /* empty */ }
+        }
+
         const browser = this.pupBrowser;
         const isConnected = browser?.isConnected?.();
         if (isConnected) {
