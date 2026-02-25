@@ -24,6 +24,11 @@ exports.DefaultOptions = {
         showNotification: true,
         intervalMs: 180000,
     },
+    ciphertextRetry: {
+        enabled: true,
+        initialTimeoutMs: 30000,
+        retryTimeoutMs: 30000,
+    },
 };
 
 /**
@@ -50,6 +55,7 @@ exports.Events = {
     CHAT_ARCHIVED: 'chat_archived',
     MESSAGE_RECEIVED: 'message',
     MESSAGE_CIPHERTEXT: 'message_ciphertext',
+    MESSAGE_CIPHERTEXT_FAILED: 'message_ciphertext_failed',
     MESSAGE_CREATE: 'message_create',
     MESSAGE_REVOKED_EVERYONE: 'message_revoke_everyone',
     MESSAGE_REVOKED_ME: 'message_revoke_me',

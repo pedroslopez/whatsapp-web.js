@@ -436,6 +436,12 @@ declare namespace WAWebJS {
             message: Message
         ) => void): this
 
+        /** Emitted when a ciphertext message failed to decrypt after retry */
+        on(event: 'message_ciphertext_failed', listener: (
+            /** The message that failed to decrypt */
+            message: Message
+        ) => void): this
+
         /** Emitted when a message is deleted for everyone in the chat */
         on(event: 'message_revoke_everyone', listener: (
             /** The message that was revoked, in its current state. It will not contain the original message's data */
@@ -605,6 +611,17 @@ declare namespace WAWebJS {
          * }
         */
         pairWithPhoneNumber?: {phoneNumber: string, showNotification?: boolean, intervalMs?: number}
+        /** Configuration for ciphertext message retry/recovery mechanism
+         * @default { enabled: true, initialTimeoutMs: 30000, retryTimeoutMs: 30000 }
+         */
+        ciphertextRetry?: {
+            /** Whether the retry mechanism is enabled @default true */
+            enabled?: boolean,
+            /** Time in ms to wait for natural decryption before attempting PDO retry @default 30000 */
+            initialTimeoutMs?: number,
+            /** Time in ms to wait after PDO retry before declaring failure @default 30000 */
+            retryTimeoutMs?: number,
+        }
     }
 
     export interface LocalWebCacheOptions {
@@ -857,6 +874,7 @@ declare namespace WAWebJS {
         CHAT_ARCHIVED = 'chat_archived',
         MESSAGE_RECEIVED = 'message',
         MESSAGE_CIPHERTEXT = 'message_ciphertext',
+        MESSAGE_CIPHERTEXT_FAILED = 'message_ciphertext_failed',
         MESSAGE_CREATE = 'message_create',
         MESSAGE_REVOKED_EVERYONE = 'message_revoke_everyone',
         MESSAGE_REVOKED_ME = 'message_revoke_me',
