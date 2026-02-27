@@ -37,8 +37,8 @@ const {exposeFunctionIfAbsent} = require('./util/Puppeteer');
  * @param {object} options.proxyAuthentication - Proxy Authentication object.
  * @param {object} options.ciphertextRetry - Configuration for ciphertext message retry/recovery mechanism
  * @param {boolean} options.ciphertextRetry.enabled - Whether the retry mechanism is enabled (default: true)
- * @param {number} options.ciphertextRetry.initialTimeoutMs - Time in ms to wait for natural decryption before attempting PDO retry (default: 30000)
- * @param {number} options.ciphertextRetry.retryTimeoutMs - Time in ms to wait after PDO retry before declaring failure (default: 30000)
+ * @param {number} options.ciphertextRetry.initialTimeoutMs - Time in ms to wait for natural decryption before attempting retry (default: 10000)
+ * @param {number} options.ciphertextRetry.retryTimeoutMs - Time in ms to wait after each retry step before proceeding (default: 15000)
  *
  * @fires Client#qr
  * @fires Client#authenticated
@@ -756,6 +756,7 @@ class Client extends EventEmitter {
                 for (const [, entry] of _pendingCiphertexts) {
                     if (entry.initialTimer) clearTimeout(entry.initialTimer);
                     if (entry.retryTimer) clearTimeout(entry.retryTimer);
+                    if (entry.pdoTimer) clearTimeout(entry.pdoTimer);
                 }
                 _pendingCiphertexts.clear();
             };
@@ -771,6 +772,7 @@ class Client extends EventEmitter {
                             if (pending) {
                                 if (pending.initialTimer) clearTimeout(pending.initialTimer);
                                 if (pending.retryTimer) clearTimeout(pending.retryTimer);
+                                if (pending.pdoTimer) clearTimeout(pending.pdoTimer);
                                 _pendingCiphertexts.delete(msgKey);
                             }
                             window.onAddMessageEvent(window.WWebJS.getMessageModel(_msg));
@@ -780,8 +782,8 @@ class Client extends EventEmitter {
                         window.onAddMessageCiphertextEvent(window.WWebJS.getMessageModel(msg));
 
                         if (ciphertextRetryOptions && ciphertextRetryOptions.enabled) {
-                            const initialTimeoutMs = ciphertextRetryOptions.initialTimeoutMs || 30000;
-                            const retryTimeoutMs = ciphertextRetryOptions.retryTimeoutMs || 30000;
+                            const initialTimeoutMs = ciphertextRetryOptions.initialTimeoutMs || 10000;
+                            const retryTimeoutMs = ciphertextRetryOptions.retryTimeoutMs || 15000;
 
                             const initialTimer = setTimeout(async () => {
                                 if (msg.type !== 'ciphertext') {
@@ -789,26 +791,47 @@ class Client extends EventEmitter {
                                     return;
                                 }
 
+                                const senderJid = msg.author || msg.from;
+
                                 try {
-                                    const senderJid = msg.author || msg.from;
-                                    await window.Store.HistorySync.sendPeerDataOperationRequest(4, {
-                                        chatId: msg.id.remote,
-                                        msgId: msg.id,
-                                        senderJid: senderJid
-                                    });
+                                    if (window.Store.Signal && window.Store.Signal.Session) {
+                                        const senderWid = window.Store.WidFactory.createWid(senderJid);
+                                        await window.Store.Signal.Session.deleteRemoteSession(senderWid);
+                                        await window.Store.Signal.Session.createSignalSession(senderWid);
+                                    }
                                 } catch (_) { /* empty */ }
 
-                                const retryTimer = setTimeout(() => {
+                                const retryTimer = setTimeout(async () => {
                                     if (msg.type !== 'ciphertext') {
                                         _pendingCiphertexts.delete(msgKey);
                                         return;
                                     }
 
-                                    msg.off('change:type', onDecrypted);
-                                    _pendingCiphertexts.delete(msgKey);
-                                    window.onCiphertextRetryFailedEvent(
-                                        window.WWebJS.getMessageModel(msg)
-                                    );
+                                    try {
+                                        await window.Store.HistorySync.sendPeerDataOperationRequest(4, {
+                                            chatId: msg.id.remote,
+                                            msgId: msg.id,
+                                            senderJid: senderJid
+                                        });
+                                    } catch (_) { /* empty */ }
+
+                                    const pdoTimer = setTimeout(() => {
+                                        if (msg.type !== 'ciphertext') {
+                                            _pendingCiphertexts.delete(msgKey);
+                                            return;
+                                        }
+
+                                        msg.off('change:type', onDecrypted);
+                                        _pendingCiphertexts.delete(msgKey);
+                                        window.onCiphertextRetryFailedEvent(
+                                            window.WWebJS.getMessageModel(msg)
+                                        );
+                                    }, retryTimeoutMs);
+
+                                    const pending = _pendingCiphertexts.get(msgKey);
+                                    if (pending) {
+                                        pending.pdoTimer = pdoTimer;
+                                    }
                                 }, retryTimeoutMs);
 
                                 const pending = _pendingCiphertexts.get(msgKey);
@@ -817,7 +840,7 @@ class Client extends EventEmitter {
                                 }
                             }, initialTimeoutMs);
 
-                            _pendingCiphertexts.set(msgKey, { initialTimer: initialTimer, retryTimer: null });
+                            _pendingCiphertexts.set(msgKey, { initialTimer: initialTimer, retryTimer: null, pdoTimer: null });
                         }
                     } else {
                         window.onAddMessageEvent(window.WWebJS.getMessageModel(msg));

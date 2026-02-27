@@ -612,14 +612,14 @@ declare namespace WAWebJS {
         */
         pairWithPhoneNumber?: {phoneNumber: string, showNotification?: boolean, intervalMs?: number}
         /** Configuration for ciphertext message retry/recovery mechanism
-         * @default { enabled: true, initialTimeoutMs: 30000, retryTimeoutMs: 30000 }
+         * @default { enabled: true, initialTimeoutMs: 10000, retryTimeoutMs: 15000 }
          */
         ciphertextRetry?: {
             /** Whether the retry mechanism is enabled @default true */
             enabled?: boolean,
-            /** Time in ms to wait for natural decryption before attempting PDO retry @default 30000 */
+            /** Time in ms to wait for natural decryption before attempting retry @default 10000 */
             initialTimeoutMs?: number,
-            /** Time in ms to wait after PDO retry before declaring failure @default 30000 */
+            /** Time in ms to wait after each retry step before proceeding @default 15000 */
             retryTimeoutMs?: number,
         }
     }
