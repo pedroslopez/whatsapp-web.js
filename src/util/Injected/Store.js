@@ -103,6 +103,7 @@ exports.ExposeStore = () => {
     window.Store.ContactCollection = window.require('WAWebContactCollection').ContactCollection;
     window.Store.DeviceList = window.require('WAWebApiDeviceList');
     window.Store.HistorySync = window.require('WAWebSendNonMessageDataRequest');
+    window.Store.Signal = window.require('WAWebSignal');
     window.Store.AddonReactionTable = window.require('WAWebAddonReactionTableMode').reactionTableMode;
     window.Store.AddonPollVoteTable = window.require('WAWebAddonPollVoteTableMode').pollVoteTableMode;
     window.Store.ChatGetters = window.require('WAWebChatGetters');
