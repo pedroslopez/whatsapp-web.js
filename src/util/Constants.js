@@ -26,8 +26,8 @@ exports.DefaultOptions = {
     },
     ciphertextRetry: {
         enabled: true,
-        initialTimeoutMs: 30000,
-        retryTimeoutMs: 30000,
+        initialTimeoutMs: 10000,
+        retryTimeoutMs: 15000,
     },
 };
 
