@@ -91,20 +91,11 @@ class Client extends EventEmitter {
      * Private function
      */
     async inject() {
-        if(this.options.authTimeoutMs === undefined || this.options.authTimeoutMs==0){
-            this.options.authTimeoutMs = 30000;
-        }
-        let start = Date.now();
-        let timeout = this.options.authTimeoutMs;
-        let res = false;
-        while(start > (Date.now() - timeout)){
-            res = await this.pupPage.evaluate('window.Debug?.VERSION != undefined');
-            if(res){break;}
-            await new Promise(r => setTimeout(r, 200));
-        }
-        if(!res){ 
-            throw 'auth timeout';
-        }       
+        const authTimeout = this.options.authTimeoutMs || 30000;
+        await this.pupPage.waitForFunction(
+            'window.Debug?.VERSION != undefined',
+            { timeout: authTimeout }
+        ).catch(() => { throw 'auth timeout'; });       
         await this.setDeviceName(this.options.deviceName, this.options.browserName);
         const pairWithPhoneNumber = this.options.pairWithPhoneNumber;
         const version = await this.getWWebVersion();
@@ -223,17 +214,11 @@ class Client extends EventEmitter {
 
                 await this.pupPage.evaluate(ExposeStore);
 
-                let start = Date.now();
-                let res = false;
-                while(start > (Date.now() - 30000)){
-                    // Check window.Store Injection
-                    res = await this.pupPage.evaluate('window.Store != undefined');
-                    if(res){break;}
-                    await new Promise(r => setTimeout(r, 200));
-                }
-                if(!res){
-                    throw 'ready timeout';
-                }
+                // Check window.Store Injection
+                await this.pupPage.waitForFunction(
+                    'window.Store != undefined',
+                    { timeout: 30000 }
+                ).catch(() => { throw 'ready timeout'; });
             
                 /**
                      * Current connection information
@@ -343,8 +328,6 @@ class Client extends EventEmitter {
             referer: 'https://whatsapp.com/'
         });
 
-        await this.inject();
-
         this.pupPage.on('framenavigated', async (frame) => {
             if(frame.url().includes('post_logout=1') || this.lastLoggedOut) {
                 this.emit(Events.DISCONNECTED, 'LOGOUT');
@@ -355,6 +338,8 @@ class Client extends EventEmitter {
             }
             await this.inject();
         });
+
+        await this.inject();
     }
 
     /**
