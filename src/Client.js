@@ -307,10 +307,7 @@ class Client extends EventEmitter {
                             webCacheOptions,
                         );
 
-                        await webCache.persist(
-                            this.currentIndexHtml,
-                            version,
-                        );
+                        await webCache.persist(this.currentIndexHtml, version);
                     }
 
                     //Load util functions (serializers, helper functions)
@@ -318,10 +315,9 @@ class Client extends EventEmitter {
 
                     // Check window.WWebJS Injection
                     await this.pupPage
-                        .waitForFunction(
-                            'window.WWebJS != undefined',
-                            { timeout: 30000 },
-                        )
+                        .waitForFunction('window.WWebJS != undefined', {
+                            timeout: 30000,
+                        })
                         .catch(() => {
                             throw 'ready timeout';
                         });
