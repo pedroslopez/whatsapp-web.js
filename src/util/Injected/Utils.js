@@ -590,7 +590,7 @@ exports.LoadUtils = () => {
         const shouldUseMediaCache = (window.require('WAWebMediaDataUtils')).shouldUseMediaCache(
             window.require('WAWebMmsMediaTypes').castToV4(mediaObject.type)
         );
-        if (shouldUseMediaCache && mediaData.mediaBlob instanceof (window.require('WAWebCollections')).OpaqueData) {
+        if (shouldUseMediaCache && mediaData.mediaBlob instanceof OpaqueData) {
             const formData = mediaData.mediaBlob.formData();
             (window.require('WAWebMediaInMemoryBlobCache')).InMemoryMediaBlobCache.put(mediaObject.filehash, formData);
         }
