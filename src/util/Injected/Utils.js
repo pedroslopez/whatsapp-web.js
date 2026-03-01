@@ -734,7 +734,7 @@ exports.LoadUtils = () => {
         model.isGroup = false;
         model.isMuted = chat.mute?.expiration !== 0;
         if (isChannel) {
-            model.isChannel = (window.require('WAWebCollections')).ChatGetters.getIsNewsletter(chat);
+            model.isChannel = (window.require('WAWebChatGetters')).getIsNewsletter(chat);
         } else {
             model.formattedTitle = chat.formattedTitle;
         }
@@ -796,9 +796,9 @@ exports.LoadUtils = () => {
         res.shortName = ContactMethods.getShortName(contact);
         res.pushname = ContactMethods.getPushname(contact);
         
-        const { getIsMyContact, getIsEnterprise } = window.require('WAWebFrontendContactGetters');
+        const { getIsMyContact } = window.require('WAWebFrontendContactGetters');
         res.isMyContact = getIsMyContact(contact);
-        res.isEnterprise = getIsEnterprise(contact);
+        res.isEnterprise = ContactMethods.getIsEnterprise(contact);
 
         return res;
     };
