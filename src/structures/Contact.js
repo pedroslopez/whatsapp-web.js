@@ -155,8 +155,8 @@ class Contact extends Base {
         if(this.isGroup) return false;
 
         await this.client.pupPage.evaluate(async (contactId) => {
-            const contact = window.Store.Contact.get(contactId);
-            await window.Store.BlockContact.blockContact({contact});
+            const contact = (window.require('WAWebCollections')).Contact.get(contactId);
+            await (window.require('WAWebBlockContactAction')).blockContact({contact});
         }, this.id._serialized);
 
         this.isBlocked = true;
@@ -171,8 +171,8 @@ class Contact extends Base {
         if(this.isGroup) return false;
 
         await this.client.pupPage.evaluate(async (contactId) => {
-            const contact = window.Store.Contact.get(contactId);
-            await window.Store.BlockContact.unblockContact(contact);
+            const contact = (window.require('WAWebCollections')).Contact.get(contactId);
+            await (window.require('WAWebBlockContactAction')).unblockContact(contact);
         }, this.id._serialized);
 
         this.isBlocked = false;
@@ -185,8 +185,8 @@ class Contact extends Base {
      */
     async getAbout() {
         const about = await this.client.pupPage.evaluate(async (contactId) => {
-            const wid = window.Store.WidFactory.createWid(contactId);
-            return window.Store.StatusUtils.getStatus({'token':'', 'wid': wid});
+            const wid = window.require('WAWebWidFactory').createWid(contactId);
+            return (window.require('WAWebContactStatusBridge')).getStatus({'token':'', 'wid': wid});
         }, this.id._serialized);
 
         if (typeof about.status !== 'string')
