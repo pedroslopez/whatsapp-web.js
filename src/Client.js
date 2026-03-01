@@ -13,7 +13,7 @@ const ContactFactory = require('./factories/ContactFactory');
 const WebCacheFactory = require('./webCache/WebCacheFactory');
 const { ClientInfo, Message, MessageMedia, Contact, Location, Poll, PollVote, GroupNotification, Label, Call, Buttons, List, Reaction, Broadcast, ScheduledEvent } = require('./structures');
 const NoAuth = require('./authStrategies/NoAuth');
-const {exposeFunctionIfAbsent} = require('./util/Puppeteer');
+const { exposeFunctionIfAbsent } = require('./util/Puppeteer');
 
 /**
  * Starting point for interacting with the WhatsApp Web API
@@ -62,8 +62,8 @@ class Client extends EventEmitter {
         super();
 
         this.options = Util.mergeDefault(DefaultOptions, options);
-        
-        if(!this.options.authStrategy) {
+
+        if (!this.options.authStrategy) {
             this.authStrategy = new NoAuth();
         } else {
             this.authStrategy = this.options.authStrategy;
@@ -90,20 +90,20 @@ class Client extends EventEmitter {
      * Private function
      */
     async inject() {
-        if(this.options.authTimeoutMs === undefined || this.options.authTimeoutMs==0){
+        if (this.options.authTimeoutMs === undefined || this.options.authTimeoutMs == 0) {
             this.options.authTimeoutMs = 30000;
         }
         let start = Date.now();
         let timeout = this.options.authTimeoutMs;
         let res = false;
-        while(start > (Date.now() - timeout)){
+        while (start > (Date.now() - timeout)) {
             res = await this.pupPage.evaluate('window.Debug?.VERSION != undefined');
-            if(res){break;}
+            if (res) { break; }
             await new Promise(r => setTimeout(r, 200));
         }
-        if(!res){ 
+        if (!res) {
             throw 'auth timeout';
-        }       
+        }
         await this.setDeviceName(this.options.deviceName, this.options.browserName);
         const pairWithPhoneNumber = this.options.pairWithPhoneNumber;
         const version = await this.getWWebVersion();
@@ -120,9 +120,9 @@ class Client extends EventEmitter {
                         if (state !== 'OPENING' && state !== 'UNLAUNCHED' && state !== 'PAIRING') {
                             window.require('WAWebSocketModel').Socket.off('change:state', waitTillInit);
                             r();
-                        } 
+                        }
                     });
-                }); 
+                });
             }
             state = window.require('WAWebSocketModel').Socket.state;
             return state == 'UNPAIRED' || state == 'UNPAIRED_IDLE';
@@ -131,7 +131,7 @@ class Client extends EventEmitter {
         if (needAuthentication) {
             const { failed, failureEventPayload, restart } = await this.authStrategy.onAuthenticationNeeded();
 
-            if(failed) {
+            if (failed) {
                 /**
                  * Emitted when there has been an error while trying to restore an existing session
                  * @event Client#auth_failure
@@ -216,25 +216,25 @@ class Client extends EventEmitter {
                 if (this.options.webVersionCache.type === 'local' && this.currentIndexHtml) {
                     const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
                     const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
-            
+
                     await webCache.persist(this.currentIndexHtml, version);
                 }
 
                 //Load util functions (serializers, helper functions)
                 await this.pupPage.evaluate(LoadUtils);
-                
+
                 let start = Date.now();
                 let res = false;
-                while(start > (Date.now() - 30000)){
+                while (start > (Date.now() - 30000)) {
                     // Check window.WWebJS Injection
                     res = await this.pupPage.evaluate('window.WWebJS != undefined');
-                    if(res){break;}
+                    if (res) { break; }
                     await new Promise(r => setTimeout(r, 200));
                 }
-                if(!res){
+                if (!res) {
                     throw 'ready timeout';
                 }
-            
+
                 /**
                      * Current connection information
                      * @type {ClientInfo}
@@ -263,14 +263,14 @@ class Client extends EventEmitter {
         });
         await exposeFunctionIfAbsent(this.pupPage, 'onLogoutEvent', async () => {
             this.lastLoggedOut = true;
-            await this.pupPage.waitForNavigation({waitUntil: 'load', timeout: 5000}).catch((_) => _);
+            await this.pupPage.waitForNavigation({ waitUntil: 'load', timeout: 5000 }).catch((_) => _);
         });
         await this.pupPage.evaluate(() => {
             window.require('WAWebSocketModel').Socket.on('change:state', (_AppState, state) => { window.onAuthAppStateChangedEvent(state); });
             window.require('WAWebSocketModel').Socket.on('change:hasSynced', () => { window.onAppStateHasSyncedEvent(); });
             const Cmd = window.require('WAWebCmd').Cmd;
             Cmd.on('offline_progress_update_from_bridge', () => {
-                window.onOfflineProgressUpdateEvent(window.AuthStore.OfflineMessageHandler.getOfflineDeliveryProgress()); 
+                window.onOfflineProgressUpdateEvent(window.AuthStore.OfflineMessageHandler.getOfflineDeliveryProgress());
             });
             Cmd.on('logout', async () => {
                 await window.onLogoutEvent();
@@ -286,11 +286,11 @@ class Client extends EventEmitter {
      */
     async initialize() {
 
-        let 
+        let
             /**
              * @type {puppeteer.Browser}
              */
-            browser, 
+            browser,
             /**
              * @type {puppeteer.Page}
              */
@@ -307,20 +307,20 @@ class Client extends EventEmitter {
             page = await browser.newPage();
         } else {
             const browserArgs = [...(puppeteerOpts.args || [])];
-            if(this.options.userAgent !== false && !browserArgs.find(arg => arg.includes('--user-agent'))) {
+            if (this.options.userAgent !== false && !browserArgs.find(arg => arg.includes('--user-agent'))) {
                 browserArgs.push(`--user-agent=${this.options.userAgent}`);
             }
             // navigator.webdriver fix
             browserArgs.push('--disable-blink-features=AutomationControlled');
 
-            browser = await puppeteer.launch({...puppeteerOpts, args: browserArgs});
+            browser = await puppeteer.launch({ ...puppeteerOpts, args: browserArgs });
             page = (await browser.pages())[0];
         }
 
         if (this.options.proxyAuthentication !== undefined) {
             await page.authenticate(this.options.proxyAuthentication);
         }
-        if(this.options.userAgent !== false) {
+        if (this.options.userAgent !== false) {
             await page.setUserAgent(this.options.userAgent);
         }
         if (this.options.bypassCSP) await page.setBypassCSP(true);
@@ -330,11 +330,11 @@ class Client extends EventEmitter {
 
         await this.authStrategy.afterBrowserInitialized();
         await this.initWebVersionCache();
-        
+
         if (this.options.evalOnNewDoc !== undefined) {
             await page.evaluateOnNewDocument(this.options.evalOnNewDoc);
         }
-        
+
         await page.goto(WhatsWebURL, {
             waitUntil: 'load',
             timeout: 0,
@@ -344,7 +344,7 @@ class Client extends EventEmitter {
         await this.inject();
 
         this.pupPage.on('framenavigated', async (frame) => {
-            if(frame.url().includes('post_logout=1') || this.lastLoggedOut) {
+            if (frame.url().includes('post_logout=1') || this.lastLoggedOut) {
                 this.emit(Events.DISCONNECTED, 'LOGOUT');
                 await this.authStrategy.logout();
                 await this.authStrategy.beforeBrowserInitialized();
@@ -469,7 +469,7 @@ class Client extends EventEmitter {
                     revoked_msg = new Message(this, last_message);
 
                     if (message.protocolMessageKey)
-                        revoked_msg.id = { ...message.protocolMessageKey };                    
+                        revoked_msg.id = { ...message.protocolMessageKey };
                 }
 
                 /**
@@ -551,9 +551,9 @@ class Client extends EventEmitter {
 
         });
 
-        await exposeFunctionIfAbsent(this.pupPage, 'onChatUnreadCountEvent', async (data) =>{
+        await exposeFunctionIfAbsent(this.pupPage, 'onChatUnreadCountEvent', async (data) => {
             const chat = await this.getChatById(data.id);
-                
+
             /**
                  * Emitted when the chat unread count changes
                  */
@@ -669,10 +669,10 @@ class Client extends EventEmitter {
                  */
             this.emit(Events.CHAT_REMOVED, _chat);
         });
-            
+
         await exposeFunctionIfAbsent(this.pupPage, 'onArchiveChatEvent', async (chat, currState, prevState) => {
             const _chat = await this.getChatById(chat.id);
-                
+
             /**
                  * Emitted when a chat is archived/unarchived
                  * @event Client#chat_archived
@@ -684,8 +684,8 @@ class Client extends EventEmitter {
         });
 
         await exposeFunctionIfAbsent(this.pupPage, 'onEditMessageEvent', (msg, newBody, prevBody) => {
-                
-            if(msg.type === 'revoked'){
+
+            if (msg.type === 'revoked') {
                 return;
             }
             /**
@@ -697,9 +697,9 @@ class Client extends EventEmitter {
                  */
             this.emit(Events.MESSAGE_EDIT, new Message(this, msg), newBody, prevBody);
         });
-            
+
         await exposeFunctionIfAbsent(this.pupPage, 'onAddMessageCiphertextEvent', msg => {
-                
+
             /**
                  * Emitted when messages are edited
                  * @event Client#message_ciphertext
@@ -722,33 +722,33 @@ class Client extends EventEmitter {
         await this.pupPage.evaluate(() => {
             const { Msg, Chat, WAWebCallCollection } = window.require('WAWebCollections');
             const AppState = window.require('WAWebSocketModel').Socket;
-            Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); });
-            Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); });
-            Msg.on('change:ack', (msg, ack) => { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); });
-            Msg.on('change:isUnsentMedia', (msg, unsent) => { if (msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(window.WWebJS.getMessageModel(msg)); });
-            Msg.on('remove', (msg) => { if (msg.isNewMsg) window.onRemoveMessageEvent(window.WWebJS.getMessageModel(msg)); });
-            Msg.on('change:body change:caption', (msg, newBody, prevBody) => { window.onEditMessageEvent(window.WWebJS.getMessageModel(msg), newBody, prevBody); });
-            AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); });
-            (window.require('WAWebConnModel').Conn).on('change:battery', (state) => { window.onBatteryStateChangedEvent(state); });
+            try { Msg.on('change', (msg) => { window.onChangeMessageEvent(window.WWebJS.getMessageModel(msg)); }); } catch { }
+            try { Msg.on('change:type', (msg) => { window.onChangeMessageTypeEvent(window.WWebJS.getMessageModel(msg)); }); } catch { }
+            try { Msg.on('change:ack', (msg, ack) => { window.onMessageAckEvent(window.WWebJS.getMessageModel(msg), ack); }); } catch { }
+            try { Msg.on('change:isUnsentMedia', (msg, unsent) => { if (msg.id.fromMe && !unsent) window.onMessageMediaUploadedEvent(window.WWebJS.getMessageModel(msg)); }); } catch { }
+            try { Msg.on('remove', (msg) => { if (msg.isNewMsg) window.onRemoveMessageEvent(window.WWebJS.getMessageModel(msg)); }); } catch { }
+            try { Msg.on('change:body change:caption', (msg, newBody, prevBody) => { window.onEditMessageEvent(window.WWebJS.getMessageModel(msg), newBody, prevBody); }); } catch { }
+            try { AppState.on('change:state', (_AppState, state) => { window.onAppStateChangedEvent(state); }); } catch { }
+            try { (window.require('WAWebConnModel').Conn).on('change:battery', (state) => { window.onBatteryStateChangedEvent(state); }); } catch { }
             if (WAWebCallCollection && typeof WAWebCallCollection.on === 'function') {
                 WAWebCallCollection.on('add', (call) => { window.onIncomingCall(call); });
             }
-            Chat.on('remove', async (chat) => { window.onRemoveChatEvent(await window.WWebJS.getChatModel(chat)); });
-            Chat.on('change:archive', async (chat, currState, prevState) => { window.onArchiveChatEvent(await window.WWebJS.getChatModel(chat), currState, prevState); });
-            Msg.on('add', (msg) => { 
+            try { Chat.on('remove', async (chat) => { window.onRemoveChatEvent(await window.WWebJS.getChatModel(chat)); }); } catch { }
+            try { Chat.on('change:archive', async (chat, currState, prevState) => { window.onArchiveChatEvent(await window.WWebJS.getChatModel(chat), currState, prevState); }); } catch { }
+            Msg.on('add', (msg) => {
                 if (msg.isNewMsg) {
-                    if(msg.type === 'ciphertext') {
+                    if (msg.type === 'ciphertext') {
                         // defer message event until ciphertext is resolved (type changed)
                         msg.once('change:type', (_msg) => window.onAddMessageEvent(window.WWebJS.getMessageModel(_msg)));
                         window.onAddMessageCiphertextEvent(window.WWebJS.getMessageModel(msg));
                     } else {
-                        window.onAddMessageEvent(window.WWebJS.getMessageModel(msg)); 
+                        window.onAddMessageEvent(window.WWebJS.getMessageModel(msg));
                     }
                 }
             });
-            Chat.on('change:unreadCount', (chat) => {window.onChatUnreadCountEvent(chat);});
+            try { Chat.on('change:unreadCount', (chat) => { window.onChatUnreadCountEvent(chat); }); } catch { }
 
-            window.WWebJS.injectToFunction({ module: 'WAWebAddonReactionTableMode', function: 'reactionTableMode.bulkUpsert'}, (module, origFunction, ...args) => {
+            window.WWebJS.injectToFunction({ module: 'WAWebAddonReactionTableMode', function: 'reactionTableMode.bulkUpsert' }, (module, origFunction, ...args) => {
                 window.onReaction(args[0].map(reaction => {
                     const msgKey = reaction.id;
                     const parentMsgKey = reaction.reactionParentKey;
@@ -756,13 +756,13 @@ class Client extends EventEmitter {
                     const sender = reaction.author ?? reaction.from;
                     const senderUserJid = sender._serialized;
 
-                    return {...reaction, msgKey, parentMsgKey, senderUserJid, timestamp };
+                    return { ...reaction, msgKey, parentMsgKey, senderUserJid, timestamp };
                 }));
 
                 return origFunction.apply(module, args);
             });
-            
-            window.WWebJS.injectToFunction({ module: 'WAWebAddonPollVoteTableMode', function: 'pollVoteTableMode.bulkUpsert'}, async (module, origFunction, ...args) => {
+
+            window.WWebJS.injectToFunction({ module: 'WAWebAddonPollVoteTableMode', function: 'pollVoteTableMode.bulkUpsert' }, async (module, origFunction, ...args) => {
                 const votes = await Promise.all(args[0].map(async vote => {
                     const msgKey = vote.id;
                     const parentMsgKey = vote.pollUpdateParentKey;
@@ -792,7 +792,7 @@ class Client extends EventEmitter {
                 return origFunction.apply(module, args);
             });
         });
-    }    
+    }
 
     async initWebVersionCache() {
         const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
@@ -801,22 +801,22 @@ class Client extends EventEmitter {
         const requestedVersion = this.options.webVersion;
         const versionContent = await webCache.resolve(requestedVersion);
 
-        if(versionContent) {
+        if (versionContent) {
             await this.pupPage.setRequestInterception(true);
             this.pupPage.on('request', async (req) => {
-                if(req.url() === WhatsWebURL) {
+                if (req.url() === WhatsWebURL) {
                     req.respond({
                         status: 200,
                         contentType: 'text/html',
                         body: versionContent
-                    }); 
+                    });
                 } else {
                     req.continue();
                 }
             });
         } else {
             this.pupPage.on('response', async (res) => {
-                if(res.ok() && res.url() === WhatsWebURL) {
+                if (res.ok() && res.url() === WhatsWebURL) {
                     const indexHtml = await res.text();
                     this.currentIndexHtml = indexHtml;
                 }
@@ -844,13 +844,13 @@ class Client extends EventEmitter {
             return window.require('WAWebSocketModel').Socket.logout();
         });
         await this.pupBrowser.close();
-        
+
         let maxDelay = 0;
         while (this.pupBrowser.isConnected() && (maxDelay < 10)) { // waits a maximum of 1 second before calling the AuthStrategy
             await new Promise(resolve => setTimeout(resolve, 100));
-            maxDelay++; 
+            maxDelay++;
         }
-        
+
         await this.authStrategy.logout();
     }
 
@@ -921,7 +921,7 @@ class Client extends EventEmitter {
      * @property {MessageMedia} [media] - Media to be sent
      * @property {any} [extra] - Extra options
      */
-    
+
     /**
      * Send a message to a specific chatId
      * @param {string} chatId
@@ -954,7 +954,7 @@ class Client extends EventEmitter {
             console.warn('The message type is currently not supported for sending in status broadcast,\nthe supported message types are: text, image, gif, audio and video.');
             return null;
         }
-    
+
         if (options.mentions) {
             !Array.isArray(options.mentions) && (options.mentions = [options.mentions]);
             if (options.mentions.some((possiblyContact) => possiblyContact instanceof Contact)) {
@@ -964,7 +964,7 @@ class Client extends EventEmitter {
         }
 
         options.groupMentions && !Array.isArray(options.groupMentions) && (options.groupMentions = [options.groupMentions]);
-        
+
         let internalOptions = {
             linkPreview: options.linkPreview === false ? undefined : true,
             sendAudioAsVoice: options.sendAudioAsVoice,
@@ -989,12 +989,12 @@ class Client extends EventEmitter {
         if (content instanceof MessageMedia) {
             internalOptions.media = content;
             internalOptions.isViewOnce = options.isViewOnce,
-            content = '';
+                content = '';
         } else if (options.media instanceof MessageMedia) {
             internalOptions.media = options.media;
             internalOptions.caption = content;
             internalOptions.isViewOnce = options.isViewOnce,
-            content = '';
+                content = '';
         } else if (content instanceof Location) {
             internalOptions.location = content;
             content = '';
@@ -1024,10 +1024,10 @@ class Client extends EventEmitter {
         if (internalOptions.sendMediaAsSticker && internalOptions.media) {
             internalOptions.media = await Util.formatToWebpSticker(
                 internalOptions.media, {
-                    name: options.stickerName,
-                    author: options.stickerAuthor,
-                    categories: options.stickerCategories
-                }, this.pupPage
+                name: options.stickerName,
+                author: options.stickerAuthor,
+                categories: options.stickerCategories
+            }, this.pupPage
             );
         }
 
@@ -1073,7 +1073,7 @@ class Client extends EventEmitter {
             if (!chatWid.isUser()) {
                 return false;
             }
-            
+
             return await (window.require('WAWebNewsletterSendMsgAction')).sendNewsletterAdminInviteMessage(
                 chat,
                 {
@@ -1087,7 +1087,7 @@ class Client extends EventEmitter {
 
         return response.messageSendResult === 'OK';
     }
-    
+
     /**
      * Searches for messages
      * @param {string} query
@@ -1199,18 +1199,18 @@ class Client extends EventEmitter {
     async getMessageById(messageId) {
         const msg = await this.pupPage.evaluate(async messageId => {
             let msg = (window.require('WAWebCollections')).Msg.get(messageId);
-            if(msg) return window.WWebJS.getMessageModel(msg);
+            if (msg) return window.WWebJS.getMessageModel(msg);
 
             const params = messageId.split('_');
             if (params.length !== 3 && params.length !== 4) throw new Error('Invalid serialized message id specified');
 
             let messagesObject = await (window.require('WAWebCollections')).Msg.getMessagesById([messageId]);
             if (messagesObject && messagesObject.messages.length) msg = messagesObject.messages[0];
-            
-            if(msg) return window.WWebJS.getMessageModel(msg);
+
+            if (msg) return window.WWebJS.getMessageModel(msg);
         }, messageId);
 
-        if(msg) return new Message(this, msg);
+        if (msg) return new Message(this, msg);
         return null;
     }
 
@@ -1224,7 +1224,7 @@ class Client extends EventEmitter {
             const chatWid = window.require('WAWebWidFactory').createWid(chatId);
             const chat = (window.require('WAWebCollections')).Chat.get(chatWid) ?? await (window.require('WAWebCollections')).Chat.find(chatWid);
             if (!chat) return [];
-            
+
             const msgs = await (window.require('WAWebPinInChatSchema')).getTable().equals(['chatId'], chatWid.toString());
 
             const pinnedMsgs = (
@@ -1356,14 +1356,14 @@ class Client extends EventEmitter {
      */
     async setDisplayName(displayName) {
         const couldSet = await this.pupPage.evaluate(async displayName => {
-            if(!(window.require('WAWebConnModel').Conn).canSetMyPushname()) return false;
+            if (!(window.require('WAWebConnModel').Conn).canSetMyPushname()) return false;
             await (window.require('WAWebSetPushnameConnAction')).setPushname(displayName);
             return true;
         }, displayName);
 
         return couldSet;
     }
-    
+
     /**
      * Gets the current connection state for the client
      * @returns {WAState} 
@@ -1481,7 +1481,7 @@ class Client extends EventEmitter {
      * @param {number} unmuteDateTs Timestamp at which the chat will be unmuted
      * @returns {Promise<{isMuted: boolean, muteExpiration: number}>}
      */
-    async _muteUnmuteChat (chatId, action, unmuteDateTs) {
+    async _muteUnmuteChat(chatId, action, unmuteDateTs) {
         return this.pupPage.evaluate(async (chatId, action, unmuteDateTs) => {
             const chat = (window.require('WAWebCollections')).Chat.get(chatId) ?? await (window.require('WAWebCollections')).Chat.find(chatId);
             action === 'MUTE'
@@ -1515,11 +1515,11 @@ class Client extends EventEmitter {
                     ? await window.require('WAWebContactProfilePicThumbBridge').profilePicFind(chatWid)
                     : await window.require('WAWebContactProfilePicThumbBridge').requestProfilePicFromServer(chatWid);
             } catch (err) {
-                if(err.name === 'ServerStatusCodeError') return undefined;
+                if (err.name === 'ServerStatusCodeError') return undefined;
                 throw err;
             }
         }, contactId);
-        
+
         return profilePic ? profilePic.eurl : undefined;
     }
 
@@ -1533,8 +1533,8 @@ class Client extends EventEmitter {
             let contact = (window.require('WAWebCollections')).Contact.get(contactId);
             if (!contact) {
                 const wid = window.require('WAWebWidFactory').createWid(contactId);
-                const chatConstructor = (window.require('WAWebCollections')).Contact.getModelsArray().find(c=>!c.isGroup).constructor;
-                contact = new chatConstructor({id: wid});
+                const chatConstructor = (window.require('WAWebCollections')).Contact.getModelsArray().find(c => !c.isGroup).constructor;
+                contact = new chatConstructor({ id: wid });
             }
 
             if (contact.commonGroups) {
@@ -1558,7 +1558,7 @@ class Client extends EventEmitter {
     */
     async resetState() {
         await this.pupPage.evaluate(() => {
-            window.require('WAWebSocketModel').Socket.reconnect(); 
+            window.require('WAWebSocketModel').Socket.reconnect();
         });
     }
 
@@ -1910,7 +1910,7 @@ class Client extends EventEmitter {
             if (![0, 1, 2, 3].includes(view)) view = 0;
 
             const { countryCodesIso } = window.require('WAWebCountriesNativeCountryNames');
-            
+
             countryCodes = countryCodes.length === 1 && countryCodes[0] === currentRegion
                 ? countryCodes
                 : countryCodes.filter((code) => Object.keys(countryCodesIso).includes(code));
@@ -1930,7 +1930,7 @@ class Client extends EventEmitter {
                 categories: [],
                 cursorToken: ''
             };
-            
+
             const originalFunction = window.require('WAWebNewsletterGatingUtils').getNewsletterDirectoryPageSize;
             limit !== 50 && (window.require('WAWebNewsletterGatingUtils').getNewsletterDirectoryPageSize = () => limit);
 
@@ -2112,7 +2112,7 @@ class Client extends EventEmitter {
 
         return success;
     }
-    
+
     /**
      * Change labels in chats
      * @param {Array<number|string>} labelIds
@@ -2128,12 +2128,12 @@ class Client extends EventEmitter {
             const labels = window.WWebJS.getLabels().filter(e => labelIds.find(l => l == e.id) !== undefined);
             const chats = (window.require('WAWebCollections')).Chat.filter(e => chatIds.includes(e.id._serialized));
 
-            let actions = labels.map(label => ({id: label.id, type: 'add'}));
+            let actions = labels.map(label => ({ id: label.id, type: 'add' }));
 
             chats.forEach(chat => {
                 (chat.labels || []).forEach(n => {
                     if (!actions.find(e => e.id == n)) {
-                        actions.push({id: n, type: 'remove'});
+                        actions.push({ id: n, type: 'remove' });
                     }
                 });
             });
@@ -2282,7 +2282,7 @@ class Client extends EventEmitter {
             return flag;
         }, flag);
     }
-    
+
     /**
      * Get user device count by ID
      * Each WaWeb Connection counts as one device, and the phone (if exists) counts as one
@@ -2318,7 +2318,7 @@ class Client extends EventEmitter {
             return false;
         }, chatId);
     }
-  
+
     /**
      * Generates a WhatsApp call link (video call or voice call)
      * @param {Date} startTime The start time of the call
@@ -2333,7 +2333,7 @@ class Client extends EventEmitter {
         }
 
         startTime = Math.floor(startTime.getTime() / 1000);
-        
+
         return await this.pupPage.evaluate(async (startTimeTs, callType) => {
             const response = await (window.require('WAWebGenerateEventCallLink')).createEventCallLink(startTimeTs, callType);
             return response ?? '';
@@ -2357,7 +2357,7 @@ class Client extends EventEmitter {
             return true;
         }, response, eventMessageId);
     }
-  
+
     /**
      * Save new contact to user's addressbook or edit the existing one
      * @param {string} phoneNumber The contact's phone number in a format "17182222222", where "1" is a country code
@@ -2366,16 +2366,15 @@ class Client extends EventEmitter {
      * @param {boolean} [syncToAddressbook = false] If set to true, the contact will also be saved to the user's address book on their phone. False by default
      * @returns {Promise<void>}
      */
-    async saveOrEditAddressbookContact(phoneNumber, firstName, lastName, syncToAddressbook = false)
-    {
+    async saveOrEditAddressbookContact(phoneNumber, firstName, lastName, syncToAddressbook = false) {
         return await this.pupPage.evaluate(async (phoneNumber, firstName, lastName, syncToAddressbook) => {
             return await (window.require('WAWebSaveContactAction')).saveContactAction({
-                'firstName' : firstName,
-                'lastName' : lastName,
-                'phoneNumber' : phoneNumber,
-                'prevPhoneNumber' : phoneNumber,
+                'firstName': firstName,
+                'lastName': lastName,
+                'phoneNumber': phoneNumber,
+                'prevPhoneNumber': phoneNumber,
                 'syncToAddressbook': syncToAddressbook,
-                'username' : undefined
+                'username': undefined
             });
         }, phoneNumber, firstName, lastName, syncToAddressbook);
     }
@@ -2385,11 +2384,10 @@ class Client extends EventEmitter {
      * @param {string} phoneNumber The contact's phone number in a format "17182222222", where "1" is a country code
      * @returns {Promise<void>}
      */
-    async deleteAddressbookContact(phoneNumber)
-    {
+    async deleteAddressbookContact(phoneNumber) {
         return await this.pupPage.evaluate(async (phoneNumber) => {
             const wid = window.require('WAWebWidFactory').createWid(phoneNumber);
-            return await (window.require('WAWebDeleteContactAction')).deleteContactAction({phoneNumber: wid});
+            return await (window.require('WAWebDeleteContactAction')).deleteContactAction({ phoneNumber: wid });
         }, phoneNumber);
     }
 
@@ -2463,7 +2461,7 @@ class Client extends EventEmitter {
             return serialized;
         }, userId);
     }
-    
+
     /**
      * Get Poll Votes
      * @param {string} messageId
@@ -2474,10 +2472,10 @@ class Client extends EventEmitter {
         if (!msg) return [];
         if (msg.type != MessageTypes.POLL_CREATION) throw 'Invalid usage! Can only be used with a pollCreation message';
 
-        const pollVotes = await this.pupPage.evaluate( async (msg) => {
+        const pollVotes = await this.pupPage.evaluate(async (msg) => {
             const msgKey = (window.require('WAWebMsgKey')).fromString(msg.id._serialized);
             let pollVotes = await (window.require('WAWebPollsVotesSchema')).getTable().equals(['parentMsgKey'], msgKey.toString());
-            
+
             return pollVotes.map(item => {
                 const typedArray = new Uint8Array(item.selectedOptionLocalIds);
                 return {
@@ -2487,7 +2485,7 @@ class Client extends EventEmitter {
             });
         }, msg);
 
-        return pollVotes.map((pollVote) => new PollVote(this.client, {...pollVote, parentMessage: msg}));
+        return pollVotes.map((pollVote) => new PollVote(this.client, { ...pollVote, parentMessage: msg }));
     }
 }
 
