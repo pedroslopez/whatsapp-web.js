@@ -220,6 +220,11 @@ class Client extends EventEmitter {
                 );
             } else {
                 let qrRetries = 0;
+
+                this.on(Events.LOADING_SCREEN, () => {
+                    qrRetries = 0;
+                });
+
                 await exposeFunctionIfAbsent(
                     this.pupPage,
                     'onQRChangedEvent',
@@ -270,10 +275,18 @@ class Client extends EventEmitter {
                         ',' +
                         platform;
 
-                    window.onQRChangedEvent(getQR(window.AuthStore.Conn.ref)); // initial qr
-                    window.AuthStore.Conn.on('change:ref', (_, ref) => {
+                    const onRefChange = (_, ref) => {
+                        if (ref == null) return;
                         window.onQRChangedEvent(getQR(ref));
-                    }); // future QR changes
+                    };
+
+                    window.onQRChangedEvent(getQR(window.AuthStore.Conn.ref)); // initial qr
+                    window.AuthStore.Conn.on('change:ref', onRefChange); // future QR changes
+
+                    // Remove QR listener once authentication succeeds
+                    window.AuthStore.AppState.on('change:hasSynced', () => {
+                        window.AuthStore.Conn.off('change:ref', onRefChange);
+                    });
                 });
             }
         }
