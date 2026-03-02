@@ -161,6 +161,11 @@ class Client extends EventEmitter {
                 this.requestPairingCode(pairWithPhoneNumber.phoneNumber, pairWithPhoneNumber.showNotification, pairWithPhoneNumber.intervalMs);
             } else {
                 let qrRetries = 0;
+
+                this.on(Events.LOADING_SCREEN, () => {
+                    qrRetries = 0;
+                });
+
                 await exposeFunctionIfAbsent(this.pupPage, 'onQRChangedEvent', async (qr) => {
                     /**
                     * Emitted when a QR code is received
@@ -187,8 +192,18 @@ class Client extends EventEmitter {
                     const platform = window.AuthStore.RegistrationUtils.DEVICE_PLATFORM;
                     const getQR = (ref) => ref + ',' + staticKeyB64 + ',' + identityKeyB64 + ',' + advSecretKey + ',' + platform;
 
+                    const onRefChange = (_, ref) => {
+                        if (ref == null) return;
+                        window.onQRChangedEvent(getQR(ref));
+                    };
+
                     window.onQRChangedEvent(getQR(window.AuthStore.Conn.ref)); // initial qr
-                    window.AuthStore.Conn.on('change:ref', (_, ref) => { window.onQRChangedEvent(getQR(ref)); }); // future QR changes
+                    window.AuthStore.Conn.on('change:ref', onRefChange); // future QR changes
+
+                    // Remove QR listener once authentication succeeds
+                    window.AuthStore.AppState.on('change:hasSynced', () => {
+                        window.AuthStore.Conn.off('change:ref', onRefChange);
+                    });
                 });
             }
         }
