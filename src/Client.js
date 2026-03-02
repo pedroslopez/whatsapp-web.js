@@ -90,6 +90,10 @@ class Client extends EventEmitter {
      * Private function
      */
     async inject() {
+        let hasReloaded = false;
+        const reloadHandler = () => { hasReloaded = true; };
+        try{
+        this.pupPage.on('framenavigated', reloadHandler);
         if(this.options.authTimeoutMs === undefined || this.options.authTimeoutMs==0){
             this.options.authTimeoutMs = 30000;
         }
@@ -279,6 +283,13 @@ class Client extends EventEmitter {
                 await window.onLogoutEvent();
             });
         });
+
+        }catch(err){
+            if(!hasReloaded)
+                throw err;
+        }finally{
+            this.pupPage.off('framenavigated', reloadHandler);
+        }
     }
 
     /**
