@@ -1,0 +1,20 @@
+bug:
+  - "\\b(bug|error|fails?|exception|crash|broken|incorrect|wrong|unexpected)s?\\b"
+feature request:
+  - "\\b(feature|enhancement|proposal|suggestion|add support|implement)s?\\b"
+documentation:
+  - "\\b(doc|docs|readme|documentation|typo|example|guide)s?\\b"
+security:
+  - "\\b(vulnerability|xss|csrf|security|exploit|attack|inject)s?\\b"
+performance:
+  - "\\b(performance|slow|memory|cpu|optimize|optimization|lag|leak)s?\\b"
+breaking change:
+  - "\\bbreaking.?changes?\\b"
+dependencies:
+  - "\\b(depend(enc)?y|dependencies|deps?|package|upgrade|bump)s?\\b"
+typings:
+  - "\\b(type|types|typing|typings|typescript|\\.d\\.ts)s?\\b"
+tests:
+  - "\\b(test|tests|testing|spec|mocha|assert|coverage)s?\\b"
+ci:
+  - "\\b(ci|workflow|pipeline|action|github.?action|continuous.?integration)s?\\b"

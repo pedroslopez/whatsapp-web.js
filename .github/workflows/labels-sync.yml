@@ -1,0 +1,29 @@
+name: Sync Labels
+
+on:
+  schedule:
+    - cron: '0 0 */3 * *'
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/labels.yml'
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: label-sync
+  cancel-in-progress: false
+
+jobs:
+  label-sync:
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'pedroslopez'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: crazy-max/ghaction-github-labeler@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
