@@ -1,0 +1,55 @@
+name: Feature Request
+description: Request a new feature for our applications or packages
+labels: [feature request]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to suggest a feature! Please search the [issue tracker](https://github.com/wwebjs/wwebjs/issues) first to avoid duplicates.
+
+        > [!CAUTION]
+        > - **Please submit only feature requests that related to the `whatsapp-web.js` library.**
+        > - **Any feature request opened as a question will be closed!**
+        > - **Duplicate issues will be closed.**
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Feature summary
+      description: Briefly describe the problem/use case and desired capability.
+      placeholder: |
+        Problem: ...
+        Benefit: ...
+        Outcome: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Ideal solution or implementation
+      description: How should this feature work? Include examples like API shape, UX sketches.
+      placeholder: |
+        API: client.xyz(...)
+        Event: client.on('xyz', ...)
+        Example: const r = await client.xyz()
+        Compatibility: Breaking changes?
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives / Additional context
+      description: Alternatives or workarounds? / More notes/links/screenshots.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues and confirmed this is not a duplicate.
+          required: true
+        - label: This request is within the scope of WhatsApp Web capabilities.
+          required: false
