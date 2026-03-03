@@ -37,11 +37,13 @@ class ScheduledEvent {
          */
         this.eventSendOptions = {
             description: options.description?.trim(),
-            endTimeTs: options.endTime ? Math.floor(options.endTime.getTime() / 1000) : null,
+            endTimeTs: options.endTime
+                ? Math.floor(options.endTime.getTime() / 1000)
+                : null,
             location: options.location?.trim(),
             callType: this._validateInputs('callType', options.callType),
             isEventCanceled: options.isEventCanceled ?? false,
-            messageSecret: options.messageSecret
+            messageSecret: options.messageSecret,
         };
     }
 
@@ -53,17 +55,27 @@ class ScheduledEvent {
      */
     _validateInputs(propName, propValue) {
         if (propName === 'name' && !propValue) {
-            throw new class CreateScheduledEventError extends Error {
-                constructor(m) { super(m); }
-            }(`Empty '${propName}' parameter value is provided.`);
+            throw new (class CreateScheduledEventError extends Error {
+                constructor(m) {
+                    super(m);
+                }
+            })(`Empty '${propName}' parameter value is provided.`);
         }
 
-        if (propName === 'callType' && propValue && !['video', 'voice', 'none'].includes(propValue)) {
-            throw new class CreateScheduledEventError extends Error {
-                constructor(m) { super(m); }
-            }(`Invalid '${propName}' parameter value is provided. Valid values are: 'voice' | 'video' | 'none'.`);
+        if (
+            propName === 'callType' &&
+            propValue &&
+            !['video', 'voice', 'none'].includes(propValue)
+        ) {
+            throw new (class CreateScheduledEventError extends Error {
+                constructor(m) {
+                    super(m);
+                }
+            })(
+                `Invalid '${propName}' parameter value is provided. Valid values are: 'voice' | 'video' | 'none'.`,
+            );
         }
-        
+
         return propValue;
     }
 }

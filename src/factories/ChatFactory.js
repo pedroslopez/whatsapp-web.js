@@ -9,7 +9,7 @@ class ChatFactory {
         if (data.isGroup) {
             return new GroupChat(client, data);
         }
-        
+
         if (data.isChannel) {
             return new Channel(client, data);
         }

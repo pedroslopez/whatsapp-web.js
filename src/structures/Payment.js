@@ -54,7 +54,7 @@ class Payment extends Base {
          * 9:CANCELLED
          * 10:WAITING_FOR_PAYER
          * 11:WAITING
-         * 
+         *
          * @type {number}
          */
         this.paymentStatus = data.paymentStatus;
@@ -69,11 +69,14 @@ class Payment extends Base {
          * The note sent with the payment
          * @type {string}
          */
-        this.paymentNote = !data.paymentNoteMsg ? undefined : data.paymentNoteMsg.body ?  data.paymentNoteMsg.body : undefined ;
+        this.paymentNote = !data.paymentNoteMsg
+            ? undefined
+            : data.paymentNoteMsg.body
+              ? data.paymentNoteMsg.body
+              : undefined;
 
         return super._patch(data);
     }
-
 }
 
 module.exports = Payment;

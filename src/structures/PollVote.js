@@ -35,21 +35,24 @@ class PollVote extends Base {
          * @type {SelectedPollOption[]}
          */
         if (data.selectedOptionLocalIds.length > 0) {
-            if(data.parentMessage) { // temporary failsafe
+            if (data.parentMessage) {
+                // temporary failsafe
                 this.selectedOptions = data.selectedOptionLocalIds.map((e) => ({
-                    name: data.parentMessage.pollOptions.find((x) => x.localId === e).name,
-                    localId: e
+                    name: data.parentMessage.pollOptions.find(
+                        (x) => x.localId === e,
+                    ).name,
+                    localId: e,
                 }));
             } else {
                 this.selectedOptions = data.selectedOptionLocalIds.map((e) => ({
                     name: undefined,
-                    localId: e
+                    localId: e,
                 }));
             }
         } else {
             this.selectedOptions = [];
         }
-        
+
         /**
          * Timestamp the option was selected or deselected at
          * @type {number}
@@ -66,7 +69,7 @@ class PollVote extends Base {
          * The poll creation message id
          * @type {Object}
          */
-        this.parentMsgKey =  data.parentMsgKey;
+        this.parentMsgKey = data.parentMsgKey;
 
         return super._patch(data);
     }

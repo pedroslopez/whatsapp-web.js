@@ -39,7 +39,7 @@ class Buttons {
          * @type {string}
          */
         this.title = title;
-        
+
         /**
          * footer of message
          * @type {string}
@@ -49,7 +49,7 @@ class Buttons {
         if (body instanceof MessageMedia) {
             this.type = 'media';
             this.title = '';
-        }else{
+        } else {
             this.type = 'chat';
         }
 
@@ -58,25 +58,29 @@ class Buttons {
          * @type {FormattedButtonSpec[]}
          */
         this.buttons = this._format(buttons);
-        if(!this.buttons.length){ throw '[BT01] No buttons';}
-                
+        if (!this.buttons.length) {
+            throw '[BT01] No buttons';
+        }
     }
 
     /**
      * Creates button array from simple array
      * @param {ButtonSpec[]} buttons
      * @returns {FormattedButtonSpec[]}
-     * @example 
+     * @example
      * Input: [{id:'customId',body:'button1'},{body:'button2'},{body:'button3'},{body:'button4'}]
      * Returns: [{ buttonId:'customId',buttonText:{'displayText':'button1'},type: 1 },{buttonId:'n3XKsL',buttonText:{'displayText':'button2'},type:1},{buttonId:'NDJk0a',buttonText:{'displayText':'button3'},type:1}]
      */
-    _format(buttons){
-        buttons = buttons.slice(0,3); // phone users can only see 3 buttons, so lets limit this
+    _format(buttons) {
+        buttons = buttons.slice(0, 3); // phone users can only see 3 buttons, so lets limit this
         return buttons.map((btn) => {
-            return {'buttonId':btn.id ? String(btn.id) : Util.generateHash(6),'buttonText':{'displayText':btn.body},'type':1};
+            return {
+                buttonId: btn.id ? String(btn.id) : Util.generateHash(6),
+                buttonText: { displayText: btn.body },
+                type: 1,
+            };
         });
     }
-    
 }
 
 module.exports = Buttons;
