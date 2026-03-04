@@ -1512,10 +1512,10 @@ class Client extends EventEmitter {
             try {
               const chat = await window.WWebJS.getChat(contactId);
               return await window.require('WAWebContactProfilePicThumbBridge').requestProfilePicFromServer(chat); 
-        } catch (err) {
-              if(err.name === 'ServerStatusCodeError') return undefined;
-              throw err; 
-        }
+            } catch (err) {
+                if(err.name === 'ServerStatusCodeError') return undefined;
+                throw err; 
+            }
         }, contactId);
         return profilePic ? profilePic.eurl : undefined;
     }
