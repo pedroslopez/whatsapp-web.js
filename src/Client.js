@@ -1517,14 +1517,13 @@ class Client extends EventEmitter {
     async getProfilePicUrl(contactId) {
         const profilePic = await this.pupPage.evaluate(async contactId => {
             try {
-                const chatWid = window.Store.WidFactory.createWid(contactId);
-                return await window.Store.ProfilePic.requestProfilePicFromServer(chatWid);
+                const chat = await window.WWebJS.getChat(contactId);
+                return await window.require('WAWebContactProfilePicThumbBridge').requestProfilePicFromServer(chat); 
             } catch (err) {
                 if(err.name === 'ServerStatusCodeError') return undefined;
-                throw err;
+                throw err; 
             }
         }, contactId);
-        
         return profilePic ? profilePic.eurl : undefined;
     }
 
