@@ -1508,16 +1508,16 @@ class Client extends EventEmitter {
      * @returns {Promise<string>}
      */
     async getProfilePicUrl(contactId) {
-      const profilePic = await this.pupPage.evaluate(async contactId => {
-        try {
-          const chat = await window.WWebJS.getChat(contactId);
-          return await window.require('WAWebContactProfilePicThumbBridge').requestProfilePicFromServer(chat); 
+        const profilePic = await this.pupPage.evaluate(async contactId => {
+            try {
+              const chat = await window.WWebJS.getChat(contactId);
+              return await window.require('WAWebContactProfilePicThumbBridge').requestProfilePicFromServer(chat); 
         } catch (err) {
-          if(err.name === 'ServerStatusCodeError') return undefined;
-          throw err; 
+              if(err.name === 'ServerStatusCodeError') return undefined;
+              throw err; 
         }
-      }, contactId);
-      return profilePic ? profilePic.eurl : undefined;
+        }, contactId);
+        return profilePic ? profilePic.eurl : undefined;
     }
 
     /**
