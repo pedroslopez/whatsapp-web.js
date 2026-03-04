@@ -62,4 +62,4 @@ chore:
                 - .github/FUNDING.yml
                 - .github/CODE_OF_CONDUCT.md
                 - .github/ISSUE_TEMPLATE/*
-                - .github/ISSUE_TEMPLATE/**/*
+                - .github/pull_request_template.md

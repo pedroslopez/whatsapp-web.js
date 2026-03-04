@@ -42,6 +42,7 @@ jobs:
 
                   echo "Title: \"$TITLE\""
 
+                  shopt -s nocasematch
                   if [[ ! "$TITLE" =~ $REGEX ]]; then
                     echo "❌ PR title does not match the required format!"
                     exit 1

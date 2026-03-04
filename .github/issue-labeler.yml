@@ -1,7 +1,3 @@
-bug:
-    - "\\b(bug|error|fails?|exception|crash|broken|incorrect|wrong|unexpected)s?\\b"
-feature request:
-    - "\\b(feature|enhancement|proposal|suggestion|add support|implement)s?\\b"
 documentation:
     - "\\b(doc|docs|readme|documentation|typo|example|guide)s?\\b"
 security:
@@ -18,3 +14,11 @@ tests:
     - "\\b(test|tests|testing|spec|mocha|assert|coverage)s?\\b"
 ci:
     - "\\b(ci|workflow|pipeline|action|github.?action|continuous.?integration)s?\\b"
+build:
+    - "\\b(build|builds|build.?system|webpack|rollup|esbuild|gulp|grunt)s?\\b"
+infra:
+    - "\\b(infra|infrastructure|devops|docker|kubernetes|cloud|aws|azure|gcp)s?\\b"
+styles:
+    - "\\b(style|styles|format|lint|prettier|eslint)s?\\b"
+ui:
+    - "\\b(ui|ux|interface|design|layout|responsive)s?\\b"

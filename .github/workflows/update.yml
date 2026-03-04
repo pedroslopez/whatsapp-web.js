@@ -15,6 +15,7 @@ concurrency:
 
 jobs:
     update:
+        if: github.repository_owner == 'pedroslopez'
         runs-on: ubuntu-latest
         defaults:
             run:

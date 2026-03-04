@@ -21,7 +21,9 @@ module.exports = {
                 'infra',
             ],
         ],
+        'type-case': [0],
         'scope-case': [0],
+        'subject-case': [0],
         'subject-exclamation-mark': [0],
     },
 };
