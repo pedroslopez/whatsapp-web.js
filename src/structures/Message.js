@@ -412,7 +412,8 @@ class Message extends Base {
             const msg =
                 (window.require('WAWebCollections')).Msg.get(messageId) || (await (window.require('WAWebCollections')).Msg.getMessagesById([messageId]))?.messages?.[0];
             if(!msg) return null;
-            await (window.require('WAWebSendReactionMsgAction'))(msg, reaction);
+            await (window.require('WAWebSendReactionMsgAction')).sendReactionToMsg(msg, reaction);
+
         }, this.id._serialized, reaction);
     }
 
