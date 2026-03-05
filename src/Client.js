@@ -1511,9 +1511,12 @@ class Client extends EventEmitter {
         const profilePic = await this.pupPage.evaluate(async contactId => {
             try {
                 const chatWid = window.require('WAWebWidFactory').createWid(contactId);
-                return window.WWebJS.compareWwebVersions(window.Debug.VERSION, '<', '2.3000.0')
-                    ? await window.require('WAWebContactProfilePicThumbBridge').profilePicFind(chatWid)
-                    : await window.require('WAWebContactProfilePicThumbBridge').requestProfilePicFromServer(chatWid);
+                if (window.WWebJS.compareWwebVersions(window.Debug.VERSION, '<', '2.3000.0')) {
+                    return await window.require('WAWebContactProfilePicThumbBridge').profilePicFind(chatWid);
+                } else {
+                    const contact = (window.require('WAWebCollections')).Contact.get(chatWid);
+                    return await window.require('WAWebContactProfilePicThumbBridge').requestProfilePicFromServer(contact);
+                }
             } catch (err) {
                 if(err.name === 'ServerStatusCodeError') return undefined;
                 throw err;
