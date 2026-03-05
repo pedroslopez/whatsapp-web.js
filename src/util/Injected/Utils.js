@@ -286,9 +286,7 @@ exports.LoadUtils = () => {
 
         let vcardOptions = {};
         if (options.contactCard) {
-            let contact = window
-                .require('WAWebCollections')
-                .Contact.get(options.contactCard);
+            let contact = await window.WWebJS.findContact(options.contactCard);
             vcardOptions = {
                 body: window
                     .require('WAWebFrontendVcardUtils')
@@ -298,8 +296,10 @@ exports.LoadUtils = () => {
             };
             delete options.contactCard;
         } else if (options.contactCardList) {
-            let contacts = options.contactCardList.map((c) =>
-                window.require('WAWebCollections').Contact.get(c),
+            let contacts = await Promise.all(
+                options.contactCardList.map((c) =>
+                    window.WWebJS.findContact(c),
+                ),
             );
             let vcards = contacts.map((c) =>
                 window
@@ -956,14 +956,16 @@ exports.LoadUtils = () => {
                 window.require('WAWebCollections').GroupMetadata ||
                 window.require('WAWebCollections').WAWebGroupMetadataCollection;
             await groupMetadata.update(chatWid);
-            chat.groupMetadata.participants._models
-                .filter((x) => x.id?._serialized?.endsWith('@lid'))
-                .forEach(
-                    (x) =>
-                        x.contact?.phoneNumber &&
-                        (x.id = x.contact.phoneNumber),
-                );
-            model.groupMetadata = chat.groupMetadata.serialize();
+            const serializedMetadata = chat.groupMetadata.serialize();
+            const participantModels = chat.groupMetadata.participants._models;
+            for (const p of serializedMetadata.participants || []) {
+                if (!p.id?._serialized?.endsWith('@lid')) continue;
+                const phone = participantModels.find(
+                    (m) => m.id?._serialized === p.id._serialized,
+                )?.contact?.phoneNumber;
+                if (phone) p.id = phone;
+            }
+            model.groupMetadata = serializedMetadata;
             model.isReadOnly = chat.groupMetadata.announce;
         }
 
@@ -1005,8 +1007,18 @@ exports.LoadUtils = () => {
         return model;
     };
 
+    window.WWebJS.findContact = async (id) => {
+        const wid = window.require('WAWebWidFactory').createWid(id);
+        return window.require('WAWebCollections').Contact.find(wid);
+    };
+
     window.WWebJS.getContactModel = (contact) => {
         let res = contact.serialize();
+
+        if (res.id?._serialized?.endsWith('@lid') && contact.phoneNumber) {
+            res.id = contact.phoneNumber;
+        }
+
         res.isBusiness =
             contact.isBusiness === undefined ? false : contact.isBusiness;
 
@@ -1040,16 +1052,17 @@ exports.LoadUtils = () => {
 
     window.WWebJS.getContact = async (contactId) => {
         const wid = window.require('WAWebWidFactory').createWid(contactId);
-        let contact = await window
+        const contact = await window
             .require('WAWebCollections')
             .Contact.find(wid);
-        if (contact.id._serialized.endsWith('@lid')) {
-            contact.id = contact.phoneNumber;
+        try {
+            const bizProfile = await window
+                .require('WAWebCollections')
+                .BusinessProfile.fetchBizProfile(wid);
+            bizProfile.profileOptions && (contact.businessProfile = bizProfile);
+        } catch (_) {
+            /* fetchBizProfile can fail for non-business contacts */
         }
-        const bizProfile = await window
-            .require('WAWebCollections')
-            .BusinessProfile.fetchBizProfile(wid);
-        bizProfile.profileOptions && (contact.businessProfile = bizProfile);
         return window.WWebJS.getContactModel(contact);
     };
 
