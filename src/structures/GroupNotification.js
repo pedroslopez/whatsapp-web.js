@@ -10,7 +10,7 @@ class GroupNotification extends Base {
     constructor(client, data) {
         super(client);
 
-        if(data) this._patch(data);
+        if (data) this._patch(data);
     }
 
     _patch(data) {
@@ -26,12 +26,12 @@ class GroupNotification extends Base {
          */
         this.body = data.body || '';
 
-        /** 
+        /**
          * GroupNotification type
          * @type {GroupNotificationTypes}
          */
         this.type = data.subtype;
-        
+
         /**
          * Unix timestamp for when the groupNotification was created
          * @type {number}
@@ -40,17 +40,23 @@ class GroupNotification extends Base {
 
         /**
          * ID for the Chat that this groupNotification was sent for.
-         * 
+         *
          * @type {string}
          */
-        this.chatId = typeof (data.id.remote) === 'object' ? data.id.remote._serialized : data.id.remote;
+        this.chatId =
+            typeof data.id.remote === 'object'
+                ? data.id.remote._serialized
+                : data.id.remote;
 
         /**
          * ContactId for the user that produced the GroupNotification.
          * @type {string}
          */
-        this.author = typeof (data.author) === 'object' ? data.author._serialized : data.author;
-        
+        this.author =
+            typeof data.author === 'object'
+                ? data.author._serialized
+                : data.author;
+
         /**
          * Contact IDs for the users that were affected by this GroupNotification.
          * @type {Array<string>}
@@ -85,20 +91,23 @@ class GroupNotification extends Base {
      * @returns {Promise<Array<Contact>>}
      */
     async getRecipients() {
-        return await Promise.all(this.recipientIds.map(async m => await this.client.getContactById(m)));
+        return await Promise.all(
+            this.recipientIds.map(
+                async (m) => await this.client.getContactById(m),
+            ),
+        );
     }
 
     /**
      * Sends a message to the same chat this GroupNotification was produced in.
-     * 
-     * @param {string|MessageMedia|Location} content 
+     *
+     * @param {string|MessageMedia|Location} content
      * @param {object} options
      * @returns {Promise<Message>}
      */
-    async reply(content, options={}) {
+    async reply(content, options = {}) {
         return this.client.sendMessage(this.chatId, content, options);
     }
-    
 }
 
 module.exports = GroupNotification;

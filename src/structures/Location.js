@@ -53,9 +53,10 @@ class Location {
          * Location full description
          * @type {string|undefined}
          */
-        this.description = this.name && this.address
-            ? `${this.name}\n${this.address}`
-            : this.name || this.address || '';
+        this.description =
+            this.name && this.address
+                ? `${this.name}\n${this.address}`
+                : this.name || this.address || '';
     }
 }
 

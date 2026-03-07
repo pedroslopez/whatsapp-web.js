@@ -59,17 +59,21 @@ class Call extends Base {
          * @type {object}
          */
         this.participants = data.participants;
-        
+
         return super._patch(data);
     }
 
     /**
      * Reject the call
-    */
+     */
     async reject() {
-        return this.client.pupPage.evaluate((peerJid, id) => {
-            return window.WWebJS.rejectCall(peerJid, id);
-        }, this.from, this.id);
+        return this.client.pupPage.evaluate(
+            (peerJid, id) => {
+                return window.WWebJS.rejectCall(peerJid, id);
+            },
+            this.from,
+            this.id,
+        );
     }
 }
 

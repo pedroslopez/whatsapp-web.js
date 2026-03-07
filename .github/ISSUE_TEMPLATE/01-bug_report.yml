@@ -1,0 +1,164 @@
+name: Bug Report
+description: Report a bug in the library or another package
+labels: [bug]
+body:
+    - type: markdown
+      attributes:
+          value: |
+              Thanks for taking the time to report a bug! Please check the [issue tracker](https://github.com/wwebjs/wwebjs/issues) before submitting.
+
+              > [!CAUTION]
+              > - **Report only issues related to the `whatsapp-web.js` library!**
+              > - **Any issue without a clear reproduction will be closed!**
+              > - **Any issue opened as a question will be closed!**
+              > - **Duplicate issues will be closed.**
+
+    - type: dropdown
+      id: priority
+      attributes:
+          label: Issue Priority
+          description: Be realistic. Elaborate in the description if needed.
+          options:
+              - Low (slightly annoying)
+              - Medium (should be fixed soon)
+              - High (immediate attention needed)
+          default: 0
+      validations:
+          required: true
+
+    - type: textarea
+      id: description
+      attributes:
+          label: Issue Description
+          description: Provide a clear and concise description of the problem.
+          placeholder: |
+              When I try to send a message, the client disconnects unexpectedly...
+      validations:
+          required: true
+
+    - type: textarea
+      id: reproduction_steps
+      attributes:
+          label: Steps To Reproduce
+          description: How can we reproduce this issue?
+          placeholder: |
+              1. Do this
+              2. Do that
+              ...
+
+              9. See error
+      validations:
+          required: true
+
+    - type: textarea
+      id: code_sample
+      attributes:
+          label: Code Sample
+          description: |
+              Provide code that reproduces the bug. Ensure it is:
+              - **Minimal** - Only essential code to show the issue
+              - **Complete** - Include all dependencies and setup
+              - **Tested** - Verify it actually triggers the problem
+
+              Will be auto-formatted - no backticks needed.
+          render: typescript
+      validations:
+          required: false
+
+    - type: dropdown
+      id: whatsapp_type
+      attributes:
+          label: WhatsApp Account Type
+          description: What type of WhatsApp account are you using?
+          options:
+              - Standard
+              - WhatsApp Business
+      validations:
+          required: true
+
+    - type: dropdown
+      id: auth_type
+      attributes:
+          label: Authentication Strategy
+          description: What authenctication strategy are you using?
+          options:
+              - LocalAuth
+              - RemoteAuth
+              - NoAuth
+      validations:
+          required: true
+
+    - type: input
+      id: lib_version
+      attributes:
+          label: whatsapp-web.js Version
+          description: What library version are you using? Check it in `package.json` file.
+          placeholder: 1.31.0
+      validations:
+          required: true
+
+    - type: input
+      id: wweb_version
+      attributes:
+          label: WhatsApp Web Version
+          description: 'What WhatsApp Web version are you using? Use: `await client.getWWebVersion()`'
+          placeholder: 2.3000.1017054665
+      validations:
+          required: true
+
+    - type: input
+      id: browser_type
+      attributes:
+          label: Browser Type
+          description: What web browser are you using?
+          placeholder: Chromium / Google Chrome / Edge / ...
+      validations:
+          required: true
+
+    - type: input
+      id: browser_version
+      attributes:
+          label: Browser Version
+          description: What version of the browser are you using?
+          placeholder: 120.0.6099.71
+      validations:
+          required: true
+
+    - type: input
+      id: computer_os
+      attributes:
+          label: Computer OS Version
+          description: What OS are you using?
+          placeholder: MacOS 15 / Windows 11 / Ubuntu 24 / ...
+      validations:
+          required: true
+
+    - type: input
+      id: phone_os
+      attributes:
+          label: Phone OS Version
+          description: What OS version are you using on your phone?
+          placeholder: Android 12 / iOS 15.4 / ...
+      validations:
+          required: true
+
+    - type: input
+      id: node_version
+      attributes:
+          label: Node.js Version
+          description: What Node.js version are you using? Run `node -v` in your terminal.
+          placeholder: 18.16.0
+      validations:
+          required: true
+
+    - type: checkboxes
+      id: checklist
+      attributes:
+          label: Checklist
+          options:
+              - label: '**I use the latest released version of whatsapp-web.js.**'
+                required: true
+              - label: I have searched existing issues and confirmed this is not a duplicate.
+                required: true
+              - label: I have verified this is a library issue, not a problem with my code.
+                required: true
