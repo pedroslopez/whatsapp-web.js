@@ -1,22 +1,28 @@
 <div align="center">
-  <br />
-  <p>
-    <a href="https://wwebjs.dev"><img
-        src="https://github.com/wwebjs/assets/blob/main/Collection/GitHub/wwebjs.png?raw=true" title="whatsapp-web.js"
-        alt="WWebJS Website" width="500" /></a>
-  </p>
-  <br />
-  <p>
-    <a href="https://www.npmjs.com/package/whatsapp-web.js"><img src="https://img.shields.io/npm/v/whatsapp-web.js.svg"
-        alt="npm" /></a>
-    <img alt="NPM Downloads" src="https://img.shields.io/npm/d18m/whatsapp-web.js">
-    <img alt="GitHub contributors" src="https://img.shields.io/github/contributors-anon/pedroslopez/whatsapp-web.js">
-    <a href="https://depfu.com/github/pedroslopez/whatsapp-web.js?project_id=9765"><img
-        src="https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg" alt="Depfu" /></a>
-    <a href="https://discord.wwebjs.dev"><img src="https://img.shields.io/discord/698610475432411196.svg?logo=discord"
-        alt="Discord server" /></a>
-  </p>
-  <br />
+    <p>
+        <a href="https://wwebjs.dev">
+            <img src="https://github.com/wwebjs/Assets/blob/main/Collection/GitHub/whatsapp-web.js.png?raw=true"
+                title="whatsapp-web.js" alt="WWebJS Website" />
+        </a>
+    </p>
+    <p>
+        <a href="https://www.npmjs.com/package/whatsapp-web.js">
+            <img src="https://img.shields.io/npm/v/whatsapp-web.js.svg" alt="npm" />
+        </a>
+        <a href="https://www.npmjs.com/package/whatsapp-web.js">
+            <img alt="NPM Downloads" src="https://img.shields.io/npm/d18m/whatsapp-web.js" />
+        </a>
+        <a href="https://github.com/pedroslopez/whatsapp-web.js/graphs/contributors">
+            <img alt="GitHub contributors"
+                src="https://img.shields.io/github/contributors-anon/pedroslopez/whatsapp-web.js" />
+        </a>
+        <a href="https://depfu.com/github/pedroslopez/whatsapp-web.js?project_id=9765">
+            <img src="https://badges.depfu.com/badges/4a65a0de96ece65fdf39e294e0c8dcba/overview.svg" alt="Depfu" />
+        </a>
+        <a href="https://discord.wwebjs.dev">
+            <img src="https://img.shields.io/discord/698610475432411196.svg?logo=discord" alt="Discord server" />
+        </a>
+    </p>
 </div>
 
 ## About
