@@ -1262,7 +1262,7 @@ class Client extends EventEmitter {
      */
     async acceptInvite(inviteCode) {
         const res = await this.pupPage.evaluate(async inviteCode => {
-            return await (window.require('WAWebGroupQueryJob')).joinGroupViaInvite(inviteCode);
+            return await (window.require('WAWebGroupInviteJob')).joinGroupViaInvite(inviteCode);
         }, inviteCode);
 
         return res.gid._serialized;
