@@ -3,18 +3,20 @@ const helper = require('../helper');
 
 const remoteId = helper.remoteId;
 
-describe('Group', function() {
+describe('Group', function () {
     let client;
     let group;
 
-    before(async function() {
+    before(async function () {
         this.timeout(35000);
         client = helper.createClient({
-            authenticated: true, 
+            authenticated: true,
         });
         await client.initialize();
 
-        const createRes = await client.createGroup('My Awesome Group', [remoteId]);
+        const createRes = await client.createGroup('My Awesome Group', [
+            remoteId,
+        ]);
         expect(createRes.gid).to.exist;
         await helper.sleep(500);
         group = await client.getChatById(createRes.gid._serialized);
@@ -34,7 +36,7 @@ describe('Group', function() {
             await helper.sleep(1000);
 
             // reload
-            group = await client.getChatById(group.id._serialized); 
+            group = await client.getChatById(group.id._serialized);
             expect(group.name).to.equal('My Amazing Group');
         });
 
@@ -47,7 +49,7 @@ describe('Group', function() {
             await helper.sleep(1000);
 
             // reload
-            group = await client.getChatById(group.id._serialized); 
+            group = await client.getChatById(group.id._serialized);
             expect(group.description).to.equal('some description');
         });
 
@@ -127,7 +129,9 @@ describe('Group', function() {
 
     describe('Participants', function () {
         it('can promote a user to admin', async function () {
-            let participant = group.participants.find(p => p.id._serialized === remoteId);
+            let participant = group.participants.find(
+                (p) => p.id._serialized === remoteId,
+            );
             expect(participant).to.exist;
             expect(participant.isAdmin).to.equal(false);
 
@@ -138,13 +142,17 @@ describe('Group', function() {
 
             // reload and check
             group = await client.getChatById(group.id._serialized);
-            participant = group.participants.find(p => p.id._serialized=== remoteId);
+            participant = group.participants.find(
+                (p) => p.id._serialized === remoteId,
+            );
             expect(participant).to.exist;
             expect(participant.isAdmin).to.equal(true);
         });
 
         it('can demote a user', async function () {
-            let participant = group.participants.find(p => p.id._serialized=== remoteId);
+            let participant = group.participants.find(
+                (p) => p.id._serialized === remoteId,
+            );
             expect(participant).to.exist;
             expect(participant.isAdmin).to.equal(true);
 
@@ -155,13 +163,17 @@ describe('Group', function() {
 
             // reload and check
             group = await client.getChatById(group.id._serialized);
-            participant = group.participants.find(p => p.id._serialized=== remoteId);
+            participant = group.participants.find(
+                (p) => p.id._serialized === remoteId,
+            );
             expect(participant).to.exist;
             expect(participant.isAdmin).to.equal(false);
         });
 
         it('can remove a user from the group', async function () {
-            let participant = group.participants.find(p => p.id._serialized=== remoteId);
+            let participant = group.participants.find(
+                (p) => p.id._serialized === remoteId,
+            );
             expect(participant).to.exist;
 
             const res = await group.removeParticipants([remoteId]);
@@ -171,12 +183,16 @@ describe('Group', function() {
 
             // reload and check
             group = await client.getChatById(group.id._serialized);
-            participant = group.participants.find(p => p.id._serialized=== remoteId);
+            participant = group.participants.find(
+                (p) => p.id._serialized === remoteId,
+            );
             expect(participant).to.not.exist;
         });
 
         it('can add back a user to the group', async function () {
-            let participant = group.participants.find(p => p.id._serialized=== remoteId);
+            let participant = group.participants.find(
+                (p) => p.id._serialized === remoteId,
+            );
             expect(participant).to.not.exist;
 
             const res = await group.addParticipants([remoteId]);
@@ -186,14 +202,16 @@ describe('Group', function() {
 
             // reload and check
             group = await client.getChatById(group.id._serialized);
-            participant = group.participants.find(p => p.id._serialized=== remoteId);
+            participant = group.participants.find(
+                (p) => p.id._serialized === remoteId,
+            );
             expect(participant).to.exist;
         });
     });
 
     describe('Leave / re-join', function () {
         let code;
-        
+
         before(async function () {
             code = await group.getInviteCode();
         });
@@ -224,5 +242,4 @@ describe('Group', function() {
     after(async function () {
         await client.destroy();
     });
-
 });

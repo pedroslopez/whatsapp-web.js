@@ -14,7 +14,7 @@ class BaseAuthStrategy {
         return {
             failed: false,
             restart: false,
-            failureEventPayload: undefined
+            failureEventPayload: undefined,
         };
     }
     async getAuthEventPayload() {}

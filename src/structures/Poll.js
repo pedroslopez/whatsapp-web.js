@@ -27,7 +27,7 @@ class Poll {
          */
         this.pollOptions = pollOptions.map((option, index) => ({
             name: option.trim(),
-            localId: index
+            localId: index,
         }));
 
         /**
@@ -36,7 +36,7 @@ class Poll {
          */
         this.options = {
             allowMultipleAnswers: options.allowMultipleAnswers === true,
-            messageSecret: options.messageSecret
+            messageSecret: options.messageSecret,
         };
     }
 }

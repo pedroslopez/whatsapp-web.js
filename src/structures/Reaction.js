@@ -59,11 +59,9 @@ class Reaction extends Base {
          * @type {?number}
          */
         this.ack = data.ack;
-        
-        
+
         return super._patch(data);
     }
-    
 }
 
 module.exports = Reaction;

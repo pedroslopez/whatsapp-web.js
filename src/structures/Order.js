@@ -20,7 +20,9 @@ class Order extends Base {
          * @type {Array<Product>}
          */
         if (data.products) {
-            this.products = data.products.map(product => new Product(this.client, product));
+            this.products = data.products.map(
+                (product) => new Product(this.client, product),
+            );
         }
         /**
          * Order Subtotal
@@ -45,8 +47,6 @@ class Order extends Base {
 
         return super._patch(data);
     }
-
-
 }
 
 module.exports = Order;

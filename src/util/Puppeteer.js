@@ -20,4 +20,4 @@ async function exposeFunctionIfAbsent(page, name, fn) {
     await page.exposeFunction(name, fn);
 }
 
-module.exports = {exposeFunctionIfAbsent};
+module.exports = { exposeFunctionIfAbsent };
