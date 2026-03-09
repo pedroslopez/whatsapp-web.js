@@ -155,12 +155,10 @@ class Contact extends Base {
         if (this.isGroup) return false;
 
         await this.client.pupPage.evaluate(async (contactId) => {
-            const contact = window
-                .require('WAWebCollections')
-                .Contact.get(contactId);
+            const chat = await window.WWebJS.getChat(contactId);
             await window
                 .require('WAWebBlockContactAction')
-                .blockContact({ contact });
+                .blockContact({ contact: chat });
         }, this.id._serialized);
 
         this.isBlocked = true;
