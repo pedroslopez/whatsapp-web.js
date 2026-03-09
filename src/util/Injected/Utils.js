@@ -677,7 +677,25 @@ exports.LoadUtils = () => {
                 chat = null;
             }
         } else {
-            chat = (window.require('WAWebCollections')).Chat.get(chatWid) || (await (window.require('WAWebFindChatAction')).findOrCreateLatestChat(chatWid))?.chat;
+            chat = (window.require('WAWebCollections')).Chat.get(chatWid);
+            if (!chat) {
+                chat = (await (window.require('WAWebFindChatAction')).findOrCreateLatestChat(chatWid).catch(() => null))?.chat;
+            }
+            if (!chat) {
+                try {
+                    const query = window.require('WAWebContactSyncUtils').constructUsyncDeltaQuery([{
+                        type: 'add',
+                        phoneNumber: chatWid.user
+                    }]);
+                    const result = await query.execute();
+                    if (result?.list?.[0]?.lid) {
+                        const chatLid = window.require('WAWebWidFactory').createWid(result.list[0].lid);
+                        chat = (await (window.require('WAWebFindChatAction')).findOrCreateLatestChat(chatLid).catch(() => null))?.chat;
+                    }
+                } catch (e) {
+                    // LID resolution failed, chat remains undefined
+                }
+            }
         }
 
         return getAsModel && chat
