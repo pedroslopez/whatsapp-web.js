@@ -4,7 +4,7 @@ const Constants = require('./src/util/Constants');
 
 module.exports = {
     Client: require('./src/Client'),
-    
+
     version: require('./package.json').version,
 
     // Structures
@@ -25,11 +25,11 @@ module.exports = {
     List: require('./src/structures/List'),
     Buttons: require('./src/structures/Buttons'),
     Broadcast: require('./src/structures/Broadcast'),
-    
+
     // Auth Strategies
     NoAuth: require('./src/authStrategies/NoAuth'),
     LocalAuth: require('./src/authStrategies/LocalAuth'),
     RemoteAuth: require('./src/authStrategies/RemoteAuth'),
-    
-    ...Constants
+
+    ...Constants,
 };

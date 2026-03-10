@@ -11,7 +11,7 @@ describe('Message', function () {
     let chat;
     let message;
 
-    before(async function() {
+    before(async function () {
         this.timeout(35000);
         client = helper.createClient({ authenticated: true });
         await client.initialize();
@@ -88,7 +88,7 @@ describe('Message', function () {
     describe('Delete', function () {
         it('can delete a message for me', async function () {
             await message.delete();
-            
+
             await helper.sleep(5000);
             expect(await message.reload()).to.equal(null);
         });
@@ -105,8 +105,10 @@ describe('Message', function () {
 
             expect(await message.reload()).to.equal(null);
             expect(callback.called).to.equal(true);
-            const [ revokeMsg, originalMsg ] = callback.args[0];
-            expect(revokeMsg.id._serialized).to.equal(originalMsg.id._serialized);
+            const [revokeMsg, originalMsg] = callback.args[0];
+            expect(revokeMsg.id._serialized).to.equal(
+                originalMsg.id._serialized,
+            );
             expect(originalMsg.body).to.equal('sneaky message');
             expect(originalMsg.type).to.equal('chat');
             expect(revokeMsg.body).to.equal('');

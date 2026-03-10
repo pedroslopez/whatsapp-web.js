@@ -12,13 +12,13 @@ class Label extends Base {
      * @param {Base} client
      * @param {object} labelData
      */
-    constructor(client, labelData){
+    constructor(client, labelData) {
         super(client);
 
-        if(labelData) this._patch(labelData);
+        if (labelData) this._patch(labelData);
     }
 
-    _patch(labelData){
+    _patch(labelData) {
         /**
          * Label ID
          * @type {string}
@@ -41,10 +41,9 @@ class Label extends Base {
      * Get all chats that have been assigned this Label
      * @returns {Promise<Array<Chat>>}
      */
-    async getChats(){
+    async getChats() {
         return this.client.getChatsByLabelId(this.id);
     }
-
 }
 
 module.exports = Label;
