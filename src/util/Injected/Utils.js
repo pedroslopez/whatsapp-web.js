@@ -12,15 +12,20 @@ exports.LoadUtils = () => {
      */
     window.WWebJS.compareWwebVersions = (lOperand, operator, rOperand) => {
         if (!['>', '>=', '<', '<=', '='].includes(operator)) {
-            throw new class _ extends Error {
-                constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
-            }('Invalid comparison operator is provided');
-
+            throw new (class _ extends Error {
+                constructor(m) {
+                    super(m);
+                    this.name = 'CompareWwebVersionsError';
+                }
+            })('Invalid comparison operator is provided');
         }
         if (typeof lOperand !== 'string' || typeof rOperand !== 'string') {
-            throw new class _ extends Error {
-                constructor(m) { super(m); this.name = 'CompareWwebVersionsError'; }
-            }('A non-string WWeb version type is provided');
+            throw new (class _ extends Error {
+                constructor(m) {
+                    super(m);
+                    this.name = 'CompareWwebVersionsError';
+                }
+            })('A non-string WWeb version type is provided');
         }
 
         lOperand = lOperand.replace(/-beta$/, '');
@@ -28,21 +33,24 @@ exports.LoadUtils = () => {
 
         while (lOperand.length !== rOperand.length) {
             lOperand.length > rOperand.length
-                ? rOperand = rOperand.concat('0')
-                : lOperand = lOperand.concat('0');
+                ? (rOperand = rOperand.concat('0'))
+                : (lOperand = lOperand.concat('0'));
         }
 
         lOperand = Number(lOperand.replace(/\./g, ''));
         rOperand = Number(rOperand.replace(/\./g, ''));
 
-        return (
-            operator === '>' ? lOperand > rOperand :
-                operator === '>=' ? lOperand >= rOperand :
-                    operator === '<' ? lOperand < rOperand :
-                        operator === '<=' ? lOperand <= rOperand :
-                            operator === '=' ? lOperand === rOperand :
-                                false
-        );
+        return operator === '>'
+            ? lOperand > rOperand
+            : operator === '>='
+              ? lOperand >= rOperand
+              : operator === '<'
+                ? lOperand < rOperand
+                : operator === '<='
+                  ? lOperand <= rOperand
+                  : operator === '='
+                    ? lOperand === rOperand
+                    : false;
     };
 
     /**
@@ -59,7 +67,7 @@ exports.LoadUtils = () => {
     window.WWebJS.injectToFunction = (target, callback) => {
         try {
             let module = window.require(target.module);
-            if (!module) return; 
+            if (!module) return;
 
             const path = target.function.split('.');
             const funcName = path.pop();
@@ -79,31 +87,55 @@ exports.LoadUtils = () => {
                     return originalFunction.apply(module, args);
                 }
             }).bind(module);
-
         } catch {
             return;
         }
     };
 
-    window.WWebJS.injectToFunction({ module: 'WAWebBackendJobsCommon', function: 'mediaTypeFromProtobuf' }, (module, func, ...args) => { const [proto] = args; return proto.locationMessage ? null : func(...args); });
+    window.WWebJS.injectToFunction(
+        { module: 'WAWebBackendJobsCommon', function: 'mediaTypeFromProtobuf' },
+        (module, func, ...args) => {
+            const [proto] = args;
+            return proto.locationMessage ? null : func(...args);
+        },
+    );
 
-    window.WWebJS.injectToFunction({ module: 'WAWebE2EProtoUtils', function: 'typeAttributeFromProtobuf' }, (module, func, ...args) => { const [proto] = args; return proto.locationMessage || proto.groupInviteMessage ? 'text' : func(...args); });
+    window.WWebJS.injectToFunction(
+        { module: 'WAWebE2EProtoUtils', function: 'typeAttributeFromProtobuf' },
+        (module, func, ...args) => {
+            const [proto] = args;
+            return proto.locationMessage || proto.groupInviteMessage
+                ? 'text'
+                : func(...args);
+        },
+    );
 
-    
     window.WWebJS.forwardMessage = async (chatId, msgId) => {
-        const msg = (window.require('WAWebCollections')).Msg.get(msgId) || (await (window.require('WAWebCollections')).Msg.getMessagesById([msgId]))?.messages?.[0];
+        const msg =
+            window.require('WAWebCollections').Msg.get(msgId) ||
+            (
+                await window
+                    .require('WAWebCollections')
+                    .Msg.getMessagesById([msgId])
+            )?.messages?.[0];
         const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
-        return await (window.require('WAWebChatForwardMessage')).forwardMessages({'chat': chat, 'msgs' : [msg], 'multicast': true, 'includeCaption': true, 'appendedText' : undefined});
+        return await window.require('WAWebChatForwardMessage').forwardMessages({
+            chat: chat,
+            msgs: [msg],
+            multicast: true,
+            includeCaption: true,
+            appendedText: undefined,
+        });
     };
 
     window.WWebJS.sendSeen = async (chatId) => {
         const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
         if (chat) {
             window.require('WAWebStreamModel').Stream.markAvailable();
-            await (window.require('WAWebUpdateUnreadChatAction')).sendSeen({
+            await window.require('WAWebUpdateUnreadChatAction').sendSeen({
                 chat: chat,
-                threadId: undefined
-            });         
+                threadId: undefined,
+            });
             window.require('WAWebStreamModel').Stream.markUnavailable();
             return true;
         }
@@ -111,27 +143,31 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.sendMessage = async (chat, content, options = {}) => {
-        const { getIsNewsletter, getIsBroadcast } = window.require('WAWebChatGetters');
+        const { getIsNewsletter, getIsBroadcast } =
+            window.require('WAWebChatGetters');
         const isChannel = getIsNewsletter(chat);
         const isStatus = getIsBroadcast(chat);
 
         const { findLink } = window.require('WALinkify');
-        
+
         let mediaOptions = {};
         if (options.media) {
-            mediaOptions =  options.sendMediaAsSticker && !isChannel && !isStatus
-                ? await window.WWebJS.processStickerData(options.media)
-                : await window.WWebJS.processMediaData(options.media, {
-                    forceSticker: options.sendMediaAsSticker,
-                    forceGif: options.sendVideoAsGif,
-                    forceVoice: options.sendAudioAsVoice,
-                    forceDocument: options.sendMediaAsDocument,
-                    forceMediaHd: options.sendMediaAsHd,
-                    sendToChannel: isChannel,
-                    sendToStatus: isStatus
-                });
+            mediaOptions =
+                options.sendMediaAsSticker && !isChannel && !isStatus
+                    ? await window.WWebJS.processStickerData(options.media)
+                    : await window.WWebJS.processMediaData(options.media, {
+                          forceSticker: options.sendMediaAsSticker,
+                          forceGif: options.sendVideoAsGif,
+                          forceVoice: options.sendAudioAsVoice,
+                          forceDocument: options.sendMediaAsDocument,
+                          forceMediaHd: options.sendMediaAsHd,
+                          sendToChannel: isChannel,
+                          sendToStatus: isStatus,
+                      });
             mediaOptions.caption = options.caption;
-            content = options.sendMediaAsSticker ? undefined : mediaOptions.preview;
+            content = options.sendMediaAsSticker
+                ? undefined
+                : mediaOptions.preview;
             mediaOptions.isViewOnce = options.isViewOnce;
             delete options.media;
             delete options.sendMediaAsSticker;
@@ -139,10 +175,16 @@ exports.LoadUtils = () => {
 
         let quotedMsgOptions = {};
         if (options.quotedMessageId) {
-            let quotedMessage = (window.require('WAWebCollections')).Msg.get(options.quotedMessageId);
-            !quotedMessage && (quotedMessage = (await (window.require('WAWebCollections')).Msg.getMessagesById([options.quotedMessageId]))?.messages?.[0]);
+            let quotedMessage = window
+                .require('WAWebCollections')
+                .Msg.get(options.quotedMessageId);
+            !quotedMessage &&
+                (quotedMessage = (
+                    await window
+                        .require('WAWebCollections')
+                        .Msg.getMessagesById([options.quotedMessageId])
+                )?.messages?.[0]);
             if (quotedMessage) {
-
                 const ReplyUtils = window.require('WAWebMsgReply');
                 const canReply = ReplyUtils
                     ? ReplyUtils.canReplyMsg(quotedMessage.unsafe())
@@ -156,20 +198,22 @@ exports.LoadUtils = () => {
                     throw new Error('Could not get the quoted message.');
                 }
             }
-            
+
             delete options.ignoreQuoteErrors;
             delete options.quotedMessageId;
         }
 
         if (options.mentionedJidList) {
-            options.mentionedJidList = options.mentionedJidList.map((id) => window.require('WAWebWidFactory').createWid(id));
+            options.mentionedJidList = options.mentionedJidList.map((id) =>
+                window.require('WAWebWidFactory').createWid(id),
+            );
             options.mentionedJidList = options.mentionedJidList.filter(Boolean);
         }
 
         if (options.groupMentions) {
             options.groupMentions = options.groupMentions.map((e) => ({
                 groupSubject: e.subject,
-                groupJid: window.require('WAWebWidFactory').createWid(e.id)
+                groupJid: window.require('WAWebWidFactory').createWid(e.id),
             }));
         }
 
@@ -183,7 +227,7 @@ exports.LoadUtils = () => {
                 loc: description,
                 lat: latitude,
                 lng: longitude,
-                clientUrl: url
+                clientUrl: url,
             };
             delete options.location;
         }
@@ -191,7 +235,8 @@ exports.LoadUtils = () => {
         let pollOptions = {};
         if (options.poll) {
             const { pollName, pollOptions: _pollOptions } = options.poll;
-            const { allowMultipleAnswers, messageSecret } = options.poll.options;
+            const { allowMultipleAnswers, messageSecret } =
+                options.poll.options;
             pollOptions = {
                 kind: 'pollCreation',
                 type: 'poll_creation',
@@ -201,7 +246,7 @@ exports.LoadUtils = () => {
                 messageSecret:
                     Array.isArray(messageSecret) && messageSecret.length === 32
                         ? new Uint8Array(messageSecret)
-                        : window.crypto.getRandomValues(new Uint8Array(32))
+                        : window.crypto.getRandomValues(new Uint8Array(32)),
             };
             delete options.poll;
         }
@@ -219,12 +264,17 @@ exports.LoadUtils = () => {
                 eventLocation: eventSendOptions.location && {
                     degreesLatitude: 0,
                     degreesLongitude: 0,
-                    name: eventSendOptions.location
+                    name: eventSendOptions.location,
                 },
-                eventJoinLink: eventSendOptions.callType === 'none' ? null : await (window.require('WAWebGenerateEventCallLink')).createEventCallLink(
-                    startTimeTs,
-                    eventSendOptions.callType
-                ),
+                eventJoinLink:
+                    eventSendOptions.callType === 'none'
+                        ? null
+                        : await window
+                              .require('WAWebGenerateEventCallLink')
+                              .createEventCallLink(
+                                  startTimeTs,
+                                  eventSendOptions.callType,
+                              ),
                 isEventCanceled: eventSendOptions.isEventCanceled,
                 messageSecret:
                     Array.isArray(messageSecret) && messageSecret.length === 32
@@ -236,31 +286,49 @@ exports.LoadUtils = () => {
 
         let vcardOptions = {};
         if (options.contactCard) {
-            let contact = (window.require('WAWebCollections')).Contact.get(options.contactCard);
+            let contact = window
+                .require('WAWebCollections')
+                .Contact.get(options.contactCard);
             vcardOptions = {
-                body: window.require('WAWebFrontendVcardUtils').vcardFromContactModel(contact).vcard,
+                body: window
+                    .require('WAWebFrontendVcardUtils')
+                    .vcardFromContactModel(contact).vcard,
                 type: 'vcard',
-                vcardFormattedName: contact.formattedName
+                vcardFormattedName: contact.formattedName,
             };
             delete options.contactCard;
         } else if (options.contactCardList) {
-            let contacts = options.contactCardList.map(c => (window.require('WAWebCollections')).Contact.get(c));
-            let vcards = contacts.map(c => window.require('WAWebFrontendVcardUtils').vcardFromContactModel(c));
+            let contacts = options.contactCardList.map((c) =>
+                window.require('WAWebCollections').Contact.get(c),
+            );
+            let vcards = contacts.map((c) =>
+                window
+                    .require('WAWebFrontendVcardUtils')
+                    .vcardFromContactModel(c),
+            );
             vcardOptions = {
                 type: 'multi_vcard',
                 vcardList: vcards,
-                body: null
+                body: null,
             };
             delete options.contactCardList;
-        } else if (options.parseVCards && typeof (content) === 'string' && content.startsWith('BEGIN:VCARD')) {
+        } else if (
+            options.parseVCards &&
+            typeof content === 'string' &&
+            content.startsWith('BEGIN:VCARD')
+        ) {
             delete options.parseVCards;
             delete options.linkPreview;
             try {
-                const parsed = window.require('WAWebVcardParsingUtils').parseVcard(content);
+                const parsed = window
+                    .require('WAWebVcardParsingUtils')
+                    .parseVcard(content);
                 if (parsed) {
                     vcardOptions = {
                         type: 'vcard',
-                        vcardFormattedName: window.require('WAWebVcardGetNameFromParsed').vcardGetNameFromParsed(parsed)
+                        vcardFormattedName: window
+                            .require('WAWebVcardGetNameFromParsed')
+                            .vcardGetNameFromParsed(parsed),
                     };
                 }
             } catch (_) {
@@ -272,12 +340,14 @@ exports.LoadUtils = () => {
             delete options.linkPreview;
             const link = findLink(content);
             if (link) {
-                let preview = await (window.require('WAWebLinkPreviewChatAction')).getLinkPreview(link);
+                let preview = await window
+                    .require('WAWebLinkPreviewChatAction')
+                    .getLinkPreview(link);
                 if (preview && preview.data) {
                     preview = preview.data;
                     preview.preview = true;
                     preview.subtype = 'url';
-                    options = {...options, ...preview};
+                    options = { ...options, ...preview };
                 }
             }
         }
@@ -295,28 +365,35 @@ exports.LoadUtils = () => {
                 productHeaderImageRejected: false,
                 isFromTemplate: false,
                 isDynamicReplyButtonsMsg: true,
-                title: options.buttons.title ? options.buttons.title : undefined,
-                footer: options.buttons.footer ? options.buttons.footer : undefined,
+                title: options.buttons.title
+                    ? options.buttons.title
+                    : undefined,
+                footer: options.buttons.footer
+                    ? options.buttons.footer
+                    : undefined,
                 dynamicReplyButtons: options.buttons.buttons,
                 replyButtons: options.buttons.buttons,
-                caption: caption
+                caption: caption,
             };
             delete options.buttons;
         }
 
         let listOptions = {};
         if (options.list) {
-            if ((window.require('WAWebConnModel').Conn).platform === 'smba' || (window.require('WAWebConnModel').Conn).platform === 'smbi') {
-                throw '[LT01] Whatsapp business can\'t send this yet';
+            if (
+                window.require('WAWebConnModel').Conn.platform === 'smba' ||
+                window.require('WAWebConnModel').Conn.platform === 'smbi'
+            ) {
+                throw "[LT01] Whatsapp business can't send this yet";
             }
             listOptions = {
                 type: 'list',
                 footer: options.list.footer,
                 list: {
                     ...options.list,
-                    listType: 1
+                    listType: 1,
                 },
-                body: options.list.description
+                body: options.list.description,
             };
             delete options.list;
             delete listOptions.list.footer;
@@ -324,26 +401,43 @@ exports.LoadUtils = () => {
 
         const botOptions = {};
         if (options.invokedBotWid) {
-            botOptions.messageSecret = window.crypto.getRandomValues(new Uint8Array(32));
-            botOptions.botMessageSecret = await (window.require('WAWebBotMessageSecret')).genBotMsgSecretFromMsgSecret(botOptions.messageSecret);
-            botOptions.invokedBotWid = window.require('WAWebWidFactory').createWid(options.invokedBotWid);
-            botOptions.botPersonaId = window.require('WAWebBotProfileCollection').BotProfileCollection.get(options.invokedBotWid).personaId;
+            botOptions.messageSecret = window.crypto.getRandomValues(
+                new Uint8Array(32),
+            );
+            botOptions.botMessageSecret = await window
+                .require('WAWebBotMessageSecret')
+                .genBotMsgSecretFromMsgSecret(botOptions.messageSecret);
+            botOptions.invokedBotWid = window
+                .require('WAWebWidFactory')
+                .createWid(options.invokedBotWid);
+            botOptions.botPersonaId = window
+                .require('WAWebBotProfileCollection')
+                .BotProfileCollection.get(options.invokedBotWid).personaId;
             delete options.invokedBotWid;
         }
-        const { getMaybeMeLidUser, getMaybeMePnUser } = window.require('WAWebUserPrefsMeUser');
+        const { getMaybeMeLidUser, getMaybeMePnUser } = window.require(
+            'WAWebUserPrefsMeUser',
+        );
         const lidUser = getMaybeMeLidUser();
         const meUser = getMaybeMePnUser();
-        const newId = await (window.require('WAWebMsgKey')).newId();
+        const newId = await window.require('WAWebMsgKey').newId();
         let from = chat.id.isLid() ? lidUser : meUser;
         let participant;
 
         if (typeof chat.id?.isGroup === 'function' && chat.id.isGroup()) {
-            from = chat.groupMetadata && chat.groupMetadata.isLidAddressingMode ? lidUser : meUser;
-            participant = window.require('WAWebWidFactory').asUserWidOrThrow(from);
+            from =
+                chat.groupMetadata && chat.groupMetadata.isLidAddressingMode
+                    ? lidUser
+                    : meUser;
+            participant = window
+                .require('WAWebWidFactory')
+                .asUserWidOrThrow(from);
         }
 
         if (typeof chat.id?.isStatus === 'function' && chat.id.isStatus()) {
-            participant = window.require('WAWebWidFactory').asUserWidOrThrow(from);
+            participant = window
+                .require('WAWebWidFactory')
+                .asUserWidOrThrow(from);
         }
 
         const newMsgKey = new (window.require('WAWebMsgKey'))({
@@ -357,7 +451,9 @@ exports.LoadUtils = () => {
         const extraOptions = options.extraOptions || {};
         delete options.extraOptions;
 
-        const ephemeralFields = window.require('WAWebGetEphemeralFieldsMsgActionsUtils').getEphemeralFields(chat);
+        const ephemeralFields = window
+            .require('WAWebGetEphemeralFieldsMsgActionsUtils')
+            .getEphemeralFields(chat);
 
         const message = {
             ...options,
@@ -382,96 +478,126 @@ exports.LoadUtils = () => {
             ...buttonOptions,
             ...listOptions,
             ...botOptions,
-            ...extraOptions
+            ...extraOptions,
         };
-        
+
         // Bot's won't reply if canonicalUrl is set (linking)
         if (botOptions) {
             delete message.canonicalUrl;
         }
 
         if (isChannel) {
-            const msg = new (window.require('WAWebCollections')).Msg.modelClass(message);
-            const msgDataFromMsgModel = (window.require('WAWebMsgDataFromModel')).msgDataFromMsgModel(msg);
+            const msg = new (window.require('WAWebCollections').Msg.modelClass)(
+                message,
+            );
+            const msgDataFromMsgModel = window
+                .require('WAWebMsgDataFromModel')
+                .msgDataFromMsgModel(msg);
             const isMedia = Object.keys(mediaOptions).length > 0;
-            await (window.require('WAWebNewsletterUpdateMsgsRecordsJob')).addNewsletterMsgsRecords([msgDataFromMsgModel]);
+            await window
+                .require('WAWebNewsletterUpdateMsgsRecordsJob')
+                .addNewsletterMsgsRecords([msgDataFromMsgModel]);
             chat.msgs.add(msg);
             chat.t = msg.t;
 
-            const sendChannelMsgResponse = await (window.require('WAWebNewsletterSendMessageJob')).sendNewsletterMessageJob({
-                msg: msg,
-                type: message.type === 'chat' ? 'text' : isMedia ? 'media' : 'pollCreation',
-                newsletterJid: chat.id.toJid(),
-                ...(isMedia
-                    ? {
-                        mediaMetadata: msg.avParams(),
-                        mediaHandle: isMedia ? mediaOptions.mediaHandle : null,
-                    }
-                    : {}
-                )
-            });
+            const sendChannelMsgResponse = await window
+                .require('WAWebNewsletterSendMessageJob')
+                .sendNewsletterMessageJob({
+                    msg: msg,
+                    type:
+                        message.type === 'chat'
+                            ? 'text'
+                            : isMedia
+                              ? 'media'
+                              : 'pollCreation',
+                    newsletterJid: chat.id.toJid(),
+                    ...(isMedia
+                        ? {
+                              mediaMetadata: msg.avParams(),
+                              mediaHandle: isMedia
+                                  ? mediaOptions.mediaHandle
+                                  : null,
+                          }
+                        : {}),
+                });
 
             if (sendChannelMsgResponse.success) {
                 msg.t = sendChannelMsgResponse.ack.t;
                 msg.serverId = sendChannelMsgResponse.serverId;
             }
             msg.updateAck(1, true);
-            await (window.require('WAWebNewsletterUpdateMsgsRecordsJob')).updateNewsletterMsgRecord(msg);
+            await window
+                .require('WAWebNewsletterUpdateMsgsRecordsJob')
+                .updateNewsletterMsgRecord(msg);
             return msg;
         }
 
         if (isStatus) {
             const { backgroundColor, fontStyle } = extraOptions;
             const isMedia = Object.keys(mediaOptions).length > 0;
-            const mediaUpdate = data => (window.require('WAWebMediaUpdateMsg'))(data, mediaOptions);
-            const msg = new (window.require('WAWebCollections')).Msg.modelClass({
-                ...message,
-                author: participant ? participant : null,
-                messageSecret: window.crypto.getRandomValues(new Uint8Array(32)),
-                cannotBeRanked: (window.require('WAWebStatusGatingUtils')).canCheckStatusRankingPosterGating()
-            });
+            const mediaUpdate = (data) =>
+                window.require('WAWebMediaUpdateMsg')(data, mediaOptions);
+            const msg = new (window.require('WAWebCollections').Msg.modelClass)(
+                {
+                    ...message,
+                    author: participant ? participant : null,
+                    messageSecret: window.crypto.getRandomValues(
+                        new Uint8Array(32),
+                    ),
+                    cannotBeRanked: window
+                        .require('WAWebStatusGatingUtils')
+                        .canCheckStatusRankingPosterGating(),
+                },
+            );
 
             // for text only
             const statusOptions = {
-                color: backgroundColor && window.WWebJS.assertColor(backgroundColor) || 0xff7acca5,
-                font: fontStyle >= 0 && fontStyle <= 7 && fontStyle || 0,
-                text: msg.body
+                color:
+                    (backgroundColor &&
+                        window.WWebJS.assertColor(backgroundColor)) ||
+                    0xff7acca5,
+                font: (fontStyle >= 0 && fontStyle <= 7 && fontStyle) || 0,
+                text: msg.body,
             };
 
-            await (window.require('WAWebSendStatusMsgAction'))[
-                isMedia ?
-                    'sendStatusMediaMsgAction' : 'sendStatusTextMsgAction'
-            ](
-                ...(
-                    isMedia ?
-                        [msg, mediaUpdate] : [statusOptions]
-                )
-            );
+            await window
+                .require('WAWebSendStatusMsgAction')
+                [
+                    isMedia
+                        ? 'sendStatusMediaMsgAction'
+                        : 'sendStatusTextMsgAction'
+                ](...(isMedia ? [msg, mediaUpdate] : [statusOptions]));
 
             return msg;
         }
 
-        const [msgPromise, sendMsgResultPromise] = (window.require('WAWebSendMsgChatAction')).addAndSendMsgToChat(chat, message);
+        const [msgPromise, sendMsgResultPromise] = window
+            .require('WAWebSendMsgChatAction')
+            .addAndSendMsgToChat(chat, message);
         await msgPromise;
 
         if (options.waitUntilMsgSent) await sendMsgResultPromise;
 
-        return (window.require('WAWebCollections')).Msg.get(newMsgKey._serialized);
+        return window
+            .require('WAWebCollections')
+            .Msg.get(newMsgKey._serialized);
     };
-	
+
     window.WWebJS.editMessage = async (msg, content, options = {}) => {
         const extraOptions = options.extraOptions || {};
         delete options.extraOptions;
-        
+
         if (options.mentionedJidList) {
-            options.mentionedJidList = options.mentionedJidList.map((id) => window.require('WAWebWidFactory').createWid(id));
+            options.mentionedJidList = options.mentionedJidList.map((id) =>
+                window.require('WAWebWidFactory').createWid(id),
+            );
             options.mentionedJidList = options.mentionedJidList.filter(Boolean);
         }
 
         if (options.groupMentions) {
             options.groupMentions = options.groupMentions.map((e) => ({
                 groupSubject: e.subject,
-                groupJid: window.require('WAWebWidFactory').createWid(e.id)
+                groupJid: window.require('WAWebWidFactory').createWid(e.id),
             }));
         }
 
@@ -480,54 +606,64 @@ exports.LoadUtils = () => {
             delete options.linkPreview;
             const link = findLink(content);
             if (link) {
-                const preview = await (window.require('WAWebLinkPreviewChatAction')).getLinkPreview(link);
+                const preview = await window
+                    .require('WAWebLinkPreviewChatAction')
+                    .getLinkPreview(link);
                 preview.preview = true;
                 preview.subtype = 'url';
                 options = { ...options, ...preview };
             }
         }
 
-
         const internalOptions = {
             ...options,
-            ...extraOptions
+            ...extraOptions,
         };
 
-        await (window.require('WAWebSendMessageEditAction')).sendMessageEdit(msg, content, internalOptions);
-        return (window.require('WAWebCollections')).Msg.get(msg.id._serialized);
+        await window
+            .require('WAWebSendMessageEditAction')
+            .sendMessageEdit(msg, content, internalOptions);
+        return window.require('WAWebCollections').Msg.get(msg.id._serialized);
     };
 
     window.WWebJS.toStickerData = async (mediaInfo) => {
         if (mediaInfo.mimetype == 'image/webp') return mediaInfo;
 
         const file = window.WWebJS.mediaInfoToFile(mediaInfo);
-        const webpSticker = await (window.require('WAWebImageUtils')).toWebpSticker(file);
+        const webpSticker = await window
+            .require('WAWebImageUtils')
+            .toWebpSticker(file);
         const webpBuffer = await webpSticker.arrayBuffer();
         const data = window.WWebJS.arrayBufferToBase64(webpBuffer);
 
         return {
             mimetype: 'image/webp',
-            data
+            data,
         };
     };
 
     window.WWebJS.processStickerData = async (mediaInfo) => {
-        if (mediaInfo.mimetype !== 'image/webp') throw new Error('Invalid media type');
+        if (mediaInfo.mimetype !== 'image/webp')
+            throw new Error('Invalid media type');
 
         const file = window.WWebJS.mediaInfoToFile(mediaInfo);
         let filehash = await window.WWebJS.getFileHash(file);
         let mediaKey = await window.WWebJS.generateHash(32);
 
         const controller = new AbortController();
-        const uploadedInfo = await (window.require('WAWebUploadManager')).encryptAndUpload({
-            blob: file,
-            type: 'sticker',
-            signal: controller.signal,
-            mediaKey,
-            uploadQpl: window.require('WAWebStartMediaUploadQpl').startMediaUploadQpl({
-                entryPoint: 'MediaUpload'
-            }),
-        });
+        const uploadedInfo = await window
+            .require('WAWebUploadManager')
+            .encryptAndUpload({
+                blob: file,
+                type: 'sticker',
+                signal: controller.signal,
+                mediaKey,
+                uploadQpl: window
+                    .require('WAWebStartMediaUploadQpl')
+                    .startMediaUploadQpl({
+                        entryPoint: 'MediaUpload',
+                    }),
+            });
 
         const stickerInfo = {
             ...uploadedInfo,
@@ -536,30 +672,48 @@ exports.LoadUtils = () => {
             uploadhash: uploadedInfo.encFilehash,
             size: file.size,
             type: 'sticker',
-            filehash
+            filehash,
         };
 
         return stickerInfo;
     };
 
-    window.WWebJS.processMediaData = async (mediaInfo, { forceSticker, forceGif, forceVoice, forceDocument, forceMediaHd, sendToChannel, sendToStatus }) => {
+    window.WWebJS.processMediaData = async (
+        mediaInfo,
+        {
+            forceSticker,
+            forceGif,
+            forceVoice,
+            forceDocument,
+            forceMediaHd,
+            sendToChannel,
+            sendToStatus,
+        },
+    ) => {
         const file = window.WWebJS.mediaInfoToFile(mediaInfo);
         const OpaqueData = window.require('WAWebMediaOpaqueData');
-        const opaqueData = await OpaqueData.createFromData(file, mediaInfo.mimetype);
+        const opaqueData = await OpaqueData.createFromData(
+            file,
+            mediaInfo.mimetype,
+        );
         const mediaParams = {
             asSticker: forceSticker,
             asGif: forceGif,
             isPtt: forceVoice,
-            asDocument: forceDocument
+            asDocument: forceDocument,
         };
-      
+
         if (forceMediaHd && file.type.indexOf('image/') === 0) {
             mediaParams.maxDimension = 2560;
         }
-      
-        const mediaPrep = window.require('WAWebPrepRawMedia').prepRawMedia(opaqueData, mediaParams);
+
+        const mediaPrep = window
+            .require('WAWebPrepRawMedia')
+            .prepRawMedia(opaqueData, mediaParams);
         const mediaData = await mediaPrep.waitForPrep();
-        const mediaObject = window.require('WAWebMediaStorage').getOrCreateMediaObject(mediaData.filehash);
+        const mediaObject = window
+            .require('WAWebMediaStorage')
+            .getOrCreateMediaObject(mediaData.filehash);
         const mediaType = window.require('WAWebMmsMediaTypes').msgToMediaType({
             type: mediaData.type,
             isGif: mediaData.isGif,
@@ -570,39 +724,53 @@ exports.LoadUtils = () => {
             throw new Error('media-fault: sendToChat filehash undefined');
         }
 
-        if ((forceVoice && mediaData.type === 'ptt') || (sendToStatus && mediaData.type === 'audio')) {
+        if (
+            (forceVoice && mediaData.type === 'ptt') ||
+            (sendToStatus && mediaData.type === 'audio')
+        ) {
             const waveform = mediaObject.contentInfo.waveform;
             mediaData.waveform =
-                waveform || await window.WWebJS.generateWaveform(file);
+                waveform || (await window.WWebJS.generateWaveform(file));
         }
 
         if (!(mediaData.mediaBlob instanceof OpaqueData)) {
             mediaData.mediaBlob = await OpaqueData.createFromData(
                 mediaData.mediaBlob,
-                mediaData.mediaBlob.type
+                mediaData.mediaBlob.type,
             );
         }
 
         mediaData.renderableUrl = mediaData.mediaBlob.url();
         mediaObject.consolidate(mediaData.toJSON());
-        
+
         mediaData.mediaBlob.autorelease();
-        const shouldUseMediaCache = (window.require('WAWebMediaDataUtils')).shouldUseMediaCache(
-            window.require('WAWebMmsMediaTypes').castToV4(mediaObject.type)
-        );
+        const shouldUseMediaCache = window
+            .require('WAWebMediaDataUtils')
+            .shouldUseMediaCache(
+                window.require('WAWebMmsMediaTypes').castToV4(mediaObject.type),
+            );
         if (shouldUseMediaCache && mediaData.mediaBlob instanceof OpaqueData) {
             const formData = mediaData.mediaBlob.formData();
-            (window.require('WAWebMediaInMemoryBlobCache')).InMemoryMediaBlobCache.put(mediaObject.filehash, formData);
+            window
+                .require('WAWebMediaInMemoryBlobCache')
+                .InMemoryMediaBlobCache.put(mediaObject.filehash, formData);
         }
 
         const dataToUpload = {
             mimetype: mediaData.mimetype,
             mediaObject,
             mediaType,
-            ...(sendToChannel ? { calculateToken: window.require('WAMediaCalculateFilehash').getRandomFilehash } : {})
+            ...(sendToChannel
+                ? {
+                      calculateToken: window.require('WAMediaCalculateFilehash')
+                          .getRandomFilehash,
+                  }
+                : {}),
         };
 
-        const { uploadMedia, uploadUnencryptedMedia } = window.require('WAWebMediaMmsV4Upload');
+        const { uploadMedia, uploadUnencryptedMedia } = window.require(
+            'WAWebMediaMmsV4Upload',
+        );
         const uploadedMedia = !sendToChannel
             ? await uploadMedia(dataToUpload)
             : await uploadUnencryptedMedia(dataToUpload);
@@ -634,26 +802,34 @@ exports.LoadUtils = () => {
         const msg = message.serialize();
 
         const { findLinks } = window.require('WALinkify');
-        
+
         msg.isEphemeral = message.isEphemeral;
         msg.isStatusV3 = message.isStatusV3;
-        msg.links = findLinks(message.mediaObject ? message.caption : message.body).map((link) => ({
+        msg.links = findLinks(
+            message.mediaObject ? message.caption : message.body,
+        ).map((link) => ({
             link: link.href,
-            isSuspicious: Boolean(link.suspiciousCharacters && link.suspiciousCharacters.size)
+            isSuspicious: Boolean(
+                link.suspiciousCharacters && link.suspiciousCharacters.size,
+            ),
         }));
 
         if (msg.buttons) {
             msg.buttons = msg.buttons.serialize();
         }
         if (msg.dynamicReplyButtons) {
-            msg.dynamicReplyButtons = JSON.parse(JSON.stringify(msg.dynamicReplyButtons));
+            msg.dynamicReplyButtons = JSON.parse(
+                JSON.stringify(msg.dynamicReplyButtons),
+            );
         }
         if (msg.replyButtons) {
             msg.replyButtons = JSON.parse(JSON.stringify(msg.replyButtons));
         }
 
         if (typeof msg.id.remote === 'object') {
-            msg.id = Object.assign({}, msg.id, { remote: msg.id.remote._serialized });
+            msg.id = Object.assign({}, msg.id, {
+                remote: msg.id.remote._serialized,
+            });
         }
 
         delete msg.pendingAckUpdate;
@@ -668,16 +844,28 @@ exports.LoadUtils = () => {
 
         if (isChannel) {
             try {
-                chat = (window.require('WAWebCollections')).WAWebNewsletterCollection.get(chatId);
+                chat = window
+                    .require('WAWebCollections')
+                    .WAWebNewsletterCollection.get(chatId);
                 if (!chat) {
-                    await (window.require('WAWebLoadNewsletterPreviewChatAction')).loadNewsletterPreviewChat(chatId);
-                    chat = await (window.require('WAWebCollections')).WAWebNewsletterCollection.find(chatWid);
+                    await window
+                        .require('WAWebLoadNewsletterPreviewChatAction')
+                        .loadNewsletterPreviewChat(chatId);
+                    chat = await window
+                        .require('WAWebCollections')
+                        .WAWebNewsletterCollection.find(chatWid);
                 }
             } catch (err) {
                 chat = null;
             }
         } else {
-            chat = (window.require('WAWebCollections')).Chat.get(chatWid) || (await (window.require('WAWebFindChatAction')).findOrCreateLatestChat(chatWid))?.chat;
+            chat =
+                window.require('WAWebCollections').Chat.get(chatWid) ||
+                (
+                    await window
+                        .require('WAWebFindChatAction')
+                        .findOrCreateLatestChat(chatWid)
+                )?.chat;
         }
 
         return getAsModel && chat
@@ -686,44 +874,62 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getChannelMetadata = async (inviteCode) => {
-        const role = (window.require('WAWebNewsletterModelUtils')).getRoleByIdentifier(inviteCode);
-        const response =
-            await (window.require('WAWebNewsletterMetadataQueryJob')).queryNewsletterMetadataByInviteCode(
-                inviteCode,
-                role
-            );
+        const role = window
+            .require('WAWebNewsletterModelUtils')
+            .getRoleByIdentifier(inviteCode);
+        const response = await window
+            .require('WAWebNewsletterMetadataQueryJob')
+            .queryNewsletterMetadataByInviteCode(inviteCode, role);
 
-        const picUrl = response.newsletterPictureMetadataMixin?.picture[0]?.queryPictureDirectPathOrEmptyResponseMixinGroup.value.directPath;
+        const picUrl =
+            response.newsletterPictureMetadataMixin?.picture[0]
+                ?.queryPictureDirectPathOrEmptyResponseMixinGroup.value
+                .directPath;
 
         return {
             id: response.idJid,
-            createdAtTs: response.newsletterCreationTimeMetadataMixin.creationTimeValue,
+            createdAtTs:
+                response.newsletterCreationTimeMetadataMixin.creationTimeValue,
             titleMetadata: {
                 title: response.newsletterNameMetadataMixin.nameElementValue,
-                updatedAtTs: response.newsletterNameMetadataMixin.nameUpdateTime
+                updatedAtTs:
+                    response.newsletterNameMetadataMixin.nameUpdateTime,
             },
             descriptionMetadata: {
-                description: response.newsletterDescriptionMetadataMixin.descriptionQueryDescriptionResponseMixin.elementValue,
-                updatedAtTs: response.newsletterDescriptionMetadataMixin.descriptionQueryDescriptionResponseMixin.updateTime
+                description:
+                    response.newsletterDescriptionMetadataMixin
+                        .descriptionQueryDescriptionResponseMixin.elementValue,
+                updatedAtTs:
+                    response.newsletterDescriptionMetadataMixin
+                        .descriptionQueryDescriptionResponseMixin.updateTime,
             },
             inviteLink: `https://whatsapp.com/channel/${response.newsletterInviteLinkMetadataMixin.inviteCode}`,
             membershipType: role,
             stateType: response.newsletterStateMetadataMixin.stateType,
             pictureUrl: picUrl ? `https://pps.whatsapp.net${picUrl}` : null,
-            subscribersCount: response.newsletterSubscribersMetadataMixin.subscribersCount,
-            isVerified: response.newsletterVerificationMetadataMixin.verificationState === 'verified'
+            subscribersCount:
+                response.newsletterSubscribersMetadataMixin.subscribersCount,
+            isVerified:
+                response.newsletterVerificationMetadataMixin
+                    .verificationState === 'verified',
         };
     };
 
     window.WWebJS.getChats = async () => {
-        const chats = (window.require('WAWebCollections')).Chat.getModelsArray();
-        const chatPromises = chats.map(chat => window.WWebJS.getChatModel(chat));
+        const chats = window.require('WAWebCollections').Chat.getModelsArray();
+        const chatPromises = chats.map((chat) =>
+            window.WWebJS.getChatModel(chat),
+        );
         return await Promise.all(chatPromises);
     };
 
     window.WWebJS.getChannels = async () => {
-        const channels = (window.require('WAWebCollections')).WAWebNewsletterCollection.getModelsArray();
-        const channelPromises = channels?.map((channel) => window.WWebJS.getChatModel(channel, { isChannel: true }));
+        const channels = window
+            .require('WAWebCollections')
+            .WAWebNewsletterCollection.getModelsArray();
+        const channelPromises = channels?.map((channel) =>
+            window.WWebJS.getChatModel(channel, { isChannel: true }),
+        );
         return await Promise.all(channelPromises);
     };
 
@@ -734,36 +940,62 @@ exports.LoadUtils = () => {
         model.isGroup = false;
         model.isMuted = chat.mute?.expiration !== 0;
         if (isChannel) {
-            model.isChannel = (window.require('WAWebChatGetters')).getIsNewsletter(chat);
+            model.isChannel = window
+                .require('WAWebChatGetters')
+                .getIsNewsletter(chat);
         } else {
             model.formattedTitle = chat.formattedTitle;
         }
 
         if (chat.groupMetadata) {
             model.isGroup = true;
-            const chatWid = window.require('WAWebWidFactory').createWid(chat.id._serialized);
-            const groupMetadata = (window.require('WAWebCollections')).GroupMetadata || (window.require('WAWebCollections')).WAWebGroupMetadataCollection;
+            const chatWid = window
+                .require('WAWebWidFactory')
+                .createWid(chat.id._serialized);
+            const groupMetadata =
+                window.require('WAWebCollections').GroupMetadata ||
+                window.require('WAWebCollections').WAWebGroupMetadataCollection;
             await groupMetadata.update(chatWid);
             chat.groupMetadata.participants._models
-                .filter(x => x.id?._serialized?.endsWith('@lid'))
-                .forEach(x => x.contact?.phoneNumber && (x.id = x.contact.phoneNumber));
+                .filter((x) => x.id?._serialized?.endsWith('@lid'))
+                .forEach(
+                    (x) =>
+                        x.contact?.phoneNumber &&
+                        (x.id = x.contact.phoneNumber),
+                );
             model.groupMetadata = chat.groupMetadata.serialize();
             model.isReadOnly = chat.groupMetadata.announce;
         }
 
         if (chat.newsletterMetadata) {
-            const newsletterMetadata = (window.require('WAWebCollections')).NewsletterMetadataCollection || (window.require('WAWebCollections')).WAWebNewsletterMetadataCollection;
+            const newsletterMetadata =
+                window.require('WAWebCollections')
+                    .NewsletterMetadataCollection ||
+                window.require('WAWebCollections')
+                    .WAWebNewsletterMetadataCollection;
             await newsletterMetadata.update(chat.id);
             model.channelMetadata = chat.newsletterMetadata.serialize();
-            model.channelMetadata.createdAtTs = chat.newsletterMetadata.creationTime;
+            model.channelMetadata.createdAtTs =
+                chat.newsletterMetadata.creationTime;
         }
 
         model.lastMessage = null;
         if (model.msgs && model.msgs.length) {
             const lastMessage = chat.lastReceivedKey
-                ? (window.require('WAWebCollections')).Msg.get(chat.lastReceivedKey._serialized) || (await (window.require('WAWebCollections')).Msg.getMessagesById([chat.lastReceivedKey._serialized]))?.messages?.[0]
+                ? window
+                      .require('WAWebCollections')
+                      .Msg.get(chat.lastReceivedKey._serialized) ||
+                  (
+                      await window
+                          .require('WAWebCollections')
+                          .Msg.getMessagesById([
+                              chat.lastReceivedKey._serialized,
+                          ])
+                  )?.messages?.[0]
                 : null;
-            lastMessage && (model.lastMessage = window.WWebJS.getMessageModel(lastMessage));
+            lastMessage &&
+                (model.lastMessage =
+                    window.WWebJS.getMessageModel(lastMessage));
         }
 
         delete model.msgs;
@@ -773,16 +1005,17 @@ exports.LoadUtils = () => {
         return model;
     };
 
-    window.WWebJS.getContactModel = contact => {
+    window.WWebJS.getContactModel = (contact) => {
         let res = contact.serialize();
-        res.isBusiness = contact.isBusiness === undefined ? false : contact.isBusiness;
+        res.isBusiness =
+            contact.isBusiness === undefined ? false : contact.isBusiness;
 
         if (contact.businessProfile) {
             res.businessProfile = contact.businessProfile.serialize();
         }
-        
+
         res.isBlocked = contact.isContactBlocked;
-        
+
         const ContactMethods = window.require('WAWebContactGetters');
         res.isMe = ContactMethods.getIsMe(contact);
         res.isUser = ContactMethods.getIsUser(contact);
@@ -795,28 +1028,38 @@ exports.LoadUtils = () => {
         res.name = ContactMethods.getName(contact);
         res.shortName = ContactMethods.getShortName(contact);
         res.pushname = ContactMethods.getPushname(contact);
-        
-        const { getIsMyContact } = window.require('WAWebFrontendContactGetters');
+
+        const { getIsMyContact } = window.require(
+            'WAWebFrontendContactGetters',
+        );
         res.isMyContact = getIsMyContact(contact);
         res.isEnterprise = ContactMethods.getIsEnterprise(contact);
 
         return res;
     };
 
-    window.WWebJS.getContact = async contactId => {
+    window.WWebJS.getContact = async (contactId) => {
         const wid = window.require('WAWebWidFactory').createWid(contactId);
-        let contact = await (window.require('WAWebCollections')).Contact.find(wid);
+        let contact = await window
+            .require('WAWebCollections')
+            .Contact.find(wid);
         if (contact.id._serialized.endsWith('@lid')) {
             contact.id = contact.phoneNumber;
         }
-        const bizProfile = await (window.require('WAWebCollections')).BusinessProfile.fetchBizProfile(wid);
+        const bizProfile = await window
+            .require('WAWebCollections')
+            .BusinessProfile.fetchBizProfile(wid);
         bizProfile.profileOptions && (contact.businessProfile = bizProfile);
         return window.WWebJS.getContactModel(contact);
     };
 
     window.WWebJS.getContacts = () => {
-        const contacts = (window.require('WAWebCollections')).Contact.getModelsArray();
-        return contacts.map(contact => window.WWebJS.getContactModel(contact));
+        const contacts = window
+            .require('WAWebCollections')
+            .Contact.getModelsArray();
+        return contacts.map((contact) =>
+            window.WWebJS.getContactModel(contact),
+        );
     };
 
     window.WWebJS.mediaInfoToFile = ({ data, mimetype, filename }) => {
@@ -831,7 +1074,7 @@ exports.LoadUtils = () => {
         const blob = new Blob([buffer], { type: mimetype });
         return new File([blob], filename, {
             type: mimetype,
-            lastModified: Date.now()
+            lastModified: Date.now(),
         });
     };
 
@@ -867,10 +1110,13 @@ exports.LoadUtils = () => {
 
     window.WWebJS.generateHash = async (length) => {
         var result = '';
-        var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        var characters =
+            'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         var charactersLength = characters.length;
         for (var i = 0; i < length; i++) {
-            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+            result += characters.charAt(
+                Math.floor(Math.random() * charactersLength),
+            );
         }
         return result;
     };
@@ -898,7 +1144,7 @@ exports.LoadUtils = () => {
             const normalizedData = filteredData.map((n) => n * multiplier);
 
             const waveform = new Uint8Array(
-                normalizedData.map((n) => Math.floor(100 * n))
+                normalizedData.map((n) => Math.floor(100 * n)),
             );
 
             return waveform;
@@ -910,7 +1156,7 @@ exports.LoadUtils = () => {
     window.WWebJS.sendClearChat = async (chatId) => {
         let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
         if (chat !== undefined) {
-            await (window.require('WAWebChatClearBridge')).sendClear(chat, false);
+            await window.require('WAWebChatClearBridge').sendClear(chat, false);
             return true;
         }
         return false;
@@ -919,7 +1165,7 @@ exports.LoadUtils = () => {
     window.WWebJS.sendDeleteChat = async (chatId) => {
         let chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
         if (chat !== undefined) {
-            await (window.require('WAWebDeleteChatAction')).sendDelete(chat);
+            await window.require('WAWebDeleteChatAction').sendDelete(chat);
             return true;
         }
         return false;
@@ -930,23 +1176,23 @@ exports.LoadUtils = () => {
 
         const ChatState = window.require('WAWebChatStateBridge');
         switch (state) {
-        case 'typing':
-            await ChatState.sendChatStateComposing(chatId);
-            break;
-        case 'recording':
-            await ChatState.sendChatStateRecording(chatId);
-            break;
-        case 'stop':
-            await ChatState.sendChatStatePaused(chatId);
-            break;
-        default:
-            throw 'Invalid chatstate';
+            case 'typing':
+                await ChatState.sendChatStateComposing(chatId);
+                break;
+            case 'recording':
+                await ChatState.sendChatStateRecording(chatId);
+                break;
+            case 'stop':
+                await ChatState.sendChatStatePaused(chatId);
+                break;
+            default:
+                throw 'Invalid chatstate';
         }
 
         return true;
     };
 
-    window.WWebJS.getLabelModel = label => {
+    window.WWebJS.getLabelModel = (label) => {
         let res = label.serialize();
         res.hexColor = label.hexColor;
 
@@ -954,28 +1200,34 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.getLabels = () => {
-        const labels = (window.require('WAWebCollections')).Label.getModelsArray();
-        return labels.map(label => window.WWebJS.getLabelModel(label));
+        const labels = window
+            .require('WAWebCollections')
+            .Label.getModelsArray();
+        return labels.map((label) => window.WWebJS.getLabelModel(label));
     };
 
     window.WWebJS.getLabel = (labelId) => {
-        const label = (window.require('WAWebCollections')).Label.get(labelId);
+        const label = window.require('WAWebCollections').Label.get(labelId);
         return window.WWebJS.getLabelModel(label);
     };
 
     window.WWebJS.getChatLabels = async (chatId) => {
         const chat = await window.WWebJS.getChat(chatId);
-        return (chat.labels || []).map(id => window.WWebJS.getLabel(id));
+        return (chat.labels || []).map((id) => window.WWebJS.getLabel(id));
     };
 
     window.WWebJS.getOrderDetail = async (orderId, token, chatId) => {
         const chatWid = window.require('WAWebWidFactory').createWid(chatId);
-        return (window.require('WAWebBizOrderBridge')).queryOrder(chatWid, orderId, 80, 80, token);
+        return window
+            .require('WAWebBizOrderBridge')
+            .queryOrder(chatWid, orderId, 80, 80, token);
     };
 
     window.WWebJS.getProductMetadata = async (productId) => {
-        let sellerId = (window.require('WAWebConnModel').Conn).wid;
-        let product = await (window.require('WAWebBizProductCatalogBridge')).queryProduct(sellerId, productId);
+        let sellerId = window.require('WAWebConnModel').Conn.wid;
+        let product = await window
+            .require('WAWebBizProductCatalogBridge')
+            .queryProduct(sellerId, productId);
         if (product && product.data) {
             return product.data;
         }
@@ -984,22 +1236,28 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.rejectCall = async (peerJid, id) => {
-        let userId = (window.require('WAWebUserPrefsMeUser')).getMaybeMePnUser()._serialized;
+        let userId = window
+            .require('WAWebUserPrefsMeUser')
+            .getMaybeMePnUser()._serialized;
 
-        const stanza = window.require('WAWap').wap('call', {
-            id: window.require('WAWap').generateId(),
-            from: userId,
-            to: peerJid,
-        }, [
-            window.require('WAWap').wap('reject', {
-                'call-id': id,
-                'call-creator': peerJid,
-                count: '0',
-            })
-        ]);
-        await (window.require('WADeprecatedSendIq')).deprecatedCastStanza(stanza);
+        const stanza = window.require('WAWap').wap(
+            'call',
+            {
+                id: window.require('WAWap').generateId(),
+                from: userId,
+                to: peerJid,
+            },
+            [
+                window.require('WAWap').wap('reject', {
+                    'call-id': id,
+                    'call-creator': peerJid,
+                    count: '0',
+                }),
+            ],
+        );
+        await window.require('WADeprecatedSendIq').deprecatedCastStanza(stanza);
     };
-    
+
     window.WWebJS.cropAndResizeImage = async (media, options = {}) => {
         if (!media.mimetype.includes('image'))
             throw new Error('Media is not an image');
@@ -1007,9 +1265,17 @@ exports.LoadUtils = () => {
         if (options.mimetype && !options.mimetype.includes('image'))
             delete options.mimetype;
 
-        options = Object.assign({ size: 640, mimetype: media.mimetype, quality: .75, asDataUrl: false }, options);
+        options = Object.assign(
+            {
+                size: 640,
+                mimetype: media.mimetype,
+                quality: 0.75,
+                asDataUrl: false,
+            },
+            options,
+        );
 
-        const img = await new Promise ((resolve, reject) => {
+        const img = await new Promise((resolve, reject) => {
             const img = new Image();
             img.onload = () => resolve(img);
             img.onerror = reject;
@@ -1029,25 +1295,40 @@ exports.LoadUtils = () => {
 
         const dataUrl = canvas.toDataURL(options.mimetype, options.quality);
 
-        if (options.asDataUrl)
-            return dataUrl;
+        if (options.asDataUrl) return dataUrl;
 
         return Object.assign(media, {
             mimetype: options.mimetype,
-            data: dataUrl.replace(`data:${options.mimetype};base64,`, '')
+            data: dataUrl.replace(`data:${options.mimetype};base64,`, ''),
         });
     };
 
     window.WWebJS.setPicture = async (chatId, media) => {
-        const thumbnail = await window.WWebJS.cropAndResizeImage(media, { asDataUrl: true, mimetype: 'image/jpeg', size: 96 });
-        const profilePic = await window.WWebJS.cropAndResizeImage(media, { asDataUrl: true, mimetype: 'image/jpeg', size: 640 });
+        const thumbnail = await window.WWebJS.cropAndResizeImage(media, {
+            asDataUrl: true,
+            mimetype: 'image/jpeg',
+            size: 96,
+        });
+        const profilePic = await window.WWebJS.cropAndResizeImage(media, {
+            asDataUrl: true,
+            mimetype: 'image/jpeg',
+            size: 640,
+        });
 
         const chatWid = window.require('WAWebWidFactory').createWid(chatId);
         try {
-            const collection = (window.require('WAWebCollections')).ProfilePicThumb.get(chatId) || await (window.require('WAWebCollections')).ProfilePicThumb.find(chatId);
+            const collection =
+                window
+                    .require('WAWebCollections')
+                    .ProfilePicThumb.get(chatId) ||
+                (await window
+                    .require('WAWebCollections')
+                    .ProfilePicThumb.find(chatId));
             if (!collection?.canSet()) return false;
 
-            const res = await (window.require('WAWebContactProfilePicThumbBridge')).sendSetPicture(chatWid, thumbnail, profilePic);
+            const res = await window
+                .require('WAWebContactProfilePicThumbBridge')
+                .sendSetPicture(chatWid, thumbnail, profilePic);
             return res ? res.status === 200 : false;
         } catch (err) {
             if (err.name === 'ServerStatusCodeError') return false;
@@ -1058,19 +1339,25 @@ exports.LoadUtils = () => {
     window.WWebJS.deletePicture = async (chatid) => {
         const chatWid = window.require('WAWebWidFactory').createWid(chatid);
         try {
-            const collection = (window.require('WAWebCollections')).ProfilePicThumb.get(chatid);
+            const collection = window
+                .require('WAWebCollections')
+                .ProfilePicThumb.get(chatid);
             if (!collection.canDelete()) return;
 
-            const res = await (window.require('WAWebContactProfilePicThumbBridge')).requestDeletePicture(chatWid);
+            const res = await window
+                .require('WAWebContactProfilePicThumbBridge')
+                .requestDeletePicture(chatWid);
             return res ? res.status === 200 : false;
         } catch (err) {
-            if(err.name === 'ServerStatusCodeError') return false;
+            if (err.name === 'ServerStatusCodeError') return false;
             throw err;
         }
     };
-    
+
     window.WWebJS.getProfilePicThumbToBase64 = async (chatWid) => {
-        const profilePicCollection = await (window.require('WAWebCollections')).ProfilePicThumb.find(chatWid);
+        const profilePicCollection = await window
+            .require('WAWebCollections')
+            .ProfilePicThumb.find(chatWid);
 
         const _readImageAsBase64 = (imageBlob) => {
             return new Promise((resolve) => {
@@ -1098,32 +1385,43 @@ exports.LoadUtils = () => {
                         return base64Image;
                     }
                 }
-            } catch (error) { /* empty */ }
+            } catch (error) {
+                /* empty */
+            }
         }
         return undefined;
     };
 
-    window.WWebJS.getAddParticipantsRpcResult = async (groupWid, participantWid) => {
+    window.WWebJS.getAddParticipantsRpcResult = async (
+        groupWid,
+        participantWid,
+    ) => {
         const iqTo = window.require('WAWebWidToJid').widToGroupJid(groupWid);
 
-        const participantArgs = [{
-            participantJid: window.require('WAWebWidToJid').widToUserJid(participantWid)
-        }];
+        const participantArgs = [
+            {
+                participantJid: window
+                    .require('WAWebWidToJid')
+                    .widToUserJid(participantWid),
+            },
+        ];
 
         let rpcResult, resultArgs;
         const data = {
             name: undefined,
             code: undefined,
             inviteV4Code: undefined,
-            inviteV4CodeExp: undefined
+            inviteV4CodeExp: undefined,
         };
 
         try {
-            rpcResult = await (window.require('WASmaxGroupsAddParticipantsRPC')).sendAddParticipantsRPC({ participantArgs, iqTo });
-            resultArgs = rpcResult.value.addParticipant[0]
-                .addParticipantsParticipantAddedOrNonRegisteredWaUserParticipantErrorLidResponseMixinGroup
-                .value
-                .addParticipantsParticipantMixins;
+            rpcResult = await window
+                .require('WASmaxGroupsAddParticipantsRPC')
+                .sendAddParticipantsRPC({ participantArgs, iqTo });
+            resultArgs =
+                rpcResult.value.addParticipant[0]
+                    .addParticipantsParticipantAddedOrNonRegisteredWaUserParticipantErrorLidResponseMixinGroup
+                    .value.addParticipantsParticipantMixins;
         } catch (err) {
             data.code = 400;
             return data;
@@ -1134,15 +1432,13 @@ exports.LoadUtils = () => {
             data.name = resultArgs?.name;
             data.code = +code;
             data.inviteV4Code = resultArgs?.value.addRequestCode;
-            data.inviteV4CodeExp = resultArgs?.value.addRequestExpiration?.toString();
-        }
-
-        else if (rpcResult.name === 'AddParticipantsResponseClientError') {
-            const { code: code } = rpcResult.value.errorAddParticipantsClientErrors.value;
+            data.inviteV4CodeExp =
+                resultArgs?.value.addRequestExpiration?.toString();
+        } else if (rpcResult.name === 'AddParticipantsResponseClientError') {
+            const { code: code } =
+                rpcResult.value.errorAddParticipantsClientErrors.value;
             data.code = +code;
-        }
-
-        else if (rpcResult.name === 'AddParticipantsResponseServerError') {
+        } else if (rpcResult.name === 'AddParticipantsResponseServerError') {
             const { code: code } = rpcResult.value.errorServerErrors.value;
             data.code = +code;
         }
@@ -1150,44 +1446,69 @@ exports.LoadUtils = () => {
         return data;
     };
 
-    window.WWebJS.membershipRequestAction = async (groupId, action, requesterIds, sleep) => {
+    window.WWebJS.membershipRequestAction = async (
+        groupId,
+        action,
+        requesterIds,
+        sleep,
+    ) => {
         const groupWid = window.require('WAWebWidFactory').createWid(groupId);
-        const group = await (window.require('WAWebCollections')).Chat.find(groupWid);
+        const group = await window
+            .require('WAWebCollections')
+            .Chat.find(groupWid);
         const toApprove = action === 'Approve';
         let membershipRequests;
         let response;
         let result = [];
 
-        await (window.require('WAWebGroupQueryJob')).queryAndUpdateGroupMetadataById({ id: groupId });
+        await window
+            .require('WAWebGroupQueryJob')
+            .queryAndUpdateGroupMetadataById({ id: groupId });
 
         if (!requesterIds?.length) {
-            membershipRequests = group.groupMetadata.membershipApprovalRequests._models.map(({ id }) => id);
+            membershipRequests =
+                group.groupMetadata.membershipApprovalRequests._models.map(
+                    ({ id }) => id,
+                );
         } else {
             !Array.isArray(requesterIds) && (requesterIds = [requesterIds]);
-            membershipRequests = requesterIds.map(r => window.require('WAWebWidFactory').createWid(r));
+            membershipRequests = requesterIds.map((r) =>
+                window.require('WAWebWidFactory').createWid(r),
+            );
         }
 
         if (!membershipRequests.length) return [];
 
-        const participantArgs = membershipRequests.map(m => ({
+        const participantArgs = membershipRequests.map((m) => ({
             participantArgs: [
                 {
-                    participantJid: window.require('WAWebWidToJid').widToUserJid(m)
-                }
-            ]
+                    participantJid: window
+                        .require('WAWebWidToJid')
+                        .widToUserJid(m),
+                },
+            ],
         }));
 
-        const groupJid = window.require('WAWebWidToJid').widToGroupJid(groupWid);
-        
+        const groupJid = window
+            .require('WAWebWidToJid')
+            .widToGroupJid(groupWid);
+
         const _getSleepTime = (sleep) => {
-            if (!Array.isArray(sleep) || (sleep.length === 2 && sleep[0] === sleep[1])) {
+            if (
+                !Array.isArray(sleep) ||
+                (sleep.length === 2 && sleep[0] === sleep[1])
+            ) {
                 return sleep;
             }
             if (sleep.length === 1) {
                 return sleep[0];
             }
-            sleep[1] - sleep[0] < 100 && (sleep[0] = sleep[1]) && (sleep[1] += 100);
-            return Math.floor(Math.random() * (sleep[1] - sleep[0] + 1)) + sleep[0];
+            sleep[1] - sleep[0] < 100 &&
+                (sleep[0] = sleep[1]) &&
+                (sleep[1] += 100);
+            return (
+                Math.floor(Math.random() * (sleep[1] - sleep[0] + 1)) + sleep[0]
+            );
         };
 
         const membReqResCodes = {
@@ -1199,45 +1520,69 @@ exports.LoadUtils = () => {
             408: 'ParticipantTemporarilyBlockedError',
             409: 'ParticipantConflictError',
             412: 'ParticipantParentLinkedGroupsResourceConstraintError',
-            500: 'ParticipantResourceConstraintError'
+            500: 'ParticipantResourceConstraintError',
         };
 
         try {
             for (const participant of participantArgs) {
-                response = await (window.require('WASmaxGroupsMembershipRequestsActionRPC')).sendMembershipRequestsActionRPC({
-                    iqTo: groupJid,
-                    [toApprove ? 'approveArgs' : 'rejectArgs']: participant
-                });
+                response = await window
+                    .require('WASmaxGroupsMembershipRequestsActionRPC')
+                    .sendMembershipRequestsActionRPC({
+                        iqTo: groupJid,
+                        [toApprove ? 'approveArgs' : 'rejectArgs']: participant,
+                    });
 
-                if (response.name === 'MembershipRequestsActionResponseSuccess') {
+                if (
+                    response.name === 'MembershipRequestsActionResponseSuccess'
+                ) {
                     const value = toApprove
                         ? response.value.membershipRequestsActionApprove
                         : response.value.membershipRequestsActionReject;
                     if (value?.participant) {
-                        const [_] = value.participant.map(p => {
+                        const [_] = value.participant.map((p) => {
                             const error = toApprove
-                                ? value.participant[0].membershipRequestsActionAcceptParticipantMixins?.value.error
-                                : value.participant[0].membershipRequestsActionRejectParticipantMixins?.value.error;
+                                ? value.participant[0]
+                                      .membershipRequestsActionAcceptParticipantMixins
+                                      ?.value.error
+                                : value.participant[0]
+                                      .membershipRequestsActionRejectParticipantMixins
+                                      ?.value.error;
                             return {
-                                requesterId: window.require('WAWebWidFactory').createWid(p.jid)._serialized,
+                                requesterId: window
+                                    .require('WAWebWidFactory')
+                                    .createWid(p.jid)._serialized,
                                 ...(error
-                                    ? { error: +error, message: membReqResCodes[error] || membReqResCodes.default }
-                                    : { message: `${toApprove ? 'Approved' : 'Rejected'} successfully` })
+                                    ? {
+                                          error: +error,
+                                          message:
+                                              membReqResCodes[error] ||
+                                              membReqResCodes.default,
+                                      }
+                                    : {
+                                          message: `${toApprove ? 'Approved' : 'Rejected'} successfully`,
+                                      }),
                             };
                         });
                         _ && result.push(_);
                     }
                 } else {
                     result.push({
-                        requesterId: window.require('WAWebJidToWid').userJidToUserWid(participant.participantArgs[0].participantJid)._serialized,
-                        message: 'ServerStatusCodeError'
+                        requesterId: window
+                            .require('WAWebJidToWid')
+                            .userJidToUserWid(
+                                participant.participantArgs[0].participantJid,
+                            )._serialized,
+                        message: 'ServerStatusCodeError',
                     });
                 }
 
                 sleep &&
                     participantArgs.length > 1 &&
-                    participantArgs.indexOf(participant) !== participantArgs.length - 1 &&
-                    (await new Promise((resolve) => setTimeout(resolve, _getSleepTime(sleep))));
+                    participantArgs.indexOf(participant) !==
+                        participantArgs.length - 1 &&
+                    (await new Promise((resolve) =>
+                        setTimeout(resolve, _getSleepTime(sleep)),
+                    ));
             }
             return result;
         } catch (err) {
@@ -1245,17 +1590,31 @@ exports.LoadUtils = () => {
         }
     };
 
-    window.WWebJS.subscribeToUnsubscribeFromChannel = async (channelId, action, options = {}) => {
-        const channel = await window.WWebJS.getChat(channelId, { getAsModel: false });
+    window.WWebJS.subscribeToUnsubscribeFromChannel = async (
+        channelId,
+        action,
+        options = {},
+    ) => {
+        const channel = await window.WWebJS.getChat(channelId, {
+            getAsModel: false,
+        });
 
-        if (!channel || channel.newsletterMetadata.membershipType === 'owner') return false;
-        options = { eventSurface: 3, deleteLocalModels: options.deleteLocalModels ?? true };
+        if (!channel || channel.newsletterMetadata.membershipType === 'owner')
+            return false;
+        options = {
+            eventSurface: 3,
+            deleteLocalModels: options.deleteLocalModels ?? true,
+        };
 
         try {
             if (action === 'Subscribe') {
-                await (window.require('WAWebNewsletterSubscribeAction')).subscribeToNewsletterAction(channel, options);
+                await window
+                    .require('WAWebNewsletterSubscribeAction')
+                    .subscribeToNewsletterAction(channel, options);
             } else if (action === 'Unsubscribe') {
-                await (window.require('WAWebNewsletterUnsubscribeAction')).unsubscribeFromNewsletterAction(channel, options);
+                await window
+                    .require('WAWebNewsletterUnsubscribeAction')
+                    .unsubscribeFromNewsletterAction(channel, options);
             } else return false;
             return true;
         } catch (err) {
@@ -1265,47 +1624,69 @@ exports.LoadUtils = () => {
     };
 
     window.WWebJS.pinUnpinMsgAction = async (msgId, action, duration) => {
-        const message = (window.require('WAWebCollections')).Msg.get(msgId) || (await (window.require('WAWebCollections')).Msg.getMessagesById([msgId]))?.messages?.[0];
+        const message =
+            window.require('WAWebCollections').Msg.get(msgId) ||
+            (
+                await window
+                    .require('WAWebCollections')
+                    .Msg.getMessagesById([msgId])
+            )?.messages?.[0];
         if (!message) return false;
 
         if (typeof duration !== 'number') return false;
-        
-        const originalFunction = window.require('WAWebPinMsgConstants').getPinExpiryDuration;
-        window.require('WAWebPinMsgConstants').getPinExpiryDuration = () => duration;
-        
-        const response = await (window.require('WAWebSendPinMessageAction')).sendPinInChatMsg(message, action, duration);
 
-        window.require('WAWebPinMsgConstants').getPinExpiryDuration = originalFunction;
+        const originalFunction = window.require(
+            'WAWebPinMsgConstants',
+        ).getPinExpiryDuration;
+        window.require('WAWebPinMsgConstants').getPinExpiryDuration = () =>
+            duration;
+
+        const response = await window
+            .require('WAWebSendPinMessageAction')
+            .sendPinInChatMsg(message, action, duration);
+
+        window.require('WAWebPinMsgConstants').getPinExpiryDuration =
+            originalFunction;
 
         return response.messageSendResult === 'OK';
     };
-    
-    window.WWebJS.getStatusModel = status => {
+
+    window.WWebJS.getStatusModel = (status) => {
         const res = status.serialize();
         delete res._msgs;
         return res;
     };
 
     window.WWebJS.getAllStatuses = () => {
-        const statuses = (window.require('WAWebCollections')).Status.getModelsArray();
-        return statuses.map(status => window.WWebJS.getStatusModel(status));
+        const statuses = window
+            .require('WAWebCollections')
+            .Status.getModelsArray();
+        return statuses.map((status) => window.WWebJS.getStatusModel(status));
     };
 
     window.WWebJS.enforceLidAndPnRetrieval = async (userId) => {
         const wid = window.require('WAWebWidFactory').createWid(userId);
         const isLid = wid.server === 'lid';
 
-        let lid = isLid ? wid : window.require('WAWebApiContact').getCurrentLid(wid);
-        let phone = isLid ? window.require('WAWebApiContact').getPhoneNumber(wid) : wid;
+        let lid = isLid
+            ? wid
+            : window.require('WAWebApiContact').getCurrentLid(wid);
+        let phone = isLid
+            ? window.require('WAWebApiContact').getPhoneNumber(wid)
+            : wid;
 
         if (!isLid && !lid) {
-            const queryResult = await (window.require('WAWebQueryExistsJob').queryWidExists)(wid);
+            const queryResult = await window
+                .require('WAWebQueryExistsJob')
+                .queryWidExists(wid);
             if (!queryResult?.wid) return {};
             lid = window.require('WAWebApiContact').getCurrentLid(wid);
         }
 
         if (isLid && !phone) {
-            const queryResult = await (window.require('WAWebQueryExistsJob').queryWidExists)(wid);
+            const queryResult = await window
+                .require('WAWebQueryExistsJob')
+                .queryWidExists(wid);
             if (!queryResult?.wid) return {};
             phone = window.require('WAWebApiContact').getPhoneNumber(wid);
         }

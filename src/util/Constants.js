@@ -5,7 +5,7 @@ exports.WhatsWebURL = 'https://web.whatsapp.com/';
 exports.DefaultOptions = {
     puppeteer: {
         headless: true,
-        defaultViewport: null
+        defaultViewport: null,
     },
     webVersion: '2.3000.1017054665',
     webVersionCache: {
@@ -15,7 +15,8 @@ exports.DefaultOptions = {
     qrMaxRetries: 0,
     takeoverOnConflict: false,
     takeoverTimeoutMs: 0,
-    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36',
+    userAgent:
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36',
     ffmpegPath: 'ffmpeg',
     bypassCSP: false,
     proxyAuthentication: undefined,
@@ -34,7 +35,7 @@ exports.DefaultOptions = {
 exports.Status = {
     INITIALIZING: 0,
     AUTHENTICATING: 1,
-    READY: 3
+    READY: 3,
 };
 
 /**
@@ -72,7 +73,7 @@ exports.Events = {
     BATTERY_CHANGED: 'change_battery',
     INCOMING_CALL: 'call',
     REMOTE_SESSION_SAVED: 'remote_session_saved',
-    VOTE_UPDATE: 'vote_update'
+    VOTE_UPDATE: 'vote_update',
 };
 
 /**
@@ -148,7 +149,7 @@ exports.GroupNotificationTypes = {
 exports.ChatTypes = {
     SOLO: 'solo',
     GROUP: 'group',
-    UNKNOWN: 'unknown'
+    UNKNOWN: 'unknown',
 };
 
 /**
@@ -168,7 +169,7 @@ exports.WAState = {
     TOS_BLOCK: 'TOS_BLOCK',
     UNLAUNCHED: 'UNLAUNCHED',
     UNPAIRED: 'UNPAIRED',
-    UNPAIRED_IDLE: 'UNPAIRED_IDLE'
+    UNPAIRED_IDLE: 'UNPAIRED_IDLE',
 };
 
 /**

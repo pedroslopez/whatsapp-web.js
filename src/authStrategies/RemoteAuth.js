@@ -20,40 +20,64 @@ const BaseAuthStrategy = require('./BaseAuthStrategy');
  * @param {object} options - options
  * @param {object} options.store - Remote database store instance
  * @param {string} options.clientId - Client id to distinguish instances if you are using multiple, otherwise keep null if you are using only one instance
- * @param {string} options.dataPath - Change the default path for saving session files, default is: "./.wwebjs_auth/" 
+ * @param {string} options.dataPath - Change the default path for saving session files, default is: "./.wwebjs_auth/"
  * @param {number} options.backupSyncIntervalMs - Sets the time interval for periodic session backups. Accepts values starting from 60000ms {1 minute}
  * @param {number} options.rmMaxRetries - Sets the maximum number of retries for removing the session directory
  */
 class RemoteAuth extends BaseAuthStrategy {
-    constructor({ clientId, dataPath, store, backupSyncIntervalMs, rmMaxRetries } = {}) {
-        if (!fs && !unzipper && !archiver) throw new Error('Optional Dependencies [fs-extra, unzipper, archiver] are required to use RemoteAuth. Make sure to run npm install correctly and remove the --no-optional flag');
+    constructor({
+        clientId,
+        dataPath,
+        store,
+        backupSyncIntervalMs,
+        rmMaxRetries,
+    } = {}) {
+        if (!fs && !unzipper && !archiver)
+            throw new Error(
+                'Optional Dependencies [fs-extra, unzipper, archiver] are required to use RemoteAuth. Make sure to run npm install correctly and remove the --no-optional flag',
+            );
         super();
 
         const idRegex = /^[-_\w]+$/i;
         if (clientId && !idRegex.test(clientId)) {
-            throw new Error('Invalid clientId. Only alphanumeric characters, underscores and hyphens are allowed.');
+            throw new Error(
+                'Invalid clientId. Only alphanumeric characters, underscores and hyphens are allowed.',
+            );
         }
         if (!backupSyncIntervalMs || backupSyncIntervalMs < 60000) {
-            throw new Error('Invalid backupSyncIntervalMs. Accepts values starting from 60000ms {1 minute}.');
+            throw new Error(
+                'Invalid backupSyncIntervalMs. Accepts values starting from 60000ms {1 minute}.',
+            );
         }
-        if(!store) throw new Error('Remote database store is required.');
+        if (!store) throw new Error('Remote database store is required.');
 
         this.store = store;
         this.clientId = clientId;
         this.backupSyncIntervalMs = backupSyncIntervalMs;
         this.dataPath = path.resolve(dataPath || './.wwebjs_auth/');
         this.tempDir = `${this.dataPath}/wwebjs_temp_session_${this.clientId}`;
-        this.requiredDirs = ['Default', 'IndexedDB', 'Local Storage']; /* => Required Files & Dirs in WWebJS to restore session */
+        this.requiredDirs = [
+            'Default',
+            'IndexedDB',
+            'Local Storage',
+        ]; /* => Required Files & Dirs in WWebJS to restore session */
         this.rmMaxRetries = rmMaxRetries ?? 4;
     }
 
     async beforeBrowserInitialized() {
         const puppeteerOpts = this.client.options.puppeteer;
-        const sessionDirName = this.clientId ? `RemoteAuth-${this.clientId}` : 'RemoteAuth';
+        const sessionDirName = this.clientId
+            ? `RemoteAuth-${this.clientId}`
+            : 'RemoteAuth';
         const dirPath = path.join(this.dataPath, sessionDirName);
 
-        if (puppeteerOpts.userDataDir && puppeteerOpts.userDataDir !== dirPath) {
-            throw new Error('RemoteAuth is not compatible with a user-supplied userDataDir.');
+        if (
+            puppeteerOpts.userDataDir &&
+            puppeteerOpts.userDataDir !== dirPath
+        ) {
+            throw new Error(
+                'RemoteAuth is not compatible with a user-supplied userDataDir.',
+            );
         }
 
         this.userDataDir = dirPath;
@@ -63,7 +87,7 @@ class RemoteAuth extends BaseAuthStrategy {
 
         this.client.options.puppeteer = {
             ...puppeteerOpts,
-            userDataDir: dirPath
+            userDataDir: dirPath,
         };
     }
 
@@ -80,20 +104,26 @@ class RemoteAuth extends BaseAuthStrategy {
 
         let pathExists = await this.isValidPath(this.userDataDir);
         if (pathExists) {
-            await fs.promises.rm(this.userDataDir, {
-                recursive: true,
-                force: true,
-                maxRetries: this.rmMaxRetries,
-            }).catch(() => {});
+            await fs.promises
+                .rm(this.userDataDir, {
+                    recursive: true,
+                    force: true,
+                    maxRetries: this.rmMaxRetries,
+                })
+                .catch(() => {});
         }
         clearInterval(this.backupSync);
     }
 
     async afterAuthReady() {
-        const sessionExists = await this.store.sessionExists({session: this.sessionName});
-        if(!sessionExists) {
-            await this.delay(60000); /* Initial delay sync required for session to be stable enough to recover */
-            await this.storeRemoteSession({emit: true});
+        const sessionExists = await this.store.sessionExists({
+            session: this.sessionName,
+        });
+        if (!sessionExists) {
+            await this.delay(
+                60000,
+            ); /* Initial delay sync required for session to be stable enough to recover */
+            await this.storeRemoteSession({ emit: true });
         }
         var self = this;
         this.backupSync = setInterval(async function () {
@@ -108,12 +138,15 @@ class RemoteAuth extends BaseAuthStrategy {
         let compressedSessionPath;
         try {
             compressedSessionPath = await this.compressSession();
-            await this.store.save({ session: path.join(this.dataPath, this.sessionName) });
-            if(options && options.emit) this.client.emit(Events.REMOTE_SESSION_SAVED);
+            await this.store.save({
+                session: path.join(this.dataPath, this.sessionName),
+            });
+            if (options && options.emit)
+                this.client.emit(Events.REMOTE_SESSION_SAVED);
         } finally {
             const paths = [
                 this.tempDir,
-                ...(compressedSessionPath ? [compressedSessionPath] : [])
+                ...(compressedSessionPath ? [compressedSessionPath] : []),
             ];
             await Promise.allSettled(
                 paths.map((p) =>
@@ -121,25 +154,35 @@ class RemoteAuth extends BaseAuthStrategy {
                         recursive: true,
                         force: true,
                         maxRetries: this.rmMaxRetries,
-                    })
-                )
+                    }),
+                ),
             );
         }
     }
 
     async extractRemoteSession() {
         const pathExists = await this.isValidPath(this.userDataDir);
-        const compressedSessionPath = path.join(this.dataPath, `${this.sessionName}.zip`);
-        const sessionExists = await this.store.sessionExists({session: this.sessionName});
+        const compressedSessionPath = path.join(
+            this.dataPath,
+            `${this.sessionName}.zip`,
+        );
+        const sessionExists = await this.store.sessionExists({
+            session: this.sessionName,
+        });
         if (pathExists) {
-            await fs.promises.rm(this.userDataDir, {
-                recursive: true,
-                force: true,
-                maxRetries: this.rmMaxRetries,
-            }).catch(() => {});
+            await fs.promises
+                .rm(this.userDataDir, {
+                    recursive: true,
+                    force: true,
+                    maxRetries: this.rmMaxRetries,
+                })
+                .catch(() => {});
         }
         if (sessionExists) {
-            await this.store.extract({session: this.sessionName, path: compressedSessionPath});
+            await this.store.extract({
+                session: this.sessionName,
+                path: compressedSessionPath,
+            });
             await this.unCompressSession(compressedSessionPath);
         } else {
             fs.mkdirSync(this.userDataDir, { recursive: true });
@@ -147,8 +190,11 @@ class RemoteAuth extends BaseAuthStrategy {
     }
 
     async deleteRemoteSession() {
-        const sessionExists = await this.store.sessionExists({session: this.sessionName});
-        if (sessionExists) await this.store.delete({session: this.sessionName});
+        const sessionExists = await this.store.sessionExists({
+            session: this.sessionName,
+        });
+        if (sessionExists)
+            await this.store.delete({ session: this.sessionName });
     }
 
     async compressSession() {
@@ -166,7 +212,7 @@ class RemoteAuth extends BaseAuthStrategy {
             out.once('close', resolve);
             out.once('error', reject);
             archive.once('error', reject);
-        
+
             archive.pipe(out);
             archive.directory(this.tempDir, false);
             archive.finalize();
@@ -177,11 +223,14 @@ class RemoteAuth extends BaseAuthStrategy {
     async unCompressSession(compressedSessionPath) {
         var stream = fs.createReadStream(compressedSessionPath);
         await new Promise((resolve, reject) => {
-            stream.pipe(unzipper.Extract({
-                path: this.userDataDir,
-                concurrency: 10
-            }))
-                .on('error', err => reject(err))
+            stream
+                .pipe(
+                    unzipper.Extract({
+                        path: this.userDataDir,
+                        concurrency: 10,
+                    }),
+                )
+                .on('error', (err) => reject(err))
                 .on('finish', () => resolve());
         });
         await fs.promises.unlink(compressedSessionPath);
@@ -195,7 +244,7 @@ class RemoteAuth extends BaseAuthStrategy {
                 await fs.promises.cp(src, dest, {
                     recursive: true,
                     force: true,
-                    errorOnExist: false
+                    errorOnExist: false,
                 });
             }
         }
@@ -211,7 +260,7 @@ class RemoteAuth extends BaseAuthStrategy {
     }
 
     async delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
 }
 

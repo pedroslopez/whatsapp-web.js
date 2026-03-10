@@ -5,7 +5,7 @@ const BusinessContact = require('../structures/BusinessContact');
 
 class ContactFactory {
     static create(client, data) {
-        if(data.isBusiness) {
+        if (data.isBusiness) {
             return new BusinessContact(client, data);
         }
 

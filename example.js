@@ -14,7 +14,7 @@ const client = new Client({
      * If another value is provided, the browser icon in 'linked devices' section will be gray.
      */
     // browserName: 'Firefox',
-    puppeteer: { 
+    puppeteer: {
         // args: ['--proxy-server=proxy-server-that-requires-authentication.example.com'],
         headless: false,
     },
@@ -38,14 +38,14 @@ client.on('qr', async (qr) => {
 });
 
 client.on('code', (code) => {
-    console.log('Pairing code:',code);
+    console.log('Pairing code:', code);
 });
 
 client.on('authenticated', () => {
     console.log('AUTHENTICATED');
 });
 
-client.on('auth_failure', msg => {
+client.on('auth_failure', (msg) => {
     // Fired if session restore was unsuccessful
     console.error('AUTHENTICATION FAILURE', msg);
 });
@@ -55,26 +55,23 @@ client.on('ready', async () => {
     const debugWWebVersion = await client.getWWebVersion();
     console.log(`WWebVersion = ${debugWWebVersion}`);
 
-    client.pupPage.on('pageerror', function(err) {
+    client.pupPage.on('pageerror', function (err) {
         console.log('Page error: ' + err.toString());
     });
-    client.pupPage.on('error', function(err) {
+    client.pupPage.on('error', function (err) {
         console.log('Page error: ' + err.toString());
     });
-    
 });
 
-client.on('message', async msg => {
+client.on('message', async (msg) => {
     console.log('MESSAGE RECEIVED', msg);
 
     if (msg.body === '!ping reply') {
         // Send a new message as a reply to the current one
         msg.reply('pong');
-
     } else if (msg.body === '!ping') {
         // Send a new message to the same chat
         client.sendMessage(msg.from, 'pong');
-
     } else if (msg.body.startsWith('!sendto ')) {
         // Direct send a new message to specific id
         let number = msg.body.split(' ')[1];
@@ -84,7 +81,6 @@ client.on('message', async msg => {
         let chat = await msg.getChat();
         chat.sendSeen();
         client.sendMessage(number, message);
-
     } else if (msg.body.startsWith('!subject ')) {
         // Change the group subject
         let chat = await msg.getChat();
@@ -127,7 +123,11 @@ client.on('message', async msg => {
         }
     } else if (msg.body.startsWith('!addmembers')) {
         const group = await msg.getChat();
-        const result = await group.addParticipants(['number1@c.us', 'number2@c.us', 'number3@c.us']);
+        const result = await group.addParticipants([
+            'number1@c.us',
+            'number2@c.us',
+            'number3@c.us',
+        ]);
         /**
          * The example of the {@link result} output:
          *
@@ -154,8 +154,15 @@ client.on('message', async msg => {
          */
         console.log(result);
     } else if (msg.body === '!creategroup') {
-        const partitipantsToAdd = ['number1@c.us', 'number2@c.us', 'number3@c.us'];
-        const result = await client.createGroup('Group Title', partitipantsToAdd);
+        const partitipantsToAdd = [
+            'number1@c.us',
+            'number2@c.us',
+            'number3@c.us',
+        ];
+        const result = await client.createGroup(
+            'Group Title',
+            partitipantsToAdd,
+        );
         /**
          * The example of the {@link result} output:
          * {
@@ -216,12 +223,15 @@ client.on('message', async msg => {
         client.sendMessage(msg.from, `The bot has ${chats.length} chats open.`);
     } else if (msg.body === '!info') {
         let info = client.info;
-        client.sendMessage(msg.from, `
+        client.sendMessage(
+            msg.from,
+            `
             *Connection info*
             User name: ${info.pushname}
             My number: ${info.wid.user}
             Platform: ${info.platform}
-        `);
+        `,
+        );
     } else if (msg.body === '!mediainfo' && msg.hasMedia) {
         const attachmentData = await msg.downloadMedia();
         msg.reply(`
@@ -244,11 +254,15 @@ client.on('message', async msg => {
         const quotedMsg = await msg.getQuotedMessage();
         if (quotedMsg.hasMedia) {
             const attachmentData = await quotedMsg.downloadMedia();
-            client.sendMessage(msg.from, attachmentData, { caption: 'Here\'s your requested media.' });
+            client.sendMessage(msg.from, attachmentData, {
+                caption: "Here's your requested media.",
+            });
         }
         if (quotedMsg.hasMedia && quotedMsg.type === 'audio') {
             const audio = await quotedMsg.downloadMedia();
-            await client.sendMessage(msg.from, audio, { sendAudioAsVoice: true });
+            await client.sendMessage(msg.from, audio, {
+                sendAudioAsVoice: true,
+            });
         }
     } else if (msg.body === '!isviewonce' && msg.hasQuotedMsg) {
         const quotedMsg = await msg.getQuotedMessage();
@@ -262,9 +276,19 @@ client.on('message', async msg => {
         // location with name only
         await msg.reply(new Location(37.422, -122.084, { name: 'Googleplex' }));
         // location with address only
-        await msg.reply(new Location(37.422, -122.084, { address: '1600 Amphitheatre Pkwy, Mountain View, CA 94043, USA' }));
+        await msg.reply(
+            new Location(37.422, -122.084, {
+                address: '1600 Amphitheatre Pkwy, Mountain View, CA 94043, USA',
+            }),
+        );
         // location with name, address and url
-        await msg.reply(new Location(37.422, -122.084, { name: 'Googleplex', address: '1600 Amphitheatre Pkwy, Mountain View, CA 94043, USA', url: 'https://google.com' }));
+        await msg.reply(
+            new Location(37.422, -122.084, {
+                name: 'Googleplex',
+                address: '1600 Amphitheatre Pkwy, Mountain View, CA 94043, USA',
+                url: 'https://google.com',
+            }),
+        );
     } else if (msg.location) {
         msg.reply(msg.location);
     } else if (msg.body.startsWith('!status ')) {
@@ -279,11 +303,11 @@ client.on('message', async msg => {
          * without wrapping it in Array, and a user's phone number to the message body:
          */
         await chat.sendMessage(`Hi @${userNumber}`, {
-            mentions: userNumber + '@c.us'
+            mentions: userNumber + '@c.us',
         });
         // To mention a list of users:
         await chat.sendMessage(`Hi @${userNumber}, @${userNumber}`, {
-            mentions: [userNumber + '@c.us', userNumber + '@c.us']
+            mentions: [userNumber + '@c.us', userNumber + '@c.us'],
         });
     } else if (msg.body === '!mentionGroups') {
         const chat = await msg.getChat();
@@ -292,28 +316,35 @@ client.on('message', async msg => {
          * Sends clickable group mentions, the same as user mentions.
          * When the mentions are clicked, it opens a chat with the mentioned group.
          * The 'groupMentions.subject' can be custom
-         * 
+         *
          * @note The user that does not participate in the mentioned group,
          * will not be able to click on that mentioned group, the same if the group does not exist
          *
          * To mention one group:
          */
         await chat.sendMessage(`Check the last message here: @${groupId}`, {
-            groupMentions: { subject: 'GroupSubject', id: groupId }
+            groupMentions: { subject: 'GroupSubject', id: groupId },
         });
         // To mention a list of groups:
-        await chat.sendMessage(`Check the last message in these groups: @${groupId}, @${groupId}`, {
-            groupMentions: [
-                { subject: 'FirstGroup', id: groupId },
-                { subject: 'SecondGroup', id: groupId }
-            ]
-        });
+        await chat.sendMessage(
+            `Check the last message in these groups: @${groupId}, @${groupId}`,
+            {
+                groupMentions: [
+                    { subject: 'FirstGroup', id: groupId },
+                    { subject: 'SecondGroup', id: groupId },
+                ],
+            },
+        );
     } else if (msg.body === '!getGroupMentions') {
         // To get group mentions from a message:
         const groupId = 'ZZZZZZZZZZ@g.us';
-        const msg = await client.sendMessage('chatId', `Check the last message here: @${groupId}`, {
-            groupMentions: { subject: 'GroupSubject', id: groupId }
-        });
+        const msg = await client.sendMessage(
+            'chatId',
+            `Check the last message here: @${groupId}`,
+            {
+                groupMentions: { subject: 'GroupSubject', id: groupId },
+            },
+        );
         /** {@link groupMentions} is an array of `GroupChat` */
         const groupMentions = await msg.getGroupMentions();
         console.log(groupMentions);
@@ -356,13 +387,30 @@ client.on('message', async msg => {
             client.interface.openChatWindowAt(quotedMsg.id._serialized);
         }
     } else if (msg.body === '!buttons') {
-        let button = new Buttons('Button body', [{ body: 'bt1' }, { body: 'bt2' }, { body: 'bt3' }], 'title', 'footer');
+        let button = new Buttons(
+            'Button body',
+            [{ body: 'bt1' }, { body: 'bt2' }, { body: 'bt3' }],
+            'title',
+            'footer',
+        );
         client.sendMessage(msg.from, button);
     } else if (msg.body === '!list') {
         let sections = [
-            { title: 'sectionTitle', rows: [{ title: 'ListItem1', description: 'desc' }, { title: 'ListItem2' }] }
+            {
+                title: 'sectionTitle',
+                rows: [
+                    { title: 'ListItem1', description: 'desc' },
+                    { title: 'ListItem2' },
+                ],
+            },
         ];
-        let list = new List('List body', 'btnText', sections, 'Title', 'footer');
+        let list = new List(
+            'List body',
+            'btnText',
+            sections,
+            'Title',
+            'footer',
+        );
         client.sendMessage(msg.from, list);
     } else if (msg.body === '!reaction') {
         await msg.react('👍');
@@ -370,7 +418,11 @@ client.on('message', async msg => {
         /** By default the poll is created as a single choice poll: */
         await msg.reply(new Poll('Winter or Summer?', ['Winter', 'Summer']));
         /** If you want to provide a multiple choice poll, add allowMultipleAnswers as true: */
-        await msg.reply(new Poll('Cats or Dogs?', ['Cats', 'Dogs'], { allowMultipleAnswers: true }));
+        await msg.reply(
+            new Poll('Cats or Dogs?', ['Cats', 'Dogs'], {
+                allowMultipleAnswers: true,
+            }),
+        );
         /**
          * You can provide a custom message secret, it can be used as a poll ID:
          * @note It has to be a unique vector with a length of 32
@@ -378,9 +430,10 @@ client.on('message', async msg => {
         await msg.reply(
             new Poll('Cats or Dogs?', ['Cats', 'Dogs'], {
                 messageSecret: [
-                    1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-                ]
-            })
+                    1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                ],
+            }),
         );
     } else if (msg.body === '!vote') {
         if (msg.hasQuotedMsg) {
@@ -417,13 +470,17 @@ client.on('message', async msg => {
          * Presented an example for membership request approvals, the same examples are for the request rejections.
          * To approve the membership request from a specific user:
          */
-        await client.approveGroupMembershipRequests(msg.from, { requesterIds: 'number@c.us' });
+        await client.approveGroupMembershipRequests(msg.from, {
+            requesterIds: 'number@c.us',
+        });
         /** The same for execution on group object (no need to provide the group ID): */
         const group = await msg.getChat();
-        await group.approveGroupMembershipRequests({ requesterIds: 'number@c.us' });
+        await group.approveGroupMembershipRequests({
+            requesterIds: 'number@c.us',
+        });
         /** To approve several membership requests: */
         const approval = await client.approveGroupMembershipRequests(msg.from, {
-            requesterIds: ['number1@c.us', 'number2@c.us']
+            requesterIds: ['number1@c.us', 'number2@c.us'],
         });
         /**
          * The example of the {@link approval} output:
@@ -446,17 +503,17 @@ client.on('message', async msg => {
         /** To change the sleep value to 300 ms: */
         await client.approveGroupMembershipRequests(msg.from, {
             requesterIds: ['number1@c.us', 'number2@c.us'],
-            sleep: 300
+            sleep: 300,
         });
         /** To change the sleep value to random value between 100 and 300 ms: */
         await client.approveGroupMembershipRequests(msg.from, {
             requesterIds: ['number1@c.us', 'number2@c.us'],
-            sleep: [100, 300]
+            sleep: [100, 300],
         });
         /** To explicitly disable the sleep: */
         await client.approveGroupMembershipRequests(msg.from, {
             requesterIds: ['number1@c.us', 'number2@c.us'],
-            sleep: null
+            sleep: null,
         });
     } else if (msg.body === '!pinmsg') {
         /**
@@ -482,8 +539,12 @@ client.on('message', async msg => {
         // Or through the Chat object:
         // const chat = await client.getChatById(msg.from);
         // const isSynced = await chat.syncHistory();
-        
-        await msg.reply(isSynced ? 'Historical chat is syncing..' : 'There is no historical chat to sync.');
+
+        await msg.reply(
+            isSynced
+                ? 'Historical chat is syncing..'
+                : 'There is no historical chat to sync.',
+        );
     } else if (msg.body === '!statuses') {
         const statuses = await client.getBroadcasts();
         console.log(statuses);
@@ -526,10 +587,14 @@ client.on('message', async msg => {
     } else if (msg.body === '!postStatus') {
         await client.sendMessage('status@broadcast', 'Hello there!');
         // send with a different style
-        await client.sendMessage('status@broadcast', 'Hello again! Looks different?', {
-            fontStyle: 1,
-            backgroundColor: '#0b3296'
-        });
+        await client.sendMessage(
+            'status@broadcast',
+            'Hello again! Looks different?',
+            {
+                fontStyle: 1,
+                backgroundColor: '#0b3296',
+            },
+        );
     }
 });
 
@@ -554,7 +619,7 @@ client.on('message_ciphertext', (msg) => {
     // Receiving new incoming messages that have been encrypted
     // msg.type === 'ciphertext'
     msg.body = 'Waiting for this message. Check your phone.';
-    
+
     // do stuff here
 });
 
@@ -604,7 +669,7 @@ client.on('group_update', (notification) => {
     console.log('update', notification);
 });
 
-client.on('change_state', state => {
+client.on('change_state', (state) => {
     console.log('CHANGE STATE', state);
 });
 
@@ -614,7 +679,10 @@ let rejectCalls = true;
 client.on('call', async (call) => {
     console.log('Call received, rejecting. GOTO Line 261 to disable', call);
     if (rejectCalls) await call.reject();
-    await client.sendMessage(call.from, `[${call.fromMe ? 'Outgoing' : 'Incoming'}] Phone call from ${call.from}, type ${call.isGroup ? 'group' : ''} ${call.isVideo ? 'video' : 'audio'} call. ${rejectCalls ? 'This call was automatically rejected by the script.' : ''}`);
+    await client.sendMessage(
+        call.from,
+        `[${call.fromMe ? 'Outgoing' : 'Incoming'}] Phone call from ${call.from}, type ${call.isGroup ? 'group' : ''} ${call.isVideo ? 'video' : 'audio'} call. ${rejectCalls ? 'This call was automatically rejected by the script.' : ''}`,
+    );
 });
 
 client.on('disconnected', (reason) => {
@@ -623,32 +691,37 @@ client.on('disconnected', (reason) => {
 
 client.on('contact_changed', async (message, oldId, newId, isContact) => {
     /** The time the event occurred. */
-    const eventTime = (new Date(message.timestamp * 1000)).toLocaleString();
+    const eventTime = new Date(message.timestamp * 1000).toLocaleString();
 
     console.log(
         `The contact ${oldId.slice(0, -5)}` +
-        `${!isContact ? ' that participates in group ' +
-            `${(await client.getChatById(message.to ?? message.from)).name} ` : ' '}` +
-        `changed their phone number\nat ${eventTime}.\n` +
-        `Their new phone number is ${newId.slice(0, -5)}.\n`);
+            `${
+                !isContact
+                    ? ' that participates in group ' +
+                      `${(await client.getChatById(message.to ?? message.from)).name} `
+                    : ' '
+            }` +
+            `changed their phone number\nat ${eventTime}.\n` +
+            `Their new phone number is ${newId.slice(0, -5)}.\n`,
+    );
 
     /**
      * Information about the @param {message}:
-     * 
+     *
      * 1. If a notification was emitted due to a group participant changing their phone number:
      * @param {message.author} is a participant's id before the change.
      * @param {message.recipients[0]} is a participant's id after the change (a new one).
-     * 
+     *
      * 1.1 If the contact who changed their number WAS in the current user's contact list at the time of the change:
      * @param {message.to} is a group chat id the event was emitted in.
      * @param {message.from} is a current user's id that got an notification message in the group.
      * Also the @param {message.fromMe} is TRUE.
-     * 
+     *
      * 1.2 Otherwise:
      * @param {message.from} is a group chat id the event was emitted in.
      * @param {message.to} is @type {undefined}.
      * Also @param {message.fromMe} is FALSE.
-     * 
+     *
      * 2. If a notification was emitted due to a contact changing their phone number:
      * @param {message.templateParams} is an array of two user's ids:
      * the old (before the change) and a new one, stored in alphabetical order.
@@ -660,10 +733,10 @@ client.on('contact_changed', async (message, oldId, newId, isContact) => {
 
 client.on('group_admin_changed', (notification) => {
     if (notification.type === 'promote') {
-        /** 
-          * Emitted when a current user is promoted to an admin.
-          * {@link notification.author} is a user who performs the action of promoting/demoting the current user.
-          */
+        /**
+         * Emitted when a current user is promoted to an admin.
+         * {@link notification.author} is a user who performs the action of promoting/demoting the current user.
+         */
         console.log(`You were promoted by ${notification.author}`);
     } else if (notification.type === 'demote')
         /** Emitted when a current user is demoted to a regular user. */
@@ -692,8 +765,14 @@ client.on('group_membership_request', async (notification) => {
      */
     console.log(notification);
     /** You can approve or reject the newly appeared membership request: */
-    await client.approveGroupMembershipRequestss(notification.chatId, notification.author);
-    await client.rejectGroupMembershipRequests(notification.chatId, notification.author);
+    await client.approveGroupMembershipRequestss(
+        notification.chatId,
+        notification.author,
+    );
+    await client.rejectGroupMembershipRequests(
+        notification.chatId,
+        notification.author,
+    );
 });
 
 client.on('message_reaction', async (reaction) => {

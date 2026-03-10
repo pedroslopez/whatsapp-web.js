@@ -42,12 +42,12 @@ const args = [
     '--disable-setuid-sandbox',
     '--no-sandbox',
     '--disable-blink-features=AutomationControlled',
-    '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36'
+    '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
 ];
 
 const getLatestVersion = async () => {
     const browser = await puppeteer.launch({
-        args: args
+        args: args,
     });
     const page = await browser.newPage();
     await page.goto('https://web.whatsapp.com', {
@@ -56,7 +56,9 @@ const getLatestVersion = async () => {
         referer: 'https://whatsapp.com/',
     });
 
-    await page.waitForFunction(() => window.require && window.require('WAWebBuildConstants'));
+    await page.waitForFunction(
+        () => window.require && window.require('WAWebBuildConstants'),
+    );
 
     const version = await page.evaluate(() => {
         return window.require('WAWebBuildConstants').VERSION_STR;
@@ -70,29 +72,26 @@ const getCurrentVersion = () => {
     try {
         const versionFile = fs.readFileSync('./.version');
         return versionFile ? versionFile.toString().trim() : null;
-    } catch(_) {
+    } catch (_) {
         return null;
     }
 };
 
 const updateInFile = (filePath, oldVersion, newVersion) => {
-    const originalFile = fs.readFileSync(filePath);  
+    const originalFile = fs.readFileSync(filePath);
     const newFile = originalFile.toString().replaceAll(oldVersion, newVersion);
 
     fs.writeFileSync(filePath, newFile);
 };
 
 const updateVersion = async (oldVersion, newVersion) => {
-    const filesToUpdate = [
-        '../../src/util/Constants.js',
-        '../../README.md',
-    ];
+    const filesToUpdate = ['../../src/util/Constants.js', '../../README.md'];
 
     for (const file of filesToUpdate) {
         updateInFile(file, oldVersion, newVersion);
     }
 
-    fs.writeFileSync('./.version', newVersion);  
+    fs.writeFileSync('./.version', newVersion);
 };
 
 (async () => {

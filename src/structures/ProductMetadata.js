@@ -19,7 +19,6 @@ class ProductMetadata extends Base {
 
         return super._patch(data);
     }
-
 }
 
 module.exports = ProductMetadata;

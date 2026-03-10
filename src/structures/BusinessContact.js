@@ -15,7 +15,6 @@ class BusinessContact extends Contact {
 
         return super._patch(data);
     }
-
 }
 
 module.exports = BusinessContact;
