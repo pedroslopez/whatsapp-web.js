@@ -255,13 +255,25 @@ class Client extends EventEmitter {
                             ',' +
                             platform;
 
+                        const onRefChange = (_, ref) => {
+                            if (ref == null) return;
+                            window.onQRChangedEvent(getQR(ref));
+                        };
+
                         window.onQRChangedEvent(
                             getQR(window.AuthStore.Conn.ref),
                         ); // initial qr
-                        window.AuthStore.Conn.on('change:ref', (_, ref) => {
-                            if (ref == null) return;
-                            window.onQRChangedEvent(getQR(ref));
-                        }); // future QR changes
+                        window.AuthStore.Conn.on('change:ref', onRefChange); // future QR changes
+
+                        // Remove QR listener once authentication succeeds
+                        window
+                            .require('WAWebSocketModel')
+                            .Socket.on('change:hasSynced', () => {
+                                window.AuthStore.Conn.off(
+                                    'change:ref',
+                                    onRefChange,
+                                );
+                            });
                     });
                 }
             }
