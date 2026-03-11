@@ -112,27 +112,18 @@ class Client extends EventEmitter {
      * Private function
      */
     async inject() {
-        if (
-            this.options.authTimeoutMs === undefined ||
-            this.options.authTimeoutMs == 0
-        ) {
-            this.options.authTimeoutMs = 30000;
-        }
-        let start = Date.now();
-        let timeout = this.options.authTimeoutMs;
-        let res = false;
-        while (start > Date.now() - timeout) {
-            res = await this.pupPage.evaluate(
-                'window.Debug?.VERSION != undefined',
-            );
-            if (res) {
-                break;
-            }
-            await new Promise((r) => setTimeout(r, 200));
-        }
-        if (!res) {
-            throw 'auth timeout';
-        }
+        if (this._injectInProgress) return;
+        this._injectInProgress = true;
+
+        const authTimeout = this.options.authTimeoutMs || 30000;
+        await this.pupPage
+            .waitForFunction('window.Debug?.VERSION != undefined', {
+                timeout: authTimeout,
+            })
+            .catch(() => {
+                this._injectInProgress = false;
+                throw 'auth timeout';
+            });
         await this.setDeviceName(
             this.options.deviceName,
             this.options.browserName,
@@ -142,43 +133,28 @@ class Client extends EventEmitter {
 
         await this.pupPage.evaluate(ExposeAuthStore);
 
-        const needAuthentication = await this.pupPage.evaluate(async () => {
-            let state = window.require('WAWebSocketModel').Socket.state;
+        const needAuthHandle = await this.pupPage.waitForFunction(
+            () => {
+                const state =
+                    window.require?.('WAWebSocketModel')?.Socket?.state;
+                if (
+                    !state ||
+                    state === 'OPENING' ||
+                    state === 'UNLAUNCHED' ||
+                    state === 'PAIRING'
+                ) {
+                    return false;
+                }
+                return {
+                    need: state === 'UNPAIRED' || state === 'UNPAIRED_IDLE',
+                    state,
+                };
+            },
+            { timeout: authTimeout },
+        );
+        const needAuthentication = await needAuthHandle.jsonValue();
 
-            if (
-                state === 'OPENING' ||
-                state === 'UNLAUNCHED' ||
-                state === 'PAIRING'
-            ) {
-                // wait till state changes
-                await new Promise((r) => {
-                    window
-                        .require('WAWebSocketModel')
-                        .Socket.on(
-                            'change:state',
-                            function waitTillInit(_AppState, state) {
-                                if (
-                                    state !== 'OPENING' &&
-                                    state !== 'UNLAUNCHED' &&
-                                    state !== 'PAIRING'
-                                ) {
-                                    window
-                                        .require('WAWebSocketModel')
-                                        .Socket.off(
-                                            'change:state',
-                                            waitTillInit,
-                                        );
-                                    r();
-                                }
-                            },
-                        );
-                });
-            }
-            state = window.require('WAWebSocketModel').Socket.state;
-            return state == 'UNPAIRED' || state == 'UNPAIRED_IDLE';
-        });
-
-        if (needAuthentication) {
+        if (needAuthentication.need) {
             const { failed, failureEventPayload, restart } =
                 await this.authStrategy.onAuthenticationNeeded();
 
@@ -326,21 +302,14 @@ class Client extends EventEmitter {
                     //Load util functions (serializers, helper functions)
                     await this.pupPage.evaluate(LoadUtils);
 
-                    let start = Date.now();
-                    let res = false;
-                    while (start > Date.now() - 30000) {
-                        // Check window.WWebJS Injection
-                        res = await this.pupPage.evaluate(
-                            'window.WWebJS != undefined',
-                        );
-                        if (res) {
-                            break;
-                        }
-                        await new Promise((r) => setTimeout(r, 200));
-                    }
-                    if (!res) {
-                        throw 'ready timeout';
-                    }
+                    await this.pupPage
+                        .waitForFunction(
+                            'typeof window.WWebJS !== "undefined"',
+                            { timeout: 30000 },
+                        )
+                        .catch(() => {
+                            throw 'ready timeout';
+                        });
 
                     /**
                      * Current connection information
@@ -398,29 +367,71 @@ class Client extends EventEmitter {
             },
         );
         await this.pupPage.evaluate(() => {
-            window
-                .require('WAWebSocketModel')
-                .Socket.on('change:state', (_AppState, state) => {
-                    window.onAuthAppStateChangedEvent(state);
-                });
-            window
-                .require('WAWebSocketModel')
-                .Socket.on('change:hasSynced', () => {
-                    window.onAppStateHasSyncedEvent();
-                });
+            const Socket = window.require('WAWebSocketModel').Socket;
             const Cmd = window.require('WAWebCmd').Cmd;
-            Cmd.on('offline_progress_update_from_bridge', () => {
-                window.onOfflineProgressUpdateEvent(
-                    window.AuthStore.OfflineMessageHandler.getOfflineDeliveryProgress(),
-                );
-            });
-            Cmd.on('logout', async () => {
-                await window.onLogoutEvent();
-            });
-            Cmd.on('logout_from_bridge', async () => {
-                await window.onLogoutEvent();
-            });
+
+            const listeners = [
+                [
+                    Socket,
+                    'change:state',
+                    (_AppState, state) => {
+                        window.onAuthAppStateChangedEvent(state);
+                    },
+                ],
+                [
+                    Socket,
+                    'change:hasSynced',
+                    () => {
+                        window.onAppStateHasSyncedEvent();
+                    },
+                ],
+                [
+                    Cmd,
+                    'offline_progress_update_from_bridge',
+                    () => {
+                        window.onOfflineProgressUpdateEvent(
+                            window.AuthStore.OfflineMessageHandler.getOfflineDeliveryProgress(),
+                        );
+                    },
+                ],
+                [
+                    Cmd,
+                    'logout',
+                    async () => {
+                        await window.onLogoutEvent();
+                    },
+                ],
+                [
+                    Cmd,
+                    'logout_from_bridge',
+                    async () => {
+                        await window.onLogoutEvent();
+                    },
+                ],
+            ];
+
+            if (window._wwjsListeners) {
+                for (const [obj, event, handler] of window._wwjsListeners) {
+                    obj.off(event, handler);
+                }
+            }
+
+            for (const [obj, event, handler] of listeners) {
+                obj.on(event, handler);
+            }
+            window._wwjsListeners = listeners;
         });
+
+        const hasSynced = await this.pupPage.evaluate(
+            () => window.require('WAWebSocketModel').Socket.hasSynced,
+        );
+        if (hasSynced) {
+            await this.pupPage.evaluate(() => {
+                window.onAppStateHasSyncedEvent();
+            });
+        }
+
+        this._injectInProgress = false;
     }
 
     /**
@@ -493,6 +504,8 @@ class Client extends EventEmitter {
         await this.inject();
 
         this.pupPage.on('framenavigated', async (frame) => {
+            if (frame.parentFrame() !== null) return;
+
             if (frame.url().includes('post_logout=1') || this.lastLoggedOut) {
                 this.emit(Events.DISCONNECTED, 'LOGOUT');
                 await this.authStrategy.logout();
@@ -500,7 +513,17 @@ class Client extends EventEmitter {
                 await this.authStrategy.afterBrowserInitialized();
                 this.lastLoggedOut = false;
             }
-            await this.inject();
+
+            const storeAvailable = await this.pupPage
+                .evaluate('typeof window.WWebJS !== "undefined"')
+                .catch(() => false);
+            if (storeAvailable) return;
+
+            try {
+                await this.inject();
+            } catch (err) {
+                this._injectInProgress = false;
+            }
         });
     }
 
