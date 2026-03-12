@@ -1708,8 +1708,10 @@ class Client extends EventEmitter {
      * @returns {Promise<string>} Id of the joined Chat
      */
     async acceptInvite(inviteCode) {
-        const res = await this.pupPage.evaluate(async inviteCode => {
-            return await (window.require('WAWebGroupInviteJob')).joinGroupViaInvite(inviteCode);
+        const res = await this.pupPage.evaluate(async (inviteCode) => {
+            return await window
+                .require('WAWebGroupInviteJob')
+                .joinGroupViaInvite(inviteCode);
         }, inviteCode);
 
         return res.gid._serialized;
