@@ -580,14 +580,6 @@ class Client extends EventEmitter {
         showNotification = true,
         intervalMs = 180000,
     ) {
-        await exposeFunctionIfAbsent(
-            this.pupPage,
-            'onCodeReceivedEvent',
-            async (code) => {
-                this.emit(Events.CODE_RECEIVED, code);
-                return code;
-            },
-        );
         return await this.pupPage.evaluate(
             async (phoneNumber, showNotification, intervalMs) => {
                 const getCode = async () => {
