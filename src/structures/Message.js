@@ -473,15 +473,23 @@ class Message extends Base {
      * @param {string} reaction - Emoji to react with. Send an empty string to remove the reaction.
      * @return {Promise}
      */
-    async react(reaction){
-        await this.client.pupPage.evaluate(async (messageId, reaction) => {
-            if (!messageId) return null;
-            const msg =
-                (window.require('WAWebCollections')).Msg.get(messageId) || (await (window.require('WAWebCollections')).Msg.getMessagesById([messageId]))?.messages?.[0];
-            if(!msg) return null;
-            await (window.require('WAWebSendReactionMsgAction')).sendReactionToMsg(msg, reaction);
-
-        }, this.id._serialized, reaction);
+    async react(reaction) {
+        await this.client.pupPage.evaluate(
+            async (messageId, reaction) => {
+                if (!messageId) return null;
+                const msg =
+                    (window.require('WAWebCollections')).Msg.get(messageId) ||
+                    (
+                        await (window.require('WAWebCollections')).Msg.getMessagesById([messageId])
+                    )?.messages?.[0];
+                if (!msg) return null;
+                await (
+                    window.require('WAWebSendReactionMsgAction')
+                ).sendReactionToMsg(msg, reaction);
+            },
+            this.id._serialized,
+            reaction
+        );
     }
 
     /**
