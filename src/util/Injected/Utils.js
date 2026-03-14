@@ -1058,10 +1058,10 @@ exports.LoadUtils = () => {
         try {
             const bizProfile = await window
                 .require('WAWebCollections')
-                .BusinessProfile.fetchBizProfile(wid);
+                .BusinessProfile.find(wid);
             bizProfile.profileOptions && (contact.businessProfile = bizProfile);
         } catch (_) {
-            /* fetchBizProfile can fail for non-business contacts */
+            /* find() can fail for non-business contacts */
         }
         return window.WWebJS.getContactModel(contact);
     };
