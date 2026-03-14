@@ -269,6 +269,7 @@ class Client extends EventEmitter {
                         advSecretKey +
                         ',' +
                         platform;
+                    window.getQR = getQR;
 
                     window.onQRChangedEvent(getQR(window.AuthStore.Conn.ref)); // initial qr
                     window.AuthStore.Conn.on('change:ref', (_, ref) => {
@@ -516,6 +517,14 @@ class Client extends EventEmitter {
         showNotification = true,
         intervalMs = 180000,
     ) {
+        await exposeFunctionIfAbsent(
+            this.pupPage,
+            'onCodeReceivedEvent',
+            async (code) => {
+                this.emit(Events.CODE_RECEIVED, code);
+                return code;
+            },
+        );
         return await this.pupPage.evaluate(
             async (phoneNumber, showNotification, intervalMs) => {
                 const getCode = async () => {
@@ -551,6 +560,20 @@ class Client extends EventEmitter {
             showNotification,
             intervalMs,
         );
+    }
+
+    /**
+     * Cancels an active pairing code session and returns to QR code mode
+     */
+    async cancelPairingCode() {
+        await this.pupPage.evaluate(() => {
+            if (window.codeInterval) {
+                clearInterval(window.codeInterval);
+                window.codeInterval = undefined;
+            }
+            window.AuthStore.PairingCodeLinkUtils.initializeQRLinking();
+            window.onQRChangedEvent(window.getQR(window.AuthStore.Conn.ref));
+        });
     }
 
     /**
