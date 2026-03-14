@@ -485,13 +485,11 @@ class Message extends Base {
                             .Msg.getMessagesById([messageId])
                     )?.messages?.[0];
                 if (!msg) return null;
-                await window.require('WAWebSendReactionMsgAction').sendReactionToMsg(
-                    msg,
-                    reaction,
-                );
+                await window.require('WAWebSendReactionMsgAction')
+                    .sendReactionToMsg(msg,reaction);
             },
             this.id._serialized,
-            reaction
+            reaction,
         );
     }
 
