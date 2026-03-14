@@ -139,8 +139,6 @@ class Client extends EventEmitter {
         const pairWithPhoneNumber = this.options.pairWithPhoneNumber;
         const version = await this.getWWebVersion();
 
-        await this.pupPage.evaluate(ExposeAuthStore);
-
         const needAuthentication = await this.pupPage.evaluate(async () => {
             let state = window.require('WAWebSocketModel').Socket.state;
 
