@@ -241,21 +241,16 @@ class Client extends EventEmitter {
                 );
 
                 await this.pupPage.evaluate(async () => {
-                    const registrationInfo =
-                        await (window.require('WAWebSignalStoreApi')).waSignalStore.getRegistrationInfo();
-                    const noiseKeyPair =
-                        await (window.require('WAWebUserPrefsInfoStore')).waNoiseInfo.get();
+                    const registrationInfo = await (window.require('WAWebSignalStoreApi')).waSignalStore.getRegistrationInfo();
+                    const noiseKeyPair = await (window.require('WAWebUserPrefsInfoStore')).waNoiseInfo.get();
                     const staticKeyB64 = window.require('WABase64').encodeB64(
                         noiseKeyPair.staticKeyPair.pubKey,
                     );
-                    const identityKeyB64 =
-                        window.require('WABase64').encodeB64(
+                    const identityKeyB64 = window.require('WABase64').encodeB64(
                             registrationInfo.identityKeyPair.pubKey,
                         );
-                    const advSecretKey =
-                        await (window.require('WAWebAdvSignatureApi')).getADVSecretKey();
-                    const platform =
-                        window.require('WAWebCompanionRegClientUtils').DEVICE_PLATFORM;
+                    const advSecretKey = await (window.require('WAWebAdvSignatureApi')).getADVSecretKey();
+                    const platform = window.require('WAWebCompanionRegClientUtils').DEVICE_PLATFORM;
                     const getQR = (ref) =>
                         ref +
                         ',' +
