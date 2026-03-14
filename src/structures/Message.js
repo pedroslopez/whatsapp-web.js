@@ -487,7 +487,7 @@ class Message extends Base {
                 if (!msg) return null;
                 await window
                     .require('WAWebSendReactionMsgAction')
-                    .sendReactionToMsg(msg,reaction);
+                    .sendReactionToMsg(msg, reaction);
             },
             this.id._serialized,
             reaction,
