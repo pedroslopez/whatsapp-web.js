@@ -3297,9 +3297,7 @@ class Client extends EventEmitter {
     /**
      * Send a call log offer
      * @param {string} userId The ID of the user
-     * @param {Object} options Options for sending a offers
-     * @param {boolean} [options.isVideo] Set for audio or video call type
-     * @param {boolean} [options.isGroup] Set the call is for group
+     * @param {CallLogOptions} options
      * @returns {Promise<void>}
      */
     async sendCallLog(userId, options = {}) {
