@@ -92,24 +92,6 @@ exports.LoadUtils = () => {
         }
     };
 
-    window.WWebJS.injectToFunction(
-        { module: 'WAWebBackendJobsCommon', function: 'mediaTypeFromProtobuf' },
-        (module, func, ...args) => {
-            const [proto] = args;
-            return proto.locationMessage ? null : func(...args);
-        },
-    );
-
-    window.WWebJS.injectToFunction(
-        { module: 'WAWebE2EProtoUtils', function: 'typeAttributeFromProtobuf' },
-        (module, func, ...args) => {
-            const [proto] = args;
-            return proto.locationMessage || proto.groupInviteMessage
-                ? 'text'
-                : func(...args);
-        },
-    );
-
     window.WWebJS.forwardMessage = async (chatId, msgId) => {
         const msg =
             window.require('WAWebCollections').Msg.get(msgId) ||
@@ -380,20 +362,14 @@ exports.LoadUtils = () => {
 
         let listOptions = {};
         if (options.list) {
-            if (
-                window.require('WAWebConnModel').Conn.platform === 'smba' ||
-                window.require('WAWebConnModel').Conn.platform === 'smbi'
-            ) {
-                throw "[LT01] Whatsapp business can't send this yet";
-            }
             listOptions = {
                 type: 'list',
-                footer: options.list.footer,
+                body: options.list.description,
                 list: {
                     ...options.list,
+                    footerText: options.list.footer,
                     listType: 1,
                 },
-                body: options.list.description,
             };
             delete options.list;
             delete listOptions.list.footer;
@@ -956,7 +932,7 @@ exports.LoadUtils = () => {
                 window.require('WAWebCollections').GroupMetadata ||
                 window.require('WAWebCollections').WAWebGroupMetadataCollection;
             await groupMetadata.update(chatWid);
-            chat.groupMetadata.participants._models
+            chat.groupMetadata.participants.getModelsArray()
                 .filter((x) => x.id?._serialized?.endsWith('@lid'))
                 .forEach(
                     (x) =>
@@ -1235,6 +1211,84 @@ exports.LoadUtils = () => {
         return undefined;
     };
 
+    window.WWebJS.acceptCall = async (peerJid, id) => {
+        let userId = window
+            .require('WAWebUserPrefsMeUser')
+            .getMaybeMePnUser()._serialized;
+        const { Call } = window.require('WAWebCollections');
+        const call = Call.get(id);
+
+        const content = [
+            window.require('WAWap').wap(
+                'audio',
+                {
+                    enc: 'opus',
+                    rate: '16000',
+                }
+            ),
+            window.require('WAWap').wap(
+                'audio',
+                {
+                    enc: 'opus',
+                    rate: '8000',
+                }
+            ),
+        ];
+
+        if (call.isVideo) {
+            content.push(
+                window.require('WAWap').wap(
+                    'video',
+                    {
+                        screen_width: '1920',
+                        screen_height: '1080',
+                        device_orientation: '0',
+                        orientation: '0',
+                        enc: 'vp8',
+                        dec: 'vp8',
+                    }
+                )
+            );
+        }
+        content.push(
+            ...[
+                window.require('WAWap').wap(
+                    'net',
+                    { medium: '3' }
+                ),
+                window.require('WAWap').wap(
+                    'capability',
+                    { ver: '1' },
+                    window.crypto.getRandomValues(new Uint8Array(6))
+                ),
+                window.require('WAWap').wap(
+                    'encopt',
+                    { keygen: '2' }
+                ),
+            ]
+        );
+
+        const stanza = window.require('WAWap').wap(
+            'call',
+            {
+                id: window.require('WAWap').generateId(),
+                from: userId,
+                to: peerJid,
+            },
+            [
+                window.require('WAWap').wap(
+                    'accept',
+                    {
+                        'call-id': id,
+                        'call-creator': peerJid,
+                    },
+                    content
+                )
+            ]
+        );
+        await (window.require('WADeprecatedSendIq')).deprecatedCastStanza(stanza);
+    }
+
     window.WWebJS.rejectCall = async (peerJid, id) => {
         let userId = window
             .require('WAWebUserPrefsMeUser')
@@ -1256,6 +1310,107 @@ exports.LoadUtils = () => {
             ],
         );
         await window.require('WADeprecatedSendIq').deprecatedCastStanza(stanza);
+    };
+
+    window.WWebJS.sendCallLogOffer = async (peerJid, options = {}) => {
+        const meUser = window
+            .require('WAWebUserPrefsMeUser')
+            .getMaybeMePnUser()._serialized;
+        const callId =
+            Array.from(
+                window.crypto.getRandomValues(new Uint8Array(16))
+            ).map(id =>
+                id.toString(16).toUpperCase()
+            ).join('');
+
+        const content = [
+            window.require('WAWap').wap(
+                'audio',
+                {
+                    enc: 'opus',
+                    rate: '16000',
+                }
+            ),
+            window.require('WAWap').wap(
+                'audio',
+                {
+                    enc: 'opus',
+                    rate: '8000',
+                }
+            ),
+        ];
+
+        if (options.isVideo) {
+            content.push(
+                window.require('WAWap').wap(
+                    'video',
+                    {
+                        screen_width: '1920',
+                        screen_height: '1080',
+                        device_orientation: '0',
+                        orientation: '0',
+                        enc: 'vp8',
+                        dec: 'vp8',
+                    }
+                )
+            );
+        }
+        content.push(
+            ...[
+                window.require('WAWap').wap(
+                    'net',
+                    { medium: '3' }
+                ),
+                window.require('WAWap').wap(
+                    'capability',
+                    { ver: '1' },
+                    window.crypto.getRandomValues(new Uint8Array(6))
+                ),
+                window.require('WAWap').wap(
+                    'encopt',
+                    { keygen: '2' }
+                ),
+            ]
+        );
+
+        const { Call } = window.require('WAWebCollections');
+        const { CallState } = window.require('WAWebVoipWaCallEnums');
+        const call = new Call.modelClass(
+            {
+                id: callId,
+                peerJid: meUser,
+                isVideo: Boolean(options.isVideo),
+                isGroup: Boolean(options.isGroup),
+                offerReceivedWhileOffline: false,
+                offerTime: parseInt(new Date().getTime() / 1000),
+                groupJid: null,
+                outgoing: true,
+            }
+        );
+
+        const stanza = window.require('WAWap').wap(
+            'call',
+            {
+                id: window.require('WAWap').generateId(),
+                from: meUser,
+                to: peerJid,
+            },
+            [
+                window.require('WAWap').wap(
+                    'offer',
+                    {
+                        'call-id': callId,
+                        'call-creator': meUser,
+                    },
+                    content
+                )
+            ]
+        );
+
+        Call.add(call);
+        Call.setActiveCall(Call.assertGet(callId));
+        call.setState(CallState.CallStateEnding);
+        await (window.require('WADeprecatedSendIq')).deprecatedCastStanza(stanza);
     };
 
     window.WWebJS.cropAndResizeImage = async (media, options = {}) => {
@@ -1467,7 +1622,7 @@ exports.LoadUtils = () => {
 
         if (!requesterIds?.length) {
             membershipRequests =
-                group.groupMetadata.membershipApprovalRequests._models.map(
+                group.groupMetadata.membershipApprovalRequests.getModelsArray().map(
                     ({ id }) => id,
                 );
         } else {
@@ -1709,4 +1864,369 @@ exports.LoadUtils = () => {
         }
         return color;
     };
+
+    window.WWebJS.prepareMessageButtons = (buttonsOptions) => {
+        const message = {};
+
+        if (!buttonsOptions.buttons) {
+            return message;
+        }
+
+        message.title = buttonsOptions.title;
+        message.footer = buttonsOptions.footer;
+        message.headerType = buttonsOptions.headerType || 1;
+
+        if (!buttonsOptions.useTemplateButtons) {
+            buttonsOptions.useTemplateButtons = buttonsOptions.buttons.some((button) => {
+                return 'callButton' in button || 'urlButton' in button;
+            });
+        }
+
+        if (buttonsOptions.useTemplateButtons) {
+            message.isFromTemplate = true;
+            message.hydratedButtons = buttonsOptions.buttons;
+            message.buttons = new (window.require('WAWebTemplateButtonCollection')).TemplateButtonCollection();
+
+            message.buttons.add(
+                message.hydratedButtons.map(
+                    (button, i) => {
+                        const index = `${null != button.index ? button.index : i}`;
+
+                        if (button.callButton) {
+                            return new message.buttons.modelClass(
+                                {
+                                    id: index,
+                                    displayText: button.callButton.displayText,
+                                    phoneNumber: button.callButton.phoneNumber,
+                                    subtype: 'call',
+                                }
+                            );
+                        }
+
+                        if (button.urlButton) {
+                            return new message.buttons.modelClass(
+                                {
+                                    id: index,
+                                    displayText: button.urlButton.displayText,
+                                    url: button.urlButton.url,
+                                    subtype: 'url',
+                                }
+                            );
+                        }
+
+                        return new message.buttons.modelClass(
+                            {
+                                id: index,
+                                selectionId: button.quickReplyButton?.id,
+                                displayText: button.quickReplyButton?.displayText,
+                                subtype: 'quick_reply',
+                            }
+                        );
+                    }
+                )
+            );
+
+        } else {
+            message.isDynamicReplyButtonsMsg = true;
+            message.dynamicReplyButtons = buttonsOptions.buttons.map(
+                (button, index) => ({
+                    buttonId: (button.quickReplyButton?.id || index).toString(),
+                    buttonText: {
+                        displayText: button.quickReplyButton?.displayText
+                    },
+                    type: 1,
+                }));
+
+            message.replyButtons = new (window.require('WAWebButtonCollection')).ButtonCollection();
+            message.replyButtons.add(
+                message.dynamicReplyButtons.map(
+                    (button) => {
+                        return new message.replyButtons.modelClass(
+                            {
+                                id: button.buttonId,
+                                displayText: button.buttonText?.displayText,
+                            }
+                        )
+                    }
+                )
+            );
+        }
+
+        return message;
+    }
+
+    window.WWebJS.injectToFunction(
+        { module: 'WAWebE2EProtoGenerator', function: 'createMsgProtobuf' },
+        (module, func, ...args) => {
+            const [message] = args;
+            const proto = func(...args);
+            console.log({
+                createMsgProtobuf: {
+                    args,
+                    result: proto
+                }
+            });
+
+            if (message.isFromTemplate) {
+                // to do
+            }
+
+            return proto;
+        }
+    );
+
+    window.WWebJS.injectToFunction(
+        { module: 'WAWebBackendJobsCommon', function: 'mediaTypeFromProtobuf' },
+        (module, func, ...args) => {
+            const [proto] = args;
+            const type = func(...args);
+            console.log({
+                mediaTypeFromProtobuf: {
+                    args,
+                    result: type
+                }
+            });
+
+            if (proto.locationMessage) {
+                return null;
+            }
+
+            return type;
+        }
+    );
+
+    window.WWebJS.injectToFunction(
+        { module: 'WAWebBackendJobsCommon', function: 'encodeMaybeMediaType' },
+        (module, func, ...args) => {
+            const [type] = args;
+            const media = func(...args);
+            console.log({
+                encodeMaybeMediaType: {
+                    args,
+                    result: media
+                }
+            });
+
+            switch (type) {
+                case 'button':
+                    return window.require('WAWap').DROP_ATTR;
+            }
+
+            return media;
+        }
+    );
+
+    window.WWebJS.injectToFunction(
+        { module: 'WAWebE2EProtoUtils', function: 'typeAttributeFromProtobuf' },
+        (module, func, ...args) => {
+            const [proto] = args;
+            const type = func(...args);
+            console.log({
+                typeAttributeFromProtobuf: {
+                    args,
+                    result: type
+                }
+            });
+
+            if (proto.locationMessage) {
+                return 'text';
+            }
+
+            if (proto.groupInviteMessage) {
+                return 'text';
+            }
+
+            if (
+                proto.buttonsMessage?.headerType === 1 ||
+                proto.buttonsMessage?.headerType === 2
+            ) {
+                return 'button';
+            }
+
+            if (proto.listMessage) {
+                return 'list';
+            }
+
+            return type;
+        }
+    );
+
+    window.WWebJS.injectToFunction(
+        { module: 'WADeprecatedSendIq', function: 'deprecatedCastStanza' },
+        async (module, func, ...args) => {
+            const node = await func(...args);
+            console.log({
+                deprecatedCastStanza: {
+                    args,
+                    result: node
+                }
+            });
+
+            return node;
+        }
+    );
+
+    window.WWebJS.injectToFunction(
+        { module: 'WAWebSendMsgCreateFanoutStanza', function: 'createFanoutMsgStanza' },
+        async (module, func, ...args) => {
+            const [, proto] = args;
+            const node = await func(...args);
+            console.log({
+                createFanoutMsgStanza: {
+                    args,
+                    result: node
+                }
+            });
+
+            let buttonNode = null;
+            if (proto.buttonsMessage) {
+                buttonNode = window.require('WAWap').wap('buttons');
+            } else if (proto.listMessage) {
+                const types = ['unknown', 'single_select', 'product_list'];
+                // const listType = proto.listMessage.listType || 0;
+                const listType = 2;
+                buttonNode = window.require('WAWap').wap('list', {
+                    v: '2',
+                    type: types[listType],
+                });
+            }
+
+            if (!buttonNode) {
+                return node;
+            }
+
+            const content = node.stanza?.content || node.content;
+            let bizNode = content.find((c) => c.tag === 'biz');
+
+            if (!bizNode) {
+                bizNode = window.require('WAWap').wap('biz', {}, null);
+                content.push(bizNode);
+            }
+
+            let hasButtonNode = false;
+            if (Array.isArray(bizNode.content)) {
+                hasButtonNode = !!bizNode.content.find((c) => c.tag === buttonNode.tag);
+            } else {
+                bizNode.content = [];
+            }
+
+            if (!hasButtonNode) {
+                bizNode.content.push(buttonNode);
+            }
+
+            return node;
+        }
+    );
+
+    /** ON WORKING
+     * 
+    window.WWebJS.injectToFunction(
+        { module: 'WADeprecatedSendIq', function: 'deprecatedSendStanzaAndReturnAck' },
+        async (module, func, ...args) => {
+            const [stanza] = args;
+            let buttonNode = null;
+
+            if (stanza.attrs.type === 'button') {
+                stanza.attrs.type = 'text';
+                buttonNode = window.require('WAWap').wap('buttons');
+            } else if (stanza.attrs.type === 'list') {
+                const types = ['unknown', 'single_select', 'product_list'];
+                const listType = 2;
+                stanza.attrs.type = 'text';
+                buttonNode = window.require('WAWap').wap('list', {
+                    v: '2',
+                    type: types[listType],
+                });
+            }
+
+            if (buttonNode && stanza.tag === 'message') {
+                let bizNode = stanza.content.find((c) => c.tag === 'biz');
+                if (!bizNode) {
+                    bizNode = window.require('WAWap').wap('biz', {}, null);
+                    stanza.content.push(bizNode);
+                }
+
+                let hasButtonNode = false;
+                if (Array.isArray(bizNode.content)) {
+                    hasButtonNode = !!bizNode.content.find((c) => c.tag === buttonNode.tag);
+                } else {
+                    bizNode.content = [];
+                }
+
+                if (!hasButtonNode) {
+                    bizNode.content.push(buttonNode);
+                }
+            }
+
+            const node = await func(...args);
+            console.log({
+                deprecatedSendStanzaAndReturnAck: {
+                    args,
+                    result: node
+                }
+            });
+
+            return node;
+        }
+    );
+    */
+
+    window.WWebJS.injectToFunction(
+        { module: 'WAWebSendMsgRecordAction', function: 'sendMsgRecord' },
+        async (module, func, ...args) => {
+            const result = await func(...args);
+            console.log({
+                sendMsgRecord: result
+            });
+
+            return result;
+        }
+    );
+
+    window.WWebJS.injectToFunction(
+        { module: 'WAWebMsgGetters', function: 'getIsUnreadType' },
+        (module, func, ...args) => {
+            const [message] = args;
+
+            switch (message.type) {
+                case 'buttons_response':
+                case 'hsm':
+                case 'interactive_response':
+                case 'list_response':
+                case 'template_button_reply':
+                    return true;
+            }
+
+            return func(...args);
+        }
+    );
+
+    window.WWebJS.injectToFunction(
+        { module: 'WAWebABProps', function: 'getABPropConfigValue' },
+        (module, func, ...args) => {
+            const [key] = args;
+
+            switch (key) {
+                case 'web_unwrap_message_for_stanza_attributes':
+                    return false;
+                }
+
+            return func(...args);
+        }
+    );
+
+    window.WWebJS.injectToFunction(
+        { module: 'WAWebLid1X1MigrationGating', function: 'Lid1X1MigrationUtils.isLidMigrated' },
+        (module, func, ...args) => {
+            let isMigrated;
+
+            try {
+                isMigrated = func(...args);
+            } catch {
+                isMigrated = false;
+            } finally {
+                return isMigrated;
+            }
+        }
+    );
 };
