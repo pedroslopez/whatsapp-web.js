@@ -375,6 +375,12 @@ declare namespace WAWebJS {
         /** Get Poll Votes */
         getPollVotes(messageId: string): Promise<PollVote[]>;
 
+        /** Send a call log offer */
+        sendCallLog(
+            userId: string,
+            options?: CallLogOptions,
+        ): Promise<void>;
+
         /** Generic event */
         on(event: string, listener: (...args: any) => void): this;
 
@@ -2022,6 +2028,14 @@ declare namespace WAWebJS {
          * the current user will be dismissed as a channel admin and will become to a channel subscriber.
          */
         shouldDismissSelfAsAdmin?: boolean;
+    }
+
+    /** Options for sending a call log offers */
+    export interface CallLogOptions {
+        /** Set for audio or video call type */
+        isVideo?: boolean;
+        /** Set the call is for group */
+        isGroup?: boolean;
     }
 
     /** Options for sending a message */
