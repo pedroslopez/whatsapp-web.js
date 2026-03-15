@@ -378,7 +378,10 @@ declare namespace WAWebJS {
         getPollVotes(messageId: string): Promise<PollVote[]>;
 
         /** Send a call log offer */
-        sendCallLog(userId: string, options?: CallLogOptions): Promise<void>;
+        sendCallLog(
+            userId: string,
+            options?: CallLogOptions,
+        ): Promise<void>;
 
         /** Generic event */
         on(event: string, listener: (...args: any) => void): this;
