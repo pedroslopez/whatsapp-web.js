@@ -241,16 +241,24 @@ class Client extends EventEmitter {
                 );
 
                 await this.pupPage.evaluate(async () => {
-                    const registrationInfo = await (window.require('WAWebSignalStoreApi')).waSignalStore.getRegistrationInfo();
-                    const noiseKeyPair = await (window.require('WAWebUserPrefsInfoStore')).waNoiseInfo.get();
-                    const staticKeyB64 = window.require('WABase64').encodeB64(
-                        noiseKeyPair.staticKeyPair.pubKey,
-                    );
-                    const identityKeyB64 = window.require('WABase64').encodeB64(
-                            registrationInfo.identityKeyPair.pubKey,
-                        );
-                    const advSecretKey = await (window.require('WAWebAdvSignatureApi')).getADVSecretKey();
-                    const platform = window.require('WAWebCompanionRegClientUtils').DEVICE_PLATFORM;
+                    const registrationInfo = await window
+                        .require('WAWebSignalStoreApi')
+                        .waSignalStore.getRegistrationInfo();
+                    const noiseKeyPair = await window
+                        .require('WAWebUserPrefsInfoStore')
+                        .waNoiseInfo.get();
+                    const staticKeyB64 = window
+                        .require('WABase64')
+                        .encodeB64(noiseKeyPair.staticKeyPair.pubKey);
+                    const identityKeyB64 = window
+                        .require('WABase64')
+                        .encodeB64(registrationInfo.identityKeyPair.pubKey);
+                    const advSecretKey = await window
+                        .require('WAWebAdvSignatureApi')
+                        .getADVSecretKey();
+                    const platform = window.require(
+                        'WAWebCompanionRegClientUtils',
+                    ).DEVICE_PLATFORM;
                     const getQR = (ref) =>
                         ref +
                         ',' +
@@ -262,10 +270,14 @@ class Client extends EventEmitter {
                         ',' +
                         platform;
 
-                    window.onQRChangedEvent(getQR(window.require('WAWebConnModel').Conn.ref)); // initial qr
-                    window.require('WAWebConnModel').Conn.on('change:ref', (_, ref) => {
-                        window.onQRChangedEvent(getQR(ref));
-                    }); // future QR changes
+                    window.onQRChangedEvent(
+                        getQR(window.require('WAWebConnModel').Conn.ref),
+                    ); // initial qr
+                    window
+                        .require('WAWebConnModel')
+                        .Conn.on('change:ref', (_, ref) => {
+                            window.onQRChangedEvent(getQR(ref));
+                        }); // future QR changes
                 });
             }
         }
@@ -403,7 +415,9 @@ class Client extends EventEmitter {
             const Cmd = window.require('WAWebCmd').Cmd;
             Cmd.on('offline_progress_update_from_bridge', () => {
                 window.onOfflineProgressUpdateEvent(
-                    window.require('WAWebOfflineHandler').OfflineMessageHandler.getOfflineDeliveryProgress(),
+                    window
+                        .require('WAWebOfflineHandler')
+                        .OfflineMessageHandler.getOfflineDeliveryProgress(),
                 );
             });
             Cmd.on('logout', async () => {
@@ -511,14 +525,15 @@ class Client extends EventEmitter {
         return await this.pupPage.evaluate(
             async (phoneNumber, showNotification, intervalMs) => {
                 const getCode = async () => {
-                    window.require('WAWebAltDeviceLinkingApi').setPairingType(
-                        'ALT_DEVICE_LINKING',
-                    );
-                    await (window.require('WAWebAltDeviceLinkingApi')).initializeAltDeviceLinking();
-                    return window.require('WAWebAltDeviceLinkingApi').startAltLinkingFlow(
-                        phoneNumber,
-                        showNotification,
-                    );
+                    window
+                        .require('WAWebAltDeviceLinkingApi')
+                        .setPairingType('ALT_DEVICE_LINKING');
+                    await window
+                        .require('WAWebAltDeviceLinkingApi')
+                        .initializeAltDeviceLinking();
+                    return window
+                        .require('WAWebAltDeviceLinkingApi')
+                        .startAltLinkingFlow(phoneNumber, showNotification);
                 };
                 if (window.codeInterval) {
                     clearInterval(window.codeInterval); // remove existing interval
@@ -1414,30 +1429,32 @@ class Client extends EventEmitter {
             );
         }
 
-        const sentMsg = await this.pupPage.evaluate(
-            async (chatId, content, options, sendSeen) => {
-                const chat = await window.WWebJS.getChat(chatId, {
-                    getAsModel: false,
-                });
+        const sentMsg = await this.pupPage
+            .evaluate(
+                async (chatId, content, options, sendSeen) => {
+                    const chat = await window.WWebJS.getChat(chatId, {
+                        getAsModel: false,
+                    });
 
-                if (!chat) return null;
+                    if (!chat) return null;
 
-                if (sendSeen) {
-                    await window.WWebJS.sendSeen(chatId);
-                }
+                    if (sendSeen) {
+                        await window.WWebJS.sendSeen(chatId);
+                    }
 
-                const msg = await window.WWebJS.sendMessage(
-                    chat,
-                    content,
-                    options,
-                );
-                return msg ? window.WWebJS.getMessageModel(msg) : undefined;
-            },
-            chatId,
-            content,
-            internalOptions,
-            sendSeen,
-        ).catch(() => {});
+                    const msg = await window.WWebJS.sendMessage(
+                        chat,
+                        content,
+                        options,
+                    );
+                    return msg ? window.WWebJS.getMessageModel(msg) : undefined;
+                },
+                chatId,
+                content,
+                internalOptions,
+                sendSeen,
+            )
+            .catch(() => {});
 
         return sentMsg ? new Message(this, sentMsg) : undefined;
     }
@@ -3294,15 +3311,17 @@ class Client extends EventEmitter {
      * @returns {Promise<void>}
      */
     async sendCallLog(userId, options = {}) {
-        return await this.pupPage.evaluate(async (id, callOptions) => {
-            const userWid = window
-                .require('WAWebWidFactory')
-                .createWid(id);
-            if (!userWid.isUser())
-                throw 'Invalid \'userId\' parameter value is provided. The call offer can only be sent to a user.';
+        return await this.pupPage.evaluate(
+            async (id, callOptions) => {
+                const userWid = window.require('WAWebWidFactory').createWid(id);
+                if (!userWid.isUser())
+                    throw "Invalid 'userId' parameter value is provided. The call offer can only be sent to a user.";
 
-            return await window.WWebJS.sendCallLogOffer(id, callOptions);
-        }, userId, options);
+                return await window.WWebJS.sendCallLogOffer(id, callOptions);
+            },
+            userId,
+            options,
+        );
     }
 }
 

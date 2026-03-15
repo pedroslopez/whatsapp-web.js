@@ -3,6 +3,7 @@ dist
 coverage
 docs
 *.min.js
+*.d.ts
 .wa-version
 .wwebjs_auth
 .wwebjs_cache

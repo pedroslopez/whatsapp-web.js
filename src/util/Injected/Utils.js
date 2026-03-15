@@ -932,7 +932,8 @@ exports.LoadUtils = () => {
                 window.require('WAWebCollections').GroupMetadata ||
                 window.require('WAWebCollections').WAWebGroupMetadataCollection;
             await groupMetadata.update(chatWid);
-            chat.groupMetadata.participants.getModelsArray()
+            chat.groupMetadata.participants
+                .getModelsArray()
                 .filter((x) => x.id?._serialized?.endsWith('@lid'))
                 .forEach(
                     (x) =>
@@ -1219,53 +1220,40 @@ exports.LoadUtils = () => {
         const call = Call.get(id);
 
         const content = [
-            window.require('WAWap').wap(
-                'audio',
-                {
-                    enc: 'opus',
-                    rate: '16000',
-                }
-            ),
-            window.require('WAWap').wap(
-                'audio',
-                {
-                    enc: 'opus',
-                    rate: '8000',
-                }
-            ),
+            window.require('WAWap').wap('audio', {
+                enc: 'opus',
+                rate: '16000',
+            }),
+            window.require('WAWap').wap('audio', {
+                enc: 'opus',
+                rate: '8000',
+            }),
         ];
 
         if (call.isVideo) {
             content.push(
-                window.require('WAWap').wap(
-                    'video',
-                    {
-                        screen_width: '1920',
-                        screen_height: '1080',
-                        device_orientation: '0',
-                        orientation: '0',
-                        enc: 'vp8',
-                        dec: 'vp8',
-                    }
-                )
+                window.require('WAWap').wap('video', {
+                    screen_width: '1920',
+                    screen_height: '1080',
+                    device_orientation: '0',
+                    orientation: '0',
+                    enc: 'vp8',
+                    dec: 'vp8',
+                }),
             );
         }
         content.push(
             ...[
-                window.require('WAWap').wap(
-                    'net',
-                    { medium: '3' }
-                ),
-                window.require('WAWap').wap(
-                    'capability',
-                    { ver: '1' },
-                    window.crypto.getRandomValues(new Uint8Array(6))
-                ),
-                window.require('WAWap').wap(
-                    'encopt',
-                    { keygen: '2' }
-                ),
-            ]
+                window.require('WAWap').wap('net', { medium: '3' }),
+                window
+                    .require('WAWap')
+                    .wap(
+                        'capability',
+                        { ver: '1' },
+                        window.crypto.getRandomValues(new Uint8Array(6)),
+                    ),
+                window.require('WAWap').wap('encopt', { keygen: '2' }),
+            ],
         );
 
         const stanza = window.require('WAWap').wap(
@@ -1282,12 +1270,12 @@ exports.LoadUtils = () => {
                         'call-id': id,
                         'call-creator': peerJid,
                     },
-                    content
-                )
-            ]
+                    content,
+                ),
+            ],
         );
-        await (window.require('WADeprecatedSendIq')).deprecatedCastStanza(stanza);
-    }
+        await window.require('WADeprecatedSendIq').deprecatedCastStanza(stanza);
+    };
 
     window.WWebJS.rejectCall = async (peerJid, id) => {
         let userId = window
@@ -1316,77 +1304,61 @@ exports.LoadUtils = () => {
         const meUser = window
             .require('WAWebUserPrefsMeUser')
             .getMaybeMePnUser()._serialized;
-        const callId =
-            Array.from(
-                window.crypto.getRandomValues(new Uint8Array(16))
-            ).map(id =>
-                id.toString(16).toUpperCase()
-            ).join('');
+        const callId = Array.from(
+            window.crypto.getRandomValues(new Uint8Array(16)),
+        )
+            .map((id) => id.toString(16).toUpperCase())
+            .join('');
 
         const content = [
-            window.require('WAWap').wap(
-                'audio',
-                {
-                    enc: 'opus',
-                    rate: '16000',
-                }
-            ),
-            window.require('WAWap').wap(
-                'audio',
-                {
-                    enc: 'opus',
-                    rate: '8000',
-                }
-            ),
+            window.require('WAWap').wap('audio', {
+                enc: 'opus',
+                rate: '16000',
+            }),
+            window.require('WAWap').wap('audio', {
+                enc: 'opus',
+                rate: '8000',
+            }),
         ];
 
         if (options.isVideo) {
             content.push(
-                window.require('WAWap').wap(
-                    'video',
-                    {
-                        screen_width: '1920',
-                        screen_height: '1080',
-                        device_orientation: '0',
-                        orientation: '0',
-                        enc: 'vp8',
-                        dec: 'vp8',
-                    }
-                )
+                window.require('WAWap').wap('video', {
+                    screen_width: '1920',
+                    screen_height: '1080',
+                    device_orientation: '0',
+                    orientation: '0',
+                    enc: 'vp8',
+                    dec: 'vp8',
+                }),
             );
         }
         content.push(
             ...[
-                window.require('WAWap').wap(
-                    'net',
-                    { medium: '3' }
-                ),
-                window.require('WAWap').wap(
-                    'capability',
-                    { ver: '1' },
-                    window.crypto.getRandomValues(new Uint8Array(6))
-                ),
-                window.require('WAWap').wap(
-                    'encopt',
-                    { keygen: '2' }
-                ),
-            ]
+                window.require('WAWap').wap('net', { medium: '3' }),
+                window
+                    .require('WAWap')
+                    .wap(
+                        'capability',
+                        { ver: '1' },
+                        window.crypto.getRandomValues(new Uint8Array(6)),
+                    ),
+                window.require('WAWap').wap('encopt', { keygen: '2' }),
+            ],
         );
 
         const { Call } = window.require('WAWebCollections');
         const { CallState } = window.require('WAWebVoipWaCallEnums');
-        const call = new Call.modelClass(
-            {
-                id: callId,
-                peerJid: meUser,
-                isVideo: Boolean(options.isVideo),
-                isGroup: Boolean(options.isGroup),
-                offerReceivedWhileOffline: false,
-                offerTime: parseInt(new Date().getTime() / 1000),
-                groupJid: null,
-                outgoing: true,
-            }
-        );
+        const call = new Call.modelClass({
+            id: callId,
+            peerJid: meUser,
+            isVideo: Boolean(options.isVideo),
+            isGroup: Boolean(options.isGroup),
+            offerReceivedWhileOffline: false,
+            offerTime: parseInt(new Date().getTime() / 1000),
+            groupJid: null,
+            outgoing: true,
+        });
 
         const stanza = window.require('WAWap').wap(
             'call',
@@ -1402,15 +1374,15 @@ exports.LoadUtils = () => {
                         'call-id': callId,
                         'call-creator': meUser,
                     },
-                    content
-                )
-            ]
+                    content,
+                ),
+            ],
         );
 
         Call.add(call);
         Call.setActiveCall(Call.assertGet(callId));
         call.setState(CallState.CallStateEnding);
-        await (window.require('WADeprecatedSendIq')).deprecatedCastStanza(stanza);
+        await window.require('WADeprecatedSendIq').deprecatedCastStanza(stanza);
     };
 
     window.WWebJS.cropAndResizeImage = async (media, options = {}) => {
@@ -1621,10 +1593,9 @@ exports.LoadUtils = () => {
             .queryAndUpdateGroupMetadataById({ id: groupId });
 
         if (!requesterIds?.length) {
-            membershipRequests =
-                group.groupMetadata.membershipApprovalRequests.getModelsArray().map(
-                    ({ id }) => id,
-                );
+            membershipRequests = group.groupMetadata.membershipApprovalRequests
+                .getModelsArray()
+                .map(({ id }) => id);
         } else {
             !Array.isArray(requesterIds) && (requesterIds = [requesterIds]);
             membershipRequests = requesterIds.map((r) =>
@@ -1877,83 +1848,77 @@ exports.LoadUtils = () => {
         message.headerType = buttonsOptions.headerType || 1;
 
         if (!buttonsOptions.useTemplateButtons) {
-            buttonsOptions.useTemplateButtons = buttonsOptions.buttons.some((button) => {
-                return 'callButton' in button || 'urlButton' in button;
-            });
+            buttonsOptions.useTemplateButtons = buttonsOptions.buttons.some(
+                (button) => {
+                    return 'callButton' in button || 'urlButton' in button;
+                },
+            );
         }
 
         if (buttonsOptions.useTemplateButtons) {
             message.isFromTemplate = true;
             message.hydratedButtons = buttonsOptions.buttons;
-            message.buttons = new (window.require('WAWebTemplateButtonCollection')).TemplateButtonCollection();
+            message.buttons = new (window.require(
+                'WAWebTemplateButtonCollection',
+            ).TemplateButtonCollection)();
 
             message.buttons.add(
-                message.hydratedButtons.map(
-                    (button, i) => {
-                        const index = `${null != button.index ? button.index : i}`;
+                message.hydratedButtons.map((button, i) => {
+                    const index = `${null != button.index ? button.index : i}`;
 
-                        if (button.callButton) {
-                            return new message.buttons.modelClass(
-                                {
-                                    id: index,
-                                    displayText: button.callButton.displayText,
-                                    phoneNumber: button.callButton.phoneNumber,
-                                    subtype: 'call',
-                                }
-                            );
-                        }
-
-                        if (button.urlButton) {
-                            return new message.buttons.modelClass(
-                                {
-                                    id: index,
-                                    displayText: button.urlButton.displayText,
-                                    url: button.urlButton.url,
-                                    subtype: 'url',
-                                }
-                            );
-                        }
-
-                        return new message.buttons.modelClass(
-                            {
-                                id: index,
-                                selectionId: button.quickReplyButton?.id,
-                                displayText: button.quickReplyButton?.displayText,
-                                subtype: 'quick_reply',
-                            }
-                        );
+                    if (button.callButton) {
+                        return new message.buttons.modelClass({
+                            id: index,
+                            displayText: button.callButton.displayText,
+                            phoneNumber: button.callButton.phoneNumber,
+                            subtype: 'call',
+                        });
                     }
-                )
-            );
 
+                    if (button.urlButton) {
+                        return new message.buttons.modelClass({
+                            id: index,
+                            displayText: button.urlButton.displayText,
+                            url: button.urlButton.url,
+                            subtype: 'url',
+                        });
+                    }
+
+                    return new message.buttons.modelClass({
+                        id: index,
+                        selectionId: button.quickReplyButton?.id,
+                        displayText: button.quickReplyButton?.displayText,
+                        subtype: 'quick_reply',
+                    });
+                }),
+            );
         } else {
             message.isDynamicReplyButtonsMsg = true;
             message.dynamicReplyButtons = buttonsOptions.buttons.map(
                 (button, index) => ({
                     buttonId: (button.quickReplyButton?.id || index).toString(),
                     buttonText: {
-                        displayText: button.quickReplyButton?.displayText
+                        displayText: button.quickReplyButton?.displayText,
                     },
                     type: 1,
-                }));
+                }),
+            );
 
-            message.replyButtons = new (window.require('WAWebButtonCollection')).ButtonCollection();
+            message.replyButtons = new (window.require(
+                'WAWebButtonCollection',
+            ).ButtonCollection)();
             message.replyButtons.add(
-                message.dynamicReplyButtons.map(
-                    (button) => {
-                        return new message.replyButtons.modelClass(
-                            {
-                                id: button.buttonId,
-                                displayText: button.buttonText?.displayText,
-                            }
-                        )
-                    }
-                )
+                message.dynamicReplyButtons.map((button) => {
+                    return new message.replyButtons.modelClass({
+                        id: button.buttonId,
+                        displayText: button.buttonText?.displayText,
+                    });
+                }),
             );
         }
 
         return message;
-    }
+    };
 
     window.WWebJS.injectToFunction(
         { module: 'WAWebE2EProtoGenerator', function: 'createMsgProtobuf' },
@@ -1963,8 +1928,8 @@ exports.LoadUtils = () => {
             console.log({
                 createMsgProtobuf: {
                     args,
-                    result: proto
-                }
+                    result: proto,
+                },
             });
 
             if (message.isFromTemplate) {
@@ -1972,7 +1937,7 @@ exports.LoadUtils = () => {
             }
 
             return proto;
-        }
+        },
     );
 
     window.WWebJS.injectToFunction(
@@ -1983,8 +1948,8 @@ exports.LoadUtils = () => {
             console.log({
                 mediaTypeFromProtobuf: {
                     args,
-                    result: type
-                }
+                    result: type,
+                },
             });
 
             if (proto.locationMessage) {
@@ -1992,7 +1957,7 @@ exports.LoadUtils = () => {
             }
 
             return type;
-        }
+        },
     );
 
     window.WWebJS.injectToFunction(
@@ -2003,8 +1968,8 @@ exports.LoadUtils = () => {
             console.log({
                 encodeMaybeMediaType: {
                     args,
-                    result: media
-                }
+                    result: media,
+                },
             });
 
             switch (type) {
@@ -2013,7 +1978,7 @@ exports.LoadUtils = () => {
             }
 
             return media;
-        }
+        },
     );
 
     window.WWebJS.injectToFunction(
@@ -2024,8 +1989,8 @@ exports.LoadUtils = () => {
             console.log({
                 typeAttributeFromProtobuf: {
                     args,
-                    result: type
-                }
+                    result: type,
+                },
             });
 
             if (proto.locationMessage) {
@@ -2048,7 +2013,7 @@ exports.LoadUtils = () => {
             }
 
             return type;
-        }
+        },
     );
 
     window.WWebJS.injectToFunction(
@@ -2058,24 +2023,27 @@ exports.LoadUtils = () => {
             console.log({
                 deprecatedCastStanza: {
                     args,
-                    result: node
-                }
+                    result: node,
+                },
             });
 
             return node;
-        }
+        },
     );
 
     window.WWebJS.injectToFunction(
-        { module: 'WAWebSendMsgCreateFanoutStanza', function: 'createFanoutMsgStanza' },
+        {
+            module: 'WAWebSendMsgCreateFanoutStanza',
+            function: 'createFanoutMsgStanza',
+        },
         async (module, func, ...args) => {
             const [, proto] = args;
             const node = await func(...args);
             console.log({
                 createFanoutMsgStanza: {
                     args,
-                    result: node
-                }
+                    result: node,
+                },
             });
 
             let buttonNode = null;
@@ -2105,7 +2073,9 @@ exports.LoadUtils = () => {
 
             let hasButtonNode = false;
             if (Array.isArray(bizNode.content)) {
-                hasButtonNode = !!bizNode.content.find((c) => c.tag === buttonNode.tag);
+                hasButtonNode = !!bizNode.content.find(
+                    (c) => c.tag === buttonNode.tag,
+                );
             } else {
                 bizNode.content = [];
             }
@@ -2115,7 +2085,7 @@ exports.LoadUtils = () => {
             }
 
             return node;
-        }
+        },
     );
 
     /** ON WORKING
@@ -2176,11 +2146,11 @@ exports.LoadUtils = () => {
         async (module, func, ...args) => {
             const result = await func(...args);
             console.log({
-                sendMsgRecord: result
+                sendMsgRecord: result,
             });
 
             return result;
-        }
+        },
     );
 
     window.WWebJS.injectToFunction(
@@ -2198,7 +2168,7 @@ exports.LoadUtils = () => {
             }
 
             return func(...args);
-        }
+        },
     );
 
     window.WWebJS.injectToFunction(
@@ -2209,24 +2179,26 @@ exports.LoadUtils = () => {
             switch (key) {
                 case 'web_unwrap_message_for_stanza_attributes':
                     return false;
-                }
+            }
 
             return func(...args);
-        }
+        },
     );
 
     window.WWebJS.injectToFunction(
-        { module: 'WAWebLid1X1MigrationGating', function: 'Lid1X1MigrationUtils.isLidMigrated' },
+        {
+            module: 'WAWebLid1X1MigrationGating',
+            function: 'Lid1X1MigrationUtils.isLidMigrated',
+        },
         (module, func, ...args) => {
             let isMigrated;
-
             try {
                 isMigrated = func(...args);
             } catch {
                 isMigrated = false;
-            } finally {
-                return isMigrated;
             }
-        }
+
+            return isMigrated;
+        },
     );
 };

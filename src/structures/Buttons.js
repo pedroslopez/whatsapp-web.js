@@ -1,13 +1,15 @@
 'use strict';
 
 const MessageMedia = require('./MessageMedia');
-const Util = require('../util/Util');
 
 /**
  * Button spec used in Buttons constructor
  * @typedef {Object} ButtonSpec
  * @property {string=} id - Custom ID to set on the button. A random one will be generated if one is not passed.
  * @property {string} body - The text to show on the button.
+ * @property {string=} id - Custom ID to set on the button. A random one will be generated if one is not passed.
+ * @property {string=} url - Custom URL to set on the button. Optional and will change the type of the button
+ * @property {string=} number - Custom URL to set on the button. Optional and will change the type of the button
  */
 
 /**
@@ -15,6 +17,11 @@ const Util = require('../util/Util');
  * @property {string} buttonId
  * @property {number} type
  * @property {Object} buttonText
+ * @property {number} index
+ * @property {{displayText: string, url: string}=} urlButton
+ * @property {{displayText: string, phoneNumber: string}=} callButton
+ * @property {{displayText: string, id: string}=} quickReplyButton
+ * @property {{regularButtons: {text: string, id: string}}=} regularButtons
  */
 
 /**
@@ -26,8 +33,9 @@ class Buttons {
      * @param {ButtonSpec[]} buttons - See {@link ButtonSpec}
      * @param {string?} title
      * @param {string?} footer
+     * @param {boolean?} templateOverride
      */
-    constructor(body, buttons, title, footer) {
+    constructor(body, buttons, title, footer, templateOverride = false) {
         /**
          * Message body
          * @type {string|MessageMedia}
@@ -61,24 +69,57 @@ class Buttons {
         if (!this.buttons.length) {
             throw '[BT01] No buttons';
         }
+
+        /**
+         * Override buttons with templates
+         * @type {boolean}
+         */
+        this.useTemplateButtons = templateOverride;
     }
 
     /**
      * Creates button array from simple array
      * @param {ButtonSpec[]} buttons
      * @returns {FormattedButtonSpec[]}
-     * @example
-     * Input: [{id:'customId',body:'button1'},{body:'button2'},{body:'button3'},{body:'button4'}]
-     * Returns: [{ buttonId:'customId',buttonText:{'displayText':'button1'},type: 1 },{buttonId:'n3XKsL',buttonText:{'displayText':'button2'},type:1},{buttonId:'NDJk0a',buttonText:{'displayText':'button3'},type:1}]
      */
     _format(buttons) {
-        buttons = buttons.slice(0, 3); // phone users can only see 3 buttons, so lets limit this
-        return buttons.map((btn) => {
-            return {
-                buttonId: btn.id ? String(btn.id) : Util.generateHash(6),
-                buttonText: { displayText: btn.body },
-                type: 1,
-            };
+        // Limit the buttons (max 3 of regular and 3 of special buttons) 5 buttons total at the same time
+        const templateButtons = buttons.filter(
+            (button) => button.url || button.number,
+        );
+        const regularButtons = buttons.filter(
+            (button) => !button.url && !button.number,
+        );
+        buttons = regularButtons.concat(templateButtons);
+
+        return buttons.map((button, index) => {
+            if (button.url && button.number && button.id)
+                throw 'Only pick one of the following (url/number/id)';
+            if (button.number) {
+                return {
+                    index,
+                    callButton: {
+                        displayText: button.body,
+                        phoneNumber: button.number || '',
+                    },
+                };
+            } else if (button.url) {
+                return {
+                    index,
+                    urlButton: {
+                        displayText: button.body,
+                        url: button.url || '',
+                    },
+                };
+            } else {
+                return {
+                    index,
+                    quickReplyButton: {
+                        displayText: button.body,
+                        id: (button.id || index).toString(),
+                    },
+                };
+            }
         });
     }
 }

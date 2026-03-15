@@ -1,5 +1,7 @@
 import { EventEmitter } from 'events';
 import { RequestInit } from 'node-fetch';
+import { ButtonSpec, FormattedButtonSpec } from './src/structures/Buttons';
+import { FormattedSectionSpec, SectionSpec } from './src/structures/List';
 import * as puppeteer from 'puppeteer';
 import InterfaceController from './src/util/InterfaceController';
 
@@ -376,10 +378,7 @@ declare namespace WAWebJS {
         getPollVotes(messageId: string): Promise<PollVote[]>;
 
         /** Send a call log offer */
-        sendCallLog(
-            userId: string,
-            options?: CallLogOptions,
-        ): Promise<void>;
+        sendCallLog(userId: string, options?: CallLogOptions): Promise<void>;
 
         /** Generic event */
         on(event: string, listener: (...args: any) => void): this;
@@ -2419,14 +2418,14 @@ declare namespace WAWebJS {
     export class List {
         body: string;
         buttonText: string;
-        sections: Array<any>;
+        sections: Array<FormattedSectionSpec>;
         title?: string | null;
         footer?: string | null;
 
         constructor(
             body: string,
             buttonText: string,
-            sections: Array<any>,
+            sections: Array<SectionSpec>,
             title?: string | null,
             footer?: string | null,
         );
@@ -2435,17 +2434,13 @@ declare namespace WAWebJS {
     /** Message type Buttons */
     export class Buttons {
         body: string | MessageMedia;
-        buttons: Array<{
-            buttonId: string;
-            buttonText: { displayText: string };
-            type: number;
-        }>;
+        buttons: FormattedButtonSpec;
         title?: string | null;
         footer?: string | null;
 
         constructor(
             body: string,
-            buttons: Array<{ id?: string; body: string }>,
+            buttons: Array<ButtonSpec>,
             title?: string | null,
             footer?: string | null,
         );
