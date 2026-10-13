@@ -1224,7 +1224,8 @@ class Client extends EventEmitter {
                             const parentMsgKey = reaction.reactionParentKey;
                             const timestamp = reaction.reactionTimestamp / 1000;
                             const sender = reaction.author ?? reaction.from;
-                            const senderUserJid = sender._serialized;
+                            const senderUserJid =
+                                sender._serialized || sender.$1;
 
                             return {
                                 ...reaction,
@@ -1252,14 +1253,15 @@ class Client extends EventEmitter {
                             const parentMsgKey = vote.pollUpdateParentKey;
                             const timestamp = vote.t / 1000;
                             const sender = vote.author ?? vote.from;
-                            const senderUserJid = sender._serialized;
+                            const senderUserJid =
+                                sender._serialized || sender.$1;
 
                             let parentMessage = Msg.get(
-                                parentMsgKey._serialized,
+                                parentMsgKey._serialized || parentMsgKey.$1,
                             );
                             if (!parentMessage) {
                                 const fetched = await Msg.getMessagesById([
-                                    parentMsgKey._serialized,
+                                    parentMsgKey._serialized || parentMsgKey.$1,
                                 ]);
                                 parentMessage = fetched?.messages?.[0] || null;
                             }
@@ -1888,7 +1890,7 @@ class Client extends EventEmitter {
                 .joinGroupViaInvite(inviteCode);
         }, inviteCode);
 
-        return res.gid._serialized;
+        return res.gid._serialized || res.gid.$1;
     }
 
     /**
@@ -2432,7 +2434,8 @@ class Client extends EventEmitter {
                         (participant.wid = window
                             .require('WAWebApiContact')
                             .getPhoneNumber(participant.wid));
-                    const participantId = participant.wid._serialized;
+                    const participantId =
+                        participant.wid._serialized || participant.wid.$1;
                     const statusCode = participant.error || 200;
 
                     if (autoSendInviteV4 && statusCode === 403) {
@@ -2448,7 +2451,8 @@ class Client extends EventEmitter {
                                     (await window
                                         .require('WAWebCollections')
                                         .Chat.find(participant.wid)),
-                                createGroupResult.wid._serialized,
+                                createGroupResult.wid._serialized ||
+                                    createGroupResult.wid.$1,
                                 createGroupResult.subject,
                                 participant.invite_code,
                                 participant.invite_code_exp,
@@ -2922,7 +2926,7 @@ class Client extends EventEmitter {
             let chatIds = window
                 .require('WAWebCollections')
                 .Blocklist.getModelsArray()
-                .map((a) => a.id._serialized);
+                .map((a) => a.id._serialized || a.id.$1);
             return Promise.all(
                 chatIds.map((id) => window.WWebJS.getContact(id)),
             );
@@ -2983,7 +2987,9 @@ class Client extends EventEmitter {
                 );
                 const chats = window
                     .require('WAWebCollections')
-                    .Chat.filter((e) => chatIds.includes(e.id._serialized));
+                    .Chat.filter((e) =>
+                        chatIds.includes(e.id._serialized || e.id.$1),
+                    );
 
                 let actions = labels.map((label) => ({
                     id: label.id,
@@ -3364,8 +3370,8 @@ class Client extends EventEmitter {
                         await window.WWebJS.enforceLidAndPnRetrieval(userId);
 
                     return {
-                        lid: lid?._serialized,
-                        pn: phone?._serialized,
+                        lid: lid?._serialized || lid?.$1,
+                        pn: phone?._serialized || phone?.$1,
                     };
                 }),
             );
@@ -3436,9 +3442,12 @@ class Client extends EventEmitter {
 
             if (!serialized) return null;
 
-            serialized.chatId = window
-                .require('WAWebJidToWid')
-                .userJidToUserWid(serialized.chatJid)._serialized;
+            serialized.chatId = (() => {
+                const _w = window
+                    .require('WAWebJidToWid')
+                    .userJidToUserWid(serialized.chatJid);
+                return _w._serialized || _w.$1;
+            })();
             delete serialized.chatJid;
 
             return serialized;
